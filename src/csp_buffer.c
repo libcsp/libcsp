@@ -9,6 +9,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <csp/csp.h>
+#include <csp/csp_malloc.h>
 
 #define CSP_BUFFER_STATIC 0
 #define CSP_BUFFER_SIZE 320
@@ -42,14 +43,14 @@ int csp_buffer_init(int buf_count, int buf_size) {
 	size = buf_size;
 
 	/* Allocate main memory */
-	csp_buffer_p = pvPortMalloc(count * size);
+	csp_buffer_p = csp_malloc(count * size);
 	if (csp_buffer_p == NULL)
 		return 0;
 
 	/* Allocate housekeeping memory */
-	csp_buffer_list = (uint8_t *) pvPortMalloc(count * sizeof(uint8_t));
+	csp_buffer_list = (uint8_t *) csp_malloc(count * sizeof(uint8_t));
 	if (csp_buffer_list == NULL) {
-		vPortFree(csp_buffer_p);
+		csp_free(csp_buffer_p);
 		return 0;
 	}
 

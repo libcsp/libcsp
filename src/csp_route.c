@@ -2,13 +2,17 @@
 #include <stdio.h>
 #include <string.h>
 
+/* CSP includes */
 #include <csp/csp.h>
+#include <csp/thread.h>
+#include <csp/queue.h>
+#include <csp/semaphore.h>
+#include <csp/malloc.h>
+#include <csp/time.h>
 
-#include <FreeRTOS.h>
-#include <task.h>
-#include <queue.h>
-
-//#define DEBUG
+//#include <FreeRTOS.h>
+//#include <task.h>
+//#include <queue.h>
 
 /* Static allocation of interfaces */
 csp_iface_t iface[17];
@@ -16,7 +20,7 @@ csp_iface_t iface[17];
 /** Connection Fallback
  * This queue is called each time a false connection is created
  * this is used by the CSP router to receive any connection */
-static xQueueHandle connection_fallback = NULL;
+static csp_socket_t * fallback_socket = NULL;
 
 /** csp_route_table_init
  * Initialises the storage for the routing table
@@ -31,21 +35,21 @@ void csp_route_table_init(void) {
  * This task received any non-local connection and collects the data
  * on the connection. All data is forwarded out of the router
  * using the zsend call from csp */
-void vTaskCSPRouter(void * pvParameters) {
+csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 
 	/* Register Connection Fallback */
-	connection_fallback = xQueueCreate(20, sizeof(conn_t *));
+	//connection_fallback = xQueueCreate(20, sizeof(conn_t *));
 
 	conn_t *conn;
 	csp_packet_t * packet;
 
+    fallback_socket = csp_socket();
+
 	while (1) {
 
-		conn = csp_listen(connection_fallback, portMAX_DELAY);
+		conn = csp_accept(fallback_socket, CSP_MAX_DELAY);
 
-#ifdef DEBUG
-		printf("ROUTER: Recevied connection from %u to %u\r\n", conn->idin.src, conn->idin.dst);
-#endif
+		csp_debug("ROUTER: Recevied connection from %u to %u\r\n", conn->idin.src, conn->idin.dst);
 
 		while ((packet = csp_read(conn, 10)) != NULL) {
 
@@ -54,11 +58,9 @@ void vTaskCSPRouter(void * pvParameters) {
 
 		}
 
-		csp_conn_close(conn);
+		csp_close(conn);
 
-#ifdef DEBUG
-		printf("Connection Closed...\r\n");
-#endif
+		csp_debug("Connection Closed...\r\n");
 
 	}
 
@@ -70,7 +72,7 @@ void vTaskCSPRouter(void * pvParameters) {
  * To set a value pass a callback function
  * To clear a value pass a NULL value
  */
-void csp_route_set(const char * name, unsigned char node, nexthop_t nexthop) {
+void csp_route_set(const char * name, uint8_t node, nexthop_t nexthop) {
 
 	if (node <= 16) {
 		iface[node].nexthop = nexthop;
@@ -87,7 +89,7 @@ void csp_route_set(const char * name, unsigned char node, nexthop_t nexthop) {
  * If there is no explicit nexthop route for the destination
  * the default route (node 16) is used.
  */
-csp_iface_t * csp_route_if(int id) {
+csp_iface_t * csp_route_if(uint8_t id) {
 
 	if (iface[id].nexthop != NULL) {
 		iface[id].count++;
@@ -109,11 +111,11 @@ csp_iface_t * csp_route_if(int id) {
  * the connection is sent to the fallback handler, otherwise
  * the attempt is aborted
  */
-conn_t * csp_route(csp_id_t id, nexthop_t avoid_nexthop, portBASE_TYPE * pxTaskWoken) {
+conn_t * csp_route(csp_id_t id, nexthop_t avoid_nexthop, CSP_BASE_TYPE * pxTaskWoken) {
 
-	conn_t * conn;
-	xQueueHandle * queue = NULL;
-	csp_iface_t *dst;
+	csp_conn_t * conn;
+	csp_queue_handle_t * queue = NULL;
+	csp_iface_t * dst;
 
 	/* Search for an existing connection */
 	conn = csp_conn_find(id.ext, 0x03FFFF00);
@@ -128,11 +130,11 @@ conn_t * csp_route(csp_id_t id, nexthop_t avoid_nexthop, portBASE_TYPE * pxTaskW
 
 		/* Try to deliver to incoming port number */
 		if (ports[id.dport].state == PORT_OPEN) {
-			queue = &ports[id.dport].connQueue;
+			queue = &(ports[id.dport].socket->conn_queue);
 
 		/* Otherwise, try local "catch all" port number */
 		} else if (ports[CSP_ANY].state == PORT_OPEN) {
-			queue = &ports[CSP_ANY].connQueue;
+			queue = &(ports[CSP_ANY].socket->conn_queue);
 
 		/* Or reject */
 		} else {
@@ -140,7 +142,7 @@ conn_t * csp_route(csp_id_t id, nexthop_t avoid_nexthop, portBASE_TYPE * pxTaskW
 		}
 
 	/* If local node rejected the packet, try to route the frame */
-	} else if (connection_fallback != NULL) {
+	} else if (fallback_socket != NULL && fallback_socket->conn_queue != NULL) {
 
 		/* If both sender and receiver resides on same segment
 		 * don't route the frame. */
@@ -152,7 +154,7 @@ conn_t * csp_route(csp_id_t id, nexthop_t avoid_nexthop, portBASE_TYPE * pxTaskW
 		if (dst->nexthop == avoid_nexthop)
 			return NULL;
 
-		queue = &connection_fallback;
+		queue = &(fallback_socket->conn_queue);
 
 	/* If the packet was not routed, reject it */
 	} else {
@@ -174,7 +176,7 @@ conn_t * csp_route(csp_id_t id, nexthop_t avoid_nexthop, portBASE_TYPE * pxTaskW
 
 	/* Try to queue up the new connection pointer */
 	if ((queue != NULL) && (*queue != NULL)) {
-		if (xQueueSendToBackFromISR(*queue, &conn, (signed portBASE_TYPE *) pxTaskWoken) == errQUEUE_FULL) {
+		if (csp_queue_enqueue_isr(*queue, &conn, (CSP_BASE_TYPE *) pxTaskWoken) == CSP_QUEUE_FULL) {
 			printf("Warning Routing Queue Full\r\n");
 			conn->state = SOCKET_CLOSED;	// Don't call csp_conn_close, since this is ISR context.
 			return NULL;
@@ -197,18 +199,16 @@ conn_t * csp_route(csp_id_t id, nexthop_t avoid_nexthop, portBASE_TYPE * pxTaskW
  * @param packet A pointer to the incoming packet
  * @param interface A pointer to the incoming interface TX function.
  *
- * @todo Implement Task-safe version of this function! (Currently runs only from crticial seciton or ISR)
+ * @todo Implement Task-safe version of this function! (Currently runs only from criticial section or ISR)
  */
-void csp_new_packet(csp_packet_t * packet, nexthop_t interface, portBASE_TYPE * pxTaskWoken) {
+void csp_new_packet(csp_packet_t * packet, nexthop_t interface, CSP_BASE_TYPE * pxTaskWoken) {
 
-	conn_t * conn;
+	csp_conn_t * conn;
 
-#ifdef DEBUG
-	printf(
+	csp_debug(
 			"\r\nPacket P 0x%02X, S 0x%02X, D 0x%02X, Dp 0x%02X, Sp 0x%02X, T 0x%02X\r\n",
 			packet->id.pri, packet->id.src, packet->id.dst, packet->id.dport,
 			packet->id.sport, packet->id.type);
-#endif
 
 	/* Route the frame */
 	conn = csp_route(packet->id, interface, pxTaskWoken);
@@ -220,7 +220,7 @@ void csp_new_packet(csp_packet_t * packet, nexthop_t interface, portBASE_TYPE * 
 	}
 
 	/* Save buffer pointer */
-	if (xQueueSendFromISR(conn->rxQueue, &packet, (signed portBASE_TYPE *) pxTaskWoken) != pdTRUE) {
+	if (csp_queue_enqueue_isr(conn->rxQueue, &packet, (CSP_BASE_TYPE *) pxTaskWoken) != CSP_QUEUE_OK) {
 		printf("ERROR: Connection buffer queue full!\r\n");
 		csp_buffer_free(packet);
 		return;

@@ -1,13 +1,16 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include <FreeRTOS.h>
-#include <task.h>
-#include <queue.h>
+//#include <FreeRTOS.h>
+//#include <task.h>
+//#include <queue.h>
 
 #include <csp/csp.h>
-
-#define DEBUG
+#include <csp/csp_thread.h>
+#include <csp/csp_queue.h>
+#include <csp/csp_semaphore.h>
+#include <csp/csp_malloc.h>
+#include <csp/csp_time.h>
 
 /* Static connection pool */
 conn_t arr_conn[MAX_STATIC_CONNS];
@@ -19,8 +22,10 @@ void csp_conn_init(void) {
 
 	int i;
 	for (i = 0; i < MAX_STATIC_CONNS; i++) {
-		vSemaphoreCreateBinary(arr_conn[i].xSemaphoretx);
-		arr_conn[i].rxQueue = xQueueCreate(200, sizeof(csp_packet_t *));
+		//vSemaphoreCreateBinary(arr_conn[i].xSemaphoretx);
+        csp_bin_sem_create(&arr_conn[i].xSemaphoretx);
+		//arr_conn[i].rxQueue = xQueueCreate(200, sizeof(csp_packet_t *));
+        arr_conn[i].rxQueue = csp_queue_create(20, sizeof(csp_packet_t *));
 		arr_conn[i].state = SOCKET_CLOSED;
 		arr_conn[i].rxmalloc = NULL;
 	}
@@ -35,11 +40,11 @@ void csp_conn_init(void) {
  * 
  * @return the found connection pointer or NULL
  */
-conn_t * csp_conn_find(uint32_t id, uint32_t mask) {
+csp_conn_t * csp_conn_find(uint32_t id, uint32_t mask) {
 
 	/* Search for matching connection */
 	int i;
-	conn_t * conn;
+	csp_conn_t * conn;
 
     for (i = 0; i < MAX_STATIC_CONNS; i++) {
 		conn = &arr_conn[i];
@@ -56,11 +61,11 @@ conn_t * csp_conn_find(uint32_t id, uint32_t mask) {
  * 
  * @return a pointer to the newly established connection or NULL
  */
-conn_t * csp_conn_new(csp_id_t idin, csp_id_t idout) {
+csp_conn_t * csp_conn_new(csp_id_t idin, csp_id_t idout) {
 
     /* Search for free connection */
     int i;
-    conn_t * conn;
+    csp_conn_t * conn;
 
 	for (i = 0; i < MAX_STATIC_CONNS; i++) {
 		conn = &arr_conn[i];
@@ -83,20 +88,19 @@ conn_t * csp_conn_new(csp_id_t idin, csp_id_t idout) {
  * A dynamically allocated connection must be freed.
  */
 
-void csp_conn_close(conn_t* conn) {
+void csp_close(csp_conn_t * conn) {
    
 	/* Ensure connection queue is empty */
 	csp_packet_t * packet;
-    while((xQueueReceive(conn->rxQueue, &packet, 0) == pdTRUE))
+    //while((xQueueReceive(conn->rxQueue, &packet, 0) == pdTRUE))
+    while((csp_queue_dequeue(conn->rxQueue, &packet, 0) == CSP_QUEUE_OK))
     	csp_buffer_free(packet);
 
 	/* Remove dynamic allocated buffer */
 	if (conn->rxmalloc != NULL) {
 		csp_buffer_free(conn->rxmalloc);
 		conn->rxmalloc = NULL;
-        #ifdef DEBUG
-		printf("Close conn with active RX malloc!\r\n");
-        #endif
+		csp_debug("Close conn with active RX malloc!\r\n");
 	}
 
     /* Set to closed */
@@ -111,7 +115,7 @@ void csp_conn_close(conn_t* conn) {
  * There is no handshake in the CSP protocol
  * @return a pointer to a new connection or NULL
  */
-conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport) {
+csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport) {
 
     /* Find an unused port.
 	 * @todo: Implement sourceport conflict resolving */
@@ -129,7 +133,7 @@ conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport) {
 	outgoing_id.src = my_address;
 	outgoing_id.dport = dport;
 	outgoing_id.sport = sport;
-    conn_t * conn = csp_conn_new(incoming_id, outgoing_id);
+    csp_conn_t * conn = csp_conn_new(incoming_id, outgoing_id);
 
     return conn;
 
