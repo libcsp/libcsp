@@ -15,6 +15,8 @@
 #ifndef _CSP_H_
 #define _CSP_H_
 
+#define CSP_DEBUG
+
 /* Includes */
 #include <stdint.h>
 
@@ -72,14 +74,14 @@
  * CSP FRAME TYPES
  */
 
-#define CSP_RESERVED1           0x00
-#define CSP_RESERVED2           0x01
-#define CSP_BEGIN               0x02
-#define CSP_ACK                 0x03
-#define CSP_ERROR               0x04
-#define CSP_MORE                0x05
-#define CSP_RESERVED3           0x06
-#define CSP_RESERVED4           0x07
+#define CSP_RESERVED1           0
+#define CSP_RESERVED2           1
+#define CSP_BEGIN               2
+#define CSP_ACK                 3
+#define CSP_ERROR               4
+#define CSP_MORE                5
+#define CSP_RESERVED3           6
+#define CSP_RESERVED4           7
 
 /** @brief The address of the node */
 extern uint8_t my_address;
@@ -130,7 +132,7 @@ typedef union __attribute__ ((__packed__)) {
 typedef struct __attribute__((packed)) {
 	uint8_t padding1[42];
 	uint8_t	mac_dest;
-	uint8_t padding2;
+	uint8_t counter;
 	uint16_t length;					// Length field must be just before CSP ID
 	union {
 		struct {

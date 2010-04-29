@@ -49,7 +49,7 @@ SOURCES += src/arch/$(ARCH)/csp_malloc.c
 SOURCES += src/arch/$(ARCH)/csp_queue.c
 SOURCES += src/arch/$(ARCH)/csp_semaphore.c
 SOURCES += src/arch/$(ARCH)/csp_time.c
-#SOURCES += src/arch/$(ARCH)/pthread_queue.c
+SOURCES += src/arch/$(ARCH)/pthread_queue.c
 
 OBJECTS=$(SOURCES:.c=.o)
 
