@@ -34,6 +34,6 @@ typedef xSemaphoreHandle csp_bin_sem_handle_t;
 int csp_bin_sem_create(csp_bin_sem_handle_t *sem);
 int csp_bin_sem_wait(csp_bin_sem_handle_t *sem, int timeout);
 int csp_bin_sem_post(csp_bin_sem_handle_t *sem);
-int csp_bin_sem_post_isr(csp_bin_sem_handle_t *sem, CSP_BASE_TYPE * task_woken);
+int csp_bin_sem_post_isr(csp_bin_sem_handle_t *sem, signed CSP_BASE_TYPE * task_woken);
 
 #endif // _CSP_SEMAPHORE_H_

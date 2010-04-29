@@ -24,7 +24,7 @@ Hacked by Jeppe Ledet-Pedersen to support FreeRTOS-like interface
 #include <string.h>
 #include <time.h>
 #include <sys/time.h>
-#include <csp/pthread_queue.h>
+#include <csp/csp_pthread_queue.h>
 
 pthread_queue_t * pthread_queue_create(int length, size_t item_size) {
     pthread_queue_t * q = malloc(sizeof(pthread_queue_t));

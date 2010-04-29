@@ -1,9 +1,10 @@
 ## AAUSAT3 libcsp makefile
 
 ## Configuration
-#ARCH=bfin
 ARCH=posix
+#ARCH=freertos
 #TOOLCHAIN=bfin-linux-uclibc-
+#TOOLCHAIN=avr-
 TOOLCHAIN=
 TARGET = libcsp.a
 OUTDIR = .
@@ -33,6 +34,7 @@ ARFLAGS = rcu
 
 ## Include Directories
 INCLUDES = -I./include
+INCLUDES += -I../aausat3/software/lib/include/
 
 ## Objects that must be built in order to archive
 SOURCES += src/csp_buffer.c

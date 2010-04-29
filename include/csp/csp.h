@@ -28,9 +28,9 @@
 #endif
 
 #if defined(__i386__) || defined(__x86_64__) || defined(__BFIN__)
-    #define CSP_BASE_TYPE int16_t
+    #define CSP_BASE_TYPE int
 #elif defined(__AVR__) || defined(__ARM__)
-    #include <FreeRTOS.h>    
+    #include <freertos/FreeRTOS.h>    
     #define CSP_BASE_TYPE portBASE_TYPE
 #else
     #error "Unknown architecture"
@@ -214,9 +214,9 @@ extern csp_iface_t iface[];
 void csp_route_set(const char * name, uint8_t node, nexthop_t nexthop);
 void csp_route_table_init(void);
 csp_iface_t * csp_route_if(uint8_t id);
-csp_conn_t * csp_route(csp_id_t id, nexthop_t interface, CSP_BASE_TYPE * pxTaskWoken);
+csp_conn_t * csp_route(csp_id_t id, nexthop_t interface, signed CSP_BASE_TYPE * pxTaskWoken);
 //void csp_set_connection_fallback(csp_queue_handle_t connQueue);
-void csp_new_packet(csp_packet_t * packet, nexthop_t interface, CSP_BASE_TYPE * pxTaskWoken);
+void csp_new_packet(csp_packet_t * packet, nexthop_t interface, signed CSP_BASE_TYPE * pxTaskWoken);
 csp_thread_return_t vTaskCSPRouter(void * pvParameters);
 
 /* Implemented in csp_services.c */

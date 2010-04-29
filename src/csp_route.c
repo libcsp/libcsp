@@ -108,7 +108,7 @@ csp_iface_t * csp_route_if(uint8_t id) {
  * the connection is sent to the fallback handler, otherwise
  * the attempt is aborted
  */
-csp_conn_t * csp_route(csp_id_t id, nexthop_t avoid_nexthop, CSP_BASE_TYPE * pxTaskWoken) {
+csp_conn_t * csp_route(csp_id_t id, nexthop_t avoid_nexthop, signed CSP_BASE_TYPE * pxTaskWoken) {
 
 	csp_conn_t * conn;
 	csp_queue_handle_t * queue = NULL;
@@ -198,7 +198,7 @@ csp_conn_t * csp_route(csp_id_t id, nexthop_t avoid_nexthop, CSP_BASE_TYPE * pxT
  *
  * @todo Implement Task-safe version of this function! (Currently runs only from criticial section or ISR)
  */
-void csp_new_packet(csp_packet_t * packet, nexthop_t interface, CSP_BASE_TYPE * pxTaskWoken) {
+void csp_new_packet(csp_packet_t * packet, nexthop_t interface, signed CSP_BASE_TYPE * pxTaskWoken) {
 
 	csp_conn_t * conn;
 
@@ -217,7 +217,7 @@ void csp_new_packet(csp_packet_t * packet, nexthop_t interface, CSP_BASE_TYPE * 
 	}
 
 	/* Save buffer pointer */
-	if (csp_queue_enqueue_isr(conn->rx_queue, &packet, (CSP_BASE_TYPE *) pxTaskWoken) != CSP_QUEUE_OK) {
+	if (csp_queue_enqueue_isr(conn->rx_queue, &packet, (signed CSP_BASE_TYPE *) pxTaskWoken) != CSP_QUEUE_OK) {
 		printf("ERROR: Connection buffer queue full!\r\n");
 		csp_buffer_free(packet);
 		return;
