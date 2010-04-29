@@ -2,7 +2,7 @@
 #include <pthread.h>
 
 #include <csp/csp.h>
-#include <csp/semaphore.h>
+#include <csp/csp_semaphore.h>
 
 int csp_bin_sem_create(csp_bin_sem_handle_t * sem) {
     if (sem_init(sem, 0, 1) == 0) {
@@ -29,11 +29,11 @@ int csp_bin_sem_wait(csp_bin_sem_handle_t * sem, int timeout) {
 }
 
 int csp_bin_sem_post(csp_bin_sem_handle_t * sem) {
-    signed char dummy = 0;
+    CSP_BASE_TYPE dummy = 0;
     return csp_bin_sem_post_isr(sem, &dummy);
 }
 
-int csp_bin_sem_post_isr(csp_bin_sem_handle_t * sem, signed char * task_woken) {
+int csp_bin_sem_post_isr(csp_bin_sem_handle_t * sem, CSP_BASE_TYPE * task_woken) {
     *task_woken = 0; 
     if (sem_post(sem) == 0) {
         return CSP_SEMAPHORE_OK;

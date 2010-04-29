@@ -4,12 +4,12 @@
 
 /* CSP includes */
 #include <csp/csp.h>
-#include <csp/thread.h>
-#include <csp/queue.h>
-#include <csp/semaphore.h>
+#include <csp/csp_thread.h>
+#include <csp/csp_queue.h>
+#include <csp/csp_semaphore.h>
 
 /* Static allocation of ports */
-port_t ports[17];
+csp_port_t ports[17];
 
 void csp_port_init(void) {
 
@@ -62,7 +62,7 @@ int csp_bind(csp_socket_t * socket, uint8_t port) {
 
 }
 
-int csp_bind_callback(void (*callback) (conn_t*), uint8_t port) {
+int csp_bind_callback(void (*callback) (csp_conn_t*), uint8_t port) {
 
 	if (port > 16) {
 		printf("Only ports from 0-15 (and 16) are available for incoming ports\r\n");
@@ -76,9 +76,9 @@ int csp_bind_callback(void (*callback) (conn_t*), uint8_t port) {
 	}
 
 	/* Save callback */
-	ports[port_nr].callback = callback;
-	ports[port_nr].socket = NULL;
-	ports[port_nr].state = PORT_OPEN;
+	ports[port].callback = callback;
+	ports[port].socket = NULL;
+	ports[port].state = PORT_OPEN;
 
     return 0;
 

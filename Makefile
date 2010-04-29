@@ -2,9 +2,9 @@
 
 ## Configuration
 #ARCH=bfin
-ARCH=freertos
+ARCH=posix
 #TOOLCHAIN=bfin-linux-uclibc-
-TOOLCHAIN=avr-
+TOOLCHAIN=
 TARGET = libcsp.a
 OUTDIR = .
 MCU = at90can128
@@ -13,11 +13,11 @@ AR = $(TOOLCHAIN)ar
 SZ = $(TOOLCHAIN)size
 
 ## Options common to compile, link and assembly rules
-COMMON = -mmcu=$(MCU)
+COMMON = #-mmcu=$(MCU)
 
 ## Compile options common for all C compilation units.
-CFLAGS = $(COMMON) #-D_GNU_SOURCE
-CFLAGS += -Wall -Werror -gdwarf-2 -std=gnu99 -O2 -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums
+CFLAGS = $(COMMON) -D_GNU_SOURCE
+CFLAGS += -Wall -Werror -gdwarf-2 -std=gnu99 -O2 -funsigned-char -funsigned-bitfields #-fpack-struct -fshort-enums
 
 ## Assembly specific flags
 ASMFLAGS = $(COMMON)

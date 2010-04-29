@@ -5,9 +5,10 @@
  *      Author: Administrator
  */
 
+/* CSP includes */
 #include <csp/csp.h>
 
-#include <FreeRTOS.h>
+//#include <FreeRTOS.h>
 
 int csp_lo_tx(csp_id_t idout, csp_packet_t * packet, unsigned int timeout) {
 
@@ -15,9 +16,13 @@ int csp_lo_tx(csp_id_t idout, csp_packet_t * packet, unsigned int timeout) {
 	packet->id.ext = idout.ext;
 
 	/* Send back into CSP */
-	portENTER_CRITICAL();
-	csp_new_packet(packet, csp_lo_tx, NULL);
-	portEXIT_CRITICAL();
+
+    /* We need a portable interface for ISRs ! */
+	//portENTER_CRITICAL(); 
+	
+    csp_new_packet(packet, csp_lo_tx, NULL);	
+
+    //portEXIT_CRITICAL();
 
 	return 1;
 

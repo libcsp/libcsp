@@ -10,12 +10,13 @@
 #include <stdint.h>
 
 #include <csp/csp.h>
+#include <csp/csp_time.h>
 
-#include <FreeRTOS.h>
-#include <task.h>
+//#include <FreeRTOS.h>
+//#include <task.h>
 
-#include <dev/cpu.h>
-#include <util/hton.h>
+//#include <dev/cpu.h>
+//#include <util/hton.h>
 
 /**
  * If the given packet is a service-request (that is uses one of the csp service ports)
@@ -28,7 +29,7 @@
  * @param conn Pointer to the new connection
  * @param packet Pointer to the first packet, obtained by using csp_read()
  */
-void csp_service_handler(conn_t * conn, csp_packet_t * packet) {
+void csp_service_handler(csp_conn_t * conn, csp_packet_t * packet) {
 
 	switch (conn->idin.dport) {
 
@@ -36,6 +37,8 @@ void csp_service_handler(conn_t * conn, csp_packet_t * packet) {
 	case CSP_PING:
 		break;
 
+/* We need to find a good solution to this */
+#if 0
 	/* Retrieve the ProcessList as a string */
 	case CSP_PS:
 		vTaskList((signed portCHAR *) packet->data);
@@ -96,7 +99,7 @@ void csp_service_handler(conn_t * conn, csp_packet_t * packet) {
 		packet->length = sizeof(size);
 		break;
 	}
-
+#endif
 
 	default:
 		/* The connection was not a service-request, free the packet and return */
@@ -110,7 +113,7 @@ void csp_service_handler(conn_t * conn, csp_packet_t * packet) {
 
 }
 
-void csp_ping(unsigned char node, portTickType timeout) {
+void csp_ping(uint8_t node, int timeout) {
 
 	/* Prepare data */
 	csp_packet_t * packet;
@@ -124,11 +127,12 @@ void csp_ping(unsigned char node, portTickType timeout) {
 	packet->length = 1;
 
 	/* Open connection */
-	conn_t * conn = csp_connect(PRIO_NORM, node, CSP_PING);
+	csp_conn_t * conn = csp_connect(PRIO_NORM, node, CSP_PING);
 	printf("Ping node %u: ", node);
 
 	/* Counter */
-	portTickType start = xTaskGetTickCount();
+    uint32_t start = csp_get_ms();
+	//portTickType start = xTaskGetTickCount();
 
 	/* Try to send frame */
 	if (!csp_send(conn, packet, 0))
@@ -142,22 +146,26 @@ void csp_ping(unsigned char node, portTickType timeout) {
 	}
 
 	/* We have a reply */
-	portTickType time = (xTaskGetTickCount() - start);
+	//portTickType time = (xTaskGetTickCount() - start);
+    uint32_t time = (csp_get_ms() - start);
 	if (time <= 1) {
-		printf(" Reply in <%u ms (1 tick)\r\n", (unsigned int) (1000/configTICK_RATE_HZ));
+		printf(" Reply in <1 tick\r\n");
 	} else {
-		printf(" Reply in %u ms\r\n", (unsigned int) (time * (1000/configTICK_RATE_HZ)));
+		printf(" Reply in %u ms\r\n", time);
+//		printf(" Reply in <%u ms (1 tick)\r\n", (unsigned int) (1000/configTICK_RATE_HZ));
+//	} else {
+//		printf(" Reply in %u ms\r\n", (unsigned int) (time * (1000/configTICK_RATE_HZ)));
 	}
 
 	/* Clean up */
 out:
 	if (packet != NULL)
 		csp_buffer_free(packet);
-	csp_conn_close(conn);
+	csp_close(conn);
 
 }
 
-void csp_ping_noreply(unsigned char node) {
+void csp_ping_noreply(uint8_t node) {
 
 	/* Prepare data */
 	csp_packet_t * packet;
@@ -171,17 +179,20 @@ void csp_ping_noreply(unsigned char node) {
 	packet->length = 1;
 
 	/* Open connection */
-	conn_t * conn = csp_connect(PRIO_NORM, node, CSP_PING);
+	csp_conn_t * conn = csp_connect(PRIO_NORM, node, CSP_PING);
 	printf("Ping ignore reply node %u.\r\n", node);
 
 	/* Try to send frame */
 	if (!csp_send(conn, packet, 0))
 		csp_buffer_free(packet);
 
-	csp_conn_close(conn);
+	csp_close(conn);
 
 }
 
+/* Does these functions belong here? */
+
+#if 0
 void csp_reboot(uint8_t node) {
 	uint32_t magic_word = htonl(0x80078007);
 	csp_transaction(PRIO_NORM, node, CSP_REBOOT, 0, &magic_word, sizeof(magic_word), NULL, 0);
@@ -223,7 +234,7 @@ void csp_ps(uint8_t node, portTickType timeout) {
 out:
 	if (packet != NULL)
 		csp_buffer_free(packet);
-	csp_conn_close(conn);
+	csp_close(conn);
 
 }
 
@@ -257,3 +268,4 @@ void csp_buf_free(uint8_t node, portTickType timeout) {
 	printf("Free buffers at node %u is %u\r\n", (unsigned int) node, (unsigned int) size);
 
 }
+#endif

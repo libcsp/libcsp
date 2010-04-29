@@ -13,7 +13,7 @@
 #include <csp/csp_time.h>
 
 /* Static connection pool */
-conn_t arr_conn[MAX_STATIC_CONNS];
+csp_conn_t arr_conn[MAX_STATIC_CONNS];
 
 /** csp_conn_init
  * Initialises the connection pool
@@ -23,9 +23,9 @@ void csp_conn_init(void) {
 	int i;
 	for (i = 0; i < MAX_STATIC_CONNS; i++) {
 		//vSemaphoreCreateBinary(arr_conn[i].xSemaphoretx);
-        csp_bin_sem_create(&arr_conn[i].xSemaphoretx);
+        csp_bin_sem_create(&arr_conn[i].tx_sem);
 		//arr_conn[i].rxQueue = xQueueCreate(200, sizeof(csp_packet_t *));
-        arr_conn[i].rxQueue = csp_queue_create(20, sizeof(csp_packet_t *));
+        arr_conn[i].rx_queue = csp_queue_create(20, sizeof(csp_packet_t *));
 		arr_conn[i].state = SOCKET_CLOSED;
 		arr_conn[i].rxmalloc = NULL;
 	}
@@ -93,7 +93,7 @@ void csp_close(csp_conn_t * conn) {
 	/* Ensure connection queue is empty */
 	csp_packet_t * packet;
     //while((xQueueReceive(conn->rxQueue, &packet, 0) == pdTRUE))
-    while((csp_queue_dequeue(conn->rxQueue, &packet, 0) == CSP_QUEUE_OK))
+    while((csp_queue_dequeue(conn->rx_queue, &packet, 0) == CSP_QUEUE_OK))
     	csp_buffer_free(packet);
 
 	/* Remove dynamic allocated buffer */

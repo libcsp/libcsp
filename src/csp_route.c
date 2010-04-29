@@ -1,18 +1,15 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdint.h>
 
 /* CSP includes */
 #include <csp/csp.h>
-#include <csp/thread.h>
-#include <csp/queue.h>
-#include <csp/semaphore.h>
-#include <csp/malloc.h>
-#include <csp/time.h>
-
-//#include <FreeRTOS.h>
-//#include <task.h>
-//#include <queue.h>
+#include <csp/csp_thread.h>
+#include <csp/csp_queue.h>
+#include <csp/csp_semaphore.h>
+#include <csp/csp_malloc.h>
+#include <csp/csp_time.h>
 
 /* Static allocation of interfaces */
 csp_iface_t iface[17];
@@ -40,7 +37,7 @@ csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 	/* Register Connection Fallback */
 	//connection_fallback = xQueueCreate(20, sizeof(conn_t *));
 
-	conn_t *conn;
+	csp_conn_t *conn;
 	csp_packet_t * packet;
 
     fallback_socket = csp_socket();
@@ -111,7 +108,7 @@ csp_iface_t * csp_route_if(uint8_t id) {
  * the connection is sent to the fallback handler, otherwise
  * the attempt is aborted
  */
-conn_t * csp_route(csp_id_t id, nexthop_t avoid_nexthop, CSP_BASE_TYPE * pxTaskWoken) {
+csp_conn_t * csp_route(csp_id_t id, nexthop_t avoid_nexthop, CSP_BASE_TYPE * pxTaskWoken) {
 
 	csp_conn_t * conn;
 	csp_queue_handle_t * queue = NULL;
@@ -176,7 +173,7 @@ conn_t * csp_route(csp_id_t id, nexthop_t avoid_nexthop, CSP_BASE_TYPE * pxTaskW
 
 	/* Try to queue up the new connection pointer */
 	if ((queue != NULL) && (*queue != NULL)) {
-		if (csp_queue_enqueue_isr(*queue, &conn, (CSP_BASE_TYPE *) pxTaskWoken) == CSP_QUEUE_FULL) {
+		if (csp_queue_enqueue_isr(*queue, &conn, pxTaskWoken) == CSP_QUEUE_FULL) {
 			printf("Warning Routing Queue Full\r\n");
 			conn->state = SOCKET_CLOSED;	// Don't call csp_conn_close, since this is ISR context.
 			return NULL;
@@ -220,7 +217,7 @@ void csp_new_packet(csp_packet_t * packet, nexthop_t interface, CSP_BASE_TYPE * 
 	}
 
 	/* Save buffer pointer */
-	if (csp_queue_enqueue_isr(conn->rxQueue, &packet, (CSP_BASE_TYPE *) pxTaskWoken) != CSP_QUEUE_OK) {
+	if (csp_queue_enqueue_isr(conn->rx_queue, &packet, (CSP_BASE_TYPE *) pxTaskWoken) != CSP_QUEUE_OK) {
 		printf("ERROR: Connection buffer queue full!\r\n");
 		csp_buffer_free(packet);
 		return;

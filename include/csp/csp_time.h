@@ -1,5 +1,7 @@
 #include <stdint.h>
 
+#include <csp/csp.h>
+
 #ifndef _CSP_TIME_H_
 #define _CSP_TIME_H_
 

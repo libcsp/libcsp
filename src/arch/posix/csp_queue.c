@@ -12,7 +12,7 @@ int csp_queue_enqueue(csp_queue_handle_t handle, void *value, int timeout) {
     return pthread_queue_enqueue(handle, value, timeout);
 }
 
-int csp_queue_enqueue_isr(csp_queue_handle_t handle, void * value, signed char * task_woken) {
+int csp_queue_enqueue_isr(csp_queue_handle_t handle, void * value, CSP_BASE_TYPE * task_woken) {
     task_woken = 0;
     return csp_queue_enqueue(handle, value, 0);
 }
@@ -21,7 +21,7 @@ int csp_queue_dequeue(csp_queue_handle_t handle, void *buf, int timeout) {
     return pthread_queue_dequeue(handle, buf, timeout);
 }
 
-int csp_queue_dequeue_isr(csp_queue_handle_t handle, void *buf, signed char * task_woken) {
+int csp_queue_dequeue_isr(csp_queue_handle_t handle, void *buf, CSP_BASE_TYPE * task_woken) {
     task_woken = 0;
     return csp_queue_dequeue(handle, buf, 0);
 }

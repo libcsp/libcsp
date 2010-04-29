@@ -8,6 +8,8 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
+
+/* CSP includes */
 #include <csp/csp.h>
 #include <csp/csp_malloc.h>
 

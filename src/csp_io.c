@@ -3,10 +3,6 @@
 #include <string.h>
 #include <stdint.h>
 
-//#include <FreeRTOS.h>
-//#include <task.h>
-//#include <queue.h>
-
 /* CSP includes */
 #include <csp/csp.h>
 #include <csp/csp_thread.h>
@@ -60,7 +56,7 @@ csp_socket_t * csp_socket(void) {
  * @param timeout use portMAX_DELAY for infinite timeout
  * @return Return pointer to csp_conn_t or NULL if timeout was reached
  */
-csp_conn_t * csp_accept(csp_socket_t sock, uint16_t timeout) {
+csp_conn_t * csp_accept(csp_socket_t * sock, int timeout) {
 
     if (sock == NULL)
         return NULL;
@@ -83,13 +79,13 @@ csp_conn_t * csp_accept(csp_socket_t sock, uint16_t timeout) {
  * @param timeout timeout in ticks, use portMAX_DELAY for infinite blocking time
  * @return Returns pointer to csp_packet_t, which you MUST free yourself, either by calling csp_buffer_free() or reusing the buffer for a new csp_send.
  */
-csp_packet_t * csp_read(csp_conn_t * conn, uint16_t timeout) {
+csp_packet_t * csp_read(csp_conn_t * conn, int timeout) {
 
 	if (conn == NULL)
 		return NULL;
 
 	csp_packet_t * packet = NULL;
-    csp_queue_dequeue(conn->rxQueue, &packet, timeout);
+    csp_queue_dequeue(conn->rx_queue, &packet, timeout);
 	//xQueueReceive(conn->rxQueue, &packet, timeout);
 
 	return packet;
@@ -104,7 +100,7 @@ csp_packet_t * csp_read(csp_conn_t * conn, uint16_t timeout) {
  * @param timeout a timeout to wait for TX to complete. NOTE: not all underlying drivers supports flow-control.
  * @return returns 1 if successful and 0 otherwise. you MUST free the frame yourself if the transmission was not successful.
  */
-int csp_send_direct(csp_id_t idout, csp_packet_t * packet, uint16_t timeout) {
+int csp_send_direct(csp_id_t idout, csp_packet_t * packet, int timeout) {
 
 	csp_iface_t * ifout = csp_route_if(idout.dst);
 
@@ -129,7 +125,7 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, uint16_t timeout) {
  * @param timeout a timeout to wait for TX to complete. NOTE: not all underlying drivers supports flow-control.
  * @return returns 1 if successful and 0 otherwise. you MUST free the frame yourself if the transmission was not successful.
  */
-int csp_send(csp_conn_t* conn, csp_packet_t * packet, uint16_t timeout) {
+int csp_send(csp_conn_t* conn, csp_packet_t * packet, int timeout) {
 	if ((conn == NULL) || (packet == NULL)) {
 		printf("Invalid call to csp_send\r\n");
 		return 0;
@@ -151,7 +147,7 @@ int csp_send(csp_conn_t* conn, csp_packet_t * packet, uint16_t timeout) {
  * @param inlen length of expected reply, -1 for unknown size (note inbuf MUST be large enough)
  * @return Return 1 or reply size if successful, 0 if error or incoming length does not match
  */
-int csp_transaction(uint8_t prio, uint8_t dest, uint8_t port, uint16_t timeout, void * outbuf, int outlen, void * inbuf, int inlen) {
+int csp_transaction(uint8_t prio, uint8_t dest, uint8_t port, int timeout, void * outbuf, int outlen, void * inbuf, int inlen) {
 
 	csp_conn_t * conn = csp_connect(prio, dest, port);
 	if (conn == NULL)

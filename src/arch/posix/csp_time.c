@@ -4,7 +4,7 @@
 #include <sys/time.h>
 
 #include <csp/csp.h>
-#include <csp/time.h>
+#include <csp/csp_time.h>
 
 uint32_t csp_get_ms() {
     struct timespec ts;
