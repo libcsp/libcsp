@@ -27,9 +27,9 @@ int csp_queue_dequeue_isr(csp_queue_handle_t handle, void *buf, signed CSP_BASE_
 }
 
 int csp_queue_size(csp_queue_handle_t handle) {
-    return pthread_queue_size(handle);
+    return pthread_queue_items(handle);
 }
 
 int csp_queue_size_isr(csp_queue_handle_t handle) {
-    return pthread_queue_size(handle);
+    return pthread_queue_items(handle);
 }

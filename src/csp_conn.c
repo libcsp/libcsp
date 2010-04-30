@@ -1,10 +1,27 @@
+/*
+Cubesat Space Protocol - A small network-layer protocol designed for Cubesats
+Copyright (C) 2010 GomSpace ApS (gomspace.com)
+Copyright (C) 2010 AAUSAT3 Project (aausat3.space.aau.dk) 
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
 #include <stdlib.h>
 #include <stdio.h>
 
-//#include <FreeRTOS.h>
-//#include <task.h>
-//#include <queue.h>
-
+/* CSP includes */
 #include <csp/csp.h>
 #include <csp/csp_thread.h>
 #include <csp/csp_queue.h>
@@ -22,9 +39,7 @@ void csp_conn_init(void) {
 
 	int i;
 	for (i = 0; i < MAX_STATIC_CONNS; i++) {
-		//vSemaphoreCreateBinary(arr_conn[i].xSemaphoretx);
         csp_bin_sem_create(&arr_conn[i].tx_sem);
-		//arr_conn[i].rxQueue = xQueueCreate(200, sizeof(csp_packet_t *));
         arr_conn[i].rx_queue = csp_queue_create(20, sizeof(csp_packet_t *));
 		arr_conn[i].state = SOCKET_CLOSED;
 		arr_conn[i].rxmalloc = NULL;
@@ -34,11 +49,11 @@ void csp_conn_init(void) {
 
 /** csp_conn_find
  * Used by the incoming data handler this function searches
- * for an already established connection with a given incoming identifyer
- * the mask field is used to select which parts of the identifyer that makes a
+ * for an already established connection with a given incoming identifier.
+ * The mask field is used to select which parts of the identifier that constitute a
  * unique connection
  * 
- * @return the found connection pointer or NULL
+ * @return A connection pointer to the matching connection or NULL if no matching connection was found
  */
 csp_conn_t * csp_conn_find(uint32_t id, uint32_t mask) {
 
@@ -82,7 +97,7 @@ csp_conn_t * csp_conn_new(csp_id_t idin, csp_id_t idout) {
   
 }
 
-/** csp_conn_close
+/** csp_close
  * Closes a given connection and frees the buffer if more than 8 bytes
  * if the connection uses an outgoing port this port must also be closed
  * A dynamically allocated connection must be freed.
@@ -92,8 +107,7 @@ void csp_close(csp_conn_t * conn) {
    
 	/* Ensure connection queue is empty */
 	csp_packet_t * packet;
-    //while((xQueueReceive(conn->rxQueue, &packet, 0) == pdTRUE))
-    while((csp_queue_dequeue(conn->rx_queue, &packet, 0) == CSP_QUEUE_OK))
+    while(csp_queue_dequeue(conn->rx_queue, &packet, 0) == CSP_QUEUE_OK)
     	csp_buffer_free(packet);
 
 	/* Remove dynamic allocated buffer */
@@ -121,7 +135,7 @@ csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport) {
 	 * @todo: Implement sourceport conflict resolving */
 	unsigned char sport = 31;
 
-	/* Generate CAN identifyer */
+	/* Generate CAN identifier */
 	csp_id_t incoming_id, outgoing_id;
 	incoming_id.pri = prio;
 	incoming_id.dst = my_address;

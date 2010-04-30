@@ -1,25 +1,27 @@
 /*
-c-pthread-queue - c implementation of a bounded buffer queue using posix threads
-Copyright (C) 2008  Matthew Dickinson
+Cubesat Space Protocol - A small network-layer protocol designed for Cubesats
+Copyright (C) 2010 Gomspace ApS (gomspace.com)
+Copyright (C) 2010 AAUSAT3 Project (aausat3.space.aau.dk) 
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
 
-This program is distributed in the hope that it will be useful,
+This library is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-Hacked by Jeppe Ledet-Pedersen to support FreeRTOS-like interface 
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <stdlib.h>
-#include <sys/time.h>
+/*
+Inspired by c-pthread-queue by Matthew Dickinson
+http://code.google.com/p/c-pthread-queue/
+*/
 
 #ifndef _PTHREAD_QUEUE_H_
 #define _PTHREAD_QUEUE_H_
@@ -29,11 +31,14 @@ Hacked by Jeppe Ledet-Pedersen to support FreeRTOS-like interface
 #define PTHREAD_QUEUE_FULL 2
 #define PTHREAD_QUEUE_ERROR 3
 
+#include <stdlib.h>
+#include <sys/time.h>
+
 typedef struct queue {
-    void *buffer;
-    int capacity;
-    int item_size;
+    void * buffer;
     int size;
+    int item_size;
+    int items;
     int in;
     int out;
     pthread_mutex_t mutex;
@@ -42,9 +47,9 @@ typedef struct queue {
 } pthread_queue_t;
 
 pthread_queue_t * pthread_queue_create(int length, size_t item_size);
-int pthread_queue_enqueue(pthread_queue_t *queue, void *value, int timeout);
-int pthread_queue_dequeue(pthread_queue_t *queue, void *buf, int timeout);
-int pthread_queue_size(pthread_queue_t *queue);
+int pthread_queue_enqueue(pthread_queue_t * queue, void * value, int timeout);
+int pthread_queue_dequeue(pthread_queue_t * queue, void * buf, int timeout);
+int pthread_queue_items(pthread_queue_t * queue);
 
 #endif // _PTHREAD_QUEUE_H_
 

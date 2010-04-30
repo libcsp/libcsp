@@ -1,21 +1,26 @@
 /*
-c-pthread-queue - c implementation of a bounded buffer queue using posix threads
-Copyright (C) 2008  Matthew Dickinson
+Cubesat Space Protocol - A small network-layer protocol designed for Cubesats
+Copyright (C) 2010 Gomspace ApS (gomspace.com)
+Copyright (C) 2010 AAUSAT3 Project (aausat3.space.aau.dk) 
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
 
-This program is distributed in the hope that it will be useful,
+This library is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+*/
 
-Hacked by Jeppe Ledet-Pedersen to support FreeRTOS-like interface 
+/*
+Inspired by c-pthread-queue by Matthew Dickinson
+http://code.google.com/p/c-pthread-queue/
 */
 
 #include <pthread.h>
@@ -24,17 +29,20 @@ Hacked by Jeppe Ledet-Pedersen to support FreeRTOS-like interface
 #include <string.h>
 #include <time.h>
 #include <sys/time.h>
+
+/* CSP includes */
 #include <csp/csp_pthread_queue.h>
 
 pthread_queue_t * pthread_queue_create(int length, size_t item_size) {
+    
     pthread_queue_t * q = malloc(sizeof(pthread_queue_t));
     
     if (q != NULL) {
-	    q->buffer = malloc(length*item_size);
+        q->buffer = malloc(length*item_size);
         if (q->buffer != NULL) {
-            q->capacity = length;
+            q->size = length;
             q->item_size = item_size;
-            q->size = 0;
+            q->items = 0;
             q->in = 0;
             q->out = 0;
             if (pthread_mutex_init(&(q->mutex), NULL) || pthread_cond_init(&(q->cond_full), NULL) || pthread_cond_init(&(q->cond_empty), NULL)) {
@@ -49,62 +57,82 @@ pthread_queue_t * pthread_queue_create(int length, size_t item_size) {
     }
 
     return q;
+    
 }
     
 
-int pthread_queue_enqueue(pthread_queue_t *queue, void *value, int timeout) {
+int pthread_queue_enqueue(pthread_queue_t * queue, void * value, int timeout) {
+    
     int ret;
+    
+    /* Calculate timeout */
     struct timespec ts;
     if (clock_gettime(CLOCK_REALTIME, &ts))
         return PTHREAD_QUEUE_ERROR;
     ts.tv_sec += timeout;
 
+    /* Get queue lock */
     pthread_mutex_lock(&(queue->mutex));
-    while (queue->size == queue->capacity) {
-	    ret = pthread_cond_timedwait(&(queue->cond_full), &(queue->mutex), &ts);
-	    if (ret != 0) {
-	        pthread_mutex_unlock(&(queue->mutex));
-	        return PTHREAD_QUEUE_FULL;
-	    }
+    while (queue->items == queue->size) {
+        ret = pthread_cond_timedwait(&(queue->cond_full), &(queue->mutex), &ts);
+        if (ret != 0) {
+            pthread_mutex_unlock(&(queue->mutex));
+            return PTHREAD_QUEUE_FULL;
+        }
     }
 
-    memcpy(queue->buffer+(queue->in*queue->item_size), value, queue->item_size);
-    queue->size++;
-    queue->in++;
-    queue->in %= queue->capacity;
+    /* Coby object from input buffer */
+    memcpy(queue->buffer+(queue->in * queue->item_size), value, queue->item_size);
+    queue->items++;
+    queue->in = (queue->in + 1) % queue->size;
     pthread_mutex_unlock(&(queue->mutex));
+    
+    /* Nofify blocked threads */
     pthread_cond_broadcast(&(queue->cond_empty));
+    
     return PTHREAD_QUEUE_OK;
+    
 }
 
-int pthread_queue_dequeue(pthread_queue_t *queue, void *buf, int timeout) {
+int pthread_queue_dequeue(pthread_queue_t * queue, void * buf, int timeout) {
+
     int ret;
+    
+    /* Calculate timeout */
     struct timespec ts;
     if (clock_gettime(CLOCK_REALTIME, &ts))
         return PTHREAD_QUEUE_ERROR;
     ts.tv_sec += timeout;
     
+    /* Get queue lock */
     pthread_mutex_lock(&(queue->mutex));
-    while (queue->size == 0) {
-	    ret = pthread_cond_timedwait(&(queue->cond_empty), &(queue->mutex), &ts);
-	    if (ret != 0) {
-	        pthread_mutex_unlock(&(queue->mutex));
-	        return PTHREAD_QUEUE_EMPTY;
-	    }
+    while (queue->items == 0) {
+        ret = pthread_cond_timedwait(&(queue->cond_empty), &(queue->mutex), &ts);
+        if (ret != 0) {
+            pthread_mutex_unlock(&(queue->mutex));
+            return PTHREAD_QUEUE_EMPTY;
+        }
     }
 
-    memcpy(buf, queue->buffer+(queue->out*queue->item_size), queue->item_size);
-    queue->size--;
-    queue->out++;
-    queue->out %= queue->capacity;
+    /* Coby object to output buffer */
+    memcpy(buf, queue->buffer+(queue->out * queue->item_size), queue->item_size);
+    queue->items--;
+    queue->out = (queue->out + 1) % queue->size;
     pthread_mutex_unlock(&(queue->mutex));
+    
+    /* Nofify blocked threads */
     pthread_cond_broadcast(&(queue->cond_full));
+    
     return PTHREAD_QUEUE_OK;
+    
 }
 
-int pthread_queue_size(pthread_queue_t *queue) {
+int pthread_queue_items(pthread_queue_t * queue) {
+
     pthread_mutex_lock(&(queue->mutex));
-    int size = queue->size;
+    int items = queue->items;
     pthread_mutex_unlock(&(queue->mutex));
-    return size;
+    
+    return items;
+    
 }

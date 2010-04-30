@@ -1,3 +1,23 @@
+/*
+Cubesat Space Protocol - A small network-layer protocol designed for Cubesats
+Copyright (C) 2010 GomSpace ApS (gomspace.com)
+Copyright (C) 2010 AAUSAT3 Project (aausat3.space.aau.dk) 
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -14,9 +34,10 @@
 /* Static allocation of interfaces */
 csp_iface_t iface[17];
 
-/** Connection Fallback
- * This queue is called each time a false connection is created
- * this is used by the CSP router to receive any connection */
+/** Connection Fallback Socket
+ * This socket is used each time a routed connection is created
+ * this is used by the CSP router to receive any connection 
+ */
 static csp_socket_t * fallback_socket = NULL;
 
 /** csp_route_table_init
@@ -31,15 +52,14 @@ void csp_route_table_init(void) {
 /** Router Task
  * This task received any non-local connection and collects the data
  * on the connection. All data is forwarded out of the router
- * using the zsend call from csp */
+ * using the csp_send call 
+ */
 csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
-
-	/* Register Connection Fallback */
-	//connection_fallback = xQueueCreate(20, sizeof(conn_t *));
 
 	csp_conn_t *conn;
 	csp_packet_t * packet;
-
+	
+	/* Create fallback socket  */
     fallback_socket = csp_socket();
 
 	while (1) {
@@ -102,11 +122,10 @@ csp_iface_t * csp_route_if(uint8_t id) {
 
 /** CSP Router (WARNING: ISR)
  * This function uses the connection pool to search for already
- * established connetions with the given identifyer, if no connection
+ * established connections with the given identifier. If no connection
  * was found, a new one is created which is routed to the local task
- * which is listening on the port. If no listening task was found
- * the connection is sent to the fallback handler, otherwise
- * the attempt is aborted
+ * listening on the port. If no listening task was found, the connection 
+ * is sent to the fallback handler, otherwise the attempt is aborted
  */
 csp_conn_t * csp_route(csp_id_t id, nexthop_t avoid_nexthop, signed CSP_BASE_TYPE * pxTaskWoken) {
 
@@ -217,7 +236,7 @@ void csp_new_packet(csp_packet_t * packet, nexthop_t interface, signed CSP_BASE_
 	}
 
 	/* Save buffer pointer */
-	if (csp_queue_enqueue_isr(conn->rx_queue, &packet, (signed CSP_BASE_TYPE *) pxTaskWoken) != CSP_QUEUE_OK) {
+	if (csp_queue_enqueue_isr(conn->rx_queue, &packet, pxTaskWoken) != CSP_QUEUE_OK) {
 		printf("ERROR: Connection buffer queue full!\r\n");
 		csp_buffer_free(packet);
 		return;
