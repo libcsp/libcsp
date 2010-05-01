@@ -40,19 +40,16 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 	static const int size = CSP_BUFFER_SIZE;
 	static const int count = CSP_BUFFER_COUNT;
 #else
-	void * csp_buffer_p;
-	uint8_t * csp_buffer_list;
-	int size, count;
+	static void * csp_buffer_p;
+	static uint8_t * csp_buffer_list;
+	static int size, count;
 #endif
 
 static uint8_t csp_buffer_last_given = 0;
 
 int csp_buffer_init(int buf_count, int buf_size) {
 
-#if CSP_BUFFER_STATIC
-	return 1;
-#else
-
+#if CSP_BUFFER_STATIC == 0
 	/* Remember size */
 	count = buf_count;
 	size = buf_size;
@@ -68,12 +65,13 @@ int csp_buffer_init(int buf_count, int buf_size) {
 		csp_free(csp_buffer_p);
 		return 0;
 	}
+#endif
 
 	/* Clear housekeeping memory = all free mem */
 	memset(csp_buffer_list, 0, count);
 
 	return 1;
-#endif
+
 }
 
 /**
