@@ -35,12 +35,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef _CSP_H_
 #define _CSP_H_
 
-//#define CSP_DEBUG
+#define CSP_DEBUG
 
 /* Temporary endianness hack - We should really find a better way of doing this */
 #if defined(LITTLE_ENDIAN) || defined(__i386__) || defined(__x86_64__) || defined(__BFIN__) || defined(__AVR__) || defined(__arm__)
     #define __LITTLE_ENDIAN__
-#elif defined(BIG_ENDIAN)
+#elif defined(BIG_ENDIAN) || ConfigName == AVR32
     #define __BIG_ENDIAN__
 #else
     #error "Unknown architecture"
@@ -50,7 +50,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #if defined(__i386__) || defined(__x86_64__) || defined(__BFIN__)
     #define CSP_BASE_TYPE int
     #define __CSP_POSIX__
-#elif defined(__AVR__) || defined(__ARM__)
+#elif defined(__AVR__) || defined(__arm__) || ConfigName == AVR32
     #include <freertos/FreeRTOS.h>    
     #define CSP_BASE_TYPE portBASE_TYPE
     #define __CSP_FREERTOS__
@@ -240,9 +240,9 @@ extern csp_iface_t iface[];
 void csp_route_set(const char * name, uint8_t node, nexthop_t nexthop);
 void csp_route_table_init(void);
 csp_iface_t * csp_route_if(uint8_t id);
-csp_conn_t * csp_route(csp_id_t id, nexthop_t interface, signed CSP_BASE_TYPE * pxTaskWoken);
+csp_conn_t * csp_route(csp_id_t id, nexthop_t interface, CSP_BASE_TYPE * pxTaskWoken);
 //void csp_set_connection_fallback(csp_queue_handle_t connQueue);
-void csp_new_packet(csp_packet_t * packet, nexthop_t interface, signed CSP_BASE_TYPE * pxTaskWoken);
+void csp_new_packet(csp_packet_t * packet, nexthop_t interface, CSP_BASE_TYPE * pxTaskWoken);
 csp_thread_return_t vTaskCSPRouter(void * pvParameters);
 
 /* Implemented in csp_services.c */

@@ -21,36 +21,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef _CSP_QUEUE_H_
 #define _CSP_QUEUE_H_
 
+#define CSP_QUEUE_FULL 0
+#define CSP_QUEUE_ERROR 0
+#define CSP_QUEUE_OK 1
+typedef void * csp_queue_handle_t;
+
 #include <stdint.h>
 #include <csp/csp.h>
-
-/* POSIX interface */
-#if defined(__CSP_POSIX__)
-
-#include <pthread.h>
-#include "csp_pthread_queue.h"
-
-#define CSP_QUEUE_EMPTY PTHREAD_QUEUE_EMPTY
-#define CSP_QUEUE_FULL PTHREAD_QUEUE_FULL
-#define CSP_QUEUE_OK PTHREAD_QUEUE_OK
-
-typedef pthread_queue_t * csp_queue_handle_t;
-
-#endif // __CSP_POSIX__
-
-/* FreeRTOS interface */
-#if defined(__CSP_FREERTOS__)
-
-#include <freertos/FreeRTOS.h>
-#include <freertos/queue.h>
-
-#define CSP_QUEUE_EMPTY errQUEUE_EMPTY
-#define CSP_QUEUE_FULL errQUEUE_FULL
-#define CSP_QUEUE_OK pdPASS
-
-typedef xQueueHandle csp_queue_handle_t;
-
-#endif // __CSP_FREERTOS__
 
 csp_queue_handle_t csp_queue_create(int length, size_t item_size);
 int csp_queue_enqueue(csp_queue_handle_t handle, void *value, int timeout);

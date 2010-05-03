@@ -64,7 +64,7 @@ csp_socket_t * csp_socket(void) {
     // Use CSP buffers instead?
     csp_socket_t * sock = csp_malloc(sizeof(csp_socket_t));
     if (sock != NULL)
-        sock->conn_queue = NULL;
+        sock->conn_queue = csp_queue_create(10, sizeof(csp_conn_t *));
 
     return sock;
 

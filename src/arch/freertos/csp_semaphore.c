@@ -49,7 +49,7 @@ int csp_bin_sem_post(csp_bin_sem_handle_t * sem) {
     }
 }
 
-int csp_bin_sem_post_isr(csp_bin_sem_handle_t * sem, signed char * task_woken) {
+int csp_bin_sem_post_isr(csp_bin_sem_handle_t * sem, CSP_BASE_TYPE * task_woken) {
     if (xSemaphoreGiveFromISR(*sem, task_woken) == pdPASS) {
         return CSP_SEMAPHORE_OK;
     } else {

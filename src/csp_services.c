@@ -162,7 +162,7 @@ void csp_ping(uint8_t node, int timeout) {
 	if (time <= 1) {
 		printf(" Reply in <1 tick\r\n");
 	} else {
-		printf(" Reply in %u ms\r\n", time);
+		printf(" Reply in %u ms\r\n", (unsigned int) time);
 //		printf(" Reply in <%u ms (1 tick)\r\n", (unsigned int) (1000/configTICK_RATE_HZ));
 //	} else {
 //		printf(" Reply in %u ms\r\n", (unsigned int) (time * (1000/configTICK_RATE_HZ)));

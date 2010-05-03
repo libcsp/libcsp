@@ -26,15 +26,17 @@ http://code.google.com/p/c-pthread-queue/
 #ifndef _PTHREAD_QUEUE_H_
 #define _PTHREAD_QUEUE_H_
 
-#define PTHREAD_QUEUE_OK 0
-#define PTHREAD_QUEUE_EMPTY 1
-#define PTHREAD_QUEUE_FULL 2
-#define PTHREAD_QUEUE_ERROR 3
-
 #include <stdlib.h>
 #include <sys/time.h>
 
-typedef struct queue {
+#include <csp/csp_queue.h>
+
+#define PTHREAD_QUEUE_ERROR CSP_QUEUE_ERROR
+#define PTHREAD_QUEUE_EMPTY CSP_QUEUE_ERROR
+#define PTHREAD_QUEUE_FULL CSP_QUEUE_ERROR
+#define PTHREAD_QUEUE_OK CSP_QUEUE_OK
+
+typedef struct pthread_queue_s {
     void * buffer;
     int size;
     int item_size;

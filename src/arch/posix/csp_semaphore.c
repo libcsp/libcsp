@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <semaphore.h>
 #include <pthread.h>
+#include <sys/time.h>
 
 /* CSP includes */
 #include <csp/csp.h>
