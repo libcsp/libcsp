@@ -35,7 +35,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef _CSP_H_
 #define _CSP_H_
 
-#define CSP_DEBUG
+//#define CSP_DEBUG
 
 /* Temporary endianness hack - We should really find a better way of doing this */
 #if defined(LITTLE_ENDIAN) || defined(__i386__) || defined(__x86_64__) || defined(__BFIN__) || defined(__AVR__) || defined(__arm__)
@@ -58,6 +58,45 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
     #error "Unknown architecture"
 #endif
 
+#ifndef ntohs
+
+#if defined(__BIG_ENDIAN__) && !defined(__LITTLE_ENDIAN__)
+
+  #define htons(A) (A)
+  #define htonl(A) (A)
+  #define ntohs(A) (A)
+  #define ntohl(A) (A)
+
+  #define htoles(A) ((((uint16_t)(A) & 0xff00) >> 8) | \
+                    (((uint16_t)(A) & 0x00ff) << 8))
+  #define htolel(A) ((((uint32_t)(A) & 0xff000000) >> 24) | \
+                    (((uint32_t)(A) & 0x00ff0000) >> 8)  | \
+                    (((uint32_t)(A) & 0x0000ff00) << 8)  | \
+                    (((uint32_t)(A) & 0x000000ff) << 24))
+
+#elif defined(__LITTLE_ENDIAN__) && !defined(__BIG_ENDIAN__)
+
+  #define htons(A) ((((uint16_t)(A) & 0xff00) >> 8) | \
+                    (((uint16_t)(A) & 0x00ff) << 8))
+  #define htonl(A) ((((uint32_t)(A) & 0xff000000) >> 24) | \
+                    (((uint32_t)(A) & 0x00ff0000) >> 8)  | \
+                    (((uint32_t)(A) & 0x0000ff00) << 8)  | \
+                    (((uint32_t)(A) & 0x000000ff) << 24))
+
+  #define ntohs  htons
+  #define ntohl  htonl
+
+  #define htoles(A) (A)
+  #define htolel(A) (A)
+
+#else
+
+  #error "Must define one of BIG_ENDIAN or LITTLE_ENDIAN"
+
+#endif
+
+#endif /* HTON_H_ */
+
 /* Includes */
 #include <stdint.h>
 
@@ -74,12 +113,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  * RESERVED PORTS (SERVICES)
  */
 
-#define        CSP_ANY                16
-#define        CSP_PING            1
-#define        CSP_PS                2
-#define        CSP_MEMFREE            3
-#define        CSP_REBOOT            4
-#define        CSP_BUF_FREE        5
+#define			CSP_ANY				16
+#define			CSP_PING			1
+#define			CSP_PS				2
+#define			CSP_MEMFREE			3
+#define			CSP_REBOOT			4
+#define			CSP_BUF_FREE		5
 
 /**
  * PRIORITIES
