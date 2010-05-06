@@ -28,12 +28,10 @@ int csp_lo_tx(csp_id_t idout, csp_packet_t * packet, unsigned int timeout) {
 
 	/* Send back into CSP */
 
-    /* We need a portable interface for ISRs ! */
-	//portENTER_CRITICAL(); 
-	
+    /* @todo: replace this with an thread/isr safe call */
+	CSP_ENTER_CRITICAL();
     csp_new_packet(packet, csp_lo_tx, NULL);	
-
-    //portEXIT_CRITICAL();
+    CSP_EXIT_CRITICAL();
 
 	return 1;
 
