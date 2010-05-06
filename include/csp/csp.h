@@ -221,7 +221,7 @@ typedef enum {
 typedef struct {
     csp_conn_state_t state;         // Connection state (SOCKET_OPEN or SOCKET_CLOSED)
     csp_id_t idin;                  // Identifier received
-    csp_id_t idout;                 // Idenfifier transmitted
+    csp_id_t idout;                 // Identifier transmitted
     csp_queue_handle_t rx_queue;    // Queue for RX packets
     csp_bin_sem_handle_t tx_sem;    // Binary semaphore for csp_send()
 } csp_conn_t;
