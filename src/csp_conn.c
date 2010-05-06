@@ -42,7 +42,6 @@ void csp_conn_init(void) {
         csp_bin_sem_create(&arr_conn[i].tx_sem);
         arr_conn[i].rx_queue = csp_queue_create(20, sizeof(csp_packet_t *));
 		arr_conn[i].state = SOCKET_CLOSED;
-		arr_conn[i].rxmalloc = NULL;
 	}
 
 }
@@ -109,13 +108,6 @@ void csp_close(csp_conn_t * conn) {
 	csp_packet_t * packet;
     while(csp_queue_dequeue(conn->rx_queue, &packet, 0) == CSP_QUEUE_OK)
     	csp_buffer_free(packet);
-
-	/* Remove dynamic allocated buffer */
-	if (conn->rxmalloc != NULL) {
-		csp_buffer_free(conn->rxmalloc);
-		conn->rxmalloc = NULL;
-		csp_debug("Close conn with active RX malloc!\r\n");
-	}
 
     /* Set to closed */
     conn->state = SOCKET_CLOSED;
