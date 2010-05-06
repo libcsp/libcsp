@@ -33,6 +33,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #define CSP_SEMAPHORE_OK 1
 #define CSP_SEMAPHORE_ERROR 2
 
+#define CSP_ENTER_CRITICAL()
+#define CSP_EXIT_CRITICAL()
+
 typedef sem_t csp_bin_sem_handle_t;
 
 #endif // __CSP_POSIX__
@@ -45,6 +48,9 @@ typedef sem_t csp_bin_sem_handle_t;
 
 #define CSP_SEMAPHORE_OK pdPASS
 #define CSP_SEMAPHORE_ERROR pdFAIL
+
+#define CSP_ENTER_CRITICAL() portENTER_CRITICAL()
+#define CSP_EXIT_CRITICAL() portEXIT_CRITICAL()
 
 typedef xSemaphoreHandle csp_bin_sem_handle_t;
 

@@ -29,8 +29,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/csp_malloc.h>
 #include <csp/csp_time.h>
 
-/* Static connection pool */
-csp_conn_t arr_conn[MAX_STATIC_CONNS];
+/* Static connection pool and lock */
+static csp_conn_t arr_conn[MAX_STATIC_CONNS];
 
 /** csp_conn_init
  * Initialises the connection pool
@@ -39,7 +39,6 @@ void csp_conn_init(void) {
 
 	int i;
 	for (i = 0; i < MAX_STATIC_CONNS; i++) {
-        csp_bin_sem_create(&arr_conn[i].tx_sem);
         arr_conn[i].rx_queue = csp_queue_create(20, sizeof(csp_packet_t *));
 		arr_conn[i].state = SOCKET_CLOSED;
 	}
@@ -81,6 +80,7 @@ csp_conn_t * csp_conn_new(csp_id_t idin, csp_id_t idout) {
     int i;
     csp_conn_t * conn;
 
+    CSP_ENTER_CRITICAL();
 	for (i = 0; i < MAX_STATIC_CONNS; i++) {
 		conn = &arr_conn[i];
 
@@ -88,9 +88,11 @@ csp_conn_t * csp_conn_new(csp_id_t idin, csp_id_t idout) {
 			conn->state = SOCKET_OPEN;
             conn->idin = idin;
             conn->idout = idout;
+            CSP_EXIT_CRITICAL();
             return conn;
         }
     }
+	CSP_EXIT_CRITICAL();
     
     return NULL;
   

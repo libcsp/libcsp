@@ -89,14 +89,17 @@ void * csp_buffer_get(size_t buf_size) {
 
 	int i = csp_buffer_last_given;							// Start with the last given element
 	i = (i + 1) % count;									// Increment by one
+	CSP_ENTER_CRITICAL();
 	while(i != csp_buffer_last_given) {						// Loop till we have checked all
 		if (csp_buffer_list[i] == CSP_BUFFER_FREE) {		// Check the buffer list
 			csp_buffer_list[i] = CSP_BUFFER_USED;			// Mark as used
 			csp_buffer_last_given = i;						// Remember the progress
+			CSP_EXIT_CRITICAL();
 			return csp_buffer_p + (i * size);				// Return poniter
 		}
 		i = (i + 1) % count;								// Increment by one
 	}
+	CSP_EXIT_CRITICAL();
 	return NULL;											// If we are out of memory, return NULL
 }
 

@@ -106,8 +106,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/csp_queue.h>
 #include <csp/csp_semaphore.h>
 
-#define MAX_STATIC_CONNS 2  /**< Number of statically allocated connection structs */
-#define CSP_MTU 260+4       /**< Maximum CSP packet size, including header */ 
+#define MAX_STATIC_CONNS 10  /**< Number of statically allocated connection structs */
+#define CSP_MTU 260+4        /**< Maximum CSP packet size, including header */
 
 /**
  * RESERVED PORTS (SERVICES)
@@ -223,7 +223,6 @@ typedef struct {
     csp_id_t idin;                  // Identifier received
     csp_id_t idout;                 // Identifier transmitted
     csp_queue_handle_t rx_queue;    // Queue for RX packets
-    csp_bin_sem_handle_t tx_sem;    // Binary semaphore for csp_send()
 } csp_conn_t;
 
 /** @brief Port states */
