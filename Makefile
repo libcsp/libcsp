@@ -44,6 +44,7 @@ SOURCES += src/csp_io.c
 SOURCES += src/csp_route.c
 SOURCES += src/csp_port.c
 SOURCES += src/csp_services.c
+SOURCES += src/csp_endian.c
 SOURCES += src/arch/$(ARCH)/csp_debug.c
 SOURCES += src/arch/$(ARCH)/csp_malloc.c
 SOURCES += src/arch/$(ARCH)/csp_queue.c

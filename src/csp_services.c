@@ -25,6 +25,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 /* CSP includes */
 #include <csp/csp.h>
 #include <csp/csp_time.h>
+#include <csp/csp_endian.h>
 
 void csp_ping(uint8_t node, int timeout) {
 

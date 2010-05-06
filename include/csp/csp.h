@@ -58,45 +58,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
     #error "Unknown architecture"
 #endif
 
-#ifndef ntohs
-
-#if defined(__BIG_ENDIAN__) && !defined(__LITTLE_ENDIAN__)
-
-  #define htons(A) (A)
-  #define htonl(A) (A)
-  #define ntohs(A) (A)
-  #define ntohl(A) (A)
-
-  #define htoles(A) ((((uint16_t)(A) & 0xff00) >> 8) | \
-                    (((uint16_t)(A) & 0x00ff) << 8))
-  #define htolel(A) ((((uint32_t)(A) & 0xff000000) >> 24) | \
-                    (((uint32_t)(A) & 0x00ff0000) >> 8)  | \
-                    (((uint32_t)(A) & 0x0000ff00) << 8)  | \
-                    (((uint32_t)(A) & 0x000000ff) << 24))
-
-#elif defined(__LITTLE_ENDIAN__) && !defined(__BIG_ENDIAN__)
-
-  #define htons(A) ((((uint16_t)(A) & 0xff00) >> 8) | \
-                    (((uint16_t)(A) & 0x00ff) << 8))
-  #define htonl(A) ((((uint32_t)(A) & 0xff000000) >> 24) | \
-                    (((uint32_t)(A) & 0x00ff0000) >> 8)  | \
-                    (((uint32_t)(A) & 0x0000ff00) << 8)  | \
-                    (((uint32_t)(A) & 0x000000ff) << 24))
-
-  #define ntohs  htons
-  #define ntohl  htonl
-
-  #define htoles(A) (A)
-  #define htolel(A) (A)
-
-#else
-
-  #error "Must define one of BIG_ENDIAN or LITTLE_ENDIAN"
-
-#endif
-
-#endif /* HTON_H_ */
-
 /* Includes */
 #include <stdint.h>
 
@@ -192,7 +153,7 @@ typedef union __attribute__ ((__packed__)) {
  * Note: This structure is constructed to fit
  * with i2c_frame_t in order to have buffer reuse
  */
-typedef struct __attribute__((packed)) {
+typedef struct __attribute__((__packed__)) {
     uint8_t padding1[42];
     uint8_t mac_dest;
     uint8_t counter;
