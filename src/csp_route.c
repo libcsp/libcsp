@@ -34,18 +34,21 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 /* Static allocation of interfaces */
 csp_iface_t iface[17];
 
-/** Connection Fallback Socket
- * This socket is used each time a routed connection is created
- * this is used by the CSP router to receive any connection 
+/** Connection Fallback
+ * This connection is used each time a packet is accepted for routing
  */
-static csp_socket_t * fallback_socket = NULL;
+static csp_conn_t fallback_conn;
 
 /** csp_route_table_init
  * Initialises the storage for the routing table
  */
 void csp_route_table_init(void) {
 
+	/* Clear table */
 	memset(iface, 0, sizeof(csp_iface_t) * 17);
+
+	/* Ensure that no traffic is routed until the Router task creates the RX queue */
+	fallback_conn.rx_queue = NULL;
 
 }
 
@@ -56,29 +59,23 @@ void csp_route_table_init(void) {
  */
 csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 
-	csp_conn_t *conn;
 	csp_packet_t * packet;
 	
 	/* Create fallback socket  */
-    fallback_socket = csp_socket();
+    fallback_conn.rx_queue = csp_queue_create(20, sizeof(csp_packet_t *));
 
+    /* Here there be routing */
 	while (1) {
 
-		conn = csp_accept(fallback_socket, CSP_MAX_DELAY);
+		packet = csp_read(&fallback_conn, CSP_MAX_DELAY);
 
-		csp_debug("ROUTER: Recevied connection from %u to %u\r\n", conn->idin.src, conn->idin.dst);
+		if (packet == NULL)
+			continue;
 
-		while ((packet = csp_read(conn, 10)) != NULL) {
+		csp_debug("Routing packet with id %08X\r\n", packet->id);
 
-			if (!csp_send_direct(conn->idin, packet, 0))
-				csp_buffer_free(packet);
-
-		}
-
-		csp_close(conn);
-
-		csp_debug("Connection Closed...\r\n");
-
+		if (!csp_send_direct(packet->id, packet, 0))
+			csp_buffer_free(packet);
 	}
 
 }
@@ -158,7 +155,7 @@ csp_conn_t * csp_route(csp_id_t id, nexthop_t avoid_nexthop, CSP_BASE_TYPE * pxT
 		}
 
 	/* If local node rejected the packet, try to route the frame */
-	} else if (fallback_socket != NULL && fallback_socket->conn_queue != NULL) {
+	} else if (fallback_conn.rx_queue != NULL) {
 
 		/* If both sender and receiver resides on same segment
 		 * don't route the frame. */
@@ -170,7 +167,7 @@ csp_conn_t * csp_route(csp_id_t id, nexthop_t avoid_nexthop, CSP_BASE_TYPE * pxT
 		if (dst->nexthop == avoid_nexthop)
 			return NULL;
 
-		queue = &(fallback_socket->conn_queue);
+		return &fallback_conn;
 
 	/* If the packet was not routed, reject it */
 	} else {
