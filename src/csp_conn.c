@@ -130,25 +130,37 @@ void csp_close(csp_conn_t * conn) {
  */
 csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport) {
 
-    /* Find an unused port.
-	 * @todo: Implement sourceport conflict resolving */
-	unsigned char sport = 31;
+	uint8_t sport = 31;
 
 	/* Generate CAN identifier */
 	csp_id_t incoming_id, outgoing_id;
 	incoming_id.pri = prio;
 	incoming_id.dst = my_address;
 	incoming_id.src = dest;
-	incoming_id.dport = sport;
 	incoming_id.sport = dport;
 	outgoing_id.pri = prio;
 	outgoing_id.dst = dest;
 	outgoing_id.src = my_address;
 	outgoing_id.dport = dport;
-	outgoing_id.sport = sport;
-    csp_conn_t * conn = csp_conn_new(incoming_id, outgoing_id);
+    
+    /* Find an unused ephemeral port */
+    csp_conn_t * conn;
+    while (sport > 17) {
+	    outgoing_id.sport = sport;
+        incoming_id.dport = sport;
+        /* Match on source port */
+        conn = csp_conn_find(incoming_id.ext, 0x00001F00);
+        /* If no connection with this identifier was found,
+         * go ahead and use sport as outgoing port */
+        if (conn == NULL) {
+            break;
+        } else {
+            sport--;
+        }
+    }
+
+    conn = csp_conn_new(incoming_id, outgoing_id);
 
     return conn;
-
 }
 
