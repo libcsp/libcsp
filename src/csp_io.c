@@ -37,6 +37,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "csp_conn.h"
 #include "csp_route.h"
 #include "csp_buffer.h"
+#include "csp_if_lo.h"
 
 /** Static local variables */
 unsigned char my_address;
@@ -54,7 +55,6 @@ void csp_init(unsigned char address) {
 	csp_route_table_init();
 
 	/* Register loopback route */
-	extern int csp_lo_tx(csp_id_t idout, csp_packet_t * packet, unsigned int timeout);
 	csp_route_set("LOOP", address, csp_lo_tx);
 
 }
@@ -67,7 +67,7 @@ csp_socket_t * csp_socket(void) {
     // Use CSP buffers instead?
     csp_socket_t * sock = csp_malloc(sizeof(csp_socket_t));
     if (sock != NULL)
-        sock->conn_queue = csp_queue_create(10, sizeof(csp_conn_t *));
+        sock->conn_queue = NULL;
 
     return sock;
 
@@ -131,9 +131,6 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, int timeout) {
 		csp_debug("No route to host: %#08x\r\n", idout.ext);
 		return 0;
 	}
-
-    // This was in the AAUSAT3 version, is it no longer needed?
-    //packet->id = idout;
 
 	csp_debug("Sending packet from %u to %u port %u via interface %s\r\n", idout.src, idout.dst, idout.dport, ifout->name);
 
