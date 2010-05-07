@@ -225,8 +225,7 @@ void csp_new_packet(csp_packet_t * packet, nexthop_t interface, CSP_BASE_TYPE * 
 
 	csp_conn_t * conn;
 
-	csp_debug(
-			"\r\nPacket P 0x%02X, S 0x%02X, D 0x%02X, Dp 0x%02X, Sp 0x%02X, T 0x%02X\r\n",
+	csp_debug("Packet P 0x%02X, S 0x%02X, D 0x%02X, Dp 0x%02X, Sp 0x%02X, T 0x%02X\r\n",
 			packet->id.pri, packet->id.src, packet->id.dst, packet->id.dport,
 			packet->id.sport, packet->id.type);
 

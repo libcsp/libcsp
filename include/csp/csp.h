@@ -131,7 +131,7 @@ typedef struct __attribute__((__packed__)) {
     uint8_t padding1[44];       // Interface dependent padding
     uint16_t length;            // Length field must be just before CSP ID
     csp_id_t id;                // CSP id must be just before data
-    uint8_t data[CSP_MTU-4];    // Data must be large enough to fit a en encoded spacelink frame
+    uint8_t data[CSP_MTU];      // Data must be large enough to fit a en encoded spacelink frame
 } csp_packet_t;
 
 typedef struct csp_socket_s csp_socket_t;
@@ -157,6 +157,7 @@ int csp_bind(csp_socket_t * socket, uint8_t port);
 /* Implemented in csp_route.c */
 typedef int (*nexthop_t)(csp_id_t idout, csp_packet_t * packet, unsigned int timeout);
 void csp_route_set(const char * name, uint8_t node, nexthop_t nexthop);
+void csp_new_packet(csp_packet_t * packet, nexthop_t interface, CSP_BASE_TYPE * pxTaskWoken);
 
 /* Implemented in csp_services.c */
 void csp_service_handler(csp_conn_t * conn, csp_packet_t * packet);
@@ -166,6 +167,9 @@ void csp_ps(uint8_t node, int timeout);
 void csp_memfree(uint8_t node, int timeout);
 void csp_buf_free(uint8_t node, int timeout);
 void csp_reboot(uint8_t node);
+
+/* Implemented in csp_buffer.c */
+int csp_buffer_init(int count, int size);
 
 /* CSP debug printf - implemented in arch/x/csp_debug.c */
 void csp_debug(const char * format, ...);

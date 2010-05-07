@@ -42,6 +42,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #if defined(_CSP_POSIX_)
     #define CSP_BASE_TYPE int
 #elif defined(_CSP_FREERTOS_)
+    #include <freertos/FreeRTOS.h>
     #define CSP_BASE_TYPE portBASE_TYPE
 #else
     #error "Unknown architecture"
