@@ -18,47 +18,33 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef _CSP_SEMAPHORE_H_
-#define _CSP_SEMAPHORE_H_
+#ifndef _CSP_TIME_H_
+#define _CSP_TIME_H_
 
 #include <stdint.h>
 #include <csp/csp.h>
 
-/* POSIX interface */
-#if defined(__CSP_POSIX__)
+/* Blackfin/x86 on Linux */
+#if defined(_CSP_POSIX_)
 
-#include <pthread.h>
-#include <semaphore.h>
+#include <time.h>
+#include <sys/time.h>
+#include <limits.h>
 
-#define CSP_SEMAPHORE_OK 1
-#define CSP_SEMAPHORE_ERROR 2
+#define CSP_MAX_DELAY INT_MAX
 
-#define CSP_ENTER_CRITICAL()
-#define CSP_EXIT_CRITICAL()
+#endif // _CSP_POSIX_
 
-typedef sem_t csp_bin_sem_handle_t;
-
-#endif // __CSP_POSIX__
-
-/* FreeRTOS interface */
-#if defined(__CSP_FREERTOS__)
+/* AVR/ARM on FreeRTOS */
+#if defined(_CSP_FREERTOS_)
 
 #include <freertos/FreeRTOS.h>
-#include <freertos/semphr.h>
+#include <freertos/task.h>
 
-#define CSP_SEMAPHORE_OK pdPASS
-#define CSP_SEMAPHORE_ERROR pdFAIL
+#define CSP_MAX_DELAY portMAX_DELAY
 
-#define CSP_ENTER_CRITICAL() portENTER_CRITICAL()
-#define CSP_EXIT_CRITICAL() portEXIT_CRITICAL()
+#endif // _CSP_FREERTOS_
 
-typedef xSemaphoreHandle csp_bin_sem_handle_t;
+uint32_t csp_get_ms();
 
-#endif // __CSP_FREERTOS__
-
-int csp_bin_sem_create(csp_bin_sem_handle_t *sem);
-int csp_bin_sem_wait(csp_bin_sem_handle_t *sem, int timeout);
-int csp_bin_sem_post(csp_bin_sem_handle_t *sem);
-int csp_bin_sem_post_isr(csp_bin_sem_handle_t *sem, CSP_BASE_TYPE * task_woken);
-
-#endif // _CSP_SEMAPHORE_H_
+#endif // _CSP_TIME_H_

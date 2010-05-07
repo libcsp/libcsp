@@ -1,11 +1,11 @@
 ## AAUSAT3 libcsp makefile
 
 ## Configuration
-ARCH=posix
-#ARCH=freertos
+#ARCH=posix
+ARCH=freertos
 #TOOLCHAIN=bfin-linux-uclibc-
-#TOOLCHAIN=avr-
-TOOLCHAIN=
+TOOLCHAIN=avr-
+#TOOLCHAIN=
 TARGET = libcsp.a
 OUTDIR = .
 MCU = at90can128
@@ -14,11 +14,11 @@ AR = $(TOOLCHAIN)ar
 SZ = $(TOOLCHAIN)size
 
 ## Options common to compile, link and assembly rules
-COMMON = #-mmcu=$(MCU)
+COMMON = -mmcu=$(MCU)
 
 ## Compile options common for all C compilation units.
 CFLAGS = $(COMMON) -D_GNU_SOURCE
-CFLAGS += -Wall -Werror -gdwarf-2 -std=gnu99 -O2 -funsigned-char -funsigned-bitfields #-fpack-struct -fshort-enums
+CFLAGS += -Wall -Werror -gdwarf-2 -std=gnu99 -O2 -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums
 
 ## Assembly specific flags
 ASMFLAGS = $(COMMON)
@@ -50,7 +50,7 @@ SOURCES += src/arch/$(ARCH)/csp_malloc.c
 SOURCES += src/arch/$(ARCH)/csp_queue.c
 SOURCES += src/arch/$(ARCH)/csp_semaphore.c
 SOURCES += src/arch/$(ARCH)/csp_time.c
-SOURCES += src/arch/$(ARCH)/pthread_queue.c
+#SOURCES += src/arch/$(ARCH)/pthread_queue.c
 
 OBJECTS=$(SOURCES:.c=.o)
 

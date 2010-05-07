@@ -25,11 +25,18 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 /* CSP includes */
 #include <csp/csp.h>
-#include <csp/csp_thread.h>
-#include <csp/csp_queue.h>
-#include <csp/csp_semaphore.h>
-#include <csp/csp_time.h>
-#include <csp/csp_malloc.h>
+
+#include "arch/csp_thread.h"
+#include "arch/csp_queue.h"
+#include "arch/csp_semaphore.h"
+#include "arch/csp_time.h"
+#include "arch/csp_malloc.h"
+
+#include "csp_io.h"
+#include "csp_port.h"
+#include "csp_conn.h"
+#include "csp_route.h"
+#include "csp_buffer.h"
 
 /** Static local variables */
 unsigned char my_address;
@@ -44,10 +51,6 @@ void csp_init(unsigned char address) {
     my_address = address;
 	csp_conn_init();
 	csp_port_init();
-	//csp_bind_callback(CSP_PING, &csp_service_ping);
-	//csp_bind_callback(CSP_PS, &csp_service_ps);
-	//csp_bind_callback(CSP_MEMFREE, &csp_service_memfree);
-	//csp_bind_callback(CSP_REBOOT, &csp_service_reboot);
 	csp_route_table_init();
 
 	/* Register loopback route */
@@ -145,7 +148,8 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, int timeout) {
  * @param timeout a timeout to wait for TX to complete. NOTE: not all underlying drivers supports flow-control.
  * @return returns 1 if successful and 0 otherwise. you MUST free the frame yourself if the transmission was not successful.
  */
-int csp_send(csp_conn_t* conn, csp_packet_t * packet, int timeout) {
+int csp_send(csp_conn_t* conn, csp_packet_t * packet, int timeout) {
+
 	if ((conn == NULL) || (packet == NULL)) {
 		printf("Invalid call to csp_send\r\n");
 		return 0;

@@ -29,7 +29,7 @@ http://code.google.com/p/c-pthread-queue/
 #include <stdlib.h>
 #include <sys/time.h>
 
-#include <csp/csp_queue.h>
+#include "../csp_queue.h"
 
 #define PTHREAD_QUEUE_ERROR CSP_QUEUE_ERROR
 #define PTHREAD_QUEUE_EMPTY CSP_QUEUE_ERROR

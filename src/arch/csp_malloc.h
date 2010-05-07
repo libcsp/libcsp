@@ -18,35 +18,27 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef _CSP_THREAD_H_
-#define _CSP_THREAD_H_
+#ifndef _CSP_MALLOC_H_
+#define _CSP_MALLOC_H_
 
 #include <stdint.h>
-#include <csp/csp.h>
 
 /* POSIX interface */
-#if defined(__CSP_POSIX__)
+#if defined(_CSP_POSIX_)
 
-#include <pthread.h>
+#include <stdlib.h>
 
-#define csp_thread_exit() pthread_exit(NULL)
-
-typedef pthread_t csp_thread_handle_t;
-typedef void* csp_thread_return_t;
-
-#endif // __CSP_POSIX__
+#endif // _CSP_POSIX_
 
 /* FreeRTOS interface */
-#if defined(__CSP_FREERTOS__)
+#if defined(_CSP_FREERTOS_)
 
 #include <freertos/FreeRTOS.h>
-#include <freertos/task.h>
+#include <freertos/queue.h>
 
-#define csp_thread_exit() return
+#endif // _CSP_FREERTOS_
 
-typedef xTaskHandle csp_thread_handle_t;
-typedef void csp_thread_return_t;
+void * csp_malloc(size_t size);
+void csp_free(void * ptr);
 
-#endif // __CSP_FREERTOS__
-
-#endif // _CSP_THREAD_H_
+#endif // _CSP_MALLOC_H_

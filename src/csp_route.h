@@ -1,6 +1,6 @@
 /*
 Cubesat Space Protocol - A small network-layer protocol designed for Cubesats
-Copyright (C) 2010 Gomspace ApS (gomspace.com)
+Copyright (C) 2010 GomSpace ApS (gomspace.com)
 Copyright (C) 2010 AAUSAT3 Project (aausat3.space.aau.dk) 
 
 This library is free software; you can redistribute it and/or
@@ -18,21 +18,29 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <pthread.h>
-#include <time.h>
-#include <sys/time.h>
+#ifndef _CSP_ROUTE_H_
+#define _CSP_ROUTE_H_
 
-/* CSP includes */
+#include <stdint.h>
+
 #include <csp/csp.h>
 
-#include "../csp_time.h"
+#include "arch/csp_thread.h"
 
-uint32_t csp_get_ms() {
-    struct timespec ts;
+typedef struct {
+    const char * name;
+    nexthop_t nexthop;
+    int count;
+} csp_iface_t;
 
-    if (clock_gettime(CLOCK_MONOTONIC, &ts) == 0) {
-        return (ts.tv_sec*1000+ts.tv_nsec/1000000);
-    } else {
-        return 0;
-    }
-}
+extern csp_iface_t iface[];
+
+void csp_route_table_init(void);
+csp_iface_t * csp_route_if(uint8_t id);
+csp_conn_t * csp_route(csp_id_t id, nexthop_t interface, CSP_BASE_TYPE * pxTaskWoken);
+void csp_new_packet(csp_packet_t * packet, nexthop_t interface, CSP_BASE_TYPE * pxTaskWoken);
+
+/* @todo Add csp_start_router call */
+csp_thread_return_t vTaskCSPRouter(void * pvParameters);
+
+#endif // _CSP_ROUTE_H_

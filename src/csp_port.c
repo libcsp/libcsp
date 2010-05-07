@@ -24,9 +24,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 /* CSP includes */
 #include <csp/csp.h>
-#include <csp/csp_thread.h>
-#include <csp/csp_queue.h>
-#include <csp/csp_semaphore.h>
+
+#include "arch/csp_thread.h"
+#include "arch/csp_queue.h"
+#include "arch/csp_semaphore.h"
+
+#include "csp_port.h"
+#include "csp_conn.h"
 
 /* Static allocation of ports */
 csp_port_t ports[17];

@@ -20,14 +20,19 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdint.h>
 
 /* CSP includes */
 #include <csp/csp.h>
-#include <csp/csp_thread.h>
-#include <csp/csp_queue.h>
-#include <csp/csp_semaphore.h>
-#include <csp/csp_malloc.h>
-#include <csp/csp_time.h>
+
+#include "arch/csp_thread.h"
+#include "arch/csp_queue.h"
+#include "arch/csp_semaphore.h"
+#include "arch/csp_malloc.h"
+#include "arch/csp_time.h"
+
+#include "csp_buffer.h"
+#include "csp_conn.h"
 
 /* Static connection pool and lock */
 static csp_conn_t arr_conn[MAX_STATIC_CONNS];

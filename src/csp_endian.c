@@ -20,6 +20,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <stdint.h>
 
+/* CSP includes */
+#include <csp/csp_endian.h>
+
 /* Test if host is big endian
  * The function is declared __pure__, so the compiler 
  * will (hopefully) identify it as a runtime constant

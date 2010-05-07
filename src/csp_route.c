@@ -25,11 +25,18 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 /* CSP includes */
 #include <csp/csp.h>
-#include <csp/csp_thread.h>
-#include <csp/csp_queue.h>
-#include <csp/csp_semaphore.h>
-#include <csp/csp_malloc.h>
-#include <csp/csp_time.h>
+
+#include "arch/csp_thread.h"
+#include "arch/csp_queue.h"
+#include "arch/csp_semaphore.h"
+#include "arch/csp_malloc.h"
+#include "arch/csp_time.h"
+
+#include "csp_port.h"
+#include "csp_route.h"
+#include "csp_conn.h"
+#include "csp_buffer.h"
+#include "csp_io.h"
 
 /* Static allocation of interfaces */
 csp_iface_t iface[17];

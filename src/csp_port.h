@@ -1,6 +1,6 @@
 /*
 Cubesat Space Protocol - A small network-layer protocol designed for Cubesats
-Copyright (C) 2010 Gomspace ApS (gomspace.com)
+Copyright (C) 2010 GomSpace ApS (gomspace.com)
 Copyright (C) 2010 AAUSAT3 Project (aausat3.space.aau.dk) 
 
 This library is free software; you can redistribute it and/or
@@ -18,33 +18,27 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef _CSP_TIME_H_
-#define _CSP_TIME_H_
+#ifndef _CSP_PORT_H_
+#define _CSP_PORT_H_
 
 #include <stdint.h>
+
 #include <csp/csp.h>
 
-/* Blackfin/x86 on Linux */
-#if defined(__CSP_POSIX__)
+/** @brief Port states */
+typedef enum {
+    PORT_CLOSED = 0,
+    PORT_OPEN = 1,
+} csp_port_state_t;
 
-#include <time.h>
-#include <sys/time.h>
-#include <limits.h>
+/** @brief Port struct */
+typedef struct {
+    csp_port_state_t state;         // Port state
+    void (*callback) (csp_conn_t*); // Pointer to callback function
+    csp_socket_t * socket;          // New connections are added to this socket's conn queue
+} csp_port_t;
 
-#define CSP_MAX_DELAY INT_MAX
+extern csp_port_t ports[];
+void csp_port_init(void);
 
-#endif // __CSP_POSIX__
-
-/* AVR/ARM on FreeRTOS */
-#if defined(__CSP_FREERTOS__)
-
-#include <freertos/FreeRTOS.h>
-#include <freertos/task.h>
-
-#define CSP_MAX_DELAY portMAX_DELAY
-
-#endif // __CSP_FREERTOS__
-
-uint32_t csp_get_ms();
-
-#endif // _CSP_TIME_H_
+#endif // _CSP_PORT_H_

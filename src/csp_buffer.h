@@ -39,6 +39,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef CSP_BUFFER_H_
 #define CSP_BUFFER_H_
 
+#include <stdint.h>
+
 /**
  * Start the buffer handling system
  * You must specify the number for buffers and the size. All buffers are fixed

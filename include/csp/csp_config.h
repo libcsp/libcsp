@@ -18,21 +18,19 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <pthread.h>
-#include <time.h>
-#include <sys/time.h>
+#ifndef _CSP_CONFIG_H_
+#define _CSP_CONFIG_H_
 
-/* CSP includes */
-#include <csp/csp.h>
+/* General config */
+#define CSP_DEBUG           0       /**< Enable/disable debugging output */
+#define MAX_STATIC_CONNS    10      /**< Number of statically allocated connection structs */
+#define CSP_MTU             260+4   /**< Maximum CSP packet size, including header */
 
-#include "../csp_time.h"
+/* Buffer config */
+#define CSP_BUFFER_STATIC 0
+#define CSP_BUFFER_SIZE 320
+#define CSP_BUFFER_COUNT 12
+#define CSP_BUFFER_FREE	0
+#define CSP_BUFFER_USED	1
 
-uint32_t csp_get_ms() {
-    struct timespec ts;
-
-    if (clock_gettime(CLOCK_MONOTONIC, &ts) == 0) {
-        return (ts.tv_sec*1000+ts.tv_nsec/1000000);
-    } else {
-        return 0;
-    }
-}
+#endif // _CSP_CONFIG_H_

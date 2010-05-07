@@ -26,7 +26,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 /* CSP includes */
 #include <csp/csp.h>
-#include <csp/csp_semaphore.h>
+
+#include "../csp_semaphore.h"
 
 int csp_bin_sem_create(csp_bin_sem_handle_t * sem) {
     vSemaphoreCreateBinary(*sem);
@@ -50,7 +51,7 @@ int csp_bin_sem_post(csp_bin_sem_handle_t * sem) {
 }
 
 int csp_bin_sem_post_isr(csp_bin_sem_handle_t * sem, CSP_BASE_TYPE * task_woken) {
-    if (xSemaphoreGiveFromISR(*sem, task_woken) == pdPASS) {
+    if (xSemaphoreGiveFromISR(*sem, (signed CSP_BASE_TYPE *)task_woken) == pdPASS) {
         return CSP_SEMAPHORE_OK;
     } else {
         return CSP_SEMAPHORE_ERROR;

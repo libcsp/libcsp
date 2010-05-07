@@ -18,17 +18,48 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+#ifndef _CSP_SEMAPHORE_H_
+#define _CSP_SEMAPHORE_H_
+
 #include <stdint.h>
 
-/* FreeRTOS includes */
-#include <freertos/FreeRTOS.h>
-#include <freertos/task.h>
-
-/* CSP includes */
 #include <csp/csp.h>
 
-#include "../csp_time.h"
+/* POSIX interface */
+#if defined(_CSP_POSIX_)
 
-uint32_t csp_get_ms() {
-    return (uint32_t)(xTaskGetTickCount() * (1000/configTICK_RATE_HZ));
-}
+#include <pthread.h>
+#include <semaphore.h>
+
+#define CSP_SEMAPHORE_OK 1
+#define CSP_SEMAPHORE_ERROR 2
+
+#define CSP_ENTER_CRITICAL()
+#define CSP_EXIT_CRITICAL()
+
+typedef sem_t csp_bin_sem_handle_t;
+
+#endif // _CSP_POSIX_
+
+/* FreeRTOS interface */
+#if defined(_CSP_FREERTOS_)
+
+#include <freertos/FreeRTOS.h>
+#include <freertos/semphr.h>
+
+#define CSP_SEMAPHORE_OK pdPASS
+#define CSP_SEMAPHORE_ERROR pdFAIL
+
+#define CSP_ENTER_CRITICAL() portENTER_CRITICAL()
+#define CSP_EXIT_CRITICAL() portEXIT_CRITICAL()
+
+typedef xSemaphoreHandle csp_bin_sem_handle_t;
+
+#endif // _CSP_FREERTOS_
+
+int csp_bin_sem_create(csp_bin_sem_handle_t * sem);
+int csp_bin_sem_wait(csp_bin_sem_handle_t * sem, int timeout);
+int csp_bin_sem_post(csp_bin_sem_handle_t * sem);
+int csp_bin_sem_post_isr(csp_bin_sem_handle_t * sem, CSP_BASE_TYPE * task_woken);
+
+#endif // _CSP_SEMAPHORE_H_

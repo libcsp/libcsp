@@ -18,23 +18,33 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef _CSP_QUEUE_H_
-#define _CSP_QUEUE_H_
-
-#define CSP_QUEUE_FULL 0
-#define CSP_QUEUE_ERROR 0
-#define CSP_QUEUE_OK 1
-typedef void * csp_queue_handle_t;
+#ifndef _CSP_THREAD_H_
+#define _CSP_THREAD_H_
 
 #include <stdint.h>
 #include <csp/csp.h>
 
-csp_queue_handle_t csp_queue_create(int length, size_t item_size);
-int csp_queue_enqueue(csp_queue_handle_t handle, void *value, int timeout);
-int csp_queue_enqueue_isr(csp_queue_handle_t handle, void * value, CSP_BASE_TYPE * task_woken);
-int csp_queue_dequeue(csp_queue_handle_t handle, void *buf, int timeout);
-int csp_queue_dequeue_isr(csp_queue_handle_t handle, void *buf, CSP_BASE_TYPE * task_woken);
-int csp_queue_size(csp_queue_handle_t handle);
-int csp_queue_size_isr(csp_queue_handle_t handle);
+/* POSIX interface */
+#if defined(_CSP_POSIX_)
 
-#endif // _CSP_QUEUE_H_
+#include <pthread.h>
+
+#define csp_thread_exit() pthread_exit(NULL)
+
+typedef void* csp_thread_return_t;
+
+#endif // _CSP_POSIX_
+
+/* FreeRTOS interface */
+#if defined(_CSP_FREERTOS_)
+
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
+
+#define csp_thread_exit() return
+
+typedef void csp_thread_return_t;
+
+#endif // _CSP_FREERTOS_
+
+#endif // _CSP_THREAD_H_

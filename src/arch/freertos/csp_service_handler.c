@@ -11,7 +11,8 @@
 
 /* CSP includes */
 #include <csp/csp.h>
-#include <csp/csp_time.h>
+
+#include "../csp_time.h"
 
 /**
  * If the given packet is a service-request (that is uses one of the csp service ports)

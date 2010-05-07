@@ -1,6 +1,6 @@
 /*
 Cubesat Space Protocol - A small network-layer protocol designed for Cubesats
-Copyright (C) 2010 Gomspace ApS (gomspace.com)
+Copyright (C) 2010 GomSpace ApS (gomspace.com)
 Copyright (C) 2010 AAUSAT3 Project (aausat3.space.aau.dk) 
 
 This library is free software; you can redistribute it and/or
@@ -18,21 +18,13 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <pthread.h>
-#include <time.h>
-#include <sys/time.h>
+#ifndef _CSP_IO_H_
+#define _CSP_IO_H_
 
-/* CSP includes */
+#include <stdint.h>
+
 #include <csp/csp.h>
 
-#include "../csp_time.h"
+int csp_send_direct(csp_id_t idout, csp_packet_t * packet, int timeout);
 
-uint32_t csp_get_ms() {
-    struct timespec ts;
-
-    if (clock_gettime(CLOCK_MONOTONIC, &ts) == 0) {
-        return (ts.tv_sec*1000+ts.tv_nsec/1000000);
-    } else {
-        return 0;
-    }
-}
+#endif // _CSP_IO_H_

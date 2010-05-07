@@ -18,25 +18,36 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/* CSP includes */
+#ifndef _CSP_CONN_H_
+#define _CSP_CONN_H_
+
+#include <stdint.h>
+
 #include <csp/csp.h>
 
-#include "arch/csp_semaphore.h"
+#include "arch/csp_queue.h"
 
-#include "csp_route.h"
+/** @brief Connection states */
+typedef enum {
+    SOCKET_CLOSED,                  /**< Connection closed */
+    SOCKET_OPEN,                    /**< Connection open (ready to send) */
+} csp_conn_state_t;
 
-int csp_lo_tx(csp_id_t idout, csp_packet_t * packet, unsigned int timeout) {
+/** @brief Connection struct */
+struct csp_conn_s {
+    csp_conn_state_t state;         // Connection state (SOCKET_OPEN or SOCKET_CLOSED)
+    csp_id_t idin;                  // Identifier received
+    csp_id_t idout;                 // Identifier transmitted
+    csp_queue_handle_t rx_queue;    // Queue for RX packets
+};
 
-	/* Store outgoing id */
-	packet->id.ext = idout.ext;
+/** @brief Socket struct */
+struct csp_socket_s {
+    csp_queue_handle_t conn_queue;
+};
 
-	/* Send back into CSP */
+void csp_conn_init(void);
+csp_conn_t * csp_conn_find(uint32_t id, uint32_t mask);
+csp_conn_t * csp_conn_new(csp_id_t idin, csp_id_t idout);
 
-    /* @todo: replace this with an thread/isr safe call */
-	CSP_ENTER_CRITICAL();
-    csp_new_packet(packet, csp_lo_tx, NULL);	
-    CSP_EXIT_CRITICAL();
-
-	return 1;
-
-}
+#endif // _CSP_CONN_H_

@@ -18,27 +18,33 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef _CSP_MALLOC_H_
-#define _CSP_MALLOC_H_
+#ifndef _CSP_PLATFORM_H_
+#define _CSP_PLATFORM_H_
 
-#include <stdint.h>
+/* Set platform endianness and OS */
+#if defined(__i386__) || defined(__x86_64__) || defined(__BFIN__)
+    #define _CSP_LITTLE_ENDIAN_
+    #define _CSP_POSIX_
+#elif defined(__AVR__) || defined(__arm__)
+    #define _CSP_LITTLE_ENDIAN_
+    #define _CSP_FREERTOS_
+#elif defined (__PPC__) || defined(__sparc__)
+    #define _CSP_BIG_ENDIAN_
+    #define _CSP_POSIX_    
+#elif ConfigName == AVR32
+    #define _CSP_BIG_ENDIAN_
+    #define _CSP_FREERTOS_
+#else
+    #error "Unknown architecture"
+#endif
 
-/* POSIX interface */
-#if defined(__CSP_POSIX__)
+/* Set OS dependant features */
+#if defined(_CSP_POSIX_)
+    #define CSP_BASE_TYPE int
+#elif defined(_CSP_FREERTOS_)
+    #define CSP_BASE_TYPE portBASE_TYPE
+#else
+    #error "Unknown architecture"
+#endif
 
-#include <stdlib.h>
-
-#endif // __CSP_POSIX__
-
-/* FreeRTOS interface */
-#if defined(__CSP_FREERTOS__)
-
-#include <freertos/FreeRTOS.h>
-#include <freertos/queue.h>
-
-#endif // __CSP_FREERTOS__
-
-void * csp_malloc(size_t size);
-void csp_free(void * ptr);
-
-#endif // _CSP_MALLOC_H_
+#endif // _CSP_PLATFORM_H_
