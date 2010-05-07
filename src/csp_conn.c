@@ -159,6 +159,9 @@ csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport) {
         }
     }
 
+    if (sport < 17)
+        return NULL;
+
     conn = csp_conn_new(incoming_id, outgoing_id);
 
     return conn;
