@@ -149,7 +149,7 @@ csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport) {
 	    outgoing_id.sport = sport;
         incoming_id.dport = sport;
         /* Match on source port */
-        conn = csp_conn_find(incoming_id.ext, 0x00001F00);
+        conn = csp_conn_find(incoming_id.ext, 0x0003E000);
         /* If no connection with this identifier was found,
          * go ahead and use sport as outgoing port */
         if (conn == NULL) {
