@@ -31,7 +31,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "arch/csp_malloc.h"
 #include "arch/csp_time.h"
 
-#include "csp_buffer.h"
 #include "csp_conn.h"
 
 /* Static connection pool and lock */

@@ -36,7 +36,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "csp_port.h"
 #include "csp_conn.h"
 #include "csp_route.h"
-#include "csp_buffer.h"
 #include "csp_if_lo.h"
 
 /** Static local variables */
@@ -84,6 +83,9 @@ csp_conn_t * csp_accept(csp_socket_t * sock, int timeout) {
     if (sock == NULL)
         return NULL;
 
+    if (sock->conn_queue == NULL)
+    	return NULL;
+
 	csp_conn_t * conn;
     if (csp_queue_dequeue(sock->conn_queue, &conn, timeout) == CSP_QUEUE_OK)
         return conn;
@@ -109,7 +111,6 @@ csp_packet_t * csp_read(csp_conn_t * conn, int timeout) {
 
 	csp_packet_t * packet = NULL;
     csp_queue_dequeue(conn->rx_queue, &packet, timeout);
-	//xQueueReceive(conn->rxQueue, &packet, timeout);
 
 	return packet;
 

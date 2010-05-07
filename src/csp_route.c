@@ -25,6 +25,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 /* CSP includes */
 #include <csp/csp.h>
+#include <csp/csp_platform.h>
 
 #include "arch/csp_thread.h"
 #include "arch/csp_queue.h"
@@ -35,7 +36,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "csp_port.h"
 #include "csp_route.h"
 #include "csp_conn.h"
-#include "csp_buffer.h"
 #include "csp_io.h"
 
 /* Static allocation of interfaces */
@@ -85,6 +85,16 @@ csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 			csp_buffer_free(packet);
 	}
 
+}
+
+/**
+ * Use this function to start the router task.
+ * @param stack_size The number of portStackType to allocate
+ */
+void csp_route_start_task(unsigned int stack_size) {
+#ifdef _CSP_FREERTOS_
+	xTaskCreate(vTaskCSPRouter, (signed char *) "RTE", stack_size, NULL, 1, NULL);
+#endif
 }
 
 /** Set route

@@ -24,11 +24,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 /* CSP includes */
 #include <csp/csp.h>
+#include <csp/csp_config.h>
 
 #include "arch/csp_malloc.h"
 #include "arch/csp_semaphore.h"
-
-#include "csp_buffer.h"
 
 #if CSP_BUFFER_STATIC
 	typedef struct { uint8_t data[CSP_BUFFER_SIZE]; } csp_buffer_element_t;

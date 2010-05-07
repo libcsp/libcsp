@@ -41,9 +41,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 /* Set OS dependant features */
 #if defined(_CSP_POSIX_)
     #define CSP_BASE_TYPE int
+	#define CSP_ENTER_CRITICAL()
+	#define CSP_EXIT_CRITICAL()
 #elif defined(_CSP_FREERTOS_)
     #include <freertos/FreeRTOS.h>
     #define CSP_BASE_TYPE portBASE_TYPE
+	#define CSP_ENTER_CRITICAL() portENTER_CRITICAL()
+	#define CSP_EXIT_CRITICAL() portEXIT_CRITICAL()
 #else
     #error "Unknown architecture"
 #endif

@@ -36,7 +36,8 @@ int csp_queue_enqueue(csp_queue_handle_t handle, void *value, int timeout) {
 }
 
 int csp_queue_enqueue_isr(csp_queue_handle_t handle, void * value, CSP_BASE_TYPE * task_woken) {
-    *task_woken = 0;
+	if (task_woken != NULL)
+		*task_woken = 0;
     return csp_queue_enqueue(handle, value, 0);
 }
 

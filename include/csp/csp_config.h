@@ -23,7 +23,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 /* General config */
 #define CSP_DEBUG           0       /**< Enable/disable debugging output */
-#define MAX_STATIC_CONNS    20      /**< Number of statically allocated connection structs */
+#define MAX_STATIC_CONNS    10      /**< Number of statically allocated connection structs */
 #define CSP_MTU             260     /**< Maximum CSP packet size, including header */
 
 /* Buffer config */

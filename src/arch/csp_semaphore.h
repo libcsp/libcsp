@@ -50,9 +50,6 @@ typedef sem_t csp_bin_sem_handle_t;
 #define CSP_SEMAPHORE_OK pdPASS
 #define CSP_SEMAPHORE_ERROR pdFAIL
 
-#define CSP_ENTER_CRITICAL() portENTER_CRITICAL()
-#define CSP_EXIT_CRITICAL() portEXIT_CRITICAL()
-
 typedef xSemaphoreHandle csp_bin_sem_handle_t;
 
 #endif // _CSP_FREERTOS_

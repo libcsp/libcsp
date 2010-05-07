@@ -28,8 +28,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "arch/csp_time.h"
 
-#include "csp_buffer.h"
-
 void csp_ping(uint8_t node, int timeout) {
 
 	/* Prepare data */
@@ -56,6 +54,7 @@ void csp_ping(uint8_t node, int timeout) {
 
 	/* Read incoming frame */
 	packet = csp_read(conn, timeout);
+
 	if (packet == NULL) {
 		printf(" Timeout!\r\n");
 		goto out;

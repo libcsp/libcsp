@@ -11,6 +11,7 @@
 
 /* CSP includes */
 #include <csp/csp.h>
+#include <csp/csp_endian.h>
 
 #include "../csp_time.h"
 
@@ -27,7 +28,7 @@
  */
 void csp_service_handler(csp_conn_t * conn, csp_packet_t * packet) {
 
-	switch (conn->idin.dport) {
+	switch (csp_conn_dport(conn)) {
 
 	/* A ping means, just echo the packet, so no changes */
 	case CSP_PING:

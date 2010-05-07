@@ -64,7 +64,7 @@ pthread_queue_t * pthread_queue_create(int length, size_t item_size) {
 int pthread_queue_enqueue(pthread_queue_t * queue, void * value, int timeout) {
     
     int ret;
-    
+
     /* Calculate timeout */
     struct timespec ts;
     if (clock_gettime(CLOCK_REALTIME, &ts))
@@ -122,7 +122,7 @@ int pthread_queue_dequeue(pthread_queue_t * queue, void * buf, int timeout) {
     
     /* Nofify blocked threads */
     pthread_cond_broadcast(&(queue->cond_full));
-    
+
     return PTHREAD_QUEUE_OK;
     
 }

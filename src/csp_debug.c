@@ -24,9 +24,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 /* CSP includes */
 #include <csp/csp.h>
+#include <csp/csp_config.h>
 
 inline void csp_debug(const char * format, ...) {
-#ifdef CSP_DEBUG
+#if CSP_DEBUG
     va_list args;
     printf("CSP: ");
     va_start(args, format);
