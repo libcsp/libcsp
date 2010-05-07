@@ -134,7 +134,7 @@ int csp_transaction(uint8_t prio, uint8_t dest, uint8_t port, int timeout, void 
 /* Implemented in csp_conn.c */
 csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t port);
 void csp_close(csp_conn_t * conn);
-int inline csp_conn_dport(csp_conn_t * conn);
+int csp_conn_dport(csp_conn_t * conn);
 
 /* Implemented in csp_port.c */
 int csp_listen(csp_socket_t * socket, size_t conn_queue_length);

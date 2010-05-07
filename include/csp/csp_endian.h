@@ -20,10 +20,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <stdint.h>
 
-inline uint32_t htonl(uint32_t hl);
+uint32_t htonl(uint32_t hl);
 /* Convert 32-bit integer to host byte order */
-inline uint32_t ntohl(uint32_t nl);
+uint32_t ntohl(uint32_t nl);
 /* Convert 32-bit integer to network byte order */
-inline uint16_t htons(uint16_t hs);
+uint16_t htons(uint16_t hs);
 /* Convert 32-bit integer to host byte order */
-inline uint16_t ntohs(uint16_t ns);
+uint16_t ntohs(uint16_t ns);

@@ -168,7 +168,7 @@ csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport) {
  * @param conn pointer to connection structure
  * @return destination port of an incoming connection
  */
-int csp_conn_dport(csp_conn_t * conn) {
+inline int csp_conn_dport(csp_conn_t * conn) {
 
     return conn->idin.dport;
 
