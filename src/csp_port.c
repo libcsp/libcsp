@@ -41,12 +41,6 @@ void csp_port_init(void) {
 
 }
 
-/*xQueueHandle csp_port_listener(int conn_queue_length) {
-
-	return xQueueCreate(conn_queue_length, sizeof(conn_t *));
-
-}*/
-
 int csp_listen(csp_socket_t * socket, size_t conn_queue_length) {
     
     if (socket == NULL)

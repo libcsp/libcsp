@@ -27,10 +27,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #define CSP_MTU             260     /**< Maximum CSP packet size, including header */
 
 /* Buffer config */
-#define CSP_BUFFER_STATIC 0
-#define CSP_BUFFER_SIZE 320
-#define CSP_BUFFER_COUNT 12
-#define CSP_BUFFER_FREE	0
-#define CSP_BUFFER_USED	1
+#define CSP_BUFFER_STATIC   0
+#define CSP_BUFFER_SIZE     320
+#define CSP_BUFFER_COUNT    12
+#define CSP_BUFFER_FREE	    0  
+#define CSP_BUFFER_USED	    1
 
 #endif // _CSP_CONFIG_H_

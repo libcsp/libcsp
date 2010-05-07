@@ -29,9 +29,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  * 
  * Returns 1 on big endian archs and 0 on little endian
  */
-static uint8_t __attribute__ ((__pure__)) host_be(void) {
+static inline uint8_t __attribute__ ((__pure__)) host_be(void) {
     
-    union {
+    static union {
         uint32_t i;
         uint8_t c[4];
     } un = {0x11223344};

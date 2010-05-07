@@ -145,7 +145,7 @@ csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport) {
     
     /* Find an unused ephemeral port */
     csp_conn_t * conn;
-    while (sport > 17) {
+    while (sport > 16) {
 	    outgoing_id.sport = sport;
         incoming_id.dport = sport;
         /* Match on source port */
@@ -162,5 +162,15 @@ csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport) {
     conn = csp_conn_new(incoming_id, outgoing_id);
 
     return conn;
+}
+
+/**
+ * @param conn pointer to connection structure
+ * @return destination port of an incoming connection
+ */
+int csp_conn_dport(csp_conn_t * conn) {
+
+    return conn->idin.dport;
+
 }
 

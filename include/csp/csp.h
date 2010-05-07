@@ -18,20 +18,6 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/** @file csp.h
- * @brief CSP: Cubesat Space Protocol
- *
- * Stream oriented transport layer protocol for small cubesat networks up to 16 nodes.
- *
- * @author 2006-2009 Johan Christiansen, Aalborg University, Denmark
- * @author 2009 Gomspace A/S
- *
- * @version 0.9 (Pre-release)
- *
- * @todo Implement message priorities in router
- *
- */
-
 #ifndef _CSP_H_
 #define _CSP_H_
 
@@ -148,6 +134,7 @@ int csp_transaction(uint8_t prio, uint8_t dest, uint8_t port, int timeout, void 
 /* Implemented in csp_conn.c */
 csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t port);
 void csp_close(csp_conn_t * conn);
+int inline csp_conn_dport(csp_conn_t * conn);
 
 /* Implemented in csp_port.c */
 int csp_listen(csp_socket_t * socket, size_t conn_queue_length);
