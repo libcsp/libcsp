@@ -69,7 +69,15 @@ int pthread_queue_enqueue(pthread_queue_t * queue, void * value, int timeout) {
     struct timespec ts;
     if (clock_gettime(CLOCK_REALTIME, &ts))
         return PTHREAD_QUEUE_ERROR;
-    ts.tv_sec += timeout;
+    
+    uint32_t sec = timeout / 1000;
+    uint32_t nsec = (timeout - 1000 * sec) * 1000000;
+
+    ts.tv_sec += sec;
+    ts.tv_nsec += nsec;
+
+    if (ts.tv_nsec + nsec > 1000000000)
+        ts.tv_sec++;
 
     /* Get queue lock */
     pthread_mutex_lock(&(queue->mutex));
@@ -102,7 +110,15 @@ int pthread_queue_dequeue(pthread_queue_t * queue, void * buf, int timeout) {
     struct timespec ts;
     if (clock_gettime(CLOCK_REALTIME, &ts))
         return PTHREAD_QUEUE_ERROR;
-    ts.tv_sec += timeout;
+    
+    uint32_t sec = timeout / 1000;
+    uint32_t nsec = (timeout - 1000 * sec) * 1000000;
+
+    ts.tv_sec += sec;
+    ts.tv_nsec += nsec;
+
+    if (ts.tv_nsec + nsec > 1000000000)
+        ts.tv_sec++;
     
     /* Get queue lock */
     pthread_mutex_lock(&(queue->mutex));
