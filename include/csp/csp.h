@@ -69,6 +69,25 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 /** @brief The address of the node */
 extern uint8_t my_address;
 
+/** Identifier field masks */
+#define CSP_ID_PRIO_MASK    (0x07 << 26)
+#define CSP_ID_SRC_MASK     (0x0F << 22)
+#define CSP_ID_DST_MASK     (0x0F << 18)
+#define CSP_ID_DPORT_MASK   (0x1F << 13)
+#define CSP_ID_SPORT_MASK   (0x1F << 8)
+#define CSP_ID_TYPE_MASK    (0x07 << 5)
+#define CSP_ID_SEQ_MASK     (0x1F << 0)
+#define CSP_ID_MASK         (CSP_ID_PRIO_MASK  | \
+                             CSP_ID_SRC_MASK   | \
+                             CSP_ID_DST_MASK   | \
+                             CSP_ID_DPORT_MASK | \
+                             CSP_ID_SPORT_MASK | \
+                             CSP_ID_TYPE_MASK  | \
+                             CSP_ID_SEQ_MASK)
+#define CSP_ID_CONN_MASK    (CSP_ID_SRC_MASK | CSP_ID_DST_MASK | CSP_ID_DPORT_MASK | CSP_ID_SPORT_MASK)
+
+CSP_ID_PRIO_MASK | CSP_ID_SRC_MASK |CSP_ID_DST_MASK | CSP_ID_DPORT_MASK | CSP_ID_SPORT_MASK | CSP_ID_TYPE_MASK | CSP_ID_SEQ_MASK
+
 /** @brief This union defines a CSP identifier and allows to access it in mode standard, extended or through a table. */
 typedef union __attribute__ ((__packed__)) {
   uint32_t ext;

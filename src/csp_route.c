@@ -152,7 +152,7 @@ csp_conn_t * csp_route(csp_id_t id, nexthop_t avoid_nexthop, CSP_BASE_TYPE * pxT
 	csp_iface_t * dst;
 
 	/* Search for an existing connection */
-	conn = csp_conn_find(id.ext, 0x03FFFF00);
+	conn = csp_conn_find(id.ext, CSP_ID_CONN_MASK);
 
 	/* If a conneciton was found return that one. */
 	if (conn != NULL)

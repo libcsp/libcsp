@@ -147,8 +147,8 @@ csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport) {
     while (sport > 16) {
 	    outgoing_id.sport = sport;
         incoming_id.dport = sport;
-        /* Match on source port */
-        conn = csp_conn_find(incoming_id.ext, 0x0003E000);
+        /* Match on destination port of _incoming_ identifier */
+        conn = csp_conn_find(incoming_id.ext, CSP_ID_DPORT_MASK);
         /* If no connection with this identifier was found,
          * go ahead and use sport as outgoing port */
         if (conn == NULL) {
