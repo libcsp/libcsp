@@ -145,6 +145,7 @@ int csp_bind(csp_socket_t * socket, uint8_t port);
 typedef int (*nexthop_t)(csp_id_t idout, csp_packet_t * packet, unsigned int timeout);
 void csp_route_set(const char * name, uint8_t node, nexthop_t nexthop);
 void csp_new_packet(csp_packet_t * packet, nexthop_t interface, CSP_BASE_TYPE * pxTaskWoken);
+void csp_route_start_task(unsigned int task_stack_size);
 
 /* Implemented in csp_services.c */
 void csp_service_handler(csp_conn_t * conn, csp_packet_t * packet);

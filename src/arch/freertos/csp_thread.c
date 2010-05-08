@@ -18,37 +18,14 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef _CSP_THREAD_H_
-#define _CSP_THREAD_H_
-
-#include <stdint.h>
-#include <csp/csp.h>
-
-/* POSIX interface */
-#if defined(_CSP_POSIX_)
-
-#include <pthread.h>
-
-#define csp_thread_exit() pthread_exit(NULL)
-
-typedef pthread_t csp_thread_handle_t;
-typedef void* csp_thread_return_t;
-
-#endif // _CSP_POSIX_
-
-/* FreeRTOS interface */
-#if defined(_CSP_FREERTOS_)
-
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 
-#define csp_thread_exit() return
+/* CSP includes */
+#include <csp/csp.h>
 
-typedef xTaskHandle csp_thread_handle_t;
-typedef void csp_thread_return_t;
+#include "../csp_thread.h"
 
-#endif // _CSP_FREERTOS_
-
-int csp_thread_create(csp_thread_return_t (* routine)(void *), const signed char * const thread_name, unsigned short stack_depth, void * parameters, unsigned int priority, csp_thread_handle_t * handle);
-
-#endif // _CSP_THREAD_H_
+int csp_thread_create(csp_thread_return_t (* routine)(void *), const signed char * const thread_name, unsigned short stack_depth, void * parameters, unsigned int priority, csp_thread_handle_t * handle) {
+    return xTaskCreate(routine, thread_name, stack_depth, parameters, priority, handle);
+}
