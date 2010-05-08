@@ -70,13 +70,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 extern uint8_t my_address;
 
 /** Identifier field masks */
-#define CSP_ID_PRIO_MASK    (0x07 << 26)
-#define CSP_ID_SRC_MASK     (0x0F << 22)
-#define CSP_ID_DST_MASK     (0x0F << 18)
-#define CSP_ID_DPORT_MASK   (0x1F << 13)
-#define CSP_ID_SPORT_MASK   (0x1F << 8)
-#define CSP_ID_TYPE_MASK    (0x07 << 5)
-#define CSP_ID_SEQ_MASK     (0x1F << 0)
+#define CSP_ID_PRIO_MASK    ((uint32_t)0x07 << 26)
+#define CSP_ID_SRC_MASK     ((uint32_t)0x0F << 22)
+#define CSP_ID_DST_MASK     ((uint32_t)0x0F << 18)
+#define CSP_ID_DPORT_MASK   ((uint32_t)0x1F << 13)
+#define CSP_ID_SPORT_MASK   ((uint32_t)0x1F << 8)
+#define CSP_ID_TYPE_MASK    ((uint32_t)0x07 << 5)
+#define CSP_ID_SEQ_MASK     ((uint32_t)0x1F << 0)
 #define CSP_ID_MASK         (CSP_ID_PRIO_MASK  | \
                              CSP_ID_SRC_MASK   | \
                              CSP_ID_DST_MASK   | \
