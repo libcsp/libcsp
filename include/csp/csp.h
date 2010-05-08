@@ -86,8 +86,6 @@ extern uint8_t my_address;
                              CSP_ID_SEQ_MASK)
 #define CSP_ID_CONN_MASK    (CSP_ID_SRC_MASK | CSP_ID_DST_MASK | CSP_ID_DPORT_MASK | CSP_ID_SPORT_MASK)
 
-CSP_ID_PRIO_MASK | CSP_ID_SRC_MASK |CSP_ID_DST_MASK | CSP_ID_DPORT_MASK | CSP_ID_SPORT_MASK | CSP_ID_TYPE_MASK | CSP_ID_SEQ_MASK
-
 /** @brief This union defines a CSP identifier and allows to access it in mode standard, extended or through a table. */
 typedef union __attribute__ ((__packed__)) {
   uint32_t ext;
