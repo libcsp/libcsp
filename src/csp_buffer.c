@@ -42,8 +42,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 	static int size, count;
 #endif
 
-static uint8_t csp_buffer_last_given = 0;
-
 int csp_buffer_init(int buf_count, int buf_size) {
 
 #if CSP_BUFFER_STATIC == 0
@@ -79,14 +77,16 @@ int csp_buffer_init(int buf_count, int buf_size) {
  */
 void * csp_buffer_get(size_t buf_size) {
 
+    static uint8_t csp_buffer_last_given = 0;
+
 	if (buf_size > size) {
 		printf("Attempt to allocate too large block\r\n");
 		return NULL;
 	}
 
+    CSP_ENTER_CRITICAL();
 	int i = csp_buffer_last_given;							// Start with the last given element
 	i = (i + 1) % count;									// Increment by one
-	CSP_ENTER_CRITICAL();
 	while(i != csp_buffer_last_given) {						// Loop till we have checked all
 		if (csp_buffer_list[i] == CSP_BUFFER_FREE) {		// Check the buffer list
 			csp_buffer_list[i] = CSP_BUFFER_USED;			// Mark as used
@@ -97,6 +97,7 @@ void * csp_buffer_get(size_t buf_size) {
 		i = (i + 1) % count;								// Increment by one
 	}
 	CSP_EXIT_CRITICAL();
+
 	return NULL;											// If we are out of memory, return NULL
 }
 

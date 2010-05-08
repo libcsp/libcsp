@@ -129,8 +129,8 @@ void csp_close(csp_conn_t * conn) {
  */
 csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport) {
 
-	uint8_t sport = 31;
-
+	static uint8_t sport = 16;
+    
 	/* Generate CAN identifier */
 	csp_id_t incoming_id, outgoing_id;
 	incoming_id.pri = prio;
@@ -144,26 +144,32 @@ csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport) {
     
     /* Find an unused ephemeral port */
     csp_conn_t * conn;
-    while (sport > 16) {
+    
+    uint8_t start = sport;
+
+    while (++sport != start) {
+        if (sport > 31)
+            sport = 17;
+
 	    outgoing_id.sport = sport;
         incoming_id.dport = sport;
+        
         /* Match on destination port of _incoming_ identifier */
         conn = csp_conn_find(incoming_id.ext, CSP_ID_DPORT_MASK);
-        /* If no connection with this identifier was found,
-         * go ahead and use sport as outgoing port */
-        if (conn == NULL) {
+
+        /* Break if we found an unused ephem port */
+        if (conn == NULL)
             break;
-        } else {
-            sport--;
-        }
     }
 
-    if (sport < 17)
+    /* If no available ephemeral port was found */
+    if (sport == start)
         return NULL;
 
     conn = csp_conn_new(incoming_id, outgoing_id);
 
     return conn;
+
 }
 
 /**
