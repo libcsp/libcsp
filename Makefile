@@ -1,12 +1,14 @@
 ## AAUSAT3 libcsp makefile
 
 ## Configuration
-ARCH=posix
-#ARCH=freertos
-#TOOLCHAIN=bfin-linux-uclibc-
-#TOOLCHAIN=avr-
-TOOLCHAIN=
-#TOOLCHAIN=arm-elf-
+ifndef ARCH
+ARCH = posix
+endif
+
+ifndef TOOLCHAIN
+TOOLCHAIN = 
+endif
+
 TARGET = libcsp.a
 OUTDIR = .
 MCU = at90can128
@@ -15,23 +17,29 @@ AR = $(TOOLCHAIN)ar
 SZ = $(TOOLCHAIN)size
 
 ## Options common to compile, link and assembly rules
-COMMON =# -mmcu=$(MCU)
+
+ifeq ($(TOOLCHAIN),avr-)
+COMMON +=-mmcu=$(MCU)
+else 
+COMMON =
+endif
 
 ## Compile options common for all C compilation units.
-CFLAGS = $(COMMON) -D_GNU_SOURCE
-CFLAGS += -Wall -Werror -gdwarf-2 -std=gnu99 -O2 -funsigned-char -funsigned-bitfields# -fpack-struct -fshort-enums
+CFLAGS =$(COMMON)
+ifeq ($(TOOLCHAIN),avr-)
+CFLAGS +=-fpack-struct -fshort-enums
+else ifeq ($(TOOLCHAIN),bfin-linux-uclibc-)
+CFLAGS += -D_GNU_SOURCE
+endif
+CFLAGS += -Wall -Werror -gdwarf-2 -std=gnu99 -O2 -funsigned-char -funsigned-bitfields
 
 ## Assembly specific flags
 ASMFLAGS = $(COMMON)
 ASMFLAGS += $(CFLAGS)
 ASMFLAGS += -x assembler-with-cpp -Wa,-gdwarf2
 
-## Linker flags
-#LDFLAGS = $(COMMON)
-#LDFLAGS +=  -Wl,-Map=csptest.map
-
 ## Archiver flags
-ARFLAGS = rcu
+ARFLAGS = -rcu
 
 ## Include Directories
 INCLUDES = -I./include
@@ -52,7 +60,11 @@ SOURCES += src/arch/$(ARCH)/csp_queue.c
 SOURCES += src/arch/$(ARCH)/csp_semaphore.c
 SOURCES += src/arch/$(ARCH)/csp_time.c
 SOURCES += src/arch/$(ARCH)/csp_thread.c
+
+## POSIX archs requires pthread_queue
+ifeq ($(ARCH),posix)
 SOURCES += src/arch/$(ARCH)/pthread_queue.c
+endif
 
 OBJECTS=$(SOURCES:.c=.o)
 
