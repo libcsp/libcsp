@@ -31,8 +31,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <sys/time.h>
 #include <limits.h>
 
-#define CSP_MAX_DELAY INT_MAX
-
 #endif // _CSP_POSIX_
 
 /* AVR/ARM on FreeRTOS */
@@ -40,8 +38,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
-
-#define CSP_MAX_DELAY portMAX_DELAY
 
 #endif // _CSP_FREERTOS_
 

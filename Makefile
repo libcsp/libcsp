@@ -43,7 +43,7 @@ ARFLAGS = -rcu
 
 ## Include Directories
 INCLUDES = -I./include
-INCLUDES += -I../aausat3/software/include/
+INCLUDES += -I../aausat3/software/lib/libfreertos/include/
 
 ## Objects that must be built in order to archive
 SOURCES += src/csp_buffer.c
