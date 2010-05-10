@@ -167,7 +167,7 @@ int csp_send(csp_conn_t* conn, csp_packet_t * packet, int timeout) {
  * @param outlen length of request to send
  * @param inbuf pointer to incoming data buffer
  * @param inlen length of expected reply, -1 for unknown size (note inbuf MUST be large enough)
- * @return Return 1 or reply size if successful, 0 if error or incoming length does not match
+ * @return Return 1 or reply size if successful, 0 if error or incoming length does not match or -1 if timeout was reached
  */
 int csp_transaction(uint8_t prio, uint8_t dest, uint8_t port, int timeout, void * outbuf, int outlen, void * inbuf, int inlen) {
 
@@ -203,7 +203,7 @@ int csp_transaction(uint8_t prio, uint8_t dest, uint8_t port, int timeout, void 
 	if (packet == NULL) {
 		printf("Read failed\r\n");
 		csp_close(conn);
-		return 0;
+		return -1;
 	}
 
 	if ((inlen != -1) && (packet->length != inlen)) {
