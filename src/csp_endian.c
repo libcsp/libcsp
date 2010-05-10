@@ -71,6 +71,6 @@ inline uint16_t htons(uint16_t hs) {
 /* Convert 32-bit integer to host byte order */
 inline uint16_t ntohs(uint16_t ns) {
 
-    return ntohs(ns);
+    return htons(ns);
     
 }
