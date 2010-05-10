@@ -42,7 +42,7 @@ void csp_ping(uint8_t node, int timeout) {
 	packet->length = 1;
 
 	/* Open connection */
-	csp_conn_t * conn = csp_connect(PRIO_NORM, node, CSP_PING);
+	csp_conn_t * conn = csp_connect(CSP_PRIO_NORM, node, CSP_PING);
 	printf("Ping node %u: ", node);
 
 	/* Counter */
@@ -91,7 +91,7 @@ void csp_ping_noreply(uint8_t node) {
 	packet->length = 1;
 
 	/* Open connection */
-	csp_conn_t * conn = csp_connect(PRIO_NORM, node, CSP_PING);
+	csp_conn_t * conn = csp_connect(CSP_PRIO_NORM, node, CSP_PING);
 	printf("Ping ignore reply node %u.\r\n", node);
 
 	/* Try to send frame */
@@ -104,7 +104,7 @@ void csp_ping_noreply(uint8_t node) {
 
 void csp_reboot(uint8_t node) {
 	uint32_t magic_word = htonl(0x80078007);
-	csp_transaction(PRIO_NORM, node, CSP_REBOOT, 0, &magic_word, sizeof(magic_word), NULL, 0);
+	csp_transaction(CSP_PRIO_NORM, node, CSP_REBOOT, 0, &magic_word, sizeof(magic_word), NULL, 0);
 }
 
 void csp_ps(uint8_t node, int timeout) {
@@ -121,7 +121,7 @@ void csp_ps(uint8_t node, int timeout) {
 	packet->length = 1;
 
 	/* Open connection */
-	csp_conn_t * conn = csp_connect(PRIO_NORM, node, CSP_PS);
+	csp_conn_t * conn = csp_connect(CSP_PRIO_NORM, node, CSP_PS);
 	printf("PS node %u: ", node);
 
 	/* Try to send frame */
@@ -151,7 +151,7 @@ void csp_memfree(uint8_t node, int timeout) {
 
 	uint32_t memfree;
 
-	int status = csp_transaction(PRIO_NORM, node, CSP_MEMFREE, timeout, NULL, 0, &memfree, sizeof(memfree));
+	int status = csp_transaction(CSP_PRIO_NORM, node, CSP_MEMFREE, timeout, NULL, 0, &memfree, sizeof(memfree));
 	if (status == 0) {
 		printf("Network error\r\n");
 		return;
@@ -168,7 +168,7 @@ void csp_buf_free(uint8_t node, int timeout) {
 
 	uint32_t size = 0;
 
-	int status = csp_transaction(PRIO_NORM, node, CSP_BUF_FREE, timeout, NULL, 0, &size, sizeof(size));
+	int status = csp_transaction(CSP_PRIO_NORM, node, CSP_BUF_FREE, timeout, NULL, 0, &size, sizeof(size));
 	if (status == 0) {
 		printf("Network error\r\n");
 		return;

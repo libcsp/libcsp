@@ -33,38 +33,38 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  * RESERVED PORTS (SERVICES)
  */
 
-#define CSP_ANY         16
-#define CSP_PING        1
-#define CSP_PS          2
-#define CSP_MEMFREE     3
-#define CSP_REBOOT      4
-#define CSP_BUF_FREE    5
+#define CSP_ANY             16
+#define CSP_PING            1
+#define CSP_PS              2
+#define CSP_MEMFREE         3
+#define CSP_REBOOT          4
+#define CSP_BUF_FREE        5
 
 /**
  * PRIORITIES
  */
 
-#define PRIO_CRITICAL   0
-#define PRIO_ALERT      1
-#define PRIO_HIGH       2
-#define PRIO_RESERVED   3
-#define PRIO_NORM       4
-#define PRIO_LOW        5
-#define PRIO_BULK       6
-#define PRIO_DEBUG      7
+#define CSP_PRIO_CRITICAL   0
+#define CSP_PRIO_ALERT      1
+#define CSP_PRIO_HIGH       2
+#define CSP_PRIO_RESERVED   3
+#define CSP_PRIO_NORM       4
+#define CSP_PRIO_LOW        5
+#define CSP_PRIO_BULK       6
+#define CSP_PRIO_DEBUG      7
 
 /**
  * CSP FRAME TYPES
  */
 
-#define CSP_RESERVED1   0
-#define CSP_RESERVED2   1
-#define CSP_BEGIN       2
-#define CSP_ACK         3
-#define CSP_ERROR       4
-#define CSP_MORE        5
-#define CSP_RESERVED3   6
-#define CSP_RESERVED4   7
+#define CSP_RESERVED1       0
+#define CSP_RESERVED2       1
+#define CSP_BEGIN           2
+#define CSP_ACK             3
+#define CSP_ERROR           4
+#define CSP_MORE            5
+#define CSP_RESERVED3       6
+#define CSP_RESERVED4       7
 
 /** @brief The address of the node */
 extern uint8_t my_address;
