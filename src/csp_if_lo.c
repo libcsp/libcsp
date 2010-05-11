@@ -30,12 +30,8 @@ int csp_lo_tx(csp_id_t idout, csp_packet_t * packet, unsigned int timeout) {
 	/* Store outgoing id */
 	packet->id.ext = idout.ext;
 
-	/* Send back into CSP */
-
-    /* @todo: replace this with an thread/isr safe call */
-	CSP_ENTER_CRITICAL();
+	/* Send back into CSP, notice calling from task so last argument must be NULL! */
     csp_new_packet(packet, csp_lo_tx, NULL);	
-    CSP_EXIT_CRITICAL();
 
 	return 1;
 

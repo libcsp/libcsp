@@ -96,7 +96,7 @@ void csp_route_start_task(unsigned int task_stack_size) {
     
     int ret = csp_thread_create(vTaskCSPRouter, (signed char *) "RTE", task_stack_size, NULL, 1, &handle);
     
-    if (ret != 0)
+    if (!ret)
         printf("Failed to start router task\n");
 
 }
@@ -138,12 +138,13 @@ csp_iface_t * csp_route_if(uint8_t id) {
 
 }
 
-/** CSP Router (WARNING: ISR)
+/** CSP Router (WARNING: ISR and TASK!)
  * This function uses the connection pool to search for already
  * established connections with the given identifier. If no connection
  * was found, a new one is created which is routed to the local task
  * listening on the port. If no listening task was found, the connection 
- * is sent to the fallback handler, otherwise the attempt is aborted
+ * is sent to the fallback handler, otherwise the attempt is aborted.
+ * If called from ISR pxTaskWoken MUST be non-null, otherwise it must be null!
  */
 csp_conn_t * csp_route(csp_id_t id, nexthop_t avoid_nexthop, CSP_BASE_TYPE * pxTaskWoken) {
 
@@ -210,9 +211,16 @@ csp_conn_t * csp_route(csp_id_t id, nexthop_t avoid_nexthop, CSP_BASE_TYPE * pxT
 
 	/* Try to queue up the new connection pointer */
 	if ((queue != NULL) && (*queue != NULL)) {
-		if (csp_queue_enqueue_isr(*queue, &conn, pxTaskWoken) == CSP_QUEUE_FULL) {
+		int result;
+		if (pxTaskWoken == NULL)
+			result = csp_queue_enqueue(*queue, &conn, 0);
+		else
+			result = csp_queue_enqueue_isr(*queue, &conn, pxTaskWoken);
+
+		if (result == CSP_QUEUE_FULL) {
 			printf("Warning Routing Queue Full\r\n");
-			conn->state = SOCKET_CLOSED;	// Don't call csp_conn_close, since this is ISR context.
+			/* Don't call csp_conn_close, since this might be ISR context. */
+			conn->state = SOCKET_CLOSED;
 			return NULL;
 		}
 	}
@@ -223,8 +231,13 @@ csp_conn_t * csp_route(csp_id_t id, nexthop_t avoid_nexthop, CSP_BASE_TYPE * pxT
 
 /**
  * Inputs a new packet into the system
- * This function is mainly called from interface drivers
- * to route and accept packets.
+ * This function is mainly called from interface drivers ISR to route and accept packets.
+ * But it can also be called from a task, provided that the pxTaskWoken parameter is NULL!
+ *
+ * EXTREMELY IMPORTANT:
+ * pxTaskWoken arg must ALWAYS be NULL if called from task,
+ * and ALWAYS be NON NULL if called from ISR!
+ * If this condition is met, this call is completely thread-safe
  *
  * This function is fire and forget, it returns void, meaning
  * that a packet will always be either accepted or dropped
@@ -232,12 +245,14 @@ csp_conn_t * csp_route(csp_id_t id, nexthop_t avoid_nexthop, CSP_BASE_TYPE * pxT
  *
  * @param packet A pointer to the incoming packet
  * @param interface A pointer to the incoming interface TX function.
+ * @param pxTaskWoken This must be a pointer a valid variable if called from ISR or NULL otherwise!
  *
  * @todo Implement Task-safe version of this function! (Currently runs only from criticial section or ISR)
  */
 void csp_new_packet(csp_packet_t * packet, nexthop_t interface, CSP_BASE_TYPE * pxTaskWoken) {
 
 	csp_conn_t * conn;
+	int result;
 
 	csp_debug("Packet P 0x%02X, S 0x%02X, D 0x%02X, Dp 0x%02X, Sp 0x%02X, T 0x%02X\r\n",
 			packet->id.pri, packet->id.src, packet->id.dst, packet->id.dport,
@@ -252,8 +267,14 @@ void csp_new_packet(csp_packet_t * packet, nexthop_t interface, CSP_BASE_TYPE * 
 		return;
 	}
 
+	/* Enqueue */
+	if (pxTaskWoken == NULL)
+		result = csp_queue_enqueue(conn->rx_queue, &packet, 0);
+	else
+		result = csp_queue_enqueue_isr(conn->rx_queue, &packet, pxTaskWoken);
+
 	/* Save buffer pointer */
-	if (csp_queue_enqueue_isr(conn->rx_queue, &packet, pxTaskWoken) != CSP_QUEUE_OK) {
+	if (result != CSP_QUEUE_OK) {
 		printf("ERROR: Connection buffer queue full!\r\n");
 		csp_buffer_free(packet);
 		return;
