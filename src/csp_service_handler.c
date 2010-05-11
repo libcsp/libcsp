@@ -36,18 +36,19 @@ void csp_service_handler(csp_conn_t * conn, csp_packet_t * packet) {
 		break;
 
 	/* Retrieve the ProcessList as a string */
-	case CSP_PS:
+	case CSP_PS: {
 #if defined(_CSP_FREERTOS_)
 		vTaskList((signed portCHAR *) packet->data);
 		packet->length = strlen((char *)packet->data);
 		packet->data[packet->length] = '\0';
 		packet->length++;
 #elif defined(_CSP_POSIX_)
-        char * str = "Tasklist in not available on posix";
-        strncpy(packet->data, str, strlen(str));
+        char str[] = "Tasklist in not available on posix";
+        memcpy(packet->data, str, strlen(str));
         packet->length = strlen(str);
 #endif
-        break;
+        break;   
+    }
 
 	/* Do a search for the largest block of free memory */
 	case CSP_MEMFREE: {
