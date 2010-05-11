@@ -10,7 +10,9 @@ TOOLCHAIN =
 endif
 
 TARGET = libcsp.a
+ifndef OUTDIR
 OUTDIR = .
+endif
 MCU = at90can128
 CC = $(TOOLCHAIN)gcc
 AR = $(TOOLCHAIN)ar
