@@ -96,7 +96,7 @@ void csp_route_start_task(unsigned int task_stack_size) {
     
     int ret = csp_thread_create(vTaskCSPRouter, (signed char *) "RTE", task_stack_size, NULL, 1, &handle);
     
-    if (!ret)
+    if (ret != 0)
         printf("Failed to start router task\n");
 
 }
