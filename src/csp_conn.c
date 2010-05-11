@@ -65,7 +65,7 @@ csp_conn_t * csp_conn_find(uint32_t id, uint32_t mask) {
 
     for (i = 0; i < MAX_STATIC_CONNS; i++) {
 		conn = &arr_conn[i];
-		if(((conn->idin.ext & mask) == (id & mask)) && (conn->state != SOCKET_CLOSED))
+		if ((conn->state != SOCKET_CLOSED) && (conn->idin.ext & mask) == (id & mask))
 			return conn;
     }
 
