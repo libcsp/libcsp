@@ -13,7 +13,8 @@
 #include <csp/csp.h>
 #include <csp/csp_endian.h>
 
-#include "../csp_time.h"
+#include "arch/csp_time.h"
+#include "arch/csp_malloc.h"
 
 /**
  * If the given packet is a service-request (that is uses one of the csp service ports)
@@ -36,28 +37,39 @@ void csp_service_handler(csp_conn_t * conn, csp_packet_t * packet) {
 
 	/* Retrieve the ProcessList as a string */
 	case CSP_PS:
+#if defined(_CSP_FREERTOS_)
 		vTaskList((signed portCHAR *) packet->data);
 		packet->length = strlen((char *)packet->data);
 		packet->data[packet->length] = '\0';
 		packet->length++;
+#elif defined(_CSP_POSXI_)
+        char * str = "Tasklist in not available on posix";
+        strncpy(packet->data, str, strlen(str));
+        packet->length = strlen(str);
 		break;
+#endif
 
 	/* Do a search for the largest block of free memory */
 	case CSP_MEMFREE: {
 
 		/* Try to malloc a lot */
-		uint32_t size = 0;
+	    size_t size = 0;
+#if defined(_CSP_FREERTOS_)
 		void * pmem;
 		while(1) {
 			size = size + 100;
-			pmem = pvPortMallocFromISR(size);
+			pmem = csp_malloc(size);
 			if (pmem == NULL) {
 				size = size - 100;
 				break;
 			} else {
-				vPortFreeFromISR(pmem);
+				csp_free(pmem);
 			}
 		}
+#elif defined(_CSP_POSIX_)
+        /* Use sysinfo for this */
+        size = 1000;
+#endif
 
 		/* Prepare for network transmission */
 		size = htonl(size);

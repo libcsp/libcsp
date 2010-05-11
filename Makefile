@@ -43,6 +43,7 @@ ARFLAGS = -rcu
 
 ## Include Directories
 INCLUDES = -I./include
+INCLUDES += -I../aausat3/software/lib/libavr/include/
 INCLUDES += -I../aausat3/software/lib/libfreertos/include/
 
 ## Objects that must be built in order to archive
@@ -55,6 +56,7 @@ SOURCES += src/csp_port.c
 SOURCES += src/csp_services.c
 SOURCES += src/csp_endian.c
 SOURCES += src/csp_debug.c
+SOURCES += src/csp_service_handler.c
 SOURCES += src/arch/$(ARCH)/csp_malloc.c
 SOURCES += src/arch/$(ARCH)/csp_queue.c
 SOURCES += src/arch/$(ARCH)/csp_semaphore.c
