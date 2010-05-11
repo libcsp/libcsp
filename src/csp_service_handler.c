@@ -1,9 +1,22 @@
 /*
- * csp_service_handler.c
- *
- *  Created on: 03/05/2010
- *      Author: oem
- */
+Cubesat Space Protocol - A small network-layer protocol designed for Cubesats
+Copyright (C) 2010 GomSpace ApS (gomspace.com)
+Copyright (C) 2010 AAUSAT3 Project (aausat3.space.aau.dk) 
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+*/
 
 #include <stdio.h>
 #include <string.h>
@@ -15,6 +28,10 @@
 
 #include "arch/csp_time.h"
 #include "arch/csp_malloc.h"
+
+#ifdef _CSP_POSIX_
+#include <sys/sysinfo.h>
+#endif
 
 /**
  * If the given packet is a service-request (that is uses one of the csp service ports)
@@ -46,6 +63,8 @@ void csp_service_handler(csp_conn_t * conn, csp_packet_t * packet) {
         char str[] = "Tasklist in not available on posix";
         memcpy(packet->data, str, strlen(str));
         packet->length = strlen(str);
+        packet->data[packet->length] = '\0';
+		packet->length++;
 #endif
         break;   
     }
@@ -68,8 +87,9 @@ void csp_service_handler(csp_conn_t * conn, csp_packet_t * packet) {
 			}
 		}
 #elif defined(_CSP_POSIX_)
-        /* Use sysinfo for this */
-        size = 1000;
+        struct sysinfo info;
+        sysinfo(&info);
+        size = info.freeram * info.mem_unit;
 #endif
 
 		/* Prepare for network transmission */
