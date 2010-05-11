@@ -42,12 +42,12 @@ void csp_service_handler(csp_conn_t * conn, csp_packet_t * packet) {
 		packet->length = strlen((char *)packet->data);
 		packet->data[packet->length] = '\0';
 		packet->length++;
-#elif defined(_CSP_POSXI_)
+#elif defined(_CSP_POSIX_)
         char * str = "Tasklist in not available on posix";
         strncpy(packet->data, str, strlen(str));
         packet->length = strlen(str);
-		break;
 #endif
+        break;
 
 	/* Do a search for the largest block of free memory */
 	case CSP_MEMFREE: {
