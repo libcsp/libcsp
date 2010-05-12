@@ -147,6 +147,7 @@ csp_conn_t * csp_accept(csp_socket_t * socket, int timeout);
 csp_packet_t * csp_read(csp_conn_t * conn, int timeout);
 int csp_send(csp_conn_t * conn, csp_packet_t * packet, int timeout);
 int csp_transaction(uint8_t prio, uint8_t dest, uint8_t port, int timeout, void * outbuf, int outlen, void * inbuf, int inlen);
+int csp_transaction_persistent(csp_conn_t * conn, int timeout, void * outbuf, int outlen, void * inbuf, int inlen);
 
 /* Implemented in csp_conn.c */
 csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t port);

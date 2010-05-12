@@ -158,11 +158,65 @@ int csp_send(csp_conn_t* conn, csp_packet_t * packet, int timeout) {
 }
 
 /**
+ * Use an existing connection to perform a transaction,
+ * This is only possible if the next packet is on the same port and destination!
+ * @param conn pointer to connection structure
+ * @param timeout timeout in ms
+ * @param outbuf pointer to outgoing data buffer
+ * @param outlen length of request to send
+ * @param inbuf pointer to incoming data buffer
+ * @param inlen length of expected reply, -1 for unknown size (note inbuf MUST be large enough)
+ * @return
+ */
+int csp_transaction_persistent(csp_conn_t * conn, int timeout, void * outbuf, int outlen, void * inbuf, int inlen) {
+
+	csp_packet_t * packet = csp_buffer_get(sizeof(csp_packet_t));
+	if (packet == NULL)
+		return 0;
+
+	/* Copy the request */
+	if (outlen > 0 && outbuf != NULL)
+		memcpy(packet->data, outbuf, outlen);
+	packet->length = outlen;
+
+	if (!csp_send(conn, packet, 0)) {
+		printf("Send failed\r\n");
+		csp_buffer_free(packet);
+		return 0;
+	}
+
+	/* If no reply is expected, return now */
+	if (inlen == 0)
+		return 1;
+
+	packet = csp_read(conn, timeout);
+	if (packet == NULL) {
+		printf("Read failed\r\n");
+		return 0;
+	}
+
+	if ((inlen != -1) && (packet->length != inlen)) {
+		printf("Reply length %u expected %u\r\n", packet->length, inlen);
+		csp_buffer_free(packet);
+		return 0;
+	}
+
+	memcpy(inbuf, packet->data, packet->length);
+	int length = packet->length;
+	csp_buffer_free(packet);
+	return length;
+
+}
+
+
+/**
  * Perform an entire request/reply transaction
  * Copies both input buffer and reply to output buffeer.
+ * Also makes the connection and closes it again
  * @param prio CSP Prio
  * @param dest CSP Dest
  * @param port CSP Port
+ * @param timeout timeout in ms
  * @param outbuf pointer to outgoing data buffer
  * @param outlen length of request to send
  * @param inbuf pointer to incoming data buffer
@@ -175,48 +229,10 @@ int csp_transaction(uint8_t prio, uint8_t dest, uint8_t port, int timeout, void 
 	if (conn == NULL)
 		return 0;
 
-	csp_packet_t * packet = csp_buffer_get(sizeof(csp_packet_t));
-	if (packet == NULL) {
-		csp_close(conn);
-		return 0;
-	}
+	int status = csp_transaction_persistent(conn, timeout, outbuf, outlen, inbuf, inlen);
 
-	/* Copy the request */
-	if (outlen > 0 && outbuf != NULL)
-		memcpy(packet->data, outbuf, outlen);
-	packet->length = outlen;
-
-	if (!csp_send(conn, packet, 0)) {
-		printf("Send failed\r\n");
-		csp_buffer_free(packet);
-		csp_close(conn);
-		return 0;
-	}
-
-	/* If no reply is expected, return now */
-	if (inlen == 0) {
-		csp_close(conn);
-		return 1;
-	}
-
-	packet = csp_read(conn, timeout);
-	if (packet == NULL) {
-		printf("Read failed\r\n");
-		csp_close(conn);
-		return -1;
-	}
-
-	if ((inlen != -1) && (packet->length != inlen)) {
-		printf("Reply length %u expected %u\r\n", packet->length, inlen);
-		csp_buffer_free(packet);
-		csp_close(conn);
-		return 0;
-	}
-
-	memcpy(inbuf, packet->data, packet->length);
-	int length = packet->length;
-	csp_buffer_free(packet);
 	csp_close(conn);
-	return length;
+
+	return status;
 
 }
