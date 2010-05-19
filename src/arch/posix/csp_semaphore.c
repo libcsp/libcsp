@@ -48,7 +48,7 @@ int csp_bin_sem_wait(csp_bin_sem_handle_t * sem, int timeout) {
     if (ts.tv_nsec + nsec > 1000000000)
         ts.tv_sec++;
 
-    ts.tv_nsec += nsec % 1000000000;
+    ts.tv_nsec = (ts.tv_nsec + nsec) % 1000000000;
 
     if (sem_timedwait(sem, &ts) == 0) {
         return CSP_SEMAPHORE_OK;

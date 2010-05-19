@@ -78,7 +78,7 @@ int pthread_queue_enqueue(pthread_queue_t * queue, void * value, int timeout) {
     if (ts.tv_nsec + nsec > 1000000000)
         ts.tv_sec++;
 
-    ts.tv_nsec += nsec % 1000000000;
+    ts.tv_nsec = (ts.tv_nsec + nsec) % 1000000000;
 
     /* Get queue lock */
     pthread_mutex_lock(&(queue->mutex));
@@ -120,7 +120,7 @@ int pthread_queue_dequeue(pthread_queue_t * queue, void * buf, int timeout) {
     if (ts.tv_nsec + nsec > 1000000000)
         ts.tv_sec++;
 
-    ts.tv_nsec += nsec % 1000000000;
+    ts.tv_nsec = (ts.tv_nsec + nsec) % 1000000000;
     
     /* Get queue lock */
     pthread_mutex_lock(&(queue->mutex));
