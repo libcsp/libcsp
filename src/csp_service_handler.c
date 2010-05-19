@@ -73,8 +73,8 @@ void csp_service_handler(csp_conn_t * conn, csp_packet_t * packet) {
 	case CSP_MEMFREE: {
 
 		/* Try to malloc a lot */
-	    size_t size = 0;
 #if defined(_CSP_FREERTOS_)
+		uint32_t size;
 		void * pmem;
 		while(1) {
 			size = size + 100;
@@ -87,6 +87,7 @@ void csp_service_handler(csp_conn_t * conn, csp_packet_t * packet) {
 			}
 		}
 #elif defined(_CSP_POSIX_)
+		size_t size = 0;
         struct sysinfo info;
         sysinfo(&info);
         size = info.freeram * info.mem_unit;
