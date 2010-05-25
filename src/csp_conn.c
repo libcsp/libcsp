@@ -34,7 +34,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "csp_conn.h"
 
 /* Static connection pool and lock */
-static csp_conn_t arr_conn[MAX_STATIC_CONNS];
+static csp_conn_t arr_conn[CONN_MAX];
 
 /** csp_conn_init
  * Initialises the connection pool
@@ -42,8 +42,8 @@ static csp_conn_t arr_conn[MAX_STATIC_CONNS];
 void csp_conn_init(void) {
 
 	int i;
-	for (i = 0; i < MAX_STATIC_CONNS; i++) {
-        arr_conn[i].rx_queue = csp_queue_create(20, sizeof(csp_packet_t *));
+	for (i = 0; i < CONN_MAX; i++) {
+        arr_conn[i].rx_queue = csp_queue_create(CONN_QUEUE_LENGTH, sizeof(csp_packet_t *));
 		arr_conn[i].state = SOCKET_CLOSED;
 	}
 
@@ -63,7 +63,7 @@ csp_conn_t * csp_conn_find(uint32_t id, uint32_t mask) {
 	int i;
 	csp_conn_t * conn;
 
-    for (i = 0; i < MAX_STATIC_CONNS; i++) {
+    for (i = 0; i < CONN_MAX; i++) {
 		conn = &arr_conn[i];
 		if ((conn->state != SOCKET_CLOSED) && (conn->idin.ext & mask) == (id & mask))
 			return conn;
@@ -85,7 +85,7 @@ csp_conn_t * csp_conn_new(csp_id_t idin, csp_id_t idout) {
     csp_conn_t * conn;
 
     CSP_ENTER_CRITICAL();
-	for (i = 0; i < MAX_STATIC_CONNS; i++) {
+	for (i = 0; i < CONN_MAX; i++) {
 		conn = &arr_conn[i];
 
 		if(conn->state == SOCKET_CLOSED) {

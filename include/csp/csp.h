@@ -87,11 +87,11 @@ extern uint8_t my_address;
 #define CSP_ID_CONN_MASK    (CSP_ID_SRC_MASK | CSP_ID_DST_MASK | CSP_ID_DPORT_MASK | CSP_ID_SPORT_MASK)
 
 /** @brief This union defines a CSP identifier and allows to access it in mode standard, extended or through a table. */
-typedef union __attribute__ ((__packed__)) {
+typedef union {
   uint32_t ext;
   uint16_t std;
   uint8_t  tab[4];
-  struct {
+  struct __attribute__((__packed__)) {
 
 #if defined(_CSP_BIG_ENDIAN_) && !defined(_CSP_LITTLE_ENDIAN_)
 
