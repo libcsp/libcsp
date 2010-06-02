@@ -79,8 +79,6 @@ csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 		if (packet == NULL)
 			continue;
 
-		csp_debug("Routing packet with id %08X\r\n", packet->id);
-
 		if (!csp_send_direct(packet->id, packet, 0))
 			csp_buffer_free(packet);
 	}
