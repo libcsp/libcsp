@@ -126,6 +126,11 @@ csp_packet_t * csp_read(csp_conn_t * conn, int timeout) {
  */
 int csp_send_direct(csp_id_t idout, csp_packet_t * packet, int timeout) {
 
+	if (packet == NULL) {
+		csp_debug("Invalid call to csp_send_direct\r\n");
+		return 0;
+	}
+
 	csp_iface_t * ifout = csp_route_if(idout.dst);
 
 	if ((ifout == NULL) || (*ifout->nexthop == NULL)) {
@@ -148,8 +153,8 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, int timeout) {
  */
 int csp_send(csp_conn_t* conn, csp_packet_t * packet, int timeout) {
 
-	if ((conn == NULL) || (packet == NULL)) {
-		printf("Invalid call to csp_send\r\n");
+	if (conn == NULL) {
+		csp_debug("Invalid call to csp_send\r\n");
 		return 0;
 	}
 
