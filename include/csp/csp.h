@@ -137,6 +137,13 @@ typedef struct __attribute__((__packed__)) {
     uint8_t * data;				// This just points to the rest of the buffer, without a size indication.
 } csp_packet_t;
 
+/**
+ * This define must equial the size of the packet overhead in csp_packet_t
+ * it is used in csp_buffer_new() to check the allocated buffer size against
+ * thre required buffer size.
+ */
+#define CSP_BUFFER_PACKET_OVERHEAD 	44+2+4
+
 typedef struct csp_socket_s csp_socket_t;
 typedef struct csp_conn_s csp_conn_t;
 

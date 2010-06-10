@@ -79,7 +79,7 @@ void * csp_buffer_get(size_t buf_size) {
 
     static uint8_t csp_buffer_last_given = 0;
 
-	if (buf_size > size) {
+	if (buf_size + CSP_BUFFER_PACKET_OVERHEAD > size) {
 		printf("Attempt to allocate too large block\r\n");
 		return NULL;
 	}
