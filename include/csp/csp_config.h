@@ -18,6 +18,21 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+/**
+ * This is the default CSP configuration file.
+ * It contains all the required values to compile CSP.
+ * If you make any changes to the values in this file, please avoid
+ * commiting them back to the repository unless they are required.
+ *
+ * This can be done by copying the file to another directory
+ * and using include-path prioritisation, to prefer your local
+ * copy over the default.
+ *
+ * In eclipse you can furthermore right-click and mark the file
+ * as excluded from build to be sure your local version is used
+ * instead.
+ */
+
 #ifndef _CSP_CONFIG_H_
 #define _CSP_CONFIG_H_
 
@@ -28,6 +43,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #define CONN_QUEUE_LENGTH	100		// Number of packets potentially in queue for a connection
 
 /* Buffer config */
+#define CSP_BUFFER_CALLOC	0		// Set to 1 to clear buffer at allocation
 #define CSP_BUFFER_STATIC   0
 #define CSP_BUFFER_SIZE     320
 #define CSP_BUFFER_COUNT    12

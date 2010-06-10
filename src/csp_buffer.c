@@ -92,6 +92,9 @@ void * csp_buffer_get(size_t buf_size) {
 			csp_buffer_list[i] = CSP_BUFFER_USED;			// Mark as used
 			csp_buffer_last_given = i;						// Remember the progress
 			CSP_EXIT_CRITICAL();
+#if CSP_BUFFER_CALLOC
+			memset(csp_buffer_p + (i * size), 0x00, size);
+#endif
 			return csp_buffer_p + (i * size);				// Return poniter
 		}
 		i = (i + 1) % count;								// Increment by one
