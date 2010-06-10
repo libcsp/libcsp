@@ -175,7 +175,12 @@ int csp_send(csp_conn_t* conn, csp_packet_t * packet, int timeout) {
  */
 int csp_transaction_persistent(csp_conn_t * conn, int timeout, void * outbuf, int outlen, void * inbuf, int inlen) {
 
-	csp_packet_t * packet = csp_buffer_get(sizeof(csp_packet_t));
+	/* Stupid way to implement max() but more portable than macros */
+	int size = outlen;
+	if (inlen > outlen)
+		size = inlen;
+
+	csp_packet_t * packet = csp_buffer_get(size);
 	if (packet == NULL)
 		return 0;
 

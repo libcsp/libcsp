@@ -37,7 +37,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 	static const int size = CSP_BUFFER_SIZE;
 	static const int count = CSP_BUFFER_COUNT;
 #else
-	static void * csp_buffer_p;
+	static uint8_t * csp_buffer_p;
 	static uint8_t * csp_buffer_list;
 	static int size, count;
 #endif
@@ -95,6 +95,7 @@ void * csp_buffer_get(size_t buf_size) {
 #if CSP_BUFFER_CALLOC
 			memset(csp_buffer_p + (i * size), 0x00, size);
 #endif
+			//printf("Found element %u, size %u, at %p\r\n", i, size, csp_buffer_p + (i * size));
 			return csp_buffer_p + (i * size);				// Return poniter
 		}
 		i = (i + 1) % count;								// Increment by one
@@ -110,7 +111,7 @@ void * csp_buffer_get(size_t buf_size) {
  * @param packet
  */
 void csp_buffer_free(void * packet) {
-	int i = (packet - csp_buffer_p) / size;					// Find number in array by math (wooo)
+	int i = ((uint8_t *) packet - csp_buffer_p) / size;					// Find number in array by math (wooo)
 	if (i < 0 || i > count)
 		return;
 	csp_buffer_list[i] = CSP_BUFFER_FREE;					// Mark this as free now

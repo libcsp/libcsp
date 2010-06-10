@@ -32,7 +32,7 @@ void csp_ping(uint8_t node, int timeout) {
 
 	/* Prepare data */
 	csp_packet_t * packet;
-	packet = csp_buffer_get(sizeof(csp_packet_t));
+	packet = csp_buffer_get(1);
 
 	/* Check malloc */
 	if (packet == NULL)
@@ -81,7 +81,7 @@ void csp_ping_noreply(uint8_t node) {
 
 	/* Prepare data */
 	csp_packet_t * packet;
-	packet = csp_buffer_get(sizeof(csp_packet_t));
+	packet = csp_buffer_get(1);
 
 	/* Check malloc */
 	if (packet == NULL)
@@ -111,7 +111,7 @@ void csp_ps(uint8_t node, int timeout) {
 
 	/* Prepare data */
 	csp_packet_t * packet;
-	packet = csp_buffer_get(sizeof(csp_packet_t));
+	packet = csp_buffer_get(95);
 
 	/* Check malloc */
 	if (packet == NULL)
