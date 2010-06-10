@@ -153,6 +153,9 @@ int csp_transaction_persistent(csp_conn_t * conn, int timeout, void * outbuf, in
 csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t port);
 void csp_close(csp_conn_t * conn);
 int csp_conn_dport(csp_conn_t * conn);
+int csp_conn_sport(csp_conn_t * conn);
+int csp_conn_dst(csp_conn_t * conn);
+int csp_conn_src(csp_conn_t * conn);
 
 /* Implemented in csp_port.c */
 int csp_listen(csp_socket_t * socket, size_t conn_queue_length);

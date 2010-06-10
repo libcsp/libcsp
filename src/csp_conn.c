@@ -182,3 +182,32 @@ inline int csp_conn_dport(csp_conn_t * conn) {
 
 }
 
+/**
+ * @param conn pointer to connection structure
+ * @return source port of an incoming connection
+ */
+inline int csp_conn_sport(csp_conn_t * conn) {
+
+    return conn->idin.sport;
+
+}
+
+/**
+ * @param conn pointer to connection structure
+ * @return destination address of an incoming connection
+ */
+inline int csp_conn_dst(csp_conn_t * conn) {
+
+    return conn->idin.dst;
+
+}
+
+/**
+ * @param conn pointer to connection structure
+ * @return source address of an incoming connection
+ */
+inline int csp_conn_src(csp_conn_t * conn) {
+
+    return conn->idin.src;
+
+}
