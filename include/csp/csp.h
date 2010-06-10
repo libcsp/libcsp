@@ -134,7 +134,7 @@ typedef struct __attribute__((__packed__)) {
     uint8_t padding1[44];       // Interface dependent padding
     uint16_t length;            // Length field must be just before CSP ID
     csp_id_t id;                // CSP id must be just before data
-    uint8_t data[CSP_MTU];      // Data must be large enough to fit a en encoded spacelink frame
+    uint8_t * data;				// This just points to the rest of the buffer, without a size indication.
 } csp_packet_t;
 
 typedef struct csp_socket_s csp_socket_t;
