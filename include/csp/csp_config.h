@@ -19,22 +19,30 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 /**
- * This is the default CSP configuration file.
+ * This is the default SVN version of the CSP configuration file.
  * It contains all the required values to compile CSP.
  * If you make any changes to the values in this file, please avoid
  * commiting them back to the repository unless they are required.
  *
  * This can be done by copying the file to another directory
  * and using include-path prioritisation, to prefer your local
- * copy over the default.
+ * copy over the default. Or perhaps even simpler by defining the
+ * symbol CSP_USER_CONFIG in your makefile and naming your copy
+ * csp_config_user.h
  *
- * In eclipse you can furthermore right-click and mark the file
- * as excluded from build to be sure your local version is used
- * instead.
+ * This will also ensure that your copy of the configuraiton will never
+ * be overwritten by a SVN checkout. However, please notice that
+ * sometimes new configuration directives will be added to the configuration
+ * at which point you should copy these to your local configuration too.
+ *
  */
 
 #ifndef _CSP_CONFIG_H_
 #define _CSP_CONFIG_H_
+
+#ifdef CSP_USER_CONFIG
+#include <csp_config_user.h>
+#else
 
 /* General config */
 #define CSP_DEBUG           0       // Enable/disable debugging output
@@ -49,5 +57,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #define CSP_BUFFER_COUNT    12
 #define CSP_BUFFER_FREE	    0  
 #define CSP_BUFFER_USED	    1
+
+#endif
 
 #endif // _CSP_CONFIG_H_
