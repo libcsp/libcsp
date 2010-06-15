@@ -31,7 +31,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #elif defined (__PPC__) || defined(__sparc__)
     #define _CSP_BIG_ENDIAN_
     #define _CSP_POSIX_    
-#elif ConfigName == AVR32 // Todo, this is always true!
+#elif defined(__AVR32__)
     #define _CSP_BIG_ENDIAN_
     #define _CSP_FREERTOS_
 #else
