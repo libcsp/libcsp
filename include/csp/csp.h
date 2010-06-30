@@ -131,7 +131,7 @@ typedef union {
  * have buffer reuse
  */
 typedef struct __attribute__((__packed__)) {
-    uint8_t padding1[44];       // Interface dependent padding
+    uint8_t padding[44];       // Interface dependent padding
     uint16_t length;            // Length field must be just before CSP ID
     csp_id_t id;                // CSP id must be just before data
     uint8_t data[];				// This just points to the rest of the buffer, without a size indication.
