@@ -47,7 +47,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #endif
 
 /* Static allocation of interfaces */
-csp_iface_t iface[17];
+csp_iface_t iface[CSP_ID_HOST_MAX + 2];
 
 #if CSP_USE_PROMISC
 csp_queue_handle_t csp_promisc_queue = NULL;
@@ -71,7 +71,7 @@ typedef struct csp_route_queue_s {
 void csp_route_table_init(void) {
 
 	/* Clear table */
-	memset(iface, 0, sizeof(csp_iface_t) * 17);
+	memset(iface, 0, sizeof(csp_iface_t) * (CSP_ID_HOST_MAX + 2));
 
 }
 
@@ -129,9 +129,9 @@ csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 
 		packet = input.packet;
 
-		csp_debug(CSP_PACKET, "Router input: P 0x%02X, S 0x%02X, D 0x%02X, Dp 0x%02X, Sp 0x%02X, T 0x%02X\r\n",
+		csp_debug(CSP_PACKET, "Router input: P 0x%02X, S 0x%02X, D 0x%02X, Dp 0x%02X, Sp 0x%02X\r\n",
 				packet->id.pri, packet->id.src, packet->id.dst, packet->id.dport,
-				packet->id.sport, packet->id.type);
+				packet->id.sport);
 
 		/* Here there be promiscous mode */
 #if CSP_USE_PROMISC
@@ -178,8 +178,8 @@ csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 		 */
 		} else {
             
-            /* Reject packet if dport is an ephememal port */
-            if (packet->id.dport > 16) {
+            /* Reject packet if dport is an ephemeral port */
+            if (packet->id.dport > CSP_MAX_BIND_PORT + 1) {
 		        csp_buffer_free(packet); 
 		    	continue;
 	    	}
@@ -260,13 +260,13 @@ void csp_route_start_task(unsigned int task_stack_size, unsigned int priority) {
 
 /** Set route
  * This function maintains the routing table,
- * To set default route use nodeid 16
+ * To set default route use nodeid CSP_DEFAULT_ROUTE
  * To set a value pass a callback function
  * To clear a value pass a NULL value
  */
 void csp_route_set(const char * name, uint8_t node, nexthop_t nexthop) {
 
-	if (node <= 16) {
+	if (node <= CSP_DEFAULT_ROUTE) {
 		iface[node].nexthop = nexthop;
 		iface[node].name = name;
 	} else {
@@ -279,7 +279,7 @@ void csp_route_set(const char * name, uint8_t node, nexthop_t nexthop) {
  * This is the actual lookup in the routing table
  * The table consists of one entry per possible node
  * If there is no explicit nexthop route for the destination
- * the default route (node 16) is used.
+ * the default route (node CSP_DEFAULT_ROUTE) is used.
  */
 csp_iface_t * csp_route_if(uint8_t id) {
 
@@ -287,9 +287,9 @@ csp_iface_t * csp_route_if(uint8_t id) {
 		iface[id].count++;
 		return &iface[id];
 	}
-	if (iface[16].nexthop != NULL) {
-		iface[16].count++;
-		return &iface[16];
+	if (iface[CSP_DEFAULT_ROUTE].nexthop != NULL) {
+		iface[CSP_DEFAULT_ROUTE].count++;
+		return &iface[CSP_DEFAULT_ROUTE];
 	}
 	return NULL;
 
@@ -345,12 +345,11 @@ void csp_new_packet(csp_packet_t * packet, nexthop_t interface, CSP_BASE_TYPE * 
 void csp_route_print_table(void) {
 
 	int i;
-	for (i = 0; i < 16; i++)
+	for (i = 0; i < CSP_DEFAULT_ROUTE; i++)
 		if (iface[i].nexthop != NULL)
 			printf("\tNode: %u\t\tNexthop: %s\t\tCount: %u\r\n", i,
 					iface[i].name, iface[i].count);
-	printf("\tDefault\t\tNexthop: %s\t\tCount: %u\r\n", iface[16].name,
-			iface[16].count);
+	printf("\tDefault\t\tNexthop: %s\t\tCount: %u\r\n", iface[CSP_DEFAULT_ROUTE].name, iface[CSP_DEFAULT_ROUTE].count);
 
 }
 #endif

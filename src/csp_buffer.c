@@ -153,9 +153,9 @@ void csp_buffer_print_table(void) {
 			printf("USED ");
 		}
 		packet = (csp_packet_t *) (csp_buffer_p + (i * size));
-		printf("Packet P 0x%02X, S 0x%02X, D 0x%02X, Dp 0x%02X, Sp 0x%02X, T 0x%02X",
+		printf("Packet P 0x%02X, S 0x%02X, D 0x%02X, Dp 0x%02X, Sp 0x%02X",
 			packet->id.pri, packet->id.src, packet->id.dst, packet->id.dport,
-			packet->id.sport, packet->id.type);
+			packet->id.sport);
 		printf("\r\n");
 
 	}

@@ -35,7 +35,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "transport/csp_transport.h"
 
 /* Static connection pool and lock */
-static csp_conn_t arr_conn[CONN_MAX];
+static csp_conn_t arr_conn[CSP_CONN_MAX];
 
 static csp_bin_sem_handle_t conn_lock;
 
@@ -47,7 +47,7 @@ void csp_conn_check_timeouts(void) {
 
 	/* Loop */
 	int i;
-	for (i = 0; i < CONN_MAX; i++) {
+	for (i = 0; i < CSP_CONN_MAX; i++) {
 
 		/* Only look at open connetions */
 		if (arr_conn[i].state != CONN_OPEN)
@@ -71,8 +71,8 @@ void csp_conn_check_timeouts(void) {
 void csp_conn_init(void) {
 
 	int i;
-	for (i = 0; i < CONN_MAX; i++) {
-        arr_conn[i].rx_queue = csp_queue_create(CONN_QUEUE_LENGTH, sizeof(csp_packet_t *));
+	for (i = 0; i < CSP_CONN_MAX; i++) {
+        arr_conn[i].rx_queue = csp_queue_create(CSP_CONN_QUEUE_LENGTH, sizeof(csp_packet_t *));
 		arr_conn[i].state = CONN_CLOSED;
 		arr_conn[i].l4data = NULL;
 	}
@@ -96,7 +96,7 @@ csp_conn_t * csp_conn_find(uint32_t id, uint32_t mask) {
 	int i;
 	csp_conn_t * conn;
 
-    for (i = 0; i < CONN_MAX; i++) {
+    for (i = 0; i < CSP_CONN_MAX; i++) {
 		conn = &arr_conn[i];
 		if ((conn->state != CONN_CLOSED) && (conn->idin.ext & mask) == (id & mask))
 			return conn;
@@ -119,7 +119,7 @@ csp_conn_t * csp_conn_new(csp_id_t idin, csp_id_t idout) {
 
 	/* Search for free connection */
 	i = csp_conn_last_given;								// Start with the last given element
-	i = (i + 1) % CONN_MAX;									// Increment by one
+	i = (i + 1) % CSP_CONN_MAX;									// Increment by one
 
 	if (csp_bin_sem_wait(&conn_lock, 100) != CSP_SEMAPHORE_OK) {
 		csp_debug(CSP_ERROR, "Failed to lock conn array\r\n");
@@ -132,7 +132,7 @@ csp_conn_t * csp_conn_new(csp_id_t idin, csp_id_t idout) {
 			conn->state = CONN_OPEN;
             break;
         }
-		i = (i + 1) % CONN_MAX;
+		i = (i + 1) % CSP_CONN_MAX;
 	} while(i != csp_conn_last_given);
 
 	csp_bin_sem_post(&conn_lock);
@@ -248,7 +248,7 @@ void csp_close(csp_conn_t * conn) {
  */
 csp_conn_t * csp_connect(csp_protocol_t protocol, uint8_t prio, uint8_t dest, uint8_t dport, unsigned int timeout) {
 
-	static uint8_t sport = 31;
+	static uint8_t sport = CSP_ID_PORT_SIZE;
     
 	/* Generate CAN identifier */
 	csp_id_t incoming_id, outgoing_id;
@@ -270,7 +270,7 @@ csp_conn_t * csp_connect(csp_protocol_t protocol, uint8_t prio, uint8_t dest, ui
 
     while (++sport != start) {
         if (sport > 31)
-            sport = 17;
+            sport = CSP_MAX_BIND_PORT + 2;
 
 	    outgoing_id.sport = sport;
         incoming_id.dport = sport;
@@ -326,7 +326,7 @@ void csp_conn_print_table(void) {
 	int i;
 	csp_conn_t * conn;
 
-    for (i = 0; i < CONN_MAX; i++) {
+    for (i = 0; i < CSP_CONN_MAX; i++) {
 		conn = &arr_conn[i];
 		printf("[%02u %p] S:%u, %u -> %u, %u -> %u, sock: %p\r\n", i, conn, conn->state, conn->idin.src, conn->idin.dst, conn->idin.dport, conn->idin.sport, conn->rx_socket);
 

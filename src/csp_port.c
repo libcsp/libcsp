@@ -33,13 +33,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "csp_conn.h"
 
 /* Allocation of ports */
-csp_port_t ports[17];
+csp_port_t ports[CSP_MAX_BIND_PORT + 2];
 
 static csp_bin_sem_handle_t port_lock;
 
 void csp_port_init(void) {
 
-	memset(ports, PORT_CLOSED, sizeof(csp_port_t) * 17);
+	memset(ports, PORT_CLOSED, sizeof(csp_port_t) * (CSP_MAX_BIND_PORT + 2));
 
 	if (csp_bin_sem_create(&port_lock) != CSP_SEMAPHORE_OK)
 		csp_debug(CSP_ERROR, "No more memory for port semaphore\r\n");
@@ -62,8 +62,8 @@ int csp_listen(csp_socket_t * socket, size_t conn_queue_length) {
 
 int csp_bind(csp_socket_t * socket, uint8_t port) {
     
-	if (port > 16) {
-		csp_debug(CSP_ERROR, "Only ports from 0-15 (and 16 default) are available for incoming ports\r\n");
+	if (port > (CSP_MAX_BIND_PORT + 1)) {
+		csp_debug(CSP_ERROR, "Only ports from 0-%u (and CSP_ANY for default) are available for incoming ports\r\n", (CSP_MAX_BIND_PORT + 1));
 		return -1;
 	}
 
