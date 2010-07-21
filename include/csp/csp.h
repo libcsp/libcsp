@@ -94,11 +94,11 @@ extern uint8_t my_address;
 #define CSP_ID_PHYS_SIZE		8
 
 /** Highest number to be entered in field */
-#define CSP_ID_PROTOCOL_MAX		((1 << (CSP_ID_PROTOCOL_SIZE+1))-1)
-#define CSP_ID_PRIO_MAX			((1 << (CSP_ID_PRIO_SIZE+1))-1)
-#define CSP_ID_HOST_MAX			((1 << (CSP_ID_HOST_SIZE+1))-1)
-#define CSP_ID_PORT_MAX			((1 << (CSP_ID_PORT_SIZE+1))-1)
-#define CSP_ID_PHYS_MAX			((1 << (CSP_ID_PHYS_SIZE+1))-1)
+#define CSP_ID_PROTOCOL_MAX		((1 << (CSP_ID_PROTOCOL_SIZE))-1)
+#define CSP_ID_PRIO_MAX			((1 << (CSP_ID_PRIO_SIZE))-1)
+#define CSP_ID_HOST_MAX			((1 << (CSP_ID_HOST_SIZE))-1)
+#define CSP_ID_PORT_MAX			((1 << (CSP_ID_PORT_SIZE))-1)
+#define CSP_ID_PHYS_MAX			((1 << (CSP_ID_PHYS_SIZE))-1)
 
 /** Identifier field masks */
 #define CSP_ID_PROTOCOL_MASK	((uint32_t) CSP_ID_PROTOCOL_MAX 	<< (CSP_ID_PHYS_SIZE + 2 * CSP_ID_PORT_SIZE + 2 * CSP_ID_HOST_SIZE + CSP_ID_PROTOCOL_SIZE))
