@@ -27,10 +27,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/csp.h>
 #include <csp/csp_config.h>
 
-#if defined(_CSP_POSIX_)
-#include <pthread.h>
-#endif
-
 #if CSP_DEBUG
 
 static uint8_t levels_enable[7] = {
@@ -43,7 +39,13 @@ static uint8_t levels_enable[7] = {
 		0	// Locks
 };
 
+/* Called by csp_debug on each execution, before calling printf */
+void csp_debug_printf_hook(csp_debug_level_t level) __attribute__((weak));
+
 void csp_debug(csp_debug_level_t level, const char * format, ...) {
+
+	va_list args;
+	va_start(args, format);
 
 	const char * color = "";
 
@@ -56,53 +58,19 @@ void csp_debug(csp_debug_level_t level, const char * format, ...) {
 	case CSP_PROTOCOL:  if (!levels_enable[CSP_PROTOCOL]) return; 	color = "\E[0;34m"; break;
 	case CSP_LOCK:		if (!levels_enable[CSP_LOCK]) return; 		color = "\E[0;36m"; break;
 	}
-#if defined(_CSP_POSIX_)
 
-	extern __attribute__((weak)) pthread_t handle_server;
-	extern __attribute__((weak)) pthread_t handle_console;
-	extern __attribute__((weak)) pthread_t handle_rdptestserver;
-	extern __attribute__((weak)) pthread_t handle_router;
-
-	if (pthread_self() == handle_server) {
-		printf("\t\t\t\t\t\t\t\t");
-	} else if (pthread_self() == handle_console) {
-	} else if (pthread_self() == handle_rdptestserver) {
-		printf("\t\t\t\t\t\t\t\t");
-	} else if (pthread_self() == handle_router) {
-#if defined(__i386__)
-		printf("\t\t");
-#else
-		printf("\t\t\t\t");
-#endif
-	}
-#endif
-
-#if defined(_CSP_FREERTOS_)
-#include <freertos/task.h>
-#include "arch/csp_thread.h"
-
-	extern csp_thread_handle_t handle_router;
-	extern csp_thread_handle_t handle_server;
-	extern csp_thread_handle_t handle_console;
-
-	if (xTaskGetCurrentTaskHandle() == handle_server) {
-		printf("\t\t\t\t\t\t\t\t");
-	} else if (xTaskGetCurrentTaskHandle() == handle_console) {
-	} else if (xTaskGetCurrentTaskHandle() == handle_router) {
-		printf("\t\t\t\t");
-	}
-#endif
+	if (csp_debug_printf_hook)
+		csp_debug_printf_hook(level);
 
 	printf("%s", color);
 
-	va_list args;
+
     printf("CSP: ");
-    va_start(args, format);
     vprintf(format, args);
-    va_end(args);
 
     printf("\E[0m");
 
+    va_end(args);
 
 }
 

@@ -117,7 +117,8 @@ void csp_service_handler(csp_conn_t * conn, csp_packet_t * packet) {
 
 		/* Otherwise Reboot */
 		extern void __attribute__((weak)) cpu_reset(void);
-		cpu_reset();
+		if (cpu_reset)
+			cpu_reset();
 		break;
 	}
 

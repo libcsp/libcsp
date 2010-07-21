@@ -258,6 +258,7 @@ typedef enum csp_debug_level_e {
 } csp_debug_level_t;
 
 #if CSP_DEBUG
+
 void csp_debug(csp_debug_level_t level, const char * format, ...);
 void csp_debug_toggle_level(csp_debug_level_t level);
 void csp_route_print_table(void);
