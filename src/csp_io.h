@@ -25,6 +25,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <csp/csp.h>
 
-int csp_send_direct(csp_id_t idout, csp_packet_t * packet, int timeout);
+int csp_send_direct(csp_id_t idout, csp_packet_t * packet, unsigned int timeout);
 
 #endif // _CSP_IO_H_

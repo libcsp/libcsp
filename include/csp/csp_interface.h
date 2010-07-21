@@ -1,6 +1,6 @@
 /*
 Cubesat Space Protocol - A small network-layer protocol designed for Cubesats
-Copyright (C) 2010 GomSpace ApS (gomspace.com)
+Copyright (C) 2010 Gomspace ApS (gomspace.com)
 Copyright (C) 2010 AAUSAT3 Project (aausat3.space.aau.dk) 
 
 This library is free software; you can redistribute it and/or
@@ -18,24 +18,11 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/* CSP includes */
+#ifndef _CSP_INTERFACE_H_
+#define _CSP_INTERFACE_H_
+
 #include <csp/csp.h>
-#include <csp/csp_platform.h>
-#include <csp/csp_interface.h>
 
-#include "arch/csp_semaphore.h"
-#include "arch/csp_queue.h"
+void csp_new_packet(csp_packet_t * packet, nexthop_t interface, CSP_BASE_TYPE * pxTaskWoken);
 
-#include "csp_route.h"
-
-int csp_lo_tx(csp_id_t idout, csp_packet_t * packet, unsigned int timeout) {
-
-	/* Store outgoing id */
-	packet->id.ext = idout.ext;
-
-	/* Send back into CSP, notice calling from task so last argument must be NULL! */
-	csp_new_packet(packet, csp_lo_tx, NULL);
-
-	return 1;
-
-}
+#endif // _CSP_INTERFACE_H_

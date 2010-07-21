@@ -32,12 +32,17 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "csp_port.h"
 #include "csp_conn.h"
 
-/* Static allocation of ports */
+/* Allocation of ports */
 csp_port_t ports[17];
+
+static csp_bin_sem_handle_t port_lock;
 
 void csp_port_init(void) {
 
 	memset(ports, PORT_CLOSED, sizeof(csp_port_t) * 17);
+
+	if (csp_bin_sem_create(&port_lock) != CSP_SEMAPHORE_OK)
+		csp_debug(CSP_ERROR, "No more memory for port semaphore\r\n");
 
 }
 
@@ -58,52 +63,29 @@ int csp_listen(csp_socket_t * socket, size_t conn_queue_length) {
 int csp_bind(csp_socket_t * socket, uint8_t port) {
     
 	if (port > 16) {
-		printf("Only ports from 0-15 (and 16) are available for incoming ports\r\n");
+		csp_debug(CSP_ERROR, "Only ports from 0-15 (and 16 default) are available for incoming ports\r\n");
 		return -1;
 	}
 
-	CSP_ENTER_CRITICAL();
+	if (csp_bin_sem_wait(&port_lock, 100) != CSP_SEMAPHORE_OK) {
+		csp_debug(CSP_ERROR, "Failed to lock port array\r\n");
+		return -1;
+	}
 
 	/* Check if port number is valid */
 	if (ports[port].state != PORT_CLOSED) {
-		printf("ERROR: Port %d is already in use\r\n", port);
+		csp_debug(CSP_ERROR, "Port %d is already in use\r\n", port);
+		csp_bin_sem_post(&port_lock);
 		return -1;
 	}
 
-	csp_debug("Binding socket %p to port %u\r\n", socket, port);
+	csp_debug(CSP_INFO, "Binding socket %p to port %u\r\n", socket, port);
 
 	/* Save listener */
-	ports[port].callback = NULL;
 	ports[port].socket = socket;
 	ports[port].state = PORT_OPEN;
 
-	CSP_EXIT_CRITICAL();
-
-    return 0;
-
-}
-
-int csp_bind_callback(void (*callback) (csp_conn_t*), uint8_t port) {
-
-	if (port > 16) {
-		printf("Only ports from 0-15 (and 16) are available for incoming ports\r\n");
-		return -1;
-	}
-
-	CSP_ENTER_CRITICAL();
-
-	/* Check if port number is valid */
-	if (ports[port].state != PORT_CLOSED) {
-		printf("ERROR: Port %d is already in use\r\n", port);
-		return -1;
-	}
-
-	/* Save callback */
-	ports[port].callback = callback;
-	ports[port].socket = NULL;
-	ports[port].state = PORT_OPEN;
-
-	CSP_EXIT_CRITICAL();
+	csp_bin_sem_post(&port_lock);
 
     return 0;
 

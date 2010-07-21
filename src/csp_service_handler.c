@@ -50,6 +50,7 @@ void csp_service_handler(csp_conn_t * conn, csp_packet_t * packet) {
 
 	/* A ping means, just echo the packet, so no changes */
 	case CSP_PING:
+		csp_debug(CSP_INFO, "SERVICE: Ping received\r\n");
 		break;
 
 	/* Retrieve the ProcessList as a string */

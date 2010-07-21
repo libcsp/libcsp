@@ -26,11 +26,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/csp.h>
 
 #include "arch/csp_queue.h"
+#include "arch/csp_semaphore.h"
 
 /** @brief Connection states */
 typedef enum {
-    SOCKET_CLOSED,                  /**< Connection closed */
-    SOCKET_OPEN,                    /**< Connection open (ready to send) */
+    CONN_CLOSED = 0,				// Connection closed
+    CONN_OPEN = 1,					// Connection open
+    CONN_CLOSE_WAIT = 2,			// Conneciton closed by network stack, waiting for userspace to close too.
 } csp_conn_state_t;
 
 /** @brief Connection struct */
@@ -39,6 +41,9 @@ struct csp_conn_s {
     csp_id_t idin;                  // Identifier received
     csp_id_t idout;                 // Identifier transmitted
     csp_queue_handle_t rx_queue;    // Queue for RX packets
+    csp_queue_handle_t rx_socket;	// Socket to be "woken" when first packet is ready
+    csp_l4data_t * l4data;			// Pointer to a layer4 info area (Opaque pointer)
+    uint32_t open_timestamp;		// Time the connection was opened
 };
 
 /** @brief Socket struct */
@@ -49,5 +54,7 @@ struct csp_socket_s {
 void csp_conn_init(void);
 csp_conn_t * csp_conn_find(uint32_t id, uint32_t mask);
 csp_conn_t * csp_conn_new(csp_id_t idin, csp_id_t idout);
+void csp_close_wait(csp_conn_t * conn);
+void csp_conn_check_timeouts(void);
 
 #endif // _CSP_CONN_H_

@@ -32,9 +32,38 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "arch/csp_time.h"
 
 #include "csp_conn.h"
+#include "transport/csp_transport.h"
 
 /* Static connection pool and lock */
 static csp_conn_t arr_conn[CONN_MAX];
+
+static csp_bin_sem_handle_t conn_lock;
+
+/** csp_conn_timeout
+ * Walk trough open connections and check if anything needs to be
+ * kicked, closed or retransmitted.
+ */
+void csp_conn_check_timeouts(void) {
+
+	/* Loop */
+	int i;
+	for (i = 0; i < CONN_MAX; i++) {
+
+		/* Only look at open connetions */
+		if (arr_conn[i].state != CONN_OPEN)
+			continue;
+
+		/* Check the protocol and higher layers */
+#if CSP_USE_RDP
+		switch (arr_conn[i].idin.protocol) {
+		case CSP_RDP:
+			csp_rdp_check_timeouts(&arr_conn[i]);
+		}
+#endif
+
+	}
+
+}
 
 /** csp_conn_init
  * Initialises the connection pool
@@ -44,8 +73,12 @@ void csp_conn_init(void) {
 	int i;
 	for (i = 0; i < CONN_MAX; i++) {
         arr_conn[i].rx_queue = csp_queue_create(CONN_QUEUE_LENGTH, sizeof(csp_packet_t *));
-		arr_conn[i].state = SOCKET_CLOSED;
+		arr_conn[i].state = CONN_CLOSED;
+		arr_conn[i].l4data = NULL;
 	}
+
+	if (csp_bin_sem_create(&conn_lock) != CSP_SEMAPHORE_OK)
+		csp_debug(CSP_ERROR, "No more memory for conn semaphore\r\n");
 
 }
 
@@ -65,10 +98,10 @@ csp_conn_t * csp_conn_find(uint32_t id, uint32_t mask) {
 
     for (i = 0; i < CONN_MAX; i++) {
 		conn = &arr_conn[i];
-		if ((conn->state != SOCKET_CLOSED) && (conn->idin.ext & mask) == (id & mask))
+		if ((conn->state != CONN_CLOSED) && (conn->idin.ext & mask) == (id & mask))
 			return conn;
     }
-
+    
     return NULL;
 
 }
@@ -80,26 +113,91 @@ csp_conn_t * csp_conn_find(uint32_t id, uint32_t mask) {
  */
 csp_conn_t * csp_conn_new(csp_id_t idin, csp_id_t idout) {
 
-    /* Search for free connection */
-    int i;
-    csp_conn_t * conn;
+	static uint8_t csp_conn_last_given = 0;
+	int i;
+	csp_conn_t * conn;
 
-    CSP_ENTER_CRITICAL();
-	for (i = 0; i < CONN_MAX; i++) {
+	/* Search for free connection */
+	i = csp_conn_last_given;								// Start with the last given element
+	i = (i + 1) % CONN_MAX;									// Increment by one
+
+	if (csp_bin_sem_wait(&conn_lock, 100) != CSP_SEMAPHORE_OK) {
+		csp_debug(CSP_ERROR, "Failed to lock conn array\r\n");
+		return NULL;
+	}
+
+	do {
 		conn = &arr_conn[i];
-
-		if(conn->state == SOCKET_CLOSED) {
-			conn->state = SOCKET_OPEN;
-            conn->idin = idin;
-            conn->idout = idout;
-            CSP_EXIT_CRITICAL();
-            return conn;
+		if (conn->state == CONN_CLOSED) {
+			conn->state = CONN_OPEN;
+            break;
         }
-    }
-	CSP_EXIT_CRITICAL();
+		i = (i + 1) % CONN_MAX;
+	} while(i != csp_conn_last_given);
+
+	csp_bin_sem_post(&conn_lock);
+
+	if (i == csp_conn_last_given) {
+		csp_debug(CSP_ERROR, "No more free connections\r\n");
+		return NULL;
+	}
+
+	csp_conn_last_given = i;
+
+	/* No lock is needed here, because nobody else
+	 * has a reference to this connection yet.
+	 */
+	conn->idin = idin;
+	conn->idout = idout;
+	conn->rx_socket = NULL;
+	conn->open_timestamp = csp_get_ms();
+
+	/* Ensure connection queue is empty */
+	csp_packet_t * packet;
+	while(csp_queue_dequeue(conn->rx_queue, &packet, 0) == CSP_QUEUE_OK) {
+		if (packet != NULL)
+			csp_buffer_free(packet);
+	}
+
+    /* Ensure l4 knows this conn is opening */
+	int result = 1;
+
+#if CSP_USE_RDP
+    switch(conn->idin.protocol) {
+	case CSP_RDP:
+		result = csp_rdp_allocate(conn);
+		break;
+	}
+#endif
     
-    return NULL;
-  
+    if (result == 0) {
+    	conn->state = CONN_CLOSED;
+    	return NULL;
+    }
+
+    return conn;
+
+}
+
+/** csp_close_wait
+ * This function must be called whenever the network stack wants to close the connection.
+ * The philosophy is that only the "owner" of the connection handle, which is the task,
+ * may close the connection.
+ * Sometimes when the network stack has a new connection but not yet passed this to userspace,
+ * the network stack should call csp_close directly, otherwise it should call csp_close_wait.
+ * This function posts a null pointer to the qonnection RX queue, this will make the userspace
+ * application close the connection.
+ * @param conn pointer to connetion structure
+ */
+void csp_close_wait(csp_conn_t * conn) {
+
+	/* Set state */
+	conn->state = CONN_CLOSE_WAIT;
+
+    /* Try to wake any tasks */
+    void * null_pointer = NULL;
+    csp_queue_enqueue(conn->rx_queue, &null_pointer, 0);
+
 }
 
 /** csp_close
@@ -109,14 +207,35 @@ csp_conn_t * csp_conn_new(csp_id_t idin, csp_id_t idout) {
  */
 
 void csp_close(csp_conn_t * conn) {
-   
+
+	if (conn == NULL) {
+		csp_debug(CSP_ERROR, "NULL Pointer given to csp_close\r\n");
+		return;
+	}
+
+	if (conn->state == CONN_CLOSED) {
+		csp_debug(CSP_BUFFER, "Conn already closed by transport layer\r\n");
+		return;
+	}
+
 	/* Ensure connection queue is empty */
 	csp_packet_t * packet;
-    while(csp_queue_dequeue(conn->rx_queue, &packet, 0) == CSP_QUEUE_OK)
-    	csp_buffer_free(packet);
+    while(csp_queue_dequeue(conn->rx_queue, &packet, 0) == CSP_QUEUE_OK) {
+    	if (packet != NULL)
+    		csp_buffer_free(packet);
+    }
+
+    /* Ensure l4 knows this conn is closing */
+#if CSP_USE_RDP
+    switch(conn->idin.protocol) {
+    case CSP_RDP:
+		csp_rdp_close(conn);
+		break;
+	}
+#endif
 
     /* Set to closed */
-    conn->state = SOCKET_CLOSED;
+    conn->state = CONN_CLOSED;
 
 }
 
@@ -127,7 +246,7 @@ void csp_close(csp_conn_t * conn) {
  * There is no handshake in the CSP protocol
  * @return a pointer to a new connection or NULL
  */
-csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport) {
+csp_conn_t * csp_connect(csp_protocol_t protocol, uint8_t prio, uint8_t dest, uint8_t dport, unsigned int timeout) {
 
 	static uint8_t sport = 31;
     
@@ -137,10 +256,12 @@ csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport) {
 	incoming_id.dst = my_address;
 	incoming_id.src = dest;
 	incoming_id.sport = dport;
+	incoming_id.protocol = protocol;
 	outgoing_id.pri = prio;
 	outgoing_id.dst = dest;
 	outgoing_id.src = my_address;
 	outgoing_id.dport = dport;
+	outgoing_id.protocol = protocol;
     
     /* Find an unused ephemeral port */
     csp_conn_t * conn;
@@ -166,11 +287,60 @@ csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport) {
     if (sport == start)
         return NULL;
 
+    /* Get storage for new connection */
     conn = csp_conn_new(incoming_id, outgoing_id);
+    if (conn == NULL)
+    	return NULL;
 
+    /* Call Transport Layer connect */
+    int result = 1;
+#if CSP_USE_RDP
+    switch(protocol) {
+    case CSP_RDP:
+    	result = csp_rdp_connect_active(conn, timeout);
+    	break;
+    default:
+    	break;
+    }
+#endif
+
+    /* If the transport layer has failed to connect
+     * deallocate connetion structure again and return NULL
+     */
+    if (result == 0) {
+    	csp_close(conn);
+		return NULL;
+    }
+
+    /* We have a successfull connection */
     return conn;
 
 }
+
+#if CSP_DEBUG
+/**
+ * Small helper function to display the connection table
+ */
+void csp_conn_print_table(void) {
+
+	int i;
+	csp_conn_t * conn;
+
+    for (i = 0; i < CONN_MAX; i++) {
+		conn = &arr_conn[i];
+		printf("[%02u %p] S:%u, %u -> %u, %u -> %u, sock: %p\r\n", i, conn, conn->state, conn->idin.src, conn->idin.dst, conn->idin.dport, conn->idin.sport, conn->rx_socket);
+
+#if CSP_USE_RDP
+		switch(conn->idin.protocol) {
+		case CSP_RDP:
+			csp_rdp_conn_print(conn);
+			break;
+		}
+#endif
+
+    }
+}
+#endif
 
 /**
  * @param conn pointer to connection structure
@@ -209,5 +379,15 @@ inline int csp_conn_dst(csp_conn_t * conn) {
 inline int csp_conn_src(csp_conn_t * conn) {
 
     return conn->idin.src;
+
+}
+
+/**
+ * @param conn pointer to connection structure
+ * @return Protocol of incomming connection
+ */
+inline int csp_conn_protocol(csp_conn_t * conn) {
+
+    return conn->idin.protocol;
 
 }

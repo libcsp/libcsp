@@ -21,6 +21,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <semaphore.h>
 #include <pthread.h>
 #include <sys/time.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <errno.h>
+#include <string.h>
 
 /* CSP includes */
 #include <csp/csp.h>
@@ -28,6 +34,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../csp_semaphore.h"
 
 int csp_bin_sem_create(csp_bin_sem_handle_t * sem) {
+	csp_debug(CSP_LOCK, "Semaphore init: %p\r\n", sem);
     if (sem_init(sem, 0, 1) == 0) {
         return CSP_SEMAPHORE_OK;
     } else {
@@ -35,7 +42,17 @@ int csp_bin_sem_create(csp_bin_sem_handle_t * sem) {
     }
 }
 
+int csp_bin_sem_remove(csp_bin_sem_handle_t * sem) {
+	return CSP_SEMAPHORE_OK;
+}
+
 int csp_bin_sem_wait(csp_bin_sem_handle_t * sem, int timeout) {
+
+	if (sem == NULL)
+		return 0;
+
+	csp_debug(CSP_LOCK, "Wait: %p timeout %u\r\n", sem, timeout);
+
     struct timespec ts;
     if (clock_gettime(CLOCK_REALTIME, &ts))
     	return CSP_SEMAPHORE_ERROR;
@@ -45,7 +62,7 @@ int csp_bin_sem_wait(csp_bin_sem_handle_t * sem, int timeout) {
 
     ts.tv_sec += sec;
 
-    if (ts.tv_nsec + nsec > 1000000000)
+    if (ts.tv_nsec + nsec >= 1000000000)
         ts.tv_sec++;
 
     ts.tv_nsec = (ts.tv_nsec + nsec) % 1000000000;
@@ -63,7 +80,14 @@ int csp_bin_sem_post(csp_bin_sem_handle_t * sem) {
 }
 
 int csp_bin_sem_post_isr(csp_bin_sem_handle_t * sem, CSP_BASE_TYPE * task_woken) {
-    *task_woken = 0; 
+	csp_debug(CSP_LOCK, "Post: %p\r\n", sem);
+    *task_woken = 0;
+
+    int value;
+    sem_getvalue(sem, &value);
+    if (value > 0)
+    	return CSP_SEMAPHORE_OK;
+
     if (sem_post(sem) == 0) {
         return CSP_SEMAPHORE_OK;
     } else {

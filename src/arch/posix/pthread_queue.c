@@ -46,8 +46,8 @@ pthread_queue_t * pthread_queue_create(int length, size_t item_size) {
             q->in = 0;
             q->out = 0;
             if (pthread_mutex_init(&(q->mutex), NULL) || pthread_cond_init(&(q->cond_full), NULL) || pthread_cond_init(&(q->cond_empty), NULL)) {
+            	free(q->buffer);
                 free(q);
-                free(q->buffer);
                 q = NULL;
             }
         } else {
@@ -58,6 +58,18 @@ pthread_queue_t * pthread_queue_create(int length, size_t item_size) {
 
     return q;
     
+}
+
+void pthread_queue_delete(pthread_queue_t * q) {
+
+	if (q == NULL)
+		return;
+
+	free(q->buffer);
+	free(q);
+
+	return;
+
 }
     
 

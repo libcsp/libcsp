@@ -30,6 +30,7 @@ typedef void * csp_queue_handle_t;
 #include <csp/csp.h>
 
 csp_queue_handle_t csp_queue_create(int length, size_t item_size);
+void csp_queue_remove(csp_queue_handle_t queue);
 int csp_queue_enqueue(csp_queue_handle_t handle, void *value, int timeout);
 int csp_queue_enqueue_isr(csp_queue_handle_t handle, void * value, CSP_BASE_TYPE * task_woken);
 int csp_queue_dequeue(csp_queue_handle_t handle, void *buf, int timeout);

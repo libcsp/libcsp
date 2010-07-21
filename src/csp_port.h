@@ -34,7 +34,6 @@ typedef enum {
 /** @brief Port struct */
 typedef struct {
     csp_port_state_t state;         // Port state
-    void (*callback) (csp_conn_t*); // Pointer to callback function
     csp_socket_t * socket;          // New connections are added to this socket's conn queue
 } csp_port_t;
 

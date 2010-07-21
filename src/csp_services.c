@@ -28,7 +28,19 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "arch/csp_time.h"
 
-void csp_ping(uint8_t node, int timeout) {
+void csp_ping(uint8_t node, unsigned int timeout) {
+
+	uint32_t start, time;
+
+	printf("Ping node %u: ", node);
+
+	/* Counter */
+	start = csp_get_ms();
+
+	/* Open connection */
+	csp_conn_t * conn = csp_connect(CSP_RDP, CSP_PRIO_NORM, node, CSP_PING, timeout);
+	if (conn == NULL)
+		return;
 
 	/* Prepare data */
 	csp_packet_t * packet;
@@ -40,13 +52,6 @@ void csp_ping(uint8_t node, int timeout) {
 
 	packet->data[0] = 0x55;
 	packet->length = 1;
-
-	/* Open connection */
-	csp_conn_t * conn = csp_connect(CSP_PRIO_NORM, node, CSP_PING);
-	printf("Ping node %u: ", node);
-
-	/* Counter */
-    uint32_t start = csp_get_ms();
 
 	/* Try to send frame */
 	if (!csp_send(conn, packet, 0))
@@ -61,7 +66,7 @@ void csp_ping(uint8_t node, int timeout) {
 	}
 
 	/* We have a reply */
-    uint32_t time = (csp_get_ms() - start);
+	time = (csp_get_ms() - start);
 
 	if (time <= 1) {
 		printf(" Reply in <1 tick\r\n");
@@ -79,6 +84,11 @@ out:
 
 void csp_ping_noreply(uint8_t node) {
 
+	/* Open connection */
+	csp_conn_t * conn = csp_connect(CSP_UDP, CSP_PRIO_NORM, node, CSP_PING, 0);
+	if (conn == NULL)
+		return;
+
 	/* Prepare data */
 	csp_packet_t * packet;
 	packet = csp_buffer_get(1);
@@ -90,8 +100,6 @@ void csp_ping_noreply(uint8_t node) {
 	packet->data[0] = 0x55;
 	packet->length = 1;
 
-	/* Open connection */
-	csp_conn_t * conn = csp_connect(CSP_PRIO_NORM, node, CSP_PING);
 	printf("Ping ignore reply node %u.\r\n", node);
 
 	/* Try to send frame */
@@ -107,7 +115,12 @@ void csp_reboot(uint8_t node) {
 	csp_transaction(CSP_PRIO_NORM, node, CSP_REBOOT, 0, &magic_word, sizeof(magic_word), NULL, 0);
 }
 
-void csp_ps(uint8_t node, int timeout) {
+void csp_ps(uint8_t node, unsigned int timeout) {
+
+	/* Open connection */
+	csp_conn_t * conn = csp_connect(CSP_UDP, CSP_PRIO_NORM, node, CSP_PS, 0);
+	if (conn == NULL)
+		return;
 
 	/* Prepare data */
 	csp_packet_t * packet;
@@ -120,8 +133,6 @@ void csp_ps(uint8_t node, int timeout) {
 	packet->data[0] = 0x55;
 	packet->length = 1;
 
-	/* Open connection */
-	csp_conn_t * conn = csp_connect(CSP_PRIO_NORM, node, CSP_PS);
 	printf("PS node %u: ", node);
 
 	/* Try to send frame */
@@ -147,7 +158,7 @@ out:
 
 }
 
-void csp_memfree(uint8_t node, int timeout) {
+void csp_memfree(uint8_t node, unsigned int timeout) {
 
 	uint32_t memfree;
 
@@ -164,7 +175,7 @@ void csp_memfree(uint8_t node, int timeout) {
 
 }
 
-void csp_buf_free(uint8_t node, int timeout) {
+void csp_buf_free(uint8_t node, unsigned int timeout) {
 
 	uint32_t size = 0;
 

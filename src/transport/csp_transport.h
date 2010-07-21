@@ -1,7 +1,7 @@
 /*
 Cubesat Space Protocol - A small network-layer protocol designed for Cubesats
 Copyright (C) 2010 GomSpace ApS (gomspace.com)
-Copyright (C) 2010 AAUSAT3 Project (aausat3.space.aau.dk) 
+Copyright (C) 2010 AAUSAT3 Project (aausat3.space.aau.dk)
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -18,24 +18,29 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/* CSP includes */
-#include <csp/csp.h>
-#include <csp/csp_platform.h>
-#include <csp/csp_interface.h>
+/**
+ * csp_transport.h
+ *
+ * @date: 24/06/2010
+ * @author: Johan Christiansen
+ *
+ * This file must declare all transport layer functions used by CSP.
+ *
+ */
 
-#include "arch/csp_semaphore.h"
-#include "arch/csp_queue.h"
+#ifndef CSP_TRANSPORT_H_
+#define CSP_TRANSPORT_H_
 
-#include "csp_route.h"
+/** ARRIVING SEGMENT */
+void csp_udp_new_packet(csp_conn_t * conn, csp_packet_t * packet);
+void csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet);
 
-int csp_lo_tx(csp_id_t idout, csp_packet_t * packet, unsigned int timeout) {
+/** RDP: USER REQUESTS */
+int csp_rdp_connect_active(csp_conn_t * conn, unsigned int timeout);
+int csp_rdp_allocate(csp_conn_t * conn);
+void csp_rdp_close(csp_conn_t * conn);
+void csp_rdp_conn_print(csp_conn_t * conn);
+int csp_rdp_send(csp_conn_t * conn, csp_packet_t * packet, unsigned int timeout);
+void csp_rdp_check_timeouts(csp_conn_t * conn);
 
-	/* Store outgoing id */
-	packet->id.ext = idout.ext;
-
-	/* Send back into CSP, notice calling from task so last argument must be NULL! */
-	csp_new_packet(packet, csp_lo_tx, NULL);
-
-	return 1;
-
-}
+#endif /* CSP_TRANSPORT_H_ */

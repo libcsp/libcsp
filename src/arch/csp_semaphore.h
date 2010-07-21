@@ -55,6 +55,7 @@ typedef xSemaphoreHandle csp_bin_sem_handle_t;
 #endif // _CSP_FREERTOS_
 
 int csp_bin_sem_create(csp_bin_sem_handle_t * sem);
+int csp_bin_sem_remove(csp_bin_sem_handle_t * sem);
 int csp_bin_sem_wait(csp_bin_sem_handle_t * sem, int timeout);
 int csp_bin_sem_post(csp_bin_sem_handle_t * sem);
 int csp_bin_sem_post_isr(csp_bin_sem_handle_t * sem, CSP_BASE_TYPE * task_woken);

@@ -49,6 +49,7 @@ typedef struct pthread_queue_s {
 } pthread_queue_t;
 
 pthread_queue_t * pthread_queue_create(int length, size_t item_size);
+void pthread_queue_delete(pthread_queue_t * q);
 int pthread_queue_enqueue(pthread_queue_t * queue, void * value, int timeout);
 int pthread_queue_dequeue(pthread_queue_t * queue, void * buf, int timeout);
 int pthread_queue_items(pthread_queue_t * queue);

@@ -37,9 +37,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "csp_conn.h"
 #include "csp_route.h"
 #include "csp_if_lo.h"
+#include "transport/csp_transport.h"
 
 /** Static local variables */
 unsigned char my_address;
+
+#if CSP_USE_PROMISC
+extern csp_queue_handle_t csp_promisc_queue;
+#endif
 
 /** csp_init
  * Start up the can-space protocol
@@ -78,7 +83,7 @@ csp_socket_t * csp_socket(void) {
  * @param timeout use portMAX_DELAY for infinite timeout
  * @return Return pointer to csp_conn_t or NULL if timeout was reached
  */
-csp_conn_t * csp_accept(csp_socket_t * sock, int timeout) {
+csp_conn_t * csp_accept(csp_socket_t * sock, unsigned int timeout) {
 
     if (sock == NULL)
         return NULL;
@@ -98,15 +103,15 @@ csp_conn_t * csp_accept(csp_socket_t * sock, int timeout) {
  * Read data from a connection
  * This fuction uses the RX queue of a connection to receive a packet
  * If no packet is available and a timeout has been specified
- * The call will blovk.
+ * The call will block.
  * Do NOT call this from ISR
  * @param conn pointer to connection
- * @param timeout timeout in ticks, use portMAX_DELAY for infinite blocking time
+ * @param timeout timeout in ms, use CSP_MAX_DELAY for infinite blocking time
  * @return Returns pointer to csp_packet_t, which you MUST free yourself, either by calling csp_buffer_free() or reusing the buffer for a new csp_send.
  */
-csp_packet_t * csp_read(csp_conn_t * conn, int timeout) {
+csp_packet_t * csp_read(csp_conn_t * conn, unsigned int timeout) {
 
-	if (conn == NULL)
+	if ((conn == NULL) || (conn->state != CONN_OPEN))
 		return NULL;
 
 	csp_packet_t * packet = NULL;
@@ -124,21 +129,29 @@ csp_packet_t * csp_read(csp_conn_t * conn, int timeout) {
  * @param timeout a timeout to wait for TX to complete. NOTE: not all underlying drivers supports flow-control.
  * @return returns 1 if successful and 0 otherwise. you MUST free the frame yourself if the transmission was not successful.
  */
-int csp_send_direct(csp_id_t idout, csp_packet_t * packet, int timeout) {
+int csp_send_direct(csp_id_t idout, csp_packet_t * packet, unsigned int timeout) {
 
 	if (packet == NULL) {
-		csp_debug("Invalid call to csp_send_direct\r\n");
+		csp_debug(CSP_ERROR, "Invalid call to csp_send_direct\r\n");
 		return 0;
 	}
 
 	csp_iface_t * ifout = csp_route_if(idout.dst);
 
 	if ((ifout == NULL) || (*ifout->nexthop == NULL)) {
-		csp_debug("No route to host: %#08x\r\n", idout.ext);
+		csp_debug(CSP_ERROR, "No route to host: %#08x\r\n", idout.ext);
 		return 0;
 	}
 
-	csp_debug("Sending packet from %u to %u port %u via interface %s\r\n", idout.src, idout.dst, idout.dport, ifout->name);
+	csp_debug(CSP_PACKET, "Sending packet from %u to %u port %u via interface %s\r\n", idout.src, idout.dst, idout.dport, ifout->name);
+	
+#if CSP_USE_PROMISC
+    /* Loopback traffic is added to promisc queue by the router */
+    if (idout.dst != my_address) {
+        packet->id.ext = idout.ext;
+        csp_promisc_add(packet, csp_promisc_queue);
+    }
+#endif
 
 	return (*ifout->nexthop)(idout, packet, timeout);
 
@@ -151,12 +164,24 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, int timeout) {
  * @param timeout a timeout to wait for TX to complete. NOTE: not all underlying drivers supports flow-control.
  * @return returns 1 if successful and 0 otherwise. you MUST free the frame yourself if the transmission was not successful.
  */
-int csp_send(csp_conn_t* conn, csp_packet_t * packet, int timeout) {
+int csp_send(csp_conn_t* conn, csp_packet_t * packet, unsigned int timeout) {
 
-	if (conn == NULL) {
-		csp_debug("Invalid call to csp_send\r\n");
+	if ((conn == NULL) || (packet == NULL) || (conn->state != CONN_OPEN)) {
+		csp_debug(CSP_ERROR, "Invalid call to csp_send\r\n");
 		return 0;
 	}
+
+	int result = 1;
+#if CSP_USE_RDP
+	switch(conn->idout.protocol) {
+	case CSP_RDP:
+		result = csp_rdp_send(conn, packet, timeout);
+		break;
+	}
+#endif
+
+	if (result == 0)
+		return 0;
 
 	return csp_send_direct(conn->idout, packet, timeout);
 
@@ -173,7 +198,7 @@ int csp_send(csp_conn_t* conn, csp_packet_t * packet, int timeout) {
  * @param inlen length of expected reply, -1 for unknown size (note inbuf MUST be large enough)
  * @return
  */
-int csp_transaction_persistent(csp_conn_t * conn, int timeout, void * outbuf, int outlen, void * inbuf, int inlen) {
+int csp_transaction_persistent(csp_conn_t * conn, unsigned int timeout, void * outbuf, int outlen, void * inbuf, int inlen) {
 
 	/* Stupid way to implement max() but more portable than macros */
 	int size = outlen;
@@ -189,9 +214,8 @@ int csp_transaction_persistent(csp_conn_t * conn, int timeout, void * outbuf, in
 		memcpy(packet->data, outbuf, outlen);
 	packet->length = outlen;
 
-	if (!csp_send(conn, packet, 0)) {
+	if (!csp_send(conn, packet, timeout)) {
 		printf("Send failed\r\n");
-		csp_buffer_free(packet);
 		return 0;
 	}
 
@@ -202,6 +226,7 @@ int csp_transaction_persistent(csp_conn_t * conn, int timeout, void * outbuf, in
 	packet = csp_read(conn, timeout);
 	if (packet == NULL) {
 		printf("Read failed\r\n");
+		csp_buffer_free(packet);
 		return 0;
 	}
 
@@ -233,9 +258,9 @@ int csp_transaction_persistent(csp_conn_t * conn, int timeout, void * outbuf, in
  * @param inlen length of expected reply, -1 for unknown size (note inbuf MUST be large enough)
  * @return Return 1 or reply size if successful, 0 if error or incoming length does not match or -1 if timeout was reached
  */
-int csp_transaction(uint8_t prio, uint8_t dest, uint8_t port, int timeout, void * outbuf, int outlen, void * inbuf, int inlen) {
+int csp_transaction(uint8_t prio, uint8_t dest, uint8_t port, unsigned int timeout, void * outbuf, int outlen, void * inbuf, int inlen) {
 
-	csp_conn_t * conn = csp_connect(prio, dest, port);
+	csp_conn_t * conn = csp_connect(CSP_UDP, prio, dest, port, 0);
 	if (conn == NULL)
 		return 0;
 

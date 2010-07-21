@@ -31,6 +31,10 @@ csp_queue_handle_t csp_queue_create(int length, size_t item_size) {
     return pthread_queue_create(length, item_size);
 }
 
+void csp_queue_remove(csp_queue_handle_t queue) {
+	return pthread_queue_delete(queue);
+}
+
 int csp_queue_enqueue(csp_queue_handle_t handle, void *value, int timeout) {
     return pthread_queue_enqueue(handle, value, timeout);
 }

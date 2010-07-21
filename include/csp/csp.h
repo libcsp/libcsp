@@ -33,41 +33,64 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  * RESERVED PORTS (SERVICES)
  */
 
-#define CSP_ANY             16
-#define CSP_PING            1
-#define CSP_PS              2
-#define CSP_MEMFREE         3
-#define CSP_REBOOT          4
-#define CSP_BUF_FREE        5
+enum csp_reserved_ports_e {
+	CSP_PING            = 1,
+	CSP_PS              = 2,
+	CSP_MEMFREE         = 3,
+	CSP_REBOOT          = 4,
+	CSP_BUF_FREE        = 5,
+	CSP_ANY             = 16,
+	CSP_PROMISC         = 17
+};
 
 /**
  * PRIORITIES
  */
 
-#define CSP_PRIO_CRITICAL   0
-#define CSP_PRIO_ALERT      1
-#define CSP_PRIO_HIGH       2
-#define CSP_PRIO_RESERVED   3
-#define CSP_PRIO_NORM       4
-#define CSP_PRIO_LOW        5
-#define CSP_PRIO_BULK       6
-#define CSP_PRIO_DEBUG      7
+typedef enum csp_prio_e {
+	CSP_PRIO_CRITICAL	= 0,
+	CSP_PRIO_ALERT		= 1,
+	CSP_PRIO_HIGH       = 2,
+	CSP_PRIO_RESERVED   = 3,
+	CSP_PRIO_NORM       = 4,
+	CSP_PRIO_LOW        = 5,
+	CSP_PRIO_BULK       = 6,
+	CSP_PRIO_DEBUG      = 7
+} csp_prio_t;
+
+/**
+ * CSP Protocol Types
+ */
+
+typedef enum csp_protocol_e {
+	CSP_UDP = 0,
+	CSP_RDP = 1,
+	CSP_CTP = 2
+} csp_protocol_t;
 
 /**
  * CSP FRAME TYPES
  */
 
-#define CSP_RESERVED1       0
-#define CSP_RESERVED2       1
-#define CSP_BEGIN           2
-#define CSP_ACK             3
-#define CSP_ERROR           4
-#define CSP_MORE            5
-#define CSP_RESERVED3       6
-#define CSP_RESERVED4       7
+enum csp_frame_e {
+    CSP_RESERVED1 = 0,
+    CSP_RESERVED2 = 1,
+    CSP_BEGIN     = 2,
+    CSP_ACK       = 3,
+    CSP_PERROR    = 4,
+    CSP_MORE      = 5,
+    CSP_RESERVED3 = 6,
+    CSP_RESERVED4 = 7
+};
 
-/** @brief The address of the node */
+/** The address of the node */
 extern uint8_t my_address;
+
+/** Broadcast address */
+#define CSP_BROADCAST_ADDR	15
+
+/** Default routing address */
+#define CSP_DEFAULT_ROUTE   16
 
 /** Identifier field masks */
 #define CSP_ID_PRIO_MASK    ((uint32_t)0x07 << 26)
@@ -95,7 +118,7 @@ typedef union {
 
 #if defined(_CSP_BIG_ENDIAN_) && !defined(_CSP_LITTLE_ENDIAN_)
 
-    unsigned int res : 3;
+    unsigned int protocol : 3;
     unsigned int pri : 3;
     unsigned int src : 4;
     unsigned int dst : 4;
@@ -113,7 +136,7 @@ typedef union {
     unsigned int dst : 4;
     unsigned int src : 4;
     unsigned int pri : 3;
-    unsigned int res : 3;
+    unsigned int protocol : 3;
 
 #else
 
@@ -134,7 +157,7 @@ typedef struct __attribute__((__packed__)) {
     uint8_t padding[44];       // Interface dependent padding
     uint16_t length;            // Length field must be just before CSP ID
     csp_id_t id;                // CSP id must be just before data
-    uint8_t data[];				// This just points to the rest of the buffer, without a size indication.
+    uint8_t data[0];				// This just points to the rest of the buffer, without a size indication.
 } csp_packet_t;
 
 /**
@@ -146,42 +169,44 @@ typedef struct __attribute__((__packed__)) {
 
 typedef struct csp_socket_s csp_socket_t;
 typedef struct csp_conn_s csp_conn_t;
+typedef struct csp_l4data_s csp_l4data_t;
 
 /* Implemented in csp_io.c */
 void csp_init(uint8_t my_node_address);
 csp_socket_t * csp_socket();
-csp_conn_t * csp_accept(csp_socket_t * socket, int timeout);
-csp_packet_t * csp_read(csp_conn_t * conn, int timeout);
-int csp_send(csp_conn_t * conn, csp_packet_t * packet, int timeout);
-int csp_transaction(uint8_t prio, uint8_t dest, uint8_t port, int timeout, void * outbuf, int outlen, void * inbuf, int inlen);
-int csp_transaction_persistent(csp_conn_t * conn, int timeout, void * outbuf, int outlen, void * inbuf, int inlen);
+csp_conn_t * csp_accept(csp_socket_t * socket, unsigned int timeout);
+csp_packet_t * csp_read(csp_conn_t * conn, unsigned int timeout);
+int csp_send(csp_conn_t * conn, csp_packet_t * packet, unsigned int timeout);
+int csp_transaction(uint8_t prio, uint8_t dest, uint8_t port, unsigned int timeout, void * outbuf, int outlen, void * inbuf, int inlen);
+int csp_transaction_persistent(csp_conn_t * conn, unsigned int timeout, void * outbuf, int outlen, void * inbuf, int inlen);
 
 /* Implemented in csp_conn.c */
-csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t port);
+csp_conn_t * csp_connect(csp_protocol_t protocol, uint8_t prio, uint8_t dest, uint8_t port, unsigned int timeout);
 void csp_close(csp_conn_t * conn);
 int csp_conn_dport(csp_conn_t * conn);
 int csp_conn_sport(csp_conn_t * conn);
 int csp_conn_dst(csp_conn_t * conn);
 int csp_conn_src(csp_conn_t * conn);
+int csp_conn_protocol(csp_conn_t * conn);
 
 /* Implemented in csp_port.c */
 int csp_listen(csp_socket_t * socket, size_t conn_queue_length);
-int csp_bind_callback(void (*callback) (csp_conn_t*), uint8_t port);
 int csp_bind(csp_socket_t * socket, uint8_t port);
 
 /* Implemented in csp_route.c */
 typedef int (*nexthop_t)(csp_id_t idout, csp_packet_t * packet, unsigned int timeout);
 void csp_route_set(const char * name, uint8_t node, nexthop_t nexthop);
-void csp_new_packet(csp_packet_t * packet, nexthop_t interface, CSP_BASE_TYPE * pxTaskWoken);
-void csp_route_start_task(unsigned int task_stack_size);
+void csp_route_start_task(unsigned int task_stack_size, unsigned int priority);
+int csp_promisc_enable(unsigned int buf_size);
+csp_packet_t * csp_promisc_read(unsigned int timeout);
 
 /* Implemented in csp_services.c */
 void csp_service_handler(csp_conn_t * conn, csp_packet_t * packet);
-void csp_ping(uint8_t node, int timeout);
+void csp_ping(uint8_t node, unsigned int timeout);
 void csp_ping_noreply(uint8_t node);
-void csp_ps(uint8_t node, int timeout);
-void csp_memfree(uint8_t node, int timeout);
-void csp_buf_free(uint8_t node, int timeout);
+void csp_ps(uint8_t node, unsigned int timeout);
+void csp_memfree(uint8_t node, unsigned int timeout);
+void csp_buf_free(uint8_t node, unsigned int timeout);
 void csp_reboot(uint8_t node);
 
 /**
@@ -205,6 +230,7 @@ int csp_buffer_init(int count, int size);
  * @return NULL if size is larger than buffer-block-sizse, pointer otherwise.
  */
 void * csp_buffer_get(size_t size);
+void * csp_buffer_get_isr(size_t buf_size);
 
 /**
  * Free a buffer after use. This call is both interrupt and thread safe.
@@ -221,6 +247,30 @@ void csp_buffer_free(void * packet);
 int csp_buffer_remaining(void);
 
 /* CSP debug printf - implemented in arch/x/csp_debug.c */
-void csp_debug(const char * format, ...);
+typedef enum csp_debug_level_e {
+	CSP_INFO     = 0,
+	CSP_ERROR    = 1,
+	CSP_WARN     = 2,
+	CSP_BUFFER   = 3,
+	CSP_PACKET   = 4,
+	CSP_PROTOCOL = 5,
+	CSP_LOCK     = 6,
+} csp_debug_level_t;
+
+#if CSP_DEBUG
+void csp_debug(csp_debug_level_t level, const char * format, ...);
+void csp_debug_toggle_level(csp_debug_level_t level);
+void csp_route_print_table(void);
+void csp_conn_print_table(void);
+void csp_buffer_print_table(void);
+#else
+#define csp_debug(...)
+#define csp_debug_toggle_level(...)
+#define csp_route_print(...);
+#define csp_conn_print_table(...);
+#define csp_buffer_print_table(...);
+#endif
+
+
 
 #endif // _CSP_H_

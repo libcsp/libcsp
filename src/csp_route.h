@@ -33,13 +33,13 @@ typedef struct {
     int count;
 } csp_iface_t;
 
-extern csp_iface_t iface[];
-
 void csp_route_table_init(void);
 csp_iface_t * csp_route_if(uint8_t id);
 csp_conn_t * csp_route(csp_id_t id, nexthop_t interface, CSP_BASE_TYPE * pxTaskWoken);
-
-/* @todo Add csp_start_router call */
 csp_thread_return_t vTaskCSPRouter(void * pvParameters);
+
+#if CSP_USE_PROMISC
+void csp_promisc_add(csp_packet_t * packet, csp_queue_handle_t queue);
+#endif
 
 #endif // _CSP_ROUTE_H_

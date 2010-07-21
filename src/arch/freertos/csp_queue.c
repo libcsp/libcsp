@@ -33,6 +33,10 @@ csp_queue_handle_t csp_queue_create(int length, size_t item_size) {
     return xQueueCreate(length, item_size);
 }
 
+void csp_queue_remove(csp_queue_handle_t queue) {
+	vQueueDelete(queue);
+}
+
 int csp_queue_enqueue(csp_queue_handle_t handle, void * value, int timeout) {
     return xQueueSendToBack(handle, value, timeout / portTICK_RATE_MS);
 }

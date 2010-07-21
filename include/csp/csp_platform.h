@@ -48,8 +48,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
     #include <freertos/FreeRTOS.h>
     #define CSP_BASE_TYPE portBASE_TYPE
     #define CSP_MAX_DELAY (portMAX_DELAY * portTICK_RATE_MS)
-	#define CSP_ENTER_CRITICAL()// portENTER_CRITICAL() @todo: These are not safe om ARM
-	#define CSP_EXIT_CRITICAL()// portEXIT_CRITICAL() @todo: These are not safe on ARM
+	#define CSP_ENTER_CRITICAL() portENTER_CRITICAL()
+	#define CSP_EXIT_CRITICAL() portEXIT_CRITICAL()
 #else
     #error "Unknown architecture"
 #endif

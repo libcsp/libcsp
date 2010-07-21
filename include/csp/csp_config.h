@@ -45,9 +45,16 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #else
 
 /* General config */
-#define CSP_DEBUG           0       // Enable/disable debugging output
+#define CSP_DEBUG           1       // Enable/disable debugging output
 #define CONN_MAX			10      // Number of statically allocated connection structs
 #define CONN_QUEUE_LENGTH	100		// Number of packets potentially in queue for a connection
+#define CSP_FIFO_INPUT		100		// Number of packets to be queued at the input of the router
+
+/* Transport layer config */
+#define CSP_USE_RDP			1
+
+/* Router config */
+#define CSP_USE_PROMISC		1
 
 /* Buffer config */
 #define CSP_BUFFER_CALLOC	0		// Set to 1 to clear buffer at allocation
