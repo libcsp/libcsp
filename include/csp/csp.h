@@ -86,28 +86,38 @@ enum csp_frame_e {
 /** The address of the node */
 extern uint8_t my_address;
 
-/** Broadcast address */
-#define CSP_BROADCAST_ADDR	15
+/** Size of bit-fields in CSP header */
+#define CSP_ID_PROTOCOL_SIZE	3
+#define CSP_ID_PRIO_SIZE		3
+#define CSP_ID_HOST_SIZE		4
+#define CSP_ID_PORT_SIZE		5
+#define CSP_ID_PHYS_SIZE		8
 
-/** Default routing address */
-#define CSP_DEFAULT_ROUTE   16
+/** Highest number to be entered in field */
+#define CSP_ID_PROTOCOL_MAX		((1 << (CSP_ID_PROTOCOL_SIZE+1))-1)
+#define CSP_ID_PRIO_MAX			((1 << (CSP_ID_PRIO_SIZE+1))-1)
+#define CSP_ID_HOST_MAX			((1 << (CSP_ID_HOST_SIZE+1))-1)
+#define CSP_ID_PORT_MAX			((1 << (CSP_ID_PORT_SIZE+1))-1)
+#define CSP_ID_PHYS_MAX			((1 << (CSP_ID_PHYS_SIZE+1))-1)
 
 /** Identifier field masks */
-#define CSP_ID_PRIO_MASK    ((uint32_t)0x07 << 26)
-#define CSP_ID_SRC_MASK     ((uint32_t)0x0F << 22)
-#define CSP_ID_DST_MASK     ((uint32_t)0x0F << 18)
-#define CSP_ID_DPORT_MASK   ((uint32_t)0x1F << 13)
-#define CSP_ID_SPORT_MASK   ((uint32_t)0x1F << 8)
-#define CSP_ID_TYPE_MASK    ((uint32_t)0x07 << 5)
-#define CSP_ID_SEQ_MASK     ((uint32_t)0x1F << 0)
-#define CSP_ID_MASK         (CSP_ID_PRIO_MASK  | \
+#define CSP_ID_PROTOCOL_MASK	((uint32_t) CSP_ID_PROTOCOL_MAX 	<< (CSP_ID_PHYS_SIZE + 2 * CSP_ID_PORT_SIZE + 2 * CSP_ID_HOST_SIZE + CSP_ID_PROTOCOL_SIZE))
+#define CSP_ID_PRIO_MASK    	((uint32_t) CSP_ID_PRIO_MAX 		<< (CSP_ID_PHYS_SIZE + 2 * CSP_ID_PORT_SIZE + 2 * CSP_ID_HOST_SIZE))
+#define CSP_ID_SRC_MASK     	((uint32_t) CSP_ID_HOST_MAX 		<< (CSP_ID_PHYS_SIZE + 2 * CSP_ID_PORT_SIZE + 1 * CSP_ID_HOST_SIZE))
+#define CSP_ID_DST_MASK     	((uint32_t) CSP_ID_HOST_MAX 		<< (CSP_ID_PHYS_SIZE + 2 * CSP_ID_PORT_SIZE))
+#define CSP_ID_DPORT_MASK   	((uint32_t) CSP_ID_PORT_MAX 		<< (CSP_ID_PHYS_SIZE + 1 * CSP_ID_PORT_SIZE))
+#define CSP_ID_SPORT_MASK   	((uint32_t) CSP_ID_PORT_MAX 		<< (CSP_ID_PHYS_SIZE))
+#define CSP_ID_PHYS_MASK    	((uint32_t) CSP_ID_PHYS_MAX 		<< (0))
+
+#define CSP_ID_CONN_MASK		(CSP_ID_SRC_MASK | CSP_ID_DST_MASK | CSP_ID_DPORT_MASK | CSP_ID_SPORT_MASK)
+
+/** Todo: Jeppe remove this bastard */
+#define CSP_CAN_ID_MASK         (CSP_ID_PRIO_MASK  | \
                              CSP_ID_SRC_MASK   | \
                              CSP_ID_DST_MASK   | \
                              CSP_ID_DPORT_MASK | \
                              CSP_ID_SPORT_MASK | \
-                             CSP_ID_TYPE_MASK  | \
-                             CSP_ID_SEQ_MASK)
-#define CSP_ID_CONN_MASK    (CSP_ID_SRC_MASK | CSP_ID_DST_MASK | CSP_ID_DPORT_MASK | CSP_ID_SPORT_MASK)
+                             CSP_ID_PHYS_MASK)
 
 /** @brief This union defines a CSP identifier and allows to access it in mode standard, extended or through a table. */
 typedef union {
@@ -118,25 +128,23 @@ typedef union {
 
 #if defined(_CSP_BIG_ENDIAN_) && !defined(_CSP_LITTLE_ENDIAN_)
 
-    unsigned int protocol : 3;
-    unsigned int pri : 3;
-    unsigned int src : 4;
-    unsigned int dst : 4;
-    unsigned int dport : 5;
-    unsigned int sport : 5;
-    unsigned int type : 3;
-    unsigned int seq : 5;
+    unsigned int protocol	: CSP_ID_PROTOCOL_SIZE;
+    unsigned int pri		: CSP_ID_PRIO_SIZE;
+    unsigned int src		: CSP_ID_HOST_SIZE;
+    unsigned int dst		: CSP_ID_HOST_SIZE;
+    unsigned int dport		: CSP_ID_PORT_SIZE;
+    unsigned int sport		: CSP_ID_PORT_SIZE;
+    unsigned int phys		: CSP_ID_PHYS_SIZE;
 
 #elif defined(_CSP_LITTLE_ENDIAN_) && !defined(_CSP_BIG_ENDIAN_)
 
-    unsigned int seq : 5;
-    unsigned int type : 3;
-    unsigned int sport : 5;
-    unsigned int dport : 5;
-    unsigned int dst : 4;
-    unsigned int src : 4;
-    unsigned int pri : 3;
-    unsigned int protocol : 3;
+    unsigned int phys		: CSP_ID_PHYS_SIZE;
+    unsigned int sport		: CSP_ID_PORT_SIZE;
+    unsigned int dport		: CSP_ID_PORT_SIZE;
+    unsigned int dst		: CSP_ID_HOST_SIZE;
+    unsigned int src		: CSP_ID_HOST_SIZE;
+    unsigned int pri		: CSP_ID_PRIO_SIZE;
+    unsigned int protocol	: CSP_ID_PROTOCOL_SIZE;
 
 #else
 
@@ -146,6 +154,12 @@ typedef union {
 
   };
 } csp_id_t;
+
+/** Broadcast address */
+#define CSP_BROADCAST_ADDR	CSP_ID_HOST_MAX
+
+/** Default routing address */
+#define CSP_DEFAULT_ROUTE	(CSP_ID_HOST_MAX + 1)
 
 /**
  * CSP PACKET STRUCTURE

@@ -45,10 +45,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #else
 
 /* General config */
-#define CSP_DEBUG           1       // Enable/disable debugging output
-#define CONN_MAX			10      // Number of statically allocated connection structs
-#define CONN_QUEUE_LENGTH	100		// Number of packets potentially in queue for a connection
-#define CSP_FIFO_INPUT		100		// Number of packets to be queued at the input of the router
+#define CSP_DEBUG           	1       // Enable/disable debugging output
+#define CSP_CONN_MAX			10  	// Number of statically allocated connection structs
+#define CSP_CONN_QUEUE_LENGTH	100		// Number of packets potentially in queue for a connection
+#define CSP_FIFO_INPUT			100		// Number of packets to be queued at the input of the router
+#define CSP_MAX_BIND_PORT		15		// Highest incoming port number to bind to (must be below (2^CSP_ID_PORT_SIZE)-1)
 
 /* Transport layer config */
 #define CSP_USE_RDP			1
