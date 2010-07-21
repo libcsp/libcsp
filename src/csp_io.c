@@ -25,6 +25,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 /* CSP includes */
 #include <csp/csp.h>
+#include <csp/interfaces/csp_if_lo.h>
 
 #include "arch/csp_thread.h"
 #include "arch/csp_queue.h"
@@ -36,7 +37,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "csp_port.h"
 #include "csp_conn.h"
 #include "csp_route.h"
-#include "csp_if_lo.h"
 #include "transport/csp_transport.h"
 
 /** Static local variables */
