@@ -147,7 +147,11 @@ typedef struct __attribute__((__packed__)) {
     uint8_t padding[44];       // Interface dependent padding
     uint16_t length;            // Length field must be just before CSP ID
     csp_id_t id;                // CSP id must be just before data
-    uint8_t data[0];				// This just points to the rest of the buffer, without a size indication.
+    union {
+    	uint8_t data[0];		// This just points to the rest of the buffer, without a size indication.
+    	uint16_t data16[0];		// The data 16 and 32 types makes it easy to reference an integer (properly aligned)
+    	uint32_t data32[0];		// - without the compiler warning about strict aliasing rules.
+    };
 } csp_packet_t;
 
 /**
@@ -198,6 +202,9 @@ void csp_ps(uint8_t node, unsigned int timeout);
 void csp_memfree(uint8_t node, unsigned int timeout);
 void csp_buf_free(uint8_t node, unsigned int timeout);
 void csp_reboot(uint8_t node);
+
+/* Implemented in csp_rdp.c */
+void csp_rdp_set_opt(unsigned int window_size, unsigned int conn_timeout_ms, unsigned int packet_timeout_ms);
 
 /**
  * Start the buffer handling system
