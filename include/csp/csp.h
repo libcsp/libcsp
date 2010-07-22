@@ -64,24 +64,8 @@ typedef enum csp_prio_e {
 
 typedef enum csp_protocol_e {
 	CSP_UDP = 0,
-	CSP_RDP = 1,
-	CSP_CTP = 2
+	CSP_RDP = 1
 } csp_protocol_t;
-
-/**
- * CSP FRAME TYPES
- */
-
-enum csp_frame_e {
-    CSP_RESERVED1 = 0,
-    CSP_RESERVED2 = 1,
-    CSP_BEGIN     = 2,
-    CSP_ACK       = 3,
-    CSP_PERROR    = 4,
-    CSP_MORE      = 5,
-    CSP_RESERVED3 = 6,
-    CSP_RESERVED4 = 7
-};
 
 /** The address of the node */
 extern uint8_t my_address;
@@ -110,14 +94,6 @@ extern uint8_t my_address;
 #define CSP_ID_PHYS_MASK    	((uint32_t) CSP_ID_PHYS_MAX 		<< (0))
 
 #define CSP_ID_CONN_MASK		(CSP_ID_SRC_MASK | CSP_ID_DST_MASK | CSP_ID_DPORT_MASK | CSP_ID_SPORT_MASK)
-
-/** Todo: Jeppe remove this bastard */
-#define CSP_CAN_ID_MASK         (CSP_ID_PRIO_MASK  | \
-                             CSP_ID_SRC_MASK   | \
-                             CSP_ID_DST_MASK   | \
-                             CSP_ID_DPORT_MASK | \
-                             CSP_ID_SPORT_MASK | \
-                             CSP_ID_PHYS_MASK)
 
 /** @brief This union defines a CSP identifier and allows to access it in mode standard, extended or through a table. */
 typedef union {
