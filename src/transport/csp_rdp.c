@@ -200,7 +200,7 @@ static int csp_rdp_send_cmp(csp_conn_t * conn, csp_packet_t * packet, int ack, i
  * EXTENDED ACKNOWLEDGEMENTS
  * The following function sends an extended ack packet
  */
-static void csp_rdp_send_eack(csp_conn_t * conn) {
+static int csp_rdp_send_eack(csp_conn_t * conn) {
 
 	/* Allocate message */
 	csp_packet_t * packet = csp_buffer_get(100);
@@ -218,7 +218,7 @@ static void csp_rdp_send_eack(csp_conn_t * conn) {
 		csp_debug(CSP_PROTOCOL, "Added EACK nr %u\r\n", conn->l4data->rcvdseqno[i]);
 	}
 
-	csp_rdp_send_cmp(conn, packet, 1, 0, 0, 1, conn->l4data->snd_nxt, conn->l4data->rcv_cur, 0);
+	return csp_rdp_send_cmp(conn, packet, 1, 0, 0, 1, conn->l4data->snd_nxt, conn->l4data->rcv_cur, 0);
 
 }
 
