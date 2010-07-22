@@ -39,13 +39,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "csp_io.h"
 #include "transport/csp_transport.h"
 
-#if defined(_CSP_POSIX_)
-#include <unistd.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <time.h>
-#endif
-
 /* Static allocation of interfaces */
 csp_iface_t iface[CSP_ID_HOST_MAX + 2];
 
@@ -54,6 +47,8 @@ csp_queue_handle_t csp_promisc_queue = NULL;
 #endif
 
 csp_thread_handle_t handle_router;
+
+extern int csp_route_input_hook(void) __attribute__((weak));
 
 /** Routing input Queue
  * This queue is used each time a packet is received from an IF.
@@ -108,26 +103,13 @@ csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 			continue;
 		}
 
-#if 0
-#if defined(_CSP_POSIX_)
+		packet = input.packet;
 
-		/* random pause */
-		struct timespec ts;
-		clock_gettime(CLOCK_MONOTONIC, &ts);
-		srand(ts.tv_nsec);
-		usleep(rand() % 1000);
-
-		if (rand() % 1000 > 400) {
-			csp_debug(CSP_WARN, "Dropping packet, MUAHAHA\r\n");
-			csp_buffer_free(input.packet);
+		/* Here is last chance to drop packet, call user hook */
+		if ((csp_route_input_hook) && (csp_route_input_hook() == 0)) {
+			csp_buffer_free(packet);
 			continue;
 		}
-#elif defined(_CSP_FREERTOS_)
-		vTaskDelay(10);
-#endif
-#endif
-
-		packet = input.packet;
 
 		csp_debug(CSP_PACKET, "Router input: P 0x%02X, S 0x%02X, D 0x%02X, Dp 0x%02X, Sp 0x%02X\r\n",
 				packet->id.pri, packet->id.src, packet->id.dst, packet->id.dport,
