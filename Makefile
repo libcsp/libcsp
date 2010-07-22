@@ -51,7 +51,6 @@ INCLUDES += -I../libfreertos/include/
 ## Objects that must be built in order to archive
 SOURCES += src/csp_buffer.c
 SOURCES += src/csp_conn.c
-SOURCES += src/csp_if_lo.c
 SOURCES += src/csp_io.c
 SOURCES += src/csp_route.c
 SOURCES += src/csp_port.c
@@ -64,6 +63,9 @@ SOURCES += src/arch/$(ARCH)/csp_queue.c
 SOURCES += src/arch/$(ARCH)/csp_semaphore.c
 SOURCES += src/arch/$(ARCH)/csp_time.c
 SOURCES += src/arch/$(ARCH)/csp_thread.c
+SOURCES += src/interfaces/csp_if_lo.c
+SOURCES += src/transport/csp_rdp.c
+SOURCES += src/transport/csp_udp.c
 
 ## POSIX archs requires pthread_queue
 ifeq ($(ARCH),posix)
