@@ -248,7 +248,7 @@ void csp_close(csp_conn_t * conn) {
  */
 csp_conn_t * csp_connect(csp_protocol_t protocol, uint8_t prio, uint8_t dest, uint8_t dport, unsigned int timeout) {
 
-	static uint8_t sport = CSP_ID_PORT_SIZE;
+	static uint8_t sport = CSP_MAX_BIND_PORT + 2;
     
 	/* Generate CAN identifier */
 	csp_id_t incoming_id, outgoing_id;
