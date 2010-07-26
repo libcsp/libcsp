@@ -562,7 +562,7 @@ void csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 	 * Run the connect passive sequence here.
 	 */
 	if (conn->l4data->state == RDP_CLOSED) {
-		conn->l4data->snd_iss = 2000;
+		conn->l4data->snd_iss = 20;
 		conn->l4data->snd_nxt = conn->l4data->snd_iss + 1;
 		conn->l4data->snd_una = conn->l4data->snd_iss;
 		conn->l4data->state = RDP_LISTEN;
@@ -792,7 +792,7 @@ retry:
 		return 0;
 	}
 
-	conn->l4data->snd_iss = 1000;
+	conn->l4data->snd_iss = 10;
 	conn->l4data->snd_nxt = conn->l4data->snd_iss + 1;
 	conn->l4data->snd_una = conn->l4data->snd_iss;
 
