@@ -46,9 +46,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #if CSP_USE_RDP
 
-static unsigned int csp_rdp_window_size = 3;
+static unsigned int csp_rdp_window_size = 10;
 static unsigned int csp_rdp_conn_timeout = 10000;
-static unsigned int csp_rdp_packet_timeout = 100;
+static unsigned int csp_rdp_packet_timeout = 1000;
 
 /* Used for queue calls */
 static CSP_BASE_TYPE pdTrue = 1;
@@ -92,8 +92,6 @@ typedef struct __attribute__((__packed__)) rdp_header_s {
 	uint8_t ack;
 	uint8_t eak;
 	uint8_t rst;
-	uint8_t nul;
-	uint8_t rdp_length;
 	uint16_t seq_nr;
 	uint16_t ack_nr;
 } rdp_header_t;
@@ -562,7 +560,7 @@ void csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 	 * Run the connect passive sequence here.
 	 */
 	if (conn->l4data->state == RDP_CLOSED) {
-		conn->l4data->snd_iss = 20;
+		conn->l4data->snd_iss = 200;
 		conn->l4data->snd_nxt = conn->l4data->snd_iss + 1;
 		conn->l4data->snd_una = conn->l4data->snd_iss;
 		conn->l4data->state = RDP_LISTEN;
@@ -792,7 +790,7 @@ retry:
 		return 0;
 	}
 
-	conn->l4data->snd_iss = 10;
+	conn->l4data->snd_iss = 100;
 	conn->l4data->snd_nxt = conn->l4data->snd_iss + 1;
 	conn->l4data->snd_una = conn->l4data->snd_iss;
 
