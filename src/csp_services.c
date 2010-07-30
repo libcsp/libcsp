@@ -39,8 +39,10 @@ void csp_ping(uint8_t node, unsigned int timeout) {
 
 	/* Open connection */
 	csp_conn_t * conn = csp_connect(CSP_RDP, CSP_PRIO_NORM, node, CSP_PING, timeout);
-	if (conn == NULL)
+	if (conn == NULL) {
+		printf("Timeout!\r\n");
 		return;
+	}
 
 	/* Prepare data */
 	csp_packet_t * packet;
@@ -61,7 +63,7 @@ void csp_ping(uint8_t node, unsigned int timeout) {
 	packet = csp_read(conn, timeout);
 
 	if (packet == NULL) {
-		printf(" Timeout!\r\n");
+		printf("Timeout!\r\n");
 		goto out;
 	}
 
@@ -69,9 +71,9 @@ void csp_ping(uint8_t node, unsigned int timeout) {
 	time = (csp_get_ms() - start);
 
 	if (time <= 1) {
-		printf(" Reply in <1 tick\r\n");
+		printf("Reply in <1 tick\r\n");
 	} else {
-		printf(" Reply in %u ms\r\n", (unsigned int) time);
+		printf("Reply in %u ms\r\n", (unsigned int) time);
 	}
 
 	/* Clean up */
