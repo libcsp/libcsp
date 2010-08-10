@@ -246,11 +246,12 @@ void csp_route_start_task(unsigned int task_stack_size, unsigned int priority) {
  * To set a value pass a callback function
  * To clear a value pass a NULL value
  */
-void csp_route_set(const char * name, uint8_t node, nexthop_t nexthop) {
+void csp_route_set(const char * name, uint8_t node, nexthop_t nexthop, uint8_t nexthop_mac_addr) {
 
 	if (node <= CSP_DEFAULT_ROUTE) {
 		iface[node].nexthop = nexthop;
 		iface[node].name = name;
+		iface[node].nexthop_mac_addr = nexthop_mac_addr;
 	} else {
 		csp_debug(CSP_ERROR, "Failed to set route: invalid nodeid %u\r\n", node);
 	}
@@ -323,15 +324,19 @@ void csp_new_packet(csp_packet_t * packet, nexthop_t interface, CSP_BASE_TYPE * 
 
 }
 
+uint8_t csp_route_get_nexthop_mac(uint8_t node) {
+	return iface[node].nexthop_mac_addr;
+}
+
 #if CSP_DEBUG
 void csp_route_print_table(void) {
 
 	int i;
 	for (i = 0; i < CSP_DEFAULT_ROUTE; i++)
 		if (iface[i].nexthop != NULL)
-			printf("\tNode: %u\t\tNexthop: %s\t\tCount: %u\r\n", i,
-					iface[i].name, iface[i].count);
-	printf("\tDefault\t\tNexthop: %s\t\tCount: %u\r\n", iface[CSP_DEFAULT_ROUTE].name, iface[CSP_DEFAULT_ROUTE].count);
+			printf("\tNode: %u\t\tNexthop: %s[%u]\t\tCount: %u\r\n", i,
+					iface[i].name, iface[i].nexthop_mac_addr, iface[i].count);
+	printf("\tDefault\t\tNexthop: %s [%u]\t\tCount: %u\r\n", iface[CSP_DEFAULT_ROUTE].name, iface[CSP_DEFAULT_ROUTE].nexthop_mac_addr, iface[CSP_DEFAULT_ROUTE].count);
 
 }
 #endif

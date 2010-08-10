@@ -59,7 +59,7 @@ void csp_init(unsigned char address) {
 	csp_route_table_init();
 
 	/* Register loopback route */
-	csp_route_set("LOOP", address, csp_lo_tx);
+	csp_route_set("LOOP", address, csp_lo_tx, CSP_NODE_MAC);
 
 }
 

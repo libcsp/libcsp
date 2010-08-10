@@ -30,7 +30,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 typedef struct {
     const char * name;
     nexthop_t nexthop;
-    int count;
+    uint8_t nexthop_mac_addr;
+    uint16_t count;
 } csp_iface_t;
 
 void csp_route_table_init(void);
