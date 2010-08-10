@@ -115,6 +115,8 @@ csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 				packet->id.pri, packet->id.src, packet->id.dst, packet->id.dport,
 				packet->id.sport);
 
+		//hex_dump(&packet->length, packet->length + 6);
+
 		/* Here there be promiscous mode */
 #if CSP_USE_PROMISC
 		csp_promisc_add(packet, csp_promisc_queue);
@@ -325,7 +327,8 @@ void csp_new_packet(csp_packet_t * packet, nexthop_t interface, CSP_BASE_TYPE * 
 }
 
 uint8_t csp_route_get_nexthop_mac(uint8_t node) {
-	return iface[node].nexthop_mac_addr;
+	csp_iface_t * iface = csp_route_if(node);
+	return iface->nexthop_mac_addr;
 }
 
 #if CSP_DEBUG
