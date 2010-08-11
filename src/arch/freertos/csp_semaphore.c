@@ -29,6 +29,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "../csp_malloc.h"
 #include "../csp_semaphore.h"
+#include "../csp_queue.h"
 
 int csp_bin_sem_create(csp_bin_sem_handle_t * sem) {
     vSemaphoreCreateBinary(*sem);
@@ -36,8 +37,9 @@ int csp_bin_sem_create(csp_bin_sem_handle_t * sem) {
 }
 
 int csp_bin_sem_remove(csp_bin_sem_handle_t * sem) {
-	if ((sem != NULL) && (*sem != NULL))
-		csp_free(*sem);
+	if ((sem != NULL) && (*sem != NULL)) {
+		csp_queue_remove(*sem);
+	}
 	return CSP_SEMAPHORE_OK;
 }
 

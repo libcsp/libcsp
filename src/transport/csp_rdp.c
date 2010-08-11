@@ -927,7 +927,7 @@ int csp_rdp_allocate(csp_conn_t * conn) {
 	/* Create RX queue */
 	conn->l4data->rx_queue = csp_queue_create(conn->l4data->window_size * 2, sizeof(csp_packet_t *));
 	if (conn->l4data->rx_queue == NULL) {
-		csp_debug(CSP_ERROR, "Failes to create RX queue for conn\r\n");
+		csp_debug(CSP_ERROR, "Failed to create RX queue for conn\r\n");
 		csp_bin_sem_remove(&conn->l4data->tx_wait);
 		csp_queue_remove(conn->l4data->tx_queue);
 		csp_free(conn->l4data);
