@@ -30,7 +30,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 void csp_ping(uint8_t node, unsigned int timeout) {
 
-	uint32_t start, time;
+	uint32_t start, time, status = 0;
 
 	printf("Ping node %u: ", node);
 
@@ -62,13 +62,11 @@ void csp_ping(uint8_t node, unsigned int timeout) {
 	/* Read incoming frame */
 	packet = csp_read(conn, timeout);
 
-	if (packet == NULL) {
-		printf("Timeout!\r\n");
-		goto out;
-	}
+	if (packet != NULL)
+		status = 1;
 
-	/* Clean up */
 out:
+	/* Clean up */
 	if (packet != NULL)
 		csp_buffer_free(packet);
 	csp_close(conn);
@@ -76,10 +74,14 @@ out:
 	/* We have a reply */
 	time = (csp_get_ms() - start);
 
-	if (time <= 1) {
-		printf("Reply in <1 tick\r\n");
+	if (status) {
+		if (time <= 1) {
+			printf("Reply in <1 tick\r\n");
+		} else {
+			printf("Reply in %u ms\r\n", (unsigned int) time);
+		}
 	} else {
-		printf("Reply in %u ms\r\n", (unsigned int) time);
+		printf("Timeout!\r\n");
 	}
 
 }

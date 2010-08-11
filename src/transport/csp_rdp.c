@@ -107,7 +107,7 @@ typedef struct __attribute__((__packed__)) rdp_header_s {
 static csp_bin_sem_handle_t rdp_lock;
 static int rdp_lock_init = 0;
 
-static int inline csp_rdp_wait(void) {
+static int inline csp_rdp_wait(unsigned int timeout) {
 
 	/* Init semaphore */
 	if (rdp_lock_init == 0) {
@@ -116,7 +116,7 @@ static int inline csp_rdp_wait(void) {
 	}
 
 	/* Nothing in the RDP code should take longer than 1 second = deadlock */
-	if (csp_bin_sem_wait(&rdp_lock, 1000) == CSP_SEMAPHORE_ERROR) {
+	if (csp_bin_sem_wait(&rdp_lock, timeout) == CSP_SEMAPHORE_ERROR) {
 		csp_debug(CSP_ERROR, "Dead-lock in RDP-code found!\r\n");
 		return 0;
 	}
@@ -457,11 +457,11 @@ static void csp_rdp_flush_eack(csp_conn_t * conn, csp_packet_t * eack_packet) {
 void csp_rdp_check_timeouts(csp_conn_t * conn) {
 
 	/* Wait for RDP to be ready */
-	if (!csp_rdp_wait())
+	if (!csp_rdp_wait(0))
 		return;
 
 	if ((conn == NULL) || conn->l4data == NULL || conn->l4data->tx_queue == NULL) {
-		csp_debug(CSP_ERROR, "Null pointer passed to rdp flush\r\n");
+		csp_debug(CSP_ERROR, "Null pointer passed to check timeouts\r\n");
 		if (conn != NULL)
 			csp_debug(CSP_ERROR, "Connection %p in state %u with idout 0x%08X\r\n", conn, conn->state, conn->idout);
 		csp_rdp_release();
@@ -544,7 +544,7 @@ void csp_rdp_check_timeouts(csp_conn_t * conn) {
 void csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 
 	/* Wait for RDP to be ready */
-	if (!csp_rdp_wait()) {
+	if (!csp_rdp_wait(1000)) {
 		csp_buffer_free(packet);
 		return;
 	}
@@ -663,6 +663,12 @@ void csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 	case RDP_OPEN:
 	{
 
+		/* SYN or !ACK is invalid */
+		if ((rx_header->syn == 1) || (rx_header->ack == 0)) {
+			csp_debug(CSP_ERROR, "Invalid SYN or no ACK, resetting!\r\n");
+			goto discard_close;
+		}
+
 		/* Check sequence number */
 		if (!((conn->l4data->rcv_cur < rx_header->seq_nr) && (rx_header->seq_nr <= conn->l4data->rcv_cur + conn->l4data->window_size * 2))) {
 			csp_debug(CSP_WARN, "Sequence number unacceptable\r\n");
@@ -673,12 +679,6 @@ void csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 			if (conn->l4data->state == RDP_OPEN)
 				csp_rdp_send_eack(conn);
 			goto discard_open;
-		}
-
-		/* SYN or !ACK is invalid */
-		if ((rx_header->syn == 1) || (rx_header->ack == 0)) {
-			csp_debug(CSP_ERROR, "Invalid SYN or no ACK, resetting!\r\n");
-			goto discard_close;
 		}
 
 		/* We have an ACK: Check HIGH boundry: */
@@ -779,7 +779,7 @@ int csp_rdp_connect_active(csp_conn_t * conn, unsigned int timeout) {
 retry:
 
 	/* Wait for RDP to be ready */
-	if (!csp_rdp_wait())
+	if (!csp_rdp_wait(1000))
 		return 0;
 
 	csp_debug(CSP_PROTOCOL, "RDP: Active connect, conn state %u\r\n", conn->l4data->state);
@@ -807,7 +807,7 @@ retry:
 	csp_bin_sem_wait(&conn->l4data->tx_wait, 0);
 	int result = csp_bin_sem_wait(&conn->l4data->tx_wait, conn->l4data->conn_timeout);
 
-	if (!csp_rdp_wait()) {
+	if (!csp_rdp_wait(1000)) {
 		csp_debug(CSP_ERROR, "Conn forcefully closed by network stack\r\n");
 		return 0;
 	}
@@ -865,7 +865,7 @@ int csp_rdp_send(csp_conn_t* conn, csp_packet_t * packet, unsigned int timeout) 
 	}
 
 	/* Wait for RDP to be ready */
-	if (!csp_rdp_wait())
+	if (!csp_rdp_wait(1000))
 		return 0;
 
 	/* Add RDP header */
@@ -941,7 +941,7 @@ int csp_rdp_allocate(csp_conn_t * conn) {
 void csp_rdp_close(csp_conn_t * conn) {
 
 	/* Wait for RDP to be ready */
-	if (!csp_rdp_wait())
+	if (!csp_rdp_wait(1000))
 		return;
 
 	if (conn->l4data->state != RDP_CLOSE_WAIT) {
