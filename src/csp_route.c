@@ -115,8 +115,6 @@ csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 				packet->id.pri, packet->id.src, packet->id.dst, packet->id.dport,
 				packet->id.sport);
 
-		//hex_dump(&packet->length, packet->length + 6);
-
 		/* Here there be promiscous mode */
 #if CSP_USE_PROMISC
 		csp_promisc_add(packet, csp_promisc_queue);
