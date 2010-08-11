@@ -67,6 +67,12 @@ void csp_ping(uint8_t node, unsigned int timeout) {
 		goto out;
 	}
 
+	/* Clean up */
+out:
+	if (packet != NULL)
+		csp_buffer_free(packet);
+	csp_close(conn);
+
 	/* We have a reply */
 	time = (csp_get_ms() - start);
 
@@ -75,12 +81,6 @@ void csp_ping(uint8_t node, unsigned int timeout) {
 	} else {
 		printf("Reply in %u ms\r\n", (unsigned int) time);
 	}
-
-	/* Clean up */
-out:
-	if (packet != NULL)
-		csp_buffer_free(packet);
-	csp_close(conn);
 
 }
 
