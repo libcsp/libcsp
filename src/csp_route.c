@@ -267,11 +267,9 @@ void csp_route_set(const char * name, uint8_t node, nexthop_t nexthop, uint8_t n
 csp_iface_t * csp_route_if(uint8_t id) {
 
 	if (iface[id].nexthop != NULL) {
-		iface[id].count++;
 		return &iface[id];
 	}
 	if (iface[CSP_DEFAULT_ROUTE].nexthop != NULL) {
-		iface[CSP_DEFAULT_ROUTE].count++;
 		return &iface[CSP_DEFAULT_ROUTE];
 	}
 	return NULL;

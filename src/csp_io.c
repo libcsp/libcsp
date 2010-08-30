@@ -144,6 +144,7 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, unsigned int timeout)
 	}
 
 	csp_debug(CSP_PACKET, "Sending packet from %u to %u port %u via interface %s\r\n", idout.src, idout.dst, idout.dport, ifout->name);
+	ifout->count++;
 	
 #if CSP_USE_PROMISC
     /* Loopback traffic is added to promisc queue by the router */
