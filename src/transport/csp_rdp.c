@@ -107,7 +107,7 @@ typedef struct __attribute__((__packed__)) rdp_header_s {
 static csp_bin_sem_handle_t rdp_lock;
 static int rdp_lock_init = 0;
 
-static int inline csp_rdp_wait(unsigned int timeout) {
+static int inline csp_rdp_wait(unsigned int timeout, csp_conn_t * conn) {
 
 	/* Init semaphore */
 	if (rdp_lock_init == 0) {
@@ -120,6 +120,13 @@ static int inline csp_rdp_wait(unsigned int timeout) {
 		csp_debug(CSP_ERROR, "Dead-lock in RDP-code found!\r\n");
 		return 0;
 	}
+
+	/* The usual null pointer checking :P */
+	if ((conn == NULL) || (conn->l4data == NULL)) {
+		csp_bin_sem_post(&rdp_lock);
+		return 0;
+	}
+
 	return 1;
 
 }
@@ -457,7 +464,7 @@ static void csp_rdp_flush_eack(csp_conn_t * conn, csp_packet_t * eack_packet) {
 void csp_rdp_check_timeouts(csp_conn_t * conn) {
 
 	/* Wait for RDP to be ready */
-	if (!csp_rdp_wait(0))
+	if (!csp_rdp_wait(1000, conn))
 		return;
 
 	if ((conn == NULL) || conn->l4data == NULL || conn->l4data->tx_queue == NULL) {
@@ -533,7 +540,7 @@ void csp_rdp_check_timeouts(csp_conn_t * conn) {
 
 	/* Wake user task if TX queue is ready for more data */
 	if (conn->l4data->state == RDP_OPEN)
-		if (csp_queue_size(conn->l4data->tx_queue) < conn->l4data->window_size)
+		if (csp_queue_size(conn->l4data->tx_queue) < conn->l4data->window_size - 1)
 			if (conn->l4data->snd_nxt < conn->l4data->snd_una + conn->l4data->window_size * 2)
 				csp_bin_sem_post(&conn->l4data->tx_wait);
 
@@ -544,7 +551,7 @@ void csp_rdp_check_timeouts(csp_conn_t * conn) {
 void csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 
 	/* Wait for RDP to be ready */
-	if (!csp_rdp_wait(1000)) {
+	if (!csp_rdp_wait(1000, conn)) {
 		csp_buffer_free(packet);
 		return;
 	}
@@ -776,11 +783,11 @@ int csp_rdp_connect_active(csp_conn_t * conn, unsigned int timeout) {
 
 	int retry = 1;
 
-retry:
-
 	/* Wait for RDP to be ready */
-	if (!csp_rdp_wait(1000))
+	if (!csp_rdp_wait(1000, conn))
 		return 0;
+
+	retry:
 
 	csp_debug(CSP_PROTOCOL, "RDP: Active connect, conn state %u\r\n", conn->l4data->state);
 
@@ -807,7 +814,7 @@ retry:
 	csp_bin_sem_wait(&conn->l4data->tx_wait, 0);
 	int result = csp_bin_sem_wait(&conn->l4data->tx_wait, conn->l4data->conn_timeout);
 
-	if (!csp_rdp_wait(1000)) {
+	if (!csp_rdp_wait(1000, conn)) {
 		csp_debug(CSP_ERROR, "Conn forcefully closed by network stack\r\n");
 		return 0;
 	}
@@ -822,7 +829,6 @@ retry:
 				csp_debug(CSP_WARN, "RDP: Half-open connection detected, RST sent, now retrying\r\n");
 				csp_rdp_flush_all(conn);
 				retry -= 1;
-				csp_rdp_release();
 				goto retry;
 			} else {
 				csp_debug(CSP_ERROR, "RDP: Connection stayed half-open, even after RST and retry!\r\n");
@@ -842,31 +848,33 @@ error:
 
 }
 
-int csp_rdp_send(csp_conn_t* conn, csp_packet_t * packet, unsigned int timeout) {
+int csp_rdp_send(csp_conn_t * conn, csp_packet_t * packet, unsigned int timeout) {
 
-	if (conn->l4data == NULL)
+	/* Wait for RDP to be ready */
+	if (!csp_rdp_wait(1000, conn))
 		return 0;
 
 	if (conn->l4data->state != RDP_OPEN) {
 		csp_debug(CSP_ERROR, "RDP: ERROR cannot send, connection reset by peer!\r\n");
+		csp_rdp_release();
 		return 0;
 	}
 
 	csp_debug(CSP_PROTOCOL, "RDP: SEND SEQ %u\r\n", conn->l4data->snd_nxt);
 
+	/* If TX window is full, wait here */
 	if (conn->l4data->snd_nxt >= conn->l4data->snd_una + conn->l4data->window_size) {
+		/* Release, and wait for stack to complete TX */
+		csp_rdp_release();
 		csp_bin_sem_wait(&conn->l4data->tx_wait, 0);
-		if ((csp_bin_sem_wait(&conn->l4data->tx_wait, timeout)) == CSP_SEMAPHORE_OK) {
-			csp_bin_sem_post(&conn->l4data->tx_wait);
-		} else {
+		if ((csp_bin_sem_wait(&conn->l4data->tx_wait, timeout)) != CSP_SEMAPHORE_OK) {
 			csp_debug(CSP_ERROR, "Timeout during send\r\n");
 			return 0;
 		}
+		/* Lock stack again */
+		if (!csp_rdp_wait(1000, conn))
+			return 0;
 	}
-
-	/* Wait for RDP to be ready */
-	if (!csp_rdp_wait(1000))
-		return 0;
 
 	/* Add RDP header */
 	rdp_header_t * tx_header = csp_rdp_header_add(packet);
@@ -941,7 +949,7 @@ int csp_rdp_allocate(csp_conn_t * conn) {
 void csp_rdp_close(csp_conn_t * conn) {
 
 	/* Wait for RDP to be ready */
-	if (!csp_rdp_wait(1000))
+	if (!csp_rdp_wait(1000, conn))
 		return;
 
 	if (conn->l4data->state != RDP_CLOSE_WAIT) {

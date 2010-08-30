@@ -94,7 +94,7 @@ csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 		csp_conn_check_timeouts();
 
 		/* Receive input */
-		if (csp_queue_dequeue(router_input_fifo, &input, 50) != CSP_QUEUE_OK)
+		if (csp_queue_dequeue(router_input_fifo, &input, 100) != CSP_QUEUE_OK)
 			continue;
 
 		/* Discard invalid */
