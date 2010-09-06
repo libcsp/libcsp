@@ -47,7 +47,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #elif defined(_CSP_FREERTOS_)
     #include <freertos/FreeRTOS.h>
     #define CSP_BASE_TYPE portBASE_TYPE
-    #define CSP_MAX_DELAY (portMAX_DELAY * portTICK_RATE_MS)
+    #define CSP_MAX_DELAY portMAX_DELAY
 	#define CSP_ENTER_CRITICAL() portENTER_CRITICAL()
 	#define CSP_EXIT_CRITICAL() portEXIT_CRITICAL()
 #else
