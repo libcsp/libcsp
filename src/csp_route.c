@@ -216,8 +216,10 @@ csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 			break;
 #endif
 		case CSP_UDP:
-		default:
 			csp_udp_new_packet(conn, packet);
+			break;
+		default:
+			csp_buffer_free(packet);
 			break;
 		}
 

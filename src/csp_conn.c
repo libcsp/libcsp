@@ -44,7 +44,7 @@ static csp_bin_sem_handle_t conn_lock;
  * kicked, closed or retransmitted.
  */
 void csp_conn_check_timeouts(void) {
-
+#if CSP_USE_RDP
 	/* Loop */
 	int i;
 	for (i = 0; i < CSP_CONN_MAX; i++) {
@@ -54,15 +54,12 @@ void csp_conn_check_timeouts(void) {
 			continue;
 
 		/* Check the protocol and higher layers */
-#if CSP_USE_RDP
 		switch (arr_conn[i].idin.protocol) {
 		case CSP_RDP:
 			csp_rdp_check_timeouts(&arr_conn[i]);
 		}
-#endif
-
 	}
-
+#endif
 }
 
 /** csp_conn_init

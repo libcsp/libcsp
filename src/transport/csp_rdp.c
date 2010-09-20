@@ -160,7 +160,7 @@ static rdp_header_t * csp_rdp_header_ref(csp_packet_t * packet) {
 
 /**
  * CONTROL MESSAGES
- * The following funciton is used to send empty messages,
+ * The following function is used to send empty messages,
  * with ack, syn or rst flag.
  */
 static int csp_rdp_send_cmp(csp_conn_t * conn, csp_packet_t * packet, int ack, int syn, int rst, int eak, int seq_nr, int ack_nr, int copy_yes_no) {
@@ -265,12 +265,12 @@ static int csp_rdp_send_syn(csp_conn_t * conn) {
 static int inline csp_rdp_receive_data(csp_conn_t * conn, csp_packet_t * packet) {
 
 	/* If a rx_socket is set, this message is the first in a new connection
-	 * so the connetion must be queued to the socket. */
+	 * so the connection must be queued to the socket. */
 	if ((conn->rx_socket != NULL) && (conn->rx_socket != (void *) 1)) {
 
 		/* Try queueing */
 		if (csp_queue_enqueue(conn->rx_socket, &conn, 0) == CSP_QUEUE_FULL) {
-			csp_debug(CSP_ERROR, "ERROR socket cannont accept more connections\r\n");
+			csp_debug(CSP_ERROR, "ERROR socket cannot accept more connections\r\n");
 			return 0;
 		}
 
@@ -589,6 +589,7 @@ void csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 
 		/* ACK received while in listen, this is not normal. Inform by sending back RST */
 		if (rx_header->ack) {
+			csp_debug(CSP_ERROR, "ACK received in LISTEN state\r\n");
 			csp_rdp_send_cmp(conn, NULL, 0, 0, 1, 0, conn->l4data->snd_nxt, conn->l4data->rcv_cur, 0);
 			goto discard_close;
 		}
@@ -696,7 +697,7 @@ void csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 
 		/* We have an ACK: Check LOW boundry: */
 		if (rx_header->ack_nr < conn->l4data->snd_una - 1 - (conn->l4data->window_size * 2)) {
-			csp_debug(CSP_ERROR, "ACK number too low!\r\n");
+			csp_debug(CSP_ERROR, "ACK number too low! %u < %u\r\n", rx_header->ack_nr, (conn->l4data->snd_una - 1 - (conn->l4data->window_size * 2)));
 			goto discard_close;
 		}
 
@@ -734,15 +735,18 @@ void csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 			goto accepted_open;
 		}
 
-		/* The message is in sequence and contains data, ACK this. */
-		conn->l4data->rcv_cur = rx_header->seq_nr;
-		csp_rdp_send_cmp(conn, NULL, 1, 0, 0, 0, conn->l4data->snd_nxt, conn->l4data->rcv_cur, 0);
+		/* Store sequence number before stripping RDP header */
+		uint16_t seq_nr = rx_header->seq_nr;
 
 		/* Receive data */
 		if (!csp_rdp_receive_data(conn, packet)) {
-			csp_debug(CSP_ERROR, "Cannot receive data, closing conn\r\n");
-			goto discard_close;
+			csp_debug(CSP_ERROR, "Cannot receive data, rejecting packet\r\n");
+			goto discard_open;
 		}
+
+		/* The message is in sequence and contains data, ACK this. */
+		conn->l4data->rcv_cur = seq_nr;
+		csp_rdp_send_cmp(conn, NULL, 1, 0, 0, 0, conn->l4data->snd_nxt, conn->l4data->rcv_cur, 0);
 
 		/* Flush RX queue */
 		csp_rdp_rx_queue_flush(conn);
@@ -863,7 +867,7 @@ int csp_rdp_send(csp_conn_t * conn, csp_packet_t * packet, unsigned int timeout)
 	csp_debug(CSP_PROTOCOL, "RDP: SEND SEQ %u\r\n", conn->l4data->snd_nxt);
 
 	/* If TX window is full, wait here */
-	if (conn->l4data->snd_nxt >= conn->l4data->snd_una + conn->l4data->window_size) {
+	if (conn->l4data->snd_nxt - conn->l4data->snd_una + 1 >= conn->l4data->window_size) {
 		/* Release, and wait for stack to complete TX */
 		csp_rdp_release();
 		csp_bin_sem_wait(&conn->l4data->tx_wait, 0);
@@ -885,6 +889,11 @@ int csp_rdp_send(csp_conn_t * conn, csp_packet_t * packet, unsigned int timeout)
 
 	/* Send copy to tx_queue */
 	rdp_packet_t * rdp_packet = csp_buffer_get(packet->length+10);
+	if (rdp_packet == NULL) {
+		csp_debug(CSP_ERROR, "Failed to allocate packet buffer\r\n");
+		return 0;
+	}
+
 	rdp_packet->timestamp = csp_get_ms();
 	memcpy(&rdp_packet->length, &packet->length, packet->length+6);
 	if (csp_queue_enqueue(conn->l4data->tx_queue, &rdp_packet, 0) != CSP_QUEUE_OK) {
