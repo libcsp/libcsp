@@ -50,6 +50,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #define CSP_CONN_QUEUE_LENGTH	100		// Number of packets potentially in queue for a connection
 #define CSP_FIFO_INPUT			100		// Number of packets to be queued at the input of the router
 #define CSP_MAX_BIND_PORT		15		// Highest incoming port number to bind to (must be below (2^CSP_ID_PORT_SIZE)-1)
+#define CSP_RANDOMIZE_EPHEM		0		// Randomize initial ephemeral port
 
 /* Transport layer config */
 #define CSP_USE_RDP			1
