@@ -161,7 +161,7 @@ csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 		} else {
             
             /* Reject packet if dport is an ephemeral port */
-            if (packet->id.dport > CSP_MAX_BIND_PORT + 1) {
+            if (packet->id.dport > CSP_MAX_BIND_PORT) {
 		        csp_buffer_free(packet); 
 		    	continue;
 	    	}

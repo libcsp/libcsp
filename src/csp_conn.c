@@ -245,7 +245,11 @@ void csp_close(csp_conn_t * conn) {
  */
 csp_conn_t * csp_connect(csp_protocol_t protocol, uint8_t prio, uint8_t dest, uint8_t dport, unsigned int timeout) {
 
-	static uint8_t sport = CSP_MAX_BIND_PORT + 2;
+#if CSP_RANDOMIZE_EPHEM
+	static uint8_t sport = (rand() % (CSP_ID_PORT_MAX - CSP_MAX_BIND_PORT)) + (CSP_MAX_BIND_PORT + 1);
+#else
+	static uint8_t sport = CSP_MAX_BIND_PORT + 1;
+#endif
     
 	/* Generate CAN identifier */
 	csp_id_t incoming_id, outgoing_id;
@@ -266,10 +270,10 @@ csp_conn_t * csp_connect(csp_protocol_t protocol, uint8_t prio, uint8_t dest, ui
     uint8_t start = sport;
 
     while (++sport != start) {
-        if (sport > 31)
-            sport = CSP_MAX_BIND_PORT + 2;
+        if (sport > CSP_ID_PORT_MAX)
+            sport = CSP_MAX_BIND_PORT + 1;
 
-	    outgoing_id.sport = sport;
+        outgoing_id.sport = sport;
         incoming_id.dport = sport;
         
         /* Match on destination port of _incoming_ identifier */
