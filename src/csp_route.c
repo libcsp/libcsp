@@ -133,8 +133,10 @@ csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 			}
 
 			/* Otherwise, actually send the message */
-			if (!csp_send_direct(packet->id, packet, 0))
-			   csp_buffer_free(packet);
+			if (!csp_send_direct(packet->id, packet, 0)) {
+				csp_debug(CSP_WARN, "Router failed to send\r\n");
+				csp_buffer_free(packet);
+			}
 
             /* Next message, please */
 			continue;

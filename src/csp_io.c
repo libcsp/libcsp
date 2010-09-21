@@ -132,7 +132,7 @@ csp_packet_t * csp_read(csp_conn_t * conn, unsigned int timeout) {
 int csp_send_direct(csp_id_t idout, csp_packet_t * packet, unsigned int timeout) {
 
 	if (packet == NULL) {
-		csp_debug(CSP_ERROR, "Invalid call to csp_send_direct\r\n");
+		csp_debug(CSP_ERROR, "csp_send_direct: packet == NULL\r\n");
 		return 0;
 	}
 

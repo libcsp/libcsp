@@ -528,8 +528,11 @@ void csp_rdp_check_timeouts(csp_conn_t * conn) {
 			packet->timestamp = csp_get_ms();
 			csp_packet_t * new_packet = csp_buffer_get(packet->length+10);
 			memcpy(&new_packet->length, &packet->length, packet->length+6);
-			if (csp_send_direct(conn->idout, new_packet, 0) == 0)
+			if (csp_send_direct(conn->idout, new_packet, 0) == 0) {
+				csp_debug(CSP_WARN, "Retransmission failed\r\n");
 				csp_buffer_free(new_packet);
+			}
+
 
 		}
 

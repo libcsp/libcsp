@@ -34,8 +34,8 @@ static uint8_t levels_enable[7] = {
 		1,	// Error
 		1,	// Warn
 		0,	// Buffer
-		0,	// Packet
-		0,	// Protocol
+		1,	// Packet
+		1,	// Protocol
 		0	// Locks
 };
 

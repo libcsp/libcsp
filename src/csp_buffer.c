@@ -97,6 +97,7 @@ void * csp_buffer_get_isr(size_t buf_size) {
 		i = (i + 1) % count; // Increment by one
 	}
 
+	csp_debug(CSP_ERROR, "Out of buffers\r\n");
 	return NULL; // If we are out of memory, return NULL
 
 }
