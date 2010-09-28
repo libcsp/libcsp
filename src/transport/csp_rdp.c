@@ -98,7 +98,7 @@ typedef struct __attribute__((__packed__)) rdp_header_s {
 
 /**
  * LOCKING:
- * The RDP protocol stack operates on data that is dynamically allocated
+ * The RDP protocol stack operates on data that is dynamically allocated.
  * Therefore, if another task calls csp_rdp_close() while RDP may be working
  * on a connection, it may dereference a null pointer. The consequence is
  * to lock the entire RDP stack, so it can only work on one connection at a time.
@@ -132,7 +132,10 @@ static int inline csp_rdp_wait(unsigned int timeout, csp_conn_t * conn) {
 }
 
 static void inline csp_rdp_release(void) {
-	csp_bin_sem_post(&rdp_lock);
+	if (rdp_lock_init == 1)
+		csp_bin_sem_post(&rdp_lock);
+	else
+		csp_debug(CSP_ERROR, "Attempt to release uninitialized RDP lock\r\n");
 }
 
 /**
@@ -171,7 +174,7 @@ static int csp_rdp_send_cmp(csp_conn_t * conn, csp_packet_t * packet, int ack, i
 		packet->length = 0;
 	}
 
-	if (packet == NULL)
+	if (packet == NULL || conn == NULL)
 		return 0;
 
 	/* Add RDP header */
@@ -228,8 +231,8 @@ static int csp_rdp_send_eack(csp_conn_t * conn) {
 
 		/* Add seq nr to EACK packet */
 		rdp_header_t * header = csp_rdp_header_ref(packet);
-		packet_eack->data16[packet_eack->length/2] = htons(header->seq_nr);
-		packet_eack->length += 2;
+		packet_eack->data16[packet_eack->length/sizeof(uint16_t)] = htons(header->seq_nr);
+		packet_eack->length += sizeof(uint16_t);
 		csp_debug(CSP_PROTOCOL, "Added EACK nr %u\r\n", header->seq_nr);
 
 		/* Requeue */
@@ -435,17 +438,15 @@ static void csp_rdp_flush_eack(csp_conn_t * conn, csp_packet_t * eack_packet) {
 				packet->timestamp = csp_get_ms() - conn->l4data->packet_timeout;
 		}
 
-		/* If not found, put back on tx queue */
 		if (match == 0) {
+			/* If not found, put back on tx queue */
 			csp_queue_enqueue(conn->l4data->tx_queue, &packet, 0);
-			continue;
+		} else {
+			csp_debug(CSP_PROTOCOL, "TX Element %u freed\r\n", ntohs(header->seq_nr));
+
+			/* Found, free */
+			csp_buffer_free(packet);
 		}
-
-		csp_debug(CSP_PROTOCOL, "TX Element %u freed\r\n", ntohs(header->seq_nr));
-
-		/* Found, free */
-		csp_buffer_free(packet);
-		continue;
 
 	}
 
@@ -681,7 +682,8 @@ void csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 		}
 
 		/* Check sequence number */
-		if (!((conn->l4data->rcv_cur < rx_header->seq_nr) && (rx_header->seq_nr <= conn->l4data->rcv_cur + conn->l4data->window_size * 2))) {
+		//if (!((conn->l4data->rcv_cur < rx_header->seq_nr) && (rx_header->seq_nr <= conn->l4data->rcv_cur + conn->l4data->window_size * 2))) {
+		if ((rx_header->seq_nr <= conn->l4data->rcv_cur) || (rx_header->seq_nr > conn->l4data->rcv_cur + conn->l4data->window_size * 2)) {
 			csp_debug(CSP_WARN, "Sequence number unacceptable\r\n");
 			/* If duplicate SYN received, send another SYN/ACK */
 			if (conn->l4data->state == RDP_SYN_RCVD)

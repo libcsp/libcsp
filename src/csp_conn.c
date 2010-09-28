@@ -246,7 +246,8 @@ void csp_close(csp_conn_t * conn) {
 csp_conn_t * csp_connect(csp_protocol_t protocol, uint8_t prio, uint8_t dest, uint8_t dport, unsigned int timeout) {
 
 #if CSP_RANDOMIZE_EPHEM
-	static uint8_t sport = (rand() % (CSP_ID_PORT_MAX - CSP_MAX_BIND_PORT)) + (CSP_MAX_BIND_PORT + 1);
+	srand((csp_get_ms()));
+	uint8_t sport = (rand() % (CSP_ID_PORT_MAX - CSP_MAX_BIND_PORT)) + (CSP_MAX_BIND_PORT + 1);
 #else
 	static uint8_t sport = CSP_MAX_BIND_PORT + 1;
 #endif
