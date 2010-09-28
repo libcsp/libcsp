@@ -252,7 +252,7 @@ csp_conn_t * csp_connect(csp_protocol_t protocol, uint8_t prio, uint8_t dest, ui
 	static uint8_t sport = CSP_MAX_BIND_PORT + 1;
 #endif
     
-	/* Generate CAN identifier */
+	/* Generate identifier */
 	csp_id_t incoming_id, outgoing_id;
 	incoming_id.pri = prio;
 	incoming_id.dst = my_address;

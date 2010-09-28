@@ -534,7 +534,6 @@ void csp_rdp_check_timeouts(csp_conn_t * conn) {
 				csp_buffer_free(new_packet);
 			}
 
-
 		}
 
 		/* Requeue the TX element */

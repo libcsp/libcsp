@@ -23,13 +23,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 /* CSP includes */
 #include <csp/csp_endian.h>
 
-/* Test if host is big endian
- * The function is declared __pure__, so the compiler 
+/*
+ * These functions are declared __const__, so the compiler
  * will (hopefully) identify it as a runtime constant
- * 
- * Returns 1 on big endian archs and 0 on little endian
  */
-static inline uint8_t __attribute__ ((__pure__)) host_be(void) {
+
+/* Returns 1 on big endian archs and 0 on little endian */
+static inline uint8_t __attribute__ ((__const__)) host_be(void) {
     
     static union {
         uint32_t i;
@@ -41,7 +41,7 @@ static inline uint8_t __attribute__ ((__pure__)) host_be(void) {
 } 
 
 /* Convert 32-bit integer to network byte order */
-inline uint32_t htonl(uint32_t hl) {
+inline uint32_t __attribute__ ((__const__)) htonl(uint32_t hl) {
 
     if (host_be()) {
         return hl;
@@ -51,14 +51,14 @@ inline uint32_t htonl(uint32_t hl) {
 
 }
 /* Convert 32-bit integer to host byte order */
-inline uint32_t ntohl(uint32_t nl) {
+inline uint32_t __attribute__ ((__const__)) ntohl(uint32_t nl) {
 
     return htonl(nl);
     
 }
 
 /* Convert 32-bit integer to network byte order */
-inline uint16_t htons(uint16_t hs) {
+inline uint16_t __attribute__ ((__const__)) htons(uint16_t hs) {
 
     if (host_be()) {
         return hs;
@@ -69,7 +69,7 @@ inline uint16_t htons(uint16_t hs) {
 }
 
 /* Convert 32-bit integer to host byte order */
-inline uint16_t ntohs(uint16_t ns) {
+inline uint16_t __attribute__ ((__const__)) ntohs(uint16_t ns) {
 
     return htons(ns);
     
