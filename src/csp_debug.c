@@ -64,7 +64,6 @@ void csp_debug(csp_debug_level_t level, const char * format, ...) {
 
 	printf("%s", color);
 
-
     printf("CSP: ");
     vprintf(format, args);
 

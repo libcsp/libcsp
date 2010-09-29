@@ -27,6 +27,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  * This is a implementation of the seq/ack handling taken from the Reliable Datagram Protocol (RDP)
  * For more information read RFC-908.
  *
+ * TODO: Take wrapping sequence/ack numbers into account
+ * TODO: Take wrapping timestamps from csp_get_ms into account
+ *
  */
 
 #include <stdio.h>
@@ -56,14 +59,20 @@ static CSP_BASE_TYPE pdTrue = 1;
 /* Do not try to pack this stuct, the posix sem handle will stop working */
 struct csp_l4data_s {
 	int state;
-	int snd_nxt;
-	int snd_una;
-	int snd_iss;
-	int rcv_cur;
-	int rcv_irs;
+	int snd_nxt; /**< The sequence number of the next segment that is to be sent */
+	int snd_una; /**< The sequence number of the oldest unacknowledged segment */
+	int snd_iss; /**< The initial send sequence number */
+#if CSP_DELAY_ACKS
+	int rcv_lsa; /**< The sequence number acknowledged by the received (Note: new in CSP-RDP, not in the standard) */
+#endif
+	int rcv_cur; /**< The sequence number of the last segment received correctly and in sequence */
+	int rcv_irs; /**< The initial receive sequence number */
 	unsigned int window_size;
 	unsigned int conn_timeout;
 	unsigned int packet_timeout;
+#if CSP_DELAY_ACKS
+	uint32_t ack_timestamp;
+#endif
 	csp_bin_sem_handle_t tx_wait;
 	csp_queue_handle_t tx_queue;
 	csp_queue_handle_t rx_queue;
@@ -161,6 +170,18 @@ static rdp_header_t * csp_rdp_header_ref(csp_packet_t * packet) {
 	return header;
 }
 
+#if CSP_DELAY_ACKS
+/**
+ * RDP Update ACK timestamp
+ * Updates timestamp for last ACK to current time
+ */
+void csp_rdp_update_ack(csp_conn_t * conn) {
+
+	conn->l4data->ack_timestamp = csp_get_ms();
+
+}
+#endif
+
 /**
  * CONTROL MESSAGES
  * The following function is used to send empty messages,
@@ -202,6 +223,14 @@ static int csp_rdp_send_cmp(csp_conn_t * conn, csp_packet_t * packet, int ack, i
 		csp_buffer_free(packet);
 		return 0;
 	}
+
+#if CSP_DELAY_ACKS
+	/* Update last ACK time stamp */
+	if (ack) {
+		conn->l4data->rcv_lsa = ack_nr;
+		csp_rdp_update_ack(conn);
+	}
+#endif
 
 	return 1;
 
@@ -541,6 +570,21 @@ void csp_rdp_check_timeouts(csp_conn_t * conn) {
 
 	}
 
+#if CSP_DELAY_ACKS
+	/**
+	 * ACK TIMEOUT:
+	 * Check ACK timeouts
+	 */
+
+	/* Only send timeout ACK if segment was not acknowledged by regular ACK */
+	if (conn->l4data->rcv_lsa < conn->l4data->rcv_cur) {
+		uint32_t now = csp_get_ms();
+		uint32_t diff = now - conn->l4data->ack_timestamp;
+		if (diff > conn->l4data->packet_timeout/2)
+			csp_rdp_send_cmp(conn, NULL, 1, 0, 0, 0, conn->l4data->snd_nxt, conn->l4data->rcv_cur, 0);
+	}
+#endif
+
 	/* Wake user task if TX queue is ready for more data */
 	if (conn->l4data->state == RDP_OPEN)
 		if (csp_queue_size(conn->l4data->tx_queue) < conn->l4data->window_size - 1)
@@ -570,7 +614,7 @@ void csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 	 * Run the connect passive sequence here.
 	 */
 	if (conn->l4data->state == RDP_CLOSED) {
-		conn->l4data->snd_iss = 200;
+		conn->l4data->snd_iss = 2000;
 		conn->l4data->snd_nxt = conn->l4data->snd_iss + 1;
 		conn->l4data->snd_una = conn->l4data->snd_iss;
 		conn->l4data->state = RDP_LISTEN;
@@ -602,6 +646,9 @@ void csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 			csp_debug(CSP_PROTOCOL, "RDP: SYN-Received\r\n");
 			conn->l4data->rcv_cur = rx_header->seq_nr;
 			conn->l4data->rcv_irs = rx_header->seq_nr;
+#if CSP_DELAY_ACKS
+			conn->l4data->rcv_lsa = rx_header->seq_nr;
+#endif
 			conn->l4data->state = RDP_SYN_RCVD;
 
 			conn->l4data->window_size = ntohl(packet->data32[0]);
@@ -632,6 +679,9 @@ void csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 
 			conn->l4data->rcv_cur = rx_header->seq_nr;
 			conn->l4data->rcv_irs = rx_header->seq_nr;
+#if CSP_DELAY_ACKS
+			conn->l4data->rcv_lsa = rx_header->seq_nr;
+#endif
 			conn->l4data->snd_una = rx_header->ack_nr + 1;
 			conn->l4data->state = RDP_OPEN;
 
@@ -748,9 +798,18 @@ void csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 			goto discard_open;
 		}
 
-		/* The message is in sequence and contains data, ACK this. */
+		/* Update last received packet */
 		conn->l4data->rcv_cur = seq_nr;
+
+		/* The message is in sequence and contains data */
+#if CSP_DELAY_ACKS
+		 /* We only ACK this if receiver window is half full */
+		if (conn->l4data->rcv_cur > conn->l4data->rcv_lsa + conn->l4data->window_size / 2)
+			csp_rdp_send_cmp(conn, NULL, 1, 0, 0, 0, conn->l4data->snd_nxt, conn->l4data->rcv_cur, 0);
+#else
+		/* ACK the message */
 		csp_rdp_send_cmp(conn, NULL, 1, 0, 0, 0, conn->l4data->snd_nxt, conn->l4data->rcv_cur, 0);
+#endif
 
 		/* Flush RX queue */
 		csp_rdp_rx_queue_flush(conn);
@@ -766,6 +825,11 @@ void csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 	}
 
 discard_close:
+#if CSP_DELAY_ACKS
+	/* ACK all unacknowledged packets before closing connection */
+	if (conn->l4data->rcv_lsa < conn->l4data->rcv_cur)
+		csp_rdp_send_cmp(conn, NULL, 1, 0, 0, 0, conn->l4data->snd_nxt, conn->l4data->rcv_cur, 0);
+#endif
 	csp_buffer_free(packet);
 	csp_rdp_release();
 	conn->l4data->state = RDP_CLOSE_WAIT;
@@ -805,7 +869,7 @@ int csp_rdp_connect_active(csp_conn_t * conn, unsigned int timeout) {
 		return 0;
 	}
 
-	conn->l4data->snd_iss = 100;
+	conn->l4data->snd_iss = 1000;
 	conn->l4data->snd_nxt = conn->l4data->snd_iss + 1;
 	conn->l4data->snd_una = conn->l4data->snd_iss;
 
@@ -928,6 +992,9 @@ int csp_rdp_allocate(csp_conn_t * conn) {
 	conn->l4data->window_size = csp_rdp_window_size;
 	conn->l4data->conn_timeout = csp_rdp_conn_timeout;
 	conn->l4data->packet_timeout = csp_rdp_packet_timeout;
+#if CSP_DELAY_ACKS
+	conn->l4data->ack_timestamp = csp_get_ms();
+#endif
 
 	/* Create a binary semaphore to wait on for tasks */
 	if (csp_bin_sem_create(&conn->l4data->tx_wait) != CSP_SEMAPHORE_OK) {

@@ -53,18 +53,19 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #define CSP_RANDOMIZE_EPHEM		1		// Randomize initial ephemeral port
 
 /* Transport layer config */
-#define CSP_USE_RDP			1
+#define CSP_USE_RDP				1		// Enable RDP transport protocol
+#define CSP_DELAY_ACKS			1		// Use delayed acknowledgements
 
 /* Router config */
-#define CSP_USE_PROMISC		1
+#define CSP_USE_PROMISC			1
 
 /* Buffer config */
-#define CSP_BUFFER_CALLOC	0		// Set to 1 to clear buffer at allocation
-#define CSP_BUFFER_STATIC   0
-#define CSP_BUFFER_SIZE     320
-#define CSP_BUFFER_COUNT    12
-#define CSP_BUFFER_FREE	    0  
-#define CSP_BUFFER_USED	    1
+#define CSP_BUFFER_CALLOC		0		// Set to 1 to clear buffer at allocation
+#define CSP_BUFFER_STATIC   	0
+#define CSP_BUFFER_SIZE     	320
+#define CSP_BUFFER_COUNT    	12
+#define CSP_BUFFER_FREE	    	0
+#define CSP_BUFFER_USED	    	1
 
 #endif
 
