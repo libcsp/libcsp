@@ -731,7 +731,6 @@ void csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 		}
 
 		/* Check sequence number */
-		//if (!((conn->l4data->rcv_cur < rx_header->seq_nr) && (rx_header->seq_nr <= conn->l4data->rcv_cur + conn->l4data->window_size * 2))) {
 		if ((rx_header->seq_nr <= conn->l4data->rcv_cur) || (rx_header->seq_nr > conn->l4data->rcv_cur + conn->l4data->window_size * 2)) {
 			csp_debug(CSP_WARN, "Sequence number unacceptable\r\n");
 			/* If duplicate SYN received, send another SYN/ACK */
@@ -743,13 +742,13 @@ void csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 			goto discard_open;
 		}
 
-		/* We have an ACK: Check HIGH boundry: */
+		/* We have an ACK: Check HIGH boundary: */
 		if (rx_header->ack_nr >= conn->l4data->snd_nxt) {
 			csp_debug(CSP_ERROR, "ACK number too high! %u >= %u\r\n", rx_header->ack_nr, conn->l4data->snd_nxt);
 			goto discard_close;
 		}
 
-		/* We have an ACK: Check LOW boundry: */
+		/* We have an ACK: Check LOW boundary: */
 		if (rx_header->ack_nr < conn->l4data->snd_una - 1 - (conn->l4data->window_size * 2)) {
 			csp_debug(CSP_ERROR, "ACK number too low! %u < %u\r\n", rx_header->ack_nr, (conn->l4data->snd_una - 1 - (conn->l4data->window_size * 2)));
 			goto discard_close;
@@ -935,7 +934,7 @@ int csp_rdp_send(csp_conn_t * conn, csp_packet_t * packet, unsigned int timeout)
 	csp_debug(CSP_PROTOCOL, "RDP: SEND SEQ %u\r\n", conn->l4data->snd_nxt);
 
 	/* If TX window is full, wait here */
-	if (conn->l4data->snd_nxt - conn->l4data->snd_una + 1 >= conn->l4data->window_size) {
+	if (conn->l4data->snd_nxt - conn->l4data->snd_una + 1 > conn->l4data->window_size) {
 		/* Release, and wait for stack to complete TX */
 		csp_rdp_release();
 		csp_bin_sem_wait(&conn->l4data->tx_wait, 0);
