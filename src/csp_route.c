@@ -33,6 +33,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "arch/csp_malloc.h"
 #include "arch/csp_time.h"
 
+#include "crypto/csp_hmac.h"
+#include "crypto/csp_xtea.h"
+
 #include "csp_port.h"
 #include "csp_route.h"
 #include "csp_conn.h"
@@ -50,7 +53,8 @@ csp_thread_handle_t handle_router;
 
 extern int csp_route_input_hook(void) __attribute__((weak));
 
-/** Routing input Queue
+/**
+ * Routing input Queue
  * This queue is used each time a packet is received from an IF.
  * It holds the csp_route_queue_t complex datatype
  */
@@ -60,7 +64,8 @@ typedef struct csp_route_queue_s {
 	csp_packet_t * packet;
 } csp_route_queue_t;
 
-/** csp_route_table_init
+/**
+ * csp_route_table_init
  * Initialises the storage for the routing table
  */
 void csp_route_table_init(void) {
@@ -70,7 +75,8 @@ void csp_route_table_init(void) {
 
 }
 
-/** Router Task
+/**
+ * Router Task
  * This task received any non-local connection and collects the data
  * on the connection. All data is forwarded out of the router
  * using the csp_send call 
@@ -114,6 +120,27 @@ csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 		csp_debug(CSP_PACKET, "Router input: P 0x%02X, S 0x%02X, D 0x%02X, Dp 0x%02X, Sp 0x%02X\r\n",
 				packet->id.pri, packet->id.src, packet->id.dst, packet->id.dport,
 				packet->id.sport);
+
+#if CSP_ENABLE_HMAC
+		/* Verify HMAC */
+		if (hmac_verify(packet, (uint8_t *)CSP_CRYPTO_KEY, CSP_CRYPTO_KEY_LENGTH) != 0) {
+			/* HMAC failed */
+			csp_debug(CSP_WARN, "HMAC verification error! Discarding packet\r\n");
+			csp_buffer_free(packet);
+			return;
+		}
+#endif
+
+#if CSP_ENABLE_XTEA
+		/* Decrypt data */
+		uint32_t iv[2] = {42, 1}; // Dummy IV
+		if (xtea_decrypt(packet->data, packet->length, (uint32_t *)CSP_CRYPTO_KEY, iv) != 0) {
+			/* Decryption failed */
+			csp_debug(CSP_WARN, "Decryption failed! Discarding packet\r\n");
+			csp_buffer_free(packet);
+			return;
+		}
+#endif
 
 		/* Here there be promiscous mode */
 #if CSP_USE_PROMISC
@@ -244,7 +271,8 @@ void csp_route_start_task(unsigned int task_stack_size, unsigned int priority) {
 
 }
 
-/** Set route
+/**
+ * Set route
  * This function maintains the routing table,
  * To set default route use nodeid CSP_DEFAULT_ROUTE
  * To set a value pass a callback function
@@ -262,7 +290,8 @@ void csp_route_set(const char * name, uint8_t node, nexthop_t nexthop, uint8_t n
 
 }
 
-/** Routing table lookup
+/**
+ * Routing table lookup
  * This is the actual lookup in the routing table
  * The table consists of one entry per possible node
  * If there is no explicit nexthop route for the destination
@@ -297,7 +326,6 @@ csp_iface_t * csp_route_if(uint8_t id) {
  * @param packet A pointer to the incoming packet
  * @param interface A pointer to the incoming interface TX function.
  * @param pxTaskWoken This must be a pointer a valid variable if called from ISR or NULL otherwise!
- *
  */
 void csp_new_packet(csp_packet_t * packet, nexthop_t interface, CSP_BASE_TYPE * pxTaskWoken) {
 
@@ -313,11 +341,10 @@ void csp_new_packet(csp_packet_t * packet, nexthop_t interface, CSP_BASE_TYPE * 
 	queue_element.interface = interface;
 	queue_element.packet = packet;
 
-	if (pxTaskWoken == NULL) {
+	if (pxTaskWoken == NULL)
 		result = csp_queue_enqueue(router_input_fifo, &queue_element, 0);
-	} else {
+	else
 		result = csp_queue_enqueue_isr(router_input_fifo, &queue_element, pxTaskWoken);
-	}
 
 	if (result != CSP_QUEUE_OK) {
 		csp_debug(CSP_WARN, "ERROR: Routing input FIFO is FULL. Dropping packet.\r\n");
@@ -327,8 +354,10 @@ void csp_new_packet(csp_packet_t * packet, nexthop_t interface, CSP_BASE_TYPE * 
 }
 
 uint8_t csp_route_get_nexthop_mac(uint8_t node) {
+
 	csp_iface_t * iface = csp_route_if(node);
 	return iface->nexthop_mac_addr;
+
 }
 
 #if CSP_DEBUG
@@ -357,17 +386,18 @@ void csp_route_print_table(void) {
  *
  */
 int csp_promisc_enable(unsigned int buf_size) {
+
     if (csp_promisc_queue != NULL)
         return 0;
     
     /* Create packet queue */
     csp_promisc_queue = csp_queue_create(buf_size, sizeof(csp_packet_t *));
     
-    if (csp_promisc_queue != NULL) {
-	return 1;
-    } else {
-	return 0;
-    }
+    if (csp_promisc_queue != NULL)
+    	return 1;
+    else
+    	return 0;
+
 }
 
 /**
@@ -382,7 +412,7 @@ int csp_promisc_enable(unsigned int buf_size) {
 csp_packet_t * csp_promisc_read(unsigned int timeout) {
 
     if (csp_promisc_queue == NULL)
-	return NULL;
+    	return NULL;
 
     csp_packet_t * packet = NULL;
     csp_queue_dequeue(csp_promisc_queue, &packet, timeout);
@@ -401,17 +431,15 @@ csp_packet_t * csp_promisc_read(unsigned int timeout) {
 void csp_promisc_add(csp_packet_t * packet, csp_queue_handle_t queue) {
 
 	if (queue != NULL) {
-
-		/* Make a copy of the message and queue it to the promisc task */
+		/* Make a copy of the message and queue it to the promiscuous task */
 		csp_packet_t * packet_copy = csp_buffer_get(packet->length);
 		if (packet_copy != NULL) {
 			memcpy(&packet_copy->length, &packet->length, packet->length + 6);
 			if (csp_queue_enqueue(queue, &packet_copy, 0) != CSP_QUEUE_OK) {
-				csp_debug(CSP_ERROR, "Promisc. mode input queue full\r\n");
+				csp_debug(CSP_ERROR, "Promiscuous mode input queue full\r\n");
 				csp_buffer_free(packet_copy);
 			}
 		}
-
 	}
 
 }

@@ -33,6 +33,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "arch/csp_time.h"
 #include "arch/csp_malloc.h"
 
+#include "crypto/csp_hmac.h"
+#include "crypto/csp_xtea.h"
+
 #include "csp_io.h"
 #include "csp_port.h"
 #include "csp_conn.h"
@@ -124,7 +127,7 @@ csp_packet_t * csp_read(csp_conn_t * conn, unsigned int timeout) {
 /**
  * Function to transmit a frame without an existing connection structure.
  * This function is used for stateless transmissions
- * @param idout 32bit CSP identifyer
+ * @param idout 32bit CSP identifier
  * @param packet pointer to packet,
  * @param timeout a timeout to wait for TX to complete. NOTE: not all underlying drivers supports flow-control.
  * @return returns 1 if successful and 0 otherwise. you MUST free the frame yourself if the transmission was not successful.
@@ -152,6 +155,27 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, unsigned int timeout)
         packet->id.ext = idout.ext;
         csp_promisc_add(packet, csp_promisc_queue);
     }
+#endif
+
+#if CSP_ENABLE_XTEA
+	/* Encrypt data */
+    uint32_t iv[2] = {42, 1}; // Dummy IV
+    if (xtea_encrypt(packet->data, packet->length, (uint32_t *)CSP_CRYPTO_KEY, iv) != 0) {
+    	/* Encryption failed */
+		csp_debug(CSP_WARN, "Encryption failed! Discarding packet\r\n");
+		csp_buffer_free(packet);
+		return 0;
+    }
+#endif
+
+#if CSP_ENABLE_HMAC
+    /* Calculate and add HMAC */
+	if (hmac_append(packet, (uint8_t *)CSP_CRYPTO_KEY, CSP_CRYPTO_KEY_LENGTH) != 0) {
+		/* HMAC append failed */
+		csp_debug(CSP_WARN, "HMAC append failed!\r\n");
+		csp_buffer_free(packet);
+		return 0;
+	}
 #endif
 
 	return (*ifout->nexthop)(idout, packet, timeout);

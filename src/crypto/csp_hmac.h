@@ -23,6 +23,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <stdint.h>
 
-/* TODO: Implement HMAC */
+#define CSP_HMAC_LENGTH	2
+
+int hmac_append(csp_packet_t * packet, uint8_t * key, uint32_t klen);
+int hmac_verify(csp_packet_t * packet, uint8_t * key, uint32_t klen);
 
 #endif // _CSP_HMAC_H_

@@ -23,6 +23,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <stdint.h>
 
-void sha1sum(uint8_t * msg, uint32_t len, uint8_t * hash);
+#define SHA1_DIGESTSIZE	20
+
+void sha1_hash(uint8_t * msg, uint32_t len, uint8_t * hash);
+void sha1_hash_buffers(uint8_t * msg[], uint32_t len[], uint32_t buffers, uint8_t * hash);
 
 #endif // _CSP_SHA1_H_

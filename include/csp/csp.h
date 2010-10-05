@@ -78,23 +78,27 @@ extern uint8_t my_address;
 #define CSP_ID_PRIO_SIZE		3
 #define CSP_ID_HOST_SIZE		4
 #define CSP_ID_PORT_SIZE		5
-#define CSP_ID_PHYS_SIZE		8
+#define CSP_ID_FLAGS_SIZE		8
+
+#if CSP_ID_PROTOCOL_SIZE + CSP_ID_PRIO_SIZE + 2 * CSP_ID_HOST_SIZE + 2 * CSP_ID_PORT_SIZE + CSP_ID_FLAGS_SIZE != 32 && __GNUC__
+#error "Header lenght must be 32 bits"
+#endif
 
 /** Highest number to be entered in field */
-#define CSP_ID_PROTOCOL_MAX		((1 << (CSP_ID_PROTOCOL_SIZE))-1)
-#define CSP_ID_PRIO_MAX			((1 << (CSP_ID_PRIO_SIZE))-1)
-#define CSP_ID_HOST_MAX			((1 << (CSP_ID_HOST_SIZE))-1)
-#define CSP_ID_PORT_MAX			((1 << (CSP_ID_PORT_SIZE))-1)
-#define CSP_ID_PHYS_MAX			((1 << (CSP_ID_PHYS_SIZE))-1)
+#define CSP_ID_PROTOCOL_MAX		((1 << (CSP_ID_PROTOCOL_SIZE)) - 1)
+#define CSP_ID_PRIO_MAX			((1 << (CSP_ID_PRIO_SIZE)) - 1)
+#define CSP_ID_HOST_MAX			((1 << (CSP_ID_HOST_SIZE)) - 1)
+#define CSP_ID_PORT_MAX			((1 << (CSP_ID_PORT_SIZE)) - 1)
+#define CSP_ID_FLAGS_MAX		((1 << (CSP_ID_FLAGS_SIZE)) - 1)
 
 /** Identifier field masks */
-#define CSP_ID_PROTOCOL_MASK	((uint32_t) CSP_ID_PROTOCOL_MAX 	<< (CSP_ID_PHYS_SIZE + 2 * CSP_ID_PORT_SIZE + 2 * CSP_ID_HOST_SIZE + CSP_ID_PROTOCOL_SIZE))
-#define CSP_ID_PRIO_MASK    	((uint32_t) CSP_ID_PRIO_MAX 		<< (CSP_ID_PHYS_SIZE + 2 * CSP_ID_PORT_SIZE + 2 * CSP_ID_HOST_SIZE))
-#define CSP_ID_SRC_MASK     	((uint32_t) CSP_ID_HOST_MAX 		<< (CSP_ID_PHYS_SIZE + 2 * CSP_ID_PORT_SIZE + 1 * CSP_ID_HOST_SIZE))
-#define CSP_ID_DST_MASK     	((uint32_t) CSP_ID_HOST_MAX 		<< (CSP_ID_PHYS_SIZE + 2 * CSP_ID_PORT_SIZE))
-#define CSP_ID_DPORT_MASK   	((uint32_t) CSP_ID_PORT_MAX 		<< (CSP_ID_PHYS_SIZE + 1 * CSP_ID_PORT_SIZE))
-#define CSP_ID_SPORT_MASK   	((uint32_t) CSP_ID_PORT_MAX 		<< (CSP_ID_PHYS_SIZE))
-#define CSP_ID_PHYS_MASK    	((uint32_t) CSP_ID_PHYS_MAX 		<< (0))
+#define CSP_ID_PROTOCOL_MASK	((uint32_t) CSP_ID_PROTOCOL_MAX	<< (CSP_ID_FLAGS_SIZE + 2 * CSP_ID_PORT_SIZE + 2 * CSP_ID_HOST_SIZE + CSP_ID_PROTOCOL_SIZE))
+#define CSP_ID_PRIO_MASK    	((uint32_t) CSP_ID_PRIO_MAX 	<< (CSP_ID_FLAGS_SIZE + 2 * CSP_ID_PORT_SIZE + 2 * CSP_ID_HOST_SIZE))
+#define CSP_ID_SRC_MASK     	((uint32_t) CSP_ID_HOST_MAX 	<< (CSP_ID_FLAGS_SIZE + 2 * CSP_ID_PORT_SIZE + 1 * CSP_ID_HOST_SIZE))
+#define CSP_ID_DST_MASK     	((uint32_t) CSP_ID_HOST_MAX 	<< (CSP_ID_FLAGS_SIZE + 2 * CSP_ID_PORT_SIZE))
+#define CSP_ID_DPORT_MASK   	((uint32_t) CSP_ID_PORT_MAX 	<< (CSP_ID_FLAGS_SIZE + 1 * CSP_ID_PORT_SIZE))
+#define CSP_ID_SPORT_MASK   	((uint32_t) CSP_ID_PORT_MAX 	<< (CSP_ID_FLAGS_SIZE))
+#define CSP_ID_FLAGS_MASK    	((uint32_t) CSP_ID_FLAGS_MAX 	<< (0))
 
 #define CSP_ID_CONN_MASK		(CSP_ID_SRC_MASK | CSP_ID_DST_MASK | CSP_ID_DPORT_MASK | CSP_ID_SPORT_MASK)
 
@@ -113,11 +117,11 @@ typedef union {
     unsigned int dst		: CSP_ID_HOST_SIZE;
     unsigned int dport		: CSP_ID_PORT_SIZE;
     unsigned int sport		: CSP_ID_PORT_SIZE;
-    unsigned int phys		: CSP_ID_PHYS_SIZE;
+    unsigned int flags		: CSP_ID_FLAGS_SIZE;
 
 #elif defined(_CSP_LITTLE_ENDIAN_) && !defined(_CSP_BIG_ENDIAN_)
 
-    unsigned int phys		: CSP_ID_PHYS_SIZE;
+    unsigned int flags		: CSP_ID_FLAGS_SIZE;
     unsigned int sport		: CSP_ID_PORT_SIZE;
     unsigned int dport		: CSP_ID_PORT_SIZE;
     unsigned int dst		: CSP_ID_HOST_SIZE;
@@ -140,6 +144,10 @@ typedef union {
 /** Default routing address */
 #define CSP_DEFAULT_ROUTE	(CSP_ID_HOST_MAX + 1)
 
+/** CSP Flags */
+#define CSP_FHMAC 0x08 // Enable HMAC verification/generation
+#define CSP_FXTEA 0x04 // Enable XTEA encryption/decryption
+
 /**
  * CSP PACKET STRUCTURE
  * Note: This structure is constructed to fit
@@ -147,7 +155,7 @@ typedef union {
  * have buffer reuse
  */
 typedef struct __attribute__((__packed__)) {
-    uint8_t padding[44];       // Interface dependent padding
+    uint8_t padding[44];       	// Interface dependent padding
     uint16_t length;            // Length field must be just before CSP ID
     csp_id_t id;                // CSP id must be just before data
     union {

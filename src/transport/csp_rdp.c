@@ -118,6 +118,10 @@ static int rdp_lock_init = 0;
 
 static int inline csp_rdp_wait(unsigned int timeout, csp_conn_t * conn) {
 
+	/* The usual null pointer checking */
+	if ((conn == NULL) || (conn->l4data == NULL))
+		return 0;
+
 	/* Init semaphore */
 	if (rdp_lock_init == 0) {
 		csp_bin_sem_create(&rdp_lock);
@@ -130,21 +134,17 @@ static int inline csp_rdp_wait(unsigned int timeout, csp_conn_t * conn) {
 		return 0;
 	}
 
-	/* The usual null pointer checking :P */
-	if ((conn == NULL) || (conn->l4data == NULL)) {
-		csp_bin_sem_post(&rdp_lock);
-		return 0;
-	}
-
 	return 1;
 
 }
 
 static void inline csp_rdp_release(void) {
+
 	if (rdp_lock_init == 1)
 		csp_bin_sem_post(&rdp_lock);
 	else
 		csp_debug(CSP_ERROR, "Attempt to release uninitialized RDP lock\r\n");
+
 }
 
 /**
@@ -169,18 +169,6 @@ static rdp_header_t * csp_rdp_header_ref(csp_packet_t * packet) {
 	rdp_header_t * header = (rdp_header_t *) &packet->data[packet->length-sizeof(rdp_header_t)];
 	return header;
 }
-
-#if CSP_DELAY_ACKS
-/**
- * RDP Update ACK timestamp
- * Updates timestamp for last ACK to current time
- */
-void csp_rdp_update_ack(csp_conn_t * conn) {
-
-	conn->l4data->ack_timestamp = csp_get_ms();
-
-}
-#endif
 
 /**
  * CONTROL MESSAGES
@@ -228,7 +216,7 @@ static int csp_rdp_send_cmp(csp_conn_t * conn, csp_packet_t * packet, int ack, i
 	/* Update last ACK time stamp */
 	if (ack) {
 		conn->l4data->rcv_lsa = ack_nr;
-		csp_rdp_update_ack(conn);
+		conn->l4data->ack_timestamp = csp_get_ms();
 	}
 #endif
 
@@ -934,7 +922,7 @@ int csp_rdp_send(csp_conn_t * conn, csp_packet_t * packet, unsigned int timeout)
 	csp_debug(CSP_PROTOCOL, "RDP: SEND SEQ %u\r\n", conn->l4data->snd_nxt);
 
 	/* If TX window is full, wait here */
-	if (conn->l4data->snd_nxt - conn->l4data->snd_una + 1 > conn->l4data->window_size) {
+	if (conn->l4data->snd_nxt - conn->l4data->snd_una + 1 >= conn->l4data->window_size) {
 		/* Release, and wait for stack to complete TX */
 		csp_rdp_release();
 		csp_bin_sem_wait(&conn->l4data->tx_wait, 0);
