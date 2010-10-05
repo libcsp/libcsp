@@ -121,27 +121,6 @@ csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 				packet->id.pri, packet->id.src, packet->id.dst, packet->id.dport,
 				packet->id.sport);
 
-#if CSP_ENABLE_HMAC
-		/* Verify HMAC */
-		if (hmac_verify(packet, (uint8_t *)CSP_CRYPTO_KEY, CSP_CRYPTO_KEY_LENGTH) != 0) {
-			/* HMAC failed */
-			csp_debug(CSP_WARN, "HMAC verification error! Discarding packet\r\n");
-			csp_buffer_free(packet);
-			return;
-		}
-#endif
-
-#if CSP_ENABLE_XTEA
-		/* Decrypt data */
-		uint32_t iv[2] = {42, 1}; // Dummy IV
-		if (xtea_decrypt(packet->data, packet->length, (uint32_t *)CSP_CRYPTO_KEY, iv) != 0) {
-			/* Decryption failed */
-			csp_debug(CSP_WARN, "Decryption failed! Discarding packet\r\n");
-			csp_buffer_free(packet);
-			return;
-		}
-#endif
-
 		/* Here there be promiscous mode */
 #if CSP_USE_PROMISC
 		csp_promisc_add(packet, csp_promisc_queue);
@@ -236,6 +215,31 @@ csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 			conn->rx_socket = queue;
 
 		}
+
+#if CSP_ENABLE_HMAC
+		if (packet->id.flags & CSP_FHMAC) {
+			/* Verify HMAC */
+			if (hmac_verify(packet, (uint8_t *)CSP_CRYPTO_KEY, CSP_CRYPTO_KEY_LENGTH) != 0) {
+				/* HMAC failed */
+				csp_debug(CSP_WARN, "HMAC verification error! Discarding packet\r\n");
+				csp_buffer_free(packet);
+				return;
+			}
+		}
+#endif
+
+#if CSP_ENABLE_XTEA
+		if (packet->id.flags & CSP_FXTEA) {
+			/* Decrypt data */
+			uint32_t iv[2] = {42, 1}; // Dummy IV
+			if (xtea_decrypt(packet->data, packet->length, (uint32_t *)CSP_CRYPTO_KEY, iv) != 0) {
+				/* Decryption failed */
+				csp_debug(CSP_WARN, "Decryption failed! Discarding packet\r\n");
+				csp_buffer_free(packet);
+				return;
+			}
+		}
+#endif
 
 		/* Pass packet to the right transport module */
 		switch(packet->id.protocol) {

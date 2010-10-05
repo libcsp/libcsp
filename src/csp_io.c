@@ -158,24 +158,30 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, unsigned int timeout)
 #endif
 
 #if CSP_ENABLE_XTEA
-	/* Encrypt data */
-    uint32_t iv[2] = {42, 1}; // Dummy IV
-    if (xtea_encrypt(packet->data, packet->length, (uint32_t *)CSP_CRYPTO_KEY, iv) != 0) {
-    	/* Encryption failed */
-		csp_debug(CSP_WARN, "Encryption failed! Discarding packet\r\n");
-		csp_buffer_free(packet);
-		return 0;
+    /* Only encrypt packets initiating from the current node */
+    if (idout.src == my_address && (idout.flags & CSP_FXTEA)) {
+		/* Encrypt data */
+		uint32_t iv[2] = {42, 1}; // Dummy IV
+		if (xtea_encrypt(packet->data, packet->length, (uint32_t *)CSP_CRYPTO_KEY, iv) != 0) {
+			/* Encryption failed */
+			csp_debug(CSP_WARN, "Encryption failed! Discarding packet\r\n");
+			csp_buffer_free(packet);
+			return 0;
+		}
     }
 #endif
 
 #if CSP_ENABLE_HMAC
-    /* Calculate and add HMAC */
-	if (hmac_append(packet, (uint8_t *)CSP_CRYPTO_KEY, CSP_CRYPTO_KEY_LENGTH) != 0) {
-		/* HMAC append failed */
-		csp_debug(CSP_WARN, "HMAC append failed!\r\n");
-		csp_buffer_free(packet);
-		return 0;
-	}
+    /* Only append HMAC to packets initiating from the current node */
+    if (idout.src == my_address && (idout.flags & CSP_FHMAC)) {
+		/* Calculate and add HMAC */
+		if (hmac_append(packet, (uint8_t *)CSP_CRYPTO_KEY, CSP_CRYPTO_KEY_LENGTH) != 0) {
+			/* HMAC append failed */
+			csp_debug(CSP_WARN, "HMAC append failed!\r\n");
+			csp_buffer_free(packet);
+			return 0;
+		}
+    }
 #endif
 
 	return (*ifout->nexthop)(idout, packet, timeout);
@@ -189,7 +195,7 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, unsigned int timeout)
  * @param timeout a timeout to wait for TX to complete. NOTE: not all underlying drivers supports flow-control.
  * @return returns 1 if successful and 0 otherwise. you MUST free the frame yourself if the transmission was not successful.
  */
-int csp_send(csp_conn_t* conn, csp_packet_t * packet, unsigned int timeout) {
+int csp_send(csp_conn_t * conn, csp_packet_t * packet, unsigned int timeout) {
 
 	if ((conn == NULL) || (packet == NULL) || (conn->state != CONN_OPEN)) {
 		csp_debug(CSP_ERROR, "Invalid call to csp_send\r\n");
@@ -202,6 +208,8 @@ int csp_send(csp_conn_t* conn, csp_packet_t * packet, unsigned int timeout) {
 	switch(conn->idout.protocol) {
 	case CSP_RDP:
 		result = csp_rdp_send(conn, packet, timeout);
+		break;
+	default:
 		break;
 	}
 	if (result == 0) {
@@ -297,5 +305,19 @@ int csp_transaction(uint8_t prio, uint8_t dest, uint8_t port, unsigned int timeo
 	csp_close(conn);
 
 	return status;
+
+}
+
+/**
+ * Set socket option
+ * @param socket Socket
+ * @return Returns 1 on success, 0 on failure
+ */
+int csp_setsockopt(csp_socket_t * socket, uint32_t opt, uint32_t value) {
+
+	if (socket == NULL)
+		return 0;
+	else
+		return 0;
 
 }

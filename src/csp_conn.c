@@ -264,6 +264,16 @@ csp_conn_t * csp_connect(csp_protocol_t protocol, uint8_t prio, uint8_t dest, ui
 	outgoing_id.src = my_address;
 	outgoing_id.dport = dport;
 	outgoing_id.protocol = protocol;
+
+#if CSP_ENABLE_HMAC
+	outgoing_id.flags |= CSP_FHMAC;
+	incoming_id.flags |= CSP_FHMAC;
+#endif
+
+#if CSP_ENABLE_XTEA
+	outgoing_id.flags |= CSP_FXTEA;
+	incoming_id.flags |= CSP_FXTEA;
+#endif
     
     /* Find an unused ephemeral port */
     csp_conn_t * conn;

@@ -96,11 +96,36 @@ enum csp_rdp_states {
 	RDP_CLOSE_WAIT,
 };
 
+#define RDP_COMP
+
 typedef struct __attribute__((__packed__)) rdp_header_s {
+#ifndef RDP_COMP
+	union {
+		uint8_t flags;
+		struct {
+#if defined(_CSP_BIG_ENDIAN_) && !defined(_CSP_LITTLE_ENDIAN_)
+			unsigned int res : 4;
+			unsigned int syn : 1;
+			unsigned int ack : 1;
+			unsigned int eak : 1;
+			unsigned int rst : 1;
+#elif defined(_CSP_LITTLE_ENDIAN_) && !defined(_CSP_BIG_ENDIAN_)
+			unsigned int rst : 1;
+			unsigned int eak : 1;
+			unsigned int ack : 1;
+			unsigned int syn : 1;
+			unsigned int res : 4;
+#else
+  #error "Must define one of _CSP_BIG_ENDIAN_ or _CSP_LITTLE_ENDIAN_ in csp_platform.h"
+#endif
+		};
+	};
+#else
 	uint8_t syn;
 	uint8_t ack;
 	uint8_t eak;
 	uint8_t rst;
+#endif
 	uint16_t seq_nr;
 	uint16_t ack_nr;
 } rdp_header_t;

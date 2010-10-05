@@ -148,6 +148,16 @@ typedef union {
 #define CSP_FHMAC 0x08 // Enable HMAC verification/generation
 #define CSP_FXTEA 0x04 // Enable XTEA encryption/decryption
 
+/** CSP Socket options */
+#define CSP_SO_RDPREQ 0x0001
+#define CSP_SO_HMACREQ 0x0002
+#define CSP_SO_XTEAREQ 0x0004
+
+/** CSP Connect options */
+#define CSP_O_RDP CSP_SO_RDPREQ
+#define CSP_O_HMAC CSP_SO_HMACREQ
+#define CSP_O_XTEA CSP_SO_XTEAREQ
+
 /**
  * CSP PACKET STRUCTURE
  * Note: This structure is constructed to fit
