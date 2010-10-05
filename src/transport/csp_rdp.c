@@ -97,7 +97,7 @@ enum csp_rdp_states {
 };
 
 typedef struct __attribute__((__packed__)) rdp_header_s {
-#ifndef CSP_RDP_COMP
+#if !CSP_RDP_COMP
 	union {
 		uint8_t flags;
 		struct {
