@@ -25,6 +25,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 /* CSP includes */
 #include <csp/csp.h>
+#include <csp/csp_endian.h>
 #include <csp/interfaces/csp_if_lo.h>
 
 #include "arch/csp_thread.h"
@@ -55,11 +56,14 @@ extern csp_queue_handle_t csp_promisc_queue;
  */
 void csp_init(unsigned char address) {
 
-    /* Initialize CAN */
+    /* Initialize CSP */
     my_address = address;
 	csp_conn_init();
 	csp_port_init();
 	csp_route_table_init();
+
+	/* Initialize random number generator */
+	srand(csp_get_ms());
 
 	/* Register loopback route */
 	csp_route_set("LOOP", address, csp_lo_tx, CSP_NODE_MAC);
@@ -160,14 +164,24 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, unsigned int timeout)
 #if CSP_ENABLE_XTEA
     /* Only encrypt packets initiating from the current node */
     if (idout.src == my_address && (idout.flags & CSP_FXTEA)) {
-		/* Encrypt data */
-		uint32_t iv[2] = {42, 1}; // Dummy IV
+    	/* Create nonce */
+    	uint32_t nonce, nonce_n;
+    	nonce = (uint32_t)rand();
+    	nonce_n = htonl(nonce);
+    	memcpy(&packet->data[packet->length], &nonce_n, sizeof(nonce_n));
+
+    	/* Create initialization vector */
+    	uint32_t iv[2] = {nonce, 1};
+
+    	/* Encrypt data */
 		if (xtea_encrypt(packet->data, packet->length, (uint32_t *)CSP_CRYPTO_KEY, iv) != 0) {
 			/* Encryption failed */
 			csp_debug(CSP_WARN, "Encryption failed! Discarding packet\r\n");
 			csp_buffer_free(packet);
 			return 0;
 		}
+
+		packet->length += sizeof(nonce_n);
     }
 #endif
 

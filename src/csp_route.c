@@ -25,6 +25,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 /* CSP includes */
 #include <csp/csp.h>
+#include <csp/csp_endian.h>
 #include <csp/csp_platform.h>
 
 #include "arch/csp_thread.h"
@@ -230,8 +231,16 @@ csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 
 #if CSP_ENABLE_XTEA
 		if (packet->id.flags & CSP_FXTEA) {
+			/* Read nonce */
+			uint32_t nonce;
+			memcpy(&nonce, &packet->data[packet->length - sizeof(nonce)], sizeof(nonce));
+			nonce = ntohl(nonce);
+			packet->length -= sizeof(nonce);
+
+			/* Create initialization vector */
+			uint32_t iv[2] = {nonce, 1};
+
 			/* Decrypt data */
-			uint32_t iv[2] = {42, 1}; // Dummy IV
 			if (xtea_decrypt(packet->data, packet->length, (uint32_t *)CSP_CRYPTO_KEY, iv) != 0) {
 				/* Decryption failed */
 				csp_debug(CSP_WARN, "Decryption failed! Discarding packet\r\n");
