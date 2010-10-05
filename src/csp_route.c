@@ -223,7 +223,7 @@ csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 				/* HMAC failed */
 				csp_debug(CSP_WARN, "HMAC verification error! Discarding packet\r\n");
 				csp_buffer_free(packet);
-				return;
+				continue;
 			}
 		}
 #endif
@@ -236,7 +236,7 @@ csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 				/* Decryption failed */
 				csp_debug(CSP_WARN, "Decryption failed! Discarding packet\r\n");
 				csp_buffer_free(packet);
-				return;
+				continue;
 			}
 		}
 #endif

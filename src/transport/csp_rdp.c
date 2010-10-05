@@ -96,8 +96,6 @@ enum csp_rdp_states {
 	RDP_CLOSE_WAIT,
 };
 
-#define RDP_COMP
-
 typedef struct __attribute__((__packed__)) rdp_header_s {
 #ifndef RDP_COMP
 	union {
