@@ -98,9 +98,9 @@ enum csp_rdp_states {
 
 typedef struct __attribute__((__packed__)) rdp_header_s {
 #if !CSP_RDP_COMP
-	union {
+	union __attribute__((__packed__)) {
 		uint8_t flags;
-		struct {
+		struct __attribute__((__packed__)) {
 #if defined(_CSP_BIG_ENDIAN_) && !defined(_CSP_LITTLE_ENDIAN_)
 			unsigned int res : 4;
 			unsigned int syn : 1;
