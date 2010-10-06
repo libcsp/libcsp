@@ -72,13 +72,29 @@ void csp_init(unsigned char address) {
 
 /** csp_socket
  * Create CSP socket endpoint
+ * @param opts Socket options
+ * @return Pointer to socket on success, NULL on failure
  */
-csp_socket_t * csp_socket(void) {
+csp_socket_t * csp_socket(uint32_t opts) {
     
-    // Use CSP buffers instead?
+    /* Validate socket options */
+	if ((opts & CSP_SO_RDPREQ) && !CSP_USE_RDP) {
+		csp_debug(CSP_ERROR, "Attempt to create socket that requires RDP, but CSP was compiled without RDP support\r\n");
+		return NULL;
+	} else if ((opts & CSP_SO_XTEAREQ) && !CSP_ENABLE_XTEA) {
+		csp_debug(CSP_ERROR, "Attempt to create socket that requires XTEA, but CSP was compiled without XTEA support\r\n");
+		return NULL;
+	} else if ((opts & CSP_SO_HMACREQ) && !CSP_ENABLE_HMAC) {
+		csp_debug(CSP_ERROR, "Attempt to create socket that requires XTEA, but CSP was compiled without XTEA support\r\n");
+		return NULL;
+	}
+
+	/* Use CSP buffers instead? */
     csp_socket_t * sock = csp_malloc(sizeof(csp_socket_t));
-    if (sock != NULL)
+    if (sock != NULL) {
         sock->conn_queue = NULL;
+        sock->opts = opts;
+    }
 
     return sock;
 
@@ -161,9 +177,9 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, unsigned int timeout)
     }
 #endif
 
-#if CSP_ENABLE_XTEA
-    /* Only encrypt packets initiating from the current node */
+    /* Only encrypt packets from the current node */
     if (idout.src == my_address && (idout.flags & CSP_FXTEA)) {
+#if CSP_ENABLE_XTEA
     	/* Create nonce */
     	uint32_t nonce, nonce_n;
     	nonce = (uint32_t)rand();
@@ -182,12 +198,15 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, unsigned int timeout)
 		}
 
 		packet->length += sizeof(nonce_n);
-    }
+#else
+		csp_debug(CSP_WARN, "Attempt to send XTEA encrypted packet, but CSP was compiled without XTEA support. Discarding packet\r\n");
+		return 0;
 #endif
+    }
 
-#if CSP_ENABLE_HMAC
-    /* Only append HMAC to packets initiating from the current node */
+    /* Only append HMAC to packets from the current node */
     if (idout.src == my_address && (idout.flags & CSP_FHMAC)) {
+#if CSP_ENABLE_HMAC
 		/* Calculate and add HMAC */
 		if (hmac_append(packet, (uint8_t *)CSP_CRYPTO_KEY, CSP_CRYPTO_KEY_LENGTH) != 0) {
 			/* HMAC append failed */
@@ -195,8 +214,11 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, unsigned int timeout)
 			csp_buffer_free(packet);
 			return 0;
 		}
-    }
+#else
+		csp_debug(CSP_WARN, "Attempt to send packet with HMAC, but CSP was compiled without HMAC support. Discarding packet\r\n");
+		return 0;
 #endif
+    }
 
 	return (*ifout->nexthop)(idout, packet, timeout);
 
@@ -310,7 +332,7 @@ int csp_transaction_persistent(csp_conn_t * conn, unsigned int timeout, void * o
  */
 int csp_transaction(uint8_t prio, uint8_t dest, uint8_t port, unsigned int timeout, void * outbuf, int outlen, void * inbuf, int inlen) {
 
-	csp_conn_t * conn = csp_connect(CSP_UDP, prio, dest, port, 0);
+	csp_conn_t * conn = csp_connect(prio, dest, port, 0, 0);
 	if (conn == NULL)
 		return 0;
 
@@ -319,19 +341,5 @@ int csp_transaction(uint8_t prio, uint8_t dest, uint8_t port, unsigned int timeo
 	csp_close(conn);
 
 	return status;
-
-}
-
-/**
- * Set socket option
- * @param socket Socket
- * @return Returns 1 on success, 0 on failure
- */
-int csp_setsockopt(csp_socket_t * socket, uint32_t opt, uint32_t value) {
-
-	if (socket == NULL)
-		return 0;
-	else
-		return 0;
 
 }

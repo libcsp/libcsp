@@ -241,38 +241,67 @@ void csp_close(csp_conn_t * conn) {
  * This function searches the port table for free slots and finds an unused
  * connection from the connection pool
  * There is no handshake in the CSP protocol
+ * @param prio Connection priority.
+ * @param dest Destination address.
+ * @param dport Destination port.
+ * @param timeout Timeout in ms.
+ * @param opts Connection options.
  * @return a pointer to a new connection or NULL
  */
-csp_conn_t * csp_connect(csp_protocol_t protocol, uint8_t prio, uint8_t dest, uint8_t dport, unsigned int timeout) {
+csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport, unsigned int timeout, uint32_t opts) {
 
 #if CSP_RANDOMIZE_EPHEM
 	uint8_t sport = (rand() % (CSP_ID_PORT_MAX - CSP_MAX_BIND_PORT)) + (CSP_MAX_BIND_PORT + 1);
 #else
 	static uint8_t sport = CSP_MAX_BIND_PORT + 1;
 #endif
-    
+
 	/* Generate identifier */
 	csp_id_t incoming_id, outgoing_id;
 	incoming_id.pri = prio;
 	incoming_id.dst = my_address;
 	incoming_id.src = dest;
 	incoming_id.sport = dport;
-	incoming_id.protocol = protocol;
+	incoming_id.flags = 0;
 	outgoing_id.pri = prio;
 	outgoing_id.dst = dest;
 	outgoing_id.src = my_address;
 	outgoing_id.dport = dport;
-	outgoing_id.protocol = protocol;
+	outgoing_id.flags = 0;
 
+	/* Set connection options */
+	if (opts & CSP_O_RDP) {
+#if CSP_USE_RDP
+		incoming_id.protocol = CSP_RDP;
+		outgoing_id.protocol = CSP_RDP;
+#else
+		csp_debug(CSP_ERROR, "Attempt to create RDP connection, but CSP was compiled without RDP support\r\n");
+		return NULL;
+#endif
+	} else {
+		incoming_id.protocol = CSP_UDP;
+		outgoing_id.protocol = CSP_UDP;
+	}
+
+	if (opts & CSP_O_HMAC) {
 #if CSP_ENABLE_HMAC
-	outgoing_id.flags |= CSP_FHMAC;
-	incoming_id.flags |= CSP_FHMAC;
+		outgoing_id.flags |= CSP_FHMAC;
+		incoming_id.flags |= CSP_FHMAC;
+#else
+		csp_debug(CSP_ERROR, "Attempt to create HMAC authenticated connection, but CSP was compiled without HMAC support\r\n");
+		return NULL;
 #endif
+	}
 
+	if (opts & CSP_O_XTEA) {
 #if CSP_ENABLE_XTEA
-	outgoing_id.flags |= CSP_FXTEA;
-	incoming_id.flags |= CSP_FXTEA;
+		outgoing_id.flags |= CSP_FXTEA;
+		incoming_id.flags |= CSP_FXTEA;
+#else
+		csp_debug(CSP_ERROR, "Attempt to create XTEA encrypted connection, but CSP was compiled without XTEA support\r\n");
+		return NULL;
 #endif
+	}
     
     /* Find an unused ephemeral port */
     csp_conn_t * conn;
@@ -303,10 +332,13 @@ csp_conn_t * csp_connect(csp_protocol_t protocol, uint8_t prio, uint8_t dest, ui
     if (conn == NULL)
     	return NULL;
 
+    /* Set connection options */
+    conn->conn_opts = opts;
+
     /* Call Transport Layer connect */
     int result = 1;
 #if CSP_USE_RDP
-    switch(protocol) {
+    switch(outgoing_id.protocol) {
     case CSP_RDP:
     	result = csp_rdp_connect_active(conn, timeout);
     	break;

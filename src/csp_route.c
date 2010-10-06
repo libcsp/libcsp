@@ -88,7 +88,7 @@ csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 	csp_packet_t * packet;
 	csp_conn_t * conn;
 	
-	csp_queue_handle_t queue = NULL;
+	csp_socket_t * socket = NULL;
 	csp_iface_t * dst;
 
 	/* Create fallback socket  */
@@ -122,7 +122,7 @@ csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 				packet->id.pri, packet->id.src, packet->id.dst, packet->id.dport,
 				packet->id.sport);
 
-		/* Here there be promiscous mode */
+		/* Here there be promiscuous mode */
 #if CSP_USE_PROMISC
 		csp_promisc_add(packet, csp_promisc_queue);
 #endif
@@ -177,11 +177,11 @@ csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
     
 			/* Try to deliver to incoming port number */
 			if (ports[packet->id.dport].state == PORT_OPEN) {
-				queue = ports[packet->id.dport].socket->conn_queue;
+				socket = ports[packet->id.dport].socket;
 
 			/* Otherwise, try local "catch all" port number */
 			} else if (ports[CSP_ANY].state == PORT_OPEN) {
-				queue = ports[CSP_ANY].socket->conn_queue;
+				socket = ports[CSP_ANY].socket;
 
 			/* Or reject */
 			} else {
@@ -196,6 +196,7 @@ csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 			idout.dport = packet->id.sport;
 			idout.sport = packet->id.dport;
 			idout.protocol = packet->id.protocol;
+			idout.flags = packet->id.flags;
 
 			/* Ensure a broadcast packet is replied from correct source address */
 			if (packet->id.dst == CSP_BROADCAST_ADDR) {
@@ -213,24 +214,35 @@ csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 			}
 
 			/* Store the queue to be posted to */
-			conn->rx_socket = queue;
+			conn->rx_socket = socket->conn_queue;
+
+			/* Store connection options */
+			conn->conn_opts = socket->opts;
 
 		}
 
-#if CSP_ENABLE_HMAC
 		if (packet->id.flags & CSP_FHMAC) {
+#if CSP_ENABLE_HMAC
 			/* Verify HMAC */
 			if (hmac_verify(packet, (uint8_t *)CSP_CRYPTO_KEY, CSP_CRYPTO_KEY_LENGTH) != 0) {
 				/* HMAC failed */
-				csp_debug(CSP_WARN, "HMAC verification error! Discarding packet\r\n");
+				csp_debug(CSP_ERROR, "HMAC verification error! Discarding packet\r\n");
 				csp_buffer_free(packet);
 				continue;
 			}
-		}
+		} else if (conn->conn_opts & CSP_SO_HMACREQ) {
+			csp_debug(CSP_WARN, "Received packet without HMAC. Discarding packet\r\n", conn);
+			csp_buffer_free(packet);
+			continue;
+#else
+			csp_debug(CSP_ERROR, "Received packet with HMAC, but CSP was compiled without HMAC support. Discarding packet\r\n");
+			csp_buffer_free(packet);
+			continue;
 #endif
+		}
 
-#if CSP_ENABLE_XTEA
 		if (packet->id.flags & CSP_FXTEA) {
+#if CSP_ENABLE_XTEA
 			/* Read nonce */
 			uint32_t nonce;
 			memcpy(&nonce, &packet->data[packet->length - sizeof(nonce)], sizeof(nonce));
@@ -243,12 +255,20 @@ csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 			/* Decrypt data */
 			if (xtea_decrypt(packet->data, packet->length, (uint32_t *)CSP_CRYPTO_KEY, iv) != 0) {
 				/* Decryption failed */
-				csp_debug(CSP_WARN, "Decryption failed! Discarding packet\r\n");
+				csp_debug(CSP_ERROR, "Decryption failed! Discarding packet\r\n");
 				csp_buffer_free(packet);
 				continue;
 			}
-		}
+		} else if (conn->conn_opts & CSP_SO_XTEAREQ) {
+			csp_debug(CSP_WARN, "Received packet without XTEA encryption. Discarding packet\r\n", conn);
+			csp_buffer_free(packet);
+			continue;
+#else
+			csp_debug(CSP_ERROR, "Received XTEA encrypted packet, but CSP was compiled without XTEA support. Discarding packet\r\n");
+			csp_buffer_free(packet);
+			continue;
 #endif
+		}
 
 		/* Pass packet to the right transport module */
 		switch(packet->id.protocol) {
@@ -258,9 +278,15 @@ csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 			break;
 #endif
 		case CSP_UDP:
+			if (conn->conn_opts & CSP_SO_RDPREQ) {
+				csp_debug(CSP_WARN, "Received packet without RDP header. Discarding packet\r\n", conn);
+				csp_buffer_free(packet);
+				continue;
+			}
 			csp_udp_new_packet(conn, packet);
 			break;
 		default:
+			csp_debug(CSP_ERROR, "No matching protocol found. Discarding packet\r\n");
 			csp_buffer_free(packet);
 			break;
 		}

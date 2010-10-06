@@ -68,7 +68,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #define CSP_BUFFER_USED			1
 
 /* Crypto config */
-#define CSP_ENABLE_SHA1			0		// Enable SHA1 hash function
 #define CSP_ENABLE_HMAC			0		// Enable Hash-based Message Authentication Code
 #define CSP_ENABLE_XTEA			0		// Enabel XTEA packet encryption
 

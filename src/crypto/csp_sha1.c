@@ -29,7 +29,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "csp_sha1.h"
 
-#if CSP_ENABLE_SHA1
+#if CSP_ENABLE_HMAC
 
 /* The SHA1 block size and message digest sizes, in bytes */
 #define SHA1_BLOCKSIZE	64
@@ -259,4 +259,4 @@ void sha1_hash_buffers(uint8_t * msg[], uint32_t len[], uint32_t buffers, uint8_
 
 }
 
-#endif // CSP_ENABLE_SHA1
+#endif // CSP_ENABLE_HMAC

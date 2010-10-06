@@ -44,11 +44,13 @@ struct csp_conn_s {
     csp_queue_handle_t rx_socket;	// Socket to be "woken" when first packet is ready
     csp_l4data_t * l4data;			// Pointer to a layer4 info area (Opaque pointer)
     uint32_t open_timestamp;		// Time the connection was opened
+    uint32_t conn_opts;				// Connection options
 };
 
 /** @brief Socket struct */
 struct csp_socket_s {
-    csp_queue_handle_t conn_queue;
+    csp_queue_handle_t conn_queue;	// Connection queue handle
+    uint32_t opts;					// Socket options
 };
 
 void csp_conn_init(void);

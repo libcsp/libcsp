@@ -145,18 +145,20 @@ typedef union {
 #define CSP_DEFAULT_ROUTE	(CSP_ID_HOST_MAX + 1)
 
 /** CSP Flags */
-#define CSP_FHMAC 0x08 // Enable HMAC verification/generation
-#define CSP_FXTEA 0x04 // Enable XTEA encryption/decryption
+#define CSP_FHMAC 				0x08 // Enable HMAC verification/generation
+#define CSP_FXTEA 				0x04 // Enable XTEA encryption/decryption
+#define CSP_FRES1 				0x02 // Reserved for future use
+#define CSP_FRES2 				0x01 // Reserved for future use
 
 /** CSP Socket options */
-#define CSP_SO_RDPREQ 0x0001
-#define CSP_SO_HMACREQ 0x0002
-#define CSP_SO_XTEAREQ 0x0004
+#define CSP_SO_RDPREQ  			0x0001
+#define CSP_SO_HMACREQ 			0x0002
+#define CSP_SO_XTEAREQ 			0x0004
 
 /** CSP Connect options */
-#define CSP_O_RDP CSP_SO_RDPREQ
-#define CSP_O_HMAC CSP_SO_HMACREQ
-#define CSP_O_XTEA CSP_SO_XTEAREQ
+#define CSP_O_RDP  				CSP_SO_RDPREQ
+#define CSP_O_HMAC 				CSP_SO_HMACREQ
+#define CSP_O_XTEA 				CSP_SO_XTEAREQ
 
 /**
  * CSP PACKET STRUCTURE
@@ -188,7 +190,7 @@ typedef struct csp_l4data_s csp_l4data_t;
 
 /* Implemented in csp_io.c */
 void csp_init(uint8_t my_node_address);
-csp_socket_t * csp_socket();
+csp_socket_t * csp_socket(uint32_t opts);
 csp_conn_t * csp_accept(csp_socket_t * socket, unsigned int timeout);
 csp_packet_t * csp_read(csp_conn_t * conn, unsigned int timeout);
 int csp_send(csp_conn_t * conn, csp_packet_t * packet, unsigned int timeout);
@@ -196,7 +198,7 @@ int csp_transaction(uint8_t prio, uint8_t dest, uint8_t port, unsigned int timeo
 int csp_transaction_persistent(csp_conn_t * conn, unsigned int timeout, void * outbuf, int outlen, void * inbuf, int inlen);
 
 /* Implemented in csp_conn.c */
-csp_conn_t * csp_connect(csp_protocol_t protocol, uint8_t prio, uint8_t dest, uint8_t port, unsigned int timeout);
+csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport, unsigned int timeout, uint32_t opts);
 void csp_close(csp_conn_t * conn);
 int csp_conn_dport(csp_conn_t * conn);
 int csp_conn_sport(csp_conn_t * conn);
