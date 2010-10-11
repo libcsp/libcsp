@@ -118,9 +118,9 @@ csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 			continue;
 		}
 
-		csp_debug(CSP_PACKET, "Router input: P 0x%02X, S 0x%02X, D 0x%02X, Dp 0x%02X, Sp 0x%02X\r\n",
+		csp_debug(CSP_PACKET, "Router input: P 0x%02X, S 0x%02X, D 0x%02X, Dp 0x%02X, Sp 0x%02X, F 0x%02X\r\n",
 				packet->id.pri, packet->id.src, packet->id.dst, packet->id.dport,
-				packet->id.sport);
+				packet->id.sport, packet->id.flags);
 
 		/* Here there be promiscuous mode */
 #if CSP_USE_PROMISC
