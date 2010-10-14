@@ -29,6 +29,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "csp_platform.h"
 #include "csp_config.h"
 
+/* todo: move this include to the files that actually use them */
+#include "csp_buffer.h"
+
 /**
  * RESERVED PORTS (SERVICES)
  */
@@ -228,43 +231,6 @@ void csp_reboot(uint8_t node);
 
 /* Implemented in csp_rdp.c */
 void csp_rdp_set_opt(unsigned int window_size, unsigned int conn_timeout_ms, unsigned int packet_timeout_ms);
-
-/**
- * Start the buffer handling system
- * You must specify the number for buffers and the size. All buffers are fixed
- * size so you must specify the size of your largest buffer. The standard for
- * GomSpace network library is 310 bytes.
- *
- * @param count: Number of buffers to allocate
- * @param size: Buffer size in bytes.
- *
- * @return 0 if malloc() failed, 1 if sucessful.
- */
-int csp_buffer_init(int count, int size);
-
-/**
- * Get a reference to a free buffer. This call is both interrupt and thread
- * safe. This function is similar to malloc()
- *
- * @param size: Specify what data-size you will put in the buffer
- * @return NULL if size is larger than buffer-block-sizse, pointer otherwise.
- */
-void * csp_buffer_get(size_t size);
-void * csp_buffer_get_isr(size_t buf_size);
-
-/**
- * Free a buffer after use. This call is both interrupt and thread safe.
- * This function is similar to free()
- *
- * @param pointer to memory area, must be aquired by csp_buffer_get().
- */
-void csp_buffer_free(void * packet);
-
-/**
- * Return how many buffers that are currently free.
- * @return number of free buffers
- */
-int csp_buffer_remaining(void);
 
 /* CSP debug printf - implemented in arch/x/csp_debug.c */
 typedef enum csp_debug_level_e {
