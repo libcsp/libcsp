@@ -21,6 +21,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef _CSP_THREAD_H_
 #define _CSP_THREAD_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>
 #include <csp/csp.h>
 
@@ -50,5 +54,9 @@ typedef void csp_thread_return_t;
 #endif // _CSP_FREERTOS_
 
 int csp_thread_create(csp_thread_return_t (* routine)(void *), const signed char * const thread_name, unsigned short stack_depth, void * parameters, unsigned int priority, csp_thread_handle_t * handle);
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif // _CSP_THREAD_H_

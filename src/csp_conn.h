@@ -21,6 +21,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef _CSP_CONN_H_
 #define _CSP_CONN_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>
 
 #include <csp/csp.h>
@@ -58,5 +62,9 @@ csp_conn_t * csp_conn_find(uint32_t id, uint32_t mask);
 csp_conn_t * csp_conn_new(csp_id_t idin, csp_id_t idout);
 void csp_close_wait(csp_conn_t * conn);
 void csp_conn_check_timeouts(void);
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif // _CSP_CONN_H_

@@ -21,11 +21,19 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef _CSP_SHA1_H_
 #define _CSP_SHA1_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>
 
 #define SHA1_DIGESTSIZE	20
 
 void sha1_hash(uint8_t * msg, uint32_t len, uint8_t * hash);
 void sha1_hash_buffers(uint8_t * msg[], uint32_t len[], uint32_t buffers, uint8_t * hash);
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif // _CSP_SHA1_H_

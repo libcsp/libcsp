@@ -21,6 +21,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef _CSP_PORT_H_
 #define _CSP_PORT_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>
 
 #include <csp/csp.h>
@@ -39,5 +43,9 @@ typedef struct {
 
 extern csp_port_t ports[];
 void csp_port_init(void);
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif // _CSP_PORT_H_

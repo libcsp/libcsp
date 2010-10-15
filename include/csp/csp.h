@@ -21,6 +21,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef _CSP_H_
 #define _CSP_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Includes */
 #include <stdint.h>
 #include <stdlib.h>
@@ -108,8 +112,6 @@ extern uint8_t my_address;
 /** @brief This union defines a CSP identifier and allows to access it in mode standard, extended or through a table. */
 typedef union {
   uint32_t ext;
-  uint16_t std;
-  uint8_t  tab[4];
   struct __attribute__((__packed__)) {
 
 #if defined(_CSP_BIG_ENDIAN_) && !defined(_CSP_LITTLE_ENDIAN_)
@@ -258,6 +260,8 @@ void csp_buffer_print_table(void);
 #define csp_buffer_print_table(...);
 #endif
 
-
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif // _CSP_H_

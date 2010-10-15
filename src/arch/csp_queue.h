@@ -21,6 +21,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef _CSP_QUEUE_H_
 #define _CSP_QUEUE_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define CSP_QUEUE_FULL 0
 #define CSP_QUEUE_ERROR 0
 #define CSP_QUEUE_OK 1
@@ -37,5 +41,9 @@ int csp_queue_dequeue(csp_queue_handle_t handle, void *buf, int timeout);
 int csp_queue_dequeue_isr(csp_queue_handle_t handle, void * buf, CSP_BASE_TYPE * task_woken);
 int csp_queue_size(csp_queue_handle_t handle);
 int csp_queue_size_isr(csp_queue_handle_t handle);
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif // _CSP_QUEUE_H_

@@ -26,6 +26,10 @@ http://code.google.com/p/c-pthread-queue/
 #ifndef _PTHREAD_QUEUE_H_
 #define _PTHREAD_QUEUE_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdlib.h>
 #include <sys/time.h>
 
@@ -53,6 +57,10 @@ void pthread_queue_delete(pthread_queue_t * q);
 int pthread_queue_enqueue(pthread_queue_t * queue, void * value, int timeout);
 int pthread_queue_dequeue(pthread_queue_t * queue, void * buf, int timeout);
 int pthread_queue_items(pthread_queue_t * queue);
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif // _PTHREAD_QUEUE_H_
 

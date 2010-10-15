@@ -21,6 +21,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef _CSP_PLATFORM_H_
 #define _CSP_PLATFORM_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Set platform endianness and OS */
 #if defined(__i386__) || defined(__x86_64__) || defined(__BFIN__)
     #define _CSP_LITTLE_ENDIAN_
@@ -52,6 +56,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 	#define CSP_EXIT_CRITICAL() portEXIT_CRITICAL()
 #else
     #error "Unknown architecture"
+#endif
+
+#ifdef __cplusplus
+} /* extern "C" */
 #endif
 
 #endif // _CSP_PLATFORM_H_

@@ -25,7 +25,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  * @author: Johan Christiansen
  *
  * This is a implementation of the seq/ack handling taken from the Reliable Datagram Protocol (RDP)
- * For more information read RFC-908.
+ * For more information read RFC-908. The implementation has been extended to include support for
+ * delayed acknowledgements.
  *
  * TODO: Take wrapping sequence/ack numbers into account
  * TODO: Take wrapping timestamps from csp_get_ms into account
@@ -85,7 +86,6 @@ typedef struct __attribute__((__packed__)) {
     csp_id_t id;                // CSP id must be just before data
     uint8_t data[];				// This just points to the rest of the buffer, without a size indication.
 } rdp_packet_t;
-
 
 enum csp_rdp_states {
 	RDP_CLOSED = 0,
@@ -173,7 +173,7 @@ static void inline csp_rdp_release(void) {
 /**
  * RDP Headers:
  * The following functions are helper functions that handles the extra RDP
- * information that needs to be appendend to all data packets.
+ * information that needs to be appended to all data packets.
  */
 static rdp_header_t * csp_rdp_header_add(csp_packet_t * packet) {
 	rdp_header_t * header = (rdp_header_t *) &packet->data[packet->length];
@@ -323,7 +323,7 @@ static int inline csp_rdp_receive_data(csp_conn_t * conn, csp_packet_t * packet)
 		conn->rx_socket = (void *) 1;
 	}
 
-	/* Remove RDP header before giving to userspace */
+	/* Remove RDP header before passing to userspace */
 	csp_rdp_header_remove(packet);
 
 	/* Enqueue data */

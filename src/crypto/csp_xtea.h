@@ -21,11 +21,19 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef _CSP_XTEA_H_
 #define _CSP_XTEA_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>
 
 #define CSP_XTEA_IV_LENGTH	8
 
 int xtea_encrypt(uint8_t * plain, const uint32_t len, uint32_t const key[4], uint32_t iv[2]);
 int xtea_decrypt(uint8_t * cipher, const uint32_t len, uint32_t const key[4], uint32_t iv[2]);
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif // _CSP_XTEA_H_

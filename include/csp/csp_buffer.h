@@ -1,12 +1,29 @@
 /*
- * csp_buffer.h
- *
- *  Created on: 14/10/2010
- *      Author: oem
- */
+Cubesat Space Protocol - A small network-layer protocol designed for Cubesats
+Copyright (C) 2010 Gomspace ApS (gomspace.com)
+Copyright (C) 2010 AAUSAT3 Project (aausat3.space.aau.dk)
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+*/
 
 #ifndef CSP_BUFFER_H_
 #define CSP_BUFFER_H_
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * Start the buffer handling system
@@ -44,5 +61,9 @@ void csp_buffer_free(void * packet);
  * @return number of free buffers
  */
 int csp_buffer_remaining(void);
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif /* CSP_BUFFER_H_ */

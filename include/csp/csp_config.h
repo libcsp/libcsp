@@ -40,6 +40,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef _CSP_CONFIG_H_
 #define _CSP_CONFIG_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifdef CSP_USER_CONFIG
 #include <csp_config_user.h>
 #else
@@ -75,6 +79,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #define CSP_CRYPTO_KEY			"\x31\x15\x49\x8a\x58\xc3\x01\x61\xe8\x33\x4a\xf0\x60\x6a\x41\xf4"
 #define CSP_CRYPTO_KEY_LENGTH	16
 
+#endif
+
+#ifdef __cplusplus
+} /* extern "C" */
 #endif
 
 #endif // _CSP_CONFIG_H_
