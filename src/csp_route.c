@@ -288,6 +288,7 @@ csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 		default:
 			csp_debug(CSP_ERROR, "No matching protocol found. Discarding packet\r\n");
 			csp_buffer_free(packet);
+			csp_close(conn);
 			break;
 		}
 
