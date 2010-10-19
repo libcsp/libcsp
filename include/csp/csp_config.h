@@ -49,7 +49,7 @@ extern "C" {
 #else
 
 /* General config */
-#define CSP_DEBUG			   	1	   	// Enable/disable debugging output
+#define CSP_DEBUG			   	0	   	// Enable/disable debugging output
 #define CSP_CONN_MAX			10  	// Number of statically allocated connection structs
 #define CSP_CONN_QUEUE_LENGTH	100		// Number of packets potentially in queue for a connection
 #define CSP_FIFO_INPUT			100		// Number of packets to be queued at the input of the router

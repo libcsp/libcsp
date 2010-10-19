@@ -29,11 +29,13 @@ endif
 ## Compile options common for all C compilation units.
 CFLAGS =$(COMMON)
 ifeq ($(TOOLCHAIN),avr-)
-CFLAGS +=-fpack-struct -fshort-enums
+CFLAGS += -fshort-enums
 else ifeq ($(TOOLCHAIN),bfin-linux-uclibc-)
 CFLAGS += -D_GNU_SOURCE
+else ifeq ($(TOOLCHAIN),)
+CFLAGS += -fPIC
 endif
-CFLAGS += -Wall -Werror -gdwarf-2 -std=gnu99 -O2 -funsigned-char -funsigned-bitfields
+CFLAGS += -Wall -Werror -std=gnu99 -O2 -funsigned-char -funsigned-bitfields
 
 ## Assembly specific flags
 ASMFLAGS = $(COMMON)
