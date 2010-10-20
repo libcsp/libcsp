@@ -43,7 +43,9 @@ void csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet);
 int csp_rdp_connect_active(csp_conn_t * conn, unsigned int timeout);
 int csp_rdp_allocate(csp_conn_t * conn);
 void csp_rdp_close(csp_conn_t * conn);
+#ifdef CSP_DEBUG
 void csp_rdp_conn_print(csp_conn_t * conn);
+#endif
 int csp_rdp_send(csp_conn_t * conn, csp_packet_t * packet, unsigned int timeout);
 void csp_rdp_check_timeouts(csp_conn_t * conn);
 

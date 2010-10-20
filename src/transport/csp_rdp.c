@@ -874,7 +874,7 @@ int csp_rdp_connect_active(csp_conn_t * conn, unsigned int timeout) {
 	csp_debug(CSP_PROTOCOL, "RDP: Active connect, conn state %u\r\n", conn->l4data->state);
 
 	if (conn->l4data->state == RDP_OPEN) {
-		printf("RDP: ERROR Connection already open\r\n");
+		csp_debug(CSP_ERROR, "RDP: Connection already open\r\n");
 		csp_rdp_release();
 		return 0;
 	}
@@ -1078,6 +1078,7 @@ void csp_rdp_set_opt(unsigned int window_size, unsigned int conn_timeout_ms, uns
 	csp_rdp_packet_timeout = packet_timeout_ms;
 }
 
+#ifdef CSP_DEBUG
 void csp_rdp_conn_print(csp_conn_t * conn) {
 
 	if (conn->l4data == NULL)
@@ -1086,5 +1087,6 @@ void csp_rdp_conn_print(csp_conn_t * conn) {
 	printf("\tRDP: State %u, rcv %u, snd %u, win %u\r\n", conn->l4data->state, conn->l4data->rcv_cur, conn->l4data->snd_una, conn->l4data->window_size);
 
 }
+#endif
 
 #endif
