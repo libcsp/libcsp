@@ -61,19 +61,17 @@ extern "C" {
 #define CSP_DELAY_ACKS			1		// Use delayed acknowledgements
 
 /* Router config */
-#define CSP_USE_PROMISC			1
+#define CSP_USE_PROMISC			1		// Enable promiscuous mode functions
 
 /* Buffer config */
 #define CSP_BUFFER_CALLOC		0		// Set to 1 to clear buffer at allocation
-#define CSP_BUFFER_STATIC   	0
-#define CSP_BUFFER_SIZE		 	320
-#define CSP_BUFFER_COUNT		12
-#define CSP_BUFFER_FREE			0
-#define CSP_BUFFER_USED			1
+#define CSP_BUFFER_STATIC   	0		// Use a statically allocated buffer
+#define CSP_BUFFER_SIZE		 	320		// Size of each buffer element
+#define CSP_BUFFER_COUNT		12		// Number of buffer elements
 
 /* Crypto config */
 #define CSP_ENABLE_HMAC			0		// Enable Hash-based Message Authentication Code
-#define CSP_ENABLE_XTEA			0		// Enabel XTEA packet encryption
+#define CSP_ENABLE_XTEA			0		// Enable XTEA packet encryption
 
 /* Key config - key must be 128 bit! */
 #define CSP_CRYPTO_KEY			"\x31\x15\x49\x8a\x58\xc3\x01\x61\xe8\x33\x4a\xf0\x60\x6a\x41\xf4"
