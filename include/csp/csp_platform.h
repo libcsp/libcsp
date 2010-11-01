@@ -46,8 +46,8 @@ extern "C" {
 #if defined(_CSP_POSIX_)
     #define CSP_BASE_TYPE int
     #define CSP_MAX_DELAY (1000000000)
-	#define CSP_ENTER_CRITICAL()
-	#define CSP_EXIT_CRITICAL()
+	#define CSP_ENTER_CRITICAL() do { csp_bin_sem_wait(&csp_global_lock, CSP_MAX_DELAY); } while(0)
+	#define CSP_EXIT_CRITICAL() do { csp_bin_sem_post(&csp_global_lock); } while(0)
 #elif defined(_CSP_FREERTOS_)
     #include <freertos/FreeRTOS.h>
     #define CSP_BASE_TYPE portBASE_TYPE

@@ -32,8 +32,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #if CSP_ENABLE_HMAC
 
-/* TODO: Implement HMAC */
-
 /**
  * Append HMAC to packet
  * @param packet Pointer to packet

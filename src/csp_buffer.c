@@ -45,6 +45,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 	static int size, count;
 #endif
 
+#ifdef _CSP_POSIX_
+csp_bin_sem_handle_t csp_global_lock;
+#endif
+
 int csp_buffer_init(int buf_count, int buf_size) {
 
 #if CSP_BUFFER_STATIC == 0
@@ -63,6 +67,11 @@ int csp_buffer_init(int buf_count, int buf_size) {
 		csp_free(csp_buffer_p);
 		return 0;
 	}
+#endif
+
+#ifdef _CSP_POSIX_
+	/* Initialize global lock */
+	csp_bin_sem_create(&csp_global_lock);
 #endif
 
 	/* Clear housekeeping memory = all free mem */
@@ -161,7 +170,6 @@ void csp_buffer_print_table(void) {
 			packet->id.pri, packet->id.src, packet->id.dst, packet->id.dport,
 			packet->id.sport);
 		printf("\r\n");
-
 	}
 }
 #endif

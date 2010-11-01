@@ -38,9 +38,6 @@ extern "C" {
 #define CSP_SEMAPHORE_OK 1
 #define CSP_SEMAPHORE_ERROR 2
 
-#define CSP_ENTER_CRITICAL()
-#define CSP_EXIT_CRITICAL()
-
 typedef sem_t csp_bin_sem_handle_t;
 
 #endif // _CSP_POSIX_
