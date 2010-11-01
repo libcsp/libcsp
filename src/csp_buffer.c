@@ -71,7 +71,16 @@ int csp_buffer_init(int buf_count, int buf_size) {
 
 #ifdef _CSP_POSIX_
 	/* Initialize global lock */
-	csp_bin_sem_create(&csp_global_lock);
+	if (csp_bin_sem_create(&csp_global_lock) != CSP_SEMAPHORE_OK) {
+		csp_debug(CSP_ERROR, "No more memory for buffer semaphore\r\n");
+
+		if (csp_buffer_list)
+			csp_free(csp_buffer_list);
+		if (csp_buffer_p)
+			csp_free(csp_buffer_p);
+
+		return 0;
+	}
 #endif
 
 	/* Clear housekeeping memory = all free mem */
