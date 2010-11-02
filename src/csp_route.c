@@ -195,7 +195,6 @@ csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 			idout.dst = packet->id.src;
 			idout.dport = packet->id.sport;
 			idout.sport = packet->id.dport;
-			idout.protocol = packet->id.protocol;
 			idout.flags = packet->id.flags;
 
 			/* Ensure a broadcast packet is replied from correct source address */
@@ -271,27 +270,17 @@ csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 		}
 
 		/* Pass packet to the right transport module */
-		switch(packet->id.protocol) {
-#if CSP_USE_RDP
-		case CSP_RDP:
+
+		if (packet->id.flags & CSP_PROTOCOL_RDP) {
 			csp_rdp_new_packet(conn, packet);
-			break;
-#endif
-		case CSP_UDP:
+		} else {
 			if (conn->conn_opts & CSP_SO_RDPREQ) {
 				csp_debug(CSP_WARN, "Received packet without RDP header. Discarding packet\r\n", conn);
 				csp_buffer_free(packet);
 				continue;
 			}
 			csp_udp_new_packet(conn, packet);
-			break;
-		default:
-			csp_debug(CSP_ERROR, "No matching protocol found. Discarding packet\r\n");
-			csp_buffer_free(packet);
-			csp_close(conn);
-			break;
 		}
-
 
 	}
 

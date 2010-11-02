@@ -54,10 +54,9 @@ void csp_conn_check_timeouts(void) {
 			continue;
 
 		/* Check the protocol and higher layers */
-		switch (arr_conn[i].idin.protocol) {
-		case CSP_RDP:
+		if (arr_conn[i].idin.flags & CSP_PROTOCOL_RDP)
 			csp_rdp_check_timeouts(&arr_conn[i]);
-		}
+
 	}
 #endif
 }
@@ -160,11 +159,8 @@ csp_conn_t * csp_conn_new(csp_id_t idin, csp_id_t idout) {
 	int result = 1;
 
 #if CSP_USE_RDP
-    switch(conn->idin.protocol) {
-	case CSP_RDP:
+    if (conn->idin.flags & CSP_PROTOCOL_RDP)
 		result = csp_rdp_allocate(conn);
-		break;
-	}
 #endif
     
     if (result == 0) {
@@ -224,11 +220,8 @@ void csp_close(csp_conn_t * conn) {
 
     /* Ensure l4 knows this conn is closing */
 #if CSP_USE_RDP
-    switch(conn->idin.protocol) {
-    case CSP_RDP:
+    if (conn->idin.flags & CSP_PROTOCOL_RDP)
 		csp_rdp_close(conn);
-		break;
-	}
 #endif
 
     /* Set to closed */
@@ -272,15 +265,12 @@ csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport, unsigned int
 	/* Set connection options */
 	if (opts & CSP_O_RDP) {
 #if CSP_USE_RDP
-		incoming_id.protocol = CSP_RDP;
-		outgoing_id.protocol = CSP_RDP;
+		incoming_id.flags |= CSP_PROTOCOL_RDP;
+		outgoing_id.flags |= CSP_PROTOCOL_RDP;
 #else
 		csp_debug(CSP_ERROR, "Attempt to create RDP connection, but CSP was compiled without RDP support\r\n");
 		return NULL;
 #endif
-	} else {
-		incoming_id.protocol = CSP_UDP;
-		outgoing_id.protocol = CSP_UDP;
 	}
 
 	if (opts & CSP_O_HMAC) {
@@ -338,13 +328,8 @@ csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport, unsigned int
     /* Call Transport Layer connect */
     int result = 1;
 #if CSP_USE_RDP
-    switch(outgoing_id.protocol) {
-    case CSP_RDP:
-    	result = csp_rdp_connect_active(conn, timeout);
-    	break;
-    default:
-    	break;
-    }
+    if (outgoing_id.flags & CSP_PROTOCOL_RDP)
+       	result = csp_rdp_connect_active(conn, timeout);
 #endif
 
     /* If the transport layer has failed to connect
@@ -374,11 +359,8 @@ void csp_conn_print_table(void) {
 		printf("[%02u %p] S:%u, %u -> %u, %u -> %u, sock: %p\r\n", i, conn, conn->state, conn->idin.src, conn->idin.dst, conn->idin.dport, conn->idin.sport, conn->rx_socket);
 
 #if CSP_USE_RDP
-		switch(conn->idin.protocol) {
-		case CSP_RDP:
+		if (conn->idin.flags & CSP_PROTOCOL_RDP)
 			csp_rdp_conn_print(conn);
-			break;
-		}
 #endif
 
     }
@@ -422,15 +404,5 @@ inline int csp_conn_dst(csp_conn_t * conn) {
 inline int csp_conn_src(csp_conn_t * conn) {
 
     return conn->idin.src;
-
-}
-
-/**
- * @param conn pointer to connection structure
- * @return Protocol of incomming connection
- */
-inline int csp_conn_protocol(csp_conn_t * conn) {
-
-    return conn->idin.protocol;
 
 }

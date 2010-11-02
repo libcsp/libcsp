@@ -46,8 +46,8 @@ enum csp_reserved_ports_e {
 	CSP_MEMFREE         = 3,
 	CSP_REBOOT          = 4,
 	CSP_BUF_FREE        = 5,
-	CSP_ANY             = 16,
-	CSP_PROMISC         = 17
+	CSP_ANY             = (CSP_MAX_BIND_PORT + 1),
+	CSP_PROMISC         = (CSP_MAX_BIND_PORT + 2)
 };
 
 /**
@@ -56,13 +56,9 @@ enum csp_reserved_ports_e {
 
 typedef enum csp_prio_e {
 	CSP_PRIO_CRITICAL	= 0,
-	CSP_PRIO_ALERT		= 1,
-	CSP_PRIO_HIGH       = 2,
-	CSP_PRIO_RESERVED   = 3,
-	CSP_PRIO_NORM       = 4,
-	CSP_PRIO_LOW        = 5,
-	CSP_PRIO_BULK       = 6,
-	CSP_PRIO_DEBUG      = 7
+	CSP_PRIO_HIGH		= 1,
+	CSP_PRIO_NORM       = 2,
+	CSP_PRIO_LOW        = 3,
 } csp_prio_t;
 
 /**
@@ -81,25 +77,22 @@ extern uint8_t my_address;
 #define CSP_NODE_MAC			0xFF
 
 /** Size of bit-fields in CSP header */
-#define CSP_ID_PROTOCOL_SIZE	3
-#define CSP_ID_PRIO_SIZE		3
-#define CSP_ID_HOST_SIZE		4
-#define CSP_ID_PORT_SIZE		5
+#define CSP_ID_PRIO_SIZE		2
+#define CSP_ID_HOST_SIZE		5
+#define CSP_ID_PORT_SIZE		6
 #define CSP_ID_FLAGS_SIZE		8
 
-#if CSP_ID_PROTOCOL_SIZE + CSP_ID_PRIO_SIZE + 2 * CSP_ID_HOST_SIZE + 2 * CSP_ID_PORT_SIZE + CSP_ID_FLAGS_SIZE != 32 && __GNUC__
+#if CSP_ID_PRIO_SIZE + 2 * CSP_ID_HOST_SIZE + 2 * CSP_ID_PORT_SIZE + CSP_ID_FLAGS_SIZE != 32 && __GNUC__
 #error "Header lenght must be 32 bits"
 #endif
 
 /** Highest number to be entered in field */
-#define CSP_ID_PROTOCOL_MAX		((1 << (CSP_ID_PROTOCOL_SIZE)) - 1)
 #define CSP_ID_PRIO_MAX			((1 << (CSP_ID_PRIO_SIZE)) - 1)
 #define CSP_ID_HOST_MAX			((1 << (CSP_ID_HOST_SIZE)) - 1)
 #define CSP_ID_PORT_MAX			((1 << (CSP_ID_PORT_SIZE)) - 1)
 #define CSP_ID_FLAGS_MAX		((1 << (CSP_ID_FLAGS_SIZE)) - 1)
 
 /** Identifier field masks */
-#define CSP_ID_PROTOCOL_MASK	((uint32_t) CSP_ID_PROTOCOL_MAX	<< (CSP_ID_FLAGS_SIZE + 2 * CSP_ID_PORT_SIZE + 2 * CSP_ID_HOST_SIZE + CSP_ID_PROTOCOL_SIZE))
 #define CSP_ID_PRIO_MASK    	((uint32_t) CSP_ID_PRIO_MAX 	<< (CSP_ID_FLAGS_SIZE + 2 * CSP_ID_PORT_SIZE + 2 * CSP_ID_HOST_SIZE))
 #define CSP_ID_SRC_MASK     	((uint32_t) CSP_ID_HOST_MAX 	<< (CSP_ID_FLAGS_SIZE + 2 * CSP_ID_PORT_SIZE + 1 * CSP_ID_HOST_SIZE))
 #define CSP_ID_DST_MASK     	((uint32_t) CSP_ID_HOST_MAX 	<< (CSP_ID_FLAGS_SIZE + 2 * CSP_ID_PORT_SIZE))
@@ -116,7 +109,6 @@ typedef union {
 
 #if defined(_CSP_BIG_ENDIAN_) && !defined(_CSP_LITTLE_ENDIAN_)
 
-    unsigned int protocol	: CSP_ID_PROTOCOL_SIZE;
     unsigned int pri		: CSP_ID_PRIO_SIZE;
     unsigned int src		: CSP_ID_HOST_SIZE;
     unsigned int dst		: CSP_ID_HOST_SIZE;
@@ -132,7 +124,6 @@ typedef union {
     unsigned int dst		: CSP_ID_HOST_SIZE;
     unsigned int src		: CSP_ID_HOST_SIZE;
     unsigned int pri		: CSP_ID_PRIO_SIZE;
-    unsigned int protocol	: CSP_ID_PROTOCOL_SIZE;
 
 #else
 
@@ -150,6 +141,7 @@ typedef union {
 #define CSP_DEFAULT_ROUTE	(CSP_ID_HOST_MAX + 1)
 
 /** CSP Flags */
+#define CSP_PROTOCOL_RDP		0x10 // Use RDP protocol
 #define CSP_FHMAC 				0x08 // Enable HMAC verification/generation
 #define CSP_FXTEA 				0x04 // Enable XTEA encryption/decryption
 #define CSP_FRES1 				0x02 // Reserved for future use
@@ -209,7 +201,6 @@ int csp_conn_dport(csp_conn_t * conn);
 int csp_conn_sport(csp_conn_t * conn);
 int csp_conn_dst(csp_conn_t * conn);
 int csp_conn_src(csp_conn_t * conn);
-int csp_conn_protocol(csp_conn_t * conn);
 
 /* Implemented in csp_port.c */
 int csp_listen(csp_socket_t * socket, size_t conn_queue_length);

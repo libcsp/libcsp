@@ -62,8 +62,8 @@ int csp_listen(csp_socket_t * socket, size_t conn_queue_length) {
 
 int csp_bind(csp_socket_t * socket, uint8_t port) {
     
-	if (port > (CSP_MAX_BIND_PORT + 1)) {
-		csp_debug(CSP_ERROR, "Only ports from 0-%u (and CSP_ANY for default) are available for incoming ports\r\n", (CSP_MAX_BIND_PORT + 1));
+	if (port > CSP_ANY) {
+		csp_debug(CSP_ERROR, "Only ports from 0-%u (and CSP_ANY for default) are available for incoming ports\r\n", CSP_ANY);
 		return -1;
 	}
 
