@@ -239,7 +239,7 @@ int csp_send(csp_conn_t * conn, csp_packet_t * packet, unsigned int timeout) {
 	}
 
 #if CSP_USE_RDP
-	if (conn->idout.flags & CSP_PROTOCOL_RDP) {
+	if (conn->idout.flags & CSP_FRDP) {
 		if (csp_rdp_send(conn, packet, timeout) == 0) {
 			csp_debug(CSP_WARN, "RPD send failed\r\n!");
 			return 0;

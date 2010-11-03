@@ -271,7 +271,7 @@ csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 
 		/* Pass packet to the right transport module */
 
-		if (packet->id.flags & CSP_PROTOCOL_RDP) {
+		if (packet->id.flags & CSP_FRDP) {
 			csp_rdp_new_packet(conn, packet);
 		} else {
 			if (conn->conn_opts & CSP_SO_RDPREQ) {

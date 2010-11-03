@@ -29,19 +29,21 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "arch/csp_malloc.h"
 #include "arch/csp_semaphore.h"
 
-#define CSP_BUFFER_FREE	0
-#define CSP_BUFFER_USED	1
+typedef enum csp_buffer_state_t {
+	CSP_BUFFER_FREE	= 0,
+	CSP_BUFFER_USED	= 1,
+} csp_buffer_state_t;
 
 #if CSP_BUFFER_STATIC
 	typedef struct { uint8_t data[CSP_BUFFER_SIZE]; } csp_buffer_element_t;
 	static csp_buffer_element_t csp_buffer[CSP_BUFFER_COUNT];
-	static uint8_t csp_buffer_list[CSP_BUFFER_COUNT];
+	static csp_buffer_state csp_buffer_list[CSP_BUFFER_COUNT];
 	static void * csp_buffer_p = &csp_buffer;
 	static const int size = CSP_BUFFER_SIZE;
 	static const int count = CSP_BUFFER_COUNT;
 #else
 	static uint8_t * csp_buffer_p;
-	static uint8_t * csp_buffer_list;
+	static csp_buffer_state_t * csp_buffer_list;
 	static int size, count;
 #endif
 
@@ -62,7 +64,7 @@ int csp_buffer_init(int buf_count, int buf_size) {
 		return 0;
 
 	/* Allocate housekeeping memory */
-	csp_buffer_list = (uint8_t *) csp_malloc(count * sizeof(uint8_t));
+	csp_buffer_list = (csp_buffer_state_t *) csp_malloc(count * sizeof(csp_buffer_state_t));
 	if (csp_buffer_list == NULL) {
 		csp_free(csp_buffer_p);
 		return 0;

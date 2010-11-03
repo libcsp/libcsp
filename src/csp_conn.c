@@ -54,7 +54,7 @@ void csp_conn_check_timeouts(void) {
 			continue;
 
 		/* Check the protocol and higher layers */
-		if (arr_conn[i].idin.flags & CSP_PROTOCOL_RDP)
+		if (arr_conn[i].idin.flags & CSP_FRDP)
 			csp_rdp_check_timeouts(&arr_conn[i]);
 
 	}
@@ -159,7 +159,7 @@ csp_conn_t * csp_conn_new(csp_id_t idin, csp_id_t idout) {
 	int result = 1;
 
 #if CSP_USE_RDP
-    if (conn->idin.flags & CSP_PROTOCOL_RDP)
+    if (conn->idin.flags & CSP_FRDP)
 		result = csp_rdp_allocate(conn);
 #endif
     
@@ -220,7 +220,7 @@ void csp_close(csp_conn_t * conn) {
 
     /* Ensure l4 knows this conn is closing */
 #if CSP_USE_RDP
-    if (conn->idin.flags & CSP_PROTOCOL_RDP)
+    if (conn->idin.flags & CSP_FRDP)
 		csp_rdp_close(conn);
 #endif
 
@@ -265,8 +265,8 @@ csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport, unsigned int
 	/* Set connection options */
 	if (opts & CSP_O_RDP) {
 #if CSP_USE_RDP
-		incoming_id.flags |= CSP_PROTOCOL_RDP;
-		outgoing_id.flags |= CSP_PROTOCOL_RDP;
+		incoming_id.flags |= CSP_FRDP;
+		outgoing_id.flags |= CSP_FRDP;
 #else
 		csp_debug(CSP_ERROR, "Attempt to create RDP connection, but CSP was compiled without RDP support\r\n");
 		return NULL;
@@ -328,7 +328,7 @@ csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport, unsigned int
     /* Call Transport Layer connect */
     int result = 1;
 #if CSP_USE_RDP
-    if (outgoing_id.flags & CSP_PROTOCOL_RDP)
+    if (outgoing_id.flags & CSP_FRDP)
        	result = csp_rdp_connect_active(conn, timeout);
 #endif
 
@@ -359,7 +359,7 @@ void csp_conn_print_table(void) {
 		printf("[%02u %p] S:%u, %u -> %u, %u -> %u, sock: %p\r\n", i, conn, conn->state, conn->idin.src, conn->idin.dst, conn->idin.dport, conn->idin.sport, conn->rx_socket);
 
 #if CSP_USE_RDP
-		if (conn->idin.flags & CSP_PROTOCOL_RDP)
+		if (conn->idin.flags & CSP_FRDP)
 			csp_rdp_conn_print(conn);
 #endif
 

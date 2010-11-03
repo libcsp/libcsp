@@ -41,13 +41,13 @@ extern "C" {
  */
 
 enum csp_reserved_ports_e {
-	CSP_PING            = 1,
-	CSP_PS              = 2,
-	CSP_MEMFREE         = 3,
-	CSP_REBOOT          = 4,
-	CSP_BUF_FREE        = 5,
-	CSP_ANY             = (CSP_MAX_BIND_PORT + 1),
-	CSP_PROMISC         = (CSP_MAX_BIND_PORT + 2)
+	CSP_PING			= 1,
+	CSP_PS			  	= 2,
+	CSP_MEMFREE		 	= 3,
+	CSP_REBOOT		  	= 4,
+	CSP_BUF_FREE		= 5,
+	CSP_ANY			 	= (CSP_MAX_BIND_PORT + 1),
+	CSP_PROMISC		 	= (CSP_MAX_BIND_PORT + 2)
 };
 
 /**
@@ -57,8 +57,8 @@ enum csp_reserved_ports_e {
 typedef enum csp_prio_e {
 	CSP_PRIO_CRITICAL	= 0,
 	CSP_PRIO_HIGH		= 1,
-	CSP_PRIO_NORM       = 2,
-	CSP_PRIO_LOW        = 3,
+	CSP_PRIO_NORM 		= 2,
+	CSP_PRIO_LOW		= 3,
 } csp_prio_t;
 
 /**
@@ -93,37 +93,37 @@ extern uint8_t my_address;
 #define CSP_ID_FLAGS_MAX		((1 << (CSP_ID_FLAGS_SIZE)) - 1)
 
 /** Identifier field masks */
-#define CSP_ID_PRIO_MASK    	((uint32_t) CSP_ID_PRIO_MAX 	<< (CSP_ID_FLAGS_SIZE + 2 * CSP_ID_PORT_SIZE + 2 * CSP_ID_HOST_SIZE))
-#define CSP_ID_SRC_MASK     	((uint32_t) CSP_ID_HOST_MAX 	<< (CSP_ID_FLAGS_SIZE + 2 * CSP_ID_PORT_SIZE + 1 * CSP_ID_HOST_SIZE))
-#define CSP_ID_DST_MASK     	((uint32_t) CSP_ID_HOST_MAX 	<< (CSP_ID_FLAGS_SIZE + 2 * CSP_ID_PORT_SIZE))
+#define CSP_ID_PRIO_MASK		((uint32_t) CSP_ID_PRIO_MAX 	<< (CSP_ID_FLAGS_SIZE + 2 * CSP_ID_PORT_SIZE + 2 * CSP_ID_HOST_SIZE))
+#define CSP_ID_SRC_MASK	 		((uint32_t) CSP_ID_HOST_MAX 	<< (CSP_ID_FLAGS_SIZE + 2 * CSP_ID_PORT_SIZE + 1 * CSP_ID_HOST_SIZE))
+#define CSP_ID_DST_MASK	 		((uint32_t) CSP_ID_HOST_MAX 	<< (CSP_ID_FLAGS_SIZE + 2 * CSP_ID_PORT_SIZE))
 #define CSP_ID_DPORT_MASK   	((uint32_t) CSP_ID_PORT_MAX 	<< (CSP_ID_FLAGS_SIZE + 1 * CSP_ID_PORT_SIZE))
 #define CSP_ID_SPORT_MASK   	((uint32_t) CSP_ID_PORT_MAX 	<< (CSP_ID_FLAGS_SIZE))
-#define CSP_ID_FLAGS_MASK    	((uint32_t) CSP_ID_FLAGS_MAX 	<< (0))
+#define CSP_ID_FLAGS_MASK		((uint32_t) CSP_ID_FLAGS_MAX 	<< (0))
 
 #define CSP_ID_CONN_MASK		(CSP_ID_SRC_MASK | CSP_ID_DST_MASK | CSP_ID_DPORT_MASK | CSP_ID_SPORT_MASK)
 
-/** @brief This union defines a CSP identifier and allows to access it in mode standard, extended or through a table. */
+/** @brief This union defines a CSP identifier and allows access to the individual fields or the entire identifier */
 typedef union {
   uint32_t ext;
   struct __attribute__((__packed__)) {
 
 #if defined(_CSP_BIG_ENDIAN_) && !defined(_CSP_LITTLE_ENDIAN_)
 
-    unsigned int pri		: CSP_ID_PRIO_SIZE;
-    unsigned int src		: CSP_ID_HOST_SIZE;
-    unsigned int dst		: CSP_ID_HOST_SIZE;
-    unsigned int dport		: CSP_ID_PORT_SIZE;
-    unsigned int sport		: CSP_ID_PORT_SIZE;
-    unsigned int flags		: CSP_ID_FLAGS_SIZE;
+	unsigned int pri		: CSP_ID_PRIO_SIZE;
+	unsigned int src		: CSP_ID_HOST_SIZE;
+	unsigned int dst		: CSP_ID_HOST_SIZE;
+	unsigned int dport		: CSP_ID_PORT_SIZE;
+	unsigned int sport		: CSP_ID_PORT_SIZE;
+	unsigned int flags		: CSP_ID_FLAGS_SIZE;
 
 #elif defined(_CSP_LITTLE_ENDIAN_) && !defined(_CSP_BIG_ENDIAN_)
 
-    unsigned int flags		: CSP_ID_FLAGS_SIZE;
-    unsigned int sport		: CSP_ID_PORT_SIZE;
-    unsigned int dport		: CSP_ID_PORT_SIZE;
-    unsigned int dst		: CSP_ID_HOST_SIZE;
-    unsigned int src		: CSP_ID_HOST_SIZE;
-    unsigned int pri		: CSP_ID_PRIO_SIZE;
+	unsigned int flags		: CSP_ID_FLAGS_SIZE;
+	unsigned int sport		: CSP_ID_PORT_SIZE;
+	unsigned int dport		: CSP_ID_PORT_SIZE;
+	unsigned int dst		: CSP_ID_HOST_SIZE;
+	unsigned int src		: CSP_ID_HOST_SIZE;
+	unsigned int pri		: CSP_ID_PRIO_SIZE;
 
 #else
 
@@ -141,11 +141,14 @@ typedef union {
 #define CSP_DEFAULT_ROUTE	(CSP_ID_HOST_MAX + 1)
 
 /** CSP Flags */
-#define CSP_PROTOCOL_RDP		0x10 // Use RDP protocol
-#define CSP_FHMAC 				0x08 // Enable HMAC verification/generation
-#define CSP_FXTEA 				0x04 // Enable XTEA encryption/decryption
-#define CSP_FRES1 				0x02 // Reserved for future use
-#define CSP_FRES2 				0x01 // Reserved for future use
+#define CSP_FRES1				0x80 // Reserved for future use
+#define CSP_FRES2				0x40 // Reserved for future use
+#define CSP_FRES3				0x20 // Reserved for future use
+#define CSP_FRES4				0x10 // Reserved for future use
+#define CSP_FHMAC 				0x08 // Use HMAC verification/generation
+#define CSP_FXTEA 				0x04 // Use XTEA encryption/decryption
+#define CSP_FRDP				0x02 // Use RDP protocol
+#define CSP_FCRC 				0x01 // Use CRC32 checksum (Not implemented)
 
 /** CSP Socket options */
 #define CSP_SO_RDPREQ  			0x0001
@@ -164,23 +167,24 @@ typedef union {
  * have buffer reuse
  */
 typedef struct __attribute__((__packed__)) {
-    uint8_t padding[44];       	// Interface dependent padding
-    uint16_t length;            // Length field must be just before CSP ID
-    csp_id_t id;                // CSP id must be just before data
-    union {
-    	uint8_t data[0];		// This just points to the rest of the buffer, without a size indication.
-    	uint16_t data16[0];		// The data 16 and 32 types makes it easy to reference an integer (properly aligned)
-    	uint32_t data32[0];		// - without the compiler warning about strict aliasing rules.
-    };
+	uint8_t padding[44];	   	// Interface dependent padding
+	uint16_t length;			// Length field must be just before CSP ID
+	csp_id_t id;				// CSP id must be just before data
+	union {
+		uint8_t data[0];		// This just points to the rest of the buffer, without a size indication.
+		uint16_t data16[0];		// The data 16 and 32 types makes it easy to reference an integer (properly aligned)
+		uint32_t data32[0];		// - without the compiler warning about strict aliasing rules.
+	};
 } csp_packet_t;
 
 /**
- * This define must equial the size of the packet overhead in csp_packet_t
+ * This define must be equal to the size of the packet overhead in csp_packet_t
  * it is used in csp_buffer_get() to check the allocated buffer size against
- * thre required buffer size.
+ * the required buffer size.
  */
-#define CSP_BUFFER_PACKET_OVERHEAD 	44+2+4
+#define CSP_BUFFER_PACKET_OVERHEAD 	(44 + sizeof(uint16_t) + sizeof(csp_id_t))
 
+/** Forward declaration of socket, connection and l4data structure */
 typedef struct csp_socket_s csp_socket_t;
 typedef struct csp_conn_s csp_conn_t;
 typedef struct csp_l4data_s csp_l4data_t;
@@ -227,25 +231,24 @@ void csp_rdp_set_opt(unsigned int window_size, unsigned int conn_timeout_ms, uns
 
 /* CSP debug printf - implemented in arch/x/csp_debug.c */
 typedef enum csp_debug_level_e {
-	CSP_INFO     = 0,
-	CSP_ERROR    = 1,
-	CSP_WARN     = 2,
+	CSP_INFO	 = 0,
+	CSP_ERROR	= 1,
+	CSP_WARN	 = 2,
 	CSP_BUFFER   = 3,
 	CSP_PACKET   = 4,
 	CSP_PROTOCOL = 5,
-	CSP_LOCK     = 6,
+	CSP_LOCK	 = 6,
 } csp_debug_level_t;
 
 #if CSP_DEBUG
-
 void csp_debug(csp_debug_level_t level, const char * format, ...);
 void csp_debug_toggle_level(csp_debug_level_t level);
 void csp_route_print_table(void);
 void csp_conn_print_table(void);
 void csp_buffer_print_table(void);
 #else
-#define csp_debug(...)
-#define csp_debug_toggle_level(...)
+#define csp_debug(...);
+#define csp_debug_toggle_level(...);
 #define csp_route_print(...);
 #define csp_conn_print_table(...);
 #define csp_buffer_print_table(...);
