@@ -65,11 +65,6 @@ typedef enum csp_prio_e {
  * CSP Protocol Types
  */
 
-typedef enum csp_protocol_e {
-	CSP_UDP = 0,
-	CSP_RDP = 1
-} csp_protocol_t;
-
 /** The address of the node */
 extern uint8_t my_address;
 
