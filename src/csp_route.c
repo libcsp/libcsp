@@ -271,16 +271,21 @@ csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 
 		/* Pass packet to the right transport module */
 
+#if CSP_USE_RDP
 		if (packet->id.flags & CSP_FRDP) {
 			csp_rdp_new_packet(conn, packet);
-		} else {
-			if (conn->conn_opts & CSP_SO_RDPREQ) {
-				csp_debug(CSP_WARN, "Received packet without RDP header. Discarding packet\r\n", conn);
-				csp_buffer_free(packet);
-				continue;
-			}
-			csp_udp_new_packet(conn, packet);
+			continue;
 		}
+#endif
+
+		if (conn->conn_opts & CSP_SO_RDPREQ) {
+			csp_debug(CSP_WARN, "Received packet without RDP header. Discarding packet\r\n", conn);
+			csp_buffer_free(packet);
+			continue;
+		}
+
+		csp_udp_new_packet(conn, packet);
+
 
 	}
 
