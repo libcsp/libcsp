@@ -57,24 +57,20 @@ void csp_service_handler(csp_conn_t * conn, csp_packet_t * packet) {
 	case CSP_PS: {
 #if defined(_CSP_FREERTOS_)
 		vTaskList((signed portCHAR *) packet->data);
-		packet->length = strlen((char *)packet->data);
-		packet->data[packet->length] = '\0';
-		packet->length++;
 #elif defined(_CSP_POSIX_)
-        char str[] = "Tasklist in not available on posix";
-        memcpy(packet->data, str, strlen(str));
-        packet->length = strlen(str);
+        strcpy((char *)packet->data, "Tasklist in not available on posix");
+#endif
+        packet->length = strlen((char *)packet->data);
         packet->data[packet->length] = '\0';
 		packet->length++;
-#endif
-        break;   
+        break;
     }
 
 	/* Do a search for the largest block of free memory */
 	case CSP_MEMFREE: {
 
-		/* Try to malloc a lot */
 #if defined(_CSP_FREERTOS_)
+		/* Try to malloc a lot */
 		uint32_t size = 0;
 		void * pmem;
 		while(1) {
@@ -88,6 +84,7 @@ void csp_service_handler(csp_conn_t * conn, csp_packet_t * packet) {
 			}
 		}
 #elif defined(_CSP_POSIX_)
+		/* Read system statistics */
 		size_t size = 0;
         struct sysinfo info;
         sysinfo(&info);
@@ -129,6 +126,14 @@ void csp_service_handler(csp_conn_t * conn, csp_packet_t * packet) {
 		size = htonl(size);
 		memcpy(packet->data, &size, sizeof(size));
 		packet->length = sizeof(size);
+		break;
+	}
+
+	case CSP_UPTIME: {
+		uint32_t time = csp_get_s();
+		time = htonl(time);
+		memcpy(packet->data, &time, sizeof(time));
+		packet->length = sizeof(time);
 		break;
 	}
 

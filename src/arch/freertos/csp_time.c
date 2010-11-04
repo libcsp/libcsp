@@ -29,6 +29,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "../csp_time.h"
 
-uint32_t csp_get_ms() {
+uint32_t csp_get_ms(void) {
     return (uint32_t)(xTaskGetTickCount() * (1000/configTICK_RATE_HZ));
+}
+
+uint32_t csp_get_s(void) {
+	return (uint32_t)(xTaskGetTickCount()/configTICK_RATE_HZ);
 }

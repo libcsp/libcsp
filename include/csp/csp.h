@@ -46,6 +46,7 @@ enum csp_reserved_ports_e {
 	CSP_MEMFREE		 	= 3,
 	CSP_REBOOT		  	= 4,
 	CSP_BUF_FREE		= 5,
+	CSP_UPTIME			= 6,
 	CSP_ANY			 	= (CSP_MAX_BIND_PORT + 1),
 	CSP_PROMISC		 	= (CSP_MAX_BIND_PORT + 2)
 };
@@ -220,6 +221,7 @@ void csp_ps(uint8_t node, unsigned int timeout);
 void csp_memfree(uint8_t node, unsigned int timeout);
 void csp_buf_free(uint8_t node, unsigned int timeout);
 void csp_reboot(uint8_t node);
+void csp_uptime(uint8_t node, unsigned int timeout);
 
 /* Implemented in csp_rdp.c */
 void csp_rdp_set_opt(unsigned int window_size, unsigned int conn_timeout_ms, unsigned int packet_timeout_ms);

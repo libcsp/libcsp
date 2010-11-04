@@ -194,3 +194,17 @@ void csp_buf_free(uint8_t node, unsigned int timeout) {
 	printf("Free buffers at node %u is %u\r\n", (unsigned int) node, (unsigned int) size);
 
 }
+
+void csp_uptime(uint8_t node, unsigned int timeout) {
+
+	uint32_t uptime = 0;
+
+	int status = csp_transaction(CSP_PRIO_NORM, node, CSP_UPTIME, timeout, NULL, 0, &uptime, sizeof(uptime));
+	if (status == 0) {
+		printf("Network error\r\n");
+		return;
+	}
+	uptime = ntohl(uptime);
+	printf("Uptime of node %u is %u s\r\n", (unsigned int) node, (unsigned int) uptime);
+
+}
