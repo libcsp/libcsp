@@ -51,7 +51,7 @@ void csp_debug_hook(csp_debug_level_t level, char * str) __attribute__((weak));
 
 /* Some compilers do not support weak symbols, so this function
  * can be used instead to set a custom debug hook */
-void csp_debug_set_hook(csp_debug_hook_func_t f) {
+void csp_debug_hook_set(csp_debug_hook_func_t f) {
 
 	csp_debug_hook_func = f;
 

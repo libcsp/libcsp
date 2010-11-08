@@ -244,14 +244,14 @@ void csp_debug_toggle_level(csp_debug_level_t level);
 void csp_route_print_table(void);
 void csp_conn_print_table(void);
 void csp_buffer_print_table(void);
-void csp_debug_set_hook(csp_debug_hook_func_t f);
+void csp_debug_hook_set(csp_debug_hook_func_t f);
 #else
 #define csp_debug(...);
 #define csp_debug_toggle_level(...);
 #define csp_route_print(...);
 #define csp_conn_print_table(...);
 #define csp_buffer_print_table(...);
-#define csp_debug_set_hook(...);
+#define csp_debug_hook_set(...);
 #endif
 
 #ifdef __cplusplus
