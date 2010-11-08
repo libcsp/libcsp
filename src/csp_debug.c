@@ -29,7 +29,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #if CSP_DEBUG
 
-static uint8_t levels_enable[7] = {
+static uint8_t levels_enable[] = {
 		0,	// Info
 		1,	// Error
 		1,	// Warn
@@ -42,32 +42,43 @@ static uint8_t levels_enable[7] = {
 /* Called by csp_debug on each execution, before calling printf */
 void csp_debug_printf_hook(csp_debug_level_t level) __attribute__((weak));
 
+/* Implement this symbol if custom formatting of debug messages is required */
+void csp_debug_hook(csp_debug_level_t level, char * str) __attribute__((weak));
+
 void csp_debug(csp_debug_level_t level, const char * format, ...) {
 
 	va_list args;
 	va_start(args, format);
 
-	const char * color = "";
+	/* If csp_debug_hook symbol is defined, pass on the message.
+	 * Otherwise, just print with pretty colors ... */
+	if (csp_debug_hook) {
+		char buf[250];
+		vsnprintf(buf, 250, format, args);
+		csp_debug_hook(level, buf);
+	} else {
+		const char * color = "";
 
-	switch(level) {
-	case CSP_INFO: 		if (!levels_enable[CSP_INFO]) return; 		color = ""; break;
-	case CSP_ERROR: 	if (!levels_enable[CSP_ERROR]) return; 		color = "\E[1;31m"; break;
-	case CSP_WARN: 		if (!levels_enable[CSP_WARN]) return; 		color = "\E[0;33m"; break;
-	case CSP_BUFFER: 	if (!levels_enable[CSP_BUFFER]) return; 	color = "\E[0;33m"; break;
-	case CSP_PACKET: 	if (!levels_enable[CSP_PACKET]) return; 	color = "\E[0;32m"; break;
-	case CSP_PROTOCOL:  if (!levels_enable[CSP_PROTOCOL]) return; 	color = "\E[0;34m"; break;
-	case CSP_LOCK:		if (!levels_enable[CSP_LOCK]) return; 		color = "\E[0;36m"; break;
+		switch(level) {
+		case CSP_INFO: 		if (!levels_enable[CSP_INFO]) return; 		color = ""; break;
+		case CSP_ERROR: 	if (!levels_enable[CSP_ERROR]) return; 		color = "\E[1;31m"; break;
+		case CSP_WARN: 		if (!levels_enable[CSP_WARN]) return; 		color = "\E[0;33m"; break;
+		case CSP_BUFFER: 	if (!levels_enable[CSP_BUFFER]) return; 	color = "\E[0;33m"; break;
+		case CSP_PACKET: 	if (!levels_enable[CSP_PACKET]) return; 	color = "\E[0;32m"; break;
+		case CSP_PROTOCOL:  if (!levels_enable[CSP_PROTOCOL]) return; 	color = "\E[0;34m"; break;
+		case CSP_LOCK:		if (!levels_enable[CSP_LOCK]) return; 		color = "\E[0;36m"; break;
+		}
+
+		if (csp_debug_printf_hook)
+			csp_debug_printf_hook(level);
+
+		printf("%s", color);
+
+		printf("CSP: ");
+		vprintf(format, args);
+
+		printf("\E[0m");
 	}
-
-	if (csp_debug_printf_hook)
-		csp_debug_printf_hook(level);
-
-	printf("%s", color);
-
-    printf("CSP: ");
-    vprintf(format, args);
-
-    printf("\E[0m");
 
     va_end(args);
 
