@@ -29,6 +29,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #if CSP_DEBUG
 
+/* Custom debug function */
+csp_debug_hook_func_t csp_debug_hook_func = NULL;
+
+/* Debug levels */
 static uint8_t levels_enable[] = {
 		0,	// Info
 		1,	// Error
@@ -45,6 +49,14 @@ void csp_debug_printf_hook(csp_debug_level_t level) __attribute__((weak));
 /* Implement this symbol if custom formatting of debug messages is required */
 void csp_debug_hook(csp_debug_level_t level, char * str) __attribute__((weak));
 
+/* Some compilers do not support weak symbols, so this function
+ * can be used instead to set a custom debug hook */
+void csp_debug_set_hook(csp_debug_hook_func_t f) {
+
+	csp_debug_hook_func = f;
+
+}
+
 void csp_debug(csp_debug_level_t level, const char * format, ...) {
 
 	va_list args;
@@ -52,10 +64,14 @@ void csp_debug(csp_debug_level_t level, const char * format, ...) {
 
 	/* If csp_debug_hook symbol is defined, pass on the message.
 	 * Otherwise, just print with pretty colors ... */
-	if (csp_debug_hook) {
+	if (csp_debug_hook || csp_debug_hook_func) {
 		char buf[250];
 		vsnprintf(buf, 250, format, args);
-		csp_debug_hook(level, buf);
+		if (csp_debug_hook) {
+			csp_debug_hook(level, buf);
+		} else if (csp_debug_hook_func) {
+			csp_debug_hook_func(level, buf);
+		}
 	} else {
 		const char * color = "";
 

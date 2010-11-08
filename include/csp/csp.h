@@ -238,17 +238,20 @@ typedef enum csp_debug_level_e {
 } csp_debug_level_t;
 
 #if CSP_DEBUG
+typedef void (*csp_debug_hook_func_t)(csp_debug_level_t level, char * str);
 void csp_debug(csp_debug_level_t level, const char * format, ...);
 void csp_debug_toggle_level(csp_debug_level_t level);
 void csp_route_print_table(void);
 void csp_conn_print_table(void);
 void csp_buffer_print_table(void);
+void csp_debug_set_hook(csp_debug_hook_func_t f);
 #else
 #define csp_debug(...);
 #define csp_debug_toggle_level(...);
 #define csp_route_print(...);
 #define csp_conn_print_table(...);
 #define csp_buffer_print_table(...);
+#define csp_debug_set_hook(...);
 #endif
 
 #ifdef __cplusplus
