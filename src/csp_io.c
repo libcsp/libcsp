@@ -85,7 +85,7 @@ csp_socket_t * csp_socket(uint32_t opts) {
 		csp_debug(CSP_ERROR, "Attempt to create socket that requires XTEA, but CSP was compiled without XTEA support\r\n");
 		return NULL;
 	} else if ((opts & CSP_SO_HMACREQ) && !CSP_ENABLE_HMAC) {
-		csp_debug(CSP_ERROR, "Attempt to create socket that requires XTEA, but CSP was compiled without XTEA support\r\n");
+		csp_debug(CSP_ERROR, "Attempt to create socket that requires HMAC, but CSP was compiled without HMAC support\r\n");
 		return NULL;
 	}
 
