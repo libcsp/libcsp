@@ -62,9 +62,6 @@ void csp_init(unsigned char address) {
 	csp_port_init();
 	csp_route_table_init();
 
-	/* Initialize random number generator */
-	srand(csp_get_ms());
-
 	/* Register loopback route */
 	csp_route_set("LOOP", address, csp_lo_tx, CSP_NODE_MAC);
 

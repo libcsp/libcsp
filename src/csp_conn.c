@@ -34,10 +34,17 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "csp_conn.h"
 #include "transport/csp_transport.h"
 
-/* Static connection pool and lock */
+/* Static connection pool */
 static csp_conn_t arr_conn[CSP_CONN_MAX];
 
+/* Connection pool lock */
 static csp_bin_sem_handle_t conn_lock;
+
+/* Source port */
+static uint8_t sport;
+
+/* Source port lock */
+static csp_bin_sem_handle_t sport_lock;
 
 /** csp_conn_timeout
  * Walk trough open connections and check if anything needs to be
@@ -65,6 +72,17 @@ void csp_conn_check_timeouts(void) {
  * Initialises the connection pool
  */
 void csp_conn_init(void) {
+
+	/* Initialize source port */
+#if CSP_RANDOMIZE_EPHEM
+	srand(csp_get_ms());
+	sport = (rand() % (CSP_ID_PORT_MAX - CSP_MAX_BIND_PORT)) + (CSP_MAX_BIND_PORT + 1);
+#else
+	sport = CSP_MAX_BIND_PORT + 1;
+#endif
+
+	if (csp_bin_sem_create(&sport_lock) != CSP_SEMAPHORE_OK)
+			csp_debug(CSP_ERROR, "No more memory for sport semaphore\r\n");
 
 	int i;
 	for (i = 0; i < CSP_CONN_MAX; i++) {
@@ -243,12 +261,6 @@ void csp_close(csp_conn_t * conn) {
  */
 csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport, unsigned int timeout, uint32_t opts) {
 
-#if CSP_RANDOMIZE_EPHEM
-	uint8_t sport = (rand() % (CSP_ID_PORT_MAX - CSP_MAX_BIND_PORT)) + (CSP_MAX_BIND_PORT + 1);
-#else
-	static uint8_t sport = CSP_MAX_BIND_PORT + 1;
-#endif
-
 	/* Generate identifier */
 	csp_id_t incoming_id, outgoing_id;
 	incoming_id.pri = prio;
@@ -295,9 +307,12 @@ csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport, unsigned int
     
     /* Find an unused ephemeral port */
     csp_conn_t * conn;
-    
-    uint8_t start = sport;
 
+    /* Wait for sport lock */
+    if (csp_bin_sem_wait(&sport_lock, 1000) != CSP_SEMAPHORE_OK)
+    	return NULL;
+
+    uint8_t start = sport;
     while (++sport != start) {
         if (sport > CSP_ID_PORT_MAX)
             sport = CSP_MAX_BIND_PORT + 1;
@@ -308,10 +323,13 @@ csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport, unsigned int
         /* Match on destination port of _incoming_ identifier */
         conn = csp_conn_find(incoming_id.ext, CSP_ID_DPORT_MASK);
 
-        /* Break if we found an unused ephem port */
+        /* Break if we found an unused ephemeral port */
         if (conn == NULL)
             break;
     }
+
+    /* Post sport lock */
+    csp_bin_sem_post(&sport_lock);
 
     /* If no available ephemeral port was found */
     if (sport == start)
@@ -333,14 +351,14 @@ csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport, unsigned int
 #endif
 
     /* If the transport layer has failed to connect
-     * deallocate connetion structure again and return NULL
+     * deallocate connection structure again and return NULL
      */
     if (result == 0) {
     	csp_close(conn);
 		return NULL;
     }
 
-    /* We have a successfull connection */
+    /* We have a successful connection */
     return conn;
 
 }
