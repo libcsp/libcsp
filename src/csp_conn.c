@@ -229,6 +229,9 @@ void csp_close(csp_conn_t * conn) {
 		return;
 	}
 
+    /* Do not accept new messages */
+    conn->state = CONN_CLOSE_WAIT;
+
 	/* Ensure connection queue is empty */
 	csp_packet_t * packet;
     while(csp_queue_dequeue(conn->rx_queue, &packet, 0) == CSP_QUEUE_OK) {
