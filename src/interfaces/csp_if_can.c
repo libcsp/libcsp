@@ -53,6 +53,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/interfaces/can.h>
 
 #include "../arch/csp_semaphore.h"
+#include "../arch/csp_time.h"
 
 /** CAN header macros */
 #define CFP_HOST_SIZE 5
@@ -61,7 +62,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #define CFP_ID_SIZE 10
 
 /** Macros for extracting header fields */
-#define CFP_FIELD(id,rsiz,fsiz) ((uint8_t)(((id) >> (rsiz)) & ((1 << (fsiz)) - 1)))
+#define CFP_FIELD(id,rsiz,fsiz) ((uint32_t)((uint32_t)((id) >> (rsiz)) & (uint32_t)((1 << (fsiz)) - 1)))
 #define CFP_SRC(id) 		CFP_FIELD(id, CFP_HOST_SIZE + CFP_TYPE_SIZE + CFP_REMAIN_SIZE + CFP_ID_SIZE, CFP_HOST_SIZE)
 #define CFP_DST(id) 		CFP_FIELD(id, CFP_TYPE_SIZE + CFP_REMAIN_SIZE + CFP_ID_SIZE, CFP_HOST_SIZE)
 #define CFP_TYPE(id) 		CFP_FIELD(id, CFP_REMAIN_SIZE + CFP_ID_SIZE, CFP_TYPE_SIZE)
@@ -69,7 +70,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #define CFP_ID(id) 			CFP_FIELD(id, 0, CFP_ID_SIZE)
 
 /** Macros for building CFP headers */
-#define CFP_MAKE_FIELD(id,fsiz,rsiz) (((id) & ((1 << (fsiz)) - 1)) << (rsiz))
+#define CFP_MAKE_FIELD(id,fsiz,rsiz) ((uint32_t)(((id) & (uint32_t)((uint32_t)(1 << (fsiz)) - 1)) << (rsiz)))
 #define CFP_MAKE_SRC(id) 	CFP_MAKE_FIELD(id, CFP_HOST_SIZE, CFP_HOST_SIZE + CFP_TYPE_SIZE + CFP_REMAIN_SIZE + CFP_ID_SIZE)
 #define CFP_MAKE_DST(id) 	CFP_MAKE_FIELD(id, CFP_HOST_SIZE, CFP_TYPE_SIZE + CFP_REMAIN_SIZE + CFP_ID_SIZE)
 #define CFP_MAKE_TYPE(id) 	CFP_MAKE_FIELD(id, CFP_TYPE_SIZE, CFP_REMAIN_SIZE + CFP_ID_SIZE)
@@ -77,7 +78,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #define CFP_MAKE_ID(id) 	CFP_MAKE_FIELD(id, CFP_ID_SIZE, 0)
 
 /** Mask to uniquely separate connections */
-#define CFP_ID_CONN_MASK 	(CFP_MAKE_SRC((1 << CFP_HOST_SIZE) - 1) | CFP_MAKE_DST((1 << CFP_HOST_SIZE) - 1) | CFP_MAKE_ID((1 << CFP_ID_SIZE) - 1))
+#define CFP_ID_CONN_MASK 	(CFP_MAKE_SRC((uint32_t)(1 << CFP_HOST_SIZE) - 1) | CFP_MAKE_DST((uint32_t)(1 << CFP_HOST_SIZE) - 1) | CFP_MAKE_ID((uint32_t)(1 << CFP_ID_SIZE) - 1))
 
 /** Maximum Transmission Unit for CSP over CAN */
 #define CSP_CAN_MTU 256
@@ -104,7 +105,7 @@ csp_bin_sem_handle_t pbuf_sem;
 int id_init(void) {
 
     /* Init ID field to random number */
-    srand(time(0));
+    srand((int)csp_get_ms());
     cfp_id = rand() & ((1 << CFP_ID_SIZE) - 1);
     
     if (csp_bin_sem_create(&id_sem) == CSP_SEMAPHORE_OK) {
