@@ -147,6 +147,7 @@ typedef struct {
     csp_packet_t * packet;			/**< Pointer to packet buffer */
     pbuf_state_t state;				/**< Element state */
     uint32_t last_used;				/**< Timestamp in ms for last use of buffer */
+    int mbox;						/**< Mailbox used in transmission */
 } pbuf_element_t;
 
 static pbuf_element_t pbuf[PBUF_ELEMENTS];
@@ -290,7 +291,8 @@ int csp_tx_callback(can_id_t canid) {
 		bytes = (buf->packet->length - buf->tx_count >= 8) ? 8 : buf->packet->length - buf->tx_count;
 
 		/* Send frame */
-		can_transmit(id, buf->packet->data + buf->tx_count, bytes);
+		can_mbox_data(buf->mbox, id, buf->packet->data + buf->tx_count, bytes);
+		can_mbox_send(buf->mbox);
 
 		/* Increment tx counter */
 		buf->tx_count += bytes;
@@ -298,6 +300,9 @@ int csp_tx_callback(can_id_t canid) {
 		/* Free packet */
 		if (pbuf->packet != NULL)
 			csp_buffer_free(pbuf->packet);
+
+		/* Free mailbox */
+		can_mbox_release(buf->mbox);
 
 		/* Post semaphore if blocking mode is enabled */
 		csp_bin_sem_post(&pbuf->tx_sem);
@@ -367,8 +372,19 @@ int csp_can_tx(csp_id_t cspid, csp_packet_t * packet, unsigned int timeout) {
 	memcpy(frame_buf + sizeof(csp_id_be), &csp_length_be, sizeof(csp_length_be));
 	memcpy(frame_buf + overhead, packet->data, bytes);
 
+	/* Get mailbox */
+	int mbox = can_mbox_get();
+	if (mbox < 0) {
+		csp_debug(CSP_WARN, "No available mailbox\r\n");
+		return 0;
+	}
+
+	/* Associate mbox with packet buffer */
+	buf->mbox = mbox;
+
 	/* Send frame */
-	can_transmit(id, frame_buf, overhead + bytes);
+	can_mbox_data(mbox, id, frame_buf, overhead + bytes);
+	can_mbox_send(mbox);
 
 	/* Increment tx counter */
 	buf->tx_count += bytes;
@@ -505,8 +521,15 @@ int csp_can_init(char * ifc, uint8_t myaddr, uint8_t promisc) {
     	return -1;
     }
     
+    uint32_t mask;
+    if (promisc) {
+    	mask = CFP_MAKE_DST((1 << CFP_HOST_SIZE) - 1);
+    } else {
+    	mask = 0;
+    }
+
     /* Initialize CAN driver */
-    if (can_init(myaddr, promisc, csp_tx_callback, csp_rx_callback) != 0) {
+    if (can_init("vcan0", CFP_MAKE_DST(myaddr), mask, csp_tx_callback, csp_rx_callback) != 0) {
     	csp_debug(CSP_ERROR, "Failed to initialize CAN driver\r\n");
     	return -1;
     }

@@ -41,12 +41,16 @@ typedef struct {
 } can_frame_t;
 
 /** TX Callback function prototype */
-typedef int (*can_tx_callback_t)(uint32_t id);
+typedef int (*can_tx_callback_t)(can_id_t id);
 
 /** RX Callback function prototype */
 typedef int (*can_rx_callback_t)(can_frame_t * frame);
 
-int can_init(uint8_t address, int promisc, can_tx_callback_t txcb, can_rx_callback_t rxcb);
-int can_transmit(can_id_t id, uint8_t * data, uint8_t dlc);
+int can_init(char * ifc, uint32_t id, uint32_t mask, can_tx_callback_t txcb, can_rx_callback_t rxcb);
+int can_mbox_init(void);
+int can_mbox_get(void);
+int can_mbox_release(int mbox);
+int can_mbox_data(int mbox, can_id_t id, uint8_t * data, uint8_t dlc);
+int can_mbox_send(int mbox);
 
 #endif /* _CAN_H_ */
