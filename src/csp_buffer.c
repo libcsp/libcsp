@@ -86,7 +86,7 @@ int csp_buffer_init(int buf_count, int buf_size) {
 #endif
 
 	/* Clear housekeeping memory = all free mem */
-	memset(csp_buffer_list, 0, count);
+	memset(csp_buffer_list, 0, count * sizeof(csp_buffer_state_t));
 
 	return 1;
 
