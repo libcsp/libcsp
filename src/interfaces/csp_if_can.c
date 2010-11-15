@@ -86,6 +86,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 /** Number of packet buffer elements */
 #define PBUF_ELEMENTS CSP_CONN_MAX
 
+/** Buffer element timeout in ms */
+#define PBUF_TIMEOUT_MS 10000
+
 /** CFP Frame Types */
 enum cfp_frame_t {
     CFP_BEGIN = 0,
@@ -183,6 +186,33 @@ static int pbuf_init(void) {
     
 }
 
+/** pbuf_free
+ * Free buffer element and associated CSP packet buffer element.
+ * @param buf Buffer element to free
+ * @return 0 on success, -1 on error.
+ */
+static int pbuf_free(pbuf_element_t * buf) {
+
+	/* Free CSP packet */
+    if (buf->packet != NULL) {
+        csp_buffer_free(buf->packet);
+        buf->packet = NULL;
+    }
+    if (csp_bin_sem_wait(&pbuf_sem, 1000) != CSP_SEMAPHORE_OK)
+    	return -1;
+
+    /* Mark buffer element free */
+    buf->state = BUF_FREE;
+    buf->rx_count = 0;
+	buf->tx_count = 0;
+	buf->cfpid = 0;
+	buf->last_used = 0;
+    csp_bin_sem_post(&pbuf_sem);
+
+    return 0;
+
+}
+
 /** pbuf_new
  * Get new packet buffer element
  * @param id CFP identifier
@@ -203,8 +233,16 @@ static pbuf_element_t * pbuf_new(uint32_t id) {
         if(buf->state == BUF_FREE) {
             buf->state = BUF_USED;
             buf->cfpid = id;
+            buf->last_used = csp_get_ms();
             csp_bin_sem_post(&pbuf_sem);
             return buf;
+        } else if (buf->state == BUF_USED) {
+        	/* Check timeout */
+        	uint32_t now = csp_get_ms();
+        	if (now - buf->last_used > PBUF_TIMEOUT_MS) {
+        		csp_debug(CSP_WARN, "Buffer element exceeded timeout");
+        		pbuf_free(buf);
+        	}
         }
     }
     csp_bin_sem_post(&pbuf_sem);
@@ -234,6 +272,7 @@ static pbuf_element_t * pbuf_find(uint32_t id, uint32_t mask) {
         buf = &pbuf[i];
 
         if((buf->state == BUF_USED) && ((buf->cfpid & mask) == (id & mask))) {
+        	buf->last_used = csp_get_ms();
             csp_bin_sem_post(&pbuf_sem);
             return buf;
         }
@@ -242,33 +281,6 @@ static pbuf_element_t * pbuf_find(uint32_t id, uint32_t mask) {
 
     /* If no matching buffer was found, try to create a new one */
     return pbuf_new(id);
-
-}
-
-/** pbuf_free
- * Free buffer element and associated CSP packet buffer element.
- * @param buf Buffer element to free
- * @return 0 on success, -1 on error.
- */
-static int pbuf_free(pbuf_element_t * buf) {
-
-	/* Free CSP packet */
-    if (buf->packet != NULL) {
-        csp_buffer_free(buf->packet);
-        buf->packet = NULL;
-    }
-    if (csp_bin_sem_wait(&pbuf_sem, 1000) != CSP_SEMAPHORE_OK)
-    	return -1;
-
-    /* Mark buffer element free */
-    buf->state = BUF_FREE;
-    buf->rx_count = 0;
-	buf->tx_count = 0;
-	buf->cfpid = 0;
-	buf->last_used = 0;
-    csp_bin_sem_post(&pbuf_sem);
-    
-    return 0;
 
 }
 
