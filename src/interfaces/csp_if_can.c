@@ -102,7 +102,7 @@ csp_bin_sem_handle_t id_sem;
 csp_bin_sem_handle_t pbuf_sem;
 
 /* Identification number */
-int id_init(void) {
+static int id_init(void) {
 
     /* Init ID field to random number */
     srand((int)csp_get_ms());
@@ -117,7 +117,7 @@ int id_init(void) {
 
 }
 
-int id_get(void) {
+static int id_get(void) {
 
     int id;
     if (csp_bin_sem_wait(&id_sem, 1000) != CSP_SEMAPHORE_OK)
@@ -165,6 +165,12 @@ static int pbuf_init(void) {
         buf->cfpid = 0;
         buf->packet = NULL;
         buf->state = BUF_FREE;
+        buf->last_used = 0;
+        /* Create tx semaphore if blocking mode is enabled */
+		if (csp_bin_sem_create(&buf->tx_sem) != CSP_SEMAPHORE_OK) {
+			csp_debug(CSP_ERROR, "Failed to allocate TX semaphore\n");
+			return -1;
+		}
     }
 
     /* Init packet buffer semaphore */
@@ -256,6 +262,10 @@ static int pbuf_free(pbuf_element_t * buf) {
 
     /* Mark buffer element free */
     buf->state = BUF_FREE;
+    buf->rx_count = 0;
+	buf->tx_count = 0;
+	buf->cfpid = 0;
+	buf->last_used = 0;
     csp_bin_sem_post(&pbuf_sem);
     
     return 0;
@@ -264,19 +274,23 @@ static int pbuf_free(pbuf_element_t * buf) {
 
 int csp_tx_callback(can_id_t canid) {
 
-	can_id_t id = canid;
-    uint8_t bytes;
+    int bytes;
     
     /* Match buffer element */
-    pbuf_element_t * buf = pbuf_find(id, CFP_ID_CONN_MASK);
+    pbuf_element_t * buf = pbuf_find(canid, CFP_ID_CONN_MASK);
     if (buf == NULL) {
     	csp_debug(CSP_WARN, "Failed to match buffer element in tx callback\r\n");
     	return -1;
     }
 
-	if (pbuf->tx_count < pbuf->packet->length) {
+    if (buf->packet == NULL) {
+    	printf("buf->packet is NULL\r\n");
+    	return -1;
+    }
+
+	if (buf->tx_count < buf->packet->length) {
 		/* Prepare identifier */
-		id  = 0;
+		can_id_t id  = 0;
 		id |= CFP_MAKE_SRC(buf->packet->id.src);
 		id |= CFP_MAKE_DST(buf->packet->id.dst);
 		id |= CFP_MAKE_ID(CFP_ID(canid));
@@ -294,14 +308,14 @@ int csp_tx_callback(can_id_t canid) {
 		buf->tx_count += bytes;
 	} else {
 		/* Free packet */
-		if (pbuf->packet != NULL)
-			csp_buffer_free(pbuf->packet);
+		if (buf->packet != NULL)
+			csp_buffer_free(buf->packet);
 
 		/* Free mailbox */
 		can_mbox_release(buf->mbox);
 
 		/* Post semaphore if blocking mode is enabled */
-		csp_bin_sem_post(&pbuf->tx_sem);
+		csp_bin_sem_post(&buf->tx_sem);
 
 		/* Free packet buffer */
 		pbuf_free(buf);
@@ -340,19 +354,7 @@ int csp_can_tx(csp_id_t cspid, csp_packet_t * packet, unsigned int timeout) {
 	}
 
 	/* Set packet */
-	pbuf->packet = packet;
-
-    /* Create tx semaphore if blocking mode is enabled */
-    if (timeout != 0) {
-        if (csp_bin_sem_create(&buf->tx_sem) != CSP_SEMAPHORE_OK) {
-        	pbuf_free(buf);
-            csp_debug(CSP_ERROR, "Failed to allocate TX semaphore\n");
-            return 0;
-        } else {
-            /* This will always succeed */
-            csp_bin_sem_wait(&buf->tx_sem, 0);
-        }
-    }
+	buf->packet = packet;
 
     /* Calculate overhead */
 	overhead = sizeof(csp_id_t) + sizeof(uint16_t);

@@ -23,8 +23,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <stdint.h>
 #include <stdio.h>
 
-#include <csp/interfaces/can.h>
-
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -49,6 +47,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <linux/can/raw.h>
 #include <linux/socket.h>
 #include <bits/socket.h>
+
+#include "can.h"
 
 /* Number of mailboxes */
 #define MBOX_NUM 5
@@ -77,7 +77,6 @@ typedef struct {
     pthread_t thread;  		/** Thread handle */
     sem_t signal_sem;   	/** Signalling semaphore */
     mbox_state_t state;		/** Thread state */
-    uint32_t cfpid;     	/** CFP identifier */
     struct can_frame frame;	/** CAN Frame */
 } mbox_t;
 
@@ -108,7 +107,7 @@ static void * mbox_tx_thread(void * parameters) {
 		}
 
 		/* Call tx callback */
-		if (txcb) txcb(m->id);
+		if (txcb) txcb(m->frame.can_id);
 
     }
 
@@ -158,13 +157,13 @@ int can_mbox_init(void) {
     for (i = 0; i < MBOX_NUM; i++) {
     	m = &mbox[i];
         m->state = MBOX_FREE;
-        m->cfpid = 0;
 
         /* Init signal semaphore */
         if (sem_init(&(m->signal_sem), 0, 1) != 0) {
             perror("sem_init");
             return -1;
         } else {
+        	/* Take signal semaphore so the thread waits for tx data */
             sem_wait(&(m->signal_sem));
         }
 
@@ -201,10 +200,10 @@ int can_mbox_get(void) {
 
     /* No free thread */
     return -1;
+
 }
 
 int can_mbox_release(int m) {
-	mbox[m].cfpid = 0;
     sem_wait(&mbox_sem);
     mbox[m].state = MBOX_FREE;
     sem_post(&mbox_sem);
