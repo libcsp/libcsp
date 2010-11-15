@@ -67,12 +67,15 @@ SOURCES += src/arch/$(ARCH)/csp_time.c
 SOURCES += src/arch/$(ARCH)/csp_thread.c
 SOURCES += src/interfaces/csp_if_lo.c
 SOURCES += src/interfaces/csp_if_can.c
-SOURCES += src/interfaces/can/can_socketcan.c
 SOURCES += src/transport/csp_rdp.c
 SOURCES += src/transport/csp_udp.c
 SOURCES += src/crypto/csp_sha1.c
 SOURCES += src/crypto/csp_hmac.c
 SOURCES += src/crypto/csp_xtea.c
+
+ifeq ($(TOOLCHAIN),)
+SOURCES += src/interfaces/can/can_socketcan.c
+endif
 
 ## POSIX archs requires pthread_queue
 ifeq ($(ARCH),posix)
