@@ -43,7 +43,10 @@ int csp_bin_sem_create(csp_bin_sem_handle_t * sem) {
 }
 
 int csp_bin_sem_remove(csp_bin_sem_handle_t * sem) {
-	return CSP_SEMAPHORE_OK;
+	if (sem_destroy(sem) == 0)
+		return CSP_SEMAPHORE_OK;
+	else
+		return CSP_SEMAPHORE_ERROR;
 }
 
 int csp_bin_sem_wait(csp_bin_sem_handle_t * sem, int timeout) {

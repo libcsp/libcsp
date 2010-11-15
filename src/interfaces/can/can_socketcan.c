@@ -1,7 +1,7 @@
 /*
 Cubesat Space Protocol - A small network-layer protocol designed for Cubesats
 Copyright (C) 2010 GomSpace ApS (gomspace.com)
-Copyright (C) 2010 AAUSAT3 Project (aausat3.space.aau.dk) 
+Copyright (C) 2010 AAUSAT3 Project (aausat3.space.aau.dk)
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -18,12 +18,19 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef _CSP_IF_CAN_H_
-#define _CSP_IF_CAN_H_
+/* SocketCAN driver */
 
-#include <csp/csp.h>
+#include <stdint.h>
+#include <stdio.h>
 
-int csp_can_tx(csp_id_t cspid, csp_packet_t * packet, unsigned int timeout);
-int csp_can_init(char * ifc, uint8_t addr, uint8_t mask_nr);
+#include <csp/interfaces/can.h>
 
-#endif /* _CSP_IF_CAN_H_ */
+int can_init(uint8_t address, int promisc, can_tx_callback_t txcb, can_rx_callback_t rxcb) {
+	printf("CAN Init called\r\n");
+	return 0;
+}
+
+int can_transmit(can_id_t id, uint8_t * data, uint8_t dlc) {
+	printf("CAN tx called\r\n");
+	return 0;
+}
