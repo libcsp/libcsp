@@ -50,10 +50,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/csp_interface.h>
 #include <csp/csp_endian.h>
 
-#include <csp/interfaces/can.h>
-
 #include "../arch/csp_semaphore.h"
 #include "../arch/csp_time.h"
+
+#include "can/can.h"
 
 /** CAN header macros */
 #define CFP_HOST_SIZE 5
@@ -272,7 +272,7 @@ static int pbuf_free(pbuf_element_t * buf) {
 
 }
 
-int csp_tx_callback(can_id_t canid) {
+int csp_tx_callback(can_id_t canid, int * task_woken) {
 
     int bytes;
     
@@ -315,7 +315,10 @@ int csp_tx_callback(can_id_t canid) {
 		can_mbox_release(buf->mbox);
 
 		/* Post semaphore if blocking mode is enabled */
-		csp_bin_sem_post(&buf->tx_sem);
+		if (task_woken)
+			csp_bin_sem_post_isr(&buf->tx_sem, task_woken);
+		else
+			csp_bin_sem_post(&buf->tx_sem);
 
 		/* Free packet buffer */
 		pbuf_free(buf);
@@ -402,7 +405,7 @@ int csp_can_tx(csp_id_t cspid, csp_packet_t * packet, unsigned int timeout) {
     
 }
 
-int csp_rx_callback(can_frame_t * frame) {
+int csp_rx_callback(can_frame_t * frame, int * task_woken) {
 
     static pbuf_element_t * buf;
     uint8_t offset;
@@ -486,7 +489,7 @@ int csp_rx_callback(can_frame_t * frame) {
 
             /* Data is available */
             csp_debug(CSP_DEBUG, "Full packet received\n");
-            csp_new_packet(buf->packet, csp_can_tx, NULL);
+            csp_new_packet(buf->packet, csp_can_tx, task_woken);
             buf->packet = NULL;
 
             /* Free packet buffer */

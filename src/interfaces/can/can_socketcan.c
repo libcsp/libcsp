@@ -66,7 +66,7 @@ sem_t mbox_sem;	/** Mailbox pool semaphore */
 can_tx_callback_t txcb;
 can_rx_callback_t rxcb;
 
-/* Thread pool */
+/* Mailbox pool */
 typedef enum {
     MBOX_FREE = 0,
     MBOX_USED = 1,
@@ -107,7 +107,7 @@ static void * mbox_tx_thread(void * parameters) {
 		}
 
 		/* Call tx callback */
-		if (txcb) txcb(m->frame.can_id);
+		if (txcb) txcb(m->frame.can_id, NULL);
 
     }
 
@@ -139,9 +139,8 @@ static void * mbox_rx_thread(void * parameters) {
         	frame.can_id &= CAN_EFF_MASK;
         }
 
-
         /* Call RX callback */
-        if (rxcb) rxcb((can_frame_t *)&frame);
+        if (rxcb) rxcb((can_frame_t *)&frame, NULL);
     }
 
     /* We should never reach this point */
@@ -288,7 +287,7 @@ int can_init(char * ifc, uint32_t id, uint32_t mask, can_tx_callback_t atxcb, ca
 		return -1;
 	}
 
-	/* Create TX thread pool */
+	/* Create mailbox pool */
 	if (can_mbox_init() != 0) {
 		printf("Failed to create tx thread pool\n");
 		return -1;

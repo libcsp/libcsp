@@ -41,10 +41,10 @@ typedef struct {
 } can_frame_t;
 
 /** TX Callback function prototype */
-typedef int (*can_tx_callback_t)(can_id_t id);
+typedef int (*can_tx_callback_t)(can_id_t id, int * task_woken);
 
 /** RX Callback function prototype */
-typedef int (*can_rx_callback_t)(can_frame_t * frame);
+typedef int (*can_rx_callback_t)(can_frame_t * frame, int * task_woken);
 
 int can_init(char * ifc, uint32_t id, uint32_t mask, can_tx_callback_t txcb, can_rx_callback_t rxcb);
 int can_mbox_init(void);
