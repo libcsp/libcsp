@@ -201,6 +201,7 @@ int csp_conn_dport(csp_conn_t * conn);
 int csp_conn_sport(csp_conn_t * conn);
 int csp_conn_dst(csp_conn_t * conn);
 int csp_conn_src(csp_conn_t * conn);
+int csp_conn_flags(csp_conn_t * conn);
 
 /* Implemented in csp_port.c */
 int csp_listen(csp_socket_t * socket, size_t conn_queue_length);

@@ -229,6 +229,12 @@ void csp_close(csp_conn_t * conn) {
 		return;
 	}
 
+    /* Ensure l4 knows this conn is closing */
+#if CSP_USE_RDP
+    if (conn->idin.flags & CSP_FRDP)
+		csp_rdp_close(conn);
+#endif
+
     /* Do not accept new messages */
     conn->state = CONN_CLOSE_WAIT;
 
@@ -238,12 +244,6 @@ void csp_close(csp_conn_t * conn) {
     	if (packet != NULL)
     		csp_buffer_free(packet);
     }
-
-    /* Ensure l4 knows this conn is closing */
-#if CSP_USE_RDP
-    if (conn->idin.flags & CSP_FRDP)
-		csp_rdp_close(conn);
-#endif
 
     /* Set to closed */
     conn->state = CONN_CLOSED;
@@ -425,5 +425,15 @@ inline int csp_conn_dst(csp_conn_t * conn) {
 inline int csp_conn_src(csp_conn_t * conn) {
 
     return conn->idin.src;
+
+}
+
+/**
+ * @param conn pointer to connection structure
+ * @return flags field of an incoming connection
+ */
+inline int csp_conn_flags(csp_conn_t * conn) {
+
+	return conn->idin.flags;
 
 }
