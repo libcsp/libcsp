@@ -272,7 +272,7 @@ static int pbuf_free(pbuf_element_t * buf) {
 
 }
 
-int csp_tx_callback(can_id_t canid, int * task_woken) {
+int csp_tx_callback(can_id_t canid, CSP_BASE_TYPE * task_woken) {
 
     int bytes;
     
@@ -405,7 +405,7 @@ int csp_can_tx(csp_id_t cspid, csp_packet_t * packet, unsigned int timeout) {
     
 }
 
-int csp_rx_callback(can_frame_t * frame, int * task_woken) {
+int csp_rx_callback(can_frame_t * frame, CSP_BASE_TYPE * task_woken) {
 
     static pbuf_element_t * buf;
     uint8_t offset;
