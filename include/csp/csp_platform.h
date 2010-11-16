@@ -35,7 +35,7 @@ extern "C" {
 #elif defined (__PPC__) || defined(__sparc__)
     #define _CSP_BIG_ENDIAN_
     #define _CSP_POSIX_    
-#elif defined(__AVR32__)
+#elif defined(__AVR32__) || defined(__AVR32_AP7000__)
     #define _CSP_BIG_ENDIAN_
     #define _CSP_FREERTOS_
 #else
