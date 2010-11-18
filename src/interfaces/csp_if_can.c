@@ -218,7 +218,7 @@ static int pbuf_free(pbuf_element_t * buf, CSP_BASE_TYPE * task_woken) {
 
 	/* Unlock packet buffer */
 	if (task_woken != NULL) {
-		CSP_ENTER_CRITICAL(pbuf_sem);
+		CSP_EXIT_CRITICAL(pbuf_sem);
 	}
 
     return 0;
@@ -248,6 +248,9 @@ static pbuf_element_t * pbuf_new(uint32_t id, CSP_BASE_TYPE * task_woken) {
             buf->state = BUF_USED;
             buf->cfpid = id;
             buf->last_used = csp_get_ms();
+            if (task_woken != NULL) {
+            	CSP_EXIT_CRITICAL(pbuf_sem);
+            }
             return buf;
         } else if (buf->state == BUF_USED) {
         	/* Check timeout */
@@ -261,7 +264,7 @@ static pbuf_element_t * pbuf_new(uint32_t id, CSP_BASE_TYPE * task_woken) {
 
     /* Unlock packet buffer */
 	if (task_woken != NULL) {
-		CSP_ENTER_CRITICAL(pbuf_sem);
+		CSP_EXIT_CRITICAL(pbuf_sem);
 	}
 
     /* No free buffer was found */
@@ -304,7 +307,7 @@ static pbuf_element_t * pbuf_find(uint32_t id, uint32_t mask, CSP_BASE_TYPE * ta
 
     /* Unlock packet buffer */
     if (task_woken != NULL) {
-		CSP_ENTER_CRITICAL(pbuf_sem);
+		CSP_EXIT_CRITICAL(pbuf_sem);
     }
 
     /* If no matching buffer was found, try to create a new one */
@@ -325,7 +328,7 @@ int csp_tx_callback(can_id_t canid, CSP_BASE_TYPE * task_woken) {
     }
 
     if (buf->packet == NULL) {
-    	printf("buf->packet is NULL\r\n");
+    	csp_debug(CSP_WARN, "Buffer packet was NULL\r\n");
     	return -1;
     }
 
@@ -372,7 +375,6 @@ int csp_tx_callback(can_id_t canid, CSP_BASE_TYPE * task_woken) {
 
 int csp_can_tx(csp_id_t cspid, csp_packet_t * packet, unsigned int timeout) {
 
-	printf("csp_can_tx\r\n");
 	uint8_t bytes, overhead;
 	uint8_t frame_buf[8];
 
@@ -383,8 +385,6 @@ int csp_can_tx(csp_id_t cspid, csp_packet_t * packet, unsigned int timeout) {
 		return 0;
 	}
 
-	printf("Got id: %d\r\n", ident);
-
 	/* Create CAN identifier */
 	can_id_t id = 0;
 	id |= CFP_MAKE_SRC(packet->id.src);
@@ -392,8 +392,6 @@ int csp_can_tx(csp_id_t cspid, csp_packet_t * packet, unsigned int timeout) {
 	id |= CFP_MAKE_ID(ident);
 	id |= CFP_MAKE_TYPE(CFP_BEGIN);
 	id |= CFP_MAKE_REMAIN((packet->length + 7) / 8);
-
-	printf("Sending id: %#"PRIx32"\r\n", (uint32_t)id);
 
 	/* Get packet buffer */
 	pbuf_element_t * buf = pbuf_find(id, CFP_ID_CONN_MASK, NULL);
@@ -462,7 +460,7 @@ int csp_rx_callback(can_frame_t * frame, CSP_BASE_TYPE * task_woken) {
     can_id_t id = frame->id;
 
     /* A little debugging information please */
-    printf("CAN Frame id=%"PRIx32" src=%#02x dst=%#02x type=%#02x remain=%#02x id=%#02x dlc=%d\n",
+    csp_debug(CSP_INFO, "CAN Frame id=%"PRIx32" src=%#02x dst=%#02x type=%#02x remain=%#02x id=%#02x dlc=%d\r\n",
     	id,
         CFP_SRC(id),
         CFP_DST(id),
@@ -490,19 +488,19 @@ int csp_rx_callback(can_frame_t * frame, CSP_BASE_TYPE * task_woken) {
         
             /* Discard packet if DLC is less than CSP id + CSP length fields */
             if (frame->dlc < sizeof(csp_id_t) + sizeof(uint16_t)) {
-                printf("Warning: Short BEGIN frame received\r\n");
+                csp_debug(CSP_WARN, "Short BEGIN frame received\r\n");
                 pbuf_free(buf, task_woken);
                 break;
             }
                         
             /* Check for incomplete frame */
             if (buf->packet != NULL) {
-                printf("Warning: Incomplete frame\r\n");
+                csp_debug(CSP_WARN, "Incomplete frame\r\n");
             } else {
                 /* Allocate memory for frame */
                 buf->packet = csp_buffer_get(CSP_CAN_MTU);
                 if (buf->packet == NULL) {
-                    printf("Failed to get buffer for CSP_BEGIN packet\n");
+                    csp_debug(CSP_ERROR, "Failed to get buffer for CSP_BEGIN packet\n");
                     break;
                 }
             }
@@ -524,7 +522,7 @@ int csp_rx_callback(can_frame_t * frame, CSP_BASE_TYPE * task_woken) {
 
             /* Check for overflow */
             if ((buf->rx_count + frame->dlc - offset) > buf->packet->length) {
-                printf("RX buffer overflow!\r\n");
+                csp_debug(CSP_ERROR, "RX buffer overflow!\r\n");
                 pbuf_free(buf, task_woken);
                 break;
             }
@@ -548,7 +546,7 @@ int csp_rx_callback(can_frame_t * frame, CSP_BASE_TYPE * task_woken) {
             break;
 
         default:
-            printf("Unknown CFP message type\r\n");
+            csp_debug(CSP_WARN, "Received unknown CFP message type\r\n");
             pbuf_free(buf, task_woken);
             break;
 
@@ -560,14 +558,11 @@ int csp_rx_callback(can_frame_t * frame, CSP_BASE_TYPE * task_woken) {
 
 int csp_can_init(char * ifc, uint8_t myaddr, uint8_t promisc) {
 
-	printf("csp_can_init ifc=%s myaddr=%d, promisc=%d\r\n", ifc, myaddr, promisc);
     /* Initialize packet buffer */
     if (pbuf_init() != 0) {
     	csp_debug(CSP_ERROR, "Failed to initialize CAN packet buffers\r\n");
     	return -1;
 	}
-    
-    printf("Init pbuf\r\n");
 
     /* Initialize CFP identifier */
     if (id_init() != 0) {
@@ -575,8 +570,6 @@ int csp_can_init(char * ifc, uint8_t myaddr, uint8_t promisc) {
     	return -1;
     }
     
-    printf("Init id\r\n");
-
     uint32_t mask;
     if (promisc) {
     	mask = CFP_MAKE_DST((1 << CFP_HOST_SIZE) - 1);
@@ -584,15 +577,11 @@ int csp_can_init(char * ifc, uint8_t myaddr, uint8_t promisc) {
     	mask = 0;
     }
 
-    printf("Mask: %x\r\n", mask);
-
     /* Initialize CAN driver */
     if (can_init(ifc, CFP_MAKE_DST(myaddr), mask, csp_tx_callback, csp_rx_callback) != 0) {
     	csp_debug(CSP_ERROR, "Failed to initialize CAN driver\r\n");
     	return -1;
     }
-
-    printf("Init CAN\r\n");
 
     return 0;
 
