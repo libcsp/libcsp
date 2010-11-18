@@ -35,7 +35,7 @@ CFLAGS += -D_GNU_SOURCE
 else ifeq ($(TOOLCHAIN),)
 CFLAGS += -fPIC
 endif
-CFLAGS += -Wall -Werror -std=gnu99 -O2 -funsigned-char -funsigned-bitfields
+CFLAGS += -Wall -Werror -std=gnu99 -Os
 
 ## Assembly specific flags
 ASMFLAGS = $(COMMON)
@@ -75,6 +75,10 @@ SOURCES += src/crypto/csp_xtea.c
 
 ifeq ($(TOOLCHAIN),)
 SOURCES += src/interfaces/can/can_socketcan.c
+endif
+
+ifeq ($(TOOLCHAIN),avr-)
+SOURCES += src/interfaces/can/can_at90can128.c
 endif
 
 ## POSIX archs requires pthread_queue
