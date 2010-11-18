@@ -48,6 +48,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <linux/socket.h>
 #include <bits/socket.h>
 
+#include <csp/interfaces/csp_if_can.h>
+
 #include "can.h"
 
 /* Number of mailboxes */
@@ -240,11 +242,23 @@ int can_mbox_send(int m) {
 
 }
 
-int can_init(char * ifc, uint32_t id, uint32_t mask, can_tx_callback_t atxcb, can_rx_callback_t arxcb) {
+int can_init(uint32_t id, uint32_t mask, can_tx_callback_t atxcb, can_rx_callback_t arxcb, void * conf, int conflen) {
 
 	struct ifreq ifr;
 	struct sockaddr_can addr;
 	pthread_t rx_thread;
+	char * ifc;
+
+	/* Validate config size */
+	if (conf != NULL && conflen > 0) {
+		if (conflen != sizeof(struct can_socketcan_conf)) {
+			return -1;
+		} else {
+			ifc = ((struct can_socketcan_conf *)conf)->ifc;
+		}
+	} else {
+		ifc = "can0";
+	}
 
 	txcb = atxcb;
 	rxcb = arxcb;

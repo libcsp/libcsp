@@ -23,6 +23,21 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <csp/csp.h>
 
+/** AVR8 config struct */
+struct can_avr8_conf {
+	uint32_t bitrate;
+};
+
+/** SocketCAN config struct */
+struct can_socketcan_conf {
+	char * ifc;
+};
+
+/** ARM7TDMI config struct */
+struct can_arm7tdmi_conf {
+	uint32_t bitrate;
+};
+
 int csp_can_tx(csp_id_t cspid, csp_packet_t * packet, unsigned int timeout);
 int csp_can_init(char * ifc, uint8_t addr, uint8_t mask_nr);
 

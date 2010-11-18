@@ -26,7 +26,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
-#include <csp/csp.h>
+
+#include <csp/interfaces/csp_if_can.h>
 
 #include "can.h"
 #include "can_at90can128.h"
@@ -70,7 +71,7 @@ void can_configure_mobs(void) {
 
 int can_configure_bitrate(unsigned long int afcpu, int kbps) {
 	/* Set baud rate (500 kbps) */
-	if (kbps != 500) {
+	if (kbps != 500000) {
 		printf_P(PSTR("CAN bitrate must be 500 kbps\r\n"));
 		return -1;
 	}
@@ -100,9 +101,21 @@ int can_configure_bitrate(unsigned long int afcpu, int kbps) {
 
 }
 
-int can_init(char * ifc, uint32_t id, uint32_t mask, can_tx_callback_t atxcb, can_rx_callback_t arxcb) {
+int can_init(uint32_t id, uint32_t mask, can_tx_callback_t atxcb, can_rx_callback_t arxcb, void * conf, int conflen) {
 
 	extern unsigned long fcpu;
+	uint32_t bitrate;
+
+	/* Validate config size */
+	if (conf != NULL && conflen > 0) {
+		if (conflen != sizeof(struct can_avr8_conf)) {
+			return -1;
+		} else {
+			bitrate = ((struct can_avr8_conf *)conf)->birate;
+		}
+	} else {
+		bitrate = 500000;
+	}
 
 	/* Set id and mask */
 	can_id = id;
@@ -121,7 +134,7 @@ int can_init(char * ifc, uint32_t id, uint32_t mask, can_tx_callback_t atxcb, ca
 	CANIE2 = 0xFF;
 
 	/* Configure bitrate */
-	can_configure_bitrate(fcpu, 500);
+	can_configure_bitrate(fcpu, bitrate);
 
 	/* Configure MOBS */
 	can_configure_mobs();

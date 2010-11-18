@@ -556,7 +556,7 @@ int csp_rx_callback(can_frame_t * frame, CSP_BASE_TYPE * task_woken) {
 
 }
 
-int csp_can_init(char * ifc, uint8_t myaddr, uint8_t promisc) {
+int csp_can_init(uint8_t myaddr, uint8_t promisc, void * conf, int conflen) {
 
     /* Initialize packet buffer */
     if (pbuf_init() != 0) {
@@ -578,7 +578,7 @@ int csp_can_init(char * ifc, uint8_t myaddr, uint8_t promisc) {
     }
 
     /* Initialize CAN driver */
-    if (can_init(ifc, CFP_MAKE_DST(myaddr), mask, csp_tx_callback, csp_rx_callback) != 0) {
+    if (can_init(CFP_MAKE_DST(myaddr), mask, csp_tx_callback, csp_rx_callback, conf, conflen) != 0) {
     	csp_debug(CSP_ERROR, "Failed to initialize CAN driver\r\n");
     	return -1;
     }
