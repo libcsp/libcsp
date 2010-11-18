@@ -69,10 +69,11 @@ void can_configure_mobs(void) {
 	}
 }
 
-int can_configure_bitrate(unsigned long int afcpu, int kbps) {
+int can_configure_bitrate(unsigned long int afcpu, uint32_t bps) {
+
 	/* Set baud rate (500 kbps) */
-	if (kbps != 500000) {
-		printf_P(PSTR("CAN bitrate must be 500 kbps\r\n"));
+	if (bps != 500000) {
+		printf_P(PSTR("CAN bitrate must be 500000 (was %d)\r\n"));
 		return -1;
 	}
 
@@ -111,7 +112,7 @@ int can_init(uint32_t id, uint32_t mask, can_tx_callback_t atxcb, can_rx_callbac
 		if (conflen != sizeof(struct can_avr8_conf)) {
 			return -1;
 		} else {
-			bitrate = ((struct can_avr8_conf *)conf)->birate;
+			bitrate = ((struct can_avr8_conf *)conf)->bitrate;
 		}
 	} else {
 		bitrate = 500000;

@@ -39,6 +39,6 @@ struct can_arm7tdmi_conf {
 };
 
 int csp_can_tx(csp_id_t cspid, csp_packet_t * packet, unsigned int timeout);
-int csp_can_init(char * ifc, uint8_t addr, uint8_t mask_nr);
+int csp_can_init(uint8_t myaddr, uint8_t promisc, void * conf, int conflen);
 
 #endif /* _CSP_IF_CAN_H_ */
