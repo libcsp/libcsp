@@ -46,14 +46,14 @@ extern "C" {
 #if defined(_CSP_POSIX_)
     #define CSP_BASE_TYPE int
     #define CSP_MAX_DELAY (1000000000)
-	#define CSP_ENTER_CRITICAL() do { csp_bin_sem_wait(&csp_global_lock, CSP_MAX_DELAY); } while(0)
-	#define CSP_EXIT_CRITICAL() do { csp_bin_sem_post(&csp_global_lock); } while(0)
+	#define CSP_ENTER_CRITICAL(lock) do { csp_bin_sem_wait(&lock, CSP_MAX_DELAY); } while(0)
+	#define CSP_EXIT_CRITICAL(lock) do { csp_bin_sem_post(&lock); } while(0)
 #elif defined(_CSP_FREERTOS_)
     #include <freertos/FreeRTOS.h>
     #define CSP_BASE_TYPE portBASE_TYPE
     #define CSP_MAX_DELAY portMAX_DELAY
-	#define CSP_ENTER_CRITICAL() portENTER_CRITICAL()
-	#define CSP_EXIT_CRITICAL() portEXIT_CRITICAL()
+	#define CSP_ENTER_CRITICAL(lock) portENTER_CRITICAL()
+	#define CSP_EXIT_CRITICAL(lock) portEXIT_CRITICAL()
 #else
     #error "Unknown architecture"
 #endif
