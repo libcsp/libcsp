@@ -225,7 +225,7 @@ void csp_reboot(uint8_t node);
 void csp_uptime(uint8_t node, unsigned int timeout);
 
 /* Implemented in csp_rdp.c */
-void csp_rdp_set_opt(unsigned int window_size, unsigned int conn_timeout_ms, unsigned int packet_timeout_ms);
+void csp_rdp_set_opt(unsigned int window_size, unsigned int conn_timeout_ms, unsigned int packet_timeout_ms, unsigned int delayed_acks, unsigned int ack_timeout, unsigned int ack_delay_count);
 
 /* CSP debug printf - implemented in arch/x/csp_debug.c */
 typedef enum csp_debug_level_e {

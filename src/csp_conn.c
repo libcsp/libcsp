@@ -190,27 +190,6 @@ csp_conn_t * csp_conn_new(csp_id_t idin, csp_id_t idout) {
 
 }
 
-/** csp_close_wait
- * This function must be called whenever the network stack wants to close the connection.
- * The philosophy is that only the "owner" of the connection handle, which is the task,
- * may close the connection.
- * Sometimes when the network stack has a new connection but not yet passed this to userspace,
- * the network stack should call csp_close directly, otherwise it should call csp_close_wait.
- * This function posts a null pointer to the qonnection RX queue, this will make the userspace
- * application close the connection.
- * @param conn pointer to connetion structure
- */
-void csp_close_wait(csp_conn_t * conn) {
-
-	/* Set state */
-	conn->state = CONN_CLOSE_WAIT;
-
-    /* Try to wake any tasks */
-    void * null_pointer = NULL;
-    csp_queue_enqueue(conn->rx_queue, &null_pointer, 0);
-
-}
-
 /** csp_close
  * Closes a given connection and frees the buffer if more than 8 bytes
  * if the connection uses an outgoing port this port must also be closed
@@ -232,7 +211,8 @@ void csp_close(csp_conn_t * conn) {
     /* Ensure l4 knows this conn is closing */
 #if CSP_USE_RDP
     if (conn->idin.flags & CSP_FRDP)
-		csp_rdp_close(conn);
+		if (csp_rdp_close(conn) == 1)
+			return;
 #endif
 
     /* Do not accept new messages */
@@ -244,6 +224,12 @@ void csp_close(csp_conn_t * conn) {
     	if (packet != NULL)
     		csp_buffer_free(packet);
     }
+
+    /* Deallocate memory from RDP */
+#if CSP_USE_RDP
+    if (conn->idin.flags & CSP_FRDP)
+    	csp_rdp_deallocate(conn);
+#endif
 
     /* Set to closed */
     conn->state = CONN_CLOSED;
