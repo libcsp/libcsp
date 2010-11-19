@@ -248,16 +248,16 @@ int can_init(uint32_t id, uint32_t mask, can_tx_callback_t atxcb, can_rx_callbac
 	struct sockaddr_can addr;
 	pthread_t rx_thread;
 	char * ifc;
+	struct can_socketcan_conf * can_conf;
 
 	/* Validate config size */
 	if (conf != NULL && conflen > 0) {
 		if (conflen != sizeof(struct can_socketcan_conf)) {
 			return -1;
 		} else {
-			ifc = ((struct can_socketcan_conf *)conf)->ifc;
+			can_conf = (struct can_socketcan_conf *)conf;
+			ifc = can_conf->ifc;
 		}
-	} else {
-		ifc = "can0";
 	}
 
 	txcb = atxcb;

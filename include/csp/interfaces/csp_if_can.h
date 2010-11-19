@@ -24,8 +24,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/csp.h>
 
 /** AVR8 config struct */
-struct can_avr8_conf {
+struct can_at90can128_conf {
 	uint32_t bitrate;
+	uint32_t clock_speed;
 };
 
 /** SocketCAN config struct */
@@ -34,8 +35,9 @@ struct can_socketcan_conf {
 };
 
 /** ARM7TDMI config struct */
-struct can_arm7tdmi_conf {
+struct can_at91sam7a1_conf {
 	uint32_t bitrate;
+	uint32_t clock_speed;
 };
 
 int csp_can_tx(csp_id_t cspid, csp_packet_t * packet, unsigned int timeout);

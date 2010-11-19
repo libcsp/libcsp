@@ -18,6 +18,8 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+/* AT90CAN128 driver */
+
 #include <stdio.h>
 #include <inttypes.h>
 
@@ -104,18 +106,19 @@ int can_configure_bitrate(unsigned long int afcpu, uint32_t bps) {
 
 int can_init(uint32_t id, uint32_t mask, can_tx_callback_t atxcb, can_rx_callback_t arxcb, void * conf, int conflen) {
 
-	extern unsigned long fcpu;
 	uint32_t bitrate;
+	uint32_t clock_speed;
+	struct can_at90can128_conf * can_conf;
 
 	/* Validate config size */
 	if (conf != NULL && conflen > 0) {
-		if (conflen != sizeof(struct can_avr8_conf)) {
+		if (conflen != sizeof(struct can_at90can128_conf)) {
 			return -1;
 		} else {
-			bitrate = ((struct can_avr8_conf *)conf)->bitrate;
+			can_conf = (struct can_at90can128_conf *)conf;
+			bitrate = can_conf->bitrate;
+			clock_speed = can_conf->clock_speed;
 		}
-	} else {
-		bitrate = 500000;
 	}
 
 	/* Set id and mask */
@@ -158,6 +161,7 @@ int can_mbox_get(void) {
 	/* Search free MOB from 0 -> CAN_TX_MOBs */
 	for(i = 0; i < CAN_TX_MOBS; i++) {
 		if ((CANEN2 & (1 << i)) == 0) {
+			/* TODO: Mark mbox used in a locked array */
 			CAN_SET_INTERRUPT();
 			return i;
 		}
@@ -285,6 +289,14 @@ ISR(CANIT_vect) {
 			/* Clear status */
 			CAN_CLEAR_STATUS_MOB();
 
+			if (mob == CAN_MOBS - 1) {
+				/* RX overflow */
+				printf_P(PSTR("RX Overflow!\r\n"));
+				CAN_DISABLE();
+				can_configure_mobs();
+				CAN_ENABLE();
+			}
+
 			/* Read DLC */
 			frame.dlc = CAN_GET_DLC();
 
@@ -295,19 +307,10 @@ ISR(CANIT_vect) {
 			/* Read identifier */
 			CAN_GET_EXT_ID(frame.id);
 
-			if (mob == CAN_MOBS - 1) {
-				/* RX overflow */
-				printf_P(PSTR("RX Overflow!\r\n"));
-				CAN_DISABLE();
-				can_configure_mobs();
-				CAN_ENABLE();
-			} else {
-				/* Do RX-Callback */
-				if (rxcb != NULL)
-					rxcb(&frame, &xTaskWoken);
-			}
+			/* Do RX-Callback */
+			if (rxcb != NULL) rxcb(&frame, &xTaskWoken);
 
-			/* The callback handler might have changed active mob when sending ACK so set again */
+			/* The callback handler might have changed active mob */
 			CAN_SET_MOB(mob);
 			CAN_CONFIG_RX();
 
@@ -322,8 +325,7 @@ ISR(CANIT_vect) {
 			CAN_GET_EXT_ID(id);
 
 			/* Do TX-Callback */
-			if (txcb != NULL)
-				txcb(id, &xTaskWoken);
+			if (txcb != NULL) txcb(id, &xTaskWoken);
 
 		} else {
 			printf_P(PSTR("Unknown status: %#x\r\n"), CANSTMOB);

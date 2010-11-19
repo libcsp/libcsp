@@ -25,9 +25,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <stdint.h>
 
-#include <freertos/FreeRTOS.h>
-#include <freertos/semphr.h>
-
 /** General errors interrupt mask */
 #define ERR_GEN_MSK 			((1 << SERG) | (1 << CERG) | (1 << FERG) | (1 << AERG))
 
