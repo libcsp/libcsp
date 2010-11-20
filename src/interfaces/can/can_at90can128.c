@@ -111,14 +111,12 @@ int can_init(uint32_t id, uint32_t mask, can_tx_callback_t atxcb, can_rx_callbac
 	struct can_at90can128_conf * can_conf;
 
 	/* Validate config size */
-	if (conf != NULL && conflen > 0) {
-		if (conflen != sizeof(struct can_at90can128_conf)) {
-			return -1;
-		} else {
-			can_conf = (struct can_at90can128_conf *)conf;
-			bitrate = can_conf->bitrate;
-			clock_speed = can_conf->clock_speed;
-		}
+	if (conf != NULL && conflen == sizeof(struct can_at90can128_conf)) {
+		can_conf = (struct can_at90can128_conf *)conf;
+		bitrate = can_conf->bitrate;
+		clock_speed = can_conf->clock_speed;
+	} else {
+		return -1;
 	}
 
 	/* Set id and mask */
