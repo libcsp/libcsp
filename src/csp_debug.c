@@ -67,24 +67,31 @@ void csp_debug(csp_debug_level_t level, const char * format, ...) {
 	case CSP_INFO:
 		if (!levels_enable[CSP_INFO])
 			return;
+		break;
 	case CSP_ERROR:
 		if (!levels_enable[CSP_ERROR])
 			return;
+		break;
 	case CSP_WARN:
 		if (!levels_enable[CSP_WARN])
 			return;
+		break;
 	case CSP_BUFFER:
 		if (!levels_enable[CSP_BUFFER])
 			return;
+		break;
 	case CSP_PACKET:
 		if (!levels_enable[CSP_PACKET])
 			return;
+		break;
 	case CSP_PROTOCOL:
 		if (!levels_enable[CSP_PROTOCOL])
 			return;
+		break;
 	case CSP_LOCK:
 		if (!levels_enable[CSP_LOCK])
 			return;
+		break;
 	}
 
 	/* If csp_debug_hook symbol is defined, pass on the message.
