@@ -79,7 +79,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #define CFP_MAKE_ID(id) 	CFP_MAKE_FIELD(id, CFP_ID_SIZE, 0)
 
 /** Mask to uniquely separate connections */
-#define CFP_ID_CONN_MASK 	(CFP_MAKE_SRC((uint32_t)(1 << CFP_HOST_SIZE) - 1) | CFP_MAKE_DST((uint32_t)(1 << CFP_HOST_SIZE) - 1) | CFP_MAKE_ID((uint32_t)(1 << CFP_ID_SIZE) - 1))
+#define CFP_ID_CONN_MASK 	(CFP_MAKE_SRC((uint32_t)(1 << CFP_HOST_SIZE) - 1) \
+							| CFP_MAKE_DST((uint32_t)(1 << CFP_HOST_SIZE) - 1) \
+							| CFP_MAKE_ID((uint32_t)(1 << CFP_ID_SIZE) - 1))
 
 /** Maximum Transmission Unit for CSP over CAN */
 #define CSP_CAN_MTU 256
@@ -103,7 +105,7 @@ int cfp_id;
 csp_bin_sem_handle_t id_sem;
 
 #ifdef _CSP_POSIX_
-/** CFP identification number semaphore */
+/** Packet buffer semaphore */
 static csp_bin_sem_handle_t pbuf_sem;
 #endif
 
@@ -149,7 +151,6 @@ typedef struct {
     csp_packet_t * packet;			/**< Pointer to packet buffer */
     pbuf_state_t state;				/**< Element state */
     uint32_t last_used;				/**< Timestamp in ms for last use of buffer */
-    int mbox;						/**< Mailbox used in transmission */
 } pbuf_element_t;
 
 static pbuf_element_t pbuf[PBUF_ELEMENTS];
@@ -346,8 +347,7 @@ int csp_tx_callback(can_id_t canid, CSP_BASE_TYPE * task_woken) {
 		bytes = (buf->packet->length - buf->tx_count >= 8) ? 8 : buf->packet->length - buf->tx_count;
 
 		/* Send frame */
-		can_mbox_data(buf->mbox, id, buf->packet->data + buf->tx_count, bytes);
-		can_mbox_send(buf->mbox);
+		can_send(id, buf->packet->data + buf->tx_count, bytes);
 
 		/* Increment tx counter */
 		buf->tx_count += bytes;
@@ -355,9 +355,6 @@ int csp_tx_callback(can_id_t canid, CSP_BASE_TYPE * task_woken) {
 		/* Free packet */
 		if (buf->packet != NULL)
 			csp_buffer_free(buf->packet);
-
-		/* Free mailbox */
-		can_mbox_release(buf->mbox);
 
 		/* Post semaphore if blocking mode is enabled */
 		if (task_woken)
@@ -418,20 +415,8 @@ int csp_can_tx(csp_id_t cspid, csp_packet_t * packet, unsigned int timeout) {
 	memcpy(frame_buf + sizeof(csp_id_be), &csp_length_be, sizeof(csp_length_be));
 	memcpy(frame_buf + overhead, packet->data, bytes);
 
-	/* Get mailbox */
-	int mbox = can_mbox_get();
-	if (mbox < 0) {
-		csp_debug(CSP_WARN, "No available mailbox\r\n");
-		pbuf_free(buf, NULL);
-		return 0;
-	}
-
-	/* Associate mbox with packet buffer */
-	buf->mbox = mbox;
-
 	/* Send frame */
-	can_mbox_data(mbox, id, frame_buf, overhead + bytes);
-	can_mbox_send(mbox);
+	can_send(id, frame_buf, overhead + bytes);
 
 	/* Increment tx counter */
 	buf->tx_count += bytes;

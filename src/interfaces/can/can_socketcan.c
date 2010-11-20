@@ -111,6 +111,11 @@ static void * mbox_tx_thread(void * parameters) {
 		/* Call tx callback */
 		if (txcb) txcb(m->frame.can_id, NULL);
 
+		/* Free mailbox */
+		sem_wait(&mbox_sem);
+		m->state = MBOX_FREE;
+		sem_post(&mbox_sem);
+
     }
 
     /* We should never reach this point */
@@ -182,61 +187,38 @@ int can_mbox_init(void) {
 
 }
 
-int can_mbox_get(void) {
+int can_send(can_id_t id, uint8_t data[], uint8_t dlc) {
 
-    int i;
-    mbox_t * m;
+	int i;
+	mbox_t * m;
 
-    sem_wait(&mbox_sem);
-    for (i = 0; i < MBOX_NUM; i++) {
-        m = &mbox[i];
-
-        if(m->state == MBOX_FREE) {
-            m->state = MBOX_USED;
-            sem_post(&mbox_sem);
-            return i;
-        }
-    }
-    sem_post(&mbox_sem);
-
-    /* No free thread */
-    return -1;
-
-}
-
-int can_mbox_release(int m) {
-    sem_wait(&mbox_sem);
-    mbox[m].state = MBOX_FREE;
-    sem_post(&mbox_sem);
-    return 0;
-}
-
-int can_mbox_data(int m, can_id_t id, uint8_t data[], uint8_t dlc) {
-
-	if (dlc > 8) {
+	if (dlc > 8)
 		return -1;
-	} else {
-		int i;
 
-		/* Copy identifier */
-		mbox[m].frame.can_id = id | CAN_EFF_FLAG;
+	/* Find free mailbox */
+	sem_wait(&mbox_sem);
+	for (i = 0; i < MBOX_NUM; i++) {
+		m = &mbox[i];
 
-		/* Copy data to frame */
-		for (i = 0; i < dlc; i++)
-			mbox[m].frame.data[i] = data[i];
-
-		/* Set DLC */
-		mbox[m].frame.can_dlc = dlc;
-
-		return 0;
+		if(m->state == MBOX_FREE) {
+			m->state = MBOX_USED;
+			break;
+		}
 	}
+	sem_post(&mbox_sem);
 
-}
+	/* Copy identifier */
+	m->frame.can_id = id | CAN_EFF_FLAG;
 
-int can_mbox_send(int m) {
+	/* Copy data to frame */
+	for (i = 0; i < dlc; i++)
+		m->frame.data[i] = data[i];
+
+	/* Set DLC */
+	m->frame.can_dlc = dlc;
 
 	/* Signal thread to start */
-	sem_post(&(mbox[m].signal_sem));
+	sem_post(&(m->signal_sem));
 
 	return 0;
 

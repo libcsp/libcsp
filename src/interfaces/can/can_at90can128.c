@@ -149,34 +149,30 @@ int can_init(uint32_t id, uint32_t mask, can_tx_callback_t atxcb, can_rx_callbac
 
 }
 
-int can_mbox_get(void) {
+int can_send(can_id_t id, uint8_t data[], uint8_t dlc) {
 
-	/* Disable CAN interrupt */
+    int i, m = -1;
+
+    /* Disable CAN interrupt while looping MOBs */
 	CAN_CLEAR_INTERRUPT();
-
-	uint8_t i;
 
 	/* Search free MOB from 0 -> CAN_TX_MOBs */
 	for(i = 0; i < CAN_TX_MOBS; i++) {
 		if ((CANEN2 & (1 << i)) == 0) {
 			/* TODO: Mark mbox used in a locked array */
-			CAN_SET_INTERRUPT();
-			return i;
+			m = i;
+			break;
 		}
 	}
 	
-	printf_P(PSTR("TX overflow, no available MOB\r\n"));
-
 	/* Enable CAN interrupt */
 	CAN_SET_INTERRUPT();
 
-	return -1;
-
-}
-
-int can_mbox_data(int m, can_id_t id, uint8_t data[], uint8_t dlc) {
-
-    int i;
+	/* Return if no available MOB was found */
+	if (m < 0) {
+		printf_P(PSTR("TX overflow, no available MOB\r\n"));
+		return -1;
+	}
 
 	/* Select and clear mob */
 	CAN_SET_MOB(m);
@@ -186,7 +182,7 @@ int can_mbox_data(int m, can_id_t id, uint8_t data[], uint8_t dlc) {
 	/* Set identifier */
 	CAN_SET_EXT_ID(id);
 
-	/* Set data */
+	/* Set data - CANMSG is auto incrementing */
     for (i = 0; i < dlc; i++)
         CANMSG = data[i];
 
@@ -194,22 +190,10 @@ int can_mbox_data(int m, can_id_t id, uint8_t data[], uint8_t dlc) {
     CAN_CLEAR_DLC();
     CAN_SET_DLC(dlc);
 
-    return 0;
-
-}
-
-int can_mbox_send(int m) {
-
-	/* Start TX */
+    /* Start TX */
 	CAN_CONFIG_TX();
-	return 0;
 
-}
-
-int can_mbox_release(int mbox) {
-
-	/* No action required */
-	return 0;
+    return 0;
 
 }
 

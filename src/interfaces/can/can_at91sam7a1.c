@@ -141,25 +141,24 @@ int can_init(uint32_t id, uint32_t mask, can_tx_callback_t atxcb, can_rx_callbac
 
 }
 
-int can_mbox_get(void) {
+int can_send(can_id_t id, uint8_t data[], uint8_t dlc) {
 
-	int i;
+	int i, m = -1;
 
 	/* Search free MOB from 0 -> CAN_TX_MOBs */
 	for(i = 0; i < CAN_TX_MBOX; i++) {
 		if ((CAN_CTRL->CHANNEL[i].CR & CHANEN) == 0) {
 			/* TODO: Mark mbox used in a locked array */
-			return i;
+			i = m;
+			break;
 		}
 	}
 
-	printf("TX overflow, No available mailbox\r\n");
-
-	return -1;
-
-}
-
-int can_mbox_data(int m, can_id_t id, uint8_t data[], uint8_t dlc) {
+	/* Return if no available MOB was found */
+	if (m < 0) {
+		printf("TX overflow, no available MOB\r\n");
+		return -1;
+	}
 
 	uint32_t temp[2];
 
@@ -191,30 +190,13 @@ int can_mbox_data(int m, can_id_t id, uint8_t data[], uint8_t dlc) {
 	CAN_CTRL->CHANNEL[m].DRA = temp[0];
 	CAN_CTRL->CHANNEL[m].DRB = temp[1];
 
-	/* Set DLC */
-	CAN_CTRL->CHANNEL[m].CR = dlc;
+	/* Set IDE bit, PCB to producer, DLC and CHANEN to enable */
+	CAN_CTRL->CHANNEL[m].CR = (CHANEN | PCB | IDE | dlc);
 
-	/* Clear status register since the mailbox could have old */
-	/* status flags hanging */
+	/* Clear status register to remove any old status flags */
 	CAN_CTRL->CHANNEL[m].CSR = 0xFFF;
 
     return 0;
-
-}
-
-int can_mbox_send(int m) {
-
-	/* set IDE bit, PCB to producer and CHANEN to enable */
-	CAN_CTRL->CHANNEL[m].CR |= (CHANEN | PCB | IDE);
-
-	return 0;
-
-}
-
-int can_mbox_release(int mbox) {
-
-	/* No action required */
-	return 0;
 
 }
 
