@@ -20,28 +20,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 /* AT91SAM7A1 driver */
 
-/**
- * Initialize the CAN controller and setup the baudrate to
- * 1 Mbit/s
- *
- * A 1 Mbit/s gives a nominal CAN Bit time of 1E-6 sec., and this can again
- * be divided into 8-25 time quantas.
- * Chosen values :
- *
- * 1 time quantum period is 100E-9 sec. => 1 bit time is 10 time quantas
- * BD[5:0] = 3
- *
- * The 10 time quantas consist of 4 segments -
- * SYNC_SEG, PROP_SEG, PHASE_SEG1 & PHASE_SEG2
- * so :
- *
- * 10 = SYNC_SEG(allways 1) + (PROP_SEG+1) + (PHASE_SEG1+1) + (PHASE_SEG2+1)
- *              1           + (   0   + 1) + (    3     +1) + (    3     +1)
- *
- * This gives a Mode Register of 0x331003
- *
- */
-
 /* IMPORTANT : ALLWAYS USE RX MAILBOXES WITH HIGHER NUMBER THAN TX MAILBOX */
 /*             OTHERWISE THE TX MAILBOX WILL TRANSMIT ALL DATA IN RX       */
 /*             MAILBOXES WITH A LOWER NUMBER (A bug in the ATAC-D chip)    */
@@ -54,6 +32,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 
+#include <csp/csp.h>
 #include <csp/interfaces/csp_if_can.h>
 
 #include "can.h"
@@ -72,14 +51,14 @@ can_rx_callback_t rxcb;
 uint32_t can_id;
 uint32_t can_mask;
 
-/** Calculate BD field of mode register */
-#define CAN_MR_BD(bitrate,clock_speed) (0x0000001F)
+/** Calculate BD field of mode register. Each bit is divided in 10 time quanta */
+#define CAN_MR_BD(bitrate,clock_speed) ((clock_speed)/(10 * (bitrate)) - 1)
 
 /* ISR prototype */
 static void can_isr(void);
 
 /** Setup CAN interrupts */
-static void can_init_interrupt(void) {
+static void can_init_interrupt(uint32_t id, uint32_t mask) {
 	uint8_t mbox;
 
 	/* Configure ISR */
@@ -90,10 +69,25 @@ static void can_init_interrupt(void) {
 	/* Switch off interrupts */
 	CAN_CTRL->IER = 0;
 
-	/* Enable transmit interrupt for all mailboxes */
+	/* Enable interrupts for all mailboxes */
 	for (mbox = 0; mbox < CAN_MBOXES; mbox++) {
-		/* Setup the wanted interrupt mask in the EIR register */
-		CAN_CTRL->CHANNEL[mbox].IER = TXOK;
+		if (mbox >= CAN_TX_MBOX) {
+			/* Setup the mask and ID */
+			CAN_CTRL->CHANNEL[mbox].MSK = ((mask & 0x1FFC0000) >> 18)
+					| ((mask & 0x3FFFF) << 11);
+			CAN_CTRL->CHANNEL[mbox].IR = ((id & 0x1FFC0000) >> 18)
+					| ((id & 0x3FFFF) << 11);
+
+			/* get the mailbox ready to receive CAN telegrams */
+			CAN_CTRL->CHANNEL[mbox].CR = (CHANEN | IDE | DLC);
+
+			/* setup the wanted interrupt mask in the EIR register */
+			CAN_CTRL->CHANNEL[mbox].IER = RXOK;
+		} else {
+			/* Setup the wanted interrupt mask in the EIR register */
+			CAN_CTRL->CHANNEL[mbox].IER = TXOK;
+		}
+
 		/* Enable the interrupt in the SIER register */
 		CAN_CTRL->SIER = (1 << mbox);
 	}
@@ -133,9 +127,10 @@ int can_init(uint32_t id, uint32_t mask, can_tx_callback_t atxcb, can_rx_callbac
 		;
 
 	/* Configure CAN Mode (Baudrate) */
-	CAN_CTRL->MR = 0x331000 | CAN_MR_BD(bitrate, clock_speed);
+	CAN_CTRL->MR = 0x335000 | CAN_MR_BD(bitrate, clock_speed);
+	printf("CAN MR: %#010"PRIx32"\r\n", CAN_CTRL->MR);
 
-	can_init_interrupt();
+	can_init_interrupt(id, mask);
 
 	return 0;
 
@@ -156,7 +151,7 @@ int can_send(can_id_t id, uint8_t data[], uint8_t dlc) {
 
 	/* Return if no available MOB was found */
 	if (m < 0) {
-		printf("TX overflow, no available MOB\r\n");
+		csp_debug(CSP_ERROR, "TX overflow, no available MOB\r\n");
 		return -1;
 	}
 
@@ -204,7 +199,7 @@ __attribute__ ((noinline)) static void can_dsr() {
 
 	uint8_t mbox;
 	uint32_t temp[2];
-	static signed portBASE_TYPE task_woken;
+	portBASE_TYPE task_woken;
 
 	/* Run through the mailboxes */
 	for (mbox = 0; mbox < 16; mbox++) {
@@ -215,7 +210,7 @@ __attribute__ ((noinline)) static void can_dsr() {
 
 			if (mbox == CAN_MBOXES - 1) {
 				/* RX overflow */
-				printf("RX Overflow!\r\n");
+				csp_debug(CSP_ERROR, "RX Overflow!\r\n");
 				/* TODO: Handle this */
 			}
 

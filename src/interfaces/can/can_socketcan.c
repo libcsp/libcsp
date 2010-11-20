@@ -48,6 +48,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <linux/socket.h>
 #include <bits/socket.h>
 
+#include <csp/csp.h>
 #include <csp/interfaces/csp_if_can.h>
 
 #include "can.h"
@@ -103,7 +104,7 @@ static void * mbox_tx_thread(void * parameters) {
 				/* Wait 1 ms and try again */
 				usleep(1000);
 			} else {
-				perror("write");
+				csp_debug(CSP_ERROR, "write: %s\r\n", strerror(errno));
 				break;
 			}
 		}
@@ -133,14 +134,14 @@ static void * mbox_rx_thread(void * parameters) {
         nbytes = read(can_socket, &frame, sizeof(frame));
 
         if (nbytes != sizeof(frame)) {
-            printf("Read incomplete CAN frame\n");
+            csp_debug(CSP_WARN, "Read incomplete CAN frame\n");
             continue;
         }
 
         /* Frame type */
         if (frame.can_id & (CAN_ERR_FLAG | CAN_RTR_FLAG) || !(frame.can_id & CAN_EFF_FLAG)) {
         	/* Drop error and remote frames */
-        	printf("Discarding ERR/RTR/SFF frame\r\n");
+        	csp_debug(CSP_WARN, "Discarding ERR/RTR/SFF frame\r\n");
         } else {
         	/* Strip flags */
         	frame.can_id &= CAN_EFF_MASK;
@@ -166,7 +167,7 @@ int can_mbox_init(void) {
 
         /* Init signal semaphore */
         if (sem_init(&(m->signal_sem), 0, 1) != 0) {
-            perror("sem_init");
+        	csp_debug(CSP_ERROR, "sem_init: %s\r\n", strerror(errno));
             return -1;
         } else {
         	/* Take signal semaphore so the thread waits for tx data */
@@ -175,7 +176,7 @@ int can_mbox_init(void) {
 
         /* Create mailbox */
         if (pthread_create(&m->thread, NULL, mbox_tx_thread, (void *)m) != 0) {
-            perror("pthread_create");
+        	csp_debug(CSP_ERROR, "pthread_create: %s\r\n", strerror(errno));
             return -1;
         }
     }
@@ -245,14 +246,14 @@ int can_init(uint32_t id, uint32_t mask, can_tx_callback_t atxcb, can_rx_callbac
 
 	/* Create socket */
 	if ((can_socket = socket(PF_CAN, SOCK_RAW, CAN_RAW)) < 0) {
-		perror("socket");
+		csp_debug(CSP_ERROR, "socket: %s\r\n", strerror(errno));
 		return -1;
 	}
 
 	/* Locate interface */
 	strncpy(ifr.ifr_name, ifc, IFNAMSIZ - 1);
 	if (ioctl(can_socket, SIOCGIFINDEX, &ifr) < 0) {
-		perror("ioctl");
+		csp_debug(CSP_ERROR, "ioctl: %s\r\n", strerror(errno));
 		return -1;
 	}
 
@@ -260,7 +261,7 @@ int can_init(uint32_t id, uint32_t mask, can_tx_callback_t atxcb, can_rx_callbac
 	addr.can_family = AF_CAN;
 	addr.can_ifindex = ifr.ifr_ifindex;
 	if (bind(can_socket, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
-		perror("bind");
+		csp_debug(CSP_ERROR, "bind: %s\r\n", strerror(errno));
 		return -1;
 	}
 
@@ -270,20 +271,20 @@ int can_init(uint32_t id, uint32_t mask, can_tx_callback_t atxcb, can_rx_callbac
 		filter.can_id   = id;
 		filter.can_mask = mask;
 		if (setsockopt(can_socket, SOL_CAN_RAW, CAN_RAW_FILTER, &filter, sizeof(filter)) < 0) {
-			perror("setsockopt");
+			csp_debug(CSP_ERROR, "setsockopt: %s\r\n", strerror(errno));
 			return -1;
 		}
 	}
 
 	/* Create receive thread */
 	if (pthread_create(&rx_thread, NULL, mbox_rx_thread, NULL) != 0) {
-		perror("pthread_create");
+		csp_debug(CSP_ERROR, "setsockopt: %s\r\n", strerror(errno));
 		return -1;
 	}
 
 	/* Create mailbox pool */
 	if (can_mbox_init() != 0) {
-		printf("Failed to create tx thread pool\n");
+		csp_debug(CSP_ERROR, "Failed to create tx thread pool\n");
 		return -1;
 	}
 
