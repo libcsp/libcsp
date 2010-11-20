@@ -62,6 +62,31 @@ void csp_debug(csp_debug_level_t level, const char * format, ...) {
 	va_list args;
 	va_start(args, format);
 
+	/* Dont print anything if log level is disabled */
+	switch(level) {
+	case CSP_INFO:
+		if (!levels_enable[CSP_INFO])
+			return;
+	case CSP_ERROR:
+		if (!levels_enable[CSP_ERROR])
+			return;
+	case CSP_WARN:
+		if (!levels_enable[CSP_WARN])
+			return;
+	case CSP_BUFFER:
+		if (!levels_enable[CSP_BUFFER])
+			return;
+	case CSP_PACKET:
+		if (!levels_enable[CSP_PACKET])
+			return;
+	case CSP_PROTOCOL:
+		if (!levels_enable[CSP_PROTOCOL])
+			return;
+	case CSP_LOCK:
+		if (!levels_enable[CSP_LOCK])
+			return;
+	}
+
 	/* If csp_debug_hook symbol is defined, pass on the message.
 	 * Otherwise, just print with pretty colors ... */
 	if (csp_debug_hook || csp_debug_hook_func) {
@@ -76,13 +101,27 @@ void csp_debug(csp_debug_level_t level, const char * format, ...) {
 		const char * color = "";
 
 		switch(level) {
-		case CSP_INFO: 		if (!levels_enable[CSP_INFO]) return; 		color = ""; break;
-		case CSP_ERROR: 	if (!levels_enable[CSP_ERROR]) return; 		color = "\E[1;31m"; break;
-		case CSP_WARN: 		if (!levels_enable[CSP_WARN]) return; 		color = "\E[0;33m"; break;
-		case CSP_BUFFER: 	if (!levels_enable[CSP_BUFFER]) return; 	color = "\E[0;33m"; break;
-		case CSP_PACKET: 	if (!levels_enable[CSP_PACKET]) return; 	color = "\E[0;32m"; break;
-		case CSP_PROTOCOL:  if (!levels_enable[CSP_PROTOCOL]) return; 	color = "\E[0;34m"; break;
-		case CSP_LOCK:		if (!levels_enable[CSP_LOCK]) return; 		color = "\E[0;36m"; break;
+		case CSP_INFO:
+			color = "";
+			break;
+		case CSP_ERROR:
+			color = "\E[1;31m";
+			break;
+		case CSP_WARN:
+			color = "\E[0;33m";
+			break;
+		case CSP_BUFFER:
+			color = "\E[0;33m";
+			break;
+		case CSP_PACKET:
+			color = "\E[0;32m";
+			break;
+		case CSP_PROTOCOL:
+			color = "\E[0;34m";
+			break;
+		case CSP_LOCK:
+			color = "\E[0;36m";
+			break;
 		}
 
 		if (csp_debug_printf_hook)
