@@ -521,7 +521,6 @@ int csp_rx_callback(can_frame_t * frame, CSP_BASE_TYPE * task_woken) {
                 break;
 
             /* Data is available */
-            csp_debug(CSP_DEBUG, "Full packet received\n");
             csp_new_packet(buf->packet, csp_can_tx, task_woken);
             buf->packet = NULL;
 
