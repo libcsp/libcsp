@@ -61,7 +61,7 @@ typedef struct {
    uint32_t     SIMR;          		/* Source Interrupt Mask Register       */
    uint32_t     ReservedD[22];     	/* Reserved                             */
    CAN_CHANNEL_T CHANNEL[16]; 		/* CAN Channels                       	*/
-} CAN_T, *CAN_PTR;
+} CAN_CONTROLLER_T;
 
 
 /** CAB Clock Registers:  ECR, DCR, PMSR */
@@ -137,13 +137,5 @@ typedef struct {
 #define  DLCW       (0x01 << 9)   /* DLC Warning                            */
 #define  FILLED     (0x01 << 10)  /* Reception buffer filled                */
 #define  OVRUN      (0x01 << 11)  /* Overrun                                */
-
-extern CAN_T *CAN_CTRL ;
-
-/** CAN controller base address */
-#define CAN_CTRL_BASE_ADDRESS     0xFFFD4000 /* CAN Controller (16 channels)*/
-#define CAN_CTRL_NO_OF_MAILBOXES  0x10 /* 16 mailboxes on the ARM */
-
-#define ONE_MBIT                  0x335003 /* CAN bitrate */
 
 #endif /* _CAN_AT91SAM7A1_H_ */

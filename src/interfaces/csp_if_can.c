@@ -491,6 +491,9 @@ int csp_can_tx(csp_id_t cspid, csp_packet_t * packet, unsigned int timeout) {
 		csp_debug(CSP_WARN, "Failed to get CFP identification number\r\n");
 		return 0;
 	}
+	
+	/* Copy identifier to packet */
+	packet->id.ext = cspid.ext;
 
 	/* Create CAN identifier */
 	can_id_t id = 0;
