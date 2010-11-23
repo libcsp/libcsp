@@ -50,5 +50,5 @@ uint32_t csp_get_s(void) {
 }
 
 uint32_t csp_get_s_isr(void) {
-	return csp_met_s();
+	return csp_get_s();
 }
