@@ -52,7 +52,7 @@ csp_queue_handle_t csp_promisc_queue = NULL;
 
 csp_thread_handle_t handle_router;
 
-extern int csp_route_input_hook(void) __attribute__((weak));
+extern int csp_route_input_hook(csp_packet_t * packet) __attribute__((weak));
 
 /**
  * Routing input Queue
@@ -113,7 +113,7 @@ csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 		packet = input.packet;
 
 		/* Here is last chance to drop packet, call user hook */
-		if ((csp_route_input_hook) && (csp_route_input_hook() == 0)) {
+		if ((csp_route_input_hook) && (csp_route_input_hook(packet) == 0)) {
 			csp_buffer_free(packet);
 			continue;
 		}
