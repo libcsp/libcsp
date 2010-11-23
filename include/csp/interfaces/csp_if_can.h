@@ -21,9 +21,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef _CSP_IF_CAN_H_
 #define _CSP_IF_CAN_H_
 
+#include <stdint.h>
+
 #include <csp/csp.h>
 
-/** AVR8 config struct */
+/** AT90CAN128 config struct */
 struct can_at90can128_conf {
 	uint32_t bitrate;
 	uint32_t clock_speed;
@@ -34,7 +36,7 @@ struct can_socketcan_conf {
 	char * ifc;
 };
 
-/** ARM7TDMI config struct */
+/** AT91SAM7A1 config struct */
 struct can_at91sam7a1_conf {
 	uint32_t bitrate;
 	uint32_t clock_speed;

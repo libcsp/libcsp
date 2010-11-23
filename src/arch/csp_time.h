@@ -46,7 +46,9 @@ extern "C" {
 #endif // _CSP_FREERTOS_
 
 uint32_t csp_get_ms(void);
+uint32_t csp_get_ms_isr(void);
 uint32_t csp_get_s(void);
+uint32_t csp_get_s_isr(void);
 
 #ifdef __cplusplus
 } /* extern "C" */

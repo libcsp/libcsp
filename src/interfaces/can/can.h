@@ -39,7 +39,11 @@ typedef struct {
 	/** Data Length Code */
 	uint8_t dlc;
 	/**< Frame Data - 0 to 8 bytes */
-	uint8_t data[8] __attribute__((aligned(8)));
+	union __attribute__((aligned(8))) {
+		uint8_t data[8];
+		uint16_t data16[4];
+		uint32_t data32[2];
+	};
 } can_frame_t;
 
 /** TX Callback function prototype */

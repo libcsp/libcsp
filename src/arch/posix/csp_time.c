@@ -36,6 +36,10 @@ uint32_t csp_get_ms(void) {
         return 0;
 }
 
+uint32_t csp_get_ms_isr(void) {
+    return csp_get_ms();
+}
+
 uint32_t csp_get_s(void) {
 	struct timespec ts;
 
@@ -43,4 +47,8 @@ uint32_t csp_get_s(void) {
 		return (uint32_t)ts.tv_sec;
 	else
 		return 0;
+}
+
+uint32_t csp_get_s_isr(void) {
+	return csp_met_s();
 }
