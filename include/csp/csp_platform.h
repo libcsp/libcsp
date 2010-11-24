@@ -52,8 +52,8 @@ extern "C" {
     #include <freertos/FreeRTOS.h>
     #define CSP_BASE_TYPE portBASE_TYPE
     #define CSP_MAX_DELAY portMAX_DELAY
-	#define CSP_ENTER_CRITICAL(lock) portENTER_CRITICAL()
-	#define CSP_EXIT_CRITICAL(lock) portEXIT_CRITICAL()
+	#define CSP_ENTER_CRITICAL(lock) do { portENTER_CRITICAL(); } while (0)
+	#define CSP_EXIT_CRITICAL(lock) do { portEXIT_CRITICAL(); } while (0)
 #else
     #error "Unknown architecture"
 #endif
