@@ -36,6 +36,12 @@ extern "C" {
 /* todo: move this include to the files that actually use them */
 #include "csp_buffer.h"
 
+/** The address of the node */
+extern uint8_t my_address;
+
+/** Define used to specify MAC_ADDR = NODE_ID */
+#define CSP_NODE_MAC			0xFF
+
 /**
  * RESERVED PORTS (SERVICES)
  */
@@ -61,16 +67,6 @@ typedef enum csp_prio_e {
 	CSP_PRIO_NORM 		= 2,
 	CSP_PRIO_LOW		= 3,
 } csp_prio_t;
-
-/**
- * CSP Protocol Types
- */
-
-/** The address of the node */
-extern uint8_t my_address;
-
-/** Define used to specify MAC_ADDR = NODE_ID */
-#define CSP_NODE_MAC			0xFF
 
 /** Size of bit-fields in CSP header */
 #define CSP_ID_PRIO_SIZE		2
@@ -100,34 +96,27 @@ extern uint8_t my_address;
 
 /** @brief This union defines a CSP identifier and allows access to the individual fields or the entire identifier */
 typedef union {
-  uint32_t ext;
-  struct __attribute__((__packed__)) {
-
+	uint32_t ext;
+	struct __attribute__((__packed__)) {
 #if defined(_CSP_BIG_ENDIAN_) && !defined(_CSP_LITTLE_ENDIAN_)
-
-	unsigned int pri		: CSP_ID_PRIO_SIZE;
-	unsigned int src		: CSP_ID_HOST_SIZE;
-	unsigned int dst		: CSP_ID_HOST_SIZE;
-	unsigned int dport		: CSP_ID_PORT_SIZE;
-	unsigned int sport		: CSP_ID_PORT_SIZE;
-	unsigned int flags		: CSP_ID_FLAGS_SIZE;
-
+		unsigned int pri : CSP_ID_PRIO_SIZE;
+		unsigned int src : CSP_ID_HOST_SIZE;
+		unsigned int dst : CSP_ID_HOST_SIZE;
+		unsigned int dport : CSP_ID_PORT_SIZE;
+		unsigned int sport : CSP_ID_PORT_SIZE;
+		unsigned int flags : CSP_ID_FLAGS_SIZE;
 #elif defined(_CSP_LITTLE_ENDIAN_) && !defined(_CSP_BIG_ENDIAN_)
-
-	unsigned int flags		: CSP_ID_FLAGS_SIZE;
-	unsigned int sport		: CSP_ID_PORT_SIZE;
-	unsigned int dport		: CSP_ID_PORT_SIZE;
-	unsigned int dst		: CSP_ID_HOST_SIZE;
-	unsigned int src		: CSP_ID_HOST_SIZE;
-	unsigned int pri		: CSP_ID_PRIO_SIZE;
-
+		unsigned int flags : CSP_ID_FLAGS_SIZE;
+		unsigned int sport : CSP_ID_PORT_SIZE;
+		unsigned int dport : CSP_ID_PORT_SIZE;
+		unsigned int dst : CSP_ID_HOST_SIZE;
+		unsigned int src : CSP_ID_HOST_SIZE;
+		unsigned int pri : CSP_ID_PRIO_SIZE;
 #else
-
-  #error "Must define one of _CSP_BIG_ENDIAN_ or _CSP_LITTLE_ENDIAN_ in csp_platform.h"
-
+#error "Must define one of _CSP_BIG_ENDIAN_ or _CSP_LITTLE_ENDIAN_ in csp_platform.h"
 #endif
 
-  };
+	};
 } csp_id_t;
 
 /** Broadcast address */
