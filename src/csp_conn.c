@@ -88,7 +88,10 @@ void csp_conn_init(void) {
 	for (i = 0; i < CSP_CONN_MAX; i++) {
         arr_conn[i].rx_queue = csp_queue_create(CSP_CONN_QUEUE_LENGTH, sizeof(csp_packet_t *));
 		arr_conn[i].state = CONN_CLOSED;
-		arr_conn[i].l4data = NULL;
+#if CSP_USE_RDP
+		if (csp_rdp_allocate(&arr_conn[i]) == 0)
+			csp_debug(CSP_ERROR, "Failed to create queues for RDP in csp_conn_init\r\n");
+#endif
 	}
 
 	if (csp_bin_sem_create(&conn_lock) != CSP_SEMAPHORE_OK)
@@ -173,19 +176,6 @@ csp_conn_t * csp_conn_new(csp_id_t idin, csp_id_t idout) {
 			csp_buffer_free(packet);
 	}
 
-    /* Ensure l4 knows this conn is opening */
-	int result = 1;
-
-#if CSP_USE_RDP
-    if (conn->idin.flags & CSP_FRDP)
-		result = csp_rdp_allocate(conn);
-#endif
-    
-    if (result == 0) {
-    	conn->state = CONN_CLOSED;
-    	return NULL;
-    }
-
     return conn;
 
 }
@@ -225,10 +215,10 @@ void csp_close(csp_conn_t * conn) {
     		csp_buffer_free(packet);
     }
 
-    /* Deallocate memory from RDP */
+    /* Reset RDP state */
 #if CSP_USE_RDP
     if (conn->idin.flags & CSP_FRDP)
-    	csp_rdp_deallocate(conn);
+    	csp_rdp_flush_all(conn);
 #endif
 
     /* Set to closed */

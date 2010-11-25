@@ -39,6 +39,28 @@ typedef enum {
     CONN_CLOSE_WAIT = 2,			// Conneciton closed by network stack, waiting for userspace to close too.
 } csp_conn_state_t;
 
+/** @brief RDP Connection header
+ *  @note Do not try to pack this stuct, the posix sem handle will stop working */
+typedef struct csp_rdp_s {
+	int state;
+	int snd_nxt; 					/**< The sequence number of the next segment that is to be sent */
+	int snd_una; 					/**< The sequence number of the oldest unacknowledged segment */
+	int snd_iss; 					/**< The initial send sequence number */
+	int rcv_cur; 					/**< The sequence number of the last segment received correctly and in sequence */
+	int rcv_irs; 					/**< The initial receive sequence number */
+	int rcv_lsa; 					/**< The sequence number acknowledged by the received (Note: new in CSP-RDP, not in the standard) */
+	unsigned int window_size;
+	unsigned int conn_timeout;
+	unsigned int packet_timeout;
+	unsigned int delayed_acks;
+	unsigned int ack_timeout;
+	unsigned int ack_delay_count;
+	unsigned int ack_timestamp;
+	csp_bin_sem_handle_t tx_wait;
+	csp_queue_handle_t tx_queue;
+	csp_queue_handle_t rx_queue;
+} csp_rdp_t;
+
 /** @brief Connection struct */
 struct csp_conn_s {
     csp_conn_state_t state;         // Connection state (SOCKET_OPEN or SOCKET_CLOSED)
@@ -46,9 +68,11 @@ struct csp_conn_s {
     csp_id_t idout;                 // Identifier transmitted
     csp_queue_handle_t rx_queue;    // Queue for RX packets
     csp_queue_handle_t rx_socket;	// Socket to be "woken" when first packet is ready
-    csp_l4data_t * l4data;			// Pointer to a layer4 info area (Opaque pointer)
     uint32_t open_timestamp;		// Time the connection was opened
     uint32_t conn_opts;				// Connection options
+#if CSP_USE_RDP
+    csp_rdp_t rdp;					// RDP state
+#endif
 };
 
 /** @brief Socket struct */
@@ -60,7 +84,6 @@ struct csp_socket_s {
 void csp_conn_init(void);
 csp_conn_t * csp_conn_find(uint32_t id, uint32_t mask);
 csp_conn_t * csp_conn_new(csp_id_t idin, csp_id_t idout);
-void csp_close_wait(csp_conn_t * conn);
 void csp_conn_check_timeouts(void);
 
 #ifdef __cplusplus
