@@ -28,10 +28,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "../csp_route.h"
 
-int csp_lo_tx(csp_id_t idout, csp_packet_t * packet, unsigned int timeout) {
-
-	/* Store outgoing id */
-	packet->id.ext = idout.ext;
+int csp_lo_tx(csp_packet_t * packet, unsigned int timeout) {
 
 	/* Send back into CSP, notice calling from task so last argument must be NULL! */
 	csp_new_packet(packet, csp_lo_tx, NULL);

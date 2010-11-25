@@ -217,7 +217,10 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, unsigned int timeout)
 #endif
     }
 
-	return (*ifout->nexthop)(idout, packet, timeout);
+    /* Copy identifier to packet */
+    packet->id.ext = idout.ext;
+
+	return (*ifout->nexthop)(packet, timeout);
 
 }
 

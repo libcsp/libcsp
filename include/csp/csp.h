@@ -269,7 +269,7 @@ int csp_listen(csp_socket_t * socket, size_t conn_queue_length);
 int csp_bind(csp_socket_t * socket, uint8_t port);
 
 /* Implemented in csp_route.c */
-typedef int (*nexthop_t)(csp_id_t idout, csp_packet_t * packet, unsigned int timeout);
+typedef int (*nexthop_t)(csp_packet_t * packet, unsigned int timeout);
 void csp_route_set(const char * name, uint8_t node, nexthop_t nexthop, uint8_t nexthop_mac_addr);
 void csp_route_start_task(unsigned int task_stack_size, unsigned int priority);
 int csp_promisc_enable(unsigned int buf_size);

@@ -24,6 +24,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 /* CSP includes */
 #include <csp/csp.h>
 
-int csp_lo_tx(csp_id_t idout, csp_packet_t * packet, unsigned int timeout);
+int csp_lo_tx(csp_packet_t * packet, unsigned int timeout);
 
 #endif // _CSP_IF_LO_H_

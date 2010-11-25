@@ -542,7 +542,7 @@ int csp_rx_callback(can_frame_t * frame, CSP_BASE_TYPE * task_woken) {
  * @param timeout
  * @return
  */
-int csp_can_tx(csp_id_t cspid, csp_packet_t * packet, unsigned int timeout) {
+int csp_can_tx(csp_packet_t * packet, unsigned int timeout) {
 
 	uint8_t bytes, overhead;
 	uint8_t frame_buf[8];
@@ -556,9 +556,6 @@ int csp_can_tx(csp_id_t cspid, csp_packet_t * packet, unsigned int timeout) {
 	
 	/* Calculate overhead */
 	overhead = sizeof(csp_id_t) + sizeof(uint16_t);
-
-	/* Copy identifier to packet */
-	packet->id.ext = cspid.ext;
 
 	/* Create CAN identifier */
 	can_id_t id = 0;
