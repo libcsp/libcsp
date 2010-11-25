@@ -167,8 +167,9 @@ int can_send(can_id_t id, uint8_t data[], uint8_t dlc, CSP_BASE_TYPE * task_woke
 	CAN_CLEAR_INTERRUPT();
 
 	/* Disable interrupts while looping mailboxes */
-	if (task_woken != NULL)
+	if (task_woken == NULL) {
 		portENTER_CRITICAL();
+	}
 
 	/* Search free MOB from 0 -> CAN_TX_MOBs */
 	for(i = 0; i < CAN_TX_MOBS; i++) {
@@ -180,8 +181,9 @@ int can_send(can_id_t id, uint8_t data[], uint8_t dlc, CSP_BASE_TYPE * task_woke
 	}
 	
 	/* Enable interrupts */
-	if (task_woken != NULL)
+	if (task_woken == NULL) {
 		portEXIT_CRITICAL();
+	}
 
 	/* Enable CAN interrupt */
 	CAN_SET_INTERRUPT();

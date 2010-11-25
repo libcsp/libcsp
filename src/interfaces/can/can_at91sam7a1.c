@@ -161,8 +161,9 @@ int can_send(can_id_t id, uint8_t data[], uint8_t dlc, CSP_BASE_TYPE * task_woke
 	uint32_t temp[2];
 
 	/* Disable interrupts while looping mailboxes */
-	if (task_woken != NULL)
+	if (task_woken == NULL) {
 		portENTER_CRITICAL();
+	}
 
 	/* Find free mailbox */
 	for(i = 0; i < CAN_TX_MBOX; i++) {
@@ -174,8 +175,9 @@ int can_send(can_id_t id, uint8_t data[], uint8_t dlc, CSP_BASE_TYPE * task_woke
 	}
 
 	/* Enable interrupts */
-	if (task_woken != NULL)
+	if (task_woken == NULL) {
 		portEXIT_CRITICAL();
+	}
 
 	/* Return if no available MOB was found */
 	if (m < 0) {
