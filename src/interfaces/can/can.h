@@ -46,8 +46,13 @@ typedef struct {
 	};
 } can_frame_t;
 
+typedef enum {
+	CAN_ERROR = 0,
+	CAN_NO_ERROR = 1,
+} can_error_t;
+
 /** TX Callback function prototype */
-typedef int (*can_tx_callback_t)(can_id_t id, CSP_BASE_TYPE * task_woken);
+typedef int (*can_tx_callback_t)(can_id_t id, can_error_t error, CSP_BASE_TYPE * task_woken);
 
 /** RX Callback function prototype */
 typedef int (*can_rx_callback_t)(can_frame_t * frame, CSP_BASE_TYPE * task_woken);

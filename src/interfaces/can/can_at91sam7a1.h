@@ -23,6 +23,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <stdint.h>
 
+/** CAN controller base address */
+#define CAN_BASE_ADDRESS 0xFFFD4000
+
 /** CAN Channel Structure */
 typedef struct {
    uint32_t  ReservedA[5];   		/* Reserved                           	*/
@@ -37,7 +40,7 @@ typedef struct {
    uint32_t  IER;            		/* Interrupt Enable Register            */
    uint32_t  IDR;            		/* Interrupt Disable Register           */
    uint32_t  IMR;            		/* Interrupt Mask Register         		*/
-} CAN_CHANNEL_T;
+} volatile can_channel_t;
 
 /** CAN Controller Structure 16 Channels */
 typedef struct {
@@ -60,9 +63,8 @@ typedef struct {
    uint32_t     SIDR;              	/* Source Interrupt Disable Register    */
    uint32_t     SIMR;          		/* Source Interrupt Mask Register       */
    uint32_t     ReservedD[22];     	/* Reserved                             */
-   CAN_CHANNEL_T CHANNEL[16]; 		/* CAN Channels                       	*/
-} CAN_CONTROLLER_T;
-
+   can_channel_t CHANNEL[16]; 		/* CAN Channels                       	*/
+} volatile can_controller_t;
 
 /** CAB Clock Registers:  ECR, DCR, PMSR */
 #define  CAN      	(0x01 << 1)   	/* CAN Clock                         	*/

@@ -253,18 +253,7 @@ ISR(CANIT_vect) {
 		mob = can_find_oldest_mob();
 		CAN_SET_MOB(mob);
 
-		if (CANSTMOB & ERR_MOB_MSK) {
-			/* Clear status */
-			CAN_CLEAR_STATUS_MOB();
-
-			/* Error */
-			CAN_MOB_ABORT();
-
-			/* Remember to re-enable RX */
-			if (mob >= CAN_TX_MOBS)
-				CAN_CONFIG_RX();
-
-		} else if (CANSTMOB & MOB_RX_COMPLETED) {
+		if (CANSTMOB & MOB_RX_COMPLETED) {
 			/* RX Complete */
 			int i;
 			can_frame_t frame;
@@ -308,17 +297,30 @@ ISR(CANIT_vect) {
 			CAN_GET_EXT_ID(id);
 
 			/* Do TX-Callback */
-			if (txcb != NULL) txcb(id, &xTaskWoken);
+			if (txcb != NULL)
+				txcb(id, CAN_NO_ERROR, &xTaskWoken);
 
 		} else {
-			csp_debug(CSP_WARN, "Unknown status: %#x\r\n", CANSTMOB);
+			csp_debug(CSP_WARN, "MOB error: %#x\r\n", CANSTMOB);
 
-			/* Unknown interrupt */
+			can_id_t id;
+			CAN_GET_EXT_ID(id);
+
+			/* Do TX-Callback */
+			if (txcb != NULL)
+				txcb(id, CAN_ERROR, &xTaskWoken);
+
+			/* Clear status */
 			CAN_CLEAR_STATUS_MOB();
+
+			/* Error */
 			CAN_MOB_ABORT();
 
-		}
+			/* Remember to re-enable RX */
+			if (mob >= CAN_TX_MOBS)
+				CAN_CONFIG_RX();
 
+		}
 	}
 	
 	/* End of ISR */

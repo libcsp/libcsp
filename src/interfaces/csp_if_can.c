@@ -18,10 +18,10 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
  
-/* CAN frames contains at most 8 bytes of data, so in order to
- * transmit CSP packets larger than this, a fragmentation protocol
- * is needed. The CAN Fragmentation Protocol (CFP) header is
- * designed to match the 29 bit CAN identifier.
+/* CAN frames contains at most 8 bytes of data, so in order to transmit CSP
+ * packets larger than this, a fragmentation protocol is required. The CAN
+ * Fragmentation Protocol (CFP) header is designed to match the 29 bit CAN
+ * identifier.
  *
  * The CAN identifier is divided in these fields:
  * src:             5 bits
@@ -29,8 +29,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  * type:            1 bit
  * remain:          8 bits
  * identifier:     10 bits
- *
- * The header matches the 29 bit extended CAN identifier.
  *
  * Source and Destination addresses must match the CSP packet. The type field
  * is used to distinguish the first and subsequent frames in a fragmented CSP
@@ -253,8 +251,14 @@ static pbuf_element_t * pbuf_new(uint32_t id, CSP_BASE_TYPE * task_woken) {
         	/* Check timeout */
         	uint32_t now = task_woken ? csp_get_ms_isr() : csp_get_ms();
         	if (now - buf->last_used > PBUF_TIMEOUT_MS) {
-        		csp_debug(CSP_WARN, "Buffer element exceeded timeout\r\n");
+        		csp_debug(CSP_WARN, "CAN Buffer element timeout. Reusing buffer\r\n", PBUF_TIMEOUT_MS);
+        		/* Reuse packet buffer */
         		pbuf_free(buf, task_woken);
+        		buf->state = BUF_USED;
+				buf->cfpid = id;
+				buf->last_used = task_woken ? csp_get_ms_isr() : csp_get_ms();
+				ret = buf;
+				break;
         	}
         }
     }
@@ -307,11 +311,12 @@ static pbuf_element_t * pbuf_find(uint32_t id, uint32_t mask, CSP_BASE_TYPE * ta
 
 /** csp_tx_callback
  * TX callback function.
- * @param canid
+ * @param canid CAN identifier of transmitted packet.
+ * @param error
  * @param task_woken
  * @return
  */
-int csp_tx_callback(can_id_t canid, CSP_BASE_TYPE * task_woken) {
+int csp_tx_callback(can_id_t canid, can_error_t error, CSP_BASE_TYPE * task_woken) {
 
     int bytes;
 
@@ -325,6 +330,13 @@ int csp_tx_callback(can_id_t canid, CSP_BASE_TYPE * task_woken) {
 
     if (buf->packet == NULL) {
     	csp_debug(CSP_WARN, "Buffer packet was NULL\r\n");
+    	return -1;
+    }
+
+    /* Free packet buffer if send failed */
+    if (error) {
+    	csp_debug(CSP_WARN, "Error in TX Callback\r\n");
+    	pbuf_free(buf, task_woken);
     	return -1;
     }
 
@@ -363,7 +375,7 @@ int csp_tx_callback(can_id_t canid, CSP_BASE_TYPE * task_woken) {
 
 /** csp_rx_callback
  * RX callback function.
- * @param frame
+ * @param frame Received frame.
  * @param task_woken
  * @return
  */
@@ -419,16 +431,18 @@ int csp_rx_callback(can_frame_t * frame, CSP_BASE_TYPE * task_woken) {
                 buf->packet = task_woken ? csp_buffer_get_isr(CSP_CAN_MTU) : csp_buffer_get(CSP_CAN_MTU);
                 if (buf->packet == NULL) {
                     csp_debug(CSP_ERROR, "Failed to get buffer for CSP_BEGIN packet\n");
+                    pbuf_free(buf, task_woken);
                     break;
                 }
             }
-            
+
             /* Copy CSP identifier and length*/
             memcpy(&(buf->packet->id), frame->data, sizeof(csp_id_t));
             buf->packet->id.ext = ntohl(buf->packet->id.ext);
             memcpy(&(buf->packet->length), frame->data + sizeof(csp_id_t), sizeof(uint16_t));
             buf->packet->length = ntohs(buf->packet->length);
             
+            /* Reset RX count */
             buf->rx_count = 0;
             
             /* Set offset to prevent CSP header from being copied to CSP data */
@@ -445,6 +459,8 @@ int csp_rx_callback(can_frame_t * frame, CSP_BASE_TYPE * task_woken) {
                 break;
             }
 
+            /* TODO: Check 'remain' field match */
+
             /* Copy dlc bytes into buffer */
             memcpy(&buf->packet->data[buf->rx_count], frame->data + offset, frame->dlc - offset);
             buf->rx_count += frame->dlc - offset;
@@ -455,6 +471,8 @@ int csp_rx_callback(can_frame_t * frame, CSP_BASE_TYPE * task_woken) {
 
             /* Data is available */
             csp_new_packet(buf->packet, csp_can_tx, task_woken);
+
+            /* Drop packet buffer reference */
             buf->packet = NULL;
 
             /* Free packet buffer */

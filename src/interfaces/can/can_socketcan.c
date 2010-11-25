@@ -98,19 +98,20 @@ static void * mbox_tx_thread(void * parameters) {
         sem_wait(&(m->signal_sem));
 
 		/* Send frame */
-		uint8_t tries = 0;
+		int tries = 0, error = CAN_NO_ERROR;
 		while (write(can_socket, &m->frame, sizeof(m->frame)) != sizeof(m->frame)) {
 			if (++tries < 10 && errno == ENOBUFS) {
 				/* Wait 1 ms and try again */
 				usleep(1000);
 			} else {
 				csp_debug(CSP_ERROR, "write: %s\r\n", strerror(errno));
+				error = CAN_ERROR;
 				break;
 			}
 		}
 
 		/* Call tx callback */
-		if (txcb) txcb(m->frame.can_id, NULL);
+		if (txcb) txcb(m->frame.can_id, error, NULL);
 
 		/* Free mailbox */
 		sem_wait(&mbox_sem);

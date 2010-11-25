@@ -56,11 +56,8 @@ uint32_t can_mask;
  *  Fixed values: PROP=0 SJW=1 SMP=1 PHSEG1=3 PHSEG2=3 */
 #define CAN_MODE(bitrate,clock_speed) (0x335000 | ((clock_speed)/(10 * (bitrate)) - 1))
 
-/** CAN controller base address */
-#define CAN_CTRL_BASE_ADDRESS 0xFFFD4000
-
 /** Pointers to the hardware */
-CAN_CONTROLLER_T *CAN_CTRL = ((CAN_CONTROLLER_T *) CAN_CTRL_BASE_ADDRESS);
+can_controller_t * const CAN_CTRL = ((can_controller_t *) CAN_BASE_ADDRESS);
 
 /** ISR prototype */
 static void can_isr(void);
@@ -81,10 +78,10 @@ static void can_init_interrupt(uint32_t id, uint32_t mask) {
 	for (mbox = 0; mbox < CAN_MBOXES; mbox++) {
 		if (mbox >= CAN_TX_MBOX) {
 			/* Setup the mask and ID */
-			CAN_CTRL->CHANNEL[mbox].MSK = ((mask & 0x1FFC0000) >> 18) | ((mask & 0x3FFFF) << 11);
-			printf("mask: %"PRIx32" MSK: %"PRIx32"\r\n", mask, CAN_CTRL->CHANNEL[mbox].MSK);
-			CAN_CTRL->CHANNEL[mbox].IR = ((id & 0x1FFC0000) >> 18) | ((id & 0x3FFFF) << 11);
-			printf("id: %"PRIx32" IR: %"PRIx32"\r\n", id, CAN_CTRL->CHANNEL[mbox].IR);
+			CAN_CTRL->CHANNEL[mbox].MSK = ((mask & 0x1FFC0000) >> 18)
+					| ((mask & 0x3FFFF) << 11);
+			CAN_CTRL->CHANNEL[mbox].IR = ((id & 0x1FFC0000) >> 18)
+					| ((id & 0x3FFFF) << 11);
 
 			/* get the mailbox ready to receive CAN telegrams */
 			CAN_CTRL->CHANNEL[mbox].CR = (CHANEN | IDE | DLC);
@@ -174,7 +171,8 @@ int can_send(can_id_t id, uint8_t data[], uint8_t dlc) {
 	}
 
 	/* Copy 29 identifier to IR register */
-	CAN_CTRL->CHANNEL[m].IR = (((id & 0x1FFC0000) >> 18) | ((id & 0x3FFFF) << 11));
+	CAN_CTRL->CHANNEL[m].IR = (((id & 0x1FFC0000) >> 18)
+			| ((id & 0x3FFFF) << 11));
 
 	/* Copy data to CAN mailbox DRAx and DRBx registers */
 	switch (dlc) {
@@ -255,18 +253,17 @@ static void __attribute__ ((noinline)) can_dsr(void) {
 
 		} else if (CAN_CTRL->CHANNEL[mbox].SR & TXOK) {
 			/* TX Complete */
-			can_id_t id;
 
 			/* clear status register before enabling */
 			CAN_CTRL->CHANNEL[mbox].CSR = 0xFFF;
 
 			/* Get identifier */
-			id = ((CAN_CTRL->CHANNEL[mbox].IR & 0x7FF) << 18)
+			can_id_t id = ((CAN_CTRL->CHANNEL[mbox].IR & 0x7FF) << 18)
 					| ((CAN_CTRL->CHANNEL[mbox].IR & 0x1FFFF800) >> 11);
 
-			/* Call TX Callback */
+			/* Call TX Callback with no error */
 			if (txcb != NULL)
-				txcb(id, &task_woken);
+				txcb(id, CAN_NO_ERROR, &task_woken);
 
 			/* Disable mailbox */
 			CAN_CTRL->CHANNEL[mbox].CR &= ~(CHANEN);
@@ -275,14 +272,23 @@ static void __attribute__ ((noinline)) can_dsr(void) {
 			CAN_CTRL->CISR = (1 << mbox);
 
 		} else if (CAN_CTRL->CHANNEL[mbox].SR != 0) {
-			printf("mbox %d ERROR SR=%#"PRIx32"\r\n", mbox, CAN_CTRL->CHANNEL[mbox].SR);
 			/* Error */
+			csp_debug(CSP_ERROR, "mbox %d failed with SR=%#"PRIx32"\r\n",
+					mbox, CAN_CTRL->CHANNEL[mbox].SR);
+
+			/* Get identifier */
+			can_id_t id = ((CAN_CTRL->CHANNEL[mbox].IR & 0x7FF) << 18)
+					| ((CAN_CTRL->CHANNEL[mbox].IR & 0x1FFFF800) >> 11);
 
 			/* Clear status register before enabling */
 			CAN_CTRL->CHANNEL[mbox].CSR = 0xFFF;
 
 			/* Finally clear interrupt for mailbox */
 			CAN_CTRL->CISR = (1 << mbox);
+
+			/* Call TX Callback with error flag set */
+			if (txcb != NULL)
+				txcb(id, CAN_ERROR, &task_woken);
 
 			/* Disable mailbox */
 			CAN_CTRL->CHANNEL[mbox].CR &= ~(CHANEN);
