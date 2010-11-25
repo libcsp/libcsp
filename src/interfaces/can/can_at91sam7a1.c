@@ -20,10 +20,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 /* AT91SAM7A1 driver */
 
-/* IMPORTANT : ALLWAYS USE RX MAILBOXES WITH HIGHER NUMBER THAN TX MAILBOX */
-/*             OTHERWISE THE TX MAILBOX WILL TRANSMIT ALL DATA IN RX       */
-/*             MAILBOXES WITH A LOWER NUMBER (A bug in the ATAC-D chip)    */
-
 #include <dev/arm/at91sam7.h>
 
 #include <stdio.h>
@@ -51,6 +47,15 @@ can_rx_callback_t rxcb = NULL;
 /** Identifier and mask */
 uint32_t can_id;
 uint32_t can_mask;
+
+/** Mailbox */
+typedef enum {
+    MBOX_FREE = 0,
+    MBOX_USED = 1,
+} mbox_t;
+
+/** List of mobs */
+static mbox_t mbox[CAN_TX_MBOX];
 
 /** Calculate mode register. Each bit is divided in 10 time quanta
  *  Fixed values: PROP=0 SJW=1 SMP=1 PHSEG1=3 PHSEG2=3 */
@@ -150,19 +155,27 @@ int can_init(uint32_t id, uint32_t mask, can_tx_callback_t atxcb, can_rx_callbac
 
 }
 
-int can_send(can_id_t id, uint8_t data[], uint8_t dlc) {
+int can_send(can_id_t id, uint8_t data[], uint8_t dlc, CSP_BASE_TYPE * task_woken) {
 
 	int i, m = -1;
 	uint32_t temp[2];
 
+	/* Disable interrupts while looping mailboxes */
+	if (task_woken != NULL)
+		portENTER_CRITICAL();
+
 	/* Find free mailbox */
 	for(i = 0; i < CAN_TX_MBOX; i++) {
-		if ((CAN_CTRL->CHANNEL[i].CR & CHANEN) == 0) {
-			/* TODO: Mark mbox used in a locked array */
+		if (mbox[i] == MBOX_FREE && !(CAN_CTRL->CHANNEL[i].CR & CHANEN)) {
+			mbox[i] = MBOX_USED;
 			m = i;
 			break;
 		}
 	}
+
+	/* Enable interrupts */
+	if (task_woken != NULL)
+		portEXIT_CRITICAL();
 
 	/* Return if no available MOB was found */
 	if (m < 0) {
@@ -211,87 +224,93 @@ int can_send(can_id_t id, uint8_t data[], uint8_t dlc) {
 
 static void __attribute__ ((noinline)) can_dsr(void) {
 
-	uint8_t mbox;
+	uint8_t m;
 	portBASE_TYPE task_woken = pdFALSE;
 
 	/* Run through the mailboxes */
-	for (mbox = 0; mbox < CAN_MBOXES; mbox++) {
+	for (m = 0; m < CAN_MBOXES; m++) {
 
-		if (CAN_CTRL->CHANNEL[mbox].SR & RXOK) {
+		if (CAN_CTRL->CHANNEL[m].SR & RXOK) {
 			/* RX Complete */
 			can_frame_t frame;
 
-			if (mbox == CAN_MBOXES - 1) {
+			if (m == CAN_MBOXES - 1) {
 				/* RX overflow */
 				csp_debug(CSP_ERROR, "RX Overflow!\r\n");
 				/* TODO: Handle this */
 			}
 
 			/* Read DLC */
-			frame.dlc = (uint8_t)CAN_CTRL->CHANNEL[mbox].CR & 0x0F;
+			frame.dlc = (uint8_t)CAN_CTRL->CHANNEL[m].CR & 0x0F;
 
 			/* Read data */
-			frame.data32[0] = CAN_CTRL->CHANNEL[mbox].DRA;
-			frame.data32[1] = CAN_CTRL->CHANNEL[mbox].DRB;
+			frame.data32[0] = CAN_CTRL->CHANNEL[m].DRA;
+			frame.data32[1] = CAN_CTRL->CHANNEL[m].DRB;
 
 			/* Read identifier */
-			frame.id = ((CAN_CTRL->CHANNEL[mbox].IR & 0x7FF) << 18)
-					| ((CAN_CTRL->CHANNEL[mbox].IR & 0x1FFFF800) >> 11);
+			frame.id = ((CAN_CTRL->CHANNEL[m].IR & 0x7FF) << 18)
+					| ((CAN_CTRL->CHANNEL[m].IR & 0x1FFFF800) >> 11);
 
 			/* Call RX Callback */
 			if (rxcb != NULL)
 				rxcb(&frame, &task_woken);
 
 			/* Clear status register before enabling */
-			CAN_CTRL->CHANNEL[mbox].CSR = 0xFFF;
+			CAN_CTRL->CHANNEL[m].CSR = 0xFFF;
 
 			/* Get ready to receive new mail */
-			CAN_CTRL->CHANNEL[mbox].CR = (CHANEN | IDE | DLC);
+			CAN_CTRL->CHANNEL[m].CR = (CHANEN | IDE | DLC);
 
 			/* Finally clear interrupt for mailbox */
-			CAN_CTRL->CISR = (1 << mbox);
+			CAN_CTRL->CISR = (1 << m);
 
-		} else if (CAN_CTRL->CHANNEL[mbox].SR & TXOK) {
+		} else if (CAN_CTRL->CHANNEL[m].SR & TXOK) {
 			/* TX Complete */
 
 			/* clear status register before enabling */
-			CAN_CTRL->CHANNEL[mbox].CSR = 0xFFF;
+			CAN_CTRL->CHANNEL[m].CSR = 0xFFF;
 
 			/* Get identifier */
-			can_id_t id = ((CAN_CTRL->CHANNEL[mbox].IR & 0x7FF) << 18)
-					| ((CAN_CTRL->CHANNEL[mbox].IR & 0x1FFFF800) >> 11);
+			can_id_t id = ((CAN_CTRL->CHANNEL[m].IR & 0x7FF) << 18)
+					| ((CAN_CTRL->CHANNEL[m].IR & 0x1FFFF800) >> 11);
 
 			/* Call TX Callback with no error */
 			if (txcb != NULL)
 				txcb(id, CAN_NO_ERROR, &task_woken);
 
 			/* Disable mailbox */
-			CAN_CTRL->CHANNEL[mbox].CR &= ~(CHANEN);
+			CAN_CTRL->CHANNEL[m].CR &= ~(CHANEN);
+
+			/* Release mailbox */
+			mbox[m] = MBOX_FREE;
 
 			/* Finally clear interrupt for mailbox */
-			CAN_CTRL->CISR = (1 << mbox);
+			CAN_CTRL->CISR = (1 << m);
 
-		} else if (CAN_CTRL->CHANNEL[mbox].SR != 0) {
+		} else if (CAN_CTRL->CHANNEL[m].SR != 0) {
 			/* Error */
 			csp_debug(CSP_ERROR, "mbox %d failed with SR=%#"PRIx32"\r\n",
-					mbox, CAN_CTRL->CHANNEL[mbox].SR);
+					m, CAN_CTRL->CHANNEL[m].SR);
 
 			/* Get identifier */
-			can_id_t id = ((CAN_CTRL->CHANNEL[mbox].IR & 0x7FF) << 18)
-					| ((CAN_CTRL->CHANNEL[mbox].IR & 0x1FFFF800) >> 11);
+			can_id_t id = ((CAN_CTRL->CHANNEL[m].IR & 0x7FF) << 18)
+					| ((CAN_CTRL->CHANNEL[m].IR & 0x1FFFF800) >> 11);
 
 			/* Clear status register before enabling */
-			CAN_CTRL->CHANNEL[mbox].CSR = 0xFFF;
+			CAN_CTRL->CHANNEL[m].CSR = 0xFFF;
 
 			/* Finally clear interrupt for mailbox */
-			CAN_CTRL->CISR = (1 << mbox);
+			CAN_CTRL->CISR = (1 << m);
 
 			/* Call TX Callback with error flag set */
 			if (txcb != NULL)
 				txcb(id, CAN_ERROR, &task_woken);
 
 			/* Disable mailbox */
-			CAN_CTRL->CHANNEL[mbox].CR &= ~(CHANEN);
+			CAN_CTRL->CHANNEL[m].CR &= ~(CHANEN);
+
+			/* Release mailbox */
+			mbox[m] = MBOX_FREE;
 
 		}
 	}

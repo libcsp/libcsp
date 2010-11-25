@@ -48,6 +48,15 @@ can_rx_callback_t rxcb;
 uint32_t can_id;
 uint32_t can_mask;
 
+/** Mailbox */
+typedef enum {
+    MBOX_FREE = 0,
+    MBOX_USED = 1,
+} mbox_t;
+
+/** List of mobs */
+static mbox_t mbox[CAN_TX_MOBS];
+
 void can_configure_mobs(void) {
 
 	int mob;
@@ -150,22 +159,30 @@ int can_init(uint32_t id, uint32_t mask, can_tx_callback_t atxcb, can_rx_callbac
 
 }
 
-int can_send(can_id_t id, uint8_t data[], uint8_t dlc) {
+int can_send(can_id_t id, uint8_t data[], uint8_t dlc, CSP_BASE_TYPE * task_woken) {
 
     int i, m = -1;
 
     /* Disable CAN interrupt while looping MOBs */
 	CAN_CLEAR_INTERRUPT();
 
+	/* Disable interrupts while looping mailboxes */
+	if (task_woken != NULL)
+		portENTER_CRITICAL();
+
 	/* Search free MOB from 0 -> CAN_TX_MOBs */
 	for(i = 0; i < CAN_TX_MOBS; i++) {
-		if ((CANEN2 & (1 << i)) == 0) {
-			/* TODO: Mark mbox used in a locked array */
+		if (mbox[i] == MBOX_FREE && !(CANEN2 & (1 << i))) {
+			mbox[i] = MBOX_USED;
 			m = i;
 			break;
 		}
 	}
 	
+	/* Enable interrupts */
+	if (task_woken != NULL)
+		portEXIT_CRITICAL();
+
 	/* Enable CAN interrupt */
 	CAN_SET_INTERRUPT();
 
@@ -300,6 +317,9 @@ ISR(CANIT_vect) {
 			if (txcb != NULL)
 				txcb(id, CAN_NO_ERROR, &xTaskWoken);
 
+			/* Release mailbox */
+			mbox[mbox] = MBOX_FREE;
+
 		} else {
 			csp_debug(CSP_WARN, "MOB error: %#x\r\n", CANSTMOB);
 
@@ -319,6 +339,9 @@ ISR(CANIT_vect) {
 			/* Remember to re-enable RX */
 			if (mob >= CAN_TX_MOBS)
 				CAN_CONFIG_RX();
+
+			/* Release mailbox */
+			mbox[mbox] = MBOX_FREE;
 
 		}
 	}

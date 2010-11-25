@@ -189,7 +189,7 @@ int can_mbox_init(void) {
 
 }
 
-int can_send(can_id_t id, uint8_t data[], uint8_t dlc) {
+int can_send(can_id_t id, uint8_t data[], uint8_t dlc, CSP_BASE_TYPE * task_woken) {
 
 	int i;
 	mbox_t * m;
@@ -201,7 +201,6 @@ int can_send(can_id_t id, uint8_t data[], uint8_t dlc) {
 	sem_wait(&mbox_sem);
 	for (i = 0; i < MBOX_NUM; i++) {
 		m = &mbox[i];
-
 		if(m->state == MBOX_FREE) {
 			m->state = MBOX_USED;
 			break;

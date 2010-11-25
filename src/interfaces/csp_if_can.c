@@ -173,6 +173,7 @@ static int pbuf_init(void) {
         buf->packet = NULL;
         buf->state = BUF_FREE;
         buf->last_used = 0;
+        buf->remain = 0;
         /* Create tx semaphore if blocking mode is enabled */
 		if (csp_bin_sem_create(&buf->tx_sem) != CSP_SEMAPHORE_OK) {
 			csp_debug(CSP_ERROR, "Failed to allocate TX semaphore\n");
@@ -232,6 +233,7 @@ static int pbuf_free(pbuf_element_t * buf, CSP_BASE_TYPE * task_woken) {
 	buf->tx_count = 0;
 	buf->cfpid = 0;
 	buf->last_used = 0;
+	buf->remain = 0;
 
 	/* Unlock packet buffer */
 	if (task_woken == NULL)
@@ -262,6 +264,7 @@ static pbuf_element_t * pbuf_new(uint32_t id, CSP_BASE_TYPE * task_woken) {
         if(buf->state == BUF_FREE) {
             buf->state = BUF_USED;
             buf->cfpid = id;
+            buf->remain = 0;
             pbuf_timestamp(buf, task_woken);
             ret = buf;
             break;
@@ -274,6 +277,7 @@ static pbuf_element_t * pbuf_new(uint32_t id, CSP_BASE_TYPE * task_woken) {
         		pbuf_free(buf, task_woken);
         		buf->state = BUF_USED;
 				buf->cfpid = id;
+				buf->remain = 0;
 				pbuf_timestamp(buf, task_woken);
 				ret = buf;
 				break;
@@ -375,7 +379,7 @@ int csp_tx_callback(can_id_t canid, can_error_t error, CSP_BASE_TYPE * task_woke
 		id |= CFP_MAKE_REMAIN((buf->packet->length + overhead - buf->tx_count - bytes - 1) / 8);
 
 		/* Send frame */
-		can_send(id, buf->packet->data + buf->tx_count, bytes);
+		can_send(id, buf->packet->data + buf->tx_count, bytes, task_woken);
 
 		/* Increment tx counter */
 		buf->tx_count += bytes;
@@ -485,6 +489,8 @@ int csp_rx_callback(can_frame_t * frame, CSP_BASE_TYPE * task_woken) {
             /* Check for overflow */
             if ((buf->rx_count + frame->dlc - offset) > buf->packet->length) {
                 csp_debug(CSP_ERROR, "RX buffer overflow\r\n");
+                printf("rx_count: %d dlc: %d, offset: %d length: %d\r\n",
+                		buf->rx_count, frame->dlc, offset, buf->packet->length);
                 pbuf_free(buf, task_woken);
                 break;
             }
@@ -585,7 +591,7 @@ int csp_can_tx(csp_id_t cspid, csp_packet_t * packet, unsigned int timeout) {
 	memcpy(frame_buf + overhead, packet->data, bytes);
 
 	/* Send frame */
-	can_send(id, frame_buf, overhead + bytes);
+	can_send(id, frame_buf, overhead + bytes, NULL);
 
 	/* Increment tx counter */
 	buf->tx_count += bytes;
