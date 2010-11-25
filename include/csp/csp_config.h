@@ -59,6 +59,7 @@ extern "C" {
 /* Transport layer config */
 #define CSP_USE_RDP				1		// Enable RDP transport protocol
 #define CSP_DELAY_ACKS			1		// Use delayed acknowledgements
+#define CSP_RDP_MAX_WINDOW		20		// Maximum RDP window size
 
 /* Router config */
 #define CSP_USE_PROMISC			1		// Enable promiscuous mode functions
