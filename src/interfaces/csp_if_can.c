@@ -366,19 +366,19 @@ int csp_tx_callback(can_id_t canid, can_error_t error, CSP_BASE_TYPE * task_woke
 		/* Calculate frame data bytes */
 		bytes = (buf->packet->length - buf->tx_count >= 8) ? 8 : buf->packet->length - buf->tx_count;
 
-		/* Increment tx counter */
-		buf->tx_count += bytes;
-
 		/* Prepare identifier */
 		can_id_t id  = 0;
 		id |= CFP_MAKE_SRC(buf->packet->id.src);
 		id |= CFP_MAKE_DST(buf->packet->id.dst);
 		id |= CFP_MAKE_ID(CFP_ID(canid));
 		id |= CFP_MAKE_TYPE(CFP_MORE);
-		id |= CFP_MAKE_REMAIN((buf->packet->length + overhead - buf->tx_count - 1) / 8);
+		id |= CFP_MAKE_REMAIN((buf->packet->length + overhead - buf->tx_count - bytes - 1) / 8);
 
 		/* Send frame */
 		can_send(id, buf->packet->data + buf->tx_count, bytes);
+
+		/* Increment tx counter */
+		buf->tx_count += bytes;
 	} else {
 		/* Post semaphore if blocking mode is enabled */
 		if (task_woken != NULL)
@@ -492,7 +492,6 @@ int csp_rx_callback(can_frame_t * frame, CSP_BASE_TYPE * task_woken) {
             /* Check 'remain' field match */
             if (CFP_REMAIN(id) != buf->remain - 1) {
             	csp_debug(CSP_ERROR, "CAN frame lost in CSP packet\r\n");
-            	printf("%"PRId32" %"PRId32"\r\n", CFP_REMAIN(id), buf->remain - 1);
 				pbuf_free(buf, task_woken);
 				break;
             }
