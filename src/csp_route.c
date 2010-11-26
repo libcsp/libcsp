@@ -93,6 +93,10 @@ csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 
 	/* Create fallback socket  */
 	router_input_fifo = csp_queue_create(CSP_FIFO_INPUT, sizeof(csp_route_queue_t));
+	if (router_input_fifo == NULL) {
+		csp_debug(CSP_ERROR, "Failed to create router input queue\r\n");
+		csp_thread_exit();
+	}
 
     /* Here there be routing */
 	while (1) {

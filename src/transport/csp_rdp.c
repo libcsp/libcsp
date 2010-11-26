@@ -110,52 +110,6 @@ typedef struct __attribute__((__packed__)) rdp_header_s {
 } rdp_header_t;
 
 /**
- * LOCKING:
- * The RDP protocol stack operates on data that is dynamically allocated.
- * Therefore, if another task calls csp_rdp_close() while RDP may be working
- * on a connection, it may dereference a null pointer. The consequence is
- * to lock the entire RDP stack, so it can only work on one connection at a time.
- * RDP is always called from Task context, so blocking locks are no problem.
- */
-static csp_bin_sem_handle_t rdp_lock;
-static int rdp_lock_init = 0;
-
-static int inline csp_rdp_wait(unsigned int timeout, csp_conn_t * conn) {
-
-	/* The usual null pointer checking */
-	if (conn == NULL)
-		return 0;
-
-	/* Init semaphore */
-	if (rdp_lock_init == 0) {
-		csp_bin_sem_create(&rdp_lock);
-		rdp_lock_init = 1;
-	}
-
-	/* Nothing in the RDP code should take longer than 1 second = deadlock */
-	if (csp_bin_sem_wait(&rdp_lock, timeout) == CSP_SEMAPHORE_ERROR) {
-		csp_debug(CSP_ERROR, "Dead-lock in RDP-code found!\r\n");
-#if CSP_DEBUG
-		csp_conn_print_table();
-		csp_buffer_print_table();
-#endif
-		return 0;
-	}
-
-	return 1;
-
-}
-
-static void inline csp_rdp_release(void) {
-
-	if (rdp_lock_init == 1)
-		csp_bin_sem_post(&rdp_lock);
-	else
-		csp_debug(CSP_ERROR, "Attempt to release uninitialized RDP lock\r\n");
-
-}
-
-/**
  * RDP Headers:
  * The following functions are helper functions that handles the extra RDP
  * information that needs to be appended to all data packets.
@@ -525,10 +479,6 @@ void csp_rdp_check_timeouts(csp_conn_t * conn) {
 		}
 	}
 
-	/* Wait for RDP to be ready */
-	if (!csp_rdp_wait(1000, conn))
-		return;
-
 	/**
 	 * MESSAGE TIMEOUT:
 	 * Check each outgoing message for TX timeout
@@ -598,17 +548,9 @@ void csp_rdp_check_timeouts(csp_conn_t * conn) {
 			if (conn->rdp.snd_nxt < conn->rdp.snd_una + conn->rdp.window_size * 2)
 				csp_bin_sem_post(&conn->rdp.tx_wait);
 
-	csp_rdp_release();
-
 }
 
 void csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
-
-	/* Wait for RDP to be ready */
-	if (!csp_rdp_wait(1000, conn)) {
-		csp_buffer_free(packet);
-		return;
-	}
 
 	/* Get RX header and convert to host byte-order */
 	rdp_header_t * rx_header = csp_rdp_header_ref(packet);
@@ -638,7 +580,6 @@ void csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 		if (conn->rdp.state == RDP_CLOSE_WAIT) {
 			csp_debug(CSP_PROTOCOL, "RST received in CLOSE_WAIT. Now closing connection\r\n");
 			csp_buffer_free(packet);
-			csp_rdp_release();
 			csp_close(conn);
 			return;
 		} else {
@@ -895,7 +836,6 @@ discard_close:
 discard_open:
 	csp_buffer_free(packet);
 accepted_open:
-	csp_rdp_release();
 	return;
 
 }
@@ -903,10 +843,6 @@ accepted_open:
 int csp_rdp_connect_active(csp_conn_t * conn, unsigned int timeout) {
 
 	int retry = 1;
-
-	/* Wait for RDP to be ready */
-	if (!csp_rdp_wait(1000, conn))
-		return 0;
 
 	conn->rdp.window_size = csp_rdp_window_size;
 	conn->rdp.conn_timeout = csp_rdp_conn_timeout;
@@ -922,7 +858,6 @@ int csp_rdp_connect_active(csp_conn_t * conn, unsigned int timeout) {
 
 	if (conn->rdp.state == RDP_OPEN) {
 		csp_debug(CSP_ERROR, "RDP: Connection already open\r\n");
-		csp_rdp_release();
 		return 0;
 	}
 
@@ -939,17 +874,12 @@ int csp_rdp_connect_active(csp_conn_t * conn, unsigned int timeout) {
 
 	/* Wait for reply */
 	csp_debug(CSP_PROTOCOL, "RDP: AC: Waiting for SYN/ACK reply...\r\n");
-	csp_rdp_release();
 	csp_bin_sem_wait(&conn->rdp.tx_wait, 0);
 	int result = csp_bin_sem_wait(&conn->rdp.tx_wait, conn->rdp.conn_timeout);
-
-	if (!csp_rdp_wait(1000, conn))
-		return 0;
 
 	if (result == CSP_SEMAPHORE_OK) {
 		if (conn->rdp.state == RDP_OPEN) {
 			csp_debug(CSP_PROTOCOL, "RDP: AC: Connection OPEN\r\n");
-			csp_rdp_release();
 			return 1;
 		} else if(conn->rdp.state == RDP_SYN_SENT) {
 			if (retry) {
@@ -969,20 +899,14 @@ int csp_rdp_connect_active(csp_conn_t * conn, unsigned int timeout) {
 
 error:
 	conn->rdp.state = RDP_CLOSE_WAIT;
-	csp_rdp_release();
 	return 0;
 
 }
 
 int csp_rdp_send(csp_conn_t * conn, csp_packet_t * packet, unsigned int timeout) {
 
-	/* Wait for RDP to be ready */
-	if (!csp_rdp_wait(1000, conn))
-		return 0;
-
 	if (conn->rdp.state != RDP_OPEN) {
 		csp_debug(CSP_ERROR, "RDP: ERROR cannot send, connection reset by peer!\r\n");
-		csp_rdp_release();
 		return 0;
 	}
 
@@ -990,16 +914,11 @@ int csp_rdp_send(csp_conn_t * conn, csp_packet_t * packet, unsigned int timeout)
 
 	/* If TX window is full, wait here */
 	if (conn->rdp.snd_nxt - conn->rdp.snd_una + 1 >= conn->rdp.window_size) {
-		/* Release, and wait for stack to complete TX */
-		csp_rdp_release();
 		csp_bin_sem_wait(&conn->rdp.tx_wait, 0);
 		if ((csp_bin_sem_wait(&conn->rdp.tx_wait, timeout)) != CSP_SEMAPHORE_OK) {
 			csp_debug(CSP_ERROR, "Timeout during send\r\n");
 			return 0;
 		}
-		/* Lock stack again */
-		if (!csp_rdp_wait(1000, conn))
-			return 0;
 	}
 
 	/* Add RDP header */
@@ -1021,11 +940,9 @@ int csp_rdp_send(csp_conn_t * conn, csp_packet_t * packet, unsigned int timeout)
 	if (csp_queue_enqueue(conn->rdp.tx_queue, &rdp_packet, 0) != CSP_QUEUE_OK) {
 		csp_debug(CSP_ERROR, "No more space in RDP retransmit queue\r\n");
 		csp_buffer_free(rdp_packet);
-		csp_rdp_release();
 		return 0;
 	}
 
-	csp_rdp_release();
 	return 1;
 
 }
@@ -1064,24 +981,22 @@ int csp_rdp_allocate(csp_conn_t * conn) {
 
 }
 
+/**
+ * @note This function may only be called from csp_close, and is therefore
+ * without any checks for null pointers.
+ */
 int csp_rdp_close(csp_conn_t * conn) {
-
-	/* Wait for RDP to be ready */
-	if (!csp_rdp_wait(1000, conn))
-		return 0;
 
 	/* If message is open, send reset */
 	if (conn->rdp.state != RDP_CLOSE_WAIT) {
 		csp_debug(CSP_PROTOCOL, "RDP Close, sending RST on conn %p\r\n", conn);
 		csp_rdp_send_cmp(conn, NULL, 1, 0, 1, 0, conn->rdp.snd_nxt, conn->rdp.rcv_cur, 0);
 		conn->rdp.state = RDP_CLOSE_WAIT;
-		csp_rdp_release();
 		return 1;
 	}
 
 	csp_debug(CSP_PROTOCOL, "RDP Close in CLOSE_WAIT, now closing\r\n");
 	conn->rdp.state = RDP_CLOSED;
-	csp_rdp_release();
 	return 0;
 
 }

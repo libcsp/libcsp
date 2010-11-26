@@ -46,7 +46,7 @@ typedef void* csp_thread_return_t;
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 
-#define csp_thread_exit() return
+#define csp_thread_exit() vTaskDelete(NULL)
 
 typedef xTaskHandle csp_thread_handle_t;
 typedef void csp_thread_return_t;
