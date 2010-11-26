@@ -135,6 +135,10 @@ static int inline csp_rdp_wait(unsigned int timeout, csp_conn_t * conn) {
 	/* Nothing in the RDP code should take longer than 1 second = deadlock */
 	if (csp_bin_sem_wait(&rdp_lock, timeout) == CSP_SEMAPHORE_ERROR) {
 		csp_debug(CSP_ERROR, "Dead-lock in RDP-code found!\r\n");
+#if CSP_DEBUG
+		csp_conn_print_table();
+		csp_buffer_print_table();
+#endif
 		return 0;
 	}
 
@@ -450,7 +454,7 @@ void csp_rdp_flush_all(csp_conn_t * conn) {
 	unsigned int count = csp_queue_size(conn->rdp.tx_queue);
 	for (i = 0; i < count; i++) {
 
-		if (csp_queue_dequeue(conn->rdp.tx_queue, &packet, 0) != CSP_QUEUE_OK) {
+		if (csp_queue_dequeue_isr(conn->rdp.tx_queue, &packet, &pdTrue) != CSP_QUEUE_OK) {
 			csp_debug(CSP_ERROR, "Cannot dequeue from tx_queue in flush all\r\n");
 			break;
 		}
@@ -488,35 +492,22 @@ void csp_rdp_flush_all(csp_conn_t * conn) {
  */
 void csp_rdp_check_timeouts(csp_conn_t * conn) {
 
-	/* Wait for RDP to be ready */
-	if (!csp_rdp_wait(1000, conn))
-		return;
+	rdp_packet_t * packet;
 
 	/* Check for the dreaded null pointer */
 	if (conn == NULL) {
 		csp_debug(CSP_ERROR, "Null pointer passed to check timeouts\r\n");
-		csp_rdp_release();
 		return;
 	}
-
-	/* If connection has been closed while waiting, ignore */
-	if (conn->rdp.tx_queue == NULL) {
-		csp_rdp_release();
-		return;
-	}
-
-	rdp_packet_t * packet;
-
-	uint32_t time_now = csp_get_ms();
 
 	/**
 	 * CONNECTION TIMEOUT:
 	 * Check that connection has not timed out inside the network stack
 	 * */
+	uint32_t time_now = csp_get_ms();
 	if ((conn->rx_socket != NULL) && (conn->rx_socket != (void *) 1)) {
 		if (conn->open_timestamp + conn->rdp.conn_timeout < time_now) {
 			csp_debug(CSP_WARN, "Found a lost connection, closing now\r\n");
-			csp_rdp_release();
 			csp_close(conn);
 			return;
 		}
@@ -529,11 +520,14 @@ void csp_rdp_check_timeouts(csp_conn_t * conn) {
 	if (conn->rdp.state == RDP_CLOSE_WAIT) {
 		if (conn->open_timestamp + conn->rdp.conn_timeout < time_now) {
 			csp_debug(CSP_PROTOCOL, "CLOSE_WAIT timeout\r\n");
-			csp_rdp_release();
 			csp_close(conn);
 			return;
 		}
 	}
+
+	/* Wait for RDP to be ready */
+	if (!csp_rdp_wait(1000, conn))
+		return;
 
 	/**
 	 * MESSAGE TIMEOUT:
@@ -974,8 +968,8 @@ int csp_rdp_connect_active(csp_conn_t * conn, unsigned int timeout) {
 	}
 
 error:
-	csp_rdp_release();
 	conn->rdp.state = RDP_CLOSE_WAIT;
+	csp_rdp_release();
 	return 0;
 
 }
@@ -1086,8 +1080,8 @@ int csp_rdp_close(csp_conn_t * conn) {
 	}
 
 	csp_debug(CSP_PROTOCOL, "RDP Close in CLOSE_WAIT, now closing\r\n");
-	csp_rdp_release();
 	conn->rdp.state = RDP_CLOSED;
+	csp_rdp_release();
 	return 0;
 
 }
