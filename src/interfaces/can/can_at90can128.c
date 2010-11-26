@@ -320,7 +320,7 @@ ISR(CANIT_vect) {
 				txcb(id, CAN_NO_ERROR, &xTaskWoken);
 
 			/* Release mailbox */
-			mbox[mbox] = MBOX_FREE;
+			mbox[mob] = MBOX_FREE;
 
 		} else {
 			csp_debug(CSP_WARN, "MOB error: %#x\r\n", CANSTMOB);
@@ -343,7 +343,7 @@ ISR(CANIT_vect) {
 				CAN_CONFIG_RX();
 
 			/* Release mailbox */
-			mbox[mbox] = MBOX_FREE;
+			mbox[mob] = MBOX_FREE;
 
 		}
 	}
