@@ -71,30 +71,30 @@ void csp_service_handler(csp_conn_t * conn, csp_packet_t * packet) {
 
 #if defined(_CSP_FREERTOS_)
 		/* Try to malloc a lot */
-		uint32_t size = 0;
+		int size = 1000000, total = 0;
 		void * pmem;
 		while(1) {
-			size = size + 100;
-			pmem = csp_malloc(size);
+			pmem = csp_malloc(size + total);
 			if (pmem == NULL) {
-				size = size - 100;
-				break;
+				size = size / 2;
+				if (size < 100) break;
 			} else {
+				total += size;
 				csp_free(pmem);
 			}
 		}
 #elif defined(_CSP_POSIX_)
 		/* Read system statistics */
-		size_t size = 0;
+		size_t total = 0;
         struct sysinfo info;
         sysinfo(&info);
-        size = info.freeram * info.mem_unit;
+        total = info.freeram * info.mem_unit;
 #endif
 
 		/* Prepare for network transmission */
-		size = htonl(size);
-		memcpy(packet->data, &size, sizeof(size));
-		packet->length = sizeof(size);
+		total = htonl(total);
+		memcpy(packet->data, &total, sizeof(total));
+		packet->length = sizeof(total);
 
 		break;
 	}
