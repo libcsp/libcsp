@@ -134,6 +134,11 @@ static void * mbox_rx_thread(void * parameters) {
         /* Read CAN frame */
         nbytes = read(can_socket, &frame, sizeof(frame));
 
+	if (nbytes < 0) {
+	    csp_debug(CSP_ERROR, "read: %s\r\n", strerror(errno));
+	    break;
+	}
+
         if (nbytes != sizeof(frame)) {
             csp_debug(CSP_WARN, "Read incomplete CAN frame\n");
             continue;

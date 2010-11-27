@@ -58,7 +58,6 @@ SOURCES += src/csp_route.c
 SOURCES += src/csp_port.c
 SOURCES += src/csp_services.c
 SOURCES += src/csp_endian.c
-SOURCES += src/csp_debug.c
 SOURCES += src/csp_service_handler.c
 SOURCES += src/arch/$(ARCH)/csp_malloc.c
 SOURCES += src/arch/$(ARCH)/csp_queue.c
@@ -74,6 +73,7 @@ SOURCES += src/crypto/csp_hmac.c
 SOURCES += src/crypto/csp_xtea.c
 
 ifeq ($(TOOLCHAIN),)
+SOURCES += src/csp_debug.c
 SOURCES += src/interfaces/can/can_socketcan.c
 endif
 
@@ -83,6 +83,7 @@ endif
 
 ## POSIX archs requires pthread_queue
 ifeq ($(ARCH),posix)
+SOURCES += src/csp_debug.c
 SOURCES += src/arch/$(ARCH)/pthread_queue.c
 endif
 
