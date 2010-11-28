@@ -83,7 +83,6 @@ endif
 
 ## POSIX archs requires pthread_queue
 ifeq ($(ARCH),posix)
-SOURCES += src/csp_debug.c
 SOURCES += src/arch/$(ARCH)/pthread_queue.c
 endif
 

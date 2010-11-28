@@ -588,7 +588,10 @@ int csp_can_tx(csp_packet_t * packet, unsigned int timeout) {
 	memcpy(frame_buf + overhead, packet->data, bytes);
 
 	/* Send frame */
-	can_send(id, frame_buf, overhead + bytes, NULL);
+	if (can_send(id, frame_buf, overhead + bytes, NULL) != 0) {
+		csp_debug(CSP_WARN, "Failed to send CAN frame in csp_tx_can\r\n");
+		return 0;
+	}
 
 	/* Increment tx counter */
 	buf->tx_count += bytes;

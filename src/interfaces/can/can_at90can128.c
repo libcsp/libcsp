@@ -261,10 +261,8 @@ static inline uint8_t can_find_oldest_mob(void) {
 ISR(CANIT_vect) {
 
 	static uint8_t mob;
-	static portBASE_TYPE xTaskWoken;
+	static portBASE_TYPE xTaskWoken = pdFALSE;
 	
-	xTaskWoken = pdFALSE;
-
 	/* For each MOB that has interrupted */
 	while (CAN_HPMOB() != 0xF) {
 
@@ -272,7 +270,31 @@ ISR(CANIT_vect) {
 		mob = can_find_oldest_mob();
 		CAN_SET_MOB(mob);
 
-		if (CANSTMOB & MOB_RX_COMPLETED) {
+		if (CANSTMOB & ERR_MOB_MSK) {
+			/* Error */
+			csp_debug(CSP_WARN, "MOB error: %#x\r\n", CANSTMOB);
+
+			/* Clear status */
+			CAN_CLEAR_STATUS_MOB();
+
+			can_id_t id;
+			CAN_GET_EXT_ID(id);
+
+			/* Do TX-Callback */
+			if (txcb != NULL)
+				txcb(id, CAN_ERROR, &xTaskWoken);
+
+			/* Error */
+			CAN_MOB_ABORT();
+
+			/* Remember to re-enable RX */
+			if (mob >= CAN_TX_MOBS)
+				CAN_CONFIG_RX();
+
+			/* Release mailbox */
+			mbox[mob] = MBOX_FREE;
+
+		} else if (CANSTMOB & MOB_RX_COMPLETED) {
 			/* RX Complete */
 			int i;
 			can_frame_t frame;
@@ -321,30 +343,6 @@ ISR(CANIT_vect) {
 
 			/* Release mailbox */
 			mbox[mob] = MBOX_FREE;
-
-		} else {
-			csp_debug(CSP_WARN, "MOB error: %#x\r\n", CANSTMOB);
-
-			can_id_t id;
-			CAN_GET_EXT_ID(id);
-
-			/* Do TX-Callback */
-			if (txcb != NULL)
-				txcb(id, CAN_ERROR, &xTaskWoken);
-
-			/* Clear status */
-			CAN_CLEAR_STATUS_MOB();
-
-			/* Error */
-			CAN_MOB_ABORT();
-
-			/* Remember to re-enable RX */
-			if (mob >= CAN_TX_MOBS)
-				CAN_CONFIG_RX();
-
-			/* Release mailbox */
-			mbox[mob] = MBOX_FREE;
-
 		}
 	}
 	

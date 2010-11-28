@@ -196,7 +196,7 @@ int can_mbox_init(void) {
 
 int can_send(can_id_t id, uint8_t data[], uint8_t dlc, CSP_BASE_TYPE * task_woken) {
 
-	int i;
+	int i, found = 0;
 	mbox_t * m;
 
 	if (dlc > 8)
@@ -208,10 +208,14 @@ int can_send(can_id_t id, uint8_t data[], uint8_t dlc, CSP_BASE_TYPE * task_woke
 		m = &mbox[i];
 		if(m->state == MBOX_FREE) {
 			m->state = MBOX_USED;
+			found = 1;
 			break;
 		}
 	}
 	sem_post(&mbox_sem);
+	
+	if (!found)
+		return -1;
 
 	/* Copy identifier */
 	m->frame.can_id = id | CAN_EFF_FLAG;

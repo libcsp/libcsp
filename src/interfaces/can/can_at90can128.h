@@ -64,7 +64,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #define MOB_DISABLE           	0xFF
 
 /** Interrupt control */
-#define CAN_SET_INTERRUPT() 	(CANGIE |= (1 << ENIT) | (1 << ENRX) | (1 << ENTX) | (1 << ENERR) | (1 << ENBOFF) | (1 << ENERG))
+#define CAN_SET_INTERRUPT() 	(CANGIE |= (1 << ENIT) | (1 << ENRX) | (1 << ENTX) | (1 << ENERR) | (1 << ENBOFF))
 #define CAN_CLEAR_INTERRUPT() 	(CANGIE &= ~(1 << ENIT))
 
 /** CAN module control */
