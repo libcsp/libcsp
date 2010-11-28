@@ -217,15 +217,15 @@ int pbuf_timestamp(pbuf_element_t * buf, CSP_BASE_TYPE * task_woken) {
  */
 static int pbuf_free(pbuf_element_t * buf, CSP_BASE_TYPE * task_woken) {
 
+    /* Lock packet buffer */
+	if (task_woken == NULL)
+		CSP_ENTER_CRITICAL(pbuf_sem);
+		
 	/* Free CSP packet */
     if (buf->packet != NULL) {
         csp_buffer_free(buf->packet);
         buf->packet = NULL;
     }
-
-    /* Lock packet buffer */
-	if (task_woken == NULL)
-		CSP_ENTER_CRITICAL(pbuf_sem);
 
     /* Mark buffer element free */
     buf->state = BUF_FREE;
@@ -378,20 +378,25 @@ int csp_tx_callback(can_id_t canid, can_error_t error, CSP_BASE_TYPE * task_woke
 		id |= CFP_MAKE_TYPE(CFP_MORE);
 		id |= CFP_MAKE_REMAIN((buf->packet->length + overhead - buf->tx_count - bytes - 1) / 8);
 
-		/* Send frame */
-		can_send(id, buf->packet->data + buf->tx_count, bytes, task_woken);
-
 		/* Increment tx counter */
 		buf->tx_count += bytes;
-	} else {
-		/* Post semaphore if blocking mode is enabled */
-		if (task_woken != NULL)
-			csp_bin_sem_post_isr(&buf->tx_sem, task_woken);
-		else
-			csp_bin_sem_post(&buf->tx_sem);
 
+		/* Send frame */
+		if (can_send(id, buf->packet->data + buf->tx_count - bytes, bytes, task_woken) != 0) {
+			csp_debug(CSP_WARN, "Failed to send in tx callback\r\n");
+			pbuf_free(buf, task_woken);
+			return -1;
+		}
+	} else {
 		/* Free packet buffer */
 		pbuf_free(buf, task_woken);
+		
+		/* Post semaphore if blocking mode is enabled */
+		if (task_woken != NULL) {
+			csp_bin_sem_post_isr(&buf->tx_sem, task_woken);
+		} else {
+			csp_bin_sem_post(&buf->tx_sem);
+		}
 	}
 
 	return 0;
@@ -489,8 +494,6 @@ int csp_rx_callback(can_frame_t * frame, CSP_BASE_TYPE * task_woken) {
             /* Check for overflow */
             if ((buf->rx_count + frame->dlc - offset) > buf->packet->length) {
                 csp_debug(CSP_ERROR, "RX buffer overflow\r\n");
-                printf("rx_count: %d dlc: %d, offset: %d length: %d\r\n",
-                		buf->rx_count, frame->dlc, offset, buf->packet->length);
                 pbuf_free(buf, task_woken);
                 break;
             }
@@ -587,23 +590,24 @@ int csp_can_tx(csp_packet_t * packet, unsigned int timeout) {
 	memcpy(frame_buf + sizeof(csp_id_be), &csp_length_be, sizeof(csp_length_be));
 	memcpy(frame_buf + overhead, packet->data, bytes);
 
+	/* Increment tx counter */
+	buf->tx_count += bytes;
+
+	/* Take semaphore so driver can post it later */
+	csp_bin_sem_wait(&buf->tx_sem, 0);
+
 	/* Send frame */
 	if (can_send(id, frame_buf, overhead + bytes, NULL) != 0) {
 		csp_debug(CSP_WARN, "Failed to send CAN frame in csp_tx_can\r\n");
 		return 0;
 	}
 
-	/* Increment tx counter */
-	buf->tx_count += bytes;
-
     /* Non blocking mode */
     if (timeout == 0)
         return 1;
 
     /* Blocking mode */
-    csp_bin_sem_wait(&buf->tx_sem, 0);
     if (csp_bin_sem_wait(&buf->tx_sem, timeout) != CSP_SEMAPHORE_OK) {
-    	pbuf_free(buf, NULL);
         csp_bin_sem_post(&buf->tx_sem);
         return 0;
     } else {

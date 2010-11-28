@@ -76,7 +76,6 @@ typedef enum {
 } mbox_state_t;
 
 typedef struct {
-	int id;					/** Mailbox id */
     pthread_t thread;  		/** Thread handle */
     sem_t signal_sem;   	/** Signalling semaphore */
     mbox_state_t state;		/** Thread state */
