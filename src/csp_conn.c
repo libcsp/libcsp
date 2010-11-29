@@ -134,14 +134,14 @@ csp_conn_t * csp_conn_new(csp_id_t idin, csp_id_t idout) {
 	int i;
 	csp_conn_t * conn;
 
-	/* Search for free connection */
-	i = csp_conn_last_given;								// Start with the last given element
-	i = (i + 1) % CSP_CONN_MAX;									// Increment by one
-
 	if (csp_bin_sem_wait(&conn_lock, 100) != CSP_SEMAPHORE_OK) {
 		csp_debug(CSP_ERROR, "Failed to lock conn array\r\n");
 		return NULL;
 	}
+
+	/* Search for free connection */
+	i = csp_conn_last_given;								// Start with the last given element
+	i = (i + 1) % CSP_CONN_MAX;									// Increment by one
 
 	do {
 		conn = &arr_conn[i];
@@ -152,14 +152,14 @@ csp_conn_t * csp_conn_new(csp_id_t idin, csp_id_t idout) {
 		i = (i + 1) % CSP_CONN_MAX;
 	} while(i != csp_conn_last_given);
 
-	csp_bin_sem_post(&conn_lock);
-
 	if (i == csp_conn_last_given) {
 		csp_debug(CSP_ERROR, "No more free connections\r\n");
+		csp_bin_sem_post(&conn_lock);
 		return NULL;
 	}
 
 	csp_conn_last_given = i;
+	csp_bin_sem_post(&conn_lock);
 
 	/* No lock is needed here, because nobody else
 	 * has a reference to this connection yet.
