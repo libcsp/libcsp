@@ -35,6 +35,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <stdio.h>
 #include <string.h>
+#include <stdint.h>
+#include <inttypes.h>
 
 #include <csp/csp.h>
 #include <csp/csp_config.h>
@@ -50,12 +52,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #if CSP_USE_RDP
 
-static unsigned int csp_rdp_window_size = 10;
-static unsigned int csp_rdp_conn_timeout = 10000;
-static unsigned int csp_rdp_packet_timeout = 1000;
-static unsigned int csp_rdp_delayed_acks = 1;
-static unsigned int csp_rdp_ack_timeout = 1000 / 2;
-static unsigned int csp_rdp_ack_delay_count = 10 / 2;
+static uint32_t csp_rdp_window_size = 10;
+static uint32_t csp_rdp_conn_timeout = 10000;
+static uint32_t csp_rdp_packet_timeout = 1000;
+static uint32_t csp_rdp_delayed_acks = 1;
+static uint32_t csp_rdp_ack_timeout = 1000 / 2;
+static uint32_t csp_rdp_ack_delay_count = 10 / 2;
 
 /* Used for queue calls */
 static CSP_BASE_TYPE pdTrue = 1;
@@ -67,15 +69,6 @@ typedef struct __attribute__((__packed__)) {
     csp_id_t id;                // CSP id must be just before data
     uint8_t data[];				// This just points to the rest of the buffer, without a size indication.
 } rdp_packet_t;
-
-enum csp_rdp_states {
-	RDP_CLOSED = 0,
-	RDP_LISTEN,
-	RDP_SYN_SENT,
-	RDP_SYN_RCVD,
-	RDP_OPEN,
-	RDP_CLOSE_WAIT,
-};
 
 typedef struct __attribute__((__packed__)) rdp_header_s {
 #if !CSP_RDP_COMP
@@ -1024,7 +1017,7 @@ void csp_rdp_conn_print(csp_conn_t * conn) {
 	if (conn == NULL)
 		return;
 
-	printf("\tRDP: State %u, rcv %u, snd %u, win %u\r\n", conn->rdp.state, conn->rdp.rcv_cur, conn->rdp.snd_una, conn->rdp.window_size);
+	printf("\tRDP: State %"PRIu16", rcv %"PRIu16", snd %"PRIu16", win %"PRIu32"\r\n", conn->rdp.state, conn->rdp.rcv_cur, conn->rdp.snd_una, conn->rdp.window_size);
 
 }
 #endif

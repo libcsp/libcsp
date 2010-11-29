@@ -39,23 +39,32 @@ typedef enum {
     CONN_CLOSE_WAIT = 2,			// Conneciton closed by network stack, waiting for userspace to close too.
 } csp_conn_state_t;
 
+typedef enum {
+	RDP_CLOSED = 0,
+	RDP_LISTEN,
+	RDP_SYN_SENT,
+	RDP_SYN_RCVD,
+	RDP_OPEN,
+	RDP_CLOSE_WAIT,
+} csp_rdp_state_t;
+
 /** @brief RDP Connection header
  *  @note Do not try to pack this stuct, the posix sem handle will stop working */
-typedef struct csp_rdp_s {
-	int state;
-	int snd_nxt; 					/**< The sequence number of the next segment that is to be sent */
-	int snd_una; 					/**< The sequence number of the oldest unacknowledged segment */
-	int snd_iss; 					/**< The initial send sequence number */
-	int rcv_cur; 					/**< The sequence number of the last segment received correctly and in sequence */
-	int rcv_irs; 					/**< The initial receive sequence number */
-	int rcv_lsa; 					/**< The sequence number acknowledged by the received (Note: new in CSP-RDP, not in the standard) */
-	unsigned int window_size;
-	unsigned int conn_timeout;
-	unsigned int packet_timeout;
-	unsigned int delayed_acks;
-	unsigned int ack_timeout;
-	unsigned int ack_delay_count;
-	unsigned int ack_timestamp;
+typedef struct {
+	csp_rdp_state_t state;				/**< Connection state */
+	uint16_t snd_nxt; 					/**< The sequence number of the next segment that is to be sent */
+	uint16_t snd_una; 					/**< The sequence number of the oldest unacknowledged segment */
+	uint16_t snd_iss; 					/**< The initial send sequence number */
+	uint16_t rcv_cur; 					/**< The sequence number of the last segment received correctly and in sequence */
+	uint16_t rcv_irs; 					/**< The initial receive sequence number */
+	uint16_t rcv_lsa; 					/**< The last sequence number acknowledged by the receiver */
+	uint32_t window_size;
+	uint32_t conn_timeout;
+	uint32_t packet_timeout;
+	uint32_t delayed_acks;
+	uint32_t ack_timeout;
+	uint32_t ack_delay_count;
+	uint32_t ack_timestamp;
 	csp_bin_sem_handle_t tx_wait;
 	csp_queue_handle_t tx_queue;
 	csp_queue_handle_t rx_queue;
