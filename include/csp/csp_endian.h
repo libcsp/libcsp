@@ -27,13 +27,22 @@ extern "C" {
 
 #include <stdint.h>
 
-/* Convert 32-bit integer to network byte order */
+/* Convert 16-bit integers */
+uint16_t csp_hton16(uint16_t h16);
+uint16_t csp_ntoh16(uint16_t n16);
+
+/* Convert 32-bit integers */
+uint32_t csp_hton32(uint32_t h32);
+uint32_t csp_ntoh32(uint32_t n32);
+
+/* Convert 64-bit integers */
+uint64_t csp_hton64(uint64_t h64);
+uint64_t csp_ntoh64(uint64_t n64);
+
+/* Compatibility functions */
 uint32_t htonl(uint32_t hl);
-/* Convert 32-bit integer to host byte order */
 uint32_t ntohl(uint32_t nl);
-/* Convert 16-bit integer to network byte order */
 uint16_t htons(uint16_t hs);
-/* Convert 16-bit integer to host byte order */
 uint16_t ntohs(uint16_t ns);
 
 #ifdef __cplusplus
