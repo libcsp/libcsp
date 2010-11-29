@@ -953,6 +953,8 @@ int csp_rdp_allocate(csp_conn_t * conn) {
 
 	/* Set initial state */
 	conn->rdp.state = RDP_CLOSED;
+	conn->rdp.conn_timeout = csp_rdp_conn_timeout;
+	conn->rdp.packet_timeout = csp_rdp_packet_timeout;
 
 	/* Create a binary semaphore to wait on for tasks */
 	if (csp_bin_sem_create(&conn->rdp.tx_wait) != CSP_SEMAPHORE_OK) {
