@@ -239,23 +239,22 @@ static void __attribute__ ((noinline)) can_dsr(void) {
 			if (m == CAN_MBOXES - 1) {
 				/* RX overflow */
 				csp_debug(CSP_ERROR, "RX Overflow!\r\n");
-				/* TODO: Handle this */
+			} else {
+				/* Read DLC */
+				frame.dlc = (uint8_t)CAN_CTRL->CHANNEL[m].CR & 0x0F;
+
+				/* Read data */
+				frame.data32[0] = CAN_CTRL->CHANNEL[m].DRA;
+				frame.data32[1] = CAN_CTRL->CHANNEL[m].DRB;
+
+				/* Read identifier */
+				frame.id = ((CAN_CTRL->CHANNEL[m].IR & 0x7FF) << 18)
+						| ((CAN_CTRL->CHANNEL[m].IR & 0x1FFFF800) >> 11);
+
+				/* Call RX Callback */
+				if (rxcb != NULL)
+					rxcb(&frame, &task_woken);
 			}
-
-			/* Read DLC */
-			frame.dlc = (uint8_t)CAN_CTRL->CHANNEL[m].CR & 0x0F;
-
-			/* Read data */
-			frame.data32[0] = CAN_CTRL->CHANNEL[m].DRA;
-			frame.data32[1] = CAN_CTRL->CHANNEL[m].DRB;
-
-			/* Read identifier */
-			frame.id = ((CAN_CTRL->CHANNEL[m].IR & 0x7FF) << 18)
-					| ((CAN_CTRL->CHANNEL[m].IR & 0x1FFFF800) >> 11);
-
-			/* Call RX Callback */
-			if (rxcb != NULL)
-				rxcb(&frame, &task_woken);
 
 			/* Clear status register before enabling */
 			CAN_CTRL->CHANNEL[m].CSR = 0xFFF;

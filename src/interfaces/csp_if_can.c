@@ -355,6 +355,7 @@ int csp_tx_callback(can_id_t canid, can_error_t error, CSP_BASE_TYPE * task_woke
 
     if (buf->packet == NULL) {
     	csp_debug(CSP_WARN, "Buffer packet was NULL\r\n");
+    	pbuf_free(buf, task_woken);
     	return -1;
     }
 
@@ -383,7 +384,7 @@ int csp_tx_callback(can_id_t canid, can_error_t error, CSP_BASE_TYPE * task_woke
 
 		/* Send frame */
 		if (can_send(id, buf->packet->data + buf->tx_count - bytes, bytes, task_woken) != 0) {
-			csp_debug(CSP_WARN, "Failed to send in tx callback\r\n");
+			csp_debug(CSP_WARN, "Failed to send CAN frame in Tx callback\r\n");
 			pbuf_free(buf, task_woken);
 			return -1;
 		}
@@ -491,22 +492,22 @@ int csp_rx_callback(can_frame_t * frame, CSP_BASE_TYPE * task_woken) {
             
         case CFP_MORE:
 
+        	/* Check 'remain' field match */
+			if (CFP_REMAIN(id) != buf->remain - 1) {
+				csp_debug(CSP_ERROR, "CAN frame lost in CSP packet\r\n");
+				pbuf_free(buf, task_woken);
+				break;
+			}
+
+			/* Decrement remaining frames */
+			buf->remain--;
+
             /* Check for overflow */
             if ((buf->rx_count + frame->dlc - offset) > buf->packet->length) {
                 csp_debug(CSP_ERROR, "RX buffer overflow\r\n");
                 pbuf_free(buf, task_woken);
                 break;
             }
-
-            /* Check 'remain' field match */
-            if (CFP_REMAIN(id) != buf->remain - 1) {
-            	csp_debug(CSP_ERROR, "CAN frame lost in CSP packet\r\n");
-				pbuf_free(buf, task_woken);
-				break;
-            }
-
-            /* Decrement remaining frames */
-            buf->remain--;
 
             /* Copy dlc bytes into buffer */
             memcpy(&buf->packet->data[buf->rx_count], frame->data + offset, frame->dlc - offset);
