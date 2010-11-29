@@ -412,7 +412,7 @@ int csp_tx_callback(can_id_t canid, can_error_t error, CSP_BASE_TYPE * task_woke
  */
 int csp_rx_callback(can_frame_t * frame, CSP_BASE_TYPE * task_woken) {
 
-	static pbuf_element_t * buf;
+	pbuf_element_t * buf;
     uint8_t offset;
     
     can_id_t id = frame->id;
