@@ -25,7 +25,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 /*
  * These functions are declared __const__, so the compiler
- * will (hopefully) identify it as a runtime constant
+ * will (hopefully) identify their return value as a runtime constant
  */
 
 /* Returns 1 on big endian archs and 0 on little endian */
@@ -57,7 +57,7 @@ inline uint32_t __attribute__ ((__const__)) ntohl(uint32_t nl) {
     
 }
 
-/* Convert 32-bit integer to network byte order */
+/* Convert 16-bit integer to network byte order */
 inline uint16_t __attribute__ ((__const__)) htons(uint16_t hs) {
 
     if (host_be()) {
@@ -68,7 +68,7 @@ inline uint16_t __attribute__ ((__const__)) htons(uint16_t hs) {
     
 }
 
-/* Convert 32-bit integer to host byte order */
+/* Convert 16-bit integer to host byte order */
 inline uint16_t __attribute__ ((__const__)) ntohs(uint16_t ns) {
 
     return htons(ns);

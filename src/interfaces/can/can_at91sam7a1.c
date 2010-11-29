@@ -232,14 +232,12 @@ static void __attribute__ ((noinline)) can_dsr(void) {
 	/* Run through the mailboxes */
 	for (m = 0; m < CAN_MBOXES; m++) {
 
-		if (CAN_CTRL->CHANNEL[m].SR & RXOK) {
-			/* RX Complete */
-			can_frame_t frame;
+		/* If an interrupt occured on mailbox */
+		if (CAN_CTRL->ISSR & (1 << m)) {
+			if (CAN_CTRL->CHANNEL[m].SR & RXOK) {
+				/* RX Complete */
+				can_frame_t frame;
 
-			if (m == CAN_MBOXES - 1) {
-				/* RX overflow */
-				csp_debug(CSP_ERROR, "RX Overflow!\r\n");
-			} else {
 				/* Read DLC */
 				frame.dlc = (uint8_t)CAN_CTRL->CHANNEL[m].CR & 0x0F;
 
@@ -254,65 +252,65 @@ static void __attribute__ ((noinline)) can_dsr(void) {
 				/* Call RX Callback */
 				if (rxcb != NULL)
 					rxcb(&frame, &task_woken);
+
+				/* Clear status register before enabling */
+				CAN_CTRL->CHANNEL[m].CSR = 0xFFF;
+
+				/* Get ready to receive new mail */
+				CAN_CTRL->CHANNEL[m].CR = (CHANEN | IDE | DLC);
+
+				/* Finally clear interrupt for mailbox */
+				CAN_CTRL->CISR = (1 << m);
+
+			} else if (CAN_CTRL->CHANNEL[m].SR & TXOK) {
+				/* TX Complete */
+
+				/* clear status register before enabling */
+				CAN_CTRL->CHANNEL[m].CSR = 0xFFF;
+
+				/* Get identifier */
+				can_id_t id = ((CAN_CTRL->CHANNEL[m].IR & 0x7FF) << 18)
+						| ((CAN_CTRL->CHANNEL[m].IR & 0x1FFFF800) >> 11);
+
+				/* Call TX Callback with no error */
+				if (txcb != NULL)
+					txcb(id, CAN_NO_ERROR, &task_woken);
+
+				/* Disable mailbox */
+				CAN_CTRL->CHANNEL[m].CR &= ~(CHANEN);
+
+				/* Release mailbox */
+				mbox[m] = MBOX_FREE;
+
+				/* Finally clear interrupt for mailbox */
+				CAN_CTRL->CISR = (1 << m);
+
+			} else if (CAN_CTRL->CHANNEL[m].SR != 0) {
+				/* Error */
+				csp_debug(CSP_ERROR, "mbox %d failed with SR=%#"PRIx32"\r\n",
+						m, CAN_CTRL->CHANNEL[m].SR);
+
+				/* Get identifier */
+				can_id_t id = ((CAN_CTRL->CHANNEL[m].IR & 0x7FF) << 18)
+						| ((CAN_CTRL->CHANNEL[m].IR & 0x1FFFF800) >> 11);
+
+				/* Clear status register before enabling */
+				CAN_CTRL->CHANNEL[m].CSR = 0xFFF;
+
+				/* Finally clear interrupt for mailbox */
+				CAN_CTRL->CISR = (1 << m);
+
+				/* Call TX Callback with error flag set */
+				if (txcb != NULL)
+					txcb(id, CAN_ERROR, &task_woken);
+
+				/* Disable mailbox */
+				CAN_CTRL->CHANNEL[m].CR &= ~(CHANEN);
+
+				/* Release mailbox */
+				mbox[m] = MBOX_FREE;
+
 			}
-
-			/* Clear status register before enabling */
-			CAN_CTRL->CHANNEL[m].CSR = 0xFFF;
-
-			/* Get ready to receive new mail */
-			CAN_CTRL->CHANNEL[m].CR = (CHANEN | IDE | DLC);
-
-			/* Finally clear interrupt for mailbox */
-			CAN_CTRL->CISR = (1 << m);
-
-		} else if (CAN_CTRL->CHANNEL[m].SR & TXOK) {
-			/* TX Complete */
-
-			/* clear status register before enabling */
-			CAN_CTRL->CHANNEL[m].CSR = 0xFFF;
-
-			/* Get identifier */
-			can_id_t id = ((CAN_CTRL->CHANNEL[m].IR & 0x7FF) << 18)
-					| ((CAN_CTRL->CHANNEL[m].IR & 0x1FFFF800) >> 11);
-
-			/* Call TX Callback with no error */
-			if (txcb != NULL)
-				txcb(id, CAN_NO_ERROR, &task_woken);
-
-			/* Disable mailbox */
-			CAN_CTRL->CHANNEL[m].CR &= ~(CHANEN);
-
-			/* Release mailbox */
-			mbox[m] = MBOX_FREE;
-
-			/* Finally clear interrupt for mailbox */
-			CAN_CTRL->CISR = (1 << m);
-
-		} else if (CAN_CTRL->CHANNEL[m].SR != 0) {
-			/* Error */
-			csp_debug(CSP_ERROR, "mbox %d failed with SR=%#"PRIx32"\r\n",
-					m, CAN_CTRL->CHANNEL[m].SR);
-
-			/* Get identifier */
-			can_id_t id = ((CAN_CTRL->CHANNEL[m].IR & 0x7FF) << 18)
-					| ((CAN_CTRL->CHANNEL[m].IR & 0x1FFFF800) >> 11);
-
-			/* Clear status register before enabling */
-			CAN_CTRL->CHANNEL[m].CSR = 0xFFF;
-
-			/* Finally clear interrupt for mailbox */
-			CAN_CTRL->CISR = (1 << m);
-
-			/* Call TX Callback with error flag set */
-			if (txcb != NULL)
-				txcb(id, CAN_ERROR, &task_woken);
-
-			/* Disable mailbox */
-			CAN_CTRL->CHANNEL[m].CR &= ~(CHANEN);
-
-			/* Release mailbox */
-			mbox[m] = MBOX_FREE;
-
 		}
 	}
 
