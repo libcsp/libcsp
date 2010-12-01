@@ -131,13 +131,13 @@ csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 		csp_promisc_add(packet, csp_promisc_queue);
 #endif
 
-		/* If the message is not to me, route the message to the correct iface */
+		/* If the message is not to me, route the message to the correct interface */
 		if ((packet->id.dst != my_address) && (packet->id.dst != CSP_BROADCAST_ADDR)) {
 
 			/* Find the destination interface */
 			dst = csp_route_if(packet->id.dst);
 
-			/* If the message resolves to the input interface, don't loop ip back out */
+			/* If the message resolves to the input interface, don't loop it back out */
 			if ((dst == NULL) || (dst->nexthop == input.interface)) {
 				csp_buffer_free(packet);
 				continue;
@@ -158,22 +158,9 @@ csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 		 * search for an existing connection */
 		conn = csp_conn_find(packet->id.ext, CSP_ID_CONN_MASK);
 
-		/* If a connection was found */
-		if (conn != NULL) {
-
-			/* Check the close_wait state */
-			if (conn->state == CONN_CLOSE_WAIT) {
-				csp_debug(CSP_WARN, "Router discarded packet: CLOSE_WAIT\r\n");
-				csp_buffer_free(packet);
-				continue;
-			}
-
-		/* Okay, this is a new connection attempt,
-		 * check if a port is listening and open a conn.
-		 */
-		} else {
-            
-            /* Reject packet if dport is an ephemeral port */
+		/* If no connection was found, try to create a new one */
+		if (conn == NULL) {
+            /* Reject packet if destination port is an ephemeral port */
             if (packet->id.dport > CSP_MAX_BIND_PORT) {
 		        csp_buffer_free(packet); 
 		    	continue;
@@ -208,6 +195,7 @@ csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 				idout.src = packet->id.dst;
 			}
 
+			/* Create connection */
 			conn = csp_conn_new(packet->id, idout);
 
 			if (conn == NULL) {
@@ -224,6 +212,28 @@ csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 
 		}
 
+		/* CRC32 verified packet */
+		if (packet->id.flags & CSP_FCRC) {
+#if CSP_ENABLE_CRC32
+			/* TODO: Add CRC32 check here */
+			if (crc32_verify(packet) != 0) {
+				/* Checksum failed */
+				csp_debug(CSP_ERROR, "CRC32 verification error! Discarding packet\r\n");
+				csp_buffer_free(packet);
+				continue;
+			}
+		} else if (conn->conn_opts & CSP_SO_CRC32REQ) {
+			csp_debug(CSP_WARN, "Received packet without CRC32. Discarding packet\r\n", conn);
+			csp_buffer_free(packet);
+			continue;
+#else
+			csp_debug(CSP_ERROR, "Received packet with CRC32, but CSP was compiled without CRC32 support. Discarding packet\r\n");
+			csp_buffer_free(packet);
+			continue;
+#endif
+		}
+
+		/* HMAC authenticated packet */
 		if (packet->id.flags & CSP_FHMAC) {
 #if CSP_ENABLE_HMAC
 			/* Verify HMAC */
@@ -244,6 +254,7 @@ csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 #endif
 		}
 
+		/* XTEA encrypted packet */
 		if (packet->id.flags & CSP_FXTEA) {
 #if CSP_ENABLE_XTEA
 			/* Read nonce */
@@ -274,22 +285,24 @@ csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 		}
 
 		/* Pass packet to the right transport module */
-
-#if CSP_USE_RDP
 		if (packet->id.flags & CSP_FRDP) {
+#if CSP_USE_RDP
+			/* Pass packet to RDP module */
 			csp_rdp_new_packet(conn, packet);
 			continue;
-		}
-#endif
-
-		if (conn->conn_opts & CSP_SO_RDPREQ) {
+		} else if (conn->conn_opts & CSP_SO_RDPREQ) {
 			csp_debug(CSP_WARN, "Received packet without RDP header. Discarding packet\r\n", conn);
 			csp_buffer_free(packet);
 			continue;
+#else
+			csp_debug(CSP_ERROR, "Received RDP packet, but CSP was compiled without RDP support. Discarding packet\r\n");
+			csp_buffer_free(packet);
+			continue;
+#endif
 		}
 
+		/* Pass packet to UDP module */
 		csp_udp_new_packet(conn, packet);
-
 
 	}
 
@@ -406,7 +419,8 @@ void csp_route_print_table(void) {
 		if (iface[i].nexthop != NULL)
 			printf("\tNode: %u\t\tNexthop: %s[%u]\t\tCount: %u\r\n", i,
 					iface[i].name, iface[i].nexthop_mac_addr, iface[i].count);
-	printf("\tDefault\t\tNexthop: %s [%u]\t\tCount: %u\r\n", iface[CSP_DEFAULT_ROUTE].name, iface[CSP_DEFAULT_ROUTE].nexthop_mac_addr, iface[CSP_DEFAULT_ROUTE].count);
+	printf("\tDefault\t\tNexthop: %s [%u]\t\tCount: %u\r\n", iface[CSP_DEFAULT_ROUTE].name,
+			iface[CSP_DEFAULT_ROUTE].nexthop_mac_addr, iface[CSP_DEFAULT_ROUTE].count);
 
 }
 #endif

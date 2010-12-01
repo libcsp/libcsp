@@ -81,8 +81,10 @@ void csp_conn_init(void) {
 	sport = CSP_MAX_BIND_PORT + 1;
 #endif
 
-	if (csp_bin_sem_create(&sport_lock) != CSP_SEMAPHORE_OK)
-			csp_debug(CSP_ERROR, "No more memory for sport semaphore\r\n");
+	if (csp_bin_sem_create(&sport_lock) != CSP_SEMAPHORE_OK) {
+		csp_debug(CSP_ERROR, "No more memory for sport semaphore\r\n");
+		return;
+	}
 
 	int i;
 	for (i = 0; i < CSP_CONN_MAX; i++) {
@@ -94,8 +96,10 @@ void csp_conn_init(void) {
 #endif
 	}
 
-	if (csp_bin_sem_create(&conn_lock) != CSP_SEMAPHORE_OK)
+	if (csp_bin_sem_create(&conn_lock) != CSP_SEMAPHORE_OK) {
 		csp_debug(CSP_ERROR, "No more memory for conn semaphore\r\n");
+		return;
+	}
 
 }
 
@@ -205,8 +209,14 @@ void csp_close(csp_conn_t * conn) {
 			return;
 #endif
 
-    /* Do not accept new messages */
-    conn->state = CONN_CLOSE_WAIT;
+    /* Lock connection array while closing connection */
+    if (csp_bin_sem_wait(&conn_lock, 100) != CSP_SEMAPHORE_OK) {
+		csp_debug(CSP_ERROR, "Failed to lock conn array\r\n");
+		return;
+	}
+
+    /* Set to closed */
+	conn->state = CONN_CLOSED;
 
 	/* Ensure connection queue is empty */
 	csp_packet_t * packet;
@@ -221,9 +231,8 @@ void csp_close(csp_conn_t * conn) {
     	csp_rdp_flush_all(conn);
 #endif
 
-    /* Set to closed */
-    conn->state = CONN_CLOSED;
-
+    /* Unlock connection array */
+    csp_bin_sem_post(&conn_lock);
 }
 
 /** csp_connect

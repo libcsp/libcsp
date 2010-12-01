@@ -131,7 +131,7 @@ typedef union {
 
 #else
 
-typedef enum csp_prio_e {
+typedef enum {
 	CSP_PRIO_CRITICAL	= 0,
 	CSP_PRIO_HIGH		= 1,
 	CSP_PRIO_NORM 		= 2,
@@ -211,11 +211,13 @@ typedef union {
 #define CSP_SO_RDPREQ  			0x0001
 #define CSP_SO_HMACREQ 			0x0002
 #define CSP_SO_XTEAREQ 			0x0004
+#define CSP_SO_CRC32REQ			0x0008
 
 /** CSP Connect options */
 #define CSP_O_RDP  				CSP_SO_RDPREQ
 #define CSP_O_HMAC 				CSP_SO_HMACREQ
 #define CSP_O_XTEA 				CSP_SO_XTEAREQ
+#define CSP_O_CRC32				CSP_SO_CRC32REQ
 
 /**
  * CSP PACKET STRUCTURE

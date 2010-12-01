@@ -36,7 +36,6 @@ extern "C" {
 typedef enum {
     CONN_CLOSED = 0,				// Connection closed
     CONN_OPEN = 1,					// Connection open
-    CONN_CLOSE_WAIT = 2,			// Conneciton closed by network stack, waiting for userspace to close too.
 } csp_conn_state_t;
 
 typedef enum {
