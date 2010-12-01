@@ -377,7 +377,7 @@ int csp_tx_callback(can_id_t canid, can_error_t error, CSP_BASE_TYPE * task_woke
 		id |= CFP_MAKE_DST(buf->packet->id.dst);
 		id |= CFP_MAKE_ID(CFP_ID(canid));
 		id |= CFP_MAKE_TYPE(CFP_MORE);
-		id |= CFP_MAKE_REMAIN((buf->packet->length + overhead - buf->tx_count - bytes - 1) / 8);
+		id |= CFP_MAKE_REMAIN((buf->packet->length - buf->tx_count - bytes + 7) / 8);
 
 		/* Increment tx counter */
 		buf->tx_count += bytes;
