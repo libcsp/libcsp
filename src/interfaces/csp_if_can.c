@@ -342,9 +342,6 @@ int csp_tx_callback(can_id_t canid, can_error_t error, CSP_BASE_TYPE * task_woke
 
     int bytes;
 
-    /* Calculate overhead */
-	uint8_t overhead = sizeof(csp_id_t) + sizeof(uint16_t);
-
     /* Match buffer element */
     pbuf_element_t * buf = pbuf_find(canid, CFP_ID_CONN_MASK, task_woken);
 
@@ -552,7 +549,7 @@ int csp_can_tx(csp_packet_t * packet, unsigned int timeout) {
 	uint8_t frame_buf[8];
 
 	/* Get CFP identification number */
-	uint8_t ident = id_get();
+	int ident = id_get();
 	if (ident < 0) {
 		csp_debug(CSP_WARN, "Failed to get CFP identification number\r\n");
 		return 0;
