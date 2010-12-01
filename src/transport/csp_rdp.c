@@ -737,8 +737,13 @@ void csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 
 		/* SYN or !ACK is invalid */
 		if ((rx_header->syn == 1) || (rx_header->ack == 0)) {
-			csp_debug(CSP_ERROR, "Invalid SYN or no ACK, resetting!\r\n");
-			goto discard_close;
+			if (rx_header->seq_nr != conn->rdp.rcv_irs) {
+				csp_debug(CSP_ERROR, "Invalid SYN or no ACK, resetting!\r\n");
+				goto discard_close;
+			} else {
+				csp_debug(CSP_PROTOCOL, "Ignoring duplicate SYN packet!\r\n");
+				goto discard_open;
+			}
 		}
 
 		/* Check sequence number */
@@ -827,6 +832,12 @@ void csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 	break;
 
 	case RDP_CLOSE_WAIT:
+
+		/* Ignore SYN or !ACK */
+		if ((rx_header->syn == 1) || (rx_header->ack == 0)) {
+			csp_debug(CSP_PROTOCOL, "Invalid SYN or no ACK in CLOSE-WAIT\r\n");
+			goto discard_open;
+		}
 
 		/* Check ACK number */
 		if (!rdp_between(rx_header->ack_nr, conn->rdp.snd_una - 1 - (conn->rdp.window_size * 2), conn->rdp.snd_nxt - 1)) {
