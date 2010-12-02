@@ -31,11 +31,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #if CSP_ENABLE_HMAC
 
-/* The SHA1 block size and message digest sizes, in bytes */
-#define SHA1_BLOCKSIZE	64
-
-/* Rotate left the hard way (platform optimisations could be done) */
-#define ROL(x,y)			(((x) << (y)) | ((x) >> (32-y)))
+/* Rotate left macro */
+#define ROL(x,y)	(((x) << (y)) | ((x) >> (32-y)))
 
 /* Endian Neutral macros that work on all platforms */
 #define STORE32H(x, y) do { (y)[0] = (unsigned char)(((x) >> 24) & 0xff); (y)[1] = (unsigned char)(((x) >> 16) & 0xff); \
@@ -64,14 +61,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #define FF_2(a, b, c, d, e, i) do {e = (ROL(a, 5) + F2(b,c,d) + e + W[i] + 0x8f1bbcdcUL); b = ROL(b, 30);} while (0)
 #define FF_3(a, b, c, d, e, i) do {e = (ROL(a, 5) + F3(b,c,d) + e + W[i] + 0xca62c1d6UL); b = ROL(b, 30);} while (0)
 
-/* The structure for storing SHA1 info */
-struct sha1_state {
-	uint64_t length;
-	uint32_t state[5], curlen;
-	unsigned char buf[SHA1_BLOCKSIZE];
-};
-
-static void sha1_compress(struct sha1_state *sha1, unsigned char *buf) {
+static void sha1_compress(sha1_state * sha1, const uint8_t * buf) {
 
 	uint32_t a, b , c , d , e , W[80], i;
 
@@ -142,7 +132,7 @@ static void sha1_compress(struct sha1_state *sha1, unsigned char *buf) {
  * Initialize the hash state
  * @param sha1   The hash state you wish to initialize
  */
-static void sha1_init(struct sha1_state * sha1) {
+void sha1_init(sha1_state * sha1) {
 
    sha1->state[0] = 0x67452301UL;
    sha1->state[1] = 0xefcdab89UL;
@@ -160,12 +150,12 @@ static void sha1_init(struct sha1_state * sha1) {
  * @param in	 The data to hash
  * @param inlen  The length of the data (octets)
  */
-void sha1_process(struct sha1_state * sha1, const uint8_t * in, uint32_t inlen) {
+void sha1_process(sha1_state * sha1, const uint8_t * in, uint32_t inlen) {
 
 	uint32_t n;
 	while (inlen > 0) {
 		if (sha1->curlen == 0 && inlen >= SHA1_BLOCKSIZE) {
-		   sha1_compress(sha1, (unsigned char *)in);
+		   sha1_compress(sha1, in);
 		   sha1->length += SHA1_BLOCKSIZE * 8;
 		   in += SHA1_BLOCKSIZE;
 		   inlen -= SHA1_BLOCKSIZE;
@@ -190,7 +180,7 @@ void sha1_process(struct sha1_state * sha1, const uint8_t * in, uint32_t inlen) 
  * @param sha1  The hash state
  * @param out [out] The destination of the hash (20 bytes)
  */
-static void sha1_done(struct sha1_state * sha1, uint8_t * out) {
+void sha1_done(sha1_state * sha1, uint8_t * out) {
 
 	uint32_t i;
 
@@ -198,7 +188,7 @@ static void sha1_done(struct sha1_state * sha1, uint8_t * out) {
 	sha1->length += sha1->curlen * 8;
 
 	/* Append the '1' bit */
-	sha1->buf[sha1->curlen++] = (unsigned char)0x80;
+	sha1->buf[sha1->curlen++] = 0x80;
 
 	/* If the length is currently above 56 bytes we append zeros
 	 * then compress.  Then we can fall back to padding zeros and length
@@ -206,14 +196,14 @@ static void sha1_done(struct sha1_state * sha1, uint8_t * out) {
 	 */
 	if (sha1->curlen > 56) {
 		while (sha1->curlen < 64)
-			sha1->buf[sha1->curlen++] = (unsigned char)0;
+			sha1->buf[sha1->curlen++] = 0;
 		sha1_compress(sha1, sha1->buf);
 		sha1->curlen = 0;
 	}
 
-	/* Pad upto 56 bytes of zeroes */
+	/* Pad up to 56 bytes of zeroes */
 	while (sha1->curlen < 56)
-		sha1->buf[sha1->curlen++] = (unsigned char)0;
+		sha1->buf[sha1->curlen++] = 0;
 
 	/* Store length */
 	STORE64H(sha1->length, sha1->buf+56);
@@ -226,35 +216,16 @@ static void sha1_done(struct sha1_state * sha1, uint8_t * out) {
 }
 
 /**
- * Calculate SHA1 hash of message.
+ * Calculate SHA1 hash of block of memory.
  * @param msg   Pointer to message buffer
  * @param len   Length of message
  * @param sha1  Pointer to SHA1 output buffer. Must be 20 bytes or more!
  */
-void sha1_hash(uint8_t * msg, uint32_t len, uint8_t * hash) {
+void sha1_memory(const uint8_t * msg, uint32_t len, uint8_t * hash) {
 
-	struct sha1_state md;
+	sha1_state md;
 	sha1_init(&md);
 	sha1_process(&md, msg, len);
-	sha1_done(&md, hash);
-
-}
-
-/**
- * Calculate SHA1 hash of arbitrary number of buffers.
- * @param msg   Array of pointers to message buffers
- * @param len   Array of buffer lengths
- * @param sha1  Pointer to SHA1 output buffer. Must be 20 bytes or more!
- */
-void sha1_hash_buffers(uint8_t * msg[], uint32_t len[], uint32_t buffers, uint8_t * hash) {
-
-	struct sha1_state md;
-	sha1_init(&md);
-
-	int i;
-	for (i = 0; i < buffers; i++)
-		sha1_process(&md, msg[i], len[i]);
-
 	sha1_done(&md, hash);
 
 }

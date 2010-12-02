@@ -18,7 +18,7 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/* Hash-based Message Authentication Code */
+/* Hash-based Message Authentication Code - based on code from libtom.org */
 
 #include <stdint.h>
 #include <string.h>
@@ -32,6 +32,105 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #if CSP_ENABLE_HMAC
 
+/* HMAC state structure */
+typedef struct {
+	sha1_state	md;
+	uint8_t		key[SHA1_BLOCKSIZE];
+} hmac_state;
+
+int hmac_init(hmac_state * hmac, const uint8_t * key, uint32_t keylen) {
+	uint32_t i;
+	uint8_t buf[SHA1_BLOCKSIZE];
+
+	/* NULL pointer and key check */
+	if (!hmac || !key || keylen < 1)
+		return -1;
+
+	/* Make sure we have a large enough key */
+	if(keylen > SHA1_BLOCKSIZE) {
+		sha1_memory(key, keylen, hmac->key);
+		if(SHA1_DIGESTSIZE < SHA1_BLOCKSIZE)
+			memset((hmac->key) + SHA1_DIGESTSIZE, 0, (size_t)(SHA1_BLOCKSIZE - SHA1_DIGESTSIZE));
+	} else {
+		memcpy(hmac->key, key, (size_t)keylen);
+		if(keylen < SHA1_BLOCKSIZE)
+			memset((hmac->key) + keylen, 0, (size_t)(SHA1_BLOCKSIZE - keylen));
+	}
+
+	/* Create the initial vector */
+	for(i = 0; i < SHA1_BLOCKSIZE; i++)
+	   buf[i] = hmac->key[i] ^ 0x36;
+
+	/* Prepend to the hash data */
+	sha1_init(&hmac->md);
+	sha1_process(&hmac->md, buf, SHA1_BLOCKSIZE);
+
+	return 0;
+}
+
+int hmac_process(hmac_state * hmac, const uint8_t * in, uint32_t inlen) {
+
+	/* NULL pointer check */
+	if (!hmac || !in)
+    	return -1;
+
+	/* Process data */
+    sha1_process(&hmac->md, in, inlen);
+
+    return 0;
+}
+
+int hmac_done(hmac_state * hmac, uint8_t * out) {
+
+	uint32_t i;
+    uint8_t buf[SHA1_BLOCKSIZE];
+    uint8_t isha[SHA1_DIGESTSIZE];
+
+    if (!hmac || !out)
+    	return -1;
+
+    /* Get the hash of the first HMAC vector plus the data */
+    sha1_done(&hmac->md, isha);
+
+    /* Create the second HMAC vector vector */
+    for(i = 0; i < SHA1_BLOCKSIZE; i++)
+    	buf[i] = hmac->key[i] ^ 0x5C;
+
+    /* Now calculate the outer hash */
+    sha1_init(&hmac->md);
+    sha1_process(&hmac->md, buf, SHA1_BLOCKSIZE);
+    sha1_process(&hmac->md, isha, SHA1_DIGESTSIZE);
+    sha1_done(&hmac->md, buf);
+
+    /* Copy to output  */
+    for (i = 0; i < SHA1_DIGESTSIZE; i++)
+    	out[i] = buf[i];
+
+    return 0;
+}
+
+int hmac_memory(const uint8_t * key, uint32_t keylen, const uint8_t * data, uint32_t datalen, uint8_t * hmac) {
+	hmac_state state;
+
+	/* NULL pointer check */
+	if (!key || !data || !hmac)
+		return -1;
+
+	/* Init HMAC state */
+	if (hmac_init(&state, key, keylen) != 0)
+		return -1;
+
+	/* Process data */
+	if (hmac_process(&state, data, datalen) != 0)
+		return -1;
+
+	/* Output HMAC */
+	if (hmac_done(&state, hmac) != 0)
+		return -1;
+
+	return 0;
+}
+
 /**
  * Append HMAC to packet
  * @param packet Pointer to packet
@@ -39,20 +138,19 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  * @param klen Length of key in bytes
  * @return 0 on success, -1 on failure
  */
-int hmac_append(csp_packet_t * packet, uint8_t * key, uint32_t klen) {
+int hmac_append(csp_packet_t * packet, const uint8_t * key, uint32_t klen) {
 
+	/* NULL pointer check */
 	if (packet == NULL || key == NULL || klen < 1)
 		return -1;
 
-	uint8_t hash[SHA1_DIGESTSIZE];
+	uint8_t hmac[SHA1_DIGESTSIZE];
 
-	/* Calculate H(K || M || K) */
-	uint8_t * b[] = {key, packet->data, key};
-	uint32_t l[] = {klen, packet->length, klen};
-	sha1_hash_buffers(b, l, sizeof(l)/sizeof(l[0]), hash);
+	/* Calculate HMAC */
+	hmac_memory(key, klen, packet->data, packet->length, hmac);
 
 	/* Truncate hash and copy to packet */
-	memcpy(&packet->data[packet->length], hash, CSP_HMAC_LENGTH);
+	memcpy(&packet->data[packet->length], hmac, CSP_HMAC_LENGTH);
 	packet->length += CSP_HMAC_LENGTH;
 
 	return 0;
@@ -66,20 +164,19 @@ int hmac_append(csp_packet_t * packet, uint8_t * key, uint32_t klen) {
  * @param klen Length of key in bytes
  * @return 0 on correct HMAC, -1 if verification failed
  */
-int hmac_verify(csp_packet_t * packet, uint8_t * key, uint32_t klen) {
+int hmac_verify(csp_packet_t * packet, const uint8_t * key, uint32_t klen) {
 
+	/* NULL pointer check */
 	if (packet == NULL || key == NULL || klen < 1)
 		return -1;
 
-	uint8_t hash[SHA1_DIGESTSIZE];
+	uint8_t hmac[SHA1_DIGESTSIZE];
 
-	/* Calculate H(K || M || K) */
-	uint8_t * b[] = {key, packet->data, key};
-	uint32_t l[] = {klen, packet->length - CSP_HMAC_LENGTH, klen};
-	sha1_hash_buffers(b, l, sizeof(l)/sizeof(l[0]), hash);
+	/* Calculate HMAC */
+	hmac_memory(key, klen, packet->data, packet->length - CSP_HMAC_LENGTH, hmac);
 
 	/* Compare calculated HMAC with packet header */
-	if (memcmp(&packet->data[packet->length] - CSP_HMAC_LENGTH, hash, CSP_HMAC_LENGTH) != 0) {
+	if (memcmp(&packet->data[packet->length] - CSP_HMAC_LENGTH, hmac, CSP_HMAC_LENGTH) != 0) {
 		/* HMAC failed */
 		return -1;
 	} else {

@@ -27,10 +27,21 @@ extern "C" {
 
 #include <stdint.h>
 
+/* The SHA1 block and message digest size in bytes */
+#define SHA1_BLOCKSIZE	64
 #define SHA1_DIGESTSIZE	20
 
-void sha1_hash(uint8_t * msg, uint32_t len, uint8_t * hash);
-void sha1_hash_buffers(uint8_t * msg[], uint32_t len[], uint32_t buffers, uint8_t * hash);
+/* SHA1 state structure */
+typedef struct {
+	uint64_t length;
+	uint32_t state[5], curlen;
+	uint8_t buf[SHA1_BLOCKSIZE];
+} sha1_state;
+
+void sha1_init(sha1_state * sha1);
+void sha1_process(sha1_state * sha1, const uint8_t * in, uint32_t inlen);
+void sha1_done(sha1_state * sha1, uint8_t * out);
+void sha1_memory(const uint8_t * msg, uint32_t len, uint8_t * hash);
 
 #ifdef __cplusplus
 } /* extern "C" */

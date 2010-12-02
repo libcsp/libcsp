@@ -27,10 +27,10 @@ extern "C" {
 
 #include <stdint.h>
 
-#define CSP_HMAC_LENGTH	2
+#define CSP_HMAC_LENGTH	4
 
-int hmac_append(csp_packet_t * packet, uint8_t * key, uint32_t klen);
-int hmac_verify(csp_packet_t * packet, uint8_t * key, uint32_t klen);
+int hmac_append(csp_packet_t * packet, const uint8_t * key, uint32_t klen);
+int hmac_verify(csp_packet_t * packet, const uint8_t * key, uint32_t klen);
 
 #ifdef __cplusplus
 } /* extern "C" */
