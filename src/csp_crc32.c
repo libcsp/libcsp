@@ -1,0 +1,106 @@
+/*
+Cubesat Space Protocol - A small network-layer protocol designed for Cubesats
+Copyright (C) 2010 GomSpace ApS (gomspace.com)
+Copyright (C) 2010 AAUSAT3 Project (aausat3.space.aau.dk)
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
+#include <stdint.h>
+#include <string.h>
+#include <inttypes.h>
+
+#include <csp/csp.h>
+
+#if CSP_ENABLE_CRC32
+
+#define CSP_CRC32_POLY 0xEDB88320L
+
+uint32_t crc_tab[256];
+
+void crc32_gentab(void) {
+	volatile uint32_t crc;
+	int i, j;
+
+	for (i = 0; i < 256; i++) {
+		crc = i;
+		for (j = 8; j > 0; j--) {
+			if (crc & 1)
+				crc = (crc >> 1) ^ CSP_CRC32_POLY;
+			else
+				crc >>= 1;
+		}
+		crc_tab[i] = crc;
+	}
+}
+
+static inline uint32_t chksum_crc32_step(uint32_t crc, uint8_t byte) {
+	return ((crc >> 8) & 0x00FFFFFF) ^ crc_tab[(crc ^ byte) & (uint32_t) 0xFF];
+}
+
+uint32_t crc32_memory(const uint8_t * block, uint32_t length) {
+   volatile uint32_t crc;
+   unsigned int i;
+
+   crc = 0xFFFFFFFF;
+   for (i = 0; i < length; i++)
+	   crc = chksum_crc32_step(crc, *block++);
+
+   return (crc ^ 0xFFFFFFFF);
+}
+
+int crc32_append(csp_packet_t * packet) {
+
+	uint32_t crc;
+
+	/* NULL pointer check */
+	if (packet == NULL)
+		return -1;
+
+	/* Calculate CRC32 */
+	crc = crc32_memory(packet->data, packet->length);
+
+	/* Truncate hash and copy to packet */
+	memcpy(&packet->data[packet->length], &crc, sizeof(uint32_t));
+	packet->length += sizeof(uint32_t);
+
+	return 0;
+
+}
+
+int crc32_verify(csp_packet_t * packet) {
+
+	uint32_t crc;
+
+	/* NULL pointer check */
+	if (packet == NULL)
+		return -1;
+
+	/* Calculate CRC32 */
+	crc = crc32_memory(packet->data, packet->length - sizeof(uint32_t));
+
+	/* Compare calculated HMAC with packet header */
+	if (memcmp(&packet->data[packet->length] - sizeof(uint32_t), &crc, sizeof(uint32_t)) != 0) {
+		/* CRC32 failed */
+		return -1;
+	} else {
+		/* Strip CRC32 */
+		packet->length -= sizeof(uint32_t);
+		return 0;
+	}
+
+}
+
+#endif // CSP_ENABLE_CRC32

@@ -27,12 +27,17 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/csp.h>
 #include <csp/csp_config.h>
 
+#include "csp_sha1.h"
 #include "csp_xtea.h"
 
 #if CSP_ENABLE_XTEA
 
 #define XTEA_BLOCKSIZE 	8
 #define XTEA_ROUNDS 	32
+#define XTEA_KEY_LENGTH	16
+
+/* XTEA key */
+uint32_t xtea_key[XTEA_KEY_LENGTH/sizeof(uint32_t)] __attribute__((aligned(sizeof(uint32_t))));
 
 /* These functions take 64 bits of data in block[0] and block[1] and the 128 bits key in key[0] - key[3] */
 static inline void xtea_encrypt_block(uint32_t block[2], uint32_t const key[4]) {
@@ -62,8 +67,21 @@ static inline void xtea_xor_block(uint32_t * dst, uint32_t * src, uint32_t len) 
 
 }
 
+int csp_set_xtea_key(char * key, uint32_t keylen) {
+
+	/* Hash key */
+	uint8_t hash[SHA1_DIGESTSIZE];
+	sha1_memory((uint8_t *)key, keylen, hash);
+
+	/* Copy key */
+	memcpy(xtea_key, hash, XTEA_KEY_LENGTH);
+
+	return 0;
+
+}
+
 /* Encrypt plain text */
-int xtea_encrypt(uint8_t * plain, const uint32_t len, uint32_t const key[4], uint32_t iv[2]) {
+int xtea_encrypt(uint8_t * plain, const uint32_t len, uint32_t iv[2]) {
 
 	int i;
 	uint32_t stream[2];
@@ -77,7 +95,7 @@ int xtea_encrypt(uint8_t * plain, const uint32_t len, uint32_t const key[4], uin
 
 	for (i = 0; i < blocks; i++) {
 		/* Create stream */
-		xtea_encrypt_block(stream, key);
+		xtea_encrypt_block(stream, xtea_key);
 
 		/* Calculate remaining bytes */
 		remain = len - i * XTEA_BLOCKSIZE;
@@ -98,10 +116,10 @@ int xtea_encrypt(uint8_t * plain, const uint32_t len, uint32_t const key[4], uin
 }
 
 /* Decrypt cipher text */
-int xtea_decrypt(uint8_t * cipher, const uint32_t len, uint32_t const key[4], uint32_t iv[2]) {
+int xtea_decrypt(uint8_t * cipher, const uint32_t len, uint32_t iv[2]) {
 
 	/* Since we use counter mode, we can reuse the encryption function */
-	return xtea_encrypt(cipher, len, key, iv);
+	return xtea_encrypt(cipher, len, iv);
 
 }
 

@@ -192,8 +192,7 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, unsigned int timeout)
 		if (idout.flags & CSP_FHMAC) {
 #if CSP_ENABLE_HMAC
 			/* Calculate and add HMAC */
-			uint32_t key[] = CSP_CRYPTO_KEY;
-			if (hmac_append(packet, (uint8_t *)key, CSP_CRYPTO_KEY_LENGTH) != 0) {
+			if (hmac_append(packet) != 0) {
 				/* HMAC append failed */
 				csp_debug(CSP_WARN, "HMAC append failed!\r\n");
 				return 0;
@@ -229,10 +228,9 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, unsigned int timeout)
 
 			/* Create initialization vector */
 			uint32_t iv[2] = {nonce, 1};
-			uint32_t key[] = CSP_CRYPTO_KEY;
 
 			/* Encrypt data */
-			if (xtea_encrypt(packet->data, packet->length, (uint32_t *)key, iv) != 0) {
+			if (xtea_encrypt(packet->data, packet->length, iv) != 0) {
 				/* Encryption failed */
 				csp_debug(CSP_WARN, "Encryption failed! Discarding packet\r\n");
 				return 0;

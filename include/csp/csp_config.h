@@ -77,10 +77,6 @@ extern "C" {
 #define CSP_ENABLE_HMAC			1		// Enable Hash-based Message Authentication Code
 #define CSP_ENABLE_XTEA			1		// Enable XTEA packet encryption
 
-/* Key config - key must be 128 bit! */
-#define CSP_CRYPTO_KEY			"\x31\x15\x49\x8a\x58\xc3\x01\x61\xe8\x33\x4a\xf0\x60\x6a\x41\xf4"
-#define CSP_CRYPTO_KEY_LENGTH	16
-
 #endif
 
 #ifdef __cplusplus

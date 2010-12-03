@@ -32,6 +32,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #if CSP_ENABLE_HMAC
 
+#define HMAC_KEY_LENGTH	16
+
+/* HMAC key */
+uint8_t hmac_key[HMAC_KEY_LENGTH];
+
 /* HMAC state structure */
 typedef struct {
 	sha1_state	md;
@@ -131,6 +136,19 @@ int hmac_memory(const uint8_t * key, uint32_t keylen, const uint8_t * data, uint
 	return 0;
 }
 
+int csp_set_hmac_key(char * key, uint32_t keylen) {
+
+	/* Hash key */
+	uint8_t hash[SHA1_DIGESTSIZE];
+	sha1_memory((uint8_t *)key, keylen, hash);
+
+	/* Copy key */
+	memcpy(hmac_key, hash, HMAC_KEY_LENGTH);
+
+	return 0;
+
+}
+
 /**
  * Append HMAC to packet
  * @param packet Pointer to packet
@@ -138,16 +156,16 @@ int hmac_memory(const uint8_t * key, uint32_t keylen, const uint8_t * data, uint
  * @param klen Length of key in bytes
  * @return 0 on success, -1 on failure
  */
-int hmac_append(csp_packet_t * packet, const uint8_t * key, uint32_t klen) {
+int hmac_append(csp_packet_t * packet) {
 
 	/* NULL pointer check */
-	if (packet == NULL || key == NULL || klen < 1)
+	if (packet == NULL)
 		return -1;
 
 	uint8_t hmac[SHA1_DIGESTSIZE];
 
 	/* Calculate HMAC */
-	hmac_memory(key, klen, packet->data, packet->length, hmac);
+	hmac_memory(hmac_key, HMAC_KEY_LENGTH, packet->data, packet->length, hmac);
 
 	/* Truncate hash and copy to packet */
 	memcpy(&packet->data[packet->length], hmac, CSP_HMAC_LENGTH);
@@ -164,16 +182,16 @@ int hmac_append(csp_packet_t * packet, const uint8_t * key, uint32_t klen) {
  * @param klen Length of key in bytes
  * @return 0 on correct HMAC, -1 if verification failed
  */
-int hmac_verify(csp_packet_t * packet, const uint8_t * key, uint32_t klen) {
+int hmac_verify(csp_packet_t * packet) {
 
 	/* NULL pointer check */
-	if (packet == NULL || key == NULL || klen < 1)
+	if (packet == NULL)
 		return -1;
 
 	uint8_t hmac[SHA1_DIGESTSIZE];
 
 	/* Calculate HMAC */
-	hmac_memory(key, klen, packet->data, packet->length - CSP_HMAC_LENGTH, hmac);
+	hmac_memory(hmac_key, HMAC_KEY_LENGTH, packet->data, packet->length - CSP_HMAC_LENGTH, hmac);
 
 	/* Compare calculated HMAC with packet header */
 	if (memcmp(&packet->data[packet->length] - CSP_HMAC_LENGTH, hmac, CSP_HMAC_LENGTH) != 0) {

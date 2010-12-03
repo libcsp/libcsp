@@ -224,10 +224,9 @@ csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 
 			/* Create initialization vector */
 			uint32_t iv[2] = {nonce, 1};
-			uint32_t key[] = CSP_CRYPTO_KEY;
 
 			/* Decrypt data */
-			if (xtea_decrypt(packet->data, packet->length, key, iv) != 0) {
+			if (xtea_decrypt(packet->data, packet->length, iv) != 0) {
 				/* Decryption failed */
 				csp_debug(CSP_ERROR, "Decryption failed! Discarding packet\r\n");
 				csp_buffer_free(packet);
@@ -269,8 +268,7 @@ csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 		if (packet->id.flags & CSP_FHMAC) {
 #if CSP_ENABLE_HMAC
 			/* Verify HMAC */
-			uint32_t key[] = CSP_CRYPTO_KEY;
-			if (hmac_verify(packet, (uint8_t *)key, CSP_CRYPTO_KEY_LENGTH) != 0) {
+			if (hmac_verify(packet) != 0) {
 				/* HMAC failed */
 				csp_debug(CSP_ERROR, "HMAC verification error! Discarding packet\r\n");
 				csp_buffer_free(packet);
