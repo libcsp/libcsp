@@ -202,10 +202,10 @@ typedef union {
 #define CSP_FRES2				0x40 // Reserved for future use
 #define CSP_FRES3				0x20 // Reserved for future use
 #define CSP_FRES4				0x10 // Reserved for future use
-#define CSP_FHMAC 				0x08 // Use HMAC verification/generation
-#define CSP_FXTEA 				0x04 // Use XTEA encryption/decryption
+#define CSP_FHMAC 				0x08 // Use HMAC verification
+#define CSP_FXTEA 				0x04 // Use XTEA encryption
 #define CSP_FRDP				0x02 // Use RDP protocol
-#define CSP_FCRC 				0x01 // Use CRC32 checksum (Not implemented)
+#define CSP_FCRC32 				0x01 // Use CRC32 checksum
 
 /** CSP Socket options */
 #define CSP_SO_RDPREQ  			0x0001

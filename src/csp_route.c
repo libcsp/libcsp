@@ -36,6 +36,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "crypto/csp_hmac.h"
 #include "crypto/csp_xtea.h"
+#include "csp_crc32.h"
 
 #include "csp_port.h"
 #include "csp_route.h"
@@ -212,10 +213,41 @@ csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 
 		}
 
+		/* XTEA encrypted packet */
+		if (packet->id.flags & CSP_FXTEA) {
+#if CSP_ENABLE_XTEA
+			/* Read nonce */
+			uint32_t nonce;
+			memcpy(&nonce, &packet->data[packet->length - sizeof(nonce)], sizeof(nonce));
+			nonce = ntohl(nonce);
+			packet->length -= sizeof(nonce);
+
+			/* Create initialization vector */
+			uint32_t iv[2] = {nonce, 1};
+			uint32_t key[] = CSP_CRYPTO_KEY;
+
+			/* Decrypt data */
+			if (xtea_decrypt(packet->data, packet->length, key, iv) != 0) {
+				/* Decryption failed */
+				csp_debug(CSP_ERROR, "Decryption failed! Discarding packet\r\n");
+				csp_buffer_free(packet);
+				continue;
+			}
+		} else if (conn->conn_opts & CSP_SO_XTEAREQ) {
+			csp_debug(CSP_WARN, "Received packet without XTEA encryption. Discarding packet\r\n", conn);
+			csp_buffer_free(packet);
+			continue;
+#else
+			csp_debug(CSP_ERROR, "Received XTEA encrypted packet, but CSP was compiled without XTEA support. Discarding packet\r\n");
+			csp_buffer_free(packet);
+			continue;
+#endif
+		}
+
 		/* CRC32 verified packet */
-		if (packet->id.flags & CSP_FCRC) {
+		if (packet->id.flags & CSP_FCRC32) {
 #if CSP_ENABLE_CRC32
-			/* TODO: Add CRC32 check here */
+			/* Verify CRC32  */
 			if (crc32_verify(packet) != 0) {
 				/* Checksum failed */
 				csp_debug(CSP_ERROR, "CRC32 verification error! Discarding packet\r\n");
@@ -237,7 +269,8 @@ csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 		if (packet->id.flags & CSP_FHMAC) {
 #if CSP_ENABLE_HMAC
 			/* Verify HMAC */
-			if (hmac_verify(packet, (uint8_t *)CSP_CRYPTO_KEY, CSP_CRYPTO_KEY_LENGTH) != 0) {
+			uint32_t key[] = CSP_CRYPTO_KEY;
+			if (hmac_verify(packet, (uint8_t *)key, CSP_CRYPTO_KEY_LENGTH) != 0) {
 				/* HMAC failed */
 				csp_debug(CSP_ERROR, "HMAC verification error! Discarding packet\r\n");
 				csp_buffer_free(packet);
@@ -249,36 +282,6 @@ csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 			continue;
 #else
 			csp_debug(CSP_ERROR, "Received packet with HMAC, but CSP was compiled without HMAC support. Discarding packet\r\n");
-			csp_buffer_free(packet);
-			continue;
-#endif
-		}
-
-		/* XTEA encrypted packet */
-		if (packet->id.flags & CSP_FXTEA) {
-#if CSP_ENABLE_XTEA
-			/* Read nonce */
-			uint32_t nonce;
-			memcpy(&nonce, &packet->data[packet->length - sizeof(nonce)], sizeof(nonce));
-			nonce = ntohl(nonce);
-			packet->length -= sizeof(nonce);
-
-			/* Create initialization vector */
-			uint32_t iv[2] = {nonce, 1};
-
-			/* Decrypt data */
-			if (xtea_decrypt(packet->data, packet->length, (uint32_t *)CSP_CRYPTO_KEY, iv) != 0) {
-				/* Decryption failed */
-				csp_debug(CSP_ERROR, "Decryption failed! Discarding packet\r\n");
-				csp_buffer_free(packet);
-				continue;
-			}
-		} else if (conn->conn_opts & CSP_SO_XTEAREQ) {
-			csp_debug(CSP_WARN, "Received packet without XTEA encryption. Discarding packet\r\n", conn);
-			csp_buffer_free(packet);
-			continue;
-#else
-			csp_debug(CSP_ERROR, "Received XTEA encrypted packet, but CSP was compiled without XTEA support. Discarding packet\r\n");
 			csp_buffer_free(packet);
 			continue;
 #endif

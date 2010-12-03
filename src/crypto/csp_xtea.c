@@ -50,28 +50,8 @@ static inline void xtea_encrypt_block(uint32_t block[2], uint32_t const key[4]) 
 static inline void xtea_xor_byte(uint8_t * dst, uint8_t * src, uint32_t len) {
 
 	int i;
-	switch (len) {
-	case 7:
-		dst[6] ^= src[6];
-	case 6:
-		dst[5] ^= src[5];
-	case 5:
-		dst[4] ^= src[4];
-	case 4:
-		dst[3] ^= src[3];
-	case 3:
-		dst[2] ^= src[2];
-	case 2:
-		dst[1] ^= src[1];
-	case 1:
-		dst[0] ^= src[0];
-	case 0:
-		break;
-	default:
-		for (i = 0; i < len; i++)
-			dst[i] ^= src[i];
-		break;
-	}
+	for (i = 0; i < len; i++)
+		dst[i] ^= src[i];
 
 }
 
@@ -86,7 +66,6 @@ static inline void xtea_xor_block(uint32_t * dst, uint32_t * src, uint32_t len) 
 int xtea_encrypt(uint8_t * plain, const uint32_t len, uint32_t const key[4], uint32_t iv[2]) {
 
 	int i;
-	//uint32_t * bp = (uint32_t *)plain;
 	uint32_t stream[2];
 
 	uint32_t blocks = (len + XTEA_BLOCKSIZE - 1)/ XTEA_BLOCKSIZE;
@@ -104,14 +83,10 @@ int xtea_encrypt(uint8_t * plain, const uint32_t len, uint32_t const key[4], uin
 		remain = len - i * XTEA_BLOCKSIZE;
 
 		/* XOR plain text with stream to generate cipher text */
-		if (remain < XTEA_BLOCKSIZE) {
-			/* Process byte-wise */
+		if (remain < XTEA_BLOCKSIZE)
 			xtea_xor_byte(&plain[len - remain], (uint8_t *)stream, remain);
-		 } else {
-			/* Process block-wise */
-			 xtea_xor_byte(&plain[len - remain], (uint8_t *)stream, XTEA_BLOCKSIZE);
-			//xtea_xor_block(&bp[i*2], stream, 2);
-		}
+		else
+			xtea_xor_byte(&plain[len - remain], (uint8_t *)stream, XTEA_BLOCKSIZE);
 
 		/* Increment counter */
 		stream[0] = iv[0];

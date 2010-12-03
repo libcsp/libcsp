@@ -292,6 +292,16 @@ csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport, unsigned int
 		return NULL;
 #endif
 	}
+
+	if (opts & CSP_O_CRC32) {
+#if CSP_ENABLE_CRC32
+		outgoing_id.flags |= CSP_FCRC32;
+		incoming_id.flags |= CSP_FCRC32;
+#else
+		csp_debug(CSP_ERROR, "Attempt to create CRC32 validated connection, but CSP was compiled without CRC32 support\r\n");
+		return NULL;
+#endif
+	}
     
     /* Find an unused ephemeral port */
     csp_conn_t * conn;

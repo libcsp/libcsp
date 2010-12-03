@@ -36,6 +36,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "crypto/csp_hmac.h"
 #include "crypto/csp_xtea.h"
+#include "csp_crc32.h"
 
 #include "csp_io.h"
 #include "csp_port.h"
@@ -62,6 +63,11 @@ void csp_init(unsigned char address) {
 	csp_port_init();
 	csp_route_table_init();
 
+	/* Generate CRC32 table if enabled */
+#if CSP_ENABLE_CRC32
+	crc32_gentab();
+#endif
+
 	/* Register loopback route */
 	csp_route_set("LOOP", address, csp_lo_tx, CSP_NODE_MAC);
 
@@ -83,6 +89,12 @@ csp_socket_t * csp_socket(uint32_t opts) {
 		return NULL;
 	} else if ((opts & CSP_SO_HMACREQ) && !CSP_ENABLE_HMAC) {
 		csp_debug(CSP_ERROR, "Attempt to create socket that requires HMAC, but CSP was compiled without HMAC support\r\n");
+		return NULL;
+	} else if ((opts & CSP_SO_CRC32REQ) && !CSP_ENABLE_CRC32) {
+		csp_debug(CSP_ERROR, "Attempt to create socket that requires CRC32, but CSP was compiled without CRC32 support\r\n");
+		return NULL;
+	} else if (opts & ~(CSP_SO_RDPREQ | CSP_SO_XTEAREQ | CSP_SO_HMACREQ | CSP_SO_CRC32REQ)) {
+		csp_debug(CSP_ERROR, "Invalid socket option\r\n");
 		return NULL;
 	}
 
@@ -174,48 +186,65 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, unsigned int timeout)
     }
 #endif
 
-    /* Only encrypt packets from the current node */
-    if (idout.src == my_address && (idout.flags & CSP_FXTEA)) {
-#if CSP_ENABLE_XTEA
-    	/* Create nonce */
-    	uint32_t nonce, nonce_n;
-    	nonce = (uint32_t)rand();
-    	nonce_n = htonl(nonce);
-    	memcpy(&packet->data[packet->length], &nonce_n, sizeof(nonce_n));
-
-    	/* Create initialization vector */
-    	uint32_t iv[2] = {nonce, 1};
-
-    	/* Encrypt data */
-		if (xtea_encrypt(packet->data, packet->length, (uint32_t *)CSP_CRYPTO_KEY, iv) != 0) {
-			/* Encryption failed */
-			csp_debug(CSP_WARN, "Encryption failed! Discarding packet\r\n");
-			csp_buffer_free(packet);
-			return 0;
-		}
-
-		packet->length += sizeof(nonce_n);
-#else
-		csp_debug(CSP_WARN, "Attempt to send XTEA encrypted packet, but CSP was compiled without XTEA support. Discarding packet\r\n");
-		return 0;
-#endif
-    }
-
-    /* Only append HMAC to packets from the current node */
-    if (idout.src == my_address && (idout.flags & CSP_FHMAC)) {
+	/* Only encrypt packets from the current node */
+    if (idout.src == my_address) {
+		/* Append HMAC */
+		if (idout.flags & CSP_FHMAC) {
 #if CSP_ENABLE_HMAC
-		/* Calculate and add HMAC */
-		if (hmac_append(packet, (uint8_t *)CSP_CRYPTO_KEY, CSP_CRYPTO_KEY_LENGTH) != 0) {
-			/* HMAC append failed */
-			csp_debug(CSP_WARN, "HMAC append failed!\r\n");
-			csp_buffer_free(packet);
-			return 0;
-		}
+			/* Calculate and add HMAC */
+			uint32_t key[] = CSP_CRYPTO_KEY;
+			if (hmac_append(packet, (uint8_t *)key, CSP_CRYPTO_KEY_LENGTH) != 0) {
+				/* HMAC append failed */
+				csp_debug(CSP_WARN, "HMAC append failed!\r\n");
+				return 0;
+			}
 #else
-		csp_debug(CSP_WARN, "Attempt to send packet with HMAC, but CSP was compiled without HMAC support. Discarding packet\r\n");
-		return 0;
+			csp_debug(CSP_WARN, "Attempt to send packet with HMAC, but CSP was compiled without HMAC support. Discarding packet\r\n");
+			return 0;
 #endif
-    }
+		}
+
+		/* Append CRC32 */
+		if (idout.flags & CSP_FCRC32) {
+#if CSP_ENABLE_CRC32
+			/* Calculate and add CRC32 */
+			if (crc32_append(packet) != 0) {
+				/* CRC32 append failed */
+				csp_debug(CSP_WARN, "CRC32 append failed!\r\n");
+				return 0;
+			}
+#else
+			csp_debug(CSP_WARN, "Attempt to send packet with CRC32, but CSP was compiled without CRC32 support. Discarding packet\r\n");
+			return 0;
+#endif
+		}
+
+		if (idout.flags & CSP_FXTEA) {
+#if CSP_ENABLE_XTEA
+			/* Create nonce */
+			uint32_t nonce, nonce_n;
+			nonce = (uint32_t)rand();
+			nonce_n = htonl(nonce);
+			memcpy(&packet->data[packet->length], &nonce_n, sizeof(nonce_n));
+
+			/* Create initialization vector */
+			uint32_t iv[2] = {nonce, 1};
+			uint32_t key[] = CSP_CRYPTO_KEY;
+
+			/* Encrypt data */
+			if (xtea_encrypt(packet->data, packet->length, (uint32_t *)key, iv) != 0) {
+				/* Encryption failed */
+				csp_debug(CSP_WARN, "Encryption failed! Discarding packet\r\n");
+				return 0;
+			}
+
+			packet->length += sizeof(nonce_n);
+#else
+			csp_debug(CSP_WARN, "Attempt to send XTEA encrypted packet, but CSP was compiled without XTEA support. Discarding packet\r\n");
+			return 0;
+#endif
+		}
+	}
 
     /* Copy identifier to packet */
     packet->id.ext = idout.ext;
