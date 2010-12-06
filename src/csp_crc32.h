@@ -25,9 +25,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 extern "C" {
 #endif
 
-void crc32_gentab(void);
-int crc32_append(csp_packet_t * packet);
-int crc32_verify(csp_packet_t * packet);
+void csp_crc32_gentab(void);
+int csp_crc32_append(csp_packet_t * packet);
+int csp_crc32_verify(csp_packet_t * packet);
 
 #ifdef __cplusplus
 } /* extern "C" */

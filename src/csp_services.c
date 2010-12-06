@@ -38,7 +38,7 @@ void csp_ping(uint8_t node, unsigned int timeout) {
 	start = csp_get_ms();
 
 	/* Open connection */
-	csp_conn_t * conn = csp_connect(CSP_PRIO_NORM, node, CSP_PING, timeout, CSP_O_RDP | CSP_O_XTEA | CSP_O_HMAC | CSP_O_CRC32);
+	csp_conn_t * conn = csp_connect(CSP_PRIO_NORM, node, CSP_PING, timeout, CSP_O_RDP);
 	if (conn == NULL) {
 		printf("Timeout!\r\n");
 		return;

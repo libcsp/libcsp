@@ -30,7 +30,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 uint32_t crc_tab[256];
 
-void crc32_gentab(void) {
+void csp_crc32_gentab(void) {
 	volatile uint32_t crc;
 	int i, j;
 
@@ -46,22 +46,22 @@ void crc32_gentab(void) {
 	}
 }
 
-static inline uint32_t chksum_crc32_step(uint32_t crc, uint8_t byte) {
+static inline uint32_t csp_chksum_crc32_step(uint32_t crc, uint8_t byte) {
 	return ((crc >> 8) & 0x00FFFFFF) ^ crc_tab[(crc ^ byte) & (uint32_t) 0xFF];
 }
 
-uint32_t crc32_memory(const uint8_t * block, uint32_t length) {
+uint32_t csp_crc32_memory(const uint8_t * block, uint32_t length) {
    volatile uint32_t crc;
    unsigned int i;
 
    crc = 0xFFFFFFFF;
    for (i = 0; i < length; i++)
-	   crc = chksum_crc32_step(crc, *block++);
+	   crc = csp_chksum_crc32_step(crc, *block++);
 
    return (crc ^ 0xFFFFFFFF);
 }
 
-int crc32_append(csp_packet_t * packet) {
+int csp_crc32_append(csp_packet_t * packet) {
 
 	uint32_t crc;
 
@@ -70,7 +70,7 @@ int crc32_append(csp_packet_t * packet) {
 		return -1;
 
 	/* Calculate CRC32 */
-	crc = crc32_memory(packet->data, packet->length);
+	crc = csp_crc32_memory(packet->data, packet->length);
 
 	/* Truncate hash and copy to packet */
 	memcpy(&packet->data[packet->length], &crc, sizeof(uint32_t));
@@ -80,7 +80,7 @@ int crc32_append(csp_packet_t * packet) {
 
 }
 
-int crc32_verify(csp_packet_t * packet) {
+int csp_crc32_verify(csp_packet_t * packet) {
 
 	uint32_t crc;
 
@@ -89,7 +89,7 @@ int crc32_verify(csp_packet_t * packet) {
 		return -1;
 
 	/* Calculate CRC32 */
-	crc = crc32_memory(packet->data, packet->length - sizeof(uint32_t));
+	crc = csp_crc32_memory(packet->data, packet->length - sizeof(uint32_t));
 
 	/* Compare calculated HMAC with packet header */
 	if (memcmp(&packet->data[packet->length] - sizeof(uint32_t), &crc, sizeof(uint32_t)) != 0) {
