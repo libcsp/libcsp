@@ -59,6 +59,7 @@ SOURCES += src/csp_port.c
 SOURCES += src/csp_services.c
 SOURCES += src/csp_endian.c
 SOURCES += src/csp_service_handler.c
+SOURCES += src/csp_crc32.c
 SOURCES += src/arch/$(ARCH)/csp_malloc.c
 SOURCES += src/arch/$(ARCH)/csp_queue.c
 SOURCES += src/arch/$(ARCH)/csp_semaphore.c
@@ -79,6 +80,11 @@ endif
 
 ifeq ($(TOOLCHAIN),avr-)
 SOURCES += src/interfaces/can/can_at90can128.c
+endif
+
+ifeq($(TOOLCHAIN),arm-none-eabi-)
+SOURCES += src/csp_debug.c
+SOURCES += src/interfaces/can/can_at91sam7a3.c
 endif
 
 ## POSIX archs requires pthread_queue
