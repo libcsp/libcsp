@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
+#include <inttypes.h>
 
 /* CSP includes */
 #include <csp/csp.h>
@@ -53,6 +54,8 @@ csp_queue_handle_t csp_promisc_queue = NULL;
 #endif
 
 csp_thread_handle_t handle_router;
+
+csp_iface_t * interfaces = NULL;
 
 extern int csp_route_input_hook(csp_packet_t * packet) __attribute__((weak));
 
@@ -235,15 +238,18 @@ csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 			if (xtea_decrypt(packet->data, packet->length, iv) != 0) {
 				/* Decryption failed */
 				csp_debug(CSP_ERROR, "Decryption failed! Discarding packet\r\n");
+				input.interface->autherr++;
 				csp_buffer_free(packet);
 				continue;
 			}
 		} else if (conn->conn_opts & CSP_SO_XTEAREQ) {
 			csp_debug(CSP_WARN, "Received packet without XTEA encryption. Discarding packet\r\n", conn);
+			input.interface->autherr++;
 			csp_buffer_free(packet);
 			continue;
 #else
 			csp_debug(CSP_ERROR, "Received XTEA encrypted packet, but CSP was compiled without XTEA support. Discarding packet\r\n");
+			input.interface->autherr++;
 			csp_buffer_free(packet);
 			continue;
 #endif
@@ -256,15 +262,18 @@ csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 			if (csp_crc32_verify(packet) != 0) {
 				/* Checksum failed */
 				csp_debug(CSP_ERROR, "CRC32 verification error! Discarding packet\r\n");
+				input.interface->frame++;
 				csp_buffer_free(packet);
 				continue;
 			}
 		} else if (conn->conn_opts & CSP_SO_CRC32REQ) {
 			csp_debug(CSP_WARN, "Received packet without CRC32. Discarding packet\r\n", conn);
+			input.interface->frame++;
 			csp_buffer_free(packet);
 			continue;
 #else
 			csp_debug(CSP_ERROR, "Received packet with CRC32, but CSP was compiled without CRC32 support. Discarding packet\r\n");
+			input.interface->frame++;
 			csp_buffer_free(packet);
 			continue;
 #endif
@@ -277,15 +286,18 @@ csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 			if (hmac_verify(packet) != 0) {
 				/* HMAC failed */
 				csp_debug(CSP_ERROR, "HMAC verification error! Discarding packet\r\n");
+				input.interface->autherr++;
 				csp_buffer_free(packet);
 				continue;
 			}
 		} else if (conn->conn_opts & CSP_SO_HMACREQ) {
 			csp_debug(CSP_WARN, "Received packet without HMAC. Discarding packet\r\n", conn);
+			input.interface->autherr++;
 			csp_buffer_free(packet);
 			continue;
 #else
 			csp_debug(CSP_ERROR, "Received packet with HMAC, but CSP was compiled without HMAC support. Discarding packet\r\n");
+			input.interface->autherr++;
 			csp_buffer_free(packet);
 			continue;
 #endif
@@ -299,10 +311,12 @@ csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 			continue;
 		} else if (conn->conn_opts & CSP_SO_RDPREQ) {
 			csp_debug(CSP_WARN, "Received packet without RDP header. Discarding packet\r\n", conn);
+			input.interface->rx_error++;
 			csp_buffer_free(packet);
 			continue;
 #else
 			csp_debug(CSP_ERROR, "Received RDP packet, but CSP was compiled without RDP support. Discarding packet\r\n");
+			input.interface->rx_error++;
 			csp_buffer_free(packet);
 			continue;
 #endif
@@ -337,6 +351,24 @@ void csp_route_start_task(unsigned int task_stack_size, unsigned int priority) {
  * To clear a value pass a NULL value
  */
 void csp_route_set(uint8_t node, csp_iface_t * ifc, uint8_t nexthop_mac_addr) {
+
+	/* Add interface to pool */
+	if (interfaces == NULL) {
+		/* This is the first interface to be added */
+		interfaces = ifc;
+		ifc->next = NULL;
+	} else {
+		/* One or more interfaces were already added */
+		csp_iface_t * i = interfaces;
+		while (i != ifc && i->next)
+			i = i->next;
+
+		/* Add interface to pool */
+		if (i != ifc && i->next == NULL) {
+			i->next = ifc;
+			ifc->next = NULL;
+		}
+	}
 
 	if (node <= CSP_DEFAULT_ROUTE) {
 		routes[node].interface = ifc;
@@ -387,9 +419,16 @@ void csp_new_packet(csp_packet_t * packet, csp_iface_t * interface, CSP_BASE_TYP
 
 	int result;
 
-	if (router_input_fifo == NULL) {
-	    csp_debug(CSP_WARN, "WARNING: csp_new_packet called with NULL router_input_fifo\r\n");
-	    csp_buffer_free(packet);
+	if (packet == NULL) {
+		csp_debug(CSP_WARN, "csp_new packet called with NULL packet\r\n");
+		return;
+	} else if (interface == NULL) {
+		csp_debug(CSP_WARN, "csp_new packet called with NULL packet\r\n");
+		csp_buffer_free(packet);
+		return;
+	} else if (router_input_fifo == NULL) {
+		csp_debug(CSP_WARN, "csp_new_packet called with NULL router_input_fifo\r\n");
+		csp_buffer_free(packet);
 		return;
 	}
 
@@ -404,8 +443,11 @@ void csp_new_packet(csp_packet_t * packet, csp_iface_t * interface, CSP_BASE_TYP
 
 	if (result != CSP_QUEUE_OK) {
 		csp_debug(CSP_WARN, "ERROR: Routing input FIFO is FULL. Dropping packet.\r\n");
+		interface->drop++;
 		csp_buffer_free(packet);
 	}
+
+	interface->rx++;
 
 }
 
@@ -418,15 +460,12 @@ uint8_t csp_route_get_nexthop_mac(uint8_t node) {
 
 #if CSP_DEBUG
 void csp_route_print_table(void) {
-
-	int i;
-	for (i = 0; i < CSP_DEFAULT_ROUTE; i++)
-		if (routes[i].interface != NULL)
-			printf("\tNode: %u\t\tNexthop: %s[%u]\r\n", i,
-					routes[i].interface->name, routes[i].nexthop_mac_addr);
-	printf("\tDefault\t\tNexthop: %s [%u]\r\n", routes[CSP_DEFAULT_ROUTE].interface->name,
-			routes[CSP_DEFAULT_ROUTE].nexthop_mac_addr);
-
+	csp_iface_t * i = interfaces;
+	while (i) {
+		printf("Nexthop: %5s tx: %04"PRIu32" rx: %04"PRIu32" txe: %04"PRIu32" rxe: %04"PRIu32" drop: %04"PRIu32" autherr: %04"PRIu32" frame: %04"PRIu32"\r\n",
+					i->name, i->tx, i->rx, i->tx_error, i->rx_error, i->drop, i->autherr, i->frame);
+		i = i->next;
+	}
 }
 #endif
 

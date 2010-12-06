@@ -164,15 +164,15 @@ csp_packet_t * csp_read(csp_conn_t * conn, unsigned int timeout) {
 int csp_send_direct(csp_id_t idout, csp_packet_t * packet, unsigned int timeout) {
 
 	if (packet == NULL) {
-		csp_debug(CSP_ERROR, "csp_send_direct: packet == NULL\r\n");
-		return 0;
+		csp_debug(CSP_ERROR, "csp_send_direct called with NULL packet\r\n");
+		goto err;
 	}
 
 	csp_route_t * ifout = csp_route_if(idout.dst);
 
 	if ((ifout == NULL) || (ifout->interface == NULL) || (ifout->interface->nexthop == NULL)) {
 		csp_debug(CSP_ERROR, "No route to host: %#08x\r\n", idout.ext);
-		return 0;
+		goto err;
 	}
 
 	csp_debug(CSP_PACKET, "Sending packet from %u to %u port %u via interface %s\r\n", idout.src, idout.dst, idout.dport, ifout->interface->name);
@@ -194,11 +194,11 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, unsigned int timeout)
 			if (hmac_append(packet) != 0) {
 				/* HMAC append failed */
 				csp_debug(CSP_WARN, "HMAC append failed!\r\n");
-				return 0;
+				goto tx_err;
 			}
 #else
 			csp_debug(CSP_WARN, "Attempt to send packet with HMAC, but CSP was compiled without HMAC support. Discarding packet\r\n");
-			return 0;
+			goto tx_err;
 #endif
 		}
 
@@ -209,11 +209,11 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, unsigned int timeout)
 			if (csp_crc32_append(packet) != 0) {
 				/* CRC32 append failed */
 				csp_debug(CSP_WARN, "CRC32 append failed!\r\n");
-				return 0;
+				goto tx_err;
 			}
 #else
 			csp_debug(CSP_WARN, "Attempt to send packet with CRC32, but CSP was compiled without CRC32 support. Discarding packet\r\n");
-			return 0;
+			goto tx_err;
 #endif
 		}
 
@@ -232,13 +232,13 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, unsigned int timeout)
 			if (xtea_encrypt(packet->data, packet->length, iv) != 0) {
 				/* Encryption failed */
 				csp_debug(CSP_WARN, "Encryption failed! Discarding packet\r\n");
-				return 0;
+				goto tx_err;
 			}
 
 			packet->length += sizeof(nonce_n);
 #else
 			csp_debug(CSP_WARN, "Attempt to send XTEA encrypted packet, but CSP was compiled without XTEA support. Discarding packet\r\n");
-			return 0;
+			goto tx_err;
 #endif
 		}
 	}
@@ -246,7 +246,16 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, unsigned int timeout)
     /* Copy identifier to packet */
     packet->id.ext = idout.ext;
 
-	return (*ifout->interface->nexthop)(packet, timeout);
+	if ((*ifout->interface->nexthop)(packet, timeout) != 1)
+		goto tx_err;
+
+	ifout->interface->tx++;
+	return 1;
+
+tx_err:
+	ifout->interface->tx_error++;
+err:
+	return 0;
 
 }
 
@@ -267,6 +276,9 @@ int csp_send(csp_conn_t * conn, csp_packet_t * packet, unsigned int timeout) {
 #if CSP_USE_RDP
 	if (conn->idout.flags & CSP_FRDP) {
 		if (csp_rdp_send(conn, packet, timeout) == 0) {
+			csp_route_t * ifout = csp_route_if(conn->idout.dst);
+			if (ifout != NULL && ifout->interface != NULL)
+				ifout->interface->tx_error++;
 			csp_debug(CSP_WARN, "RPD send failed\r\n!");
 			return 0;
 		}
