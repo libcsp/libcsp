@@ -25,6 +25,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 /* CSP includes */
 #include <csp/csp.h>
+#include <csp/csp_interface.h>
 #include <csp/csp_endian.h>
 #include <csp/csp_platform.h>
 
@@ -44,8 +45,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "csp_io.h"
 #include "transport/csp_transport.h"
 
-/* Static allocation of interfaces */
-csp_iface_t iface[CSP_ID_HOST_MAX + 2];
+/* Static allocation of routes */
+csp_route_t routes[CSP_ID_HOST_MAX + 2];
 
 #if CSP_USE_PROMISC
 csp_queue_handle_t csp_promisc_queue = NULL;
@@ -61,8 +62,8 @@ extern int csp_route_input_hook(csp_packet_t * packet) __attribute__((weak));
  * It holds the csp_route_queue_t complex datatype
  */
 static csp_queue_handle_t router_input_fifo = NULL;
-typedef struct csp_route_queue_s {
-	void * interface;
+typedef struct {
+	csp_iface_t * interface;
 	csp_packet_t * packet;
 } csp_route_queue_t;
 
@@ -73,7 +74,7 @@ typedef struct csp_route_queue_s {
 void csp_route_table_init(void) {
 
 	/* Clear table */
-	memset(iface, 0, sizeof(csp_iface_t) * (CSP_ID_HOST_MAX + 2));
+	memset(routes, 0, sizeof(csp_route_t) * (CSP_ID_HOST_MAX + 2));
 
 }
 
@@ -90,7 +91,7 @@ csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 	csp_conn_t * conn;
 	
 	csp_socket_t * socket = NULL;
-	csp_iface_t * dst;
+	csp_route_t * dst;
 
 	/* Create fallback socket  */
 	router_input_fifo = csp_queue_create(CSP_FIFO_INPUT, sizeof(csp_route_queue_t));
@@ -112,6 +113,11 @@ csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 		/* Discard invalid */
 		if (input.packet == NULL) {
 			csp_debug(CSP_ERROR, "Invalid packet in router queue\r\n");
+			continue;
+		}
+
+		if (input.interface == NULL) {
+			csp_debug(CSP_ERROR, "Invalid interface in router queue\r\n");
 			continue;
 		}
 
@@ -139,7 +145,7 @@ csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 			dst = csp_route_if(packet->id.dst);
 
 			/* If the message resolves to the input interface, don't loop it back out */
-			if ((dst == NULL) || (dst->nexthop == input.interface)) {
+			if ((dst == NULL) || (dst->interface == input.interface)) {
 				csp_buffer_free(packet);
 				continue;
 			}
@@ -247,7 +253,7 @@ csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 		if (packet->id.flags & CSP_FCRC32) {
 #if CSP_ENABLE_CRC32
 			/* Verify CRC32  */
-			if (crc32_verify(packet) != 0) {
+			if (csp_crc32_verify(packet) != 0) {
 				/* Checksum failed */
 				csp_debug(CSP_ERROR, "CRC32 verification error! Discarding packet\r\n");
 				csp_buffer_free(packet);
@@ -330,14 +336,13 @@ void csp_route_start_task(unsigned int task_stack_size, unsigned int priority) {
  * To set a value pass a callback function
  * To clear a value pass a NULL value
  */
-void csp_route_set(const char * name, uint8_t node, nexthop_t nexthop, uint8_t nexthop_mac_addr) {
+void csp_route_set(uint8_t node, csp_iface_t * ifc, uint8_t nexthop_mac_addr) {
 
 	if (node <= CSP_DEFAULT_ROUTE) {
-		iface[node].nexthop = nexthop;
-		iface[node].name = name;
-		iface[node].nexthop_mac_addr = nexthop_mac_addr;
+		routes[node].interface = ifc;
+		routes[node].nexthop_mac_addr = nexthop_mac_addr;
 	} else {
-		csp_debug(CSP_ERROR, "Failed to set route: invalid nodeid %u\r\n", node);
+		csp_debug(CSP_ERROR, "Failed to set route: invalid node id %u\r\n", node);
 	}
 
 }
@@ -349,13 +354,12 @@ void csp_route_set(const char * name, uint8_t node, nexthop_t nexthop, uint8_t n
  * If there is no explicit nexthop route for the destination
  * the default route (node CSP_DEFAULT_ROUTE) is used.
  */
-csp_iface_t * csp_route_if(uint8_t id) {
+csp_route_t * csp_route_if(uint8_t id) {
 
-	if (iface[id].nexthop != NULL) {
-		return &iface[id];
-	}
-	if (iface[CSP_DEFAULT_ROUTE].nexthop != NULL) {
-		return &iface[CSP_DEFAULT_ROUTE];
+	if (routes[id].interface != NULL) {
+		return &routes[id];
+	} else if (routes[CSP_DEFAULT_ROUTE].interface != NULL) {
+		return &routes[CSP_DEFAULT_ROUTE];
 	}
 	return NULL;
 
@@ -379,7 +383,7 @@ csp_iface_t * csp_route_if(uint8_t id) {
  * @param interface A pointer to the incoming interface TX function.
  * @param pxTaskWoken This must be a pointer a valid variable if called from ISR or NULL otherwise!
  */
-void csp_new_packet(csp_packet_t * packet, nexthop_t interface, CSP_BASE_TYPE * pxTaskWoken) {
+void csp_new_packet(csp_packet_t * packet, csp_iface_t * interface, CSP_BASE_TYPE * pxTaskWoken) {
 
 	int result;
 
@@ -407,8 +411,8 @@ void csp_new_packet(csp_packet_t * packet, nexthop_t interface, CSP_BASE_TYPE * 
 
 uint8_t csp_route_get_nexthop_mac(uint8_t node) {
 
-	csp_iface_t * iface = csp_route_if(node);
-	return iface->nexthop_mac_addr;
+	csp_route_t * route = csp_route_if(node);
+	return route->nexthop_mac_addr;
 
 }
 
@@ -417,11 +421,11 @@ void csp_route_print_table(void) {
 
 	int i;
 	for (i = 0; i < CSP_DEFAULT_ROUTE; i++)
-		if (iface[i].nexthop != NULL)
-			printf("\tNode: %u\t\tNexthop: %s[%u]\t\tCount: %u\r\n", i,
-					iface[i].name, iface[i].nexthop_mac_addr, iface[i].count);
-	printf("\tDefault\t\tNexthop: %s [%u]\t\tCount: %u\r\n", iface[CSP_DEFAULT_ROUTE].name,
-			iface[CSP_DEFAULT_ROUTE].nexthop_mac_addr, iface[CSP_DEFAULT_ROUTE].count);
+		if (routes[i].interface != NULL)
+			printf("\tNode: %u\t\tNexthop: %s[%u]\r\n", i,
+					routes[i].interface->name, routes[i].nexthop_mac_addr);
+	printf("\tDefault\t\tNexthop: %s [%u]\r\n", routes[CSP_DEFAULT_ROUTE].interface->name,
+			routes[CSP_DEFAULT_ROUTE].nexthop_mac_addr);
 
 }
 #endif

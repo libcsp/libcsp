@@ -236,6 +236,22 @@ typedef struct __attribute__((__packed__)) {
 	};
 } csp_packet_t;
 
+/* Next hop function prototype */
+typedef int (*nexthop_t)(csp_packet_t * packet, unsigned int timeout);
+
+/* Interface struct */
+typedef struct {
+    const char * name;	/**< Interface name */
+    nexthop_t nexthop; 	/**< Next hop function */
+    uint8_t promisc;	/**< Promiscuous mode enabled */
+    uint32_t tx;		/**< Successfully transmitted packets */
+    uint32_t rx;		/**< Successfully received packets */
+    uint32_t tx_error;	/**< Transmit errors */
+    uint32_t rx_error;	/**< Receive errors */
+    uint32_t drop;		/**< Dropped packets */
+    uint32_t autherr; 	/**< Authentication errors */
+} csp_iface_t;
+
 /**
  * This define must be equal to the size of the packet overhead in csp_packet_t
  * it is used in csp_buffer_get() to check the allocated buffer size against
@@ -271,8 +287,7 @@ int csp_listen(csp_socket_t * socket, size_t conn_queue_length);
 int csp_bind(csp_socket_t * socket, uint8_t port);
 
 /* Implemented in csp_route.c */
-typedef int (*nexthop_t)(csp_packet_t * packet, unsigned int timeout);
-void csp_route_set(const char * name, uint8_t node, nexthop_t nexthop, uint8_t nexthop_mac_addr);
+void csp_route_set(uint8_t node, csp_iface_t * ifc, uint8_t nexthop_mac_addr);
 void csp_route_start_task(unsigned int task_stack_size, unsigned int priority);
 int csp_promisc_enable(unsigned int buf_size);
 csp_packet_t * csp_promisc_read(unsigned int timeout);
@@ -295,7 +310,7 @@ int csp_set_xtea_key(char * key, uint32_t keylen);
 int csp_set_hmac_key(char * key, uint32_t keylen);
 
 /* CSP debug printf - implemented in arch/x/csp_debug.c */
-typedef enum csp_debug_level_e {
+typedef enum {
 	CSP_INFO	 = 0,
 	CSP_ERROR	= 1,
 	CSP_WARN	 = 2,

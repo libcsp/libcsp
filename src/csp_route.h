@@ -32,14 +32,12 @@ extern "C" {
 #include "arch/csp_thread.h"
 
 typedef struct {
-    const char * name;
-    nexthop_t nexthop;
-    uint8_t nexthop_mac_addr;
-    uint16_t count;
-} csp_iface_t;
+	csp_iface_t * interface;
+	uint8_t nexthop_mac_addr;
+} csp_route_t;
 
 void csp_route_table_init(void);
-csp_iface_t * csp_route_if(uint8_t id);
+csp_route_t * csp_route_if(uint8_t id);
 csp_conn_t * csp_route(csp_id_t id, nexthop_t interface, CSP_BASE_TYPE * pxTaskWoken);
 csp_thread_return_t vTaskCSPRouter(void * pvParameters);
 

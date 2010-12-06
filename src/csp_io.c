@@ -63,13 +63,13 @@ void csp_init(unsigned char address) {
 	csp_port_init();
 	csp_route_table_init();
 
-	/* Generate CRC32 table if enabled */
+	/* Generate CRC32 table */
 #if CSP_ENABLE_CRC32
-	crc32_gentab();
+	csp_crc32_gentab();
 #endif
 
 	/* Register loopback route */
-	csp_route_set("LOOP", address, csp_lo_tx, CSP_NODE_MAC);
+	csp_route_set(address, &csp_if_lo, CSP_NODE_MAC);
 
 }
 
@@ -168,15 +168,14 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, unsigned int timeout)
 		return 0;
 	}
 
-	csp_iface_t * ifout = csp_route_if(idout.dst);
+	csp_route_t * ifout = csp_route_if(idout.dst);
 
-	if ((ifout == NULL) || (*ifout->nexthop == NULL)) {
+	if ((ifout == NULL) || (ifout->interface == NULL) || (ifout->interface->nexthop == NULL)) {
 		csp_debug(CSP_ERROR, "No route to host: %#08x\r\n", idout.ext);
 		return 0;
 	}
 
-	csp_debug(CSP_PACKET, "Sending packet from %u to %u port %u via interface %s\r\n", idout.src, idout.dst, idout.dport, ifout->name);
-	ifout->count++;
+	csp_debug(CSP_PACKET, "Sending packet from %u to %u port %u via interface %s\r\n", idout.src, idout.dst, idout.dport, ifout->interface->name);
 	
 #if CSP_USE_PROMISC
     /* Loopback traffic is added to promisc queue by the router */
@@ -207,7 +206,7 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, unsigned int timeout)
 		if (idout.flags & CSP_FCRC32) {
 #if CSP_ENABLE_CRC32
 			/* Calculate and add CRC32 */
-			if (crc32_append(packet) != 0) {
+			if (csp_crc32_append(packet) != 0) {
 				/* CRC32 append failed */
 				csp_debug(CSP_WARN, "CRC32 append failed!\r\n");
 				return 0;
@@ -247,7 +246,7 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, unsigned int timeout)
     /* Copy identifier to packet */
     packet->id.ext = idout.ext;
 
-	return (*ifout->nexthop)(packet, timeout);
+	return (*ifout->interface->nexthop)(packet, timeout);
 
 }
 

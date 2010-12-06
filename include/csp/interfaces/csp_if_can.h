@@ -24,6 +24,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <stdint.h>
 
 #include <csp/csp.h>
+#include <csp/csp_interface.h>
+
+csp_iface_t csp_if_can;
 
 /** AT90CAN128 config struct */
 struct can_at90can128_conf {

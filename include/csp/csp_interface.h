@@ -27,7 +27,7 @@ extern "C" {
 
 #include <csp/csp.h>
 
-void csp_new_packet(csp_packet_t * packet, nexthop_t interface, CSP_BASE_TYPE * pxTaskWoken);
+void csp_new_packet(csp_packet_t * packet, csp_iface_t * interface, CSP_BASE_TYPE * pxTaskWoken);
 uint8_t csp_route_get_nexthop_mac(uint8_t node);
 
 #ifdef __cplusplus

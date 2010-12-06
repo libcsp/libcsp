@@ -55,6 +55,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "can/can.h"
 
+/** Interface definition */
+csp_iface_t csp_if_can = {
+	.name = "CAN",
+	.nexthop = csp_can_tx,
+};
+
 /** CAN header macros */
 #define CFP_HOST_SIZE 	5
 #define CFP_TYPE_SIZE 	1
@@ -515,7 +521,7 @@ int csp_rx_callback(can_frame_t * frame, CSP_BASE_TYPE * task_woken) {
                 break;
 
             /* Data is available */
-            csp_new_packet(buf->packet, csp_can_tx, task_woken);
+            csp_new_packet(buf->packet, &csp_if_can, task_woken);
 
             /* Drop packet buffer reference */
             buf->packet = NULL;
@@ -642,6 +648,7 @@ int csp_can_init(uint8_t myaddr, uint8_t promisc, void * conf, int conflen) {
     	mask = CFP_MAKE_DST((1 << CFP_HOST_SIZE) - 1);
     } else {
     	mask = 0;
+    	csp_if_can.promisc = 1;
     }
 
     /* Initialize CAN driver */
@@ -653,4 +660,3 @@ int csp_can_init(uint8_t myaddr, uint8_t promisc, void * conf, int conflen) {
     return 0;
 
 }
-

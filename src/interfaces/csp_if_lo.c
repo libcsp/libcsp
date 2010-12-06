@@ -22,16 +22,24 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/csp.h>
 #include <csp/csp_platform.h>
 #include <csp/csp_interface.h>
+#include <csp/interfaces/csp_if_lo.h>
 
 #include "../arch/csp_semaphore.h"
 #include "../arch/csp_queue.h"
 
 #include "../csp_route.h"
 
+/* Interface definition */
+csp_iface_t csp_if_lo = {
+	.name = "LOOP",
+	.nexthop = csp_lo_tx,
+};
+
+/* Nexthop function */
 int csp_lo_tx(csp_packet_t * packet, unsigned int timeout) {
 
 	/* Send back into CSP, notice calling from task so last argument must be NULL! */
-	csp_new_packet(packet, csp_lo_tx, NULL);
+	csp_new_packet(packet, &csp_if_lo, NULL);
 
 	return 1;
 
