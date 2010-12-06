@@ -82,7 +82,7 @@ ifeq ($(TOOLCHAIN),avr-)
 SOURCES += src/interfaces/can/can_at90can128.c
 endif
 
-ifeq($(TOOLCHAIN),arm-none-eabi-)
+ifeq ($(TOOLCHAIN),arm-none-eabi-)
 SOURCES += src/csp_debug.c
 SOURCES += src/interfaces/can/can_at91sam7a3.c
 endif
