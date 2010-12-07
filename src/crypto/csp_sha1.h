@@ -36,12 +36,12 @@ typedef struct {
 	uint64_t length;
 	uint32_t state[5], curlen;
 	uint8_t buf[SHA1_BLOCKSIZE];
-} sha1_state;
+} csp_sha1_state;
 
-void sha1_init(sha1_state * sha1);
-void sha1_process(sha1_state * sha1, const uint8_t * in, uint32_t inlen);
-void sha1_done(sha1_state * sha1, uint8_t * out);
-void sha1_memory(const uint8_t * msg, uint32_t len, uint8_t * hash);
+void csp_sha1_init(csp_sha1_state * sha1);
+void csp_sha1_process(csp_sha1_state * sha1, const uint8_t * in, uint32_t inlen);
+void csp_sha1_done(csp_sha1_state * sha1, uint8_t * out);
+void csp_sha1_memory(const uint8_t * msg, uint32_t len, uint8_t * hash);
 
 #ifdef __cplusplus
 } /* extern "C" */

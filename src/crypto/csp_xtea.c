@@ -37,10 +37,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #define XTEA_KEY_LENGTH	16
 
 /* XTEA key */
-uint32_t xtea_key[XTEA_KEY_LENGTH/sizeof(uint32_t)] __attribute__((aligned(sizeof(uint32_t))));
+static uint32_t csp_xtea_key[XTEA_KEY_LENGTH/sizeof(uint32_t)] __attribute__((aligned(sizeof(uint32_t))));
 
 /* These functions take 64 bits of data in block[0] and block[1] and the 128 bits key in key[0] - key[3] */
-static inline void xtea_encrypt_block(uint32_t block[2], uint32_t const key[4]) {
+static inline void csp_xtea_encrypt_block(uint32_t block[2], uint32_t const key[4]) {
 
 	uint32_t i, v0 = block[0], v1 = block[1], delta = 0x9E3779B9, sum = 0;
 	for (i = 0; i < XTEA_ROUNDS; i++) {
@@ -52,7 +52,7 @@ static inline void xtea_encrypt_block(uint32_t block[2], uint32_t const key[4]) 
 
 }
 
-static inline void xtea_xor_byte(uint8_t * dst, uint8_t * src, uint32_t len) {
+static inline void csp_xtea_xor_byte(uint8_t * dst, uint8_t * src, uint32_t len) {
 
 	int i;
 	for (i = 0; i < len; i++)
@@ -60,28 +60,21 @@ static inline void xtea_xor_byte(uint8_t * dst, uint8_t * src, uint32_t len) {
 
 }
 
-static inline void xtea_xor_block(uint32_t * dst, uint32_t * src, uint32_t len) {
+int csp_xtea_set_key(char * key, uint32_t keylen) {
 
-	dst[1] ^= src[1];
-	dst[0] ^= src[0];
-
-}
-
-int csp_set_xtea_key(char * key, uint32_t keylen) {
-
-	/* Hash key */
+	/* Use SHA1 as KDF */
 	uint8_t hash[SHA1_DIGESTSIZE];
-	sha1_memory((uint8_t *)key, keylen, hash);
+	csp_sha1_memory((uint8_t *)key, keylen, hash);
 
 	/* Copy key */
-	memcpy(xtea_key, hash, XTEA_KEY_LENGTH);
+	memcpy(csp_xtea_key, hash, XTEA_KEY_LENGTH);
 
 	return 0;
 
 }
 
 /* Encrypt plain text */
-int xtea_encrypt(uint8_t * plain, const uint32_t len, uint32_t iv[2]) {
+int csp_xtea_encrypt(uint8_t * plain, const uint32_t len, uint32_t iv[2]) {
 
 	int i;
 	uint32_t stream[2];
@@ -95,16 +88,16 @@ int xtea_encrypt(uint8_t * plain, const uint32_t len, uint32_t iv[2]) {
 
 	for (i = 0; i < blocks; i++) {
 		/* Create stream */
-		xtea_encrypt_block(stream, xtea_key);
+		csp_xtea_encrypt_block(stream, csp_xtea_key);
 
 		/* Calculate remaining bytes */
 		remain = len - i * XTEA_BLOCKSIZE;
 
 		/* XOR plain text with stream to generate cipher text */
 		if (remain < XTEA_BLOCKSIZE)
-			xtea_xor_byte(&plain[len - remain], (uint8_t *)stream, remain);
+			csp_xtea_xor_byte(&plain[len - remain], (uint8_t *)stream, remain);
 		else
-			xtea_xor_byte(&plain[len - remain], (uint8_t *)stream, XTEA_BLOCKSIZE);
+			csp_xtea_xor_byte(&plain[len - remain], (uint8_t *)stream, XTEA_BLOCKSIZE);
 
 		/* Increment counter */
 		stream[0] = iv[0];
@@ -116,10 +109,10 @@ int xtea_encrypt(uint8_t * plain, const uint32_t len, uint32_t iv[2]) {
 }
 
 /* Decrypt cipher text */
-int xtea_decrypt(uint8_t * cipher, const uint32_t len, uint32_t iv[2]) {
+int csp_xtea_decrypt(uint8_t * cipher, const uint32_t len, uint32_t iv[2]) {
 
 	/* Since we use counter mode, we can reuse the encryption function */
-	return xtea_encrypt(cipher, len, iv);
+	return csp_xtea_encrypt(cipher, len, iv);
 
 }
 

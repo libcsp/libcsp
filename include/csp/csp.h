@@ -308,8 +308,8 @@ void csp_uptime(uint8_t node, unsigned int timeout);
 void csp_rdp_set_opt(unsigned int window_size, unsigned int conn_timeout_ms, unsigned int packet_timeout_ms, unsigned int delayed_acks, unsigned int ack_timeout, unsigned int ack_delay_count);
 
 /* Key functions */
-int csp_set_xtea_key(char * key, uint32_t keylen);
-int csp_set_hmac_key(char * key, uint32_t keylen);
+int csp_xtea_set_key(char * key, uint32_t keylen);
+int csp_hmac_set_key(char * key, uint32_t keylen);
 
 /* CSP debug printf - implemented in arch/x/csp_debug.c */
 typedef enum {

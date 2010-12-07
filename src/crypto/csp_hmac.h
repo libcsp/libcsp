@@ -29,8 +29,8 @@ extern "C" {
 
 #define CSP_HMAC_LENGTH	4
 
-int hmac_append(csp_packet_t * packet);
-int hmac_verify(csp_packet_t * packet);
+int csp_hmac_append(csp_packet_t * packet);
+int csp_hmac_verify(csp_packet_t * packet);
 
 #ifdef __cplusplus
 } /* extern "C" */

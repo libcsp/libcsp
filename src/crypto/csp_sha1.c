@@ -35,18 +35,24 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #define ROL(x,y)	(((x) << (y)) | ((x) >> (32-y)))
 
 /* Endian Neutral macros that work on all platforms */
-#define STORE32H(x, y) do { (y)[0] = (unsigned char)(((x) >> 24) & 0xff); (y)[1] = (unsigned char)(((x) >> 16) & 0xff); \
-							(y)[2] = (unsigned char)(((x) >>  8) & 0xff); (y)[3] = (unsigned char)(((x) >>  0) & 0xff); } while (0)
+#define STORE32H(x, y) do { (y)[0] = (uint8_t)(((x) >> 24) & 0xff); \
+							(y)[1] = (uint8_t)(((x) >> 16) & 0xff); \
+							(y)[2] = (uint8_t)(((x) >>  8) & 0xff); \
+							(y)[3] = (uint8_t)(((x) >>  0) & 0xff); } while (0)
 
-#define LOAD32H(x, y) do { x = ((unsigned long)((y)[0] & 0xff) << 24) | \
-							   ((unsigned long)((y)[1] & 0xff) << 16) | \
-							   ((unsigned long)((y)[2] & 0xff) <<  8) | \
-							   ((unsigned long)((y)[3] & 0xff) <<  0); } while (0)
+#define LOAD32H(x, y)  do { (x) = ((uint32_t)((y)[0] & 0xff) << 24) | \
+							   	  ((uint32_t)((y)[1] & 0xff) << 16) | \
+							   	  ((uint32_t)((y)[2] & 0xff) <<  8) | \
+							   	  ((uint32_t)((y)[3] & 0xff) <<  0); } while (0)
 
-#define STORE64H(x, y) do {	(y)[0] = (unsigned char)(((x) >> 56) & 0xff); (y)[1] = (unsigned char)(((x) >> 48) & 0xff); \
-							(y)[2] = (unsigned char)(((x) >> 40) & 0xff); (y)[3] = (unsigned char)(((x) >> 32) & 0xff); \
-							(y)[4] = (unsigned char)(((x) >> 24) & 0xff); (y)[5] = (unsigned char)(((x) >> 16) & 0xff); \
-							(y)[6] = (unsigned char)(((x) >>  8) & 0xff); (y)[7] = (unsigned char)(((x) >>  0) & 0xff); } while (0)
+#define STORE64H(x, y) do {	(y)[0] = (uint8_t)(((x) >> 56) & 0xff); \
+							(y)[1] = (uint8_t)(((x) >> 48) & 0xff); \
+							(y)[2] = (uint8_t)(((x) >> 40) & 0xff); \
+							(y)[3] = (uint8_t)(((x) >> 32) & 0xff); \
+							(y)[4] = (uint8_t)(((x) >> 24) & 0xff); \
+							(y)[5] = (uint8_t)(((x) >> 16) & 0xff); \
+							(y)[6] = (uint8_t)(((x) >>  8) & 0xff); \
+							(y)[7] = (uint8_t)(((x) >>  0) & 0xff); } while (0)
 
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
@@ -61,7 +67,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #define FF_2(a, b, c, d, e, i) do {e = (ROL(a, 5) + F2(b,c,d) + e + W[i] + 0x8f1bbcdcUL); b = ROL(b, 30);} while (0)
 #define FF_3(a, b, c, d, e, i) do {e = (ROL(a, 5) + F3(b,c,d) + e + W[i] + 0xca62c1d6UL); b = ROL(b, 30);} while (0)
 
-static void sha1_compress(sha1_state * sha1, const uint8_t * buf) {
+static void csp_sha1_compress(csp_sha1_state * sha1, const uint8_t * buf) {
 
 	uint32_t a, b , c , d , e , W[80], i;
 
@@ -132,7 +138,7 @@ static void sha1_compress(sha1_state * sha1, const uint8_t * buf) {
  * Initialize the hash state
  * @param sha1   The hash state you wish to initialize
  */
-void sha1_init(sha1_state * sha1) {
+void csp_sha1_init(csp_sha1_state * sha1) {
 
    sha1->state[0] = 0x67452301UL;
    sha1->state[1] = 0xefcdab89UL;
@@ -150,12 +156,12 @@ void sha1_init(sha1_state * sha1) {
  * @param in	 The data to hash
  * @param inlen  The length of the data (octets)
  */
-void sha1_process(sha1_state * sha1, const uint8_t * in, uint32_t inlen) {
+void csp_sha1_process(csp_sha1_state * sha1, const uint8_t * in, uint32_t inlen) {
 
 	uint32_t n;
 	while (inlen > 0) {
 		if (sha1->curlen == 0 && inlen >= SHA1_BLOCKSIZE) {
-		   sha1_compress(sha1, in);
+		   csp_sha1_compress(sha1, in);
 		   sha1->length += SHA1_BLOCKSIZE * 8;
 		   in += SHA1_BLOCKSIZE;
 		   inlen -= SHA1_BLOCKSIZE;
@@ -166,7 +172,7 @@ void sha1_process(sha1_state * sha1, const uint8_t * in, uint32_t inlen) {
 		   in += n;
 		   inlen -= n;
 		   if (sha1->curlen == SHA1_BLOCKSIZE) {
-			  sha1_compress(sha1, sha1->buf);
+			  csp_sha1_compress(sha1, sha1->buf);
 			  sha1->length += 8*SHA1_BLOCKSIZE;
 			  sha1->curlen = 0;
 		   }
@@ -180,7 +186,7 @@ void sha1_process(sha1_state * sha1, const uint8_t * in, uint32_t inlen) {
  * @param sha1  The hash state
  * @param out [out] The destination of the hash (20 bytes)
  */
-void sha1_done(sha1_state * sha1, uint8_t * out) {
+void csp_sha1_done(csp_sha1_state * sha1, uint8_t * out) {
 
 	uint32_t i;
 
@@ -197,7 +203,7 @@ void sha1_done(sha1_state * sha1, uint8_t * out) {
 	if (sha1->curlen > 56) {
 		while (sha1->curlen < 64)
 			sha1->buf[sha1->curlen++] = 0;
-		sha1_compress(sha1, sha1->buf);
+		csp_sha1_compress(sha1, sha1->buf);
 		sha1->curlen = 0;
 	}
 
@@ -207,7 +213,7 @@ void sha1_done(sha1_state * sha1, uint8_t * out) {
 
 	/* Store length */
 	STORE64H(sha1->length, sha1->buf+56);
-	sha1_compress(sha1, sha1->buf);
+	csp_sha1_compress(sha1, sha1->buf);
 
 	/* Copy output */
 	for (i = 0; i < 5; i++)
@@ -221,12 +227,12 @@ void sha1_done(sha1_state * sha1, uint8_t * out) {
  * @param len   Length of message
  * @param sha1  Pointer to SHA1 output buffer. Must be 20 bytes or more!
  */
-void sha1_memory(const uint8_t * msg, uint32_t len, uint8_t * hash) {
+void csp_sha1_memory(const uint8_t * msg, uint32_t len, uint8_t * hash) {
 
-	sha1_state md;
-	sha1_init(&md);
-	sha1_process(&md, msg, len);
-	sha1_done(&md, hash);
+	csp_sha1_state md;
+	csp_sha1_init(&md);
+	csp_sha1_process(&md, msg, len);
+	csp_sha1_done(&md, hash);
 
 }
 

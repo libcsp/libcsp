@@ -235,7 +235,7 @@ csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 			uint32_t iv[2] = {nonce, 1};
 
 			/* Decrypt data */
-			if (xtea_decrypt(packet->data, packet->length, iv) != 0) {
+			if (csp_xtea_decrypt(packet->data, packet->length, iv) != 0) {
 				/* Decryption failed */
 				csp_debug(CSP_ERROR, "Decryption failed! Discarding packet\r\n");
 				input.interface->autherr++;
@@ -283,7 +283,7 @@ csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 		if (packet->id.flags & CSP_FHMAC) {
 #if CSP_ENABLE_HMAC
 			/* Verify HMAC */
-			if (hmac_verify(packet) != 0) {
+			if (csp_hmac_verify(packet) != 0) {
 				/* HMAC failed */
 				csp_debug(CSP_ERROR, "HMAC verification error! Discarding packet\r\n");
 				input.interface->autherr++;
@@ -347,7 +347,6 @@ void csp_route_start_task(unsigned int task_stack_size, unsigned int priority) {
  * Set route
  * This function maintains the routing table,
  * To set default route use nodeid CSP_DEFAULT_ROUTE
- * To set a value pass a callback function
  * To clear a value pass a NULL value
  */
 void csp_route_set(uint8_t node, csp_iface_t * ifc, uint8_t nexthop_mac_addr) {
@@ -363,13 +362,14 @@ void csp_route_set(uint8_t node, csp_iface_t * ifc, uint8_t nexthop_mac_addr) {
 		while (i != ifc && i->next)
 			i = i->next;
 
-		/* Add interface to pool */
+		/* Insert interface last if not already in pool */
 		if (i != ifc && i->next == NULL) {
 			i->next = ifc;
 			ifc->next = NULL;
 		}
 	}
 
+	/* Set route */
 	if (node <= CSP_DEFAULT_ROUTE) {
 		routes[node].interface = ifc;
 		routes[node].nexthop_mac_addr = nexthop_mac_addr;
