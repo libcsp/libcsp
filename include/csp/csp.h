@@ -241,16 +241,18 @@ typedef int (*nexthop_t)(csp_packet_t * packet, unsigned int timeout);
 
 /* Interface struct */
 typedef struct csp_iface_s {
-    const char * name;	/**< Interface name */
-    nexthop_t nexthop; 	/**< Next hop function */
-    uint8_t promisc;	/**< Promiscuous mode enabled */
-    uint32_t tx;		/**< Successfully transmitted packets */
-    uint32_t rx;		/**< Successfully received packets */
-    uint32_t tx_error;	/**< Transmit errors */
-    uint32_t rx_error;	/**< Receive errors */
-    uint32_t drop;		/**< Dropped packets */
-    uint32_t autherr; 	/**< Authentication errors */
-    uint32_t frame;		/**< Frame format errors */
+    const char * name;			/**< Interface name */
+    nexthop_t nexthop; 			/**< Next hop function */
+    uint8_t promisc;			/**< Promiscuous mode enabled */
+    uint32_t tx;				/**< Successfully transmitted packets */
+    uint32_t rx;				/**< Successfully received packets */
+    uint32_t tx_error;			/**< Transmit errors */
+    uint32_t rx_error;			/**< Receive errors */
+    uint32_t drop;				/**< Dropped packets */
+    uint32_t autherr; 			/**< Authentication errors */
+    uint32_t frame;				/**< Frame format errors */
+    uint32_t txbytes;			/**< Transmitted bytes */
+    uint32_t rxbytes;			/**< Received bytes */
     struct csp_iface_s * next;	/**< Next interface */
 } csp_iface_t;
 
@@ -326,6 +328,7 @@ typedef enum {
 typedef void (*csp_debug_hook_func_t)(csp_debug_level_t level, char * str);
 void csp_debug(csp_debug_level_t level, const char * format, ...);
 void csp_debug_toggle_level(csp_debug_level_t level);
+void csp_route_print_interfaces(void);
 void csp_route_print_table(void);
 void csp_conn_print_table(void);
 void csp_buffer_print_table(void);
@@ -333,7 +336,8 @@ void csp_debug_hook_set(csp_debug_hook_func_t f);
 #else
 #define csp_debug(...);
 #define csp_debug_toggle_level(...);
-#define csp_route_print(...);
+#define csp_route_print_interfaces(...);
+#define csp_route_print_table(...);
 #define csp_conn_print_table(...);
 #define csp_buffer_print_table(...);
 #define csp_debug_hook_set(...);

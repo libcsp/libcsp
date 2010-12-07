@@ -70,6 +70,22 @@ typedef struct {
 	csp_packet_t * packet;
 } csp_route_queue_t;
 
+int csp_bytesize(char *buf, int len, int n) {
+    char * postfix;
+    double size;
+    if (n >= 1048576) {
+        size = n/1048576.0;
+        postfix = "M";
+    } else if (n >= 1024) {
+        size = n/1024.;
+        postfix = "K";
+    } else {
+        size = n;
+        postfix = "B";
+    }
+    return snprintf(buf, len, "%.1f%s", size, postfix);
+}
+
 /**
  * csp_route_table_init
  * Initialises the storage for the routing table
@@ -262,18 +278,18 @@ csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 			if (csp_crc32_verify(packet) != 0) {
 				/* Checksum failed */
 				csp_debug(CSP_ERROR, "CRC32 verification error! Discarding packet\r\n");
-				input.interface->frame++;
+				input.interface->rx_error++;
 				csp_buffer_free(packet);
 				continue;
 			}
 		} else if (conn->conn_opts & CSP_SO_CRC32REQ) {
 			csp_debug(CSP_WARN, "Received packet without CRC32. Discarding packet\r\n", conn);
-			input.interface->frame++;
+			input.interface->rx_error++;
 			csp_buffer_free(packet);
 			continue;
 #else
 			csp_debug(CSP_ERROR, "Received packet with CRC32, but CSP was compiled without CRC32 support. Discarding packet\r\n");
-			input.interface->frame++;
+			input.interface->rx_error++;
 			csp_buffer_free(packet);
 			continue;
 #endif
@@ -448,6 +464,7 @@ void csp_new_packet(csp_packet_t * packet, csp_iface_t * interface, CSP_BASE_TYP
 	}
 
 	interface->rx++;
+	interface->rxbytes += packet->length;
 
 }
 
@@ -459,13 +476,31 @@ uint8_t csp_route_get_nexthop_mac(uint8_t node) {
 }
 
 #if CSP_DEBUG
-void csp_route_print_table(void) {
+void csp_route_print_interfaces(void) {
 	csp_iface_t * i = interfaces;
+	char txbuf[25], rxbuf[25];
 	while (i) {
-		printf("Nexthop: %5s tx: %04"PRIu32" rx: %04"PRIu32" txe: %04"PRIu32" rxe: %04"PRIu32" drop: %04"PRIu32" autherr: %04"PRIu32" frame: %04"PRIu32"\r\n",
-					i->name, i->tx, i->rx, i->tx_error, i->rx_error, i->drop, i->autherr, i->frame);
+		csp_bytesize(txbuf, 25, i->txbytes);
+		csp_bytesize(rxbuf, 25, i->rxbytes);
+		printf("%-5s   tx: %05"PRIu32" rx: %05"PRIu32" txe: %05"PRIu32" rxe: %05"PRIu32
+				"\r\n        drop: %05"PRIu32" autherr: %05"PRIu32 " frame: %05"PRIu32
+				"\r\n        txb: %"PRIu32" (%s) rxb: %"PRIu32" (%s)\r\n\r\n",
+				i->name, i->tx, i->rx, i->tx_error, i->rx_error, i->drop,
+				i->autherr, i->frame, i->txbytes, txbuf, i->rxbytes, rxbuf);
 		i = i->next;
 	}
+}
+
+void csp_route_print_table(void) {
+
+	int i;
+	for (i = 0; i < CSP_DEFAULT_ROUTE; i++)
+		if (routes[i].interface != NULL)
+			printf("Node: %u\t\tNexthop: %s[%u]\r\n", i,
+					routes[i].interface->name, routes[i].nexthop_mac_addr);
+	printf("Default\t\tNexthop: %s [%u]\r\n", routes[CSP_DEFAULT_ROUTE].interface->name,
+	routes[CSP_DEFAULT_ROUTE].nexthop_mac_addr);
+
 }
 #endif
 
