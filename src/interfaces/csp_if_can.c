@@ -365,6 +365,7 @@ int csp_tx_callback(can_id_t canid, can_error_t error, CSP_BASE_TYPE * task_woke
     /* Free packet buffer if send failed */
     if (error != CAN_NO_ERROR) {
     	csp_debug(CSP_WARN, "Error in transmit callback\r\n");
+    	csp_if_can.tx_error++;
     	pbuf_free(buf, task_woken);
     	return -1;
     }
@@ -388,6 +389,7 @@ int csp_tx_callback(can_id_t canid, can_error_t error, CSP_BASE_TYPE * task_woke
 		/* Send frame */
 		if (can_send(id, buf->packet->data + buf->tx_count - bytes, bytes, task_woken) != 0) {
 			csp_debug(CSP_WARN, "Failed to send CAN frame in Tx callback\r\n");
+			csp_if_can.tx_error++;
 			pbuf_free(buf, task_woken);
 			return -1;
 		}
@@ -440,10 +442,12 @@ int csp_rx_callback(can_frame_t * frame, CSP_BASE_TYPE * task_woken) {
 			buf = pbuf_new(id, task_woken);
 			if (buf == NULL) {
 				csp_debug(CSP_WARN, "No available packet buffer for CAN\r\n");
+				csp_if_can.rx_error++;
 				return -1;
 			}
     	} else {
     		csp_debug(CSP_WARN, "Out of order MORE frame received\r\n");
+    		csp_if_can.frame++;
     		return -1;
     	}
     }
@@ -458,6 +462,7 @@ int csp_rx_callback(can_frame_t * frame, CSP_BASE_TYPE * task_woken) {
             /* Discard packet if DLC is less than CSP id + CSP length fields */
             if (frame->dlc < sizeof(csp_id_t) + sizeof(uint16_t)) {
                 csp_debug(CSP_WARN, "Short BEGIN frame received\r\n");
+                csp_if_can.frame++;
                 pbuf_free(buf, task_woken);
                 break;
             }
@@ -466,11 +471,13 @@ int csp_rx_callback(can_frame_t * frame, CSP_BASE_TYPE * task_woken) {
             if (buf->packet != NULL) {
             	/* Reuse the buffer */
                 csp_debug(CSP_WARN, "Incomplete frame\r\n");
+                csp_if_can.frame++;
             } else {
                 /* Allocate memory for frame */
                 buf->packet = task_woken ? csp_buffer_get_isr(CSP_CAN_MTU) : csp_buffer_get(CSP_CAN_MTU);
                 if (buf->packet == NULL) {
                     csp_debug(CSP_ERROR, "Failed to get buffer for CSP_BEGIN packet\n");
+                    csp_if_can.frame++;
                     pbuf_free(buf, task_woken);
                     break;
                 }
@@ -499,6 +506,7 @@ int csp_rx_callback(can_frame_t * frame, CSP_BASE_TYPE * task_woken) {
 			if (CFP_REMAIN(id) != buf->remain - 1) {
 				csp_debug(CSP_ERROR, "CAN frame lost in CSP packet\r\n");
 				pbuf_free(buf, task_woken);
+				csp_if_can.frame++;
 				break;
 			}
 
@@ -508,6 +516,7 @@ int csp_rx_callback(can_frame_t * frame, CSP_BASE_TYPE * task_woken) {
             /* Check for overflow */
             if ((buf->rx_count + frame->dlc - offset) > buf->packet->length) {
                 csp_debug(CSP_ERROR, "RX buffer overflow\r\n");
+                csp_if_can.frame++;
                 pbuf_free(buf, task_woken);
                 break;
             }
