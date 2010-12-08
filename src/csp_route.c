@@ -482,9 +482,9 @@ void csp_route_print_interfaces(void) {
 	while (i) {
 		csp_bytesize(txbuf, 25, i->txbytes);
 		csp_bytesize(rxbuf, 25, i->rxbytes);
-		printf("%-5s   tx: %05"PRIu32" rx: %05"PRIu32" txe: %05"PRIu32" rxe: %05"PRIu32
-				"\r\n        drop: %05"PRIu32" autherr: %05"PRIu32 " frame: %05"PRIu32
-				"\r\n        txb: %"PRIu32" (%s) rxb: %"PRIu32" (%s)\r\n\r\n",
+		printf("%-5s   tx: %05"PRIu32" rx: %05"PRIu32" txe: %05"PRIu32" rxe: %05"PRIu32"\r\n"
+				"        drop: %05"PRIu32" autherr: %05"PRIu32 " frame: %05"PRIu32"\r\n"
+				"        txb: %"PRIu32" (%s) rxb: %"PRIu32" (%s)\r\n\r\n",
 				i->name, i->tx, i->rx, i->tx_error, i->rx_error, i->drop,
 				i->autherr, i->frame, i->txbytes, txbuf, i->rxbytes, rxbuf);
 		i = i->next;

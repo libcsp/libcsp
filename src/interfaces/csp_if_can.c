@@ -353,11 +353,13 @@ int csp_tx_callback(can_id_t canid, can_error_t error, CSP_BASE_TYPE * task_woke
 
     if (buf == NULL) {
     	csp_debug(CSP_WARN, "Failed to match buffer element in tx callback\r\n");
+    	csp_if_can.tx_error++;
     	return -1;
     }
 
     if (buf->packet == NULL) {
     	csp_debug(CSP_WARN, "Buffer packet was NULL\r\n");
+    	csp_if_can.tx_error++;
     	pbuf_free(buf, task_woken);
     	return -1;
     }

@@ -232,7 +232,7 @@ static void __attribute__ ((noinline)) can_dsr(void) {
 	/* Run through the mailboxes */
 	for (m = 0; m < CAN_MBOXES; m++) {
 
-		/* If an interrupt occured on mailbox */
+		/* If an interrupt occurred on mailbox */
 		if (CAN_CTRL->ISSR & (1 << m)) {
 			if (CAN_CTRL->CHANNEL[m].SR & RXOK) {
 				/* RX Complete */
@@ -249,7 +249,7 @@ static void __attribute__ ((noinline)) can_dsr(void) {
 				frame.id = ((CAN_CTRL->CHANNEL[m].IR & 0x7FF) << 18)
 						| ((CAN_CTRL->CHANNEL[m].IR & 0x1FFFF800) >> 11);
 
-				/* Call RX Callback */
+				/* Call RX callback */
 				if (rxcb != NULL)
 					rxcb(&frame, &task_woken);
 
@@ -272,7 +272,7 @@ static void __attribute__ ((noinline)) can_dsr(void) {
 				can_id_t id = ((CAN_CTRL->CHANNEL[m].IR & 0x7FF) << 18)
 						| ((CAN_CTRL->CHANNEL[m].IR & 0x1FFFF800) >> 11);
 
-				/* Call TX Callback with no error */
+				/* Call TX callback with no error */
 				if (txcb != NULL)
 					txcb(id, CAN_NO_ERROR, &task_woken);
 
@@ -300,7 +300,7 @@ static void __attribute__ ((noinline)) can_dsr(void) {
 				/* Finally clear interrupt for mailbox */
 				CAN_CTRL->CISR = (1 << m);
 
-				/* Call TX Callback with error flag set */
+				/* Call TX callback with error flag set */
 				if (txcb != NULL)
 					txcb(id, CAN_ERROR, &task_woken);
 
