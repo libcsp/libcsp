@@ -71,17 +71,20 @@ void csp_service_handler(csp_conn_t * conn, csp_packet_t * packet) {
 
 #if defined(_CSP_FREERTOS_)
 		/* Try to malloc a lot */
-		uint32_t size = 1000000, total = 0;
+		uint32_t size = 1000000, total = 0, max = 0;
 		void * pmem;
-		while(1) {
+		while (1) {
 			pmem = csp_malloc(size + total);
 			if (pmem == NULL) {
+				max = size + total;
 				size = size / 2;
-				if (size < 100) break;
 			} else {
 				total += size;
+				if (total + size >= max)
+					size = size / 2;
 				csp_free(pmem);
 			}
+			if (size < 1024) break;
 		}
 #elif defined(_CSP_POSIX_)
 		/* Read system statistics */
@@ -114,9 +117,13 @@ void csp_service_handler(csp_conn_t * conn, csp_packet_t * packet) {
 
 		/* Otherwise Reboot */
 		extern void __attribute__((weak)) cpu_reset(void);
-		if (cpu_reset)
+		if (cpu_reset) {
 			cpu_reset();
-		break;
+			while (1);
+		}
+
+		csp_buffer_free(packet);
+		return;
 	}
 
 	/* Return the number of free CSP buffers */

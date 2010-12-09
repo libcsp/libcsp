@@ -53,6 +53,7 @@ enum csp_reserved_ports_e {
 	CSP_REBOOT		  	= 4,
 	CSP_BUF_FREE		= 5,
 	CSP_UPTIME			= 6,
+	CSP_STATS			= 7,
 	CSP_ANY			 	= (CSP_MAX_BIND_PORT + 1),
 	CSP_PROMISC		 	= (CSP_MAX_BIND_PORT + 2)
 };
