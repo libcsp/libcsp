@@ -26,7 +26,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #if CSP_ENABLE_CRC32
 
-#define CSP_CRC32_POLY 0xEDB88320L
+#define CSP_CRC32_POLY 0x82F63B78L
 
 uint32_t crc_tab[256];
 
