@@ -514,8 +514,8 @@ void csp_rdp_check_timeouts(csp_conn_t * conn) {
 		rdp_header_t * header = csp_rdp_header_ref((csp_packet_t *) packet);
 
 		/* If acked, do not retransmit */
-		if ((conn->rdp.snd_una - ntohs(header->seq_nr) - 1) < UINT16_MAX/2) {
-			csp_debug(CSP_PROTOCOL, "TX Element Free, time %u, seq %u\r\n", packet->timestamp, ntohs(header->seq_nr));
+		if (((uint16_t) (conn->rdp.snd_una - ntohs(header->seq_nr) - 1)) < UINT16_MAX/2) {
+			csp_debug(CSP_PROTOCOL, "TX Element Free, time %u, seq %u, una %u\r\n", packet->timestamp, ntohs(header->seq_nr), conn->rdp.snd_una);
 			csp_buffer_free(packet);
 			continue;
 		}
