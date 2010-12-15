@@ -31,7 +31,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 uint32_t crc_tab[256];
 
 void csp_crc32_gentab(void) {
-	volatile uint32_t crc;
+	uint32_t crc;
 	int i, j;
 
 	for (i = 0; i < 256; i++) {
@@ -46,17 +46,13 @@ void csp_crc32_gentab(void) {
 	}
 }
 
-static inline uint32_t csp_chksum_crc32_step(uint32_t crc, uint8_t byte) {
-	return ((crc >> 8) & 0x00FFFFFF) ^ crc_tab[(crc ^ byte) & (uint32_t) 0xFF];
-}
-
-uint32_t csp_crc32_memory(const uint8_t * block, uint32_t length) {
-   volatile uint32_t crc;
-   unsigned int i;
+uint32_t csp_crc32_memory(const uint8_t * data, uint32_t length) {
+   uint32_t crc;
+   uint32_t i;
 
    crc = 0xFFFFFFFF;
-   for (i = 0; i < length; i++)
-	   crc = csp_chksum_crc32_step(crc, *block++);
+   while (length--)
+	   crc_tab[(crc ^ *data++) & 0xFFL] ^ (crc >> 8);
 
    return (crc ^ 0xFFFFFFFF);
 }
