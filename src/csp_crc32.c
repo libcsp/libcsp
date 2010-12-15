@@ -48,11 +48,10 @@ void csp_crc32_gentab(void) {
 
 uint32_t csp_crc32_memory(const uint8_t * data, uint32_t length) {
    uint32_t crc;
-   uint32_t i;
 
    crc = 0xFFFFFFFF;
    while (length--)
-	   crc_tab[(crc ^ *data++) & 0xFFL] ^ (crc >> 8);
+	   crc = crc_tab[(crc ^ *data++) & 0xFFL] ^ (crc >> 8);
 
    return (crc ^ 0xFFFFFFFF);
 }
