@@ -28,7 +28,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "arch/csp_time.h"
 
-void csp_ping(uint8_t node, unsigned int timeout) {
+void csp_ping(uint8_t node, unsigned int timeout, uint8_t conn_options) {
 
 	uint32_t start, time, status = 0;
 
@@ -38,7 +38,7 @@ void csp_ping(uint8_t node, unsigned int timeout) {
 	start = csp_get_ms();
 
 	/* Open connection */
-	csp_conn_t * conn = csp_connect(CSP_PRIO_NORM, node, CSP_PING, timeout, CSP_O_RDP);
+	csp_conn_t * conn = csp_connect(CSP_PRIO_NORM, node, CSP_PING, timeout, conn_options);
 	if (conn == NULL) {
 		printf("Timeout!\r\n");
 		return;
