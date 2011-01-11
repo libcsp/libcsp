@@ -71,7 +71,7 @@ void csp_service_handler(csp_conn_t * conn, csp_packet_t * packet) {
 
 #if defined(_CSP_FREERTOS_)
 		/* Try to malloc a lot */
-		uint32_t size = 1000000, total = 0, max = 0;
+		uint32_t size = 1000000, total = 0, max = UINT32_MAX;
 		void * pmem;
 		while (1) {
 			pmem = csp_malloc(size + total);
