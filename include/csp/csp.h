@@ -226,8 +226,8 @@ typedef union {
  * with all interface frame types in order to 
  * have buffer reuse
  */
-typedef struct __attribute__((__packed__)) {
-	uint8_t padding[44];	   	// Interface dependent padding
+typedef struct __attribute__((__packed__)) csp_packet_s {
+	uint8_t padding[8];		   	// Interface dependent padding
 	uint16_t length;			// Length field must be just before CSP ID
 	csp_id_t id;				// CSP id must be just before data
 	union {
@@ -262,7 +262,7 @@ typedef struct csp_iface_s {
  * it is used in csp_buffer_get() to check the allocated buffer size against
  * the required buffer size.
  */
-#define CSP_BUFFER_PACKET_OVERHEAD 	(44 + sizeof(uint16_t) + sizeof(csp_id_t))
+#define CSP_BUFFER_PACKET_OVERHEAD 	(14)
 
 /** Forward declaration of socket, connection and l4data structure */
 typedef struct csp_socket_s csp_socket_t;
