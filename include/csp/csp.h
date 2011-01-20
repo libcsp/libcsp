@@ -199,26 +199,34 @@ typedef union {
 #define CSP_DEFAULT_ROUTE	(CSP_ID_HOST_MAX + 1)
 
 /** CSP Flags */
-#define CSP_FRES1				0x80 // Reserved for future use
-#define CSP_FRES2				0x40 // Reserved for future use
-#define CSP_FRES3				0x20 // Reserved for future use
-#define CSP_FRES4				0x10 // Reserved for future use
-#define CSP_FHMAC 				0x08 // Use HMAC verification
-#define CSP_FXTEA 				0x04 // Use XTEA encryption
-#define CSP_FRDP				0x02 // Use RDP protocol
-#define CSP_FCRC32 				0x01 // Use CRC32 checksum
+#define CSP_FRES1			0x80 				// Reserved for future use
+#define CSP_FRES2			0x40 				// Reserved for future use
+#define CSP_FRES3			0x20 				// Reserved for future use
+#define CSP_FRES4			0x10 				// Reserved for future use
+#define CSP_FHMAC 			0x08 				// Use HMAC verification
+#define CSP_FXTEA 			0x04 				// Use XTEA encryption
+#define CSP_FRDP			0x02 				// Use RDP protocol
+#define CSP_FCRC32 			0x01 				// Use CRC32 checksum
 
 /** CSP Socket options */
-#define CSP_SO_RDPREQ  			0x0001
-#define CSP_SO_HMACREQ 			0x0002
-#define CSP_SO_XTEAREQ 			0x0004
-#define CSP_SO_CRC32REQ			0x0008
+#define CSP_SO_RDPREQ  		0x0001				// Require RDP
+#define CSP_SO_RDPPROHIB	0x0002				// Prohibit RDP
+#define CSP_SO_HMACREQ 		0x0004				// Require HMAC
+#define CSP_SO_HMACPROHIB	0x0008				// Prohibit HMAC
+#define CSP_SO_XTEAREQ 		0x0010 				// Require XTEA
+#define CSP_SO_XTEAPROHIB	0x0020				// Prohibit HMAC
+#define CSP_SO_CRC32REQ		0x0040				// Require CRC32
+#define CSP_SO_CRC32PROHIB	0x0080				// Prohibit CRC32
 
 /** CSP Connect options */
-#define CSP_O_RDP  				CSP_SO_RDPREQ
-#define CSP_O_HMAC 				CSP_SO_HMACREQ
-#define CSP_O_XTEA 				CSP_SO_XTEAREQ
-#define CSP_O_CRC32				CSP_SO_CRC32REQ
+#define CSP_O_RDP  			CSP_SO_RDPREQ		// Enable RDP
+#define CSP_O_NORDP			CSP_SO_RDPPROHIB	// Disable RDP
+#define CSP_O_HMAC 			CSP_SO_HMACREQ		// Enable HMAC
+#define CSP_O_NOHMAC		CSP_SO_HMACPROHIB	// Disable HMAC
+#define CSP_O_XTEA 			CSP_SO_XTEAREQ		// Enable XTEA
+#define CSP_O_NOXTEA		CSP_SO_XTEAPROHIB	// Disable XTEA
+#define CSP_O_CRC32			CSP_SO_CRC32REQ		// Enable CRC32
+#define CSP_O_NOCRC32		CSP_SO_CRC32PROHIB	// Disable CRC32
 
 /**
  * CSP PACKET STRUCTURE
@@ -226,7 +234,7 @@ typedef union {
  * with all interface frame types in order to 
  * have buffer reuse
  */
-typedef struct __attribute__((__packed__)) csp_packet_s {
+typedef struct __attribute__((__packed__)) {
 	uint8_t padding[8];		   	// Interface dependent padding
 	uint16_t length;			// Length field must be just before CSP ID
 	csp_id_t id;				// CSP id must be just before data
@@ -262,7 +270,7 @@ typedef struct csp_iface_s {
  * it is used in csp_buffer_get() to check the allocated buffer size against
  * the required buffer size.
  */
-#define CSP_BUFFER_PACKET_OVERHEAD 	(14)
+#define CSP_BUFFER_PACKET_OVERHEAD 	(sizeof(csp_packet_t) - sizeof(((csp_packet_t *) 0)->data))
 
 /** Forward declaration of socket, connection and l4data structure */
 typedef struct csp_socket_s csp_socket_t;
