@@ -28,32 +28,36 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "arch/csp_time.h"
 
-void csp_ping(uint8_t node, unsigned int timeout, uint8_t conn_options) {
+/**
+ * Send a single ping/echo packet
+ * @param node node id
+ * @param timeout timeout in ms
+ * @param size size of packet to transmit
+ * @param conn_options csp connection options
+ * @return >0 = Echo time in ms, -1 = ERR
+ */
+int csp_ping(uint8_t node, unsigned int timeout, unsigned int size, uint8_t conn_options) {
 
 	uint32_t start, time, status = 0;
-
-	printf("Ping node %u: ", node);
 
 	/* Counter */
 	start = csp_get_ms();
 
 	/* Open connection */
 	csp_conn_t * conn = csp_connect(CSP_PRIO_NORM, node, CSP_PING, timeout, conn_options);
-	if (conn == NULL) {
-		printf("Timeout!\r\n");
-		return;
-	}
+	if (conn == NULL)
+		return -1;
 
 	/* Prepare data */
 	csp_packet_t * packet;
-	packet = csp_buffer_get(1);
+	packet = csp_buffer_get(size);
 
 	/* Check malloc */
 	if (packet == NULL)
 		goto out;
 
-	packet->data[0] = 0x55;
-	packet->length = 1;
+	memset(packet->data, 0x55, size);
+	packet->length = size;
 
 	/* Try to send frame */
 	if (!csp_send(conn, packet, 0))
@@ -75,13 +79,9 @@ out:
 	time = (csp_get_ms() - start);
 
 	if (status) {
-		if (time <= 1) {
-			printf("Reply in <1 tick\r\n");
-		} else {
-			printf("Reply in %u ms\r\n", (unsigned int) time);
-		}
+		return time;
 	} else {
-		printf("Timeout!\r\n");
+		return -1;
 	}
 
 }

@@ -299,7 +299,7 @@ csp_packet_t * csp_promisc_read(unsigned int timeout);
 
 /* Implemented in csp_services.c */
 void csp_service_handler(csp_conn_t * conn, csp_packet_t * packet);
-void csp_ping(uint8_t node, unsigned int timeout, uint8_t conn_options);
+int csp_ping(uint8_t node, unsigned int timeout, unsigned int size, uint8_t conn_options);
 void csp_ping_noreply(uint8_t node);
 void csp_ps(uint8_t node, unsigned int timeout);
 void csp_memfree(uint8_t node, unsigned int timeout);
