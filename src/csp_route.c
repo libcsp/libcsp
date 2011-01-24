@@ -367,24 +367,23 @@ void csp_route_start_task(unsigned int task_stack_size, unsigned int priority) {
  */
 void csp_route_set(uint8_t node, csp_iface_t * ifc, uint8_t nexthop_mac_addr) {
 
-	if (ifc == NULL)
-		return;
-
 	/* Add interface to pool */
-	if (interfaces == NULL) {
-		/* This is the first interface to be added */
-		interfaces = ifc;
-		ifc->next = NULL;
-	} else {
-		/* One or more interfaces were already added */
-		csp_iface_t * i = interfaces;
-		while (i != ifc && i->next)
-			i = i->next;
-
-		/* Insert interface last if not already in pool */
-		if (i != ifc && i->next == NULL) {
-			i->next = ifc;
+	if (ifc != NULL) {
+		if (interfaces == NULL) {
+			/* This is the first interface to be added */
+			interfaces = ifc;
 			ifc->next = NULL;
+		} else {
+			/* One or more interfaces were already added */
+			csp_iface_t * i = interfaces;
+			while (i != ifc && i->next)
+				i = i->next;
+
+			/* Insert interface last if not already in pool */
+			if (i != ifc && i->next == NULL) {
+				i->next = ifc;
+				ifc->next = NULL;
+			}
 		}
 	}
 

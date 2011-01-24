@@ -146,7 +146,7 @@ typedef enum {
 #define CSP_ID_FLAGS_SIZE		8
 
 #if CSP_ID_PRIO_SIZE + 2 * CSP_ID_HOST_SIZE + 2 * CSP_ID_PORT_SIZE + CSP_ID_FLAGS_SIZE != 32 && __GNUC__
-#error "Header lenght must be 32 bits"
+#error "Header length must be 32 bits"
 #endif
 
 /** Highest number to be entered in field */
@@ -267,8 +267,8 @@ typedef struct csp_iface_s {
 } csp_iface_t;
 
 /**
- * This define must be equal to the size of the packet overhead in csp_packet_t
- * it is used in csp_buffer_get() to check the allocated buffer size against
+ * This define must be equal to the size of the packet overhead in csp_packet_t.
+ * It is used in csp_buffer_get() to check the allocated buffer size against
  * the required buffer size.
  */
 #define CSP_BUFFER_PACKET_OVERHEAD 	(sizeof(csp_packet_t) - sizeof(((csp_packet_t *) 0)->data))
@@ -325,13 +325,13 @@ int csp_hmac_set_key(char * key, uint32_t keylen);
 
 /* CSP debug printf - implemented in arch/x/csp_debug.c */
 typedef enum {
-	CSP_INFO	 = 0,
-	CSP_ERROR	= 1,
-	CSP_WARN	 = 2,
-	CSP_BUFFER   = 3,
-	CSP_PACKET   = 4,
-	CSP_PROTOCOL = 5,
-	CSP_LOCK	 = 6,
+	CSP_INFO		= 0,
+	CSP_ERROR	 	= 1,
+	CSP_WARN	 	= 2,
+	CSP_BUFFER   	= 3,
+	CSP_PACKET   	= 4,
+	CSP_PROTOCOL	= 5,
+	CSP_LOCK	 	= 6,
 } csp_debug_level_t;
 
 #if CSP_DEBUG
