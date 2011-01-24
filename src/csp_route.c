@@ -164,7 +164,7 @@ csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 			dst = csp_route_if(packet->id.dst);
 
 			/* If the message resolves to the input interface, don't loop it back out */
-			if ((dst == NULL) || (dst->interface == input.interface)) {
+			if ((dst == NULL) || ((dst->interface == input.interface) && (input.interface->split_horizon_off == 0))) {
 				csp_buffer_free(packet);
 				continue;
 			}
