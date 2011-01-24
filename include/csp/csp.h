@@ -228,6 +228,11 @@ typedef union {
 #define CSP_O_CRC32			CSP_SO_CRC32REQ		// Enable CRC32
 #define CSP_O_NOCRC32		CSP_SO_CRC32PROHIB	// Disable CRC32
 
+/* Default padding size is 8 bytes */
+#ifndef CSP_PADDING_BYTES
+#define CSP_PADDING_BYTES 8
+#endif
+
 /**
  * CSP PACKET STRUCTURE
  * Note: This structure is constructed to fit
@@ -235,7 +240,7 @@ typedef union {
  * have buffer reuse
  */
 typedef struct __attribute__((__packed__)) {
-	uint8_t padding[8];		   	// Interface dependent padding
+	uint8_t padding[CSP_PADDING_BYTES];   	// Interface dependent padding
 	uint16_t length;			// Length field must be just before CSP ID
 	csp_id_t id;				// CSP id must be just before data
 	union {
