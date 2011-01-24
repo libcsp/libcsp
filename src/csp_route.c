@@ -367,6 +367,9 @@ void csp_route_start_task(unsigned int task_stack_size, unsigned int priority) {
  */
 void csp_route_set(uint8_t node, csp_iface_t * ifc, uint8_t nexthop_mac_addr) {
 
+	if (ifc == NULL)
+		return;
+
 	/* Add interface to pool */
 	if (interfaces == NULL) {
 		/* This is the first interface to be added */
@@ -439,7 +442,7 @@ void csp_new_packet(csp_packet_t * packet, csp_iface_t * interface, CSP_BASE_TYP
 		csp_debug(CSP_WARN, "csp_new packet called with NULL packet\r\n");
 		return;
 	} else if (interface == NULL) {
-		csp_debug(CSP_WARN, "csp_new packet called with NULL packet\r\n");
+		csp_debug(CSP_WARN, "csp_new packet called with NULL interface\r\n");
 		csp_buffer_free(packet);
 		return;
 	} else if (router_input_fifo == NULL) {

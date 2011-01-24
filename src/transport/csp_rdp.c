@@ -548,19 +548,20 @@ void csp_rdp_check_timeouts(csp_conn_t * conn) {
 	 * ACK TIMEOUT:
 	 * Check ACK timeouts
 	 */
-
 	/* Only send timeout ACK if segment was not acknowledged by regular ACK */
-	if (conn->rdp.rcv_lsa != conn->rdp.rcv_cur) {
-		uint32_t diff = csp_get_ms() - conn->rdp.ack_timestamp;
-		if (diff > conn->rdp.ack_timeout)
-			csp_rdp_send_cmp(conn, NULL, 1, 0, 0, 0, conn->rdp.snd_nxt, conn->rdp.rcv_cur, 0);
+	if (conn->rdp.delayed_acks != 0) {
+		if (conn->rdp.rcv_lsa != conn->rdp.rcv_cur) {
+			uint32_t diff = csp_get_ms() - conn->rdp.ack_timestamp;
+			if (diff > conn->rdp.ack_timeout)
+				csp_rdp_send_cmp(conn, NULL, 1, 0, 0, 0, conn->rdp.snd_nxt, conn->rdp.rcv_cur, 0);
+		}
 	}
 #endif
 
 	/* Wake user task if TX queue is ready for more data */
 	if (conn->rdp.state == RDP_OPEN)
-		if (csp_queue_size(conn->rdp.tx_queue) < conn->rdp.window_size - 1)
-			if (conn->rdp.snd_nxt - conn->rdp.snd_una < conn->rdp.window_size * 2)
+		if (csp_queue_size(conn->rdp.tx_queue) < conn->rdp.window_size)
+			if ((uint16_t) (conn->rdp.snd_nxt - conn->rdp.snd_una) < conn->rdp.window_size * 2)
 				csp_bin_sem_post(&conn->rdp.tx_wait);
 
 }
@@ -693,11 +694,10 @@ void csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 			csp_debug(CSP_PROTOCOL, "RDP: NP: Connection OPEN\r\n");
 
 			/* Send ACK */
-#if CSP_DELAY_ACKS
-			conn->rdp.rcv_lsa = rx_header->seq_nr - 1;
-#else
-			csp_rdp_send_cmp(conn, NULL, 1, 0, 0, 0, conn->rdp.snd_nxt, conn->rdp.rcv_cur, 0);
-#endif
+			if (conn->rdp.delayed_acks != 0)
+				conn->rdp.rcv_lsa = rx_header->seq_nr - 1;
+			else
+				csp_rdp_send_cmp(conn, NULL, 1, 0, 0, 0, conn->rdp.snd_nxt, conn->rdp.rcv_cur, 0);
 
 			/* Wake TX task */
 			csp_bin_sem_post(&conn->rdp.tx_wait);
@@ -814,14 +814,14 @@ void csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 		conn->rdp.rcv_cur = seq_nr;
 
 		/* The message is in sequence and contains data */
-#if CSP_DELAY_ACKS
-		/* We only ACK this if receiver window is half full */
-		if (conn->rdp.rcv_cur > conn->rdp.rcv_lsa + conn->rdp.ack_delay_count)
+		if (conn->rdp.delayed_acks != 0) {
+			/* We only ACK this if receiver window is half full */
+			if (conn->rdp.rcv_cur > conn->rdp.rcv_lsa + conn->rdp.ack_delay_count)
+				csp_rdp_send_cmp(conn, NULL, 1, 0, 0, 0, conn->rdp.snd_nxt, conn->rdp.rcv_cur, 0);
+		} else {
+			/* ACK the message */
 			csp_rdp_send_cmp(conn, NULL, 1, 0, 0, 0, conn->rdp.snd_nxt, conn->rdp.rcv_cur, 0);
-#else
-		/* ACK the message */
-		csp_rdp_send_cmp(conn, NULL, 1, 0, 0, 0, conn->rdp.snd_nxt, conn->rdp.rcv_cur, 0);
-#endif
+		}
 
 		/* Flush RX queue */
 		csp_rdp_rx_queue_flush(conn);
@@ -952,7 +952,7 @@ int csp_rdp_send(csp_conn_t * conn, csp_packet_t * packet, unsigned int timeout)
 	csp_debug(CSP_PROTOCOL, "RDP: SEND SEQ %u\r\n", conn->rdp.snd_nxt);
 
 	/* If TX window is full, wait here */
-	if (conn->rdp.snd_nxt - conn->rdp.snd_una + 1 >= conn->rdp.window_size) {
+	if (conn->rdp.snd_nxt - conn->rdp.snd_una + 1 > conn->rdp.window_size) {
 		csp_bin_sem_wait(&conn->rdp.tx_wait, 0);
 		if ((csp_bin_sem_wait(&conn->rdp.tx_wait, timeout)) != CSP_SEMAPHORE_OK) {
 			csp_debug(CSP_ERROR, "Timeout during send\r\n");
