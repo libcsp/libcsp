@@ -20,10 +20,9 @@ SZ = $(TOOLCHAIN)size
 
 ## Options common to compile, link and assembly rules
 
+COMMON = -DCSP_USER_CONFIG
 ifeq ($(TOOLCHAIN),avr-)
 COMMON +=-mmcu=$(MCU)
-else 
-COMMON =
 endif
 
 ## Compile options common for all C compilation units.
@@ -46,7 +45,8 @@ ASMFLAGS += -x assembler-with-cpp -Wa,-gdwarf2
 ARFLAGS = -rcu
 
 ## Include Directories
-INCLUDES = -I./include
+INCLUDES = -I../cspconf
+INCLUDES += -I./include
 INCLUDES += -I../libavr/include/
 INCLUDES += -I../libfreertos/include/
 
@@ -85,6 +85,11 @@ endif
 ifeq ($(TOOLCHAIN),arm-none-eabi-)
 SOURCES += src/csp_debug.c
 SOURCES += src/interfaces/can/can_at91sam7a3.c
+endif
+
+ifeq ($(TOOLCHAIN),bfin-linux-uclibc-)
+SOURCES += src/csp_debug.c
+SOURCES += src/interfaces/can/can_socketcan.c
 endif
 
 ## POSIX archs requires pthread_queue
