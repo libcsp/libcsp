@@ -101,7 +101,7 @@ void * csp_buffer_get_isr(size_t buf_size) {
 	static uint8_t csp_buffer_last_given = 0;
 
 	if (buf_size + CSP_BUFFER_PACKET_OVERHEAD > size) {
-		csp_debug(CSP_ERROR, "Attempt to allocate too large block\r\n");
+		csp_debug(CSP_ERROR, "Attempt to allocate too large block %u\r\n", buf_size);
 		return NULL;
 	}
 

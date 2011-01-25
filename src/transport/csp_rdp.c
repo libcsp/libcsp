@@ -381,7 +381,7 @@ static void csp_rdp_flush_eack(csp_conn_t * conn, csp_packet_t * eack_packet) {
 	for (i = 0; i < count; i++) {
 
 		if (csp_queue_dequeue(conn->rdp.tx_queue, &packet, 0) != CSP_QUEUE_OK) {
-			csp_debug(CSP_ERROR, "Cannot dequeue from tx_queue in flush\r\n");
+			csp_debug(CSP_ERROR, "Cannot dequeue from tx_queue in flush EACK\r\n");
 			break;
 		}
 
@@ -393,8 +393,9 @@ static void csp_rdp_flush_eack(csp_conn_t * conn, csp_packet_t * eack_packet) {
 		for (j = 0; j < (eack_packet->length - sizeof(rdp_header_t)) / sizeof(uint16_t); j++) {
 			if (ntohs(eack_packet->data16[j]) == ntohs(header->seq_nr))
 				match = 1;
-			if (ntohs(eack_packet->data16[j]) > ntohs(header->seq_nr))
-				packet->timestamp = csp_get_ms() - conn->rdp.packet_timeout;
+			/*** Enable this if you want EACK's to trigger retransmission */
+			//if (ntohs(eack_packet->data16[j]) > ntohs(header->seq_nr))
+			//	packet->timestamp = csp_get_ms() - conn->rdp.packet_timeout;
 		}
 
 		if (match == 0) {
@@ -419,33 +420,20 @@ void csp_rdp_flush_all(csp_conn_t * conn) {
 
 	rdp_packet_t * packet;
 
-	/* Loop through TX queue */
-	int i;
-	unsigned int count = csp_queue_size(conn->rdp.tx_queue);
-	for (i = 0; i < count; i++) {
+	/* Empty TX queue */
+    while(csp_queue_dequeue_isr(conn->rdp.tx_queue, &packet, &pdTrue) == CSP_QUEUE_OK) {
+    	if (packet != NULL) {
+    		csp_debug(CSP_PROTOCOL, "Flush TX Element, time %u, seq %u\r\n", packet->timestamp, ntohs(csp_rdp_header_ref((csp_packet_t *) packet)->seq_nr));
+    		csp_buffer_free(packet);
+    	}
+    }
 
-		if (csp_queue_dequeue_isr(conn->rdp.tx_queue, &packet, &pdTrue) != CSP_QUEUE_OK) {
-			csp_debug(CSP_ERROR, "Cannot dequeue from tx_queue in flush all\r\n");
-			break;
+	/* Empty RX queue */
+    while(csp_queue_dequeue_isr(conn->rdp.rx_queue, &packet, &pdTrue) == CSP_QUEUE_OK) {
+		if (packet != NULL) {
+			csp_debug(CSP_PROTOCOL, "Flush RX Element, time %u, seq %u\r\n", packet->timestamp, ntohs(csp_rdp_header_ref((csp_packet_t *) packet)->seq_nr));
+			csp_buffer_free(packet);
 		}
-
-		csp_debug(CSP_PROTOCOL, "Clear TX Element, time %u, seq %u\r\n", packet->timestamp, ntohs(csp_rdp_header_ref((csp_packet_t *) packet)->seq_nr));
-		csp_buffer_free(packet);
-		continue;
-	}
-
-	/* Loop through RX queue */
-	count = csp_queue_size(conn->rdp.rx_queue);
-	for (i = 0; i < count; i++) {
-
-		if (csp_queue_dequeue_isr(conn->rdp.rx_queue, &packet, &pdTrue) != CSP_QUEUE_OK) {
-			csp_debug(CSP_ERROR, "Cannot dequeue from rx_queue in flush all\r\n");
-			break;
-		}
-
-		csp_debug(CSP_PROTOCOL, "Clear RX Element, time %u, seq %u\r\n", packet->timestamp, ntohs(csp_rdp_header_ref((csp_packet_t *) packet)->seq_nr));
-		csp_buffer_free(packet);
-		continue;
 	}
 
 }
@@ -486,13 +474,13 @@ void csp_rdp_check_timeouts(csp_conn_t * conn) {
 	/**
 	 * CLOSE-WAIT TIMEOUT:
 	 * After waiting a while in CLOSE-WAIT, the connection should be closed.
-	 * */
+	 */
 	if (conn->rdp.state == RDP_CLOSE_WAIT) {
 		if (conn->open_timestamp + conn->rdp.conn_timeout < time_now) {
 			csp_debug(CSP_PROTOCOL, "CLOSE_WAIT timeout\r\n");
 			csp_close(conn);
-			return;
 		}
+		return;
 	}
 
 	/**
@@ -506,7 +494,7 @@ void csp_rdp_check_timeouts(csp_conn_t * conn) {
 	for (i = 0; i < count; i++) {
 
 		if ((csp_queue_dequeue_isr(conn->rdp.tx_queue, &packet, &pdTrue) != CSP_QUEUE_OK) || packet == NULL) {
-			csp_debug(CSP_ERROR, "Cannot dequeue from tx_queue in flush\r\n");
+			csp_debug(CSP_WARN, "Cannot dequeue from tx_queue in check timeout\r\n");
 			break;
 		}
 
@@ -863,7 +851,7 @@ discard_close:
 
 	/* If user-space has received the connection handle, wake it up,
 	 * by sending a NULL pointer, user-space should close connection */
-	if (conn->rx_socket == (void *) 1) {
+	if (conn->rx_socket == (void *) 1 || conn->rx_socket == NULL) {
 		csp_debug(CSP_PROTOCOL, "Waiting for userspace to close\r\n");
 	    void * null_pointer = NULL;
 	    csp_queue_enqueue(conn->rx_queue, &null_pointer, 0);
@@ -949,7 +937,7 @@ int csp_rdp_send(csp_conn_t * conn, csp_packet_t * packet, unsigned int timeout)
 		return 0;
 	}
 
-	csp_debug(CSP_PROTOCOL, "RDP: SEND SEQ %u\r\n", conn->rdp.snd_nxt);
+	csp_debug(CSP_PROTOCOL, "RDP: SEND SEQ %u SIZE %u\r\n", conn->rdp.snd_nxt, packet->length);
 
 	/* If TX window is full, wait here */
 	if (conn->rdp.snd_nxt - conn->rdp.snd_una + 1 > conn->rdp.window_size) {
