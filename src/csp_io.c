@@ -93,19 +93,26 @@ csp_socket_t * csp_socket(uint32_t opts) {
 	} else if ((opts & CSP_SO_CRC32REQ) && !CSP_ENABLE_CRC32) {
 		csp_debug(CSP_ERROR, "Attempt to create socket that requires CRC32, but CSP was compiled without CRC32 support\r\n");
 		return NULL;
-	} else if (opts & ~(CSP_SO_RDPREQ | CSP_SO_XTEAREQ | CSP_SO_HMACREQ | CSP_SO_CRC32REQ)) {
+	} else if (opts & ~(CSP_SO_RDPREQ | CSP_SO_XTEAREQ | CSP_SO_HMACREQ | CSP_SO_CRC32REQ | CSP_SO_CONN_LESS)) {
 		csp_debug(CSP_ERROR, "Invalid socket option\r\n");
 		return NULL;
 	}
 
 	/* Use CSP buffers instead? */
     csp_socket_t * sock = csp_malloc(sizeof(csp_socket_t));
-    if (sock != NULL) {
-        sock->conn_queue = NULL;
-        sock->opts = opts;
-    }
+    if (sock == NULL)
+    	return NULL;
 
-    return sock;
+    /* If connection less, init the queue to a pre-defined size
+     * if not, the user must init the queue using csp_listen */
+    if (opts & CSP_SO_CONN_LESS) {
+    	sock->queue = csp_queue_create(CSP_CONN_QUEUE_LENGTH, sizeof(csp_packet_t *));
+    } else {
+    	sock->queue = NULL;
+    }
+	sock->opts = opts;
+
+	return sock;
 
 }
 
@@ -120,11 +127,11 @@ csp_conn_t * csp_accept(csp_socket_t * sock, unsigned int timeout) {
     if (sock == NULL)
         return NULL;
 
-    if (sock->conn_queue == NULL)
+    if (sock->queue == NULL)
     	return NULL;
 
 	csp_conn_t * conn;
-    if (csp_queue_dequeue(sock->conn_queue, &conn, timeout) == CSP_QUEUE_OK)
+    if (csp_queue_dequeue(sock->queue, &conn, timeout) == CSP_QUEUE_OK)
         return conn;
 
 	return NULL;
@@ -375,5 +382,85 @@ int csp_transaction(uint8_t prio, uint8_t dest, uint8_t port, unsigned int timeo
 	csp_close(conn);
 
 	return status;
+
+}
+
+/**
+ * Read data from a connection-less server socket
+ * This fuction uses the socket directly to receive a frame
+ * If no packet is available and a timeout has been specified the call will block.
+ * Do NOT call this from ISR
+ * @return Returns pointer to csp_packet_t, which you MUST free yourself, either by calling csp_buffer_free() or reusing the buffer for a new csp_send.
+ */
+csp_packet_t * csp_recvfrom(csp_socket_t * socket, unsigned int timeout) {
+
+	if ((socket == NULL) || (socket->opts != CSP_SO_CONN_LESS))
+		return NULL;
+
+	csp_packet_t * packet = NULL;
+    csp_queue_dequeue(socket->queue, &packet, timeout);
+
+	return packet;
+
+}
+
+/**
+ * Send a packet without previously opening a connection
+ * @param prio CSP_PRIO_x
+ * @param dest destination node
+ * @param dport destination port
+ * @param src_port source port
+ * @param opts CSP_O_x
+ * @param packet pointer to packet
+ * @param timeout timeout used by interfaces with blocking send
+ * @return -1 if error (you must free packet), 0 if OK (you must discard pointer)
+ */
+int csp_sendto(uint8_t prio, uint8_t dest, uint8_t dport, uint8_t src_port, uint32_t opts, csp_packet_t * packet, unsigned int timeout) {
+
+	packet->id.flags = 0;
+
+	if (opts & CSP_O_RDP) {
+		csp_debug(CSP_ERROR, "Attempt to create RDP packet on connection-less socket\r\n");
+		return -1;
+	}
+
+	if (opts & CSP_O_HMAC) {
+#if CSP_ENABLE_HMAC
+		packet->id.flags |= CSP_FHMAC;
+#else
+		csp_debug(CSP_ERROR, "Attempt to create HMAC authenticated packet, but CSP was compiled without HMAC support\r\n");
+		return -1;
+#endif
+	}
+
+	if (opts & CSP_O_XTEA) {
+#if CSP_ENABLE_XTEA
+		packet->id.flags |= CSP_FXTEA;
+#else
+		csp_debug(CSP_ERROR, "Attempt to create XTEA encrypted packet, but CSP was compiled without XTEA support\r\n");
+		return -1;
+#endif
+	}
+
+	if (opts & CSP_O_CRC32) {
+#if CSP_ENABLE_CRC32
+		packet->id.flags |= CSP_FCRC32;
+#else
+		csp_debug(CSP_ERROR, "Attempt to create CRC32 validated packet, but CSP was compiled without CRC32 support\r\n");
+		return -1;
+#endif
+	}
+
+	packet->id.dst = dest;
+	packet->id.dport = dport;
+	packet->id.src = my_address;
+	packet->id.sport = src_port;
+	packet->id.pri = prio;
+
+	if (csp_send_direct(packet->id, packet, timeout) == 0) {
+		return -1;
+	} else {
+		return 0;
+	}
 
 }

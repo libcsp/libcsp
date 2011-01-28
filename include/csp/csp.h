@@ -217,6 +217,7 @@ typedef union {
 #define CSP_SO_XTEAPROHIB	0x0020				// Prohibit HMAC
 #define CSP_SO_CRC32REQ		0x0040				// Require CRC32
 #define CSP_SO_CRC32PROHIB	0x0080				// Prohibit CRC32
+#define CSP_SO_CONN_LESS	0x0100				// Enable Connection Less mode
 
 /** CSP Connect options */
 #define CSP_O_RDP  			CSP_SO_RDPREQ		// Enable RDP
@@ -292,6 +293,8 @@ csp_packet_t * csp_read(csp_conn_t * conn, unsigned int timeout);
 int csp_send(csp_conn_t * conn, csp_packet_t * packet, unsigned int timeout);
 int csp_transaction(uint8_t prio, uint8_t dest, uint8_t port, unsigned int timeout, void * outbuf, int outlen, void * inbuf, int inlen);
 int csp_transaction_persistent(csp_conn_t * conn, unsigned int timeout, void * outbuf, int outlen, void * inbuf, int inlen);
+csp_packet_t * csp_recvfrom(csp_socket_t * socket, unsigned int timeout);
+int csp_sendto(uint8_t prio, uint8_t dest, uint8_t dport, uint8_t src_port, uint32_t opts, csp_packet_t * packet, unsigned int timeout);
 
 /* Implemented in csp_conn.c */
 csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport, unsigned int timeout, uint32_t opts);

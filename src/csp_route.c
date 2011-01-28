@@ -181,62 +181,24 @@ csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 		}
 
 		/* Now, the message is to me:
-		 * search for an existing connection */
-		conn = csp_conn_find(packet->id.ext, CSP_ID_CONN_MASK);
+		 * Find socket */
+		if (ports[packet->id.dport].state == PORT_OPEN) {
+			socket = ports[packet->id.dport].socket;
 
-		/* If no connection was found, try to create a new one */
-		if (conn == NULL) {
-            /* Reject packet if destination port is an ephemeral port */
-            if (packet->id.dport > CSP_MAX_BIND_PORT) {
-		        csp_buffer_free(packet); 
-		    	continue;
-	    	}
-    
-			/* Try to deliver to incoming port number */
-			if (ports[packet->id.dport].state == PORT_OPEN) {
-				socket = ports[packet->id.dport].socket;
+		/* Otherwise, try local "catch all" port number */
+		} else if (ports[CSP_ANY].state == PORT_OPEN) {
+			socket = ports[CSP_ANY].socket;
 
-			/* Otherwise, try local "catch all" port number */
-			} else if (ports[CSP_ANY].state == PORT_OPEN) {
-				socket = ports[CSP_ANY].socket;
-
-			/* Or reject */
-			} else {
-				csp_buffer_free(packet);
-				continue;
-			}
-
-			/* New incoming connection accepted */
-			csp_id_t idout;
-			idout.pri = packet->id.pri;
-			idout.dst = packet->id.src;
-			idout.dport = packet->id.sport;
-			idout.sport = packet->id.dport;
-			idout.flags = packet->id.flags;
-
-			/* Ensure a broadcast packet is replied from correct source address */
-			if (packet->id.dst == CSP_BROADCAST_ADDR) {
-				idout.src = my_address;
-			} else {
-				idout.src = packet->id.dst;
-			}
-
-			/* Create connection */
-			conn = csp_conn_new(packet->id, idout);
-
-			if (conn == NULL) {
-				csp_debug(CSP_ERROR, "No more connections available\r\n");
-				csp_buffer_free(packet);
-				continue;
-			}
-
-			/* Store the queue to be posted to */
-			conn->rx_socket = socket->conn_queue;
-
-			/* Store connection options */
-			conn->conn_opts = socket->opts;
-
+		/* Or reject */
+		} else {
+			csp_buffer_free(packet);
+			continue;
 		}
+
+		/**
+		 * We have accepted the message
+		 * Start DECRYPT / AUTH / CRC32
+		 */
 
 		/* XTEA encrypted packet */
 		if (packet->id.flags & CSP_FXTEA) {
@@ -317,6 +279,59 @@ csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 			csp_buffer_free(packet);
 			continue;
 #endif
+		}
+
+		/* If the socket is connection-less, deliver now */
+		if (socket->opts & CSP_SO_CONN_LESS) {
+			if (csp_queue_enqueue(socket->queue, &packet, 0) != CSP_QUEUE_OK) {
+				csp_debug(CSP_ERROR, "Conn-less socket queue full\r\n");
+				csp_buffer_free(packet);
+				continue;
+			}
+			continue;
+		}
+
+		/* search for an existing connection */
+		conn = csp_conn_find(packet->id.ext, CSP_ID_CONN_MASK);
+
+		/* If no connection was found, try to create a new one */
+		if (conn == NULL) {
+			/* Reject packet if destination port is an ephemeral port */
+			if (packet->id.dport > CSP_MAX_BIND_PORT) {
+				csp_buffer_free(packet);
+				continue;
+			}
+
+			/* New incoming connection accepted */
+			csp_id_t idout;
+			idout.pri = packet->id.pri;
+			idout.dst = packet->id.src;
+			idout.dport = packet->id.sport;
+			idout.sport = packet->id.dport;
+			idout.flags = packet->id.flags;
+
+			/* Ensure a broadcast packet is replied from correct source address */
+			if (packet->id.dst == CSP_BROADCAST_ADDR) {
+				idout.src = my_address;
+			} else {
+				idout.src = packet->id.dst;
+			}
+
+			/* Create connection */
+			conn = csp_conn_new(packet->id, idout);
+
+			if (conn == NULL) {
+				csp_debug(CSP_ERROR, "No more connections available\r\n");
+				csp_buffer_free(packet);
+				continue;
+			}
+
+			/* Store the queue to be posted to */
+			conn->rx_socket = socket->queue;
+
+			/* Store connection options */
+			conn->conn_opts = socket->opts;
+
 		}
 
 		/* Pass packet to the right transport module */

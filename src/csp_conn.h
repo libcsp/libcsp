@@ -85,7 +85,7 @@ struct csp_conn_s {
 
 /** @brief Socket struct */
 struct csp_socket_s {
-    csp_queue_handle_t conn_queue;	// Connection queue handle
+    csp_queue_handle_t queue;	// Connection queue handle
     uint32_t opts;					// Socket options
 };
 
