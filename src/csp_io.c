@@ -107,6 +107,8 @@ csp_socket_t * csp_socket(uint32_t opts) {
      * if not, the user must init the queue using csp_listen */
     if (opts & CSP_SO_CONN_LESS) {
     	sock->queue = csp_queue_create(CSP_CONN_QUEUE_LENGTH, sizeof(csp_packet_t *));
+    	if (sock->queue == NULL)
+    		return NULL;
     } else {
     	sock->queue = NULL;
     }
@@ -394,7 +396,7 @@ int csp_transaction(uint8_t prio, uint8_t dest, uint8_t port, unsigned int timeo
  */
 csp_packet_t * csp_recvfrom(csp_socket_t * socket, unsigned int timeout) {
 
-	if ((socket == NULL) || (socket->opts != CSP_SO_CONN_LESS))
+	if ((socket == NULL) || (!(socket->opts & CSP_SO_CONN_LESS)))
 		return NULL;
 
 	csp_packet_t * packet = NULL;

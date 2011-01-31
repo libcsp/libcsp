@@ -70,7 +70,7 @@ typedef struct {
 	csp_packet_t * packet;
 } csp_route_queue_t;
 
-int csp_bytesize(char *buf, int len, int n) {
+static int csp_bytesize(char *buf, int len, int n) {
     char * postfix;
     double size;
     if (n >= 1048576) {
@@ -84,6 +84,91 @@ int csp_bytesize(char *buf, int len, int n) {
         postfix = "B";
     }
     return snprintf(buf, len, "%.1f%s", size, postfix);
+}
+
+/**
+ * Helper function to decrypt, check auth and crc32
+ * @param security_opts either socket_opts or conn_opts
+ * @param interface pointer to incoming interface
+ * @param packet pointer to packet
+ * @return -1 Missing feature, -2 XTEA error, -3 CRC error, -4 HMAC error, 0 = OK.
+ */
+static int csp_route_security_check(uint32_t security_opts, csp_iface_t * interface, csp_packet_t * packet) {
+
+	/* XTEA encrypted packet */
+	if (packet->id.flags & CSP_FXTEA) {
+#if CSP_ENABLE_XTEA
+		/* Read nonce */
+		uint32_t nonce;
+		memcpy(&nonce, &packet->data[packet->length - sizeof(nonce)], sizeof(nonce));
+		nonce = ntohl(nonce);
+		packet->length -= sizeof(nonce);
+
+		/* Create initialization vector */
+		uint32_t iv[2] = {nonce, 1};
+
+		/* Decrypt data */
+		if (csp_xtea_decrypt(packet->data, packet->length, iv) != 0) {
+			/* Decryption failed */
+			csp_debug(CSP_ERROR, "Decryption failed! Discarding packet\r\n");
+			interface->autherr++;
+			return -2;
+		}
+	} else if (security_opts & CSP_SO_XTEAREQ) {
+		csp_debug(CSP_WARN, "Received packet without XTEA encryption. Discarding packet\r\n");
+		interface->autherr++;
+		return -2;
+#else
+		csp_debug(CSP_ERROR, "Received XTEA encrypted packet, but CSP was compiled without XTEA support. Discarding packet\r\n");
+		interface->autherr++;
+		return -1;
+#endif
+	}
+
+	/* CRC32 verified packet */
+	if (packet->id.flags & CSP_FCRC32) {
+#if CSP_ENABLE_CRC32
+		/* Verify CRC32  */
+		if (csp_crc32_verify(packet) != 0) {
+			/* Checksum failed */
+			csp_debug(CSP_ERROR, "CRC32 verification error! Discarding packet\r\n");
+			interface->rx_error++;
+			return -3;
+		}
+	} else if (security_opts & CSP_SO_CRC32REQ) {
+		csp_debug(CSP_WARN, "Received packet without CRC32. Discarding packet\r\n");
+		interface->rx_error++;
+		return -3;
+#else
+		csp_debug(CSP_ERROR, "Received packet with CRC32, but CSP was compiled without CRC32 support. Discarding packet\r\n");
+		interface->rx_error++;
+		return -1;
+#endif
+	}
+
+	/* HMAC authenticated packet */
+	if (packet->id.flags & CSP_FHMAC) {
+#if CSP_ENABLE_HMAC
+		/* Verify HMAC */
+		if (csp_hmac_verify(packet) != 0) {
+			/* HMAC failed */
+			csp_debug(CSP_ERROR, "HMAC verification error! Discarding packet\r\n");
+			interface->autherr++;
+			return -4;
+		}
+	} else if (security_opts & CSP_SO_HMACREQ) {
+		csp_debug(CSP_WARN, "Received packet without HMAC. Discarding packet\r\n");
+		interface->autherr++;
+		return -4;
+#else
+		csp_debug(CSP_ERROR, "Received packet with HMAC, but CSP was compiled without HMAC support. Discarding packet\r\n");
+		interface->autherr++;
+		return -1;
+#endif
+	}
+
+	return 0;
+
 }
 
 /**
@@ -180,124 +265,54 @@ csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 
 		}
 
-		/* Now, the message is to me:
-		 * Find socket */
-		if (ports[packet->id.dport].state == PORT_OPEN) {
-			socket = ports[packet->id.dport].socket;
+		/**
+		 * Now: The message is to me
+		 */
 
-		/* Otherwise, try local "catch all" port number */
-		} else if (ports[CSP_ANY].state == PORT_OPEN) {
-			socket = ports[CSP_ANY].socket;
+		/* Search for incoming socket */
+		if (packet->id.dport <= CSP_MAX_BIND_PORT) {
 
-		/* Or reject */
-		} else {
-			csp_buffer_free(packet);
-			continue;
+			if (ports[packet->id.dport].state == PORT_OPEN) {
+				socket = ports[packet->id.dport].socket;
+
+			/* Otherwise, try local "catch all" port number */
+			} else if (ports[CSP_ANY].state == PORT_OPEN) {
+				socket = ports[CSP_ANY].socket;
+
+			/* Or reject */
+			} else {
+				csp_buffer_free(packet);
+				continue;
+			}
+
+			/* If the socket is connection-less, deliver now */
+			if (socket->opts & CSP_SO_CONN_LESS) {
+				if (csp_route_security_check(socket->opts, input.interface, packet) < 0) {
+					csp_buffer_free(packet);
+					continue;
+				}
+				if (csp_queue_enqueue(socket->queue, &packet, 0) != CSP_QUEUE_OK) {
+					csp_debug(CSP_ERROR, "Conn-less socket queue full\r\n");
+					csp_buffer_free(packet);
+					continue;
+				}
+				continue;
+			}
+
 		}
 
 		/**
-		 * We have accepted the message
-		 * Start DECRYPT / AUTH / CRC32
+		 * Now: We have a connection oriented packet,
 		 */
-
-		/* XTEA encrypted packet */
-		if (packet->id.flags & CSP_FXTEA) {
-#if CSP_ENABLE_XTEA
-			/* Read nonce */
-			uint32_t nonce;
-			memcpy(&nonce, &packet->data[packet->length - sizeof(nonce)], sizeof(nonce));
-			nonce = ntohl(nonce);
-			packet->length -= sizeof(nonce);
-
-			/* Create initialization vector */
-			uint32_t iv[2] = {nonce, 1};
-
-			/* Decrypt data */
-			if (csp_xtea_decrypt(packet->data, packet->length, iv) != 0) {
-				/* Decryption failed */
-				csp_debug(CSP_ERROR, "Decryption failed! Discarding packet\r\n");
-				input.interface->autherr++;
-				csp_buffer_free(packet);
-				continue;
-			}
-		} else if (conn->conn_opts & CSP_SO_XTEAREQ) {
-			csp_debug(CSP_WARN, "Received packet without XTEA encryption. Discarding packet\r\n", conn);
-			input.interface->autherr++;
-			csp_buffer_free(packet);
-			continue;
-#else
-			csp_debug(CSP_ERROR, "Received XTEA encrypted packet, but CSP was compiled without XTEA support. Discarding packet\r\n");
-			input.interface->autherr++;
-			csp_buffer_free(packet);
-			continue;
-#endif
-		}
-
-		/* CRC32 verified packet */
-		if (packet->id.flags & CSP_FCRC32) {
-#if CSP_ENABLE_CRC32
-			/* Verify CRC32  */
-			if (csp_crc32_verify(packet) != 0) {
-				/* Checksum failed */
-				csp_debug(CSP_ERROR, "CRC32 verification error! Discarding packet\r\n");
-				input.interface->rx_error++;
-				csp_buffer_free(packet);
-				continue;
-			}
-		} else if (conn->conn_opts & CSP_SO_CRC32REQ) {
-			csp_debug(CSP_WARN, "Received packet without CRC32. Discarding packet\r\n", conn);
-			input.interface->rx_error++;
-			csp_buffer_free(packet);
-			continue;
-#else
-			csp_debug(CSP_ERROR, "Received packet with CRC32, but CSP was compiled without CRC32 support. Discarding packet\r\n");
-			input.interface->rx_error++;
-			csp_buffer_free(packet);
-			continue;
-#endif
-		}
-
-		/* HMAC authenticated packet */
-		if (packet->id.flags & CSP_FHMAC) {
-#if CSP_ENABLE_HMAC
-			/* Verify HMAC */
-			if (csp_hmac_verify(packet) != 0) {
-				/* HMAC failed */
-				csp_debug(CSP_ERROR, "HMAC verification error! Discarding packet\r\n");
-				input.interface->autherr++;
-				csp_buffer_free(packet);
-				continue;
-			}
-		} else if (conn->conn_opts & CSP_SO_HMACREQ) {
-			csp_debug(CSP_WARN, "Received packet without HMAC. Discarding packet\r\n", conn);
-			input.interface->autherr++;
-			csp_buffer_free(packet);
-			continue;
-#else
-			csp_debug(CSP_ERROR, "Received packet with HMAC, but CSP was compiled without HMAC support. Discarding packet\r\n");
-			input.interface->autherr++;
-			csp_buffer_free(packet);
-			continue;
-#endif
-		}
-
-		/* If the socket is connection-less, deliver now */
-		if (socket->opts & CSP_SO_CONN_LESS) {
-			if (csp_queue_enqueue(socket->queue, &packet, 0) != CSP_QUEUE_OK) {
-				csp_debug(CSP_ERROR, "Conn-less socket queue full\r\n");
-				csp_buffer_free(packet);
-				continue;
-			}
-			continue;
-		}
 
 		/* search for an existing connection */
 		conn = csp_conn_find(packet->id.ext, CSP_ID_CONN_MASK);
 
 		/* If no connection was found, try to create a new one */
 		if (conn == NULL) {
-			/* Reject packet if destination port is an ephemeral port */
-			if (packet->id.dport > CSP_MAX_BIND_PORT) {
+
+			/* A socket must exist for a new connection */
+			if (socket == NULL) {
 				csp_buffer_free(packet);
 				continue;
 			}
@@ -326,12 +341,17 @@ csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 				continue;
 			}
 
-			/* Store the queue to be posted to */
+			/* Store the socket queue and options */
 			conn->rx_socket = socket->queue;
-
-			/* Store connection options */
 			conn->conn_opts = socket->opts;
 
+		}
+
+		/* Run security check on incoming packet */
+		if (csp_route_security_check(conn->conn_opts, input.interface, packet) < 0) {
+			csp_debug(CSP_WARN, "Packet discarded\r\n");
+			csp_buffer_free(packet);
+			continue;
 		}
 
 		/* Pass packet to the right transport module */
@@ -341,7 +361,7 @@ csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 			csp_rdp_new_packet(conn, packet);
 			continue;
 		} else if (conn->conn_opts & CSP_SO_RDPREQ) {
-			csp_debug(CSP_WARN, "Received packet without RDP header. Discarding packet\r\n", conn);
+			csp_debug(CSP_WARN, "Received packet without RDP header. Discarding packet\r\n");
 			input.interface->rx_error++;
 			csp_buffer_free(packet);
 			continue;
