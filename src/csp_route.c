@@ -70,22 +70,6 @@ typedef struct {
 	csp_packet_t * packet;
 } csp_route_queue_t;
 
-static int csp_bytesize(char *buf, int len, int n) {
-    char * postfix;
-    double size;
-    if (n >= 1048576) {
-        size = n/1048576.0;
-        postfix = "M";
-    } else if (n >= 1024) {
-        size = n/1024.;
-        postfix = "K";
-    } else {
-        size = n;
-        postfix = "B";
-    }
-    return snprintf(buf, len, "%.1f%s", size, postfix);
-}
-
 /**
  * Helper function to decrypt, check auth and crc32
  * @param security_opts either socket_opts or conn_opts
@@ -513,6 +497,23 @@ uint8_t csp_route_get_nexthop_mac(uint8_t node) {
 }
 
 #if CSP_DEBUG
+
+static int csp_bytesize(char *buf, int len, int n) {
+    char * postfix;
+    double size;
+    if (n >= 1048576) {
+        size = n/1048576.0;
+        postfix = "M";
+    } else if (n >= 1024) {
+        size = n/1024.;
+        postfix = "K";
+    } else {
+        size = n;
+        postfix = "B";
+    }
+    return snprintf(buf, len, "%.1f%s", size, postfix);
+}
+
 void csp_route_print_interfaces(void) {
 	csp_iface_t * i = interfaces;
 	char txbuf[25], rxbuf[25];
