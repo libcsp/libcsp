@@ -164,6 +164,9 @@ void csp_route_table_init(void) {
 	/* Clear table */
 	memset(routes, 0, sizeof(csp_route_t) * (CSP_ID_HOST_MAX + 2));
 
+	/* Create fallback socket  */
+	router_input_fifo = csp_queue_create(CSP_FIFO_INPUT, sizeof(csp_route_queue_t));
+
 }
 
 /**
@@ -181,10 +184,8 @@ csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 	csp_socket_t * socket = NULL;
 	csp_route_t * dst;
 
-	/* Create fallback socket  */
-	router_input_fifo = csp_queue_create(CSP_FIFO_INPUT, sizeof(csp_route_queue_t));
 	if (router_input_fifo == NULL) {
-		csp_debug(CSP_ERROR, "Failed to create router input queue\r\n");
+		csp_debug(CSP_ERROR, "Router not initialized\r\n");
 		csp_thread_exit();
 	}
 
