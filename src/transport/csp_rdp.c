@@ -28,7 +28,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  * For more information read RFC-908. The implementation has been extended to include support for
  * delayed acknowledgements.
  *
- * TODO: Take wrapping sequence/ack numbers into account
  * TODO: Take wrapping timestamps from csp_get_ms into account
  */
 
