@@ -424,17 +424,6 @@ int csp_rx_callback(can_frame_t * frame, CSP_BASE_TYPE * task_woken) {
     
     can_id_t id = frame->id;
 
-    /* A little debugging information please */
-    csp_debug(CSP_INFO, "CAN Frame id=%"PRIx32" src=%#02"PRIx32" dst=%#02"PRIx32" type=%#02"PRIx32" remain=%#02"PRIx32" id=%#02"PRIx32" dlc=%d\r\n",
-    	id,
-        CFP_SRC(id),
-        CFP_DST(id),
-        CFP_TYPE(id),
-        CFP_REMAIN(id),
-        CFP_ID(id),
-        frame->dlc
-    );
-
     /* Bind incoming frame to a packet buffer */
     buf = pbuf_find(id, CFP_ID_CONN_MASK, task_woken);
 
