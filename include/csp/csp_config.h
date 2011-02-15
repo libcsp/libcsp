@@ -45,7 +45,7 @@ extern "C" {
 #endif
 
 #ifdef CSP_USER_CONFIG
-#include <csp_config_user.h>
+#include <conf_csp/csp_config_user.h>
 #else
 
 /* General config */
