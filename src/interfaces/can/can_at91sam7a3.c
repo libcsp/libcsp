@@ -20,14 +20,15 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 /* AT91SAM7A3 driver */
 
-#include <dev/arm/at91sam7.h>
-
 #include <stdio.h>
 #include <stdint.h>
 #include <inttypes.h>
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
+
+#include <atmel/AT91SAM7A3.h>
+#include <atmel/aic.h>
 
 #include <csp/csp.h>
 #include <csp/interfaces/csp_if_can.h>
@@ -59,7 +60,7 @@ static mbox_t mbox[CAN_TX_MBOX];
 
 /** Calculate mode register. Each bit is divided in 10 time quanta
  *  Fixed values: PROPAG=0 SJW=1 SMP=1 PHASE1=3 PHASE2=3 */
-#define CAN_MODE(bitrate,clock_speed) (0x01001033 | (((clock_speed)/(10 * (bitratte)) - 1) << 16))
+#define CAN_MODE(bitrate,clock_speed) (0x01001033 | (((clock_speed)/(10 * (bitrate)) - 1) << 16))
 
 /** Pointers to the hardware */
 can_controller_t * const CAN_CTRL = ((can_controller_t *)CAN0_BASE_ADDRESS);
@@ -72,16 +73,14 @@ static void can_init_interrupt(uint32_t id, uint32_t mask) {
 	uint8_t mbox;
 
 	/* Configure ISR */
-	AT91F_AIC_ConfigureIt(AT91C_BASE_AIC, AT91C_ID_CAN,
-			AT91C_AIC_PRIOR_HIGHEST, AT91C_AIC_SRCTYPE_INT_POSITIVE_EDGE,
-			(void(*)(void)) can_isr);
+	AIC_ConfigureIT(AT91C_ID_CAN0, AT91C_AIC_PRIOR_HIGHEST, (void(*)(void)) can_isr);
 
 	/* Enable interrupts for all mailboxes */
 	for (mbox = 0; mbox < CAN_MBOXES; mbox++) {
 		if (mbox >= CAN_TX_MBOX) {
 			/* Setup the mask and ID */
-			CAN_CTRL->CHANNEL[mbox].MAM = (mask & 0x1FFFFFFF);
-			CAN_CTRL->CHANNEL[mbox].MID = (id   & 0x1FFFFFFF);
+			CAN_CTRL->CHANNEL[mbox].MAM = (mask & 0x1FFFFFFF) | MIDE;
+			CAN_CTRL->CHANNEL[mbox].MID = (id   & 0x1FFFFFFF) | MIDE;
 
 			/* Allow next transmission */
 			CAN_CTRL->CHANNEL[mbox].MCR = MTCR;
@@ -98,20 +97,19 @@ static void can_init_interrupt(uint32_t id, uint32_t mask) {
 	}
 
 	/* Enable interrupt */
-	AT91F_AIC_EnableIt(AT91C_BASE_AIC, AT91C_ID_CAN);
+	AIC_EnableIT(AT91C_ID_CAN0);
 
 }
 
 int can_init(uint32_t id, uint32_t mask, can_tx_callback_t atxcb, can_rx_callback_t arxcb, void * conf, int conflen) {
 
-	int i;
 	uint32_t bitrate;
 	uint32_t clock_speed;
-	struct can_at90can128_conf * can_conf;
+	struct can_at91sam7a3_conf * can_conf;
 
 	/* Validate config size */
-	if (conf != NULL && conflen == sizeof(struct can_at90can128_conf)) {
-		can_conf = (struct can_at90can128_conf *)conf;
+	if (conf != NULL && conflen == sizeof(struct can_at91sam7a3_conf)) {
+		can_conf = (struct can_at91sam7a3_conf *)conf;
 		bitrate = can_conf->bitrate;
 		clock_speed = can_conf->clock_speed;
 	} else {
@@ -129,7 +127,7 @@ int can_init(uint32_t id, uint32_t mask, can_tx_callback_t atxcb, can_rx_callbac
 
 	/* Configure baudrate */
 	CAN_CTRL->BR = CAN_MODE(bitrate, clock_speed);
-	printf("Baudrate register: %"PRIx32"\r\n");
+	printf("Baudrate register: %"PRIx32"\r\n", CAN_CTRL->BR);
 
 	/* The AT91SAM7A1 uses binary '1' to mark don't care bits */
 	mask = ~mask;
@@ -154,7 +152,8 @@ int can_send(can_id_t id, uint8_t data[], uint8_t dlc, CSP_BASE_TYPE * task_woke
 
 	/* Find free mailbox */
 	for(i = 0; i < CAN_TX_MBOX; i++) {
-		if (mbox[i] == MBOX_FREE && !(CAN_CTRL->CHANNEL[i].CR & CHANEN)) {
+		//if (mbox[i] == MBOX_FREE && !(CAN_CTRL->CHANNEL[i].CR & CHANEN)) {
+		if (mbox[i] == MBOX_FREE) {
 			mbox[i] = MBOX_USED;
 			m = i;
 			break;
@@ -175,7 +174,7 @@ int can_send(can_id_t id, uint8_t data[], uint8_t dlc, CSP_BASE_TYPE * task_woke
 	printf("Got mob %d\r\n", m);
 
 	/* Copy 29 identifier to IR register */
-	CAN_CTRL->CHANNEL[m].MID = (id & 0x1FFFFFFF);
+	CAN_CTRL->CHANNEL[m].MID = (id & 0x1FFFFFFF) | MIDE;
 
 	/* Copy data to MDH and MDL registers */
 	switch (dlc) {
@@ -239,11 +238,11 @@ static void __attribute__ ((noinline)) can_dsr(void) {
 						frame.dlc = (uint8_t)((CAN_CTRL->CHANNEL[m].MCR >> 16) & 0x0F);
 
 						/* Read data */
-						frame.data32[0] = CAN_CTRL->CHANNEL[m].MDH;
-						frame.data32[1] = CAN_CTRL->CHANNEL[m].MDL;
+						frame.data32[0] = (CAN_CTRL->CHANNEL[m].MDH);
+						frame.data32[1] = (CAN_CTRL->CHANNEL[m].MDL);
 
 						/* Read identifier */
-						frame.id = (CAN_CTRL->CHANNEL[mbox].MID & 0x1FFFFFFF);
+						frame.id = (CAN_CTRL->CHANNEL[m].MID & 0x1FFFFFFF);
 
 						/* Call RX Callback */
 						if (rxcb != NULL)
@@ -251,13 +250,13 @@ static void __attribute__ ((noinline)) can_dsr(void) {
 					}
 
 					/* Get ready to receive new mail */
-					CAN_CTRL->CHANNEL[mbox].MCR = MTCR;
+					CAN_CTRL->CHANNEL[m].MCR = MTCR;
 				} else {
 					printf("Mailbox %d TX OK\r\n", m);
 					/* TX mailbox */
 
 					/* Get identifier */
-					can_id_t id = (CAN_CTRL->CHANNEL[mbox].MID & 0x1FFFFFFF);
+					can_id_t id = (CAN_CTRL->CHANNEL[m].MID & 0x1FFFFFFF);
 
 					/* Call TX Callback with no error */
 					if (txcb != NULL)

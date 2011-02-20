@@ -47,8 +47,6 @@ ARFLAGS = -rcu
 ## Include Directories
 INCLUDES = -I../cspconf
 INCLUDES += -I./include
-INCLUDES += -I../libavr/include/
-INCLUDES += -I../libfreertos/include/
 
 ## Objects that must be built in order to archive
 SOURCES += src/csp_buffer.c
@@ -79,10 +77,14 @@ SOURCES += src/interfaces/can/can_socketcan.c
 endif
 
 ifeq ($(TOOLCHAIN),avr-)
+INCLUDES += -I../libavr/include/
+INCLUDES += -I../libfreertos/include/
 SOURCES += src/interfaces/can/can_at90can128.c
 endif
 
 ifeq ($(TOOLCHAIN),arm-none-eabi-)
+INCLUDES += -I../libfreertosarm/include/
+INCLUDES += -I../libarm/include/
 SOURCES += src/csp_debug.c
 SOURCES += src/interfaces/can/can_at91sam7a3.c
 endif

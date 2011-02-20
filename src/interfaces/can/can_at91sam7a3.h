@@ -128,14 +128,14 @@ typedef struct {
 
 /** CAN Message Register: MAM, MID */
 #define  MIDvB 		(0x3FFFF << 0)  /* Complementary bits for identifier in extended frame mode */
-#define  MIDvB 		(0x7FF << 18)   /* Identifier for standard frame mode */
+#define  MIDvA 		(0x7FF << 18)   /* Identifier for standard frame mode */
 #define  MIDE 		(0x01 << 29)   	/* Mailbox Timemark 				*/
 
 /** CAN Message Family ID Register */
 #define  MFID 		(0x7FFFFFF << 0)  /* Family ID */
 
 /** CAN Message Status Register: MSR */
-#define  MTIMESTAMP	(0xFFFF << 0)   /* Timer value 						*/
+/* MTIMESTAMP defined in TIMSTP */  /* Timer value 						*/
 #define  MDLC		(0x0F << 16)	/* Mailbox Data Length Code 		*/
 #define  MRTR		(0x01 << 20)	/* Mailbox Remote Transmission Request */
 #define  MABT		(0x01 << 22)	/* Mailbox Message Abort */
@@ -143,10 +143,10 @@ typedef struct {
 #define  MMI		(0x07 << 24)	/* Mailbox Message Ignored */
 
 /** CAN Message Data Low Register: MDL */
-#define  MDL		(0xFFFFFFFF << 0)   /* Message Data Low Value */
+//#define  MDL		(0xFFFFFFFF << 0)   /* Message Data Low Value */
 
 /** CAN Message Data High Register: MDH */
-#define  MDH		(0xFFFFFFFF << 0)   /* Message Data High Value */
+//#define  MDH		(0xFFFFFFFF << 0)   /* Message Data High Value */
 
 /** CAN Message Control Register: MCR */
 #define  MACR		(0x01 << 22)   	/* Mailbox Data Length Code */

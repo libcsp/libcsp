@@ -45,6 +45,12 @@ struct can_at91sam7a1_conf {
 	uint32_t clock_speed;
 };
 
+/** AT91SAM7A3 config struct */
+struct can_at91sam7a3_conf {
+	uint32_t bitrate;
+	uint32_t clock_speed;
+};
+
 int csp_can_tx(csp_packet_t * packet, unsigned int timeout);
 int csp_can_init(uint8_t myaddr, uint8_t promisc, void * conf, int conflen);
 
