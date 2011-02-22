@@ -44,9 +44,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 extern "C" {
 #endif
 
-#ifdef CSP_USER_CONFIG
-#include <conf_csp/csp_config_user.h>
-#else
+#ifdef CSP_DFL_CONFIG
 
 /* General config */
 #define CSP_DEBUG			   	0	   	// Enable/disable debugging output
@@ -77,6 +75,8 @@ extern "C" {
 #define CSP_ENABLE_HMAC			1		// Enable Hash-based Message Authentication Code
 #define CSP_ENABLE_XTEA			1		// Enable XTEA packet encryption
 
+#else
+#include <conf_csp/csp_config_user.h>
 #endif
 
 #ifdef __cplusplus
