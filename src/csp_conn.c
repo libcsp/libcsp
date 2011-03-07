@@ -204,7 +204,7 @@ void csp_close(csp_conn_t * conn) {
 
     /* Ensure l4 knows this conn is closing */
 #if CSP_USE_RDP
-    if (conn->idin.flags & CSP_FRDP)
+    if (conn->idin.flags & CSP_FRDP || conn->idout.flags & CSP_FRDP)
 		if (csp_rdp_close(conn) == 1)
 			return;
 #endif
