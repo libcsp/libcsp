@@ -57,7 +57,7 @@ void csp_debug_hook_set(csp_debug_hook_func_t f) {
 
 }
 
-void csp_debug(csp_debug_level_t level, const char * format, ...) {
+void csp_debug_ex(csp_debug_level_t level, const char * format, ...) {
 
 	va_list args;
 	va_start(args, format);
@@ -136,7 +136,6 @@ void csp_debug(csp_debug_level_t level, const char * format, ...) {
 
 		printf("%s", color);
 
-		printf("CSP: ");
 		vprintf(format, args);
 
 		printf("\E[0m");
