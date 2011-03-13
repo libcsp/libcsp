@@ -19,7 +19,6 @@ AR = $(TOOLCHAIN)ar
 SZ = $(TOOLCHAIN)size
 
 ## Options common to compile, link and assembly rules
-
 COMMON = -DCSP_USER_CONFIG
 ifeq ($(TOOLCHAIN),avr-)
 COMMON +=-mmcu=$(MCU)
@@ -109,15 +108,19 @@ all: $(SOURCES) $(TARGET) size
 
 ## Compile
 .c.o:
-	$(CC) $(INCLUDES) $(CFLAGS) -c $< -o $@
+	@echo "  CC    $@"
+	@$(CC) $(INCLUDES) $(CFLAGS) -c $< -o $@
 
 ## Archive to create static lib
 $(TARGET): $(OBJECTS)
-	$(AR) $(ARFLAGS) $(OUTDIR)/$(TARGET) $(OBJECTS) 
+	@echo "  AR    $@"
+	@$(AR) $(ARFLAGS) $(OUTDIR)/$(TARGET) $(OBJECTS) 
 
 size:
-	$(SZ) -t $(OUTDIR)/$(TARGET)
+	@echo "  SZ    $(TARGET)"
+	@$(SZ) -t $(OUTDIR)/$(TARGET)
 
 ## Clean target
 clean:
-	-rm -rf $(OBJECTS) $(OUTDIR)/$(TARGET)
+	@echo "  RM    $(OBJECTS)"
+	@-rm -rf $(OBJECTS) $(OUTDIR)/$(TARGET)
