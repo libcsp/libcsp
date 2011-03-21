@@ -25,6 +25,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 /* CSP includes */
 #include <csp/csp.h>
 #include <csp/csp_endian.h>
+#include <csp/csp_platform.h>
 
 #include "arch/csp_time.h"
 #include "arch/csp_malloc.h"
@@ -84,7 +85,7 @@ void csp_service_handler(csp_conn_t * conn, csp_packet_t * packet) {
 					size = size / 2;
 				csp_free(pmem);
 			}
-			if (size < 1024) break;
+			if (size < 32) break;
 		}
 #elif defined(_CSP_POSIX_)
 		/* Read system statistics */
