@@ -284,6 +284,9 @@ csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 				continue;
 			}
 
+		/* If the packet is not for an active socket */
+		} else {
+			socket = NULL;
 		}
 
 		/**
