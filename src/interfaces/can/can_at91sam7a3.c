@@ -29,17 +29,23 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <atmel/AT91SAM7A3.h>
 #include <atmel/aic.h>
+#include <atmel/pio.h>
 
 #include <csp/csp.h>
+#include <csp/csp_endian.h>
 #include <csp/interfaces/csp_if_can.h>
 
 #include "can.h"
 #include "can_at91sam7a3.h"
 
+
 /* MOB segmentation */
 #define CAN_RX_MBOX 8
 #define CAN_TX_MBOX 8
 #define CAN_MBOXES 	16
+
+#define PIN_CAN_TX  {1<<27, AT91C_BASE_PIOA, AT91C_ID_PIOA, PIO_PERIPH_A, PIO_DEFAULT}
+#define PIN_CAN_RX  {1<<26, AT91C_BASE_PIOA, AT91C_ID_PIOA, PIO_PERIPH_A, PIO_DEFAULT}
 
 /** Callback functions */
 can_tx_callback_t txcb = NULL;
@@ -48,6 +54,9 @@ can_rx_callback_t rxcb = NULL;
 /** Identifier and mask */
 uint32_t can_id;
 uint32_t can_mask;
+
+static const Pin pins_can_transceiver_txd[] = {PIN_CAN_TX};
+static const Pin pins_can_transceiver_rxd[] = {PIN_CAN_RX};
 
 /** Mailbox */
 typedef enum {
@@ -59,11 +68,11 @@ typedef enum {
 static mbox_t mbox[CAN_TX_MBOX];
 
 /** Calculate mode register. Each bit is divided in 10 time quanta
- *  Fixed values: PROPAG=0 SJW=1 SMP=1 PHASE1=3 PHASE2=3 */
-#define CAN_MODE(bitrate,clock_speed) (0x01001033 | (((clock_speed)/(10 * (bitrate)) - 1) << 16))
+ *  Fixed values: PROPAG=2 SJW=1 SMP=1 PHASE1=2 PHASE2=2 */
+#define CAN_MODE(bitrate,clock_speed) (0x01001222 | (((clock_speed)/(10 * (bitrate)) - 1) << 16))
 
 /** Pointers to the hardware */
-can_controller_t * const CAN_CTRL = ((can_controller_t *)CAN0_BASE_ADDRESS);
+volatile can_controller_t * volatile CAN_CTRL = ((can_controller_t *)CAN0_BASE_ADDRESS);
 
 /** ISR prototype */
 static void can_isr(void);
@@ -71,9 +80,21 @@ static void can_isr(void);
 /** Setup CAN interrupts */
 static void can_init_interrupt(uint32_t id, uint32_t mask) {
 	uint8_t mbox;
+	
+    /* Configure pins in PIO */
+    PIO_Configure(pins_can_transceiver_txd, PIO_LISTSIZE(pins_can_transceiver_txd));
+    PIO_Configure(pins_can_transceiver_rxd, PIO_LISTSIZE(pins_can_transceiver_rxd));
 
-	/* Configure ISR */
-	AIC_ConfigureIT(AT91C_ID_CAN0, AT91C_AIC_PRIOR_HIGHEST, (void(*)(void)) can_isr);
+    /* Enable CAN Clock */
+	AT91C_BASE_PMC->PMC_PCER = (1 << AT91C_ID_PIOA);
+	AT91C_BASE_PMC->PMC_PCER = (1 << AT91C_ID_CAN0);
+    AT91C_BASE_CAN0->CAN_IDR = 0xFFFFFFFF;
+	
+    /* Configure ISR */
+	AIC_ConfigureIT(AT91C_ID_CAN0, AT91C_AIC_PRIOR_HIGHEST, can_isr);
+
+	/* Enable interrupt */
+	AIC_EnableIT(AT91C_ID_CAN0);
 
 	/* Enable interrupts for all mailboxes */
 	for (mbox = 0; mbox < CAN_MBOXES; mbox++) {
@@ -84,21 +105,17 @@ static void can_init_interrupt(uint32_t id, uint32_t mask) {
 
 			/* Allow next transmission */
 			CAN_CTRL->CHANNEL[mbox].MCR = MTCR;
+		
+            /* Enable interrupts for mailbox */
+		    CAN_CTRL->IER = (1 << mbox);
 
 			/* Configure mailbox as Rx */
 			CAN_CTRL->CHANNEL[mbox].MMR = (0x01 << 24);
 		} else {
-			/* Configure mailbox as Tx */
-			CAN_CTRL->CHANNEL[mbox].MMR = (0x03 << 24);
+            /* Disable mailbox */
+        	CAN_CTRL->CHANNEL[mbox].MMR = (0x00 << 24);
 		}
-
-		/* Enable interrupts for mailbox */
-		CAN_CTRL->IER = (1 << mbox);
 	}
-
-	/* Enable interrupt */
-	AIC_EnableIT(AT91C_ID_CAN0);
-
 }
 
 int can_init(uint32_t id, uint32_t mask, can_tx_callback_t atxcb, can_rx_callback_t arxcb, void * conf, int conflen) {
@@ -120,22 +137,15 @@ int can_init(uint32_t id, uint32_t mask, can_tx_callback_t atxcb, can_rx_callbac
 	txcb = atxcb;
 	rxcb = arxcb;
 
-	/* Enable CAN Clock */
-	AT91C_BASE_PMC->PMC_PCER = (0x1 << AT91C_ID_CAN0);
-
-	/* TODO: Ensure CAN0 pins are not used for PIO */
-
 	/* Configure baudrate */
 	CAN_CTRL->BR = CAN_MODE(bitrate, clock_speed);
-	printf("Baudrate register: %"PRIx32"\r\n", CAN_CTRL->BR);
 
-	/* The AT91SAM7A1 uses binary '1' to mark don't care bits */
-	mask = ~mask;
-	can_init_interrupt(id, mask);
+	/* Enable interrupts */
+    can_init_interrupt(id, mask);
 
 	/* Enable CAN in Control Register  */
 	CAN_CTRL->MR = CANEN;
-
+	
 	return 0;
 
 }
@@ -152,7 +162,6 @@ int can_send(can_id_t id, uint8_t data[], uint8_t dlc, CSP_BASE_TYPE * task_woke
 
 	/* Find free mailbox */
 	for(i = 0; i < CAN_TX_MBOX; i++) {
-		//if (mbox[i] == MBOX_FREE && !(CAN_CTRL->CHANNEL[i].CR & CHANEN)) {
 		if (mbox[i] == MBOX_FREE) {
 			mbox[i] = MBOX_USED;
 			m = i;
@@ -164,14 +173,15 @@ int can_send(can_id_t id, uint8_t data[], uint8_t dlc, CSP_BASE_TYPE * task_woke
 	if (task_woken == NULL) {
 		portEXIT_CRITICAL();
 	}
-
+			
 	/* Return if no available MOB was found */
 	if (m < 0) {
 		csp_debug(CSP_ERROR, "TX overflow, no available MOB\r\n");
 		return -1;
 	}
 
-	printf("Got mob %d\r\n", m);
+    /* Enable mailbox */
+    CAN_CTRL->CHANNEL[m].MMR = (0x03 << 24);
 
 	/* Copy 29 identifier to IR register */
 	CAN_CTRL->CHANNEL[m].MID = (id & 0x1FFFFFFF) | MIDE;
@@ -179,21 +189,21 @@ int can_send(can_id_t id, uint8_t data[], uint8_t dlc, CSP_BASE_TYPE * task_woke
 	/* Copy data to MDH and MDL registers */
 	switch (dlc) {
 		case 8:
-			*(((uint8_t *) &(temp[1])) + 3) = data[7];
+			*(((uint8_t *) &(temp[0])) + 3) = data[7];
 		case 7:
-			*(((uint8_t *) &(temp[1])) + 2) = data[6];
+			*(((uint8_t *) &(temp[0])) + 2) = data[6];
 		case 6:
-			*(((uint8_t *) &(temp[1])) + 1) = data[5];
+			*(((uint8_t *) &(temp[0])) + 1) = data[5];
 		case 5:
-			*(((uint8_t *) &(temp[1])) + 0) = data[4];
+			*(((uint8_t *) &(temp[0])) + 0) = data[4];
 		case 4:
-			*(((uint8_t *) &(temp[0])) + 3) = data[3];
+			*(((uint8_t *) &(temp[1])) + 3) = data[3];
 		case 3:
-			*(((uint8_t *) &(temp[0])) + 2) = data[2];
+			*(((uint8_t *) &(temp[1])) + 2) = data[2];
 		case 2:
-			*(((uint8_t *) &(temp[0])) + 1) = data[1];
+			*(((uint8_t *) &(temp[1])) + 1) = data[1];
 		case 1:
-			*(((uint8_t *) &(temp[0])) + 0) = data[0];
+			*(((uint8_t *) &(temp[1])) + 0) = data[0];
 		default:
 			break;
 	}
@@ -201,15 +211,21 @@ int can_send(can_id_t id, uint8_t data[], uint8_t dlc, CSP_BASE_TYPE * task_woke
 	CAN_CTRL->CHANNEL[m].MDH = temp[0];
 	CAN_CTRL->CHANNEL[m].MDL = temp[1];
 
-	/* Set IDE bit, PCB to producer, DLC and CHANEN to enable */
-	CAN_CTRL->CHANNEL[m].MCR = (((dlc & 0x0F) << 16) | MTCR);
+    /* Enable interrupts for mailbox */
+    CAN_CTRL->IER = (1 << m);
+	
+    /* Set IDE bit, PCB to producer, DLC and CHANEN to enable */
+	CAN_CTRL->CHANNEL[m].MCR = ((dlc & 0x0F) << 16);
+    
+    /* Send frame as soon as possible */
+    CAN_CTRL->TCR = (1 << m);
 
     return 0;
 
 }
 
 /* Deferred Service Routine */
-static void __attribute__ ((noinline)) can_dsr(void) {
+void __attribute__ ((__interrupt__)) can_isr(void) {
 
 	uint8_t m;
 	portBASE_TYPE task_woken = pdFALSE;
@@ -219,15 +235,11 @@ static void __attribute__ ((noinline)) can_dsr(void) {
 
 		/* Check for event */
 		if (CAN_CTRL->SR & (1 << m)) {
-			printf("Event on mailbox %d\r\n", m);
-
+    
 			/* Message ready */
-			if (CAN_CTRL->CHANNEL[m].MCR & MRDY) {
-				printf("MRDY on mailbox %d\r\n", m);
-
+			if (CAN_CTRL->CHANNEL[m].MSR & MRDY) {
 				if (m >= CAN_TX_MBOX) {
-					printf("Mailbox %d RX OK\r\n", m);
-					/* RX mailbox */
+                    /* RX mailbox */
 					can_frame_t frame;
 
 					if (m == CAN_MBOXES - 1) {
@@ -235,11 +247,31 @@ static void __attribute__ ((noinline)) can_dsr(void) {
 						csp_debug(CSP_ERROR, "RX Overflow!\r\n");
 					} else {
 						/* Read DLC */
-						frame.dlc = (uint8_t)((CAN_CTRL->CHANNEL[m].MCR >> 16) & 0x0F);
+						frame.dlc = (uint8_t)((CAN_CTRL->CHANNEL[m].MSR >> 16) & 0x0F);
 
 						/* Read data */
-						frame.data32[0] = (CAN_CTRL->CHANNEL[m].MDH);
-						frame.data32[1] = (CAN_CTRL->CHANNEL[m].MDL);
+                        uint32_t temp[] = {CAN_CTRL->CHANNEL[m].MDH, CAN_CTRL->CHANNEL[m].MDL};
+
+                        switch (frame.dlc) {
+                            case 8:
+                                frame.data[7] = *(((uint8_t *) &(temp[0])) + 3);
+                            case 7:
+                                frame.data[6] = *(((uint8_t *) &(temp[0])) + 2);
+                            case 6:
+                                frame.data[5] = *(((uint8_t *) &(temp[0])) + 1);
+                            case 5:
+                                frame.data[4] = *(((uint8_t *) &(temp[0])) + 0);
+                            case 4:
+                                frame.data[3] = *(((uint8_t *) &(temp[1])) + 3);
+                            case 3:
+                                frame.data[2] = *(((uint8_t *) &(temp[1])) + 2);
+                            case 2:
+                                frame.data[1] = *(((uint8_t *) &(temp[1])) + 1);
+                            case 1:
+                                frame.data[0] = *(((uint8_t *) &(temp[1])) + 0);
+                            default:
+                                break;
+                        }
 
 						/* Read identifier */
 						frame.id = (CAN_CTRL->CHANNEL[m].MID & 0x1FFFFFFF);
@@ -252,8 +284,10 @@ static void __attribute__ ((noinline)) can_dsr(void) {
 					/* Get ready to receive new mail */
 					CAN_CTRL->CHANNEL[m].MCR = MTCR;
 				} else {
-					printf("Mailbox %d TX OK\r\n", m);
 					/* TX mailbox */
+					
+                    /* Disable interrupt for mailbox */
+                    CAN_CTRL->IDR = (1 << m);
 
 					/* Get identifier */
 					can_id_t id = (CAN_CTRL->CHANNEL[m].MID & 0x1FFFFFFF);
@@ -269,26 +303,7 @@ static void __attribute__ ((noinline)) can_dsr(void) {
 		}
 	}
 
-	/* Yield if required */
-	if (task_woken == pdTRUE)
-		portYIELD_FROM_ISR();
-
-}
-
-/** Low-level IRQ handler
- * Masks the interrupt and acknowledges it. Then lets
- * the deferred service routine handle the data.
- */
-static void __attribute__((naked)) can_isr(void) {
-	/* Save context */
-	portSAVE_CONTEXT();
-
-	/* Call DSR */
-	can_dsr();
-
-	/* Acknowledge interrupt */
+    /* Acknowledge interrupt */
 	AT91C_BASE_AIC->AIC_EOICR = 1;
 
-	/* Restore context */
-	portRESTORE_CONTEXT();
 }

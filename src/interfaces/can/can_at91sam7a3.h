@@ -52,7 +52,7 @@ typedef struct {
    uint32_t  ECR;             		/* Error Counter Register         		*/
    uint32_t  TCR;            		/* Tranfer Counter Register            	*/
    uint32_t  ACR;            		/* Abort Command Register           	*/
-   uint32_t  Reserved[256];         /* Reserved         					*/
+   uint32_t  Reserved[117];         /* Reserved         					*/
    can_channel_t CHANNEL[16]; 		/* CAN Channels                       	*/
 } volatile can_controller_t;
 
@@ -149,7 +149,7 @@ typedef struct {
 //#define  MDH		(0xFFFFFFFF << 0)   /* Message Data High Value */
 
 /** CAN Message Control Register: MCR */
-#define  MACR		(0x01 << 22)   	/* Mailbox Data Length Code */
-#define  MTCR		(0x01 << 23) 	/* Mailbox Remote Transmission Request */
+#define  MACR		(0x01 << 22)   	/* Mailbox Abort Request */
+#define  MTCR		(0x01 << 23) 	/* Mailbox Transfer Command */
 
 #endif /* _CAN_AT91SAM7A3_H_ */
