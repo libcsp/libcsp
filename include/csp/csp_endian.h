@@ -39,12 +39,6 @@ uint32_t csp_ntoh32(uint32_t n32);
 uint64_t csp_hton64(uint64_t h64);
 uint64_t csp_ntoh64(uint64_t n64);
 
-/* Compatibility functions */
-//uint32_t htonl(uint32_t hl);
-//uint32_t ntohl(uint32_t nl);
-//uint16_t htons(uint16_t hs);
-//uint16_t ntohs(uint16_t ns);
-
 #ifdef __cplusplus
 } /* extern "C" */
 #endif

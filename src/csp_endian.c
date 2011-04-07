@@ -90,25 +90,3 @@ inline uint64_t __attribute__ ((__const__)) csp_hton64(uint64_t h64) {
 inline uint64_t __attribute__ ((__const__)) csp_ntoh64(uint64_t n64) {
 	return csp_hton64(n64);
 }
-
-/* Compatibility functions */
-
-/* Convert 16-bit integer to network byte order */
-inline uint16_t __attribute__ ((__const__)) htons(uint16_t hs) {
-    return csp_hton16(hs);
-}
-
-/* Convert 16-bit integer to host byte order */
-inline uint16_t __attribute__ ((__const__)) ntohs(uint16_t ns) {
-    return csp_ntoh16(ns);
-}
-
-/* Convert 32-bit integer to network byte order */
-inline uint32_t __attribute__ ((__const__)) htonl(uint32_t hl) {
-    return csp_hton32(hl);
-}
-
-/* Convert 32-bit integer to host byte order */
-inline uint32_t __attribute__ ((__const__)) ntohl(uint32_t nl) {
-    return csp_ntoh32(nl);
-}
