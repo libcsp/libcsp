@@ -117,7 +117,7 @@ void csp_ping_noreply(uint8_t node) {
 }
 
 void csp_reboot(uint8_t node) {
-	uint32_t magic_word = htonl(0x80078007);
+	uint32_t magic_word = csp_hton32(0x80078007);
 	csp_transaction(CSP_PRIO_NORM, node, CSP_REBOOT, 0, &magic_word, sizeof(magic_word), NULL, 0);
 }
 
@@ -175,7 +175,7 @@ void csp_memfree(uint8_t node, unsigned int timeout) {
 	}
 
 	/* Convert from network to host order */
-	memfree = ntohl(memfree);
+	memfree = csp_ntoh32(memfree);
 
 	printf("Free Memory at node %u is %u bytes\r\n", node, (unsigned int) memfree);
 
@@ -190,7 +190,7 @@ void csp_buf_free(uint8_t node, unsigned int timeout) {
 		printf("Network error\r\n");
 		return;
 	}
-	size = ntohl(size);
+	size = csp_ntoh32(size);
 	printf("Free buffers at node %u is %u\r\n", (unsigned int) node, (unsigned int) size);
 
 }
@@ -204,7 +204,7 @@ void csp_uptime(uint8_t node, unsigned int timeout) {
 		printf("Network error\r\n");
 		return;
 	}
-	uptime = ntohl(uptime);
+	uptime = csp_ntoh32(uptime);
 	printf("Uptime of node %u is %u s\r\n", (unsigned int) node, (unsigned int) uptime);
 
 }

@@ -476,9 +476,9 @@ int csp_rx_callback(can_frame_t * frame, CSP_BASE_TYPE * task_woken) {
 
             /* Copy CSP identifier and length*/
             memcpy(&(buf->packet->id), frame->data, sizeof(csp_id_t));
-            buf->packet->id.ext = ntohl(buf->packet->id.ext);
+            buf->packet->id.ext = csp_ntoh32(buf->packet->id.ext);
             memcpy(&(buf->packet->length), frame->data + sizeof(csp_id_t), sizeof(uint16_t));
-            buf->packet->length = ntohs(buf->packet->length);
+            buf->packet->length = csp_ntoh16(buf->packet->length);
             
             /* Reset RX count */
             buf->rx_count = 0;
@@ -587,8 +587,8 @@ int csp_can_tx(csp_packet_t * packet, unsigned int timeout) {
 	bytes = (packet->length <= 8 - overhead) ? packet->length : 8 - overhead;
 
 	/* Copy CSP headers and data */
-	uint32_t csp_id_be = htonl(packet->id.ext);
-	uint16_t csp_length_be = htons(packet->length);
+	uint32_t csp_id_be = csp_hton32(packet->id.ext);
+	uint16_t csp_length_be = csp_hton16(packet->length);
 
 	memcpy(frame_buf, &csp_id_be, sizeof(csp_id_be));
 	memcpy(frame_buf + sizeof(csp_id_be), &csp_length_be, sizeof(csp_length_be));

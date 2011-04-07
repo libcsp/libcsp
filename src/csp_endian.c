@@ -29,7 +29,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 /* Returns 1 on big endian archs and 0 on little endian */
-static inline int __attribute__ ((__const__)) host_be(void) {
+static inline int __attribute__ ((__const__)) csp_host_be(void) {
     static union {
         uint32_t i;
         uint8_t c[4];
@@ -40,7 +40,7 @@ static inline int __attribute__ ((__const__)) host_be(void) {
 
 /* Convert 16-bit integer to network byte order */
 inline uint16_t __attribute__ ((__const__)) csp_hton16(uint16_t h16) {
-	if (host_be()) {
+	if (csp_host_be()) {
 		return h16;
 	} else {
 		return (((h16 & 0xff00) >> 8) |
@@ -55,7 +55,7 @@ inline uint16_t __attribute__ ((__const__)) csp_ntoh16(uint16_t n16) {
 
 /* Convert 32-bit integer to network byte order */
 inline uint32_t __attribute__ ((__const__)) csp_hton32(uint32_t h32) {
-	if (host_be()) {
+	if (csp_host_be()) {
 		return h32;
 	} else {
 		return (((h32 & 0xff000000) >> 24) |
@@ -72,7 +72,7 @@ inline uint32_t __attribute__ ((__const__)) csp_ntoh32(uint32_t n32) {
 
 /* Convert 64-bit integer to network byte order */
 inline uint64_t __attribute__ ((__const__)) csp_hton64(uint64_t h64) {
-	if (host_be()) {
+	if (csp_host_be()) {
 		return h64;
 	} else {
 		return (((h64 & 0xff00000000000000LL) >> 56) |

@@ -164,8 +164,8 @@ static int csp_rdp_send_cmp(csp_conn_t * conn, csp_packet_t * packet, int ack, i
 
 	/* Add RDP header */
 	rdp_header_t * header = csp_rdp_header_add(packet);
-	header->seq_nr = htons(seq_nr);
-	header->ack_nr = htons(ack_nr);
+	header->seq_nr = csp_hton16(seq_nr);
+	header->ack_nr = csp_hton16(ack_nr);
 	header->ack = ack;
 	header->eak = eak;
 	header->syn = syn;
@@ -225,7 +225,7 @@ static int csp_rdp_send_eack(csp_conn_t * conn) {
 
 		/* Add seq nr to EACK packet */
 		rdp_header_t * header = csp_rdp_header_ref(packet);
-		packet_eack->data16[packet_eack->length/sizeof(uint16_t)] = htons(header->seq_nr);
+		packet_eack->data16[packet_eack->length/sizeof(uint16_t)] = csp_hton16(header->seq_nr);
 		packet_eack->length += sizeof(uint16_t);
 		csp_debug(CSP_PROTOCOL, "Added EACK nr %u\r\n", header->seq_nr);
 
@@ -250,12 +250,12 @@ static int csp_rdp_send_syn(csp_conn_t * conn) {
 	if (packet == NULL) return 0;
 
 	/* Generate contents */
-	packet->data32[0] = htonl(csp_rdp_window_size);
-	packet->data32[1] = htonl(csp_rdp_conn_timeout);
-	packet->data32[2] = htonl(csp_rdp_packet_timeout);
-	packet->data32[3] = htonl(csp_rdp_delayed_acks);
-	packet->data32[4] = htonl(csp_rdp_ack_timeout);
-	packet->data32[5] = htonl(csp_rdp_ack_delay_count);
+	packet->data32[0] = csp_hton32(csp_rdp_window_size);
+	packet->data32[1] = csp_hton32(csp_rdp_conn_timeout);
+	packet->data32[2] = csp_hton32(csp_rdp_packet_timeout);
+	packet->data32[3] = csp_hton32(csp_rdp_delayed_acks);
+	packet->data32[4] = csp_hton32(csp_rdp_ack_timeout);
+	packet->data32[5] = csp_hton32(csp_rdp_ack_delay_count);
 	packet->length = 6 * sizeof(uint32_t);
 
 	return csp_rdp_send_cmp(conn, packet, 0, 1, 0, 0, conn->rdp.snd_iss, 0, 1);
@@ -386,15 +386,15 @@ static void csp_rdp_flush_eack(csp_conn_t * conn, csp_packet_t * eack_packet) {
 		}
 
 		rdp_header_t * header = csp_rdp_header_ref((csp_packet_t *) packet);
-		csp_debug(CSP_PROTOCOL, "EACK Matching Element, time %u, seq %u\r\n", packet->timestamp, ntohs(header->seq_nr));
+		csp_debug(CSP_PROTOCOL, "EACK Matching Element, time %u, seq %u\r\n", packet->timestamp, csp_ntoh16(header->seq_nr));
 
 		/* Look for this element in EACKs */
 		int match = 0;
 		for (j = 0; j < (eack_packet->length - sizeof(rdp_header_t)) / sizeof(uint16_t); j++) {
-			if (ntohs(eack_packet->data16[j]) == ntohs(header->seq_nr))
+			if (csp_ntoh16(eack_packet->data16[j]) == csp_ntoh16(header->seq_nr))
 				match = 1;
 			/*** Enable this if you want EACK's to trigger retransmission */
-			//if (ntohs(eack_packet->data16[j]) > ntohs(header->seq_nr))
+			//if (csp_ntoh16(eack_packet->data16[j]) > csp_ntoh16(header->seq_nr))
 			//	packet->timestamp = csp_get_ms() - conn->rdp.packet_timeout;
 		}
 
@@ -403,7 +403,7 @@ static void csp_rdp_flush_eack(csp_conn_t * conn, csp_packet_t * eack_packet) {
 			csp_queue_enqueue(conn->rdp.tx_queue, &packet, 0);
 		} else {
 			/* Found, free */
-			csp_debug(CSP_PROTOCOL, "TX Element %u freed\r\n", ntohs(header->seq_nr));
+			csp_debug(CSP_PROTOCOL, "TX Element %u freed\r\n", csp_ntoh16(header->seq_nr));
 			csp_buffer_free(packet);
 		}
 
@@ -423,7 +423,7 @@ void csp_rdp_flush_all(csp_conn_t * conn) {
 	/* Empty TX queue */
     while(csp_queue_dequeue_isr(conn->rdp.tx_queue, &packet, &pdTrue) == CSP_QUEUE_OK) {
     	if (packet != NULL) {
-    		csp_debug(CSP_PROTOCOL, "Flush TX Element, time %u, seq %u\r\n", packet->timestamp, ntohs(csp_rdp_header_ref((csp_packet_t *) packet)->seq_nr));
+    		csp_debug(CSP_PROTOCOL, "Flush TX Element, time %u, seq %u\r\n", packet->timestamp, csp_ntoh16(csp_rdp_header_ref((csp_packet_t *) packet)->seq_nr));
     		csp_buffer_free(packet);
     	}
     }
@@ -431,7 +431,7 @@ void csp_rdp_flush_all(csp_conn_t * conn) {
 	/* Empty RX queue */
     while(csp_queue_dequeue_isr(conn->rdp.rx_queue, &packet, &pdTrue) == CSP_QUEUE_OK) {
 		if (packet != NULL) {
-			csp_debug(CSP_PROTOCOL, "Flush RX Element, time %u, seq %u\r\n", packet->timestamp, ntohs(csp_rdp_header_ref((csp_packet_t *) packet)->seq_nr));
+			csp_debug(CSP_PROTOCOL, "Flush RX Element, time %u, seq %u\r\n", packet->timestamp, csp_ntoh16(csp_rdp_header_ref((csp_packet_t *) packet)->seq_nr));
 			csp_buffer_free(packet);
 		}
 	}
@@ -502,18 +502,18 @@ void csp_rdp_check_timeouts(csp_conn_t * conn) {
 		rdp_header_t * header = csp_rdp_header_ref((csp_packet_t *) packet);
 
 		/* If acked, do not retransmit */
-		if (((uint16_t) (conn->rdp.snd_una - ntohs(header->seq_nr) - 1)) < UINT16_MAX/2) {
-			csp_debug(CSP_PROTOCOL, "TX Element Free, time %u, seq %u, una %u\r\n", packet->timestamp, ntohs(header->seq_nr), conn->rdp.snd_una);
+		if (((uint16_t) (conn->rdp.snd_una - csp_ntoh16(header->seq_nr) - 1)) < UINT16_MAX/2) {
+			csp_debug(CSP_PROTOCOL, "TX Element Free, time %u, seq %u, una %u\r\n", packet->timestamp, csp_ntoh16(header->seq_nr), conn->rdp.snd_una);
 			csp_buffer_free(packet);
 			continue;
 		}
 
 		/* Check timestamp and retransmit if needed */
 		if (packet->timestamp + conn->rdp.packet_timeout < time_now) {
-			csp_debug(CSP_WARN, "TX Element timed out, retransmitting seq %u\r\n", ntohs(header->seq_nr));
+			csp_debug(CSP_WARN, "TX Element timed out, retransmitting seq %u\r\n", csp_ntoh16(header->seq_nr));
 
 			/* Update to latest outgoing ACK */
-			header->ack_nr = htons(conn->rdp.rcv_cur);
+			header->ack_nr = csp_hton32(conn->rdp.rcv_cur);
 
 			/* Send copy to tx_queue */
 			packet->timestamp = csp_get_ms();
@@ -558,8 +558,8 @@ void csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 
 	/* Get RX header and convert to host byte-order */
 	rdp_header_t * rx_header = csp_rdp_header_ref(packet);
-	rx_header->ack_nr = ntohs(rx_header->ack_nr);
-	rx_header->seq_nr = ntohs(rx_header->seq_nr);
+	rx_header->ack_nr = csp_ntoh16(rx_header->ack_nr);
+	rx_header->seq_nr = csp_ntoh16(rx_header->seq_nr);
 
 	csp_debug(CSP_PROTOCOL, "RDP: S %u: HEADER NP: syn %u, ack %u, eack %u, "
 			"rst %u, seq_nr %u, ack_nr %u, packet_len %u (%u)\r\n",
@@ -642,12 +642,12 @@ void csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 #endif
 			conn->rdp.state = RDP_SYN_RCVD;
 
-			conn->rdp.window_size = ntohl(packet->data32[0]);
-			conn->rdp.conn_timeout = ntohl(packet->data32[1]);
-			conn->rdp.packet_timeout = ntohl(packet->data32[2]);
-			conn->rdp.delayed_acks = ntohl(packet->data32[3]);
-			conn->rdp.ack_timeout = ntohl(packet->data32[4]);
-			conn->rdp.ack_delay_count = ntohl(packet->data32[5]);
+			conn->rdp.window_size 		= csp_ntoh32(packet->data32[0]);
+			conn->rdp.conn_timeout 		= csp_ntoh32(packet->data32[1]);
+			conn->rdp.packet_timeout 	= csp_ntoh32(packet->data32[2]);
+			conn->rdp.delayed_acks 		= csp_ntoh32(packet->data32[3]);
+			conn->rdp.ack_timeout 		= csp_ntoh32(packet->data32[4]);
+			conn->rdp.ack_delay_count 	= csp_ntoh32(packet->data32[5]);
 
 			csp_debug(CSP_PROTOCOL, "RDP: Window Size %u, conn timeout %u, packet timeout %u\r\n",
 					conn->rdp.window_size, conn->rdp.conn_timeout, conn->rdp.packet_timeout);
@@ -950,8 +950,8 @@ int csp_rdp_send(csp_conn_t * conn, csp_packet_t * packet, unsigned int timeout)
 
 	/* Add RDP header */
 	rdp_header_t * tx_header = csp_rdp_header_add(packet);
-	tx_header->ack_nr = htons(conn->rdp.rcv_cur);
-	tx_header->seq_nr = htons(conn->rdp.snd_nxt);
+	tx_header->ack_nr = csp_hton16(conn->rdp.rcv_cur);
+	tx_header->seq_nr = csp_hton16(conn->rdp.snd_nxt);
 	tx_header->ack = 1;
 	conn->rdp.snd_nxt++;
 

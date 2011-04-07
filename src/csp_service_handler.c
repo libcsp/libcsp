@@ -96,7 +96,7 @@ void csp_service_handler(csp_conn_t * conn, csp_packet_t * packet) {
 #endif
 
 		/* Prepare for network transmission */
-		total = htonl(total);
+		total = csp_hton32(total);
 		memcpy(packet->data, &total, sizeof(total));
 		packet->length = sizeof(total);
 
@@ -108,7 +108,7 @@ void csp_service_handler(csp_conn_t * conn, csp_packet_t * packet) {
 		uint32_t magic_word;
 		memcpy(&magic_word, packet->data, sizeof(magic_word));
 
-		magic_word = ntohl(magic_word);
+		magic_word = csp_ntoh32(magic_word);
 
 		/* If the magic word is invalid, return */
 		if (magic_word != 0x80078007) {
@@ -134,7 +134,7 @@ void csp_service_handler(csp_conn_t * conn, csp_packet_t * packet) {
 	case CSP_BUF_FREE: {
 		uint32_t size = csp_buffer_remaining();
 		/* Prepare for network transmission */
-		size = htonl(size);
+		size = csp_hton32(size);
 		memcpy(packet->data, &size, sizeof(size));
 		packet->length = sizeof(size);
 		break;
@@ -142,7 +142,7 @@ void csp_service_handler(csp_conn_t * conn, csp_packet_t * packet) {
 
 	case CSP_UPTIME: {
 		uint32_t time = csp_get_s();
-		time = htonl(time);
+		time = csp_hton32(time);
 		memcpy(packet->data, &time, sizeof(time));
 		packet->length = sizeof(time);
 		break;
