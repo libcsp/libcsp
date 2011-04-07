@@ -85,7 +85,7 @@ static int csp_route_security_check(uint32_t security_opts, csp_iface_t * interf
 		/* Read nonce */
 		uint32_t nonce;
 		memcpy(&nonce, &packet->data[packet->length - sizeof(nonce)], sizeof(nonce));
-		nonce = ntohl(nonce);
+		nonce = csp_ntoh32(nonce);
 		packet->length -= sizeof(nonce);
 
 		/* Create initialization vector */

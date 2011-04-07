@@ -231,7 +231,7 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, unsigned int timeout)
 			/* Create nonce */
 			uint32_t nonce, nonce_n;
 			nonce = (uint32_t)rand();
-			nonce_n = htonl(nonce);
+			nonce_n = csp_hton32(nonce);
 			memcpy(&packet->data[packet->length], &nonce_n, sizeof(nonce_n));
 
 			/* Create initialization vector */
