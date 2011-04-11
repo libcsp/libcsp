@@ -26,6 +26,7 @@ extern "C" {
 #endif
 
 /* Includes */
+#include <inttypes.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -350,7 +351,7 @@ typedef enum {
 } csp_debug_level_t;
 
 #if CSP_DEBUG
-#define csp_debug(level, format, ...) csp_debug_ex(level, "%s:%d " format, strrchr(__FILE__, '/')+1, __LINE__, ##__VA_ARGS__)
+#define csp_debug(level, format, ...) csp_debug_ex(level, "%"PRIu8" %s:%d " format, my_address, strrchr(__FILE__, '/')+1, __LINE__, ##__VA_ARGS__)
 typedef void (*csp_debug_hook_func_t)(csp_debug_level_t level, char * str);
 void csp_debug_ex(csp_debug_level_t level, const char * format, ...);
 void csp_debug_toggle_level(csp_debug_level_t level);
