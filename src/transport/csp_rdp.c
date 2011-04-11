@@ -513,7 +513,7 @@ void csp_rdp_check_timeouts(csp_conn_t * conn) {
 			csp_debug(CSP_WARN, "TX Element timed out, retransmitting seq %u\r\n", csp_ntoh16(header->seq_nr));
 
 			/* Update to latest outgoing ACK */
-			header->ack_nr = csp_hton32(conn->rdp.rcv_cur);
+			header->ack_nr = csp_hton16(conn->rdp.rcv_cur);
 
 			/* Send copy to tx_queue */
 			packet->timestamp = csp_get_ms();
