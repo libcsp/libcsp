@@ -285,7 +285,7 @@ static inline int csp_rdp_receive_data(csp_conn_t * conn, csp_packet_t * packet)
 
 	/* Enqueue data */
 	if (csp_queue_enqueue(conn->rx_queue, &packet, 0) != CSP_QUEUE_OK) {
-		csp_debug(CSP_ERROR, "Conn buffer full\r\n");
+		csp_debug(CSP_INFO, "Conn buffer full\r\n");
 		return 0;
 	}
 
@@ -793,10 +793,8 @@ void csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 		uint16_t seq_nr = rx_header->seq_nr;
 
 		/* Receive data */
-		if (!csp_rdp_receive_data(conn, packet)) {
-			csp_debug(CSP_ERROR, "Cannot receive data, rejecting packet\r\n");
+		if (!csp_rdp_receive_data(conn, packet))
 			goto discard_open;
-		}
 
 		/* Update last received packet */
 		conn->rdp.rcv_cur = seq_nr;
