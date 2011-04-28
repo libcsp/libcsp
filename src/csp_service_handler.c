@@ -34,17 +34,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <sys/sysinfo.h>
 #endif
 
-/**
- * If the given packet is a service-request (that is uses one of the csp service ports)
- * it will be handled according to the CSP service handler.
- * This function will either use the packet buffer or delete it,
- * so this function is typically called in the last "default" clause of
- * a switch/case statement in a csp_listener task.
- * In order to listen to csp service ports, bind your listener to the CSP_ANY port.
- * This function may only be called from task context.
- * @param conn Pointer to the new connection
- * @param packet Pointer to the first packet, obtained by using csp_read()
- */
 void csp_service_handler(csp_conn_t * conn, csp_packet_t * packet) {
 
 	switch (csp_conn_dport(conn)) {

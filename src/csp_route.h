@@ -36,12 +36,37 @@ typedef struct {
 	uint8_t nexthop_mac_addr;
 } csp_route_t;
 
+/**
+ * csp_route_table_init
+ * Initialises the storage for the routing table
+ */
 void csp_route_table_init(void);
+
+/**
+ * Routing table lookup
+ * This is the actual lookup in the routing table
+ * The table consists of one entry per possible node
+ * If there is no explicit nexthop route for the destination
+ * the default route (node CSP_DEFAULT_ROUTE) is used.
+ */
 csp_route_t * csp_route_if(uint8_t id);
-csp_conn_t * csp_route(csp_id_t id, nexthop_t interface, CSP_BASE_TYPE * pxTaskWoken);
+
+/**
+ * Router Task
+ * This task received any non-local connection and collects the data
+ * on the connection. All data is forwarded out of the router
+ * using the csp_send call
+ */
 csp_thread_return_t vTaskCSPRouter(void * pvParameters);
 
 #if CSP_USE_PROMISC
+/**
+ * Add packet to promiscuous mode packet queue
+ *
+ * @param packet Packet to add to the queue
+ * @param queue Promiscuous mode packet queue
+ *
+ */
 void csp_promisc_add(csp_packet_t * packet, csp_queue_handle_t queue);
 #endif
 

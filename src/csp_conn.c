@@ -46,10 +46,6 @@ static uint8_t sport;
 /* Source port lock */
 static csp_bin_sem_handle_t sport_lock;
 
-/** csp_conn_timeout
- * Walk trough open connections and check if anything needs to be
- * kicked, closed or retransmitted.
- */
 void csp_conn_check_timeouts(void) {
 #if CSP_USE_RDP
 	/* Loop */
@@ -68,9 +64,6 @@ void csp_conn_check_timeouts(void) {
 #endif
 }
 
-/** csp_conn_init
- * Initialises the connection pool
- */
 void csp_conn_init(void) {
 
 	/* Initialize source port */
@@ -103,14 +96,6 @@ void csp_conn_init(void) {
 
 }
 
-/** csp_conn_find
- * Used by the incoming data handler this function searches
- * for an already established connection with a given incoming identifier.
- * The mask field is used to select which parts of the identifier that constitute a
- * unique connection
- * 
- * @return A connection pointer to the matching connection or NULL if no matching connection was found
- */
 csp_conn_t * csp_conn_find(uint32_t id, uint32_t mask) {
 
 	/* Search for matching connection */
@@ -127,11 +112,6 @@ csp_conn_t * csp_conn_find(uint32_t id, uint32_t mask) {
 
 }
 
-/** csp_conn_new
- * Finds an unused conn or creates a conn 
- * 
- * @return a pointer to the newly established connection or NULL
- */
 csp_conn_t * csp_conn_new(csp_id_t idin, csp_id_t idout) {
 
 	static uint8_t csp_conn_last_given = 0;
@@ -184,12 +164,6 @@ csp_conn_t * csp_conn_new(csp_id_t idin, csp_id_t idout) {
 
 }
 
-/** csp_close
- * Closes a given connection and frees the buffer if more than 8 bytes
- * if the connection uses an outgoing port this port must also be closed
- * A dynamically allocated connection must be freed.
- */
-
 void csp_close(csp_conn_t * conn) {
 
 	if (conn == NULL) {
@@ -235,18 +209,6 @@ void csp_close(csp_conn_t * conn) {
     csp_bin_sem_post(&conn_lock);
 }
 
-/** csp_connect
- * Used to establish outgoing connections
- * This function searches the port table for free slots and finds an unused
- * connection from the connection pool
- * There is no handshake in the CSP protocol
- * @param prio Connection priority.
- * @param dest Destination address.
- * @param dport Destination port.
- * @param timeout Timeout in ms.
- * @param opts Connection options.
- * @return a pointer to a new connection or NULL
- */
 csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport, unsigned int timeout, uint32_t opts) {
 
 	/* Generate identifier */
@@ -362,9 +324,6 @@ csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport, unsigned int
 }
 
 #if CSP_DEBUG
-/**
- * Small helper function to display the connection table
- */
 void csp_conn_print_table(void) {
 
 	int i;
@@ -372,7 +331,9 @@ void csp_conn_print_table(void) {
 
     for (i = 0; i < CSP_CONN_MAX; i++) {
 		conn = &arr_conn[i];
-		printf("[%02u %p] S:%u, %u -> %u, %u -> %u, sock: %p\r\n", i, conn, conn->state, conn->idin.src, conn->idin.dst, conn->idin.dport, conn->idin.sport, conn->rx_socket);
+		printf("[%02u %p] S:%u, %u -> %u, %u -> %u, sock: %p\r\n",
+				i, conn, conn->state, conn->idin.src, conn->idin.dst,
+				conn->idin.dport, conn->idin.sport, conn->rx_socket);
 
 #if CSP_USE_RDP
 		if (conn->idin.flags & CSP_FRDP)
@@ -383,50 +344,30 @@ void csp_conn_print_table(void) {
 }
 #endif
 
-/**
- * @param conn pointer to connection structure
- * @return destination port of an incoming connection
- */
 inline int csp_conn_dport(csp_conn_t * conn) {
 
     return conn->idin.dport;
 
 }
 
-/**
- * @param conn pointer to connection structure
- * @return source port of an incoming connection
- */
 inline int csp_conn_sport(csp_conn_t * conn) {
 
     return conn->idin.sport;
 
 }
 
-/**
- * @param conn pointer to connection structure
- * @return destination address of an incoming connection
- */
 inline int csp_conn_dst(csp_conn_t * conn) {
 
     return conn->idin.dst;
 
 }
 
-/**
- * @param conn pointer to connection structure
- * @return source address of an incoming connection
- */
 inline int csp_conn_src(csp_conn_t * conn) {
 
     return conn->idin.src;
 
 }
 
-/**
- * @param conn pointer to connection structure
- * @return flags field of an incoming connection
- */
 inline int csp_conn_flags(csp_conn_t * conn) {
 
 	return conn->idin.flags;

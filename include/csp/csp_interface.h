@@ -27,7 +27,31 @@ extern "C" {
 
 #include <csp/csp.h>
 
+/**
+ * Inputs a new packet into the system
+ * This function is called from interface drivers ISR to route and accept packets.
+ * But it can also be called from a task, provided that the pxTaskWoken parameter is NULL!
+ *
+ * EXTREMELY IMPORTANT:
+ * pxTaskWoken arg must ALWAYS be NULL if called from task,
+ * and ALWAYS be NON NULL if called from ISR!
+ * If this condition is met, this call is completely thread-safe
+ *
+ * This function is fire and forget, it returns void, meaning
+ * that a packet will always be either accepted or dropped
+ * so the memory will always be freed.
+ *
+ * @param packet A pointer to the incoming packet
+ * @param interface A pointer to the incoming interface TX function.
+ * @param pxTaskWoken This must be a pointer a valid variable if called from ISR or NULL otherwise!
+ */
 void csp_new_packet(csp_packet_t * packet, csp_iface_t * interface, CSP_BASE_TYPE * pxTaskWoken);
+
+/**
+ * Get MAC layer address of next hop.
+ * @param node Next hop node
+ * @return MAC layer address
+ */
 uint8_t csp_route_get_nexthop_mac(uint8_t node);
 
 #ifdef __cplusplus

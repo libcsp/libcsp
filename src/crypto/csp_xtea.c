@@ -18,7 +18,7 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/* Simple implementation of XTEA in CBC mode with zero padding */
+/* Simple implementation of XTEA in CTR mode */
 
 #include <stdint.h>
 #include <string.h>
@@ -37,9 +37,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #define XTEA_KEY_LENGTH	16
 
 /* XTEA key */
-static uint32_t csp_xtea_key[XTEA_KEY_LENGTH/sizeof(uint32_t)] __attribute__((aligned(sizeof(uint32_t))));
+static uint32_t csp_xtea_key[XTEA_KEY_LENGTH/sizeof(uint32_t)] __attribute__ ((aligned(sizeof(uint32_t))));
 
-/* These functions take 64 bits of data in block[0] and block[1] and the 128 bits key in key[0] - key[3] */
+/* This function takes 64 bits of data in block[0] and block[1] and the 128 bits key in key[0] - key[3] */
 static inline void csp_xtea_encrypt_block(uint32_t block[2], uint32_t const key[4]) {
 
 	uint32_t i, v0 = block[0], v1 = block[1], delta = 0x9E3779B9, sum = 0;
@@ -73,7 +73,6 @@ int csp_xtea_set_key(char * key, uint32_t keylen) {
 
 }
 
-/* Encrypt plain text */
 int csp_xtea_encrypt(uint8_t * plain, const uint32_t len, uint32_t iv[2]) {
 
 	int i;
@@ -108,7 +107,6 @@ int csp_xtea_encrypt(uint8_t * plain, const uint32_t len, uint32_t iv[2]) {
 
 }
 
-/* Decrypt cipher text */
 int csp_xtea_decrypt(uint8_t * cipher, const uint32_t len, uint32_t iv[2]) {
 
 	/* Since we use counter mode, we can reuse the encryption function */

@@ -27,16 +27,40 @@ extern "C" {
 
 #include <stdint.h>
 
-/* Convert 16-bit integers */
+/**
+ * Convert 16-bit integer to network byte order
+ * @param h16 Host byte order 16-bit integer
+ */
 uint16_t csp_hton16(uint16_t h16);
+
+/**
+ * Convert 16-bit integer to host byte order
+ * @param n16 Network byte order 16-bit integer
+ */
 uint16_t csp_ntoh16(uint16_t n16);
 
-/* Convert 32-bit integers */
+/**
+ * Convert 32-bit integer to network byte order
+ * @param h32 Host byte order 32-bit integer
+ */
 uint32_t csp_hton32(uint32_t h32);
+
+/**
+ * Convert 32-bit integer to host byte order
+ * @param n32 Network byte order 32-bit integer
+ */
 uint32_t csp_ntoh32(uint32_t n32);
 
-/* Convert 64-bit integers */
+/**
+ * Convert 64-bit integer to network byte order
+ * @param h64 Host byte order 64-bit integer
+ */
 uint64_t csp_hton64(uint64_t h64);
+
+/**
+ * Convert 64-bit integer to host byte order
+ * @param n64 Network byte order 64-bit integer
+ */
 uint64_t csp_ntoh64(uint64_t n64);
 
 #ifdef __cplusplus

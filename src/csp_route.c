@@ -59,11 +59,6 @@ csp_iface_t * interfaces = NULL;
 
 extern int csp_route_input_hook(csp_packet_t * packet) __attribute__((weak));
 
-/**
- * Routing input Queue
- * This queue is used each time a packet is received from an IF.
- * It holds the csp_route_queue_t complex datatype
- */
 static csp_queue_handle_t router_input_fifo = NULL;
 typedef struct {
 	csp_iface_t * interface;
@@ -155,10 +150,6 @@ static int csp_route_security_check(uint32_t security_opts, csp_iface_t * interf
 
 }
 
-/**
- * csp_route_table_init
- * Initialises the storage for the routing table
- */
 void csp_route_table_init(void) {
 
 	/* Clear table */
@@ -169,12 +160,6 @@ void csp_route_table_init(void) {
 
 }
 
-/**
- * Router Task
- * This task received any non-local connection and collects the data
- * on the connection. All data is forwarded out of the router
- * using the csp_send call 
- */
 csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 
 	csp_route_queue_t input;
@@ -250,11 +235,7 @@ csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 
 		}
 
-		/**
-		 * Now: The message is to me
-		 */
-
-		/* Search for incoming socket */
+		/* The message is to me, search for incoming socket */
 		if (packet->id.dport <= CSP_MAX_BIND_PORT) {
 
 			if (ports[packet->id.dport].state == PORT_OPEN) {
@@ -289,11 +270,7 @@ csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 			socket = NULL;
 		}
 
-		/**
-		 * Now: We have a connection oriented packet,
-		 */
-
-		/* search for an existing connection */
+		/* Search for an existing connection */
 		conn = csp_conn_find(packet->id.ext, CSP_ID_CONN_MASK);
 
 		/* If no connection was found, try to create a new one */
@@ -368,11 +345,6 @@ csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
 
 }
 
-/**
- * Use this function to start the router task.
- * @param task_stack_size The number of portStackType to allocate. This only affects FreeRTOS systems.
- */
-
 void csp_route_start_task(unsigned int task_stack_size, unsigned int priority) {
 
 	int ret = csp_thread_create(vTaskCSPRouter, (signed char *) "RTE", task_stack_size, NULL, priority, &handle_router);
@@ -382,12 +354,6 @@ void csp_route_start_task(unsigned int task_stack_size, unsigned int priority) {
 
 }
 
-/**
- * Set route
- * This function maintains the routing table,
- * To set default route use nodeid CSP_DEFAULT_ROUTE
- * To clear a value pass a NULL value
- */
 void csp_route_set(uint8_t node, csp_iface_t * ifc, uint8_t nexthop_mac_addr) {
 
 	/* Add interface to pool */
@@ -420,13 +386,6 @@ void csp_route_set(uint8_t node, csp_iface_t * ifc, uint8_t nexthop_mac_addr) {
 
 }
 
-/**
- * Routing table lookup
- * This is the actual lookup in the routing table
- * The table consists of one entry per possible node
- * If there is no explicit nexthop route for the destination
- * the default route (node CSP_DEFAULT_ROUTE) is used.
- */
 csp_route_t * csp_route_if(uint8_t id) {
 
 	if (routes[id].interface != NULL) {
@@ -438,24 +397,6 @@ csp_route_t * csp_route_if(uint8_t id) {
 
 }
 
-/**
- * Inputs a new packet into the system
- * This function is called from interface drivers ISR to route and accept packets.
- * But it can also be called from a task, provided that the pxTaskWoken parameter is NULL!
- *
- * EXTREMELY IMPORTANT:
- * pxTaskWoken arg must ALWAYS be NULL if called from task,
- * and ALWAYS be NON NULL if called from ISR!
- * If this condition is met, this call is completely thread-safe
- *
- * This function is fire and forget, it returns void, meaning
- * that a packet will always be either accepted or dropped
- * so the memory will always be freed.
- *
- * @param packet A pointer to the incoming packet
- * @param interface A pointer to the incoming interface TX function.
- * @param pxTaskWoken This must be a pointer a valid variable if called from ISR or NULL otherwise!
- */
 void csp_new_packet(csp_packet_t * packet, csp_iface_t * interface, CSP_BASE_TYPE * pxTaskWoken) {
 
 	int result;
@@ -501,7 +442,6 @@ uint8_t csp_route_get_nexthop_mac(uint8_t node) {
 }
 
 #if CSP_DEBUG
-
 static int csp_bytesize(char *buf, int len, int n) {
     char * postfix;
     double size;
@@ -547,17 +487,6 @@ void csp_route_print_table(void) {
 #endif
 
 #if CSP_USE_PROMISC
-/**
- * Enable promiscuous mode packet queue
- * This function is used to enable promiscuous mode for the router.
- * If enabled, a copy of all incoming packets are placed in a queue
- * that can be read with csp_promisc_get().
- *
- * Not all interface drivers support promiscuous mode. 
- *
- * @param buf_size Size of buffer for incoming packets
- *
- */
 int csp_promisc_enable(unsigned int buf_size) {
 
     if (csp_promisc_queue != NULL)
@@ -573,15 +502,6 @@ int csp_promisc_enable(unsigned int buf_size) {
 
 }
 
-/**
- * Get packet from promiscuous mode packet queue
- * Returns the first packet from the promiscuous mode packet queue.
- * The queue is FIFO, so the returned packet is the oldest one
- * in the queue. 
- *
- * @param timeout Timeout in ms to wait for a new packet
- *
- */
 csp_packet_t * csp_promisc_read(unsigned int timeout) {
 
     if (csp_promisc_queue == NULL)
@@ -594,13 +514,7 @@ csp_packet_t * csp_promisc_read(unsigned int timeout) {
 
 }
 
-/**
- * Add packet to promiscuous mode packet queue 
- *
- * @param packet Packet to add to the queue
- * @param queue Promiscuous mode packet queue
- *
- */
+
 void csp_promisc_add(csp_packet_t * packet, csp_queue_handle_t queue) {
 
 	if (queue != NULL) {

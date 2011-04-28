@@ -25,8 +25,23 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 extern "C" {
 #endif
 
+/**
+ * Generate precomputed CRC32 table
+ */
 void csp_crc32_gentab(void);
+
+/**
+ * Append CRC32 checksum to packet
+ * @param packet Packet to append checksum
+ * @return 0 on success, -1 on error
+ */
 int csp_crc32_append(csp_packet_t * packet);
+
+/**
+ * Verify CRC32 checksum on packet
+ * @param packet Packet to verify
+ * @return 0 if checksum is valid, -1 otherwise
+ */
 int csp_crc32_verify(csp_packet_t * packet);
 
 #ifdef __cplusplus

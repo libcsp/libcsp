@@ -29,6 +29,14 @@ extern "C" {
 
 #include <csp/csp.h>
 
+/**
+ * Function to transmit a frame without an existing connection structure.
+ * This function is used for stateless transmissions
+ * @param idout 32bit CSP identifier
+ * @param packet pointer to packet,
+ * @param timeout a timeout to wait for TX to complete. NOTE: not all underlying drivers supports flow-control.
+ * @return returns 1 if successful and 0 otherwise. you MUST free the frame yourself if the transmission was not successful.
+ */
 int csp_send_direct(csp_id_t idout, csp_packet_t * packet, unsigned int timeout);
 
 #ifdef __cplusplus

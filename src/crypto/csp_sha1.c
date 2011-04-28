@@ -134,10 +134,6 @@ static void csp_sha1_compress(csp_sha1_state * sha1, const uint8_t * buf) {
 
 }
 
-/**
- * Initialize the hash state
- * @param sha1   The hash state you wish to initialize
- */
 void csp_sha1_init(csp_sha1_state * sha1) {
 
    sha1->state[0] = 0x67452301UL;
@@ -150,12 +146,6 @@ void csp_sha1_init(csp_sha1_state * sha1) {
 
 }
 
-/**
- * Process a block of memory though the hash
- * @param sha1   The hash state
- * @param in	 The data to hash
- * @param inlen  The length of the data (octets)
- */
 void csp_sha1_process(csp_sha1_state * sha1, const uint8_t * in, uint32_t inlen) {
 
 	uint32_t n;
@@ -181,11 +171,6 @@ void csp_sha1_process(csp_sha1_state * sha1, const uint8_t * in, uint32_t inlen)
 
 }
 
-/**
- * Terminate the hash to get the digest
- * @param sha1  The hash state
- * @param out [out] The destination of the hash (20 bytes)
- */
 void csp_sha1_done(csp_sha1_state * sha1, uint8_t * out) {
 
 	uint32_t i;
@@ -212,21 +197,15 @@ void csp_sha1_done(csp_sha1_state * sha1, uint8_t * out) {
 		sha1->buf[sha1->curlen++] = 0;
 
 	/* Store length */
-	STORE64H(sha1->length, sha1->buf+56);
+	STORE64H(sha1->length, sha1->buf + 56);
 	csp_sha1_compress(sha1, sha1->buf);
 
 	/* Copy output */
 	for (i = 0; i < 5; i++)
-		STORE32H(sha1->state[i], out+(4*i));
+		STORE32H(sha1->state[i], out + (4 * i));
 
 }
 
-/**
- * Calculate SHA1 hash of block of memory.
- * @param msg   Pointer to message buffer
- * @param len   Length of message
- * @param sha1  Pointer to SHA1 output buffer. Must be 20 bytes or more!
- */
 void csp_sha1_memory(const uint8_t * msg, uint32_t len, uint8_t * hash) {
 
 	csp_sha1_state md;

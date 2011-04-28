@@ -92,10 +92,6 @@ int csp_buffer_init(int buf_count, int buf_size) {
 
 }
 
-/**
- * Unprotoced version of buffer get
- * @param buf_size
- */
 void * csp_buffer_get_isr(size_t buf_size) {
 
 	static uint8_t csp_buffer_last_given = 0;
@@ -152,10 +148,6 @@ void csp_buffer_free(void * packet) {
 	csp_buffer_list[i] = CSP_BUFFER_FREE;					// Mark this as free now
 }
 
-/**
- * Counts the amount of remaning buffers
- * @return Integer amount
- */
 int csp_buffer_remaining(void) {
 	int buf_count = 0, i;
 	for(i = 0; i < count; i++) {
@@ -171,11 +163,7 @@ void csp_buffer_print_table(void) {
 	csp_packet_t * packet;
 	for(i = 0; i < count; i++) {
 		printf("[%02u] ", i);
-		if (csp_buffer_list[i] == CSP_BUFFER_FREE) {
-			printf("FREE ");
-		} else {
-			printf("USED ");
-		}
+		printf("%s ", csp_buffer_list[i] == CSP_BUFFER_FREE ? "FREE" : "USED");
 		packet = (csp_packet_t *) (csp_buffer_p + (i * size));
 		printf("Packet P 0x%02X, S 0x%02X, D 0x%02X, Dp 0x%02X, Sp 0x%02X",
 			packet->id.pri, packet->id.src, packet->id.dst, packet->id.dport,

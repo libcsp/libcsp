@@ -149,13 +149,6 @@ int csp_hmac_set_key(char * key, uint32_t keylen) {
 
 }
 
-/**
- * Append HMAC to packet
- * @param packet Pointer to packet
- * @param key Pointer to key
- * @param klen Length of key in bytes
- * @return 0 on success, -1 on failure
- */
 int csp_hmac_append(csp_packet_t * packet) {
 
 	/* NULL pointer check */
@@ -175,13 +168,6 @@ int csp_hmac_append(csp_packet_t * packet) {
 
 }
 
-/**
- * Verify HMAC of packet
- * @param packet Pointer to packet
- * @param key Pointer to key
- * @param klen Length of key in bytes
- * @return 0 on correct HMAC, -1 if verification failed
- */
 int csp_hmac_verify(csp_packet_t * packet) {
 
 	/* NULL pointer check */

@@ -42,6 +42,10 @@ typedef struct {
 } csp_port_t;
 
 extern csp_port_t ports[];
+
+/**
+ * Init ports array
+ */
 void csp_port_init(void);
 
 #ifdef __cplusplus

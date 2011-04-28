@@ -29,7 +29,18 @@ extern "C" {
 
 #define CSP_HMAC_LENGTH	4
 
+/**
+ * Append HMAC to packet
+ * @param packet Pointer to packet
+ * @return 0 on success, -1 on failure
+ */
 int csp_hmac_append(csp_packet_t * packet);
+
+/**
+ * Verify HMAC of packet
+ * @param packet Pointer to packet
+ * @return 0 on correct HMAC, -1 if verification failed
+ */
 int csp_hmac_verify(csp_packet_t * packet);
 
 #ifdef __cplusplus

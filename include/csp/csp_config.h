@@ -18,19 +18,19 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/**
+/*
  * This is the default SVN version of the CSP configuration file.
  * It contains all the required values to compile CSP.
  * If you make any changes to the values in this file, please avoid
- * commiting them back to the repository unless they are required.
+ * committing them back to the repository unless they are required.
  *
  * This can be done by copying the file to another directory
- * and using include-path prioritisation, to prefer your local
+ * and using include-path prioritization, to prefer your local
  * copy over the default. Or perhaps even simpler by defining the
  * symbol CSP_USER_CONFIG in your makefile and naming your copy
  * csp_config_user.h
  *
- * This will also ensure that your copy of the configuraiton will never
+ * This will also ensure that your copy of the configuration will never
  * be overwritten by a SVN checkout. However, please notice that
  * sometimes new configuration directives will be added to the configuration
  * at which point you should copy these to your local configuration too.

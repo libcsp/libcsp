@@ -28,14 +28,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "arch/csp_time.h"
 
-/**
- * Send a single ping/echo packet
- * @param node node id
- * @param timeout timeout in ms
- * @param size size of packet to transmit
- * @param conn_options csp connection options
- * @return >0 = Echo time in ms, -1 = ERR
- */
 int csp_ping(uint8_t node, unsigned int timeout, unsigned int size, uint8_t conn_options) {
 
 	uint32_t start, time, status = 0;

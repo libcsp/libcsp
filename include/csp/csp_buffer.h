@@ -28,31 +28,36 @@ extern "C" {
 /**
  * Start the buffer handling system
  * You must specify the number for buffers and the size. All buffers are fixed
- * size so you must specify the size of your largest buffer. The standard for
- * GomSpace network library is 310 bytes.
+ * size so you must specify the size of your largest buffer.
  *
- * @param count: Number of buffers to allocate
- * @param size: Buffer size in bytes.
+ * @param count Number of buffers to allocate
+ * @param size Buffer size in bytes.
  *
- * @return 0 if malloc() failed, 1 if sucessful.
+ * @return 0 if malloc() failed, 1 if successful.
  */
 int csp_buffer_init(int count, int size);
 
 /**
- * Get a reference to a free buffer. This call is both interrupt and thread
- * safe. This function is similar to malloc()
+ * Get a reference to a free buffer. This function can only be called
+ * from task context.
  *
- * @param size: Specify what data-size you will put in the buffer
- * @return NULL if size is larger than buffer-block-sizse, pointer otherwise.
+ * @param size Specify what data-size you will put in the buffer
+ * @return pointer to a free csp_packet_t or NULL if out of memory
  */
 void * csp_buffer_get(size_t size);
+
+/**
+ * Get a reference to a free buffer. This function can only be called
+ * from interrupt context.
+ *
+ * @param size Specify what data-size you will put in the buffer
+ * @return pointer to a free csp_packet_t or NULL if out of memory
+ */
 void * csp_buffer_get_isr(size_t buf_size);
 
 /**
  * Free a buffer after use. This call is both interrupt and thread safe.
- * This function is similar to free()
- *
- * @param pointer to memory area, must be aquired by csp_buffer_get().
+ * @param pointer to memory area, must be acquired by csp_buffer_get().
  */
 void csp_buffer_free(void * packet);
 

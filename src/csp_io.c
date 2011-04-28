@@ -51,10 +51,6 @@ unsigned char my_address;
 extern csp_queue_handle_t csp_promisc_queue;
 #endif
 
-/** csp_init
- * Start up the can-space protocol
- * @param address The CSP node address
- */
 void csp_init(unsigned char address) {
 
     /* Initialize CSP */
@@ -73,11 +69,6 @@ void csp_init(unsigned char address) {
 
 }
 
-/** csp_socket
- * Create CSP socket endpoint
- * @param opts Socket options
- * @return Pointer to socket on success, NULL on failure
- */
 csp_socket_t * csp_socket(uint32_t opts) {
     
     /* Validate socket options */
@@ -118,12 +109,6 @@ csp_socket_t * csp_socket(uint32_t opts) {
 
 }
 
-/**
- * Wait for a new connection on a socket created by csp_socket
- * @param sock Socket to accept connections on
- * @param timeout use portMAX_DELAY for infinite timeout
- * @return Return pointer to csp_conn_t or NULL if timeout was reached
- */
 csp_conn_t * csp_accept(csp_socket_t * sock, unsigned int timeout) {
 
     if (sock == NULL)
@@ -140,16 +125,6 @@ csp_conn_t * csp_accept(csp_socket_t * sock, unsigned int timeout) {
 
 }
 
-/**
- * Read data from a connection
- * This fuction uses the RX queue of a connection to receive a packet
- * If no packet is available and a timeout has been specified
- * The call will block.
- * Do NOT call this from ISR
- * @param conn pointer to connection
- * @param timeout timeout in ms, use CSP_MAX_DELAY for infinite blocking time
- * @return Returns pointer to csp_packet_t, which you MUST free yourself, either by calling csp_buffer_free() or reusing the buffer for a new csp_send.
- */
 csp_packet_t * csp_read(csp_conn_t * conn, unsigned int timeout) {
 
 	if ((conn == NULL) || (conn->state != CONN_OPEN))
@@ -162,14 +137,6 @@ csp_packet_t * csp_read(csp_conn_t * conn, unsigned int timeout) {
 
 }
 
-/**
- * Function to transmit a frame without an existing connection structure.
- * This function is used for stateless transmissions
- * @param idout 32bit CSP identifier
- * @param packet pointer to packet,
- * @param timeout a timeout to wait for TX to complete. NOTE: not all underlying drivers supports flow-control.
- * @return returns 1 if successful and 0 otherwise. you MUST free the frame yourself if the transmission was not successful.
- */
 int csp_send_direct(csp_id_t idout, csp_packet_t * packet, unsigned int timeout) {
 
 	if (packet == NULL) {
@@ -272,13 +239,6 @@ err:
 
 }
 
-/**
- * Send a packet on an already established connection
- * @param conn pointer to connection
- * @param packet pointer to packet,
- * @param timeout a timeout to wait for TX to complete. NOTE: not all underlying drivers supports flow-control.
- * @return returns 1 if successful and 0 otherwise. you MUST free the frame yourself if the transmission was not successful.
- */
 int csp_send(csp_conn_t * conn, csp_packet_t * packet, unsigned int timeout) {
 
 	if ((conn == NULL) || (packet == NULL) || (conn->state != CONN_OPEN)) {
@@ -302,17 +262,6 @@ int csp_send(csp_conn_t * conn, csp_packet_t * packet, unsigned int timeout) {
 
 }
 
-/**
- * Use an existing connection to perform a transaction,
- * This is only possible if the next packet is on the same port and destination!
- * @param conn pointer to connection structure
- * @param timeout timeout in ms
- * @param outbuf pointer to outgoing data buffer
- * @param outlen length of request to send
- * @param inbuf pointer to incoming data buffer
- * @param inlen length of expected reply, -1 for unknown size (note inbuf MUST be large enough)
- * @return
- */
 int csp_transaction_persistent(csp_conn_t * conn, unsigned int timeout, void * outbuf, int outlen, void * inbuf, int inlen) {
 
 	/* Stupid way to implement max() but more portable than macros */
@@ -358,21 +307,6 @@ int csp_transaction_persistent(csp_conn_t * conn, unsigned int timeout, void * o
 
 }
 
-
-/**
- * Perform an entire request/reply transaction
- * Copies both input buffer and reply to output buffeer.
- * Also makes the connection and closes it again
- * @param prio CSP Prio
- * @param dest CSP Dest
- * @param port CSP Port
- * @param timeout timeout in ms
- * @param outbuf pointer to outgoing data buffer
- * @param outlen length of request to send
- * @param inbuf pointer to incoming data buffer
- * @param inlen length of expected reply, -1 for unknown size (note inbuf MUST be large enough)
- * @return Return 1 or reply size if successful, 0 if error or incoming length does not match or -1 if timeout was reached
- */
 int csp_transaction(uint8_t prio, uint8_t dest, uint8_t port, unsigned int timeout, void * outbuf, int outlen, void * inbuf, int inlen) {
 
 	csp_conn_t * conn = csp_connect(prio, dest, port, 0, 0);
@@ -387,13 +321,6 @@ int csp_transaction(uint8_t prio, uint8_t dest, uint8_t port, unsigned int timeo
 
 }
 
-/**
- * Read data from a connection-less server socket
- * This fuction uses the socket directly to receive a frame
- * If no packet is available and a timeout has been specified the call will block.
- * Do NOT call this from ISR
- * @return Returns pointer to csp_packet_t, which you MUST free yourself, either by calling csp_buffer_free() or reusing the buffer for a new csp_send.
- */
 csp_packet_t * csp_recvfrom(csp_socket_t * socket, unsigned int timeout) {
 
 	if ((socket == NULL) || (!(socket->opts & CSP_SO_CONN_LESS)))
@@ -406,17 +333,6 @@ csp_packet_t * csp_recvfrom(csp_socket_t * socket, unsigned int timeout) {
 
 }
 
-/**
- * Send a packet without previously opening a connection
- * @param prio CSP_PRIO_x
- * @param dest destination node
- * @param dport destination port
- * @param src_port source port
- * @param opts CSP_O_x
- * @param packet pointer to packet
- * @param timeout timeout used by interfaces with blocking send
- * @return -1 if error (you must free packet), 0 if OK (you must discard pointer)
- */
 int csp_sendto(uint8_t prio, uint8_t dest, uint8_t dport, uint8_t src_port, uint32_t opts, csp_packet_t * packet, unsigned int timeout) {
 
 	packet->id.flags = 0;

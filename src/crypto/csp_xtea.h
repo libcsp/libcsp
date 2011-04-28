@@ -29,7 +29,20 @@ extern "C" {
 
 #define CSP_XTEA_IV_LENGTH	8
 
+/**
+ * XTEA encrypt byte array
+ * @param plain Pointer to plain text
+ * @param len Length of plain text
+ * @param iv Initialization vector
+ */
 int csp_xtea_encrypt(uint8_t * plain, const uint32_t len, uint32_t iv[2]);
+
+/**
+ * Decrypt XTEA encrypted byte array
+ * @param cipher Pointer to cipher text
+ * @param len Length of plain text
+ * @param iv Initialization vector
+ */
 int csp_xtea_decrypt(uint8_t * cipher, const uint32_t len, uint32_t iv[2]);
 
 #ifdef __cplusplus

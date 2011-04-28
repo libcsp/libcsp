@@ -48,7 +48,7 @@ typedef enum {
 } csp_rdp_state_t;
 
 /** @brief RDP Connection header
- *  @note Do not try to pack this stuct, the posix sem handle will stop working */
+ *  @note Do not try to pack this struct, the posix sem handle will stop working */
 typedef struct {
 	csp_rdp_state_t state;				/**< Connection state */
 	uint16_t snd_nxt; 					/**< The sequence number of the next segment that is to be sent */

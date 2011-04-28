@@ -59,6 +59,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 csp_iface_t csp_if_can = {
 	.name = "CAN",
 	.nexthop = csp_can_tx,
+	.mtu = 256,
 };
 
 /** CAN header macros */
@@ -337,13 +338,6 @@ static pbuf_element_t * pbuf_find(uint32_t id, uint32_t mask, CSP_BASE_TYPE * ta
 
 }
 
-/** csp_tx_callback
- * TX callback function.
- * @param canid CAN identifier of transmitted packet.
- * @param error
- * @param task_woken
- * @return
- */
 int csp_tx_callback(can_id_t canid, can_error_t error, CSP_BASE_TYPE * task_woken) {
 
     int bytes;
@@ -411,12 +405,6 @@ int csp_tx_callback(can_id_t canid, can_error_t error, CSP_BASE_TYPE * task_woke
 
 }
 
-/** csp_rx_callback
- * RX callback function.
- * @param frame Received frame.
- * @param task_woken
- * @return
- */
 int csp_rx_callback(can_frame_t * frame, CSP_BASE_TYPE * task_woken) {
 
 	pbuf_element_t * buf;
@@ -542,13 +530,6 @@ int csp_rx_callback(can_frame_t * frame, CSP_BASE_TYPE * task_woken) {
 
 }
 
-/** csp_can_tx
- * TX Function.
- * @param cspid
- * @param packet
- * @param timeout
- * @return
- */
 int csp_can_tx(csp_packet_t * packet, unsigned int timeout) {
 
 	uint8_t bytes, overhead;
@@ -621,14 +602,6 @@ int csp_can_tx(csp_packet_t * packet, unsigned int timeout) {
 
 }
 
-/** csp_can_init
- * CAN initialization function.
- * @param myaddr
- * @param promisc
- * @param conf
- * @param conflen
- * @return
- */
 int csp_can_init(uint8_t myaddr, uint8_t promisc, void * conf, int conflen) {
 
     /* Initialize packet buffer */

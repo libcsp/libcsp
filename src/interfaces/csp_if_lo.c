@@ -35,7 +35,12 @@ csp_iface_t csp_if_lo = {
 	.nexthop = csp_lo_tx,
 };
 
-/* Nexthop function */
+/**
+ * Loopback interface transmit function
+ * @param packet Packet to transmit
+ * @param timeout Timout in ms
+ * @return 1 if packet was successfully transmitted, 0 on error
+ */
 int csp_lo_tx(csp_packet_t * packet, unsigned int timeout) {
 
 	/* Send back into CSP, notice calling from task so last argument must be NULL! */
