@@ -602,7 +602,7 @@ int csp_can_tx(csp_packet_t * packet, unsigned int timeout) {
 
 }
 
-int csp_can_init(uint8_t myaddr, uint8_t promisc, void * conf, int conflen) {
+int csp_can_init(uint8_t promisc, void * conf, int conflen) {
 
     /* Initialize packet buffer */
     if (pbuf_init() != 0) {
@@ -625,7 +625,7 @@ int csp_can_init(uint8_t myaddr, uint8_t promisc, void * conf, int conflen) {
     }
 
     /* Initialize CAN driver */
-    if (can_init(CFP_MAKE_DST(myaddr), mask, csp_tx_callback, csp_rx_callback, conf, conflen) != 0) {
+    if (can_init(CFP_MAKE_DST(my_address), mask, csp_tx_callback, csp_rx_callback, conf, conflen) != 0) {
     	csp_debug(CSP_ERROR, "Failed to initialize CAN driver\r\n");
     	return -1;
     }

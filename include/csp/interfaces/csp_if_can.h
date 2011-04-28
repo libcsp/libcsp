@@ -61,12 +61,11 @@ int csp_can_tx(csp_packet_t * packet, unsigned int timeout);
 
 /**
  * Init CAN interface
- * @param myaddr Subsystem address
  * @param promisc If nonzero, promiscuous mode is enabled
  * @param conf Pointer to configuration struct. This is subsystem dependent
  * @param conflen Size of configuration struct
  * @return 0 if CAN interface was successfully initialized, -1 otherwise
  */
-int csp_can_init(uint8_t myaddr, uint8_t promisc, void * conf, int conflen);
+int csp_can_init(uint8_t promisc, void * conf, int conflen);
 
 #endif /* _CSP_IF_CAN_H_ */
