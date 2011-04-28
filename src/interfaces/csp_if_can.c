@@ -602,7 +602,7 @@ int csp_can_tx(csp_packet_t * packet, unsigned int timeout) {
 
 }
 
-int csp_can_init(uint8_t promisc, void * conf, int conflen) {
+int csp_can_init(uint8_t mode, void * conf, int conflen) {
 
     /* Initialize packet buffer */
     if (pbuf_init() != 0) {
@@ -617,11 +617,14 @@ int csp_can_init(uint8_t promisc, void * conf, int conflen) {
     }
     
     uint32_t mask;
-    if (!promisc) {
+    if (mode == CSP_CAN_PROMISC) {
     	mask = CFP_MAKE_DST((1 << CFP_HOST_SIZE) - 1);
-    } else {
+    } else if (mode == CSP_CAN_MASKED){
     	mask = 0;
     	csp_if_can.promisc = 1;
+    } else {
+    	csp_debug(CSP_ERROR, "Unknown CAN mode\r\n");
+    	return -1;
     }
 
     /* Initialize CAN driver */

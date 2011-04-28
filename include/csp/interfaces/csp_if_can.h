@@ -26,6 +26,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/csp.h>
 #include <csp/csp_interface.h>
 
+/** CAN interface modes */
+#define CSP_CAN_MASKED		0
+#define CSP_CAN_PROMISC		1
+
 csp_iface_t csp_if_can;
 
 /** AT90CAN128 config struct */
@@ -61,11 +65,11 @@ int csp_can_tx(csp_packet_t * packet, unsigned int timeout);
 
 /**
  * Init CAN interface
- * @param promisc If nonzero, promiscuous mode is enabled
+ * @param mode Must be either CSP_CAN_MASKED or CSP_CAN_PROMISC
  * @param conf Pointer to configuration struct. This is subsystem dependent
  * @param conflen Size of configuration struct
  * @return 0 if CAN interface was successfully initialized, -1 otherwise
  */
-int csp_can_init(uint8_t promisc, void * conf, int conflen);
+int csp_can_init(uint8_t mode, void * conf, int conflen);
 
 #endif /* _CSP_IF_CAN_H_ */
