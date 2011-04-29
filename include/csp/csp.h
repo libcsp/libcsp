@@ -653,6 +653,7 @@ void csp_debug_hook_set(csp_debug_hook_func_t f);
 /* Quick and dirty hack to place AVR debug info in progmem */
 #if CSP_DEBUG && defined(__AVR__)
 #include <avr/pgmspace.h>
+#undef csp_debug
 #define csp_debug(level, format, ...) printf_P(PSTR(format), ##__VA_ARGS__)
 #endif
 
