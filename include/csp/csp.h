@@ -471,6 +471,13 @@ void csp_route_start_task(unsigned int task_stack_size, unsigned int priority);
 int csp_promisc_enable(unsigned int buf_size);
 
 /**
+ * Disable promiscuous mode.
+ * If the queue was initialised prior to this, it can be re-enabled
+ * by calling promisc_enable(0)
+ */
+void csp_promisc_disable(void);
+
+/**
  * Get packet from promiscuous mode packet queue
  * Returns the first packet from the promiscuous mode packet queue.
  * The queue is FIFO, so the returned packet is the oldest one
