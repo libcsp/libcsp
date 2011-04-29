@@ -39,12 +39,13 @@ typedef enum csp_buffer_state_t {
 	static csp_buffer_element_t csp_buffer[CSP_BUFFER_COUNT];
 	static csp_buffer_state csp_buffer_list[CSP_BUFFER_COUNT];
 	static void * csp_buffer_p = &csp_buffer;
-	static const int size = CSP_BUFFER_SIZE;
+	static const size_t = CSP_BUFFER_SIZE;
 	static const int count = CSP_BUFFER_COUNT;
 #else
 	static uint8_t * csp_buffer_p;
 	static csp_buffer_state_t * csp_buffer_list;
-	static int size, count;
+	static size_t size;
+	static int count;
 #endif
 
 #ifdef _CSP_POSIX_

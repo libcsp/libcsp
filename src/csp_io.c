@@ -294,7 +294,7 @@ int csp_transaction_persistent(csp_conn_t * conn, unsigned int timeout, void * o
 		return 0;
 	}
 
-	if ((inlen != -1) && (packet->length != inlen)) {
+	if ((inlen != -1) && ((int)packet->length != inlen)) {
 		printf("Reply length %u expected %u\r\n", packet->length, inlen);
 		csp_buffer_free(packet);
 		return 0;

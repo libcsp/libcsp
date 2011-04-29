@@ -54,7 +54,7 @@ static inline void csp_xtea_encrypt_block(uint32_t block[2], uint32_t const key[
 
 static inline void csp_xtea_xor_byte(uint8_t * dst, uint8_t * src, uint32_t len) {
 
-	int i;
+	unsigned int i;
 	for (i = 0; i < len; i++)
 		dst[i] ^= src[i];
 
@@ -75,7 +75,7 @@ int csp_xtea_set_key(char * key, uint32_t keylen) {
 
 int csp_xtea_encrypt(uint8_t * plain, const uint32_t len, uint32_t iv[2]) {
 
-	int i;
+	unsigned int i;
 	uint32_t stream[2];
 
 	uint32_t blocks = (len + XTEA_BLOCKSIZE - 1)/ XTEA_BLOCKSIZE;

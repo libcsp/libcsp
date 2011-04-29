@@ -443,7 +443,7 @@ uint8_t csp_route_get_nexthop_mac(uint8_t node) {
 }
 
 #if CSP_DEBUG
-static int csp_bytesize(char *buf, int len, int n) {
+static int csp_bytesize(char *buf, int len, unsigned long int n) {
     char * postfix;
     double size;
     if (n >= 1048576) {

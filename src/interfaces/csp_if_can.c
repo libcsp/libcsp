@@ -532,7 +532,7 @@ int csp_rx_callback(can_frame_t * frame, CSP_BASE_TYPE * task_woken) {
 
 int csp_can_tx(csp_packet_t * packet, unsigned int timeout) {
 
-	uint8_t bytes, overhead;
+	uint8_t bytes, overhead, avail;
 	uint8_t frame_buf[8];
 
 	/* Get CFP identification number */
@@ -565,7 +565,8 @@ int csp_can_tx(csp_packet_t * packet, unsigned int timeout) {
 	buf->packet = packet;
 
 	/* Calculate first frame data bytes */
-	bytes = (packet->length <= 8 - overhead) ? packet->length : 8 - overhead;
+	avail = 8 - overhead;
+	bytes = (packet->length <= avail) ? packet->length : avail;
 
 	/* Copy CSP headers and data */
 	uint32_t csp_id_be = csp_hton32(packet->id.ext);

@@ -213,9 +213,9 @@ static int csp_rdp_send_eack(csp_conn_t * conn) {
 	packet_eack->length = 0;
 
 	/* Loop through RX queue */
-	int i;
+	int i, count;
 	csp_packet_t * packet;
-	unsigned int count = csp_queue_size(conn->rdp.rx_queue);
+	count = csp_queue_size(conn->rdp.rx_queue);
 	for (i = 0; i < count; i++) {
 
 		if (csp_queue_dequeue_isr(conn->rdp.rx_queue, &packet, &pdTrue) != CSP_QUEUE_OK) {
@@ -296,9 +296,8 @@ static inline int csp_rdp_receive_data(csp_conn_t * conn, csp_packet_t * packet)
 static inline void csp_rdp_rx_queue_flush(csp_conn_t * conn) {
 
 	/* Loop through RX queue */
-	int i;
+	int i, count;
 	csp_packet_t * packet;
-	unsigned int count;
 
 front:
 	count = csp_queue_size(conn->rdp.rx_queue);
@@ -332,9 +331,9 @@ front:
 static inline int csp_rdp_rx_queue_exists(csp_conn_t * conn, uint16_t seq_nr) {
 
 	/* Loop through RX queue */
-	int i;
+	int i, count;
 	rdp_packet_t * packet;
-	unsigned int count = csp_queue_size(conn->rdp.rx_queue);
+	count = csp_queue_size(conn->rdp.rx_queue);
 	for (i = 0; i < count; i++) {
 
 		if (csp_queue_dequeue_isr(conn->rdp.rx_queue, &packet, &pdTrue) != CSP_QUEUE_OK) {
@@ -375,9 +374,9 @@ static void csp_rdp_flush_eack(csp_conn_t * conn, csp_packet_t * eack_packet) {
 	}
 
 	/* Loop through TX queue */
-	int i, j;
+	int i, j, count;
 	rdp_packet_t * packet;
-	unsigned int count = csp_queue_size(conn->rdp.tx_queue);
+	count = csp_queue_size(conn->rdp.tx_queue);
 	for (i = 0; i < count; i++) {
 
 		if (csp_queue_dequeue(conn->rdp.tx_queue, &packet, 0) != CSP_QUEUE_OK) {
@@ -390,7 +389,7 @@ static void csp_rdp_flush_eack(csp_conn_t * conn, csp_packet_t * eack_packet) {
 
 		/* Look for this element in EACKs */
 		int match = 0;
-		for (j = 0; j < (eack_packet->length - sizeof(rdp_header_t)) / sizeof(uint16_t); j++) {
+		for (j = 0; j < (int)((eack_packet->length - sizeof(rdp_header_t)) / sizeof(uint16_t)); j++) {
 			if (csp_ntoh16(eack_packet->data16[j]) == csp_ntoh16(header->seq_nr))
 				match = 1;
 			/*** Enable this if you want EACK's to trigger retransmission */
@@ -489,8 +488,8 @@ void csp_rdp_check_timeouts(csp_conn_t * conn) {
 	 */
 
 	/* Loop through TX queue */
-	int i;
-	unsigned int count = csp_queue_size(conn->rdp.tx_queue);
+	int i, count;
+	count = csp_queue_size(conn->rdp.tx_queue);
 	for (i = 0; i < count; i++) {
 
 		if ((csp_queue_dequeue_isr(conn->rdp.tx_queue, &packet, &pdTrue) != CSP_QUEUE_OK) || packet == NULL) {
@@ -548,7 +547,7 @@ void csp_rdp_check_timeouts(csp_conn_t * conn) {
 
 	/* Wake user task if TX queue is ready for more data */
 	if (conn->rdp.state == RDP_OPEN)
-		if (csp_queue_size(conn->rdp.tx_queue) < conn->rdp.window_size)
+		if (csp_queue_size(conn->rdp.tx_queue) < (int)conn->rdp.window_size)
 			if ((uint16_t) (conn->rdp.snd_nxt - conn->rdp.snd_una) < conn->rdp.window_size * 2)
 				csp_bin_sem_post(&conn->rdp.tx_wait);
 

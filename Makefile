@@ -33,7 +33,7 @@ CFLAGS += -D_GNU_SOURCE
 else ifeq ($(TOOLCHAIN),)
 CFLAGS += -fPIC
 endif
-CFLAGS += -Wall -Werror -std=gnu99 -Os
+CFLAGS += -Wall -Werror -Wextra -Wno-unused-parameter -std=gnu99 -Os
 
 ## Assembly specific flags
 ASMFLAGS = $(COMMON)
