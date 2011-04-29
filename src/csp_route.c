@@ -51,6 +51,7 @@ csp_route_t routes[CSP_ID_HOST_MAX + 2];
 
 #if CSP_USE_PROMISC
 csp_queue_handle_t csp_promisc_queue = NULL;
+int csp_promisc_enabled = 0;
 #endif
 
 csp_thread_handle_t handle_router;
@@ -489,17 +490,26 @@ void csp_route_print_table(void) {
 #if CSP_USE_PROMISC
 int csp_promisc_enable(unsigned int buf_size) {
 
-    if (csp_promisc_queue != NULL)
-        return 0;
+	/* If queue already initialised */
+    if (csp_promisc_queue != NULL) {
+    	csp_promisc_enabled = 1;
+    	return 1;
+    }
     
     /* Create packet queue */
     csp_promisc_queue = csp_queue_create(buf_size, sizeof(csp_packet_t *));
     
-    if (csp_promisc_queue != NULL)
+    if (csp_promisc_queue != NULL) {
+    	csp_promisc_enabled = 1;
     	return 1;
-    else
+    } else {
     	return 0;
+    }
 
+}
+
+void csp_promisc_disable(void) {
+	csp_promisc_enabled = 0;
 }
 
 csp_packet_t * csp_promisc_read(unsigned int timeout) {
@@ -516,6 +526,9 @@ csp_packet_t * csp_promisc_read(unsigned int timeout) {
 
 
 void csp_promisc_add(csp_packet_t * packet, csp_queue_handle_t queue) {
+
+	if (csp_promisc_enabled == 0)
+		return;
 
 	if (queue != NULL) {
 		/* Make a copy of the message and queue it to the promiscuous task */
