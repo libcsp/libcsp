@@ -937,7 +937,8 @@ int csp_rdp_send(csp_conn_t * conn, csp_packet_t * packet, unsigned int timeout)
 	csp_debug(CSP_PROTOCOL, "RDP: SEND SEQ %u SIZE %u\r\n", conn->rdp.snd_nxt, packet->length);
 
 	/* If TX window is full, wait here */
-	if (conn->rdp.snd_nxt - conn->rdp.snd_una + 1 > conn->rdp.window_size) {
+	uint32_t in_flight = conn->rdp.snd_nxt - conn->rdp.snd_una + 1;
+	if (in_flight > conn->rdp.window_size) {
 		csp_bin_sem_wait(&conn->rdp.tx_wait, 0);
 		if ((csp_bin_sem_wait(&conn->rdp.tx_wait, timeout)) != CSP_SEMAPHORE_OK) {
 			csp_debug(CSP_ERROR, "Timeout during send\r\n");
