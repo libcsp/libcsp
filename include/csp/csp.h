@@ -641,13 +641,13 @@ void csp_buffer_print_table(void);
  */
 void csp_debug_hook_set(csp_debug_hook_func_t f);
 #else
-#define csp_debug(...);
-#define csp_debug_toggle_level(...);
-#define csp_route_print_interfaces(...);
-#define csp_route_print_table(...);
-#define csp_conn_print_table(...);
-#define csp_buffer_print_table(...);
-#define csp_debug_hook_set(...);
+#define csp_debug(...) do {} while (0)
+#define csp_debug_toggle_level(...) do {} while (0)
+#define csp_route_print_interfaces(...) do {} while (0)
+#define csp_route_print_table(...) do {} while (0)
+#define csp_conn_print_table(...) do {} while (0)
+#define csp_buffer_print_table(...) do {} while (0)
+#define csp_debug_hook_set(...) do {} while (0)
 #endif
 
 /* Quick and dirty hack to place AVR debug info in progmem */
