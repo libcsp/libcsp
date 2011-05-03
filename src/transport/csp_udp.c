@@ -39,7 +39,7 @@ void csp_udp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 
 	/* Enqueue */
 	if (csp_queue_enqueue(conn->rx_queue, &packet, 0) != CSP_QUEUE_OK) {
-		printf("ERROR: Connection buffer queue full!\r\n");
+		csp_debug(CSP_ERROR, "Connection buffer queue full!\r\n");
 		csp_buffer_free(packet);
 		return;
 	}
@@ -47,7 +47,7 @@ void csp_udp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 	/* Try to queue up the new connection pointer */
 	if (conn->rx_socket != NULL) {
 		if (csp_queue_enqueue(conn->rx_socket, &conn, 0) != CSP_QUEUE_OK) {
-			printf("Warning Routing Queue Full\r\n");
+			csp_debug(CSP_WARN, "Warning Routing Queue Full\r\n");
 			csp_close(conn);
 			return;
 		}
