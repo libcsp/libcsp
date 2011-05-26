@@ -279,7 +279,7 @@ int csp_transaction_persistent(csp_conn_t * conn, unsigned int timeout, void * o
 	packet->length = outlen;
 
 	if (!csp_send(conn, packet, timeout)) {
-		printf("Send failed\r\n");
+		csp_debug(CSP_ERROR, "Transaction send failed\r\n");
 		csp_buffer_free(packet);
 		return 0;
 	}
@@ -290,12 +290,12 @@ int csp_transaction_persistent(csp_conn_t * conn, unsigned int timeout, void * o
 
 	packet = csp_read(conn, timeout);
 	if (packet == NULL) {
-		printf("Read failed\r\n");
+		csp_debug(CSP_WARN, "Transaction read failed\r\n");
 		return 0;
 	}
 
 	if ((inlen != -1) && ((int)packet->length != inlen)) {
-		printf("Reply length %u expected %u\r\n", packet->length, inlen);
+		csp_debug(CSP_ERROR, "Reply length %u expected %u\r\n", packet->length, inlen);
 		csp_buffer_free(packet);
 		return 0;
 	}
