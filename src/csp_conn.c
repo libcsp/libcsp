@@ -344,6 +344,31 @@ void csp_conn_print_table(void) {
 }
 #endif
 
+char * csp_conn_print_table_str(void) {
+    char buf[100]="";
+	static char buf_return[110*CSP_CONN_MAX]="";
+    int i;
+	csp_conn_t * conn;
+	sprintf(buf_return,"");
+	int min=0;
+	/*just display the latest 10 connections*/
+	if (CSP_CONN_MAX-10>0)
+	{
+	min=CSP_CONN_MAX-10;
+	}
+    for (i = min; i < CSP_CONN_MAX; i++) {
+		conn = &arr_conn[i];
+		sprintf(buf,"[%02u %p] S:%u, %u -> %u, %u -> %u, sock: %p\r\n",
+				i, conn, conn->state, conn->idin.src, conn->idin.dst,
+				conn->idin.dport, conn->idin.sport, conn->rx_socket);
+		strncat(buf_return,buf,110*CSP_CONN_MAX-5);
+    }
+		return buf_return;
+
+}
+
+
+
 inline int csp_conn_dport(csp_conn_t * conn) {
 
     return conn->idin.dport;
