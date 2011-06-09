@@ -211,17 +211,19 @@ typedef union {
 #define CSP_FCRC32 			0x01 				// Use CRC32 checksum
 
 /** CSP Socket options */
+#define CSP_SO_NONE 		0x0000				// No socket options
 #define CSP_SO_RDPREQ  		0x0001				// Require RDP
 #define CSP_SO_RDPPROHIB	0x0002				// Prohibit RDP
 #define CSP_SO_HMACREQ 		0x0004				// Require HMAC
 #define CSP_SO_HMACPROHIB	0x0008				// Prohibit HMAC
-#define CSP_SO_XTEAREQ 		0x0010 				// Require XTEA
+#define CSP_SO_XTEAREQ 		0x0010				// Require XTEA
 #define CSP_SO_XTEAPROHIB	0x0020				// Prohibit HMAC
 #define CSP_SO_CRC32REQ		0x0040				// Require CRC32
 #define CSP_SO_CRC32PROHIB	0x0080				// Prohibit CRC32
 #define CSP_SO_CONN_LESS	0x0100				// Enable Connection Less mode
 
 /** CSP Connect options */
+#define CSP_O_NONE  		CSP_SO_NONE			// No connection options
 #define CSP_O_RDP  			CSP_SO_RDPREQ		// Enable RDP
 #define CSP_O_NORDP			CSP_SO_RDPPROHIB	// Disable RDP
 #define CSP_O_HMAC 			CSP_SO_HMACREQ		// Enable HMAC
