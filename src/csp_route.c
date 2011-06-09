@@ -161,7 +161,7 @@ void csp_route_table_init(void) {
 
 }
 
-csp_thread_return_t vTaskCSPRouter(void * pvParameters) {
+csp_thread_return_t vTaskCSPRouter(__attribute__ ((unused)) void * pvParameters) {
 
 	csp_route_queue_t input;
 	csp_packet_t * packet;
@@ -444,8 +444,10 @@ uint8_t csp_route_get_nexthop_mac(uint8_t node) {
 
 #if CSP_DEBUG
 static int csp_bytesize(char *buf, int len, unsigned long int n) {
+
     char * postfix;
     double size;
+
     if (n >= 1048576) {
         size = n/1048576.0;
         postfix = "M";
@@ -456,12 +458,15 @@ static int csp_bytesize(char *buf, int len, unsigned long int n) {
         size = n;
         postfix = "B";
     }
+
     return snprintf(buf, len, "%.1f%s", size, postfix);
 }
 
 void csp_route_print_interfaces(void) {
+
 	csp_iface_t * i = interfaces;
 	char txbuf[25], rxbuf[25];
+
 	while (i) {
 		csp_bytesize(txbuf, 25, i->txbytes);
 		csp_bytesize(rxbuf, 25, i->rxbytes);
@@ -472,27 +477,31 @@ void csp_route_print_interfaces(void) {
 				i->autherr, i->frame, i->txbytes, txbuf, i->rxbytes, rxbuf);
 		i = i->next;
 	}
+
 }
 
-char * csp_route_print_interfaces_str(void) {
+int csp_route_print_interfaces_str(char * str_buf, int str_size) {
 
-	static char buf[600];
-    static char buf_return[6000]="";
+	char buf[600];
 	csp_iface_t * i = interfaces;
 	char txbuf[25], rxbuf[25];
+
 	while (i) {
 		csp_bytesize(txbuf, 25, i->txbytes);
 		csp_bytesize(rxbuf, 25, i->rxbytes);
-		sprintf(buf, "%-5s   tx: %05"PRIu32" rx: %05"PRIu32" txe: %05"PRIu32" rxe: %05"PRIu32"\r\n"
+		snprintf(buf, sizeof(buf), "%-5s   tx: %05"PRIu32" rx: %05"PRIu32
+                "txe: %05"PRIu32" rxe: %05"PRIu32"\r\n"
 				"        drop: %05"PRIu32" autherr: %05"PRIu32 " frame: %05"PRIu32"\r\n"
 				"        txb: %"PRIu32" (%s) rxb: %"PRIu32" (%s)\r\n\r\n",
 				i->name, i->tx, i->rx, i->tx_error, i->rx_error, i->drop,
 				i->autherr, i->frame, i->txbytes, txbuf, i->rxbytes, rxbuf);
-		strncat(buf_return,buf,5990);
+		strncat(str_buf, buf, str_size);
+        if ((str_size -= strlen(buf)) <= 0)
+            break;
 		i = i->next;
-
 	}
-	return buf;
+
+	return 0;
 
 }
 
@@ -507,7 +516,6 @@ void csp_route_print_table(void) {
 	routes[CSP_DEFAULT_ROUTE].nexthop_mac_addr);
 
 }
-
 #endif
 
 #if CSP_USE_PROMISC

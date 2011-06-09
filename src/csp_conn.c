@@ -334,40 +334,38 @@ void csp_conn_print_table(void) {
 		printf("[%02u %p] S:%u, %u -> %u, %u -> %u, sock: %p\r\n",
 				i, conn, conn->state, conn->idin.src, conn->idin.dst,
 				conn->idin.dport, conn->idin.sport, conn->rx_socket);
-
 #if CSP_USE_RDP
 		if (conn->idin.flags & CSP_FRDP)
 			csp_rdp_conn_print(conn);
 #endif
-
     }
 }
-#endif
 
-char * csp_conn_print_table_str(void) {
-    char buf[100]="";
-	static char buf_return[110*CSP_CONN_MAX]="";
-    int i;
+int csp_conn_print_table_str(char * str_buf, int str_size) {
+
+    int i, start = 0;
 	csp_conn_t * conn;
-	sprintf(buf_return,"");
-	int min=0;
-	/*just display the latest 10 connections*/
-	if (CSP_CONN_MAX-10>0)
-	{
-	min=CSP_CONN_MAX-10;
-	}
-    for (i = min; i < CSP_CONN_MAX; i++) {
+    char buf[100];
+
+    /* Display up to 10 connections */
+	if (CSP_CONN_MAX - 10 > 0)
+    	start = CSP_CONN_MAX - 10;
+
+    for (i = start; i < CSP_CONN_MAX; i++) {
 		conn = &arr_conn[i];
-		sprintf(buf,"[%02u %p] S:%u, %u -> %u, %u -> %u, sock: %p\r\n",
+		snprintf(buf, sizeof(buf), "[%02u %p] S:%u, %u -> %u, %u -> %u, sock: %p\r\n",
 				i, conn, conn->state, conn->idin.src, conn->idin.dst,
 				conn->idin.dport, conn->idin.sport, conn->rx_socket);
-		strncat(buf_return,buf,110*CSP_CONN_MAX-5);
+
+		strncat(str_buf, buf, str_size);
+        if ((str_size -= strlen(buf)) <= 0)
+            break;
     }
-		return buf_return;
+
+    return 0;
 
 }
-
-
+#endif
 
 inline int csp_conn_dport(csp_conn_t * conn) {
 
