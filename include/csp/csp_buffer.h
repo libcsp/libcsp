@@ -50,14 +50,14 @@ void * csp_buffer_get(size_t size);
  * Get a reference to a free buffer. This function can only be called
  * from interrupt context.
  *
- * @param size Specify what data-size you will put in the buffer
+ * @param buf_size Specify what data-size you will put in the buffer
  * @return pointer to a free csp_packet_t or NULL if out of memory
  */
 void * csp_buffer_get_isr(size_t buf_size);
 
 /**
  * Free a buffer after use. This call is both interrupt and thread safe.
- * @param pointer to memory area, must be acquired by csp_buffer_get().
+ * @param packet pointer to memory area, must be acquired by csp_buffer_get().
  */
 void csp_buffer_free(void * packet);
 

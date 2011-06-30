@@ -291,7 +291,7 @@ typedef struct csp_l4data_s csp_l4data_t;
 
 /** csp_init
  * Start up the can-space protocol
- * @param address The CSP node address
+ * @param my_node_address The CSP node address
  */
 void csp_init(uint8_t my_node_address);
 
@@ -304,7 +304,7 @@ csp_socket_t * csp_socket(uint32_t opts);
 
 /**
  * Wait for a new connection on a socket created by csp_socket
- * @param sock Socket to accept connections on
+ * @param socket Socket to accept connections on
  * @param timeout use portMAX_DELAY for infinite timeout
  * @return Return pointer to csp_conn_t or NULL if timeout was reached
  */
@@ -458,6 +458,7 @@ void csp_route_set(uint8_t node, csp_iface_t * ifc, uint8_t nexthop_mac_addr);
 /**
  * Start the router task.
  * @param task_stack_size The number of portStackType to allocate. This only affects FreeRTOS systems.
+ * @param priority The OS task priority of the router
  */
 void csp_route_start_task(unsigned int task_stack_size, unsigned int priority);
 
