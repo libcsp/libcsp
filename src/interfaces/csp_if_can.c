@@ -182,10 +182,10 @@ static int pbuf_init(void) {
         buf->last_used = 0;
         buf->remain = 0;
         /* Create tx semaphore if blocking mode is enabled */
-		if (csp_bin_sem_create(&buf->tx_sem) != CSP_SEMAPHORE_OK) {
-			csp_debug(CSP_ERROR, "Failed to allocate TX semaphore\n");
-			return -1;
-		}
+	if (csp_bin_sem_create(&buf->tx_sem) != CSP_SEMAPHORE_OK) {
+		csp_debug(CSP_ERROR, "Failed to allocate TX semaphore\n");
+		return -1;
+	}
     }
 
 #ifdef _CSP_POSIX_
@@ -618,9 +618,9 @@ int csp_can_init(uint8_t mode, void * conf, int conflen) {
     }
     
     uint32_t mask;
-    if (mode == CSP_CAN_PROMISC) {
+    if (mode == CSP_CAN_MASKED) {
     	mask = CFP_MAKE_DST((1 << CFP_HOST_SIZE) - 1);
-    } else if (mode == CSP_CAN_MASKED){
+    } else if (mode == CSP_CAN_PROMISC) {
     	mask = 0;
     	csp_if_can.promisc = 1;
     } else {
