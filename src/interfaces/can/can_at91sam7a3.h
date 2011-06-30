@@ -86,9 +86,9 @@ typedef struct {
 #define  ERRA  		(0x01 << 16)   	/* Error Active mode Interrupt Enable  	*/
 #define  WARN  		(0x01 << 17)   	/* Warning Limit Interrupt Enable 		*/
 #define  ERRP    	(0x01 << 18)   	/* Error Passive mode Interrupt Enable	*/
-#define  BOFF   	(0x01 << 19)   	/* Bus-off mode Interrupt Enable 		*/                              */
+#define  BOFF   	(0x01 << 19)   	/* Bus-off mode Interrupt Enable 		*/
 #define  SLEEP     	(0x01 << 20)   	/* Sleep Interrupt Enable 				*/
-#define  WAKEUP     (0x01 << 21)   	/* Wakeup Interrupt Enable 				*/
+#define  WAKEUP         (0x01 << 21)   	/* Wakeup Interrupt Enable 				*/
 #define  TOVF      	(0x01 << 22)   	/* Timer Overflow Interrupt Enable 		*/
 #define  TSTP      	(0x01 << 23)  	/* TimeStamp Interrupt Enable			*/
 #define  CERR      	(0x01 << 24)  	/* CRC Error Interrupt Enable 			*/
