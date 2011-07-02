@@ -605,6 +605,8 @@ int csp_can_tx(csp_packet_t * packet, unsigned int timeout) {
 
 int csp_can_init(uint8_t mode, void * conf, int conflen) {
 
+    uint32_t mask;
+
     /* Initialize packet buffer */
     if (pbuf_init() != 0) {
     	csp_debug(CSP_ERROR, "Failed to initialize CAN packet buffers\r\n");
@@ -617,7 +619,6 @@ int csp_can_init(uint8_t mode, void * conf, int conflen) {
     	return -1;
     }
     
-    uint32_t mask;
     if (mode == CSP_CAN_MASKED) {
     	mask = CFP_MAKE_DST((1 << CFP_HOST_SIZE) - 1);
     } else if (mode == CSP_CAN_PROMISC) {

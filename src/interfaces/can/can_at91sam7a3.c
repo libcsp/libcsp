@@ -115,8 +115,8 @@ static void can_init_interrupt(uint32_t id, uint32_t mask) {
             /* Configure mailbox as Rx */
             CAN_CTRL->CHANNEL[mbox].MMR = (0x01 << 24);
         } else {
-            /* Disable mailbox */
-            CAN_CTRL->CHANNEL[mbox].MMR = (0x00 << 24);
+            /* Configure mailbox as Tx */
+            CAN_CTRL->CHANNEL[mbox].MMR = (0x03 << 24);
         }
     }
 }
@@ -150,10 +150,8 @@ int can_init(uint32_t id, uint32_t mask, can_tx_callback_t atxcb, can_rx_callbac
     CAN_CTRL->MR = CANEN;
 
     /* Wait for bus synchronization */
-    while (!(CAN_CTRL->SR | WAKEUP))
+    while (!(CAN_CTRL->SR & WAKEUP))
         ;
-
-    printf("CAN is synchronized");
 
     return 0;
 
@@ -217,17 +215,11 @@ int can_send(can_id_t id, uint8_t data[], uint8_t dlc, CSP_BASE_TYPE * task_woke
     CAN_CTRL->CHANNEL[m].MDH = temp[0];
     CAN_CTRL->CHANNEL[m].MDL = temp[1];
 
-    /* Enable mailbox */
-    CAN_CTRL->CHANNEL[m].MMR = (0x03 << 24);
+    /* Set IDE bit, PCB to producer, DLC and CHANEN to enable */
+    CAN_CTRL->CHANNEL[m].MCR = ((dlc & 0x0F) << 16) | MTCR;
     
     /* Enable interrupts for mailbox */
     CAN_CTRL->IER = (1 << m);
-
-    /* Set IDE bit, PCB to producer, DLC and CHANEN to enable */
-    CAN_CTRL->CHANNEL[m].MCR = ((dlc & 0x0F) << 16) | MTCR;
-
-    /* Send frame as soon as possible */
-    CAN_CTRL->TCR = (1 << m);
 
     return 0;
 
@@ -291,7 +283,7 @@ void __attribute__ ((__interrupt__)) can_isr(void) {
 
                     /* Get ready to receive new mail */
                     CAN_CTRL->CHANNEL[m].MCR = MTCR;
-                } else if (is_tx_mailbox(m)) {
+                } else if (is_tx_mailbox(m) && mbox[m] != MBOX_FREE) {
                     
                     /* Disable interrupt for mailbox */
                     CAN_CTRL->IDR = (1 << m);
@@ -299,13 +291,12 @@ void __attribute__ ((__interrupt__)) can_isr(void) {
                     /* Get identifier */
                     can_id_t id = (CAN_CTRL->CHANNEL[m].MID & 0x1FFFFFFF);
 
-                    /* Release mailbox */
-                    mbox[m] = MBOX_FREE;
-
                     /* Call TX Callback with no error */
                     if (txcb != NULL)
                         txcb(id, CAN_NO_ERROR, &task_woken);
 
+                    /* Release mailbox */
+                    mbox[m] = MBOX_FREE;
                 }
             }
         }
