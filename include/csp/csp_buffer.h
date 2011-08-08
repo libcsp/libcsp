@@ -1,7 +1,7 @@
 /*
 Cubesat Space Protocol - A small network-layer protocol designed for Cubesats
-Copyright (C) 2010 Gomspace ApS (gomspace.com)
-Copyright (C) 2010 AAUSAT3 Project (aausat3.space.aau.dk)
+Copyright (C) 2011 Gomspace ApS (http://www.gomspace.com)
+Copyright (C) 2011 AAUSAT3 Project (http://aausat3.space.aau.dk)
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
