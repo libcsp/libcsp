@@ -40,7 +40,7 @@ typedef struct {
  * csp_route_table_init
  * Initialises the storage for the routing table
  */
-void csp_route_table_init(void);
+int csp_route_table_init(void);
 
 /**
  * Routing table lookup

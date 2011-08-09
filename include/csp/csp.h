@@ -141,6 +141,8 @@ typedef enum {
 	CSP_PRIO_LOW		= 3,
 } csp_prio_t;
 
+#define CSP_PRIORITIES			(1 << CSP_ID_PRIO_SIZE)
+
 /** Size of bit-fields in CSP header */
 #define CSP_ID_PRIO_SIZE		2
 #define CSP_ID_HOST_SIZE		5
@@ -186,9 +188,8 @@ typedef union {
 		unsigned int src : CSP_ID_HOST_SIZE;
 		unsigned int pri : CSP_ID_PRIO_SIZE;
 #else
-#error "Must define one of _CSP_BIG_ENDIAN_ or _CSP_LITTLE_ENDIAN_ in csp_platform.h"
+		#error "Must define one of _CSP_BIG_ENDIAN_ or _CSP_LITTLE_ENDIAN_ in csp_platform.h"
 #endif
-
 	};
 } csp_id_t;
 

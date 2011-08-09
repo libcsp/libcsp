@@ -29,6 +29,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/csp_interface.h>
 #include <csp/csp_endian.h>
 #include <csp/csp_platform.h>
+#include <csp/csp_error.h>
 
 #include "arch/csp_thread.h"
 #include "arch/csp_queue.h"
@@ -56,18 +57,20 @@ int csp_promisc_enabled = 0;
 
 csp_thread_handle_t handle_router;
 
-csp_iface_t * interfaces = NULL;
+csp_iface_t * interfaces;
 
 extern int csp_route_input_hook(csp_packet_t * packet) __attribute__((weak));
 
-static csp_queue_handle_t router_input_fifo = NULL;
+static csp_queue_handle_t router_input_fifo[CSP_PRIORITIES];
+static csp_queue_handle_t router_input_event;
+
 typedef struct {
 	csp_iface_t * interface;
 	csp_packet_t * packet;
 } csp_route_queue_t;
 
 /**
- * Helper function to decrypt, check auth and crc32
+ * Helper function to decrypt, check auth and CRC32
  * @param security_opts either socket_opts or conn_opts
  * @param interface pointer to incoming interface
  * @param packet pointer to packet
@@ -151,18 +154,32 @@ static int csp_route_security_check(uint32_t security_opts, csp_iface_t * interf
 
 }
 
-void csp_route_table_init(void) {
+int csp_route_table_init(void) {
+
+	int prio;
 
 	/* Clear table */
 	memset(routes, 0, sizeof(csp_route_t) * (CSP_ID_HOST_MAX + 2));
 
-	/* Create fallback socket  */
-	router_input_fifo = csp_queue_create(CSP_FIFO_INPUT, sizeof(csp_route_queue_t));
+	/* Create router fifos for each priority */
+	for (prio = 0; prio < CSP_PRIORITIES; prio++) {
+		router_input_fifo[prio] = csp_queue_create(CSP_FIFO_INPUT, sizeof(csp_route_queue_t));
+		if (!router_input_fifo[prio])
+			return CSP_ERR_NOMEM;
+	}
+
+	/* Create fifo notification semaphore */
+	router_input_event = csp_queue_create(CSP_FIFO_INPUT, sizeof(int));
+	if (!router_input_event)
+		return CSP_ERR_NOMEM;
+
+	return CSP_ERR_NONE;
 
 }
 
 csp_thread_return_t vTaskCSPRouter(__attribute__ ((unused)) void * pvParameters) {
 
+	int prio, found, event;
 	csp_route_queue_t input;
 	csp_packet_t * packet;
 	csp_conn_t * conn;
@@ -170,9 +187,11 @@ csp_thread_return_t vTaskCSPRouter(__attribute__ ((unused)) void * pvParameters)
 	csp_socket_t * socket = NULL;
 	csp_route_t * dst;
 
-	if (router_input_fifo == NULL) {
-		csp_debug(CSP_ERROR, "Router not initialized\r\n");
-		csp_thread_exit();
+	for (prio = 0; prio < CSP_PRIORITIES; prio++) {
+		if (!router_input_fifo[prio]) {
+			csp_debug(CSP_ERROR, "Router %d not initialized\r\n", prio);
+			csp_thread_exit();
+		}
 	}
 
     /* Here there be routing */
@@ -181,9 +200,23 @@ csp_thread_return_t vTaskCSPRouter(__attribute__ ((unused)) void * pvParameters)
 		/* Check connection timeouts */
 		csp_conn_check_timeouts();
 
-		/* Receive input */
-		if (csp_queue_dequeue(router_input_fifo, &input, 100) != CSP_QUEUE_OK)
+		/* Wait for packet in any queue */
+		if (csp_queue_dequeue(router_input_event, &event, 100) != CSP_SEMAPHORE_OK)
 			continue;
+
+		/* Find packet with highest priority */
+		found = 0;
+		for (prio = 0; prio < CSP_PRIORITIES; prio++) {
+			if (csp_queue_dequeue(router_input_fifo[prio], &input, 0) == CSP_QUEUE_OK) {
+				found = 1;
+				break;
+			}
+		}
+
+		if (!found) {
+			csp_debug(CSP_WARN, "Spurious wakeup of router task. No packet found\r\n");
+			continue;
+		}
 
 		/* Discard invalid */
 		if (input.packet == NULL) {
@@ -325,23 +358,19 @@ csp_thread_return_t vTaskCSPRouter(__attribute__ ((unused)) void * pvParameters)
 #if CSP_USE_RDP
 			/* Pass packet to RDP module */
 			csp_rdp_new_packet(conn, packet);
-			continue;
 		} else if (conn->conn_opts & CSP_SO_RDPREQ) {
 			csp_debug(CSP_WARN, "Received packet without RDP header. Discarding packet\r\n");
 			input.interface->rx_error++;
 			csp_buffer_free(packet);
-			continue;
 #else
 			csp_debug(CSP_ERROR, "Received RDP packet, but CSP was compiled without RDP support. Discarding packet\r\n");
 			input.interface->rx_error++;
 			csp_buffer_free(packet);
-			continue;
 #endif
+		} else {
+			/* Pass packet to UDP module */
+			csp_udp_new_packet(conn, packet);
 		}
-
-		/* Pass packet to UDP module */
-		csp_udp_new_packet(conn, packet);
-
 	}
 
 }
@@ -398,6 +427,29 @@ csp_route_t * csp_route_if(uint8_t id) {
 
 }
 
+void csp_route_notify(CSP_BASE_TYPE * pxTaskWoken) {
+
+	static int event = 0;
+	if (pxTaskWoken == NULL)
+		csp_queue_enqueue(router_input_event, &event, 0);
+	else
+		csp_queue_enqueue_isr(router_input_event, &event, pxTaskWoken);
+
+}
+
+int csp_route_enqueue(csp_queue_handle_t handle, void * value, int timeout, CSP_BASE_TYPE * pxTaskWoken) {
+
+	int result;
+
+	if (pxTaskWoken == NULL)
+		result = csp_queue_enqueue(handle, value, timeout);
+	else
+		result = csp_queue_enqueue_isr(handle, value, pxTaskWoken);
+
+	return result;
+
+}
+
 void csp_new_packet(csp_packet_t * packet, csp_iface_t * interface, CSP_BASE_TYPE * pxTaskWoken) {
 
 	int result;
@@ -419,19 +471,17 @@ void csp_new_packet(csp_packet_t * packet, csp_iface_t * interface, CSP_BASE_TYP
 	queue_element.interface = interface;
 	queue_element.packet = packet;
 
-	if (pxTaskWoken == NULL)
-		result = csp_queue_enqueue(router_input_fifo, &queue_element, 0);
-	else
-		result = csp_queue_enqueue_isr(router_input_fifo, &queue_element, pxTaskWoken);
+	result = csp_route_enqueue(router_input_fifo[packet->id.pri], &queue_element, 0, pxTaskWoken);
 
 	if (result != CSP_QUEUE_OK) {
 		csp_debug(CSP_WARN, "ERROR: Routing input FIFO is FULL. Dropping packet.\r\n");
 		interface->drop++;
 		csp_buffer_free(packet);
+	} else {
+		csp_route_notify(pxTaskWoken);
+		interface->rx++;
+		interface->rxbytes += packet->length;
 	}
-
-	interface->rx++;
-	interface->rxbytes += packet->length;
 
 }
 
