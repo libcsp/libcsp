@@ -61,8 +61,12 @@ csp_iface_t * interfaces;
 
 extern int csp_route_input_hook(csp_packet_t * packet) __attribute__((weak));
 
+#if CSP_USE_QOS
 static csp_queue_handle_t router_input_fifo[CSP_PRIORITIES];
 static csp_queue_handle_t router_input_event;
+#else
+static csp_queue_handle_t router_input_fifo;
+#endif
 
 typedef struct {
 	csp_iface_t * interface;
@@ -156,10 +160,11 @@ static int csp_route_security_check(uint32_t security_opts, csp_iface_t * interf
 
 int csp_route_table_init(void) {
 
-	int prio;
-
 	/* Clear table */
 	memset(routes, 0, sizeof(csp_route_t) * (CSP_ID_HOST_MAX + 2));
+
+#ifdef CSP_USE_QOS
+	int prio;
 
 	/* Create router fifos for each priority */
 	for (prio = 0; prio < CSP_PRIORITIES; prio++) {
@@ -172,6 +177,11 @@ int csp_route_table_init(void) {
 	router_input_event = csp_queue_create(CSP_FIFO_INPUT, sizeof(int));
 	if (!router_input_event)
 		return CSP_ERR_NOMEM;
+#else
+	router_input_fifo = csp_queue_create(CSP_FIFO_INPUT, sizeof(csp_route_queue_t));
+	if (!router_input_fifo)
+		return CSP_ERR_NOMEM;
+#endif
 
 	return CSP_ERR_NONE;
 
@@ -179,7 +189,6 @@ int csp_route_table_init(void) {
 
 csp_thread_return_t vTaskCSPRouter(__attribute__ ((unused)) void * pvParameters) {
 
-	int prio, found, event;
 	csp_route_queue_t input;
 	csp_packet_t * packet;
 	csp_conn_t * conn;
@@ -187,12 +196,20 @@ csp_thread_return_t vTaskCSPRouter(__attribute__ ((unused)) void * pvParameters)
 	csp_socket_t * socket = NULL;
 	csp_route_t * dst;
 
+#if CSP_USE_QOS
+	int prio, found, event;
 	for (prio = 0; prio < CSP_PRIORITIES; prio++) {
 		if (!router_input_fifo[prio]) {
 			csp_debug(CSP_ERROR, "Router %d not initialized\r\n", prio);
 			csp_thread_exit();
 		}
 	}
+#else
+	if (!router_input_fifo) {
+		csp_debug(CSP_ERROR, "Router not initialized\r\n");
+		csp_thread_exit();
+	}
+#endif
 
     /* Here there be routing */
 	while (1) {
@@ -200,8 +217,9 @@ csp_thread_return_t vTaskCSPRouter(__attribute__ ((unused)) void * pvParameters)
 		/* Check connection timeouts */
 		csp_conn_check_timeouts();
 
+#if CSP_USE_QOS
 		/* Wait for packet in any queue */
-		if (csp_queue_dequeue(router_input_event, &event, 100) != CSP_SEMAPHORE_OK)
+		if (csp_queue_dequeue(router_input_event, &event, 100) != CSP_QUEUE_OK)
 			continue;
 
 		/* Find packet with highest priority */
@@ -217,6 +235,10 @@ csp_thread_return_t vTaskCSPRouter(__attribute__ ((unused)) void * pvParameters)
 			csp_debug(CSP_WARN, "Spurious wakeup of router task. No packet found\r\n");
 			continue;
 		}
+#else
+		if (csp_queue_dequeue(router_input_fifo, &input, 100) != CSP_QUEUE_OK)
+			continue;
+#endif
 
 		/* Discard invalid */
 		if (input.packet == NULL) {
@@ -427,6 +449,7 @@ csp_route_t * csp_route_if(uint8_t id) {
 
 }
 
+#if CSP_USE_QOS
 void csp_route_notify(CSP_BASE_TYPE * pxTaskWoken) {
 
 	static int event = 0;
@@ -436,6 +459,7 @@ void csp_route_notify(CSP_BASE_TYPE * pxTaskWoken) {
 		csp_queue_enqueue_isr(router_input_event, &event, pxTaskWoken);
 
 }
+#endif
 
 int csp_route_enqueue(csp_queue_handle_t handle, void * value, int timeout, CSP_BASE_TYPE * pxTaskWoken) {
 
@@ -471,14 +495,20 @@ void csp_new_packet(csp_packet_t * packet, csp_iface_t * interface, CSP_BASE_TYP
 	queue_element.interface = interface;
 	queue_element.packet = packet;
 
+#if CSP_USE_QOS
 	result = csp_route_enqueue(router_input_fifo[packet->id.pri], &queue_element, 0, pxTaskWoken);
+#else
+	result = csp_route_enqueue(router_input_fifo, &queue_element, 0, pxTaskWoken);
+#endif
 
 	if (result != CSP_QUEUE_OK) {
 		csp_debug(CSP_WARN, "ERROR: Routing input FIFO is FULL. Dropping packet.\r\n");
 		interface->drop++;
 		csp_buffer_free(packet);
 	} else {
+#if CSP_USE_QOS
 		csp_route_notify(pxTaskWoken);
+#endif
 		interface->rx++;
 		interface->rxbytes += packet->length;
 	}

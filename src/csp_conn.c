@@ -64,6 +64,26 @@ void csp_conn_check_timeouts(void) {
 #endif
 }
 
+int csp_conn_enqueue(csp_conn_t * conn, csp_packet_t * packet, int timeout) {
+
+	if (!conn || !packet)
+		return -1;
+
+#if CSP_USE_QOS
+	int event = 0;
+	if (csp_queue_enqueue(conn->rx_queue[packet->id.pri], &packet, 0) != CSP_QUEUE_OK)
+		return -1;
+
+	if (csp_queue_enqueue(conn->rx_event, &event, 0) != CSP_QUEUE_OK)
+		return -1;
+#else
+	if (csp_queue_enqueue(conn->rx_queue, &packet, 0) != CSP_QUEUE_OK)
+		return -1;
+#endif
+
+	return 0;
+}
+
 void csp_conn_init(void) {
 
 	/* Initialize source port */
@@ -81,7 +101,15 @@ void csp_conn_init(void) {
 
 	int i;
 	for (i = 0; i < CSP_CONN_MAX; i++) {
+#if CSP_USE_QOS
+		int prio;
+		for (prio = 0; prio < CSP_PRIORITIES; prio++)
+			arr_conn[i].rx_queue[prio] = csp_queue_create(CSP_CONN_QUEUE_LENGTH, sizeof(csp_packet_t *));
+
+		arr_conn[i].rx_event = csp_queue_create(CSP_CONN_QUEUE_LENGTH, sizeof(int));
+#else
         arr_conn[i].rx_queue = csp_queue_create(CSP_CONN_QUEUE_LENGTH, sizeof(csp_packet_t *));
+#endif
 		arr_conn[i].state = CONN_CLOSED;
 #if CSP_USE_RDP
 		if (csp_rdp_allocate(&arr_conn[i]) == 0)

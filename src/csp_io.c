@@ -127,11 +127,22 @@ csp_conn_t * csp_accept(csp_socket_t * sock, unsigned int timeout) {
 
 csp_packet_t * csp_read(csp_conn_t * conn, unsigned int timeout) {
 
+	csp_packet_t * packet = NULL;
+
 	if ((conn == NULL) || (conn->state != CONN_OPEN))
 		return NULL;
 
-	csp_packet_t * packet = NULL;
+#if CSP_USE_QOS
+	int prio, event;
+	if (csp_queue_dequeue(conn->rx_event, &event, timeout) != CSP_QUEUE_OK)
+		return NULL;
+
+	for (prio = 0; prio < CSP_PRIORITIES; prio++)
+		if (csp_queue_dequeue(conn->rx_queue[prio], &packet, 0) == CSP_QUEUE_OK)
+			break;
+#else
     csp_queue_dequeue(conn->rx_queue, &packet, timeout);
+#endif
 
 	return packet;
 

@@ -45,7 +45,6 @@ extern "C" {
 #endif
 
 #ifdef CSP_DFL_CONFIG
-
 /* General config */
 #define CSP_DEBUG			   	0	   	// Enable/disable debugging output
 #define CSP_CONN_MAX			10  	// Number of statically allocated connection structs
@@ -53,6 +52,7 @@ extern "C" {
 #define CSP_FIFO_INPUT			100		// Number of packets to be queued at the input of the router
 #define CSP_MAX_BIND_PORT		15		// Highest incoming port number to bind to (must be below (2^CSP_ID_PORT_SIZE)-1)
 #define CSP_RANDOMIZE_EPHEM		1		// Randomize initial ephemeral port
+#define CSP_USE_QOS 			1 		// Enable Quality of Service
 
 /* Transport layer config */
 #define CSP_USE_RDP				1		// Enable RDP transport protocol

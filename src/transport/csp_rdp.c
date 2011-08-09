@@ -284,7 +284,7 @@ static inline int csp_rdp_receive_data(csp_conn_t * conn, csp_packet_t * packet)
 	csp_rdp_header_remove(packet);
 
 	/* Enqueue data */
-	if (csp_queue_enqueue(conn->rx_queue, &packet, 0) != CSP_QUEUE_OK) {
+	if (csp_conn_enqueue(conn, packet, 0) < 0) {
 		csp_debug(CSP_INFO, "Conn buffer full\r\n");
 		return 0;
 	}
@@ -845,13 +845,12 @@ void csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 	}
 
 discard_close:
-
 	/* If user-space has received the connection handle, wake it up,
 	 * by sending a NULL pointer, user-space should close connection */
 	if (conn->rx_socket == (void *) 1 || conn->rx_socket == NULL) {
 		csp_debug(CSP_PROTOCOL, "Waiting for userspace to close\r\n");
 	    void * null_pointer = NULL;
-	    csp_queue_enqueue(conn->rx_queue, &null_pointer, 0);
+	    csp_conn_enqueue(conn, (csp_packet_t *) &null_pointer, 0);
 	}
 
 discard_open:
