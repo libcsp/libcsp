@@ -234,13 +234,17 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, unsigned int timeout)
     packet->id.ext = idout.ext;
 
     /* Store length before passing to interface */
-    uint32_t b = packet->length;
+    uint16_t bytes = packet->length;
+    uint16_t mtu = ifout->interface->mtu;
+
+    if (mtu > 0 && bytes > mtu)
+    	goto tx_err;
 
 	if ((*ifout->interface->nexthop)(packet, timeout) != 1)
 		goto tx_err;
 
 	ifout->interface->tx++;
-	ifout->interface->txbytes += b;
+	ifout->interface->txbytes += bytes;
 	return 1;
 
 tx_err:
