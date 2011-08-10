@@ -137,11 +137,11 @@ csp_packet_t * csp_read(csp_conn_t * conn, unsigned int timeout) {
 	if (csp_queue_dequeue(conn->rx_event, &event, timeout) != CSP_QUEUE_OK)
 		return NULL;
 
-	for (prio = 0; prio < CSP_PRIORITIES; prio++)
+	for (prio = 0; prio < CSP_RX_QUEUES; prio++)
 		if (csp_queue_dequeue(conn->rx_queue[prio], &packet, 0) == CSP_QUEUE_OK)
 			break;
 #else
-    csp_queue_dequeue(conn->rx_queue, &packet, timeout);
+    csp_queue_dequeue(conn->rx_queue[0], &packet, timeout);
 #endif
 
 	return packet;

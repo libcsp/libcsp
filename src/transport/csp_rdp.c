@@ -281,7 +281,7 @@ static inline int csp_rdp_receive_data(csp_conn_t * conn, csp_packet_t * packet)
 
 		/* Ensure that this connection will not be posted to this socket again
 		 * and remember that the connection handle has been passed to userspace
-		 * by setting the rx_socet = 1. */
+		 * by setting the rx_socket = 1. */
 		conn->rx_socket = (void *) 1;
 	}
 
@@ -289,7 +289,7 @@ static inline int csp_rdp_receive_data(csp_conn_t * conn, csp_packet_t * packet)
 	csp_rdp_header_remove(packet);
 
 	/* Enqueue data */
-	if (csp_conn_enqueue(conn, packet, 0) < 0) {
+	if (csp_conn_enqueue_packet(conn, packet) < 0) {
 		csp_debug(CSP_INFO, "Conn buffer full\r\n");
 		return 0;
 	}
@@ -541,7 +541,7 @@ void csp_rdp_check_timeouts(csp_conn_t * conn) {
 	 * Check ACK timeouts
 	 */
 	/* Only send timeout ACK if segment was not acknowledged by regular ACK */
-	if (conn->rdp.delayed_acks != 0) {
+	if (conn->rdp.delayed_acks) {
 		if (conn->rdp.rcv_lsa != conn->rdp.rcv_cur) {
 			uint32_t diff = csp_get_ms() - conn->rdp.ack_timestamp;
 			if (diff > conn->rdp.ack_timeout)
@@ -549,6 +549,21 @@ void csp_rdp_check_timeouts(csp_conn_t * conn) {
 		}
 	}
 #endif
+
+	/* If we have unacknowledged segments, check all RX queues for spare capacity */
+	if (conn->rdp.rcv_lsa != conn->rdp.rcv_cur) {
+		int prio, avail = 1;
+		for (prio = 0; prio < CSP_RX_QUEUES; prio++) {
+			if (CSP_RX_QUEUE_LENGTH - csp_queue_size(conn->rx_queue[prio]) <= conn->rdp.window_size) {
+				avail = 0;
+				break;
+			}
+		}
+
+		/* All queues have available space, so it's safe to send ACK */
+		if (avail)
+			csp_rdp_send_cmp(conn, NULL, RDP_ACK, conn->rdp.snd_nxt, conn->rdp.rcv_cur, 0);
+	}
 
 	/* Wake user task if TX queue is ready for more data */
 	if (conn->rdp.state == RDP_OPEN)
@@ -700,7 +715,7 @@ void csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 		/* If there was no SYN in the reply, our SYN message hit an already open connection
 		 * This is handled by sending a RST.
 		 * Normally this would be followed up by a new connection attempt, however
-		 * we don't have a method for signalling this to the userspace.
+		 * we don't have a method for signaling this to the user space.
 		 */
 		if (rx_header->ack) {
 			csp_debug(CSP_ERROR, "Half-open connection found, sending RST\r\n");
@@ -728,7 +743,7 @@ void csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 	{
 
 		/* SYN or !ACK is invalid */
-		if ((rx_header->syn == 1) || (rx_header->ack == 0)) {
+		if (rx_header->syn || !rx_header->ack) {
 			if (rx_header->seq_nr != conn->rdp.rcv_irs) {
 				csp_debug(CSP_ERROR, "Invalid SYN or no ACK, resetting!\r\n");
 				goto discard_close;
@@ -804,13 +819,16 @@ void csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 		conn->rdp.rcv_cur = seq_nr;
 
 		/* The message is in sequence and contains data */
-		if (conn->rdp.delayed_acks != 0) {
-			/* We only ACK this if receiver window is half full */
-			if (conn->rdp.rcv_cur > conn->rdp.rcv_lsa + conn->rdp.ack_delay_count)
+		int rxq = csp_conn_get_rxq(packet->id.pri);
+		int rx_queue_size = csp_queue_size(conn->rx_queue[rxq]);
+
+		/* Only ACK the message if there is room for a full window in the RX buffer.
+		 * Unacknowledged segments are ACKed by csp_rdp_check_timeouts when the buffer is
+		 * no longer full. */
+		if (rx_queue_size + conn->rdp.window_size <= CSP_RX_QUEUE_LENGTH) {
+			/* We only ACK here if ack_delay_count packets are unacknowledged */
+			if (!conn->rdp.delayed_acks || conn->rdp.rcv_cur > conn->rdp.rcv_lsa + conn->rdp.ack_delay_count)
 				csp_rdp_send_cmp(conn, NULL, RDP_ACK, conn->rdp.snd_nxt, conn->rdp.rcv_cur, 0);
-		} else {
-			/* ACK the message */
-			csp_rdp_send_cmp(conn, NULL, RDP_ACK, conn->rdp.snd_nxt, conn->rdp.rcv_cur, 0);
 		}
 
 		/* Flush RX queue */
@@ -855,7 +873,7 @@ discard_close:
 	if (conn->rx_socket == (void *) 1 || conn->rx_socket == NULL) {
 		csp_debug(CSP_PROTOCOL, "Waiting for userspace to close\r\n");
 	    void * null_pointer = NULL;
-	    csp_conn_enqueue(conn, (csp_packet_t *) &null_pointer, 0);
+	    csp_conn_enqueue_packet(conn, (csp_packet_t *) &null_pointer);
 	}
 
 discard_open:
@@ -865,7 +883,7 @@ accepted_open:
 
 }
 
-int csp_rdp_connect_active(csp_conn_t * conn, unsigned int timeout) {
+int csp_rdp_connect(csp_conn_t * conn, unsigned int timeout) {
 
 	int retry = 1;
 
@@ -913,7 +931,7 @@ retry:
 			if (retry) {
 				csp_debug(CSP_WARN, "RDP: Half-open connection detected, RST sent, now retrying\r\n");
 				csp_rdp_flush_all(conn);
-				retry -= 1;
+				retry = 0;
 				goto retry;
 			} else {
 				csp_debug(CSP_ERROR, "RDP: Connection stayed half-open, even after RST and retry!\r\n");

@@ -143,6 +143,16 @@ typedef enum {
 
 #define CSP_PRIORITIES			(1 << CSP_ID_PRIO_SIZE)
 
+#if CSP_USE_QOS
+#define CSP_RX_QUEUE_LENGTH		(CSP_CONN_QUEUE_LENGTH / CSP_PRIORITIES)
+#define CSP_ROUTE_FIFOS			CSP_PRIORITIES
+#define CSP_RX_QUEUES			CSP_PRIORITIES
+#else
+#define CSP_RX_QUEUE_LENGTH 	CSP_CONN_QUEUE_LENGTH
+#define CSP_ROUTE_FIFOS			1
+#define CSP_RX_QUEUES			1
+#endif
+
 /** Size of bit-fields in CSP header */
 #define CSP_ID_PRIO_SIZE		2
 #define CSP_ID_HOST_SIZE		5

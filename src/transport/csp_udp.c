@@ -38,7 +38,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 void csp_udp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 
 	/* Enqueue */
-	if (csp_conn_enqueue(conn, packet, 0) < 0) {
+	if (csp_conn_enqueue_packet(conn, packet) < 0) {
 		csp_debug(CSP_ERROR, "Connection buffer queue full!\r\n");
 		csp_buffer_free(packet);
 		return;

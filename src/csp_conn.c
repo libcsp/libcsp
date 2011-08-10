@@ -51,33 +51,40 @@ void csp_conn_check_timeouts(void) {
 	/* Loop */
 	int i;
 	for (i = 0; i < CSP_CONN_MAX; i++) {
-
-		/* Only look at open connetions */
+		/* Only look at open connections */
 		if (arr_conn[i].state != CONN_OPEN)
 			continue;
 
 		/* Check the protocol and higher layers */
 		if (arr_conn[i].idin.flags & CSP_FRDP)
 			csp_rdp_check_timeouts(&arr_conn[i]);
-
 	}
 #endif
 }
 
-int csp_conn_enqueue(csp_conn_t * conn, csp_packet_t * packet, int timeout) {
+int csp_conn_get_rxq(int prio) {
+
+#if CSP_USE_QOS
+	return prio;
+#else
+	return 0;
+#endif
+
+}
+
+int csp_conn_enqueue_packet(csp_conn_t * conn, csp_packet_t * packet) {
 
 	if (!conn || !packet)
 		return -1;
 
-#if CSP_USE_QOS
-	int event = 0;
-	if (csp_queue_enqueue(conn->rx_queue[packet->id.pri], &packet, 0) != CSP_QUEUE_OK)
+	int rxq = csp_conn_get_rxq(packet->id.pri);
+
+	if (csp_queue_enqueue(conn->rx_queue[rxq], &packet, 0) != CSP_QUEUE_OK)
 		return -1;
 
+#if CSP_USE_QOS
+	int event = 0;
 	if (csp_queue_enqueue(conn->rx_event, &event, 0) != CSP_QUEUE_OK)
-		return -1;
-#else
-	if (csp_queue_enqueue(conn->rx_queue, &packet, 0) != CSP_QUEUE_OK)
 		return -1;
 #endif
 
@@ -99,17 +106,15 @@ void csp_conn_init(void) {
 		return;
 	}
 
-	int i;
+	int i, prio;
 	for (i = 0; i < CSP_CONN_MAX; i++) {
-#if CSP_USE_QOS
-		int prio;
-		for (prio = 0; prio < CSP_PRIORITIES; prio++)
-			arr_conn[i].rx_queue[prio] = csp_queue_create(CSP_CONN_QUEUE_LENGTH, sizeof(csp_packet_t *));
+		for (prio = 0; prio < CSP_RX_QUEUES; prio++)
+			arr_conn[i].rx_queue[prio] = csp_queue_create(CSP_RX_QUEUE_LENGTH, sizeof(csp_packet_t *));
 
+#if CSP_USE_QOS
 		arr_conn[i].rx_event = csp_queue_create(CSP_CONN_QUEUE_LENGTH, sizeof(int));
-#else
-        arr_conn[i].rx_queue = csp_queue_create(CSP_CONN_QUEUE_LENGTH, sizeof(csp_packet_t *));
 #endif
+
 		arr_conn[i].state = CONN_CLOSED;
 #if CSP_USE_RDP
 		if (csp_rdp_allocate(&arr_conn[i]) == 0)
@@ -143,24 +148,20 @@ csp_conn_t * csp_conn_find(uint32_t id, uint32_t mask) {
 int csp_conn_empty_rx_queue(csp_conn_t * conn) {
 
 	csp_packet_t * packet;
-#if CSP_USE_QOS
-	int prio, event;
+
+	int prio;
 
 	/* Empty packet queues */
-	for (prio = 0; prio < CSP_PRIORITIES; prio++) {
+	for (prio = 0; prio < CSP_RX_QUEUES; prio++) {
 		while (csp_queue_dequeue(conn->rx_queue[prio], &packet, 0) == CSP_QUEUE_OK)
 			if (packet != NULL)
 				csp_buffer_free(packet);
 	}
 
 	/* Empty event queue */
-	while (csp_queue_dequeue(conn->rx_event, &event, 0) == CSP_QUEUE_OK)
-		;
-#else
-	/* Empty packet queue */
-	while (csp_queue_dequeue(conn->rx_queue, &packet, 0) == CSP_QUEUE_OK)
-		if (packet != NULL)
-			csp_buffer_free(packet);
+#if CSP_USE_QOS
+	int event;
+	while (csp_queue_dequeue(conn->rx_event, &event, 0) == CSP_QUEUE_OK);
 #endif
 
 	return 0;
@@ -354,7 +355,7 @@ csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport, unsigned int
     int result = 1;
 #if CSP_USE_RDP
     if (outgoing_id.flags & CSP_FRDP)
-       	result = csp_rdp_connect_active(conn, timeout);
+       	result = csp_rdp_connect(conn, timeout);
 #endif
 
     /* If the transport layer has failed to connect
@@ -367,6 +368,36 @@ csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport, unsigned int
 
     /* We have a successful connection */
     return conn;
+
+}
+
+inline int csp_conn_dport(csp_conn_t * conn) {
+
+    return conn->idin.dport;
+
+}
+
+inline int csp_conn_sport(csp_conn_t * conn) {
+
+    return conn->idin.sport;
+
+}
+
+inline int csp_conn_dst(csp_conn_t * conn) {
+
+    return conn->idin.dst;
+
+}
+
+inline int csp_conn_src(csp_conn_t * conn) {
+
+    return conn->idin.src;
+
+}
+
+inline int csp_conn_flags(csp_conn_t * conn) {
+
+	return conn->idin.flags;
 
 }
 
@@ -413,33 +444,3 @@ int csp_conn_print_table_str(char * str_buf, int str_size) {
 
 }
 #endif
-
-inline int csp_conn_dport(csp_conn_t * conn) {
-
-    return conn->idin.dport;
-
-}
-
-inline int csp_conn_sport(csp_conn_t * conn) {
-
-    return conn->idin.sport;
-
-}
-
-inline int csp_conn_dst(csp_conn_t * conn) {
-
-    return conn->idin.dst;
-
-}
-
-inline int csp_conn_src(csp_conn_t * conn) {
-
-    return conn->idin.src;
-
-}
-
-inline int csp_conn_flags(csp_conn_t * conn) {
-
-	return conn->idin.flags;
-
-}
