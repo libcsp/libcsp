@@ -140,6 +140,33 @@ csp_conn_t * csp_conn_find(uint32_t id, uint32_t mask) {
 
 }
 
+int csp_conn_empty_rx_queue(csp_conn_t * conn) {
+
+	csp_packet_t * packet;
+#if CSP_USE_QOS
+	int prio, event;
+
+	/* Empty packet queues */
+	for (prio = 0; prio < CSP_PRIORITIES; prio++) {
+		while (csp_queue_dequeue(conn->rx_queue[prio], &packet, 0) == CSP_QUEUE_OK)
+			if (packet != NULL)
+				csp_buffer_free(packet);
+	}
+
+	/* Empty event queue */
+	while (csp_queue_dequeue(conn->rx_event, &event, 0) == CSP_QUEUE_OK)
+		;
+#else
+	/* Empty packet queue */
+	while (csp_queue_dequeue(conn->rx_queue, &packet, 0) == CSP_QUEUE_OK)
+		if (packet != NULL)
+			csp_buffer_free(packet);
+#endif
+
+	return 0;
+
+}
+
 csp_conn_t * csp_conn_new(csp_id_t idin, csp_id_t idout) {
 
 	static uint8_t csp_conn_last_given = 0;
@@ -162,7 +189,7 @@ csp_conn_t * csp_conn_new(csp_id_t idin, csp_id_t idout) {
             break;
         }
 		i = (i + 1) % CSP_CONN_MAX;
-	} while(i != csp_conn_last_given);
+	} while (i != csp_conn_last_given);
 
 	if (i == csp_conn_last_given) {
 		csp_debug(CSP_ERROR, "No more free connections\r\n");
@@ -182,11 +209,7 @@ csp_conn_t * csp_conn_new(csp_id_t idin, csp_id_t idout) {
 	conn->open_timestamp = csp_get_ms();
 
 	/* Ensure connection queue is empty */
-	csp_packet_t * packet;
-	while(csp_queue_dequeue(conn->rx_queue, &packet, 0) == CSP_QUEUE_OK) {
-		if (packet != NULL)
-			csp_buffer_free(packet);
-	}
+	csp_conn_empty_rx_queue(conn);
 
     return conn;
 
@@ -221,11 +244,7 @@ void csp_close(csp_conn_t * conn) {
 	conn->state = CONN_CLOSED;
 
 	/* Ensure connection queue is empty */
-	csp_packet_t * packet;
-    while(csp_queue_dequeue(conn->rx_queue, &packet, 0) == CSP_QUEUE_OK) {
-    	if (packet != NULL)
-    		csp_buffer_free(packet);
-    }
+	csp_conn_empty_rx_queue(conn);
 
     /* Reset RDP state */
 #if CSP_USE_RDP

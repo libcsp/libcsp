@@ -163,7 +163,7 @@ int csp_route_table_init(void) {
 	/* Clear table */
 	memset(routes, 0, sizeof(csp_route_t) * (CSP_ID_HOST_MAX + 2));
 
-#ifdef CSP_USE_QOS
+#if CSP_USE_QOS
 	int prio;
 
 	/* Create router fifos for each priority */
