@@ -40,7 +40,6 @@ typedef enum {
 
 typedef enum {
 	RDP_CLOSED = 0,
-	RDP_LISTEN,
 	RDP_SYN_SENT,
 	RDP_SYN_RCVD,
 	RDP_OPEN,
