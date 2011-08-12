@@ -187,11 +187,9 @@ static int csp_rdp_send_cmp(csp_conn_t * conn, csp_packet_t * packet, int flags,
 
 	/* Send copy to tx_queue, before sending packet to IF */
 	if (flags & RDP_SYN) {
-		rdp_packet_t * rdp_packet = csp_buffer_get(packet->length + sizeof(rdp_header_t));
+		rdp_packet_t * rdp_packet = csp_buffer_clone(packet);
 		if (rdp_packet == NULL) return 0;
 		rdp_packet->timestamp = csp_get_ms();
-		memcpy(&rdp_packet->length, &packet->length,
-				packet->length + sizeof(csp_id_t) + sizeof(uint16_t));
 		if (csp_queue_enqueue(conn->rdp.tx_queue, &rdp_packet, 0) != CSP_QUEUE_OK)
 			csp_buffer_free(rdp_packet);
 	}
@@ -278,7 +276,7 @@ static inline int csp_rdp_receive_data(csp_conn_t * conn, csp_packet_t * packet)
 
 	/* If a rx_socket is set, this message is the first in a new connection
 	 * so the connection must be queued to the socket. */
-	if ((conn->rx_socket != NULL) && (conn->rx_socket != (void *) 1)) {
+	if (conn->rx_socket != NULL) {
 
 		/* Try queueing */
 		if (csp_queue_enqueue(conn->rx_socket, &conn, 0) == CSP_QUEUE_FULL) {
@@ -289,7 +287,7 @@ static inline int csp_rdp_receive_data(csp_conn_t * conn, csp_packet_t * packet)
 		/* Ensure that this connection will not be posted to this socket again
 		 * and remember that the connection handle has been passed to userspace
 		 * by setting the rx_socket = 1. */
-		conn->rx_socket = (void *) 1;
+		conn->rx_socket = NULL;
 	}
 
 	/* Remove RDP header before passing to userspace */
@@ -474,7 +472,7 @@ void csp_rdp_check_timeouts(csp_conn_t * conn) {
 	 * Check that connection has not timed out inside the network stack
 	 * */
 	uint32_t time_now = csp_get_ms();
-	if ((conn->rx_socket != NULL) && (conn->rx_socket != (void *) 1)) {
+	if (conn->rx_socket != NULL) {
 		if (csp_rdp_time_after(time_now, conn->open_timestamp + conn->rdp.conn_timeout)) {
 			csp_debug(CSP_WARN, "Found a lost connection, closing now\r\n");
 			csp_close(conn);
@@ -526,8 +524,7 @@ void csp_rdp_check_timeouts(csp_conn_t * conn) {
 
 			/* Send copy to tx_queue */
 			packet->timestamp = csp_get_ms();
-			csp_packet_t * new_packet = csp_buffer_get(packet->length + sizeof(rdp_header_t));
-			memcpy(&new_packet->length, &packet->length, packet->length + sizeof(csp_id_t) + sizeof(uint16_t));
+			csp_packet_t * new_packet = csp_buffer_clone(packet);
 			if (csp_send_direct(conn->idout, new_packet, 0) == 0) {
 				csp_debug(CSP_WARN, "Retransmission failed\r\n");
 				csp_buffer_free(new_packet);
@@ -846,7 +843,7 @@ void csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 discard_close:
 	/* If user-space has received the connection handle, wake it up,
 	 * by sending a NULL pointer, user-space should close connection */
-	if (conn->rx_socket == (void *) 1 || conn->rx_socket == NULL) {
+	if (conn->rx_socket == NULL) {
 		csp_debug(CSP_PROTOCOL, "Waiting for userspace to close\r\n");
 	    void * null_pointer = NULL;
 	    csp_conn_enqueue_packet(conn, (csp_packet_t *) null_pointer);
@@ -957,14 +954,13 @@ int csp_rdp_send(csp_conn_t * conn, csp_packet_t * packet, unsigned int timeout)
 	conn->rdp.snd_nxt++;
 
 	/* Send copy to tx_queue */
-	rdp_packet_t * rdp_packet = csp_buffer_get(packet->length + 10);
+	rdp_packet_t * rdp_packet = csp_buffer_clone(packet);
 	if (rdp_packet == NULL) {
 		csp_debug(CSP_ERROR, "Failed to allocate packet buffer\r\n");
 		return 0;
 	}
 
 	rdp_packet->timestamp = csp_get_ms();
-	memcpy(&rdp_packet->length, &packet->length, packet->length + sizeof(csp_id_t) + sizeof(uint16_t));
 	if (csp_queue_enqueue(conn->rdp.tx_queue, &rdp_packet, 0) != CSP_QUEUE_OK) {
 		csp_debug(CSP_ERROR, "No more space in RDP retransmit queue\r\n");
 		csp_buffer_free(rdp_packet);

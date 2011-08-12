@@ -337,13 +337,7 @@ csp_thread_return_t vTaskCSPRouter(__attribute__ ((unused)) void * pvParameters)
 			idout.dport = packet->id.sport;
 			idout.sport = packet->id.dport;
 			idout.flags = packet->id.flags;
-
-			/* Ensure a broadcast packet is replied from correct source address */
-			if (packet->id.dst == CSP_BROADCAST_ADDR) {
-				idout.src = my_address;
-			} else {
-				idout.src = packet->id.dst;
-			}
+			idout.src = my_address;
 
 			/* Create connection */
 			conn = csp_conn_new(packet->id, idout);

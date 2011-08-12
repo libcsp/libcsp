@@ -351,12 +351,11 @@ csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport, unsigned int
     /* Set connection options */
     conn->conn_opts = opts;
 
+#if CSP_USE_RDP
     /* Call Transport Layer connect */
     int result = 1;
-#if CSP_USE_RDP
     if (outgoing_id.flags & CSP_FRDP)
        	result = csp_rdp_connect(conn, timeout);
-#endif
 
     /* If the transport layer has failed to connect
      * deallocate connection structure again and return NULL
@@ -365,6 +364,7 @@ csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport, unsigned int
     	csp_close(conn);
 		return NULL;
     }
+#endif
 
     /* We have a successful connection */
     return conn;

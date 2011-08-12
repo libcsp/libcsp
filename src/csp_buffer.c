@@ -149,6 +149,26 @@ void csp_buffer_free(void * packet) {
 	csp_buffer_list[i] = CSP_BUFFER_FREE;					// Mark this as free now
 }
 
+/**
+ * Clone an existing packet.
+ * @param buffer Existing buffer to clone.
+ */
+void * csp_buffer_clone(void * buffer) {
+
+	csp_packet_t * packet = (csp_packet_t *)buffer;
+
+	if (!packet)
+		return NULL;
+
+	csp_packet_t * clone = csp_buffer_get(packet->length);
+
+	if (clone)
+		memcpy(&clone->length, &packet->length, packet->length + sizeof(csp_id_t) + sizeof(uint16_t));
+
+	return clone;
+
+}
+
 int csp_buffer_remaining(void) {
 	int buf_count = 0, i;
 	for(i = 0; i < count; i++) {

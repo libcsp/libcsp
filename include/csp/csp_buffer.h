@@ -62,6 +62,12 @@ void * csp_buffer_get_isr(size_t buf_size);
 void csp_buffer_free(void * packet);
 
 /**
+ * Clone an existing packet and increase/decrease cloned packet size.
+ * @param buffer Existing buffer to clone.
+ */
+void * csp_buffer_clone(void * buffer);
+
+/**
  * Return how many buffers that are currently free.
  * @return number of free buffers
  */
