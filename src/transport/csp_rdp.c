@@ -66,7 +66,8 @@ static CSP_BASE_TYPE pdTrue = 1;
 
 typedef struct __attribute__((__packed__)) {
     /* The timestamp is placed in the padding bytes */
-    uint8_t padding[CSP_PADDING_BYTES - sizeof(uint32_t)];
+    uint8_t padding[CSP_PADDING_BYTES - 2 * sizeof(uint32_t)];
+    uint32_t quarantine; 		// EACK quarantine period
     uint32_t timestamp;			// Time the message was sent
     uint16_t length;            // Length field must be just before CSP ID
     csp_id_t id;                // CSP id must be just before data
@@ -402,9 +403,15 @@ static void csp_rdp_flush_eack(csp_conn_t * conn, csp_packet_t * eack_packet) {
 		for (j = 0; j < (int)((eack_packet->length - sizeof(rdp_header_t)) / sizeof(uint16_t)); j++) {
 			if (csp_ntoh16(eack_packet->data16[j]) == csp_ntoh16(header->seq_nr))
 				match = 1;
+
 			/* Enable this if you want EACK's to trigger retransmission */
-			if (csp_ntoh16(eack_packet->data16[j]) > csp_ntoh16(header->seq_nr))
-				packet->timestamp = csp_get_ms() - conn->rdp.packet_timeout - 1;
+			if (csp_ntoh16(eack_packet->data16[j]) > csp_ntoh16(header->seq_nr)) {
+				uint32_t time_now = csp_get_ms();
+				if (csp_rdp_time_after(time_now, packet->quarantine)) {
+					packet->timestamp = time_now - conn->rdp.packet_timeout - 1;
+					packet->quarantine = time_now +	conn->rdp.packet_timeout / 2;
+				}
+			}
 		}
 
 		if (match == 0) {
@@ -573,8 +580,8 @@ void csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 	rx_header->ack_nr = csp_ntoh16(rx_header->ack_nr);
 	rx_header->seq_nr = csp_ntoh16(rx_header->seq_nr);
 
-	csp_debug(CSP_PROTOCOL, "RDP: S %u: HEADER NP: syn %u, ack %u, eack %u, "
-			"rst %u, seq_nr %u, ack_nr %u, packet_len %u (%u)\r\n",
+	csp_debug(CSP_PROTOCOL, "RDP: Received in S %u: syn %u, ack %u, eack %u, "
+			"rst %u, seq_nr %5u, ack_nr %5u, packet_len %u (%u)\r\n",
 			conn->rdp.state, rx_header->syn, rx_header->ack, rx_header->eak,
 			rx_header->rst, rx_header->seq_nr, rx_header->ack_nr,
 			packet->length, packet->length - sizeof(rdp_header_t));
@@ -734,9 +741,9 @@ void csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 			if (conn->rdp.state == RDP_SYN_RCVD)
 				csp_rdp_send_cmp(conn, NULL, RDP_ACK | RDP_SYN, conn->rdp.snd_iss, conn->rdp.rcv_irs);
 			/* If duplicate data packet received, send EACK back */
-			if (conn->rdp.state == RDP_OPEN) {
+			if (conn->rdp.state == RDP_OPEN)
 				csp_rdp_send_eack(conn);
-			}
+
 			goto discard_open;
 		}
 
@@ -944,14 +951,11 @@ int csp_rdp_send(csp_conn_t * conn, csp_packet_t * packet, unsigned int timeout)
 		}
 	}
 
-	csp_debug(CSP_PROTOCOL, "RDP: Sending seq %u size %u\r\n", conn->rdp.snd_nxt, packet->length);
-
 	/* Add RDP header */
 	rdp_header_t * tx_header = csp_rdp_header_add(packet);
 	tx_header->ack_nr = csp_hton16(conn->rdp.rcv_cur);
 	tx_header->seq_nr = csp_hton16(conn->rdp.snd_nxt);
 	tx_header->ack = 1;
-	conn->rdp.snd_nxt++;
 
 	/* Send copy to tx_queue */
 	rdp_packet_t * rdp_packet = csp_buffer_clone(packet);
@@ -961,12 +965,20 @@ int csp_rdp_send(csp_conn_t * conn, csp_packet_t * packet, unsigned int timeout)
 	}
 
 	rdp_packet->timestamp = csp_get_ms();
+	rdp_packet->quarantine = 0;
 	if (csp_queue_enqueue(conn->rdp.tx_queue, &rdp_packet, 0) != CSP_QUEUE_OK) {
 		csp_debug(CSP_ERROR, "No more space in RDP retransmit queue\r\n");
 		csp_buffer_free(rdp_packet);
 		return 0;
 	}
 
+	csp_debug(CSP_PROTOCOL, "RDP: Sending  in S %u: syn %u, ack %u, eack %u, "
+				"rst %u, seq_nr %5u, ack_nr %5u, packet_len %u (%u)\r\n",
+				conn->rdp.state, tx_header->syn, tx_header->ack, tx_header->eak,
+				tx_header->rst, csp_ntoh16(tx_header->seq_nr), csp_ntoh16(tx_header->ack_nr),
+				packet->length, packet->length - sizeof(rdp_header_t));
+
+	conn->rdp.snd_nxt++;
 	return 1;
 
 }
