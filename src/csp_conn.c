@@ -145,20 +145,20 @@ csp_conn_t * csp_conn_find(uint32_t id, uint32_t mask) {
 
 }
 
-int csp_conn_empty_rx_queue(csp_conn_t * conn) {
+int csp_conn_flush_rx_queue(csp_conn_t * conn) {
 
 	csp_packet_t * packet;
 
 	int prio;
 
-	/* Empty packet queues */
+	/* Flush packet queues */
 	for (prio = 0; prio < CSP_RX_QUEUES; prio++) {
 		while (csp_queue_dequeue(conn->rx_queue[prio], &packet, 0) == CSP_QUEUE_OK)
 			if (packet != NULL)
 				csp_buffer_free(packet);
 	}
 
-	/* Empty event queue */
+	/* Flush event queue */
 #if CSP_USE_QOS
 	int event;
 	while (csp_queue_dequeue(conn->rx_event, &event, 0) == CSP_QUEUE_OK);
@@ -210,7 +210,7 @@ csp_conn_t * csp_conn_new(csp_id_t idin, csp_id_t idout) {
 	conn->open_timestamp = csp_get_ms();
 
 	/* Ensure connection queue is empty */
-	csp_conn_empty_rx_queue(conn);
+	csp_conn_flush_rx_queue(conn);
 
     return conn;
 
@@ -245,7 +245,7 @@ void csp_close(csp_conn_t * conn) {
 	conn->state = CONN_CLOSED;
 
 	/* Ensure connection queue is empty */
-	csp_conn_empty_rx_queue(conn);
+	csp_conn_flush_rx_queue(conn);
 
     /* Reset RDP state */
 #if CSP_USE_RDP

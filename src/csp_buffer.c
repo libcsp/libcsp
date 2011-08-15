@@ -163,7 +163,7 @@ void * csp_buffer_clone(void * buffer) {
 	csp_packet_t * clone = csp_buffer_get(packet->length);
 
 	if (clone)
-		memcpy(&clone->length, &packet->length, packet->length + sizeof(csp_id_t) + sizeof(uint16_t));
+		memcpy(clone, packet, size);
 
 	return clone;
 
