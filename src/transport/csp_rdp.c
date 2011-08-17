@@ -18,15 +18,10 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/**
- * csp_rdp.c
- *
- * @date: 24/06/2010
- * @author: Johan Christiansen
- *
+/*
  * This is a implementation of the seq/ack handling taken from the Reliable Datagram Protocol (RDP)
- * For more information read RFC-908. The implementation has been extended to include support for
- * delayed acknowledgements.
+ * For more information read RFC 908/1151. The implementation has been extended to include support for
+ * delayed acknowledgments, to improve performance over half-duplex links.
  */
 
 #include <stdio.h>
@@ -129,7 +124,7 @@ static rdp_header_t * csp_rdp_header_ref(csp_packet_t * packet) {
 	return header;
 }
 
-/* Functions for comparing wrapping sequence numbers */
+/* Functions for comparing wrapping sequence numbers and timestamps */
 
 /* Return 1 if seq is between start and end (both inclusive) */
 static inline int csp_rdp_seq_between(uint16_t seq, uint16_t start, uint16_t end) {
@@ -164,7 +159,7 @@ static inline int csp_rdp_time_after(uint32_t time, uint32_t cmp) {
 /**
  * CONTROL MESSAGES
  * The following function is used to send empty messages,
- * with ack, syn or rst flag.
+ * with ACK, SYN or RST flag.
  */
 static int csp_rdp_send_cmp(csp_conn_t * conn, csp_packet_t * packet, int flags, int seq_nr, int ack_nr) {
 
@@ -214,7 +209,7 @@ static int csp_rdp_send_cmp(csp_conn_t * conn, csp_packet_t * packet, int flags,
 
 /**
  * EXTENDED ACKNOWLEDGEMENTS
- * The following function sends an extended ack packet
+ * The following function sends an extended ACK packet
  */
 static int csp_rdp_send_eack(csp_conn_t * conn) {
 
@@ -478,10 +473,6 @@ void csp_rdp_flush_all(csp_conn_t * conn) {
  * RDP protocol to work as expected. This takes care of closing
  * stale connections and retransmitting traffic. A good place to
  * call this function is from the CSP router task.
- * NOTE: the queue calls in this function has been optimized for speed
- * that means using the _isr functions even though it is called only
- * from task context. However the RDP lock ensures that everything
- * is safe.
  */
 void csp_rdp_check_timeouts(csp_conn_t * conn) {
 
@@ -543,7 +534,7 @@ void csp_rdp_check_timeouts(csp_conn_t * conn) {
 
 		/* Check timestamp and retransmit if needed */
 		if (csp_rdp_time_after(time_now, packet->timestamp + conn->rdp.packet_timeout)) {
-			csp_debug(CSP_WARN, "TX Element timed out, retransmitting seq %u\r\n", csp_ntoh16(header->seq_nr));
+			csp_debug(CSP_PROTOCOL, "TX Element timed out, retransmitting seq %u\r\n", csp_ntoh16(header->seq_nr));
 
 			/* Update to latest outgoing ACK */
 			header->ack_nr = csp_hton16(conn->rdp.rcv_cur);
@@ -752,7 +743,7 @@ void csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 
 		/* Check sequence number */
 		if (!csp_rdp_seq_between(rx_header->seq_nr, conn->rdp.rcv_cur + 1, conn->rdp.rcv_cur + conn->rdp.window_size * 2)) {
-			csp_debug(CSP_WARN, "Invalid sequence number! %"PRIu16" not between %"PRIu16" and %"PRIu16"\r\n",
+			csp_debug(CSP_PROTOCOL, "Invalid sequence number! %"PRIu16" not between %"PRIu16" and %"PRIu16"\r\n",
 					rx_header->seq_nr, conn->rdp.rcv_cur + 1, conn->rdp.rcv_cur + 1 + conn->rdp.window_size * 2);
 			/* If duplicate SYN received, send another SYN/ACK */
 			if (conn->rdp.state == RDP_SYN_RCVD)
