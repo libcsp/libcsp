@@ -144,6 +144,12 @@ csp_packet_t * csp_read(csp_conn_t * conn, unsigned int timeout) {
     csp_queue_dequeue(conn->rx_queue[0], &packet, timeout);
 #endif
 
+#if CSP_USE_RDP
+    /* Packet read could trigger ACK transmission */
+    if (packet && conn->idin.flags & CSP_FRDP)
+    	csp_rdp_check_timeouts(conn);
+#endif
+
 	return packet;
 
 }
