@@ -33,6 +33,58 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "../csp_semaphore.h"
 
+int csp_mutex_create(csp_mutex_t * mutex) {
+	csp_debug(CSP_LOCK, "Mutex init: %p\r\n", mutex);
+	if (pthread_mutex_init(mutex, NULL) == 0) {
+		return CSP_SEMAPHORE_OK;
+	} else {
+		return CSP_SEMAPHORE_ERROR;
+	}
+}
+
+int csp_mutex_remove(csp_mutex_t * mutex) {
+	if (pthread_mutex_destroy(mutex) == 0) {
+		return CSP_SEMAPHORE_OK;
+	} else {
+		return CSP_SEMAPHORE_ERROR;
+	}
+}
+
+int csp_mutex_lock(csp_mutex_t * mutex, int timeout) {
+	if (mutex == NULL)
+		return 0;
+
+	csp_debug(CSP_LOCK, "Wait: %p timeout %u\r\n", mutex, timeout);
+
+	struct timespec ts;
+	if (clock_gettime(CLOCK_REALTIME, &ts))
+		return CSP_SEMAPHORE_ERROR;
+
+	uint32_t sec = timeout / 1000;
+	uint32_t nsec = (timeout - 1000 * sec) * 1000000;
+
+	ts.tv_sec += sec;
+
+	if (ts.tv_nsec + nsec >= 1000000000)
+		ts.tv_sec++;
+
+	ts.tv_nsec = (ts.tv_nsec + nsec) % 1000000000;
+
+	if (pthread_mutex_timedlock(mutex, &ts) == 0) {
+		return CSP_SEMAPHORE_OK;
+	} else {
+		return CSP_SEMAPHORE_ERROR;
+	}
+}
+
+int csp_mutex_unlock(csp_mutex_t * mutex) {
+	if (pthread_mutex_unlock(mutex) == 0) {
+		return CSP_SEMAPHORE_OK;
+	} else {
+		return CSP_SEMAPHORE_ERROR;
+	}
+}
+
 int csp_bin_sem_create(csp_bin_sem_handle_t * sem) {
 	csp_debug(CSP_LOCK, "Semaphore init: %p\r\n", sem);
     if (sem_init(sem, 0, 1) == 0) {

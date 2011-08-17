@@ -32,6 +32,27 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../csp_semaphore.h"
 #include "../csp_queue.h"
 
+int csp_mutex_create(csp_mutex_t * mutex) {
+	*mutex = xSemaphoreCreateMutex();
+	if (*mutex) {
+		return CSP_SEMAPHORE_OK;
+	} else {
+		return CSP_SEMAPHORE_ERROR;
+	}
+}
+
+int csp_mutex_remove(csp_mutex_t * mutex) {
+	return csp_bin_sem_remove(mutex);
+}
+
+int csp_mutex_lock(csp_mutex_t * mutex, int timeout) {
+	return csp_bin_sem_wait(mutex, timeout);
+}
+
+int csp_mutex_unlock(csp_mutex_t * mutex) {
+	return csp_bin_sem_post(mutex);
+}
+
 int csp_bin_sem_create(csp_bin_sem_handle_t * sem) {
     vSemaphoreCreateBinary(*sem);
     return CSP_SEMAPHORE_OK;

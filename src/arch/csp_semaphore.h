@@ -39,6 +39,7 @@ extern "C" {
 #define CSP_SEMAPHORE_ERROR 2
 
 typedef sem_t csp_bin_sem_handle_t;
+typedef pthread_mutex_t csp_mutex_t;
 
 #endif // _CSP_POSIX_
 
@@ -52,9 +53,14 @@ typedef sem_t csp_bin_sem_handle_t;
 #define CSP_SEMAPHORE_ERROR pdFAIL
 
 typedef xSemaphoreHandle csp_bin_sem_handle_t;
+typedef xSemaphoreHandle csp_mutex_t;
 
 #endif // _CSP_FREERTOS_
 
+int csp_mutex_create(csp_mutex_t * mutex);
+int csp_mutex_remove(csp_mutex_t * mutex);
+int csp_mutex_lock(csp_mutex_t * mutex, int timeout);
+int csp_mutex_unlock(csp_mutex_t * mutex);
 int csp_bin_sem_create(csp_bin_sem_handle_t * sem);
 int csp_bin_sem_remove(csp_bin_sem_handle_t * sem);
 int csp_bin_sem_wait(csp_bin_sem_handle_t * sem, int timeout);
