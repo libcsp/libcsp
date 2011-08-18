@@ -35,8 +35,10 @@ extern "C" {
 #include <pthread.h>
 #include <semaphore.h>
 
-#define CSP_SEMAPHORE_OK 1
+#define CSP_SEMAPHORE_OK 	1
 #define CSP_SEMAPHORE_ERROR 2
+#define CSP_MUTEX_OK 		CSP_SEMAPHORE_OK
+#define CSP_MUTEX_ERROR		CSP_SEMAPHORE_ERROR
 
 typedef sem_t csp_bin_sem_handle_t;
 typedef pthread_mutex_t csp_mutex_t;
@@ -49,8 +51,10 @@ typedef pthread_mutex_t csp_mutex_t;
 #include <freertos/FreeRTOS.h>
 #include <freertos/semphr.h>
 
-#define CSP_SEMAPHORE_OK pdPASS
-#define CSP_SEMAPHORE_ERROR pdFAIL
+#define CSP_SEMAPHORE_OK 	pdPASS
+#define CSP_SEMAPHORE_ERROR	pdFAIL
+#define CSP_MUTEX_OK		CSP_SEMAPHORE_OK
+#define CSP_MUTEX_ERROR		CSP_SEMAPHORE_ERROR
 
 typedef xSemaphoreHandle csp_bin_sem_handle_t;
 typedef xSemaphoreHandle csp_mutex_t;

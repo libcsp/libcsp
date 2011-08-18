@@ -18,16 +18,6 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/**
- * csp_udp.c
- *
- * @date: 24/06/2010
- * @author: Johan Christiansen
- *
- * This is the simplest implementation of a transport layer module for CSP
- *
- */
-
 #include <stdio.h>
 
 #include <csp/csp.h>

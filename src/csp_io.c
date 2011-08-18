@@ -25,6 +25,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 /* CSP includes */
 #include <csp/csp.h>
+#include <csp/csp_error.h>
 #include <csp/csp_endian.h>
 #include <csp/interfaces/csp_if_lo.h>
 
@@ -51,13 +52,24 @@ unsigned char my_address;
 extern csp_queue_handle_t csp_promisc_queue;
 #endif
 
-void csp_init(unsigned char address) {
+int csp_init(unsigned char address) {
+
+	int ret;
 
     /* Initialize CSP */
     my_address = address;
-	csp_conn_init();
-	csp_port_init();
-	csp_route_table_init();
+
+	ret = csp_conn_init();
+	if (ret != CSP_ERR_NONE)
+		return ret;
+
+	ret = csp_port_init();
+	if (ret != CSP_ERR_NONE)
+		return ret;
+
+	ret = csp_route_table_init();
+	if (ret != CSP_ERR_NONE)
+		return ret;
 
 	/* Generate CRC32 table */
 #if CSP_ENABLE_CRC32
@@ -65,7 +77,11 @@ void csp_init(unsigned char address) {
 #endif
 
 	/* Register loopback route */
-	csp_route_set(address, &csp_if_lo, CSP_NODE_MAC);
+	ret = csp_route_set(address, &csp_if_lo, CSP_NODE_MAC);
+	if (ret != CSP_ERR_NONE)
+		return ret;
+
+	return CSP_ERR_NONE;
 
 }
 
@@ -129,7 +145,7 @@ csp_packet_t * csp_read(csp_conn_t * conn, unsigned int timeout) {
 
 	csp_packet_t * packet = NULL;
 
-	if ((conn == NULL) || (conn->state != CONN_OPEN))
+	if (conn == NULL || conn->state != CONN_OPEN)
 		return NULL;
 
 #if CSP_USE_QOS
@@ -141,13 +157,14 @@ csp_packet_t * csp_read(csp_conn_t * conn, unsigned int timeout) {
 		if (csp_queue_dequeue(conn->rx_queue[prio], &packet, 0) == CSP_QUEUE_OK)
 			break;
 #else
-    csp_queue_dequeue(conn->rx_queue[0], &packet, timeout);
+    if (csp_queue_dequeue(conn->rx_queue[0], &packet, timeout) != CSP_QUEUE_OK)
+    	return NULL;
 #endif
 
 #if CSP_USE_RDP
     /* Packet read could trigger ACK transmission */
-    if (packet && conn->idin.flags & CSP_FRDP)
-    	csp_rdp_check_timeouts(conn);
+    if (conn->idin.flags & CSP_FRDP)
+		csp_rdp_check_ack(conn);
 #endif
 
 	return packet;
@@ -269,7 +286,7 @@ int csp_send(csp_conn_t * conn, csp_packet_t * packet, unsigned int timeout) {
 
 #if CSP_USE_RDP
 	if (conn->idout.flags & CSP_FRDP) {
-		if (csp_rdp_send(conn, packet, timeout) == 0) {
+		if (csp_rdp_send(conn, packet, timeout) != CSP_ERR_NONE) {
 			csp_route_t * ifout = csp_route_if(conn->idout.dst);
 			if (ifout != NULL && ifout->interface != NULL)
 				ifout->interface->tx_error++;

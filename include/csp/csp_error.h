@@ -25,8 +25,20 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 extern "C" {
 #endif
 
-#define CSP_ERR_NONE	 0 	/* No error */
-#define CSP_ERR_NOMEM	-1 	/* Not enough memory */
+#define CSP_ERR_NONE		 0 		/* No error */
+#define CSP_ERR_NOMEM		-1 		/* Not enough memory */
+#define CSP_ERR_INVAL		-2		/* Invalid argument */
+#define CSP_ERR_TIMEDOUT	-3		/* Operation timed out */
+#define CSP_ERR_USED		-4 		/* Resource already in use */
+#define CSP_ERR_NOTSUP		-5 		/* Operation not supported */
+#define CSP_ERR_BUSY		-6 		/* Device or resource busy */
+#define CSP_ERR_ALREADY		-7		/* Connection already in progress */
+#define CSP_ERR_RESET		-8 		/* Connection reset */
+#define CSP_ERR_NOBUFS		-9 		/* No more buffer space available */
+
+#define CSP_ERR_HMAC		-100 	/* HMAC failed */
+#define CSP_ERR_XTEA		-101	/* XTEA failed */
+#define CSP_ERR_CRC32		-102	/* CRC32 failed */
 
 #ifdef __cplusplus
 } /* extern "C" */

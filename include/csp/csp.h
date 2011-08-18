@@ -304,7 +304,7 @@ typedef struct csp_l4data_s csp_l4data_t;
  * Start up the can-space protocol
  * @param my_node_address The CSP node address
  */
-void csp_init(uint8_t my_node_address);
+int csp_init(uint8_t my_node_address);
 
 /** csp_socket
  * Create CSP socket endpoint
@@ -409,8 +409,10 @@ csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport, unsigned int
 
 /** csp_close
  * Closes a given connection and frees buffers used.
+ * @param conn pointer to connection structure
+ * @return CSP_ERR_NONE if connection was closed. Otherwise, an err code is returned.
  */
-void csp_close(csp_conn_t * conn);
+int csp_close(csp_conn_t * conn);
 
 /**
  * @param conn pointer to connection structure
@@ -464,7 +466,7 @@ int csp_bind(csp_socket_t * socket, uint8_t port);
  * To set default route use nodeid CSP_DEFAULT_ROUTE
  * To clear a value pass a NULL value
  */
-void csp_route_set(uint8_t node, csp_iface_t * ifc, uint8_t nexthop_mac_addr);
+int csp_route_set(uint8_t node, csp_iface_t * ifc, uint8_t nexthop_mac_addr);
 
 /**
  * Start the router task.
@@ -617,6 +619,17 @@ typedef enum {
 	CSP_PROTOCOL	= 5,
 	CSP_LOCK	 	= 6,
 } csp_debug_level_t;
+
+#ifndef NDEBUG
+#define csp_assert(exp) 																							\
+	do { 																											\
+		if (!(exp)) {																								\
+			printf("\E[1;31mAssertion \'" #exp "\' failed in %s:%d\E[0m\r\n", strrchr(__FILE__, '/')+1, __LINE__); 	\
+		} 																											\
+	} while (0)
+#else
+#define csp_assert(...) do {} while (0)
+#endif
 
 #if CSP_DEBUG
 #define csp_debug(level, format, ...) csp_debug_ex(level, "%"PRIu8" %s:%d " format, my_address, strrchr(__FILE__, '/')+1, __LINE__, ##__VA_ARGS__)

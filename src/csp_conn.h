@@ -71,6 +71,7 @@ typedef struct {
 /** @brief Connection struct */
 struct csp_conn_s {
     csp_conn_state_t state;         // Connection state (SOCKET_OPEN or SOCKET_CLOSED)
+    csp_mutex_t lock;				// Connection structure lock
     csp_id_t idin;                  // Identifier received
     csp_id_t idout;                 // Identifier transmitted
 #if CSP_USE_QOS
@@ -78,7 +79,7 @@ struct csp_conn_s {
 #endif
     csp_queue_handle_t rx_queue[CSP_RX_QUEUES]; // Queue for RX packets
     csp_queue_handle_t rx_socket;	// Socket to be "woken" when first packet is ready
-    uint32_t open_timestamp;		// Time the connection was opened
+    uint32_t timestamp;				// Time the connection was opened
     uint32_t conn_opts;				// Connection options
 #if CSP_USE_RDP
     csp_rdp_t rdp;					// RDP state
@@ -91,8 +92,10 @@ struct csp_socket_s {
     uint32_t opts;					/**< Socket options */
 };
 
+int csp_conn_lock(csp_conn_t * conn, int timeout);
+int csp_conn_unlock(csp_conn_t * conn);
 int csp_conn_enqueue_packet(csp_conn_t * conn, csp_packet_t * packet);
-void csp_conn_init(void);
+int csp_conn_init(void);
 csp_conn_t * csp_conn_find(uint32_t id, uint32_t mask);
 csp_conn_t * csp_conn_new(csp_id_t idin, csp_id_t idout);
 void csp_conn_check_timeouts(void);

@@ -47,25 +47,24 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "csp_io.h"
 #include "transport/csp_transport.h"
 
+csp_thread_handle_t handle_router;
+
 /* Static allocation of routes */
+csp_iface_t * interfaces;
 csp_route_t routes[CSP_ID_HOST_MAX + 2];
+csp_mutex_t routes_lock;
+
+static csp_queue_handle_t router_input_fifo[CSP_ROUTE_FIFOS];
+#if CSP_USE_QOS
+static csp_queue_handle_t router_input_event;
+#endif
 
 #if CSP_USE_PROMISC
 csp_queue_handle_t csp_promisc_queue = NULL;
 int csp_promisc_enabled = 0;
 #endif
 
-csp_thread_handle_t handle_router;
-
-csp_iface_t * interfaces;
-
 extern int csp_route_input_hook(csp_packet_t * packet) __attribute__((weak));
-
-static csp_queue_handle_t router_input_fifo[CSP_ROUTE_FIFOS];
-
-#if CSP_USE_QOS
-static csp_queue_handle_t router_input_event;
-#endif
 
 typedef struct {
 	csp_iface_t * interface;
@@ -98,16 +97,16 @@ static int csp_route_security_check(uint32_t security_opts, csp_iface_t * interf
 			/* Decryption failed */
 			csp_debug(CSP_ERROR, "Decryption failed! Discarding packet\r\n");
 			interface->autherr++;
-			return -2;
+			return CSP_ERR_XTEA;
 		}
 	} else if (security_opts & CSP_SO_XTEAREQ) {
 		csp_debug(CSP_WARN, "Received packet without XTEA encryption. Discarding packet\r\n");
 		interface->autherr++;
-		return -2;
+		return CSP_ERR_XTEA;
 #else
 		csp_debug(CSP_ERROR, "Received XTEA encrypted packet, but CSP was compiled without XTEA support. Discarding packet\r\n");
 		interface->autherr++;
-		return -1;
+		return CSP_ERR_NOTSUP;
 #endif
 	}
 
@@ -119,16 +118,16 @@ static int csp_route_security_check(uint32_t security_opts, csp_iface_t * interf
 			/* Checksum failed */
 			csp_debug(CSP_ERROR, "CRC32 verification error! Discarding packet\r\n");
 			interface->rx_error++;
-			return -3;
+			return CSP_ERR_CRC32;
 		}
 	} else if (security_opts & CSP_SO_CRC32REQ) {
 		csp_debug(CSP_WARN, "Received packet without CRC32. Discarding packet\r\n");
 		interface->rx_error++;
-		return -3;
+		return CSP_ERR_CRC32;
 #else
 		csp_debug(CSP_ERROR, "Received packet with CRC32, but CSP was compiled without CRC32 support. Discarding packet\r\n");
 		interface->rx_error++;
-		return -1;
+		return CSP_ERR_NOTSUP;
 #endif
 	}
 
@@ -140,29 +139,33 @@ static int csp_route_security_check(uint32_t security_opts, csp_iface_t * interf
 			/* HMAC failed */
 			csp_debug(CSP_ERROR, "HMAC verification error! Discarding packet\r\n");
 			interface->autherr++;
-			return -4;
+			return CSP_ERR_HMAC;
 		}
 	} else if (security_opts & CSP_SO_HMACREQ) {
 		csp_debug(CSP_WARN, "Received packet without HMAC. Discarding packet\r\n");
 		interface->autherr++;
-		return -4;
+		return CSP_ERR_HMAC;
 #else
 		csp_debug(CSP_ERROR, "Received packet with HMAC, but CSP was compiled without HMAC support. Discarding packet\r\n");
 		interface->autherr++;
-		return -1;
+		return CSP_ERR_NOTSUP;
 #endif
 	}
 
-	return 0;
+	return CSP_ERR_NONE;
 
 }
 
 int csp_route_table_init(void) {
 
-	/* Clear table */
+	int prio;
+
+	/* Clear rounting table */
 	memset(routes, 0, sizeof(csp_route_t) * (CSP_ID_HOST_MAX + 2));
 
-	int prio;
+	/* Create routing table lock */
+	if (csp_mutex_create(&routes_lock) != CSP_MUTEX_OK)
+		return CSP_ERR_NOMEM;
 
 	/* Create router fifos for each priority */
 	for (prio = 0; prio < CSP_ROUTE_FIFOS; prio++) {
@@ -182,6 +185,37 @@ int csp_route_table_init(void) {
 
 }
 
+int csp_route_next_packet(csp_route_queue_t * input) {
+
+#if CSP_USE_QOS
+	int prio, found, event;
+
+	/* Wait for packet in any queue */
+	if (csp_queue_dequeue(router_input_event, &event, 100) != CSP_QUEUE_OK)
+		return CSP_ERR_TIMEDOUT;
+
+	/* Find packet with highest priority */
+	found = 0;
+	for (prio = 0; prio < CSP_ROUTE_FIFOS; prio++) {
+		if (csp_queue_dequeue(router_input_fifo[prio], input, 0) == CSP_QUEUE_OK) {
+			found = 1;
+			break;
+		}
+	}
+
+	if (!found) {
+		csp_debug(CSP_WARN, "Spurious wakeup of router task. No packet found\r\n");
+		return CSP_ERR_TIMEDOUT;
+	}
+#else
+	if (csp_queue_dequeue(router_input_fifo[0], input, 100) != CSP_QUEUE_OK)
+		return CSP_ERR_TIMEDOUT;
+#endif
+
+	return CSP_ERR_NONE;
+
+}
+
 csp_thread_return_t vTaskCSPRouter(__attribute__ ((unused)) void * pvParameters) {
 
 	int prio;
@@ -191,10 +225,6 @@ csp_thread_return_t vTaskCSPRouter(__attribute__ ((unused)) void * pvParameters)
 	
 	csp_socket_t * socket = NULL;
 	csp_route_t * dst;
-
-#if CSP_USE_QOS
-	int found, event;
-#endif
 
 	for (prio = 0; prio < CSP_ROUTE_FIFOS; prio++) {
 		if (!router_input_fifo[prio]) {
@@ -209,47 +239,17 @@ csp_thread_return_t vTaskCSPRouter(__attribute__ ((unused)) void * pvParameters)
 		/* Check connection timeouts */
 		csp_conn_check_timeouts();
 
-#if CSP_USE_QOS
-		/* Wait for packet in any queue */
-		if (csp_queue_dequeue(router_input_event, &event, 100) != CSP_QUEUE_OK)
+		/* Get next packet to route */
+		if (csp_route_next_packet(&input) != CSP_ERR_NONE)
 			continue;
-
-		/* Find packet with highest priority */
-		found = 0;
-		for (prio = 0; prio < CSP_ROUTE_FIFOS; prio++) {
-			if (csp_queue_dequeue(router_input_fifo[prio], &input, 0) == CSP_QUEUE_OK) {
-				found = 1;
-				break;
-			}
-		}
-
-		if (!found) {
-			csp_debug(CSP_WARN, "Spurious wakeup of router task. No packet found\r\n");
-			continue;
-		}
-#else
-		if (csp_queue_dequeue(router_input_fifo[0], &input, 100) != CSP_QUEUE_OK)
-			continue;
-#endif
-
-		/* Discard invalid */
-		if (input.packet == NULL) {
-			csp_debug(CSP_ERROR, "Invalid packet in router queue\r\n");
-			continue;
-		}
-
-		if (input.interface == NULL) {
-			csp_debug(CSP_ERROR, "Invalid interface in router queue\r\n");
-			continue;
-		}
-
-		packet = input.packet;
 
 		/* Here is last chance to drop packet, call user hook */
 		if ((csp_route_input_hook) && (csp_route_input_hook(packet) == 0)) {
 			csp_buffer_free(packet);
 			continue;
 		}
+
+		packet = input.packet;
 
 		csp_debug(CSP_PACKET, "Router input: P 0x%02X, S 0x%02X, D 0x%02X, Dp 0x%02X, Sp 0x%02X, F 0x%02X\r\n",
 				packet->id.pri, packet->id.src, packet->id.dst, packet->id.dport,
@@ -284,38 +284,20 @@ csp_thread_return_t vTaskCSPRouter(__attribute__ ((unused)) void * pvParameters)
 		}
 
 		/* The message is to me, search for incoming socket */
-		if (packet->id.dport <= CSP_MAX_BIND_PORT) {
+		socket = csp_port_get_socket(packet->id.dport);
 
-			if (ports[packet->id.dport].state == PORT_OPEN) {
-				socket = ports[packet->id.dport].socket;
-
-			/* Otherwise, try local "catch all" port number */
-			} else if (ports[CSP_ANY].state == PORT_OPEN) {
-				socket = ports[CSP_ANY].socket;
-
-			/* Or reject */
-			} else {
+		/* If the socket is connection-less, deliver now */
+		if (socket && (socket->opts & CSP_SO_CONN_LESS)) {
+			if (csp_route_security_check(socket->opts, input.interface, packet) < 0) {
 				csp_buffer_free(packet);
 				continue;
 			}
-
-			/* If the socket is connection-less, deliver now */
-			if (socket->opts & CSP_SO_CONN_LESS) {
-				if (csp_route_security_check(socket->opts, input.interface, packet) < 0) {
-					csp_buffer_free(packet);
-					continue;
-				}
-				if (csp_queue_enqueue(socket->queue, &packet, 0) != CSP_QUEUE_OK) {
-					csp_debug(CSP_ERROR, "Conn-less socket queue full\r\n");
-					csp_buffer_free(packet);
-					continue;
-				}
+			if (csp_queue_enqueue(socket->queue, &packet, 0) != CSP_QUEUE_OK) {
+				csp_debug(CSP_ERROR, "Conn-less socket queue full\r\n");
+				csp_buffer_free(packet);
 				continue;
 			}
-
-		/* If the packet is not for an active socket */
-		} else {
-			socket = NULL;
+			continue;
 		}
 
 		/* Search for an existing connection */
@@ -324,25 +306,25 @@ csp_thread_return_t vTaskCSPRouter(__attribute__ ((unused)) void * pvParameters)
 		/* If no connection was found, try to create a new one */
 		if (conn == NULL) {
 
-			/* A socket must exist for a new connection */
-			if (socket == NULL) {
+			/* Reject packet if no matching socket is found */
+			if (!socket) {
 				csp_buffer_free(packet);
 				continue;
 			}
 
 			/* New incoming connection accepted */
 			csp_id_t idout;
-			idout.pri = packet->id.pri;
-			idout.dst = packet->id.src;
+			idout.pri   = packet->id.pri;
+			idout.src   = my_address;
+			idout.dst   = packet->id.src;
 			idout.dport = packet->id.sport;
 			idout.sport = packet->id.dport;
 			idout.flags = packet->id.flags;
-			idout.src = my_address;
 
 			/* Create connection */
 			conn = csp_conn_new(packet->id, idout);
 
-			if (conn == NULL) {
+			if (!conn) {
 				csp_debug(CSP_ERROR, "No more connections available\r\n");
 				csp_buffer_free(packet);
 				continue;
@@ -364,8 +346,15 @@ csp_thread_return_t vTaskCSPRouter(__attribute__ ((unused)) void * pvParameters)
 		/* Pass packet to the right transport module */
 		if (packet->id.flags & CSP_FRDP) {
 #if CSP_USE_RDP
-			/* Pass packet to RDP module */
+			/*if (csp_conn_lock(conn, 100) != CSP_ERR_NONE) {
+				csp_debug(CSP_WARN, "Failed to lock connection\r\n");
+				csp_buffer_free(packet);
+				continue;
+			}*/
+
 			csp_rdp_new_packet(conn, packet);
+
+			//csp_conn_unlock(conn);
 		} else if (conn->conn_opts & CSP_SO_RDPREQ) {
 			csp_debug(CSP_WARN, "Received packet without RDP header. Discarding packet\r\n");
 			input.interface->rx_error++;
@@ -392,7 +381,7 @@ void csp_route_start_task(unsigned int task_stack_size, unsigned int priority) {
 
 }
 
-void csp_route_set(uint8_t node, csp_iface_t * ifc, uint8_t nexthop_mac_addr) {
+int csp_route_set(uint8_t node, csp_iface_t * ifc, uint8_t nexthop_mac_addr) {
 
 	/* Add interface to pool */
 	if (ifc != NULL) {
@@ -421,6 +410,8 @@ void csp_route_set(uint8_t node, csp_iface_t * ifc, uint8_t nexthop_mac_addr) {
 	} else {
 		csp_debug(CSP_ERROR, "Failed to set route: invalid node id %u\r\n", node);
 	}
+
+	return CSP_ERR_NONE;
 
 }
 
@@ -478,10 +469,6 @@ void csp_new_packet(csp_packet_t * packet, csp_iface_t * interface, CSP_BASE_TYP
 		return;
 	} else if (interface == NULL) {
 		csp_debug(CSP_WARN, "csp_new packet called with NULL interface\r\n");
-		csp_buffer_free(packet);
-		return;
-	} else if (router_input_fifo == NULL) {
-		csp_debug(CSP_WARN, "csp_new_packet called with NULL router_input_fifo\r\n");
 		csp_buffer_free(packet);
 		return;
 	}
@@ -551,21 +538,20 @@ void csp_route_print_interfaces(void) {
 
 int csp_route_print_interfaces_str(char * str_buf, int str_size) {
 
-	char buf[600];
+	int printed = 0;
 	csp_iface_t * i = interfaces;
 	char txbuf[25], rxbuf[25];
 
 	while (i) {
 		csp_bytesize(txbuf, 25, i->txbytes);
 		csp_bytesize(rxbuf, 25, i->rxbytes);
-		snprintf(buf, sizeof(buf), "%-5s   tx: %05"PRIu32" rx: %05"PRIu32
+		printed += snprintf(str_buf+printed, str_size, "%-5s   tx: %05"PRIu32" rx: %05"PRIu32
                 "txe: %05"PRIu32" rxe: %05"PRIu32"\r\n"
 				"        drop: %05"PRIu32" autherr: %05"PRIu32 " frame: %05"PRIu32"\r\n"
 				"        txb: %"PRIu32" (%s) rxb: %"PRIu32" (%s)\r\n\r\n",
 				i->name, i->tx, i->rx, i->tx_error, i->rx_error, i->drop,
 				i->autherr, i->frame, i->txbytes, txbuf, i->rxbytes, rxbuf);
-		strncat(str_buf, buf, str_size);
-        if ((str_size -= strlen(buf)) <= 0)
+		if ((str_size -= printed) <= 0)
             break;
 		i = i->next;
 	}

@@ -41,12 +41,12 @@ typedef struct {
     csp_socket_t * socket;          // New connections are added to this socket's conn queue
 } csp_port_t;
 
-extern csp_port_t ports[];
-
 /**
  * Init ports array
  */
-void csp_port_init(void);
+int csp_port_init(void);
+
+csp_socket_t * csp_port_get_socket(unsigned int dport);
 
 #ifdef __cplusplus
 } /* extern "C" */

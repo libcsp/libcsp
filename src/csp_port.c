@@ -24,6 +24,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 /* CSP includes */
 #include <csp/csp.h>
+#include <csp/csp_error.h>
 
 #include "arch/csp_thread.h"
 #include "arch/csp_queue.h"
@@ -33,30 +34,43 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "csp_conn.h"
 
 /* Allocation of ports */
-csp_port_t ports[CSP_MAX_BIND_PORT + 2];
+static csp_port_t ports[CSP_MAX_BIND_PORT + 2];
 
-static csp_bin_sem_handle_t port_lock;
+csp_socket_t * csp_port_get_socket(unsigned int port) {
 
-void csp_port_init(void) {
+	csp_socket_t * ret = NULL;
+
+	if (port > CSP_ANY)
+		return NULL;
+
+	/* Match dport to socket or local "catch all" port number */
+	if (ports[port].state == PORT_OPEN)
+		ret = ports[port].socket;
+	else if (ports[CSP_ANY].state == PORT_OPEN)
+		ret = ports[CSP_ANY].socket;
+
+	return ret;
+
+}
+
+int csp_port_init(void) {
 
 	memset(ports, PORT_CLOSED, sizeof(csp_port_t) * (CSP_MAX_BIND_PORT + 2));
 
-	if (csp_bin_sem_create(&port_lock) != CSP_SEMAPHORE_OK)
-		csp_debug(CSP_ERROR, "No more memory for port semaphore\r\n");
+	return CSP_ERR_NONE;
 
 }
 
 int csp_listen(csp_socket_t * socket, size_t conn_queue_length) {
     
     if (socket == NULL)
-        return -1;
+        return CSP_ERR_INVAL;
 
     socket->queue = csp_queue_create(conn_queue_length, sizeof(csp_conn_t *));
-    if (socket->queue != NULL) {
-        return 0;
-    } else {
-        return -1;
-    }
+    if (socket->queue != NULL)
+        return CSP_ERR_NOMEM;
+
+    return CSP_ERR_NONE;
 
 }
 
@@ -64,19 +78,13 @@ int csp_bind(csp_socket_t * socket, uint8_t port) {
     
 	if (port > CSP_ANY) {
 		csp_debug(CSP_ERROR, "Only ports from 0-%u (and CSP_ANY for default) are available for incoming ports\r\n", CSP_ANY);
-		return -1;
-	}
-
-	if (csp_bin_sem_wait(&port_lock, 100) != CSP_SEMAPHORE_OK) {
-		csp_debug(CSP_ERROR, "Failed to lock port array\r\n");
-		return -1;
+		return CSP_ERR_INVAL;
 	}
 
 	/* Check if port number is valid */
 	if (ports[port].state != PORT_CLOSED) {
 		csp_debug(CSP_ERROR, "Port %d is already in use\r\n", port);
-		csp_bin_sem_post(&port_lock);
-		return -1;
+		return CSP_ERR_USED;
 	}
 
 	csp_debug(CSP_INFO, "Binding socket %p to port %u\r\n", socket, port);
@@ -85,9 +93,7 @@ int csp_bind(csp_socket_t * socket, uint8_t port) {
 	ports[port].socket = socket;
 	ports[port].state = PORT_OPEN;
 
-	csp_bin_sem_post(&port_lock);
-
-    return 0;
+    return CSP_ERR_NONE;
 
 }
 

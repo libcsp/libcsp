@@ -24,6 +24,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 /* CSP includes */
 #include <csp/csp.h>
+#include <csp/csp_error.h>
 
 #include "arch/csp_thread.h"
 #include "arch/csp_queue.h"
@@ -48,17 +49,11 @@ static csp_bin_sem_handle_t sport_lock;
 
 void csp_conn_check_timeouts(void) {
 #if CSP_USE_RDP
-	/* Loop */
 	int i;
-	for (i = 0; i < CSP_CONN_MAX; i++) {
-		/* Only look at open connections */
-		if (arr_conn[i].state != CONN_OPEN)
-			continue;
-
-		/* Check the protocol and higher layers */
-		if (arr_conn[i].idin.flags & CSP_FRDP)
-			csp_rdp_check_timeouts(&arr_conn[i]);
-	}
+	for (i = 0; i < CSP_CONN_MAX; i++)
+		if (arr_conn[i].state == CONN_OPEN)
+			if (arr_conn[i].idin.flags & CSP_FRDP)
+				csp_rdp_check_timeouts(&arr_conn[i]);
 #endif
 }
 
@@ -72,26 +67,43 @@ int csp_conn_get_rxq(int prio) {
 
 }
 
+int csp_conn_lock(csp_conn_t * conn, int timeout) {
+
+	if (csp_mutex_lock(&conn->lock, timeout) != CSP_MUTEX_OK)
+		return CSP_ERR_TIMEDOUT;
+
+	return CSP_ERR_NONE;
+
+}
+
+int csp_conn_unlock(csp_conn_t * conn) {
+
+	csp_mutex_unlock(&conn->lock);
+
+	return CSP_ERR_NONE;
+
+}
+
 int csp_conn_enqueue_packet(csp_conn_t * conn, csp_packet_t * packet) {
 
 	if (!conn || !packet)
-		return -1;
+		return CSP_ERR_INVAL;
 
 	int rxq = csp_conn_get_rxq(packet->id.pri);
 
 	if (csp_queue_enqueue(conn->rx_queue[rxq], &packet, 0) != CSP_QUEUE_OK)
-		return -1;
+		return CSP_ERR_NOMEM;
 
 #if CSP_USE_QOS
 	int event = 0;
 	if (csp_queue_enqueue(conn->rx_event, &event, 0) != CSP_QUEUE_OK)
-		return -1;
+		return CSP_ERR_NOMEM;
 #endif
 
-	return 0;
+	return CSP_ERR_NONE;
 }
 
-void csp_conn_init(void) {
+int csp_conn_init(void) {
 
 	/* Initialize source port */
 #if CSP_RANDOMIZE_EPHEM
@@ -103,7 +115,7 @@ void csp_conn_init(void) {
 
 	if (csp_bin_sem_create(&sport_lock) != CSP_SEMAPHORE_OK) {
 		csp_debug(CSP_ERROR, "No more memory for sport semaphore\r\n");
-		return;
+		return CSP_ERR_NOMEM;
 	}
 
 	int i, prio;
@@ -114,18 +126,27 @@ void csp_conn_init(void) {
 #if CSP_USE_QOS
 		arr_conn[i].rx_event = csp_queue_create(CSP_CONN_QUEUE_LENGTH, sizeof(int));
 #endif
-
 		arr_conn[i].state = CONN_CLOSED;
+
+		if (csp_mutex_create(&arr_conn[i].lock) != CSP_MUTEX_OK) {
+			csp_debug(CSP_ERROR, "Failed to create connection lock\r\n");
+			return CSP_ERR_NOMEM;
+		}
+
 #if CSP_USE_RDP
-		if (csp_rdp_allocate(&arr_conn[i]) == 0)
+		if (csp_rdp_allocate(&arr_conn[i]) != CSP_ERR_NONE) {
 			csp_debug(CSP_ERROR, "Failed to create queues for RDP in csp_conn_init\r\n");
+			return CSP_ERR_NOMEM;
+		}
 #endif
 	}
 
 	if (csp_bin_sem_create(&conn_lock) != CSP_SEMAPHORE_OK) {
 		csp_debug(CSP_ERROR, "No more memory for conn semaphore\r\n");
-		return;
+		return CSP_ERR_NOMEM;
 	}
+
+	return CSP_ERR_NONE;
 
 }
 
@@ -164,7 +185,7 @@ int csp_conn_flush_rx_queue(csp_conn_t * conn) {
 	while (csp_queue_dequeue(conn->rx_event, &event, 0) == CSP_QUEUE_OK);
 #endif
 
-	return 0;
+	return CSP_ERR_NONE;
 
 }
 
@@ -180,8 +201,8 @@ csp_conn_t * csp_conn_new(csp_id_t idin, csp_id_t idout) {
 	}
 
 	/* Search for free connection */
-	i = csp_conn_last_given;								// Start with the last given element
-	i = (i + 1) % CSP_CONN_MAX;									// Increment by one
+	i = csp_conn_last_given;
+	i = (i + 1) % CSP_CONN_MAX;
 
 	do {
 		conn = &arr_conn[i];
@@ -207,7 +228,7 @@ csp_conn_t * csp_conn_new(csp_id_t idin, csp_id_t idout) {
 	conn->idin = idin;
 	conn->idout = idout;
 	conn->rx_socket = NULL;
-	conn->open_timestamp = csp_get_ms();
+	conn->timestamp = csp_get_ms();
 
 	/* Ensure connection queue is empty */
 	csp_conn_flush_rx_queue(conn);
@@ -216,29 +237,29 @@ csp_conn_t * csp_conn_new(csp_id_t idin, csp_id_t idout) {
 
 }
 
-void csp_close(csp_conn_t * conn) {
+int csp_close(csp_conn_t * conn) {
 
 	if (conn == NULL) {
 		csp_debug(CSP_ERROR, "NULL Pointer given to csp_close\r\n");
-		return;
+		return CSP_ERR_INVAL;
 	}
 
 	if (conn->state == CONN_CLOSED) {
-		csp_debug(CSP_BUFFER, "Conn already closed by transport layer\r\n");
-		return;
+		csp_debug(CSP_PROTOCOL, "Conn already closed by transport layer\r\n");
+		return CSP_ERR_NONE;
 	}
 
-    /* Ensure l4 knows this conn is closing */
 #if CSP_USE_RDP
+	/* Ensure RDP knows this connection is closing */
     if (conn->idin.flags & CSP_FRDP || conn->idout.flags & CSP_FRDP)
 		if (csp_rdp_close(conn) == 1)
-			return;
+			return CSP_ERR_NONE;
 #endif
 
     /* Lock connection array while closing connection */
     if (csp_bin_sem_wait(&conn_lock, 100) != CSP_SEMAPHORE_OK) {
 		csp_debug(CSP_ERROR, "Failed to lock conn array\r\n");
-		return;
+		return CSP_ERR_TIMEDOUT;
 	}
 
     /* Set to closed */
@@ -255,6 +276,8 @@ void csp_close(csp_conn_t * conn) {
 
     /* Unlock connection array */
     csp_bin_sem_post(&conn_lock);
+
+    return CSP_ERR_NONE;
 }
 
 csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport, unsigned int timeout, uint32_t opts) {
@@ -353,16 +376,13 @@ csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport, unsigned int
 
 #if CSP_USE_RDP
     /* Call Transport Layer connect */
-    int result = 1;
-    if (outgoing_id.flags & CSP_FRDP)
-       	result = csp_rdp_connect(conn, timeout);
-
-    /* If the transport layer has failed to connect
-     * deallocate connection structure again and return NULL
-     */
-    if (result == 0) {
-    	csp_close(conn);
-		return NULL;
+    if (outgoing_id.flags & CSP_FRDP) {
+		/* If the transport layer has failed to connect
+		 * deallocate connection structure again and return NULL */
+		if (csp_rdp_connect(conn, timeout) != CSP_ERR_NONE) {
+			csp_close(conn);
+			return NULL;
+		}
     }
 #endif
 
@@ -440,7 +460,7 @@ int csp_conn_print_table_str(char * str_buf, int str_size) {
             break;
     }
 
-    return 0;
+    return CSP_ERR_NONE;
 
 }
 #endif
