@@ -268,16 +268,18 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, unsigned int timeout)
 
 	ifout->interface->tx++;
 	ifout->interface->txbytes += bytes;
-	return 1;
+	return CSP_ERR_NONE;
 
 tx_err:
 	ifout->interface->tx_error++;
 err:
-	return 0;
+	return CSP_ERR_TX;
 
 }
 
 int csp_send(csp_conn_t * conn, csp_packet_t * packet, unsigned int timeout) {
+
+	int ret;
 
 	if ((conn == NULL) || (packet == NULL) || (conn->state != CONN_OPEN)) {
 		csp_debug(CSP_ERROR, "Invalid call to csp_send\r\n");
@@ -296,17 +298,15 @@ int csp_send(csp_conn_t * conn, csp_packet_t * packet, unsigned int timeout) {
 	}
 #endif
 
-	return csp_send_direct(conn->idout, packet, timeout);
+	ret = csp_send_direct(conn->idout, packet, timeout);
+
+	return (ret == CSP_ERR_NONE) ? 1 : 0;
 
 }
 
 int csp_transaction_persistent(csp_conn_t * conn, unsigned int timeout, void * outbuf, int outlen, void * inbuf, int inlen) {
 
-	/* Stupid way to implement max() but more portable than macros */
-	int size = outlen;
-	if (inlen > outlen)
-		size = inlen;
-
+	int size = (inlen > outlen) ? inlen : outlen;
 	csp_packet_t * packet = csp_buffer_get(size);
 	if (packet == NULL)
 		return 0;
@@ -413,7 +413,7 @@ int csp_sendto(uint8_t prio, uint8_t dest, uint8_t dport, uint8_t src_port, uint
 	packet->id.sport = src_port;
 	packet->id.pri = prio;
 
-	if (csp_send_direct(packet->id, packet, timeout) == 0) {
+	if (csp_send_direct(packet->id, packet, timeout) != CSP_ERR_NONE) {
 		return -1;
 	} else {
 		return 0;

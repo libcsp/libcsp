@@ -33,7 +33,7 @@ extern "C" {
  * @param count Number of buffers to allocate
  * @param size Buffer size in bytes.
  *
- * @return 0 if malloc() failed, 1 if successful.
+ * @return CSP_ERR_NONE if malloc() succeeded, CSP_ERR message otherwise.
  */
 int csp_buffer_init(int count, int size);
 

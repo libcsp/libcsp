@@ -24,6 +24,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 /* CSP includes */
 #include <csp/csp.h>
+#include <csp/csp_error.h>
 #include <csp/csp_config.h>
 
 #include "arch/csp_malloc.h"
@@ -62,13 +63,13 @@ int csp_buffer_init(int buf_count, int buf_size) {
 	/* Allocate main memory */
 	csp_buffer_p = csp_malloc(count * size);
 	if (csp_buffer_p == NULL)
-		return 0;
+		return CSP_ERR_NOMEM;
 
 	/* Allocate housekeeping memory */
 	csp_buffer_list = (csp_buffer_state_t *) csp_malloc(count * sizeof(csp_buffer_state_t));
 	if (csp_buffer_list == NULL) {
 		csp_free(csp_buffer_p);
-		return 0;
+		return CSP_ERR_NOMEM;
 	}
 #endif
 
@@ -82,14 +83,14 @@ int csp_buffer_init(int buf_count, int buf_size) {
 		if (csp_buffer_p)
 			csp_free(csp_buffer_p);
 
-		return 0;
+		return CSP_ERR_NOMEM;
 	}
 #endif
 
 	/* Clear housekeeping memory = all free mem */
 	memset(csp_buffer_list, 0, count * sizeof(csp_buffer_state_t));
 
-	return 1;
+	return CSP_ERR_NONE;
 
 }
 

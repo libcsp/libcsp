@@ -273,7 +273,7 @@ csp_thread_return_t vTaskCSPRouter(__attribute__ ((unused)) void * pvParameters)
 			}
 
 			/* Otherwise, actually send the message */
-			if (!csp_send_direct(packet->id, packet, 0)) {
+			if (csp_send_direct(packet->id, packet, 0) != CSP_ERR_NONE) {
 				csp_debug(CSP_WARN, "Router failed to send\r\n");
 				csp_buffer_free(packet);
 			}
@@ -372,12 +372,16 @@ csp_thread_return_t vTaskCSPRouter(__attribute__ ((unused)) void * pvParameters)
 
 }
 
-void csp_route_start_task(unsigned int task_stack_size, unsigned int priority) {
+int csp_route_start_task(unsigned int task_stack_size, unsigned int priority) {
 
 	int ret = csp_thread_create(vTaskCSPRouter, (signed char *) "RTE", task_stack_size, NULL, priority, &handle_router);
 
-	if (ret != 0)
+	if (ret != 0) {
 		csp_debug(CSP_ERROR, "Failed to start router task\n");
+		return CSP_ERR_NOMEM;
+	}
+
+	return CSP_ERR_NONE;
 
 }
 
@@ -446,7 +450,7 @@ int csp_route_enqueue(csp_queue_handle_t handle, void * value, int timeout, CSP_
 	}
 #endif
 
-	return result;
+	return (result == CSP_QUEUE_OK) ? CSP_ERR_NONE : CSP_ERR_NOBUFS;
 
 }
 
@@ -480,7 +484,7 @@ void csp_new_packet(csp_packet_t * packet, csp_iface_t * interface, CSP_BASE_TYP
 	fifo = csp_route_get_fifo(packet->id.pri);
 	result = csp_route_enqueue(router_input_fifo[fifo], &queue_element, 0, pxTaskWoken);
 
-	if (result != CSP_QUEUE_OK) {
+	if (result != CSP_ERR_NONE) {
 		csp_debug(CSP_WARN, "ERROR: Routing input FIFO is FULL. Dropping packet.\r\n");
 		interface->drop++;
 		csp_buffer_free(packet);
