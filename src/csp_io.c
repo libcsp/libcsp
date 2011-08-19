@@ -317,7 +317,6 @@ int csp_transaction_persistent(csp_conn_t * conn, unsigned int timeout, void * o
 	packet->length = outlen;
 
 	if (!csp_send(conn, packet, timeout)) {
-		csp_debug(CSP_ERROR, "Transaction send failed\r\n");
 		csp_buffer_free(packet);
 		return 0;
 	}
