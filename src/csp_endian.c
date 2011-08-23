@@ -134,17 +134,17 @@ inline uint32_t __attribute__ ((__const__)) csp_htole32(uint32_t h32) {
 }
 
 /* Convert 32-bit number from big endian byte order to host byte order */
-inline uint32_t __attribute__ ((__const__)) csp_betoh32(uint16_t be32) {
+inline uint32_t __attribute__ ((__const__)) csp_betoh32(uint32_t be32) {
 	return csp_ntoh32(be32);
 }
 
 /* Convert 32-bit number from little endian byte order to host byte order */
-inline uint32_t __attribute__ ((__const__)) csp_letoh32(uint16_t le32) {
+inline uint32_t __attribute__ ((__const__)) csp_letoh32(uint32_t le32) {
 	return csp_htole32(le32);
 }
 
 /* Convert 64-bit number from host byte order to big endian byte order */
-inline uint64_t __attribute__ ((__const__)) csp_htobe64(uint32_t h64) {
+inline uint64_t __attribute__ ((__const__)) csp_htobe64(uint64_t h64) {
 	return csp_hton64(h64);
 }
 

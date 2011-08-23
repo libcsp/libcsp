@@ -103,19 +103,19 @@ uint32_t csp_htole32(uint32_t h32);
  * Convert 32-bit integer from big endian byte order to host byte order
  * @param be32 Big endian byte order 32-bit integer
  */
-uint32_t csp_betoh32(uint16_t be32);
+uint32_t csp_betoh32(uint32_t be32);
 
 /**
  * Convert 32-bit integer from little endian byte order to host byte order
  * @param le32 Little endian byte order 32-bit integer
  */
-uint32_t csp_letoh32(uint16_t le32);
+uint32_t csp_letoh32(uint32_t le32);
 
 /**
  * Convert 64-bit integer from host byte order to big endian byte order
  * @param h64 Host byte order 64-bit integer
  */
-uint64_t csp_htobe64(uint32_t h64);
+uint64_t csp_htobe64(uint64_t h64);
 
 /**
  * Convert 64-bit integer from host byte order to little endian byte order
