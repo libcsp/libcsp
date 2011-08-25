@@ -469,7 +469,7 @@ int csp_rdp_check_ack(csp_conn_t * conn) {
 		/* Check all RX queues for spare capacity */
 		int prio, avail = 1;
 		for (prio = 0; prio < CSP_RX_QUEUES; prio++) {
-			if (CSP_RX_QUEUE_LENGTH - csp_queue_size(conn->rx_queue[prio]) <= conn->rdp.window_size) {
+			if (CSP_RX_QUEUE_LENGTH - csp_queue_size(conn->rx_queue[prio]) <= (int32_t)conn->rdp.window_size) {
 				avail = 0;
 				break;
 			}
