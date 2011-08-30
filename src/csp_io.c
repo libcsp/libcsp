@@ -327,7 +327,7 @@ int csp_transaction_persistent(csp_conn_t * conn, unsigned int timeout, void * o
 
 	packet = csp_read(conn, timeout);
 	if (packet == NULL) {
-		csp_debug(CSP_WARN, "Transaction read failed\r\n");
+		csp_debug(CSP_WARN, "Transaction with node %u timeout\r\n", conn->idout.dst);
 		return 0;
 	}
 
