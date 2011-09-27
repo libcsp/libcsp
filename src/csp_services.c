@@ -30,6 +30,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 int csp_ping(uint8_t node, unsigned int timeout, unsigned int size, uint8_t conn_options) {
 
+	int i;
 	uint32_t start, time, status = 0;
 
 	/* Counter */
@@ -43,13 +44,13 @@ int csp_ping(uint8_t node, unsigned int timeout, unsigned int size, uint8_t conn
 	/* Prepare data */
 	csp_packet_t * packet;
 	packet = csp_buffer_get(size);
-
-	/* Check malloc */
 	if (packet == NULL)
 		goto out;
 
-	memset(packet->data, 0x55, size);
+	/* Set data to increasing numbers */
 	packet->length = size;
+	for (i = 0; i < size; i++)
+		packet->data[i] = i;
 
 	/* Try to send frame */
 	if (!csp_send(conn, packet, 0))
@@ -57,9 +58,18 @@ int csp_ping(uint8_t node, unsigned int timeout, unsigned int size, uint8_t conn
 
 	/* Read incoming frame */
 	packet = csp_read(conn, timeout);
-
-	if (packet != NULL)
+	if (packet != NULL) {
 		status = 1;
+		goto out;
+	}
+
+	/* Ensure that the data was actually echoed */
+	for (i = 0; i < size; i++) {
+		if (packet->data[i] != i) {
+			status = 1;
+			goto out;
+		}
+	}
 
 out:
 	/* Clean up */
