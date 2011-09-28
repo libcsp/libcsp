@@ -58,18 +58,15 @@ int csp_ping(uint8_t node, unsigned int timeout, unsigned int size, uint8_t conn
 
 	/* Read incoming frame */
 	packet = csp_read(conn, timeout);
-	if (packet != NULL) {
-		status = 1;
+	if (packet == NULL)
 		goto out;
-	}
 
 	/* Ensure that the data was actually echoed */
-	for (i = 0; i < size; i++) {
-		if (packet->data[i] != i) {
-			status = 1;
+	for (i = 0; i < size; i++)
+		if (packet->data[i] != i)
 			goto out;
-		}
-	}
+
+	status = 1;
 
 out:
 	/* Clean up */
