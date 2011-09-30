@@ -18,7 +18,7 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/* Code originally from Pythons SHA1 Module, who based in on libtom.org */
+/* Code originally from Python's SHA1 Module, who based it on libtom.org */
 
 #include <stdint.h>
 #include <string.h>
@@ -69,7 +69,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 static void csp_sha1_compress(csp_sha1_state * sha1, const uint8_t * buf) {
 
-	uint32_t a, b , c , d , e , W[80], i;
+	uint32_t a, b, c, d, e, W[80], i;
 
 	/* Copy the state into 512-bits into W[0..15] */
 	for (i = 0; i < 16; i++)
@@ -182,7 +182,7 @@ void csp_sha1_done(csp_sha1_state * sha1, uint8_t * out) {
 	sha1->buf[sha1->curlen++] = 0x80;
 
 	/* If the length is currently above 56 bytes we append zeros
-	 * then compress.  Then we can fall back to padding zeros and length
+	 * then compress. Then we can fall back to padding zeros and length
 	 * encoding like normal.
 	 */
 	if (sha1->curlen > 56) {
