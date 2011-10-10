@@ -17,7 +17,7 @@ I2C and RS232 interfaces and the name was thus changed to the more general
 Cubesat Space Protocol without changing the abbreviation.
 
 The protocol and the implementation is today actively maintained by the 
-students at Aalborg University and the spin-off company GomSpace? ApS.
+students at Aalborg University and the spin-off company GomSpace.
 
 Notable features include:
 
@@ -44,5 +44,8 @@ and all hosts supporting the Linux SocketCAN framework, including the Analog
 Devices Blackfin DSPs. The CAN interface is easily extensible with new CPU 
 architectures.
 
-You can join our Google groups list at 
+The source code is available under an LGPL 2.1 license. See COPYING for the 
+license text.
+
+You can join our Google groups list at:
 http://groups.google.com/group/cubesat-space-protocol. 
