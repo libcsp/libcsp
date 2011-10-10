@@ -1,0 +1,15 @@
+Compiling libcsp with Makefile:
+
+The Makefile takes 3 defines as arguments:
+ * ARCH specifies the CSP architecture. 'posix' or 'freertos' are 
+   valid options. The default value is posix.
+ * TOOLCHAIN specifies the prefix for the toolchain commands. 
+   Use e.g. TOOLCHAIN=avr- to call avr-gcc, avr-ld etc.
+   The default value is none. 
+ * OUTDIR specifies the output directory for libcsp.a
+   The default output is the libcsp root dir.
+
+Examples:
+
+Compile for AVR8 with FreeRTOS and output to lib/:
+ make ARCH=freertos TOOLCHAIN=avr- OUTDIR=lib clean all
