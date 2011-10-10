@@ -22,7 +22,7 @@
 					<folderInfo id="avr32.managedbuild.config.gnu.lib.release.702523299.1044207870.292475991." name="/" resourcePath="">
 						<toolChain errorParsers="" id="avr32.managedbuild.toolchain.gnu.lib.release.1587963235" name="32-bit AVR/GNU C/C++ Toolchain" superClass="avr32.managedbuild.toolchain.gnu.lib.release" unusedChildren="avr32.managedbuild.tool.gnu.preprocessor.lib.release;avr32.managedbuild.tool.gnu.assembler.lib.release">
 							<targetPlatform binaryParser="com.atmel.avr.toolchain.avr32gcc.elf32-avr32" id="avr32.managedbuild.target.gnu.platform.lib.release.693723690" name="%PlatformName.Dbg" superClass="avr32.managedbuild.target.gnu.platform.lib.release"/>
-							<builder buildPath="${workspace_loc:/LibCSP-External/AP7}" errorParsers="" id="cdt.managedbuild.target.gnu.builder.base.1492995259" keepEnvironmentInBuildfile="false" name="Gnu Make Builder" superClass="cdt.managedbuild.target.gnu.builder.base"/>
+							<builder buildPath="${workspace_loc:/LibIO/AP7}" errorParsers="" id="cdt.managedbuild.target.gnu.builder.base.1492995259" keepEnvironmentInBuildfile="false" name="Gnu Make Builder" superClass="cdt.managedbuild.target.gnu.builder.base"/>
 							<tool id="avr32.managedbuild.tool.gnu.cpp.compiler.lib.release.129721910" name="32-bit AVR/GNU C++ Compiler" superClass="avr32.managedbuild.tool.gnu.cpp.compiler.lib.release">
 								<option id="gnu.cpp.compiler.option.optimization.level.2221564" name="Optimization Level" superClass="gnu.cpp.compiler.option.optimization.level" value="gnu.cpp.compiler.optimization.level.most" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.option.debugging.level.242900533" name="Debug Level" superClass="gnu.cpp.compiler.option.debugging.level" value="gnu.cpp.compiler.debugging.level.none" valueType="enumerated"/>
@@ -38,7 +38,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/LibCDH}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/Gomspace/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/Gomspace}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/LibCSP-External/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/LibIO/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/LibCSP/include}&quot;"/>
 								</option>
 								<option id="gnu.c.compiler.option.preprocessor.def.symbols.2096547500" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols"/>
@@ -4248,7 +4248,7 @@
 							<option id="org.eclipse.cdt.cross.arm.gnu.sourcery.linux.option.addtools.createlisting.1626103071" name="Create Extended Listing" superClass="org.eclipse.cdt.cross.arm.gnu.sourcery.linux.option.addtools.createlisting"/>
 							<option id="org.eclipse.cdt.cross.arm.gnu.sourcery.linux.option.addtools.printsize.488660368" name="Print Size" superClass="org.eclipse.cdt.cross.arm.gnu.sourcery.linux.option.addtools.printsize"/>
 							<targetPlatform archList="all" binaryParser="com.atmel.avr.toolchain.avr32gcc.elf32-avr32" id="org.eclipse.cdt.cross.arm.gnu.sourcery.linux.platform.base.239962648" isAbstract="false" name="Linux Platform" osList="linux" superClass="org.eclipse.cdt.cross.arm.gnu.sourcery.linux.platform.base"/>
-							<builder buildPath="${workspace_loc:/LibCSP-External/AT91SAM7A1}" enableCleanBuild="true" errorParsers="" id="org.eclipse.cdt.cross.arm.gnu.sourcery.linux.builder.base.142998948" keepEnvironmentInBuildfile="false" name="ARM Sourcery Linux GNU Make builder" parallelBuildOn="false" parallelizationNumber="-1" superClass="org.eclipse.cdt.cross.arm.gnu.sourcery.linux.builder.base"/>
+							<builder buildPath="${workspace_loc:/LibIO/AT91SAM7A1}" enableCleanBuild="true" errorParsers="" id="org.eclipse.cdt.cross.arm.gnu.sourcery.linux.builder.base.142998948" keepEnvironmentInBuildfile="false" name="ARM Sourcery Linux GNU Make builder" parallelBuildOn="false" parallelizationNumber="-1" superClass="org.eclipse.cdt.cross.arm.gnu.sourcery.linux.builder.base"/>
 							<tool id="org.eclipse.cdt.cross.arm.gnu.sourcery.linux.cpp.compiler.base.906569521" name="ARM Sourcery Linux GCC C++ Compiler" superClass="org.eclipse.cdt.cross.arm.gnu.sourcery.linux.cpp.compiler.base">
 								<option id="org.eclipse.cdt.cross.arm.gnu.cpp.compiler.option.optimization.level.751291283" name="Optimization level" superClass="org.eclipse.cdt.cross.arm.gnu.cpp.compiler.option.optimization.level" value="org.eclipse.cdt.cross.arm.gnu.base.option.optimization.level.none" valueType="enumerated"/>
 							</tool>
@@ -4257,7 +4257,7 @@
 							<tool errorParsers="org.eclipse.cdt.core.GCCErrorParser" id="org.eclipse.cdt.cross.arm.gnu.sourcery.linux.c.compiler.base.363978598" name="ARM Sourcery Linux GCC C Compiler" superClass="org.eclipse.cdt.cross.arm.gnu.sourcery.linux.c.compiler.base">
 								<option id="org.eclipse.cdt.cross.arm.gnu.c.compiler.option.include.paths.309316608" name="Include paths (-I)" superClass="org.eclipse.cdt.cross.arm.gnu.c.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/LibCDH/include}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/LibCSP-External/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/LibIO/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/Gomspace/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/LibCSP/include}&quot;"/>
 								</option>
@@ -8467,7 +8467,7 @@
 					<folderInfo id="avr32.managedbuild.config.gnu.lib.release.1461386795.360940123." name="/" resourcePath="">
 						<toolChain errorParsers="" id="avr32.managedbuild.toolchain.gnu.lib.release.1816668345" name="32-bit AVR/GNU C/C++ Toolchain" resourceTypeBasedDiscovery="true" superClass="avr32.managedbuild.toolchain.gnu.lib.release" unusedChildren="avr32.managedbuild.tool.gnu.preprocessor.lib.release;avr32.managedbuild.tool.gnu.assembler.lib.release">
 							<targetPlatform binaryParser="com.atmel.avr.toolchain.avr32gcc.elf32-avr32" id="avr32.managedbuild.target.gnu.platform.lib.release.483701286" name="%PlatformName.Dbg" superClass="avr32.managedbuild.target.gnu.platform.lib.release"/>
-							<builder buildPath="${workspace_loc:/LibCSP-External/AVR32}" errorParsers="" id="cdt.managedbuild.target.gnu.builder.base.2125836285" keepEnvironmentInBuildfile="false" name="Gnu Make Builder" superClass="cdt.managedbuild.target.gnu.builder.base"/>
+							<builder buildPath="${workspace_loc:/LibIO/AVR32}" errorParsers="" id="cdt.managedbuild.target.gnu.builder.base.2125836285" keepEnvironmentInBuildfile="false" name="Gnu Make Builder" superClass="cdt.managedbuild.target.gnu.builder.base"/>
 							<tool errorParsers="org.eclipse.cdt.core.GCCErrorParser" id="avr32.managedbuild.tool.gnu.c.compiler.lib.release.1044495923" name="32-bit AVR/GNU C Compiler" superClass="avr32.managedbuild.tool.gnu.c.compiler.lib.release">
 								<option defaultValue="gnu.c.optimization.level.most" id="avr32.c.compiler.option.optimization.level.lib.release.1974992592" name="Optimization Level" superClass="avr32.c.compiler.option.optimization.level.lib.release" value="gnu.c.optimization.level.more" valueType="enumerated"/>
 								<option id="gnu.c.compiler.option.debugging.level.1771548625" name="Debug Level" superClass="gnu.c.compiler.option.debugging.level" value="gnu.c.debugging.level.default" valueType="enumerated"/>
@@ -8476,7 +8476,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/LibCDH}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/Gomspace/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/Gomspace}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/LibCSP-External/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/LibIO/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/LibCSP/include}&quot;"/>
 								</option>
 								<option id="gnu.c.compiler.option.misc.other.1973483039" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-c -fmessage-length=0 -mpart=uc3b0256" valueType="string"/>
@@ -12687,7 +12687,7 @@
 								<option id="de.innot.avreclipse.assembler.option.debug.level.921113513" name="Generate Debugging Info" superClass="de.innot.avreclipse.assembler.option.debug.level" value="de.innot.avreclipse.assembler.option.debug.level.none" valueType="enumerated"/>
 								<option id="de.innot.avreclipse.asm.option.include.paths.275552934" name="#include paths for preprocessor(-I)" superClass="de.innot.avreclipse.asm.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/Gomspace/include}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/LibCSP-External/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/LibIO/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/LibCSP/include}&quot;"/>
 								</option>
 								<inputType id="de.innot.avreclipse.tool.assembler.input.1092097978" superClass="de.innot.avreclipse.tool.assembler.input"/>
@@ -12697,7 +12697,7 @@
 								<option id="de.innot.avreclipse.compiler.option.optimize.1693481658" name="Optimization Level" superClass="de.innot.avreclipse.compiler.option.optimize" value="de.innot.avreclipse.compiler.optimize.size" valueType="enumerated"/>
 								<option id="de.innot.avreclipse.compiler.option.incpath.1034657745" name="Include Paths (-I)" superClass="de.innot.avreclipse.compiler.option.incpath" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/Gomspace/include}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/LibCSP-External/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/LibIO/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/LibCDH/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/LibCSP/include}&quot;"/>
 								</option>
@@ -16914,7 +16914,7 @@
 					<folderInfo id="cdt.managedbuild.config.gnu.lib.debug.994804285.1024718682.893776737." name="/" resourcePath="">
 						<toolChain errorParsers="" id="cdt.managedbuild.toolchain.gnu.lib.debug.2058396250" name="Linux GCC" superClass="cdt.managedbuild.toolchain.gnu.lib.debug" unusedChildren="cdt.managedbuild.tool.gnu.assembler.lib.debug">
 							<targetPlatform binaryParser="com.atmel.avr.toolchain.avr32gcc.elf32-avr32" id="cdt.managedbuild.target.gnu.platform.lib.debug.773767531" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.lib.debug"/>
-							<builder buildPath="${workspace_loc:/LibCSP-External/X86}" errorParsers="" id="cdt.managedbuild.target.gnu.builder.lib.debug.902237879" keepEnvironmentInBuildfile="false" name="Gnu Make Builder" superClass="cdt.managedbuild.target.gnu.builder.lib.debug"/>
+							<builder buildPath="${workspace_loc:/LibIO/X86}" errorParsers="" id="cdt.managedbuild.target.gnu.builder.lib.debug.902237879" keepEnvironmentInBuildfile="false" name="Gnu Make Builder" superClass="cdt.managedbuild.target.gnu.builder.lib.debug"/>
 							<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.lib.debug.637640990" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.lib.debug">
 								<option id="gnu.cpp.compiler.lib.debug.option.optimization.level.1677935723" name="Optimization Level" superClass="gnu.cpp.compiler.lib.debug.option.optimization.level" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.lib.debug.option.debugging.level.2142915038" name="Debug Level" superClass="gnu.cpp.compiler.lib.debug.option.debugging.level" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>
@@ -16925,7 +16925,7 @@
 								<option id="gnu.c.compiler.lib.debug.option.debugging.level.136502769" name="Debug Level" superClass="gnu.c.compiler.lib.debug.option.debugging.level" value="gnu.c.debugging.level.max" valueType="enumerated"/>
 								<option id="gnu.c.compiler.option.include.paths.1272896167" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/Gomspace/include}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/LibCSP-External/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/LibIO/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/LibCSP/include}&quot;"/>
 								</option>
 								<option id="gnu.c.compiler.option.preprocessor.def.symbols.830267204" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" valueType="definedSymbols">
