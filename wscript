@@ -63,6 +63,6 @@ def build(ctx):
 		target='csp',
 		includes='include',
 		export_includes='include', 
-		use='CSP',
+		use='gomspace CSP',
 		cflags = ['-Os','-Wall', '-g'] + ctx.options.cflags.split(','))
 
