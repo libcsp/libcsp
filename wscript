@@ -59,7 +59,7 @@ def configure(ctx):
 
 def build(ctx):
 	ctx.recurse(modules)
-	ctx.stlib(source=ctx.path.ant_glob(ctx.env.FILES_CSP),
+	ctx.objects(source=ctx.path.ant_glob(ctx.env.FILES_CSP),
 		target='csp',
 		includes='include',
 		export_includes='include', 
