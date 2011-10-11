@@ -12,17 +12,18 @@ out = 'build'
 def options(ctx):
     # Load GCC options
     ctx.load('gcc')
+
     # Set CSP options
     ctx.add_option('--toolchain', default='', help='Set toolchain prefix')
-    ctx.add_option('--conf-kernel', default=None, help='Set configuration file')
     ctx.add_option('--os', default='posix', help='Set operating system. Must be either \'posix\' or \'freertos\'')
     ctx.add_option('--cflags', default='', help='Add additional CFLAGS. Separate with comma')
     ctx.add_option('--includes', default='', help='Add additional include paths. Separate with comma')
     ctx.add_option('--with-can', default=None, metavar='CHIP', help='Enable CAN driver. CHIP must be either socketcan, at91sam7a1, at91sam7a3 or at90can128')
     ctx.add_option('--with-freertos', default='../../libgomspace/include', help='Set path to FreeRTOS header files')
+    ctx.add_option('--with-csp-config', default=None, help='Set CSP configuration file')
 
 def configure(ctx):
-    # Validate.os
+    # Validate OS
     if not ctx.options.os in ('posix', 'freertos'):
         ctx.fatal('ARCH must be either \'posix\' or \'freertos\'')
 
@@ -47,8 +48,8 @@ def configure(ctx):
         ctx.env.append_unique('FILES_CSP', 'src/interfaces/csp_if_can.c')
         ctx.env.append_unique('FILES_CSP', 'src/interfaces/can/can_{0}.c'.format(ctx.options.with_can))
 
-    if ctx.options.conf_kernel:
-        ctx.define('CONF_KERNEL', os.path.abspath(ctx.options.conf_kernel))
+    if ctx.options.with_csp_config:
+        ctx.define('CSP_CONFIG', os.path.abspath(ctx.options.with_csp_config))
 
 def build(ctx):
     ctx.stlib(source=ctx.path.ant_glob(ctx.env.FILES_CSP),

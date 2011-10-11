@@ -19,10 +19,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 /*
- * This is the default SVN version of the CSP configuration file.
- * It contains all the required values to compile CSP.
- * If you make any changes to the values in this file, please avoid
- * committing them back to the repository unless they are required.
+ * This is the default version of the CSP configuration file. It
+ * contains all the required values to compile CSP. If you make
+ * any changes to the values in this file, please avoid committing
+ * them back to the repository unless they are required.
  *
  * This can be done by copying the file to another directory
  * and using include-path prioritization, to prefer your local
@@ -44,39 +44,78 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 extern "C" {
 #endif
 
-#ifdef CSP_DFL_CONFIG
+#ifdef CSP_CONFIG
+	#include CSP_CONFIG
+#endif
+
 /* General config */
-#define CSP_DEBUG			   	0	   	// Enable/disable debugging output
-#define CSP_CONN_MAX			10  	// Number of statically allocated connection structs
-#define CSP_CONN_QUEUE_LENGTH	100		// Number of packets potentially in queue for a connection
-#define CSP_FIFO_INPUT			100		// Number of packets to be queued at the input of the router
-#define CSP_MAX_BIND_PORT		15		// Highest incoming port number to bind to (must be below (2^CSP_ID_PORT_SIZE)-1)
-#define CSP_RANDOMIZE_EPHEM		1		// Randomize initial ephemeral port
-#define CSP_USE_QOS 			1 		// Enable Quality of Service
+#ifndef CSP_DEBUG
+	#define CSP_DEBUG			   	0	   	// Enable/disable debugging output
+#endif
+
+#ifndef CSP_CONN_MAX
+	#define CSP_CONN_MAX			10  	// Number of statically allocated connection structs
+#endif
+
+#ifndef CSP_CONN_QUEUE_LENGTH
+	#define CSP_CONN_QUEUE_LENGTH	100		// Number of packets potentially in queue for a connection
+#endif
+
+#ifndef CSP_FIFO_INPUT
+	#define CSP_FIFO_INPUT			100		// Number of packets to be queued at the input of the router
+#endif
+
+#ifndef CSP_MAX_BIND_PORT
+	#define CSP_MAX_BIND_PORT		15		// Highest incoming port number to bind to (must be below (2^CSP_ID_PORT_SIZE)-1)
+#endif
+
+#ifndef CSP_USE_QOS
+	#define CSP_USE_QOS 			1 		// Enable Quality of Service
+#endif
 
 /* Transport layer config */
-#define CSP_USE_RDP				1		// Enable RDP transport protocol
-#define CSP_DELAY_ACKS			1		// Use delayed acknowledgements
-#define CSP_RDP_MAX_WINDOW		20		// Maximum RDP window size
+#ifndef CSP_USE_RDP
+	#define CSP_USE_RDP				1		// Enable RDP transport protocol
+#endif
+
+#ifndef CSP_RDP_MAX_WINDOW
+	#define CSP_RDP_MAX_WINDOW		20		// Maximum RDP window size
+#endif
 
 /* Router config */
-#define CSP_USE_PROMISC			1		// Enable promiscuous mode functions
+#ifndef CSP_USE_PROMISC
+	#define CSP_USE_PROMISC			1		// Enable promiscuous mode functions
+#endif
 
 /* Buffer config */
-#define CSP_BUFFER_CALLOC		0		// Set to 1 to clear buffer at allocation
-#define CSP_BUFFER_STATIC   	0		// Use a statically allocated buffer
-#define CSP_BUFFER_SIZE		 	320		// Size of each buffer element
-#define CSP_BUFFER_COUNT		12		// Number of buffer elements
+#ifndef CSP_BUFFER_CALLOC
+	#define CSP_BUFFER_CALLOC		0		// Set to 1 to clear buffer at allocation
+#endif
+
+#ifndef CSP_BUFFER_STATIC
+	#define CSP_BUFFER_STATIC   	0		// Use a statically allocated buffer
+#endif
+
+#ifndef CSP_BUFFER_SIZE
+	#define CSP_BUFFER_SIZE		 	320		// Size of each buffer element
+#endif
+
+#ifndef CSP_BUFFER_COUNT
+	#define CSP_BUFFER_COUNT		12		// Number of buffer elements
+#endif
 
 /* CRC32 config */
-#define CSP_ENABLE_CRC32		1		// Enable CRC32 packet validation
+#ifndef CSP_ENABLE_CRC32
+	#define CSP_ENABLE_CRC32		1		// Enable CRC32 packet validation
+#endif
 
 /* Crypto config */
-#define CSP_ENABLE_HMAC			1		// Enable Hash-based Message Authentication Code
-#define CSP_ENABLE_XTEA			1		// Enable XTEA packet encryption
+#ifndef CSP_ENABLE_HMAC
+	#define CSP_ENABLE_HMAC			1		// Enable Hash-based Message Authentication Code
+#endif
 
-#else
-#include <conf_csp/csp_config_user.h>
+#ifndef CSP_ENABLE_XTEA
+	#define CSP_ENABLE_XTEA			1		// Enable XTEA packet encryption
 #endif
 
 #ifdef __cplusplus
