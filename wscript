@@ -3,15 +3,18 @@
 
 import os
 
-APPNAME = 'libcsp'
+APPNAME = 'csp'
 VERSION = '1.0'
 
 top = '.'
 out = 'build'
 
+modules = ['../libgomspace']
+
 def options(ctx):
     # Load GCC options
     ctx.load('gcc')
+    ctx.recurse(modules)
 
     # Set CSP options
     ctx.add_option('--toolchain', default='', help='Set toolchain prefix')
@@ -37,7 +40,7 @@ def configure(ctx):
     ctx.load('gcc')
 
     # Add default files
-    ctx.env.append_unique('FILES_CSP', ['src/*.c','src/crypto/*.c','src/interfaces/csp_if_lo.c','src/transport/*.c','src/{0}/**/*.c'.format(ctx.options.os)])
+    ctx.env.append_unique('FILES_CSP', ['src/*.c','src/crypto/*.c','src/interfaces/csp_if_lo.c','src/transport/*.c','src/arch/{0}/**/*.c'.format(ctx.options.os)])
 
     # Add FreeRTOS 
     if ctx.options.os == 'freertos':
@@ -51,10 +54,13 @@ def configure(ctx):
     if ctx.options.with_csp_config:
         ctx.define('CSP_CONFIG', os.path.abspath(ctx.options.with_csp_config))
 
+    ctx.recurse(modules)
+
 def build(ctx):
+    ctx.recurse(modules)
     ctx.stlib(source=ctx.path.ant_glob(ctx.env.FILES_CSP),
               target='csp',
               includes='include',
               export_includes='include', 
-              use='CSP',
+              use='gomspace CSP',
               cflags = ['-Os','-Wall', '-g'] + ctx.options.cflags.split(','))
