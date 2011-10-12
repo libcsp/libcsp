@@ -9,22 +9,19 @@ VERSION = '1.0'
 top = '.'
 out = 'build'
 
-modules = ['../libgomspace']
-
 def options(ctx):
 	# Load GCC options
 	ctx.load('gcc')
-	ctx.recurse(modules)
 
 	# Set CSP options
 	ctx.add_option('--toolchain', default='', help='Set toolchain prefix')
 	ctx.add_option('--os', default='posix', help='Set operating system. Must be either \'posix\' or \'freertos\'')
 	ctx.add_option('--cflags', default='', help='Add additional CFLAGS. Separate with comma')
 	ctx.add_option('--includes', default='', help='Add additional include paths. Separate with comma')
+	ctx.add_option('--libdir', default='build', help='Set output directory of libcsp.a')
 	ctx.add_option('--with-can', default=None, metavar='CHIP', help='Enable CAN driver. CHIP must be either socketcan, at91sam7a1, at91sam7a3 or at90can128')
-	ctx.add_option('--with-freertos', default='../../libgomspace/include', help='Set path to FreeRTOS header files')
-	ctx.add_option('--with-csp-config', default=None, help='Set CSP configuration file')
-
+	ctx.add_option('--with-freertos', metavar="PATH", default='../../libgomspace/include', help='Set path to FreeRTOS header files')
+	ctx.add_option('--with-csp-config', metavar="CONFIG", default=None, help='Set CSP configuration file')
 
 def configure(ctx):
 	# Validate OS
@@ -39,6 +36,9 @@ def configure(ctx):
 	ctx.env.CC = ctx.options.toolchain + 'gcc'
 	ctx.env.AR = ctx.options.toolchain + 'ar'
 	ctx.load('gcc')
+
+	# Setup CFLAGS
+	ctx.env.append_unique('CFLAGS_CSP', ['-Os','-Wall', '-g'] + ctx.options.cflags.split(','))
 
 	# Add default files
 	ctx.env.append_unique('FILES_CSP', ['src/*.c','src/crypto/*.c','src/interfaces/csp_if_lo.c','src/transport/*.c','src/arch/{0}/**/*.c'.format(ctx.options.os)])
@@ -55,14 +55,11 @@ def configure(ctx):
 	if ctx.options.with_csp_config:
 		ctx.define('CSP_CONFIG', os.path.abspath(ctx.options.with_csp_config))
 
-	ctx.recurse(modules)
-
 def build(ctx):
-	ctx.recurse(modules)
-	ctx.objects(source=ctx.path.ant_glob(ctx.env.FILES_CSP),
+	ctx.stlib(source=ctx.path.ant_glob(ctx.env.FILES_CSP),
 		target='csp',
 		includes='include',
 		export_includes='include', 
-		use='gomspace CSP',
-		cflags = ['-Os','-Wall', '-g'] + ctx.options.cflags.split(','))
+		use='CSP',
+		install_path = ctx.options.libdir)
 
