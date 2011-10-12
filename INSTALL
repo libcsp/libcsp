@@ -1,15 +1,24 @@
-Compiling libcsp with Makefile:
+CSP uses the waf build system (http://code.google.com/p/waf/). In order to
+compile CSP, you first need to configure the toolchain, what operating system
+to compile for, the location of required libraries and whether to enable 
+certain optional features.
 
-The Makefile takes 3 defines as arguments:
- * ARCH specifies the CSP architecture. 'posix' or 'freertos' are 
-   valid options. The default value is posix.
- * TOOLCHAIN specifies the prefix for the toolchain commands. 
-   Use e.g. TOOLCHAIN=avr- to call avr-gcc, avr-ld etc.
-   The default value is none. 
- * OUTDIR specifies the output directory for libcsp.a
-   The default output is the libcsp root dir.
+To configure CSP to build with the AVR32 toolchain for FreeRTOS and output
+the compiled libcsp.a file to the currect directory, issue:
 
-Examples:
+./waf configure --toolchain=avr32- --os=freertos --libdir=.
 
-Compile for AVR8 with FreeRTOS and output to lib/:
- make ARCH=freertos TOOLCHAIN=avr- OUTDIR=lib clean all
+When compiling for FreeRTOS, the path to the FreeRTOS header files must be
+specified with --with-freertos=PATH.
+
+A custom CSP config file can be included with --with-csp-config=CONFIG. See 
+include/csp/csp_config.h for a list of available options. The custom config
+need only specify the options that differ from the default values.
+
+The CAN drivers can be enabled by appending the configure option --with-can=CHIP,
+where CHIP is one of 'socketcan', 'at91sam7a1', 'at91sam7a3' or 'at90can128'. 
+Run ./waf configure --help to list the available configure options.
+
+To build and copy the library to the location specified with --libdir, use:
+
+./waf build install
