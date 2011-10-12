@@ -6,9 +6,6 @@ import os
 APPNAME = 'csp'
 VERSION = '1.0'
 
-top = '.'
-out = 'build'
-
 def options(ctx):
 	# Load GCC options
 	ctx.load('gcc')
