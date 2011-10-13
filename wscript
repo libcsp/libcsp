@@ -6,9 +6,6 @@ import os
 APPNAME = 'libcsp'
 VERSION = '1.0'
 
-top = '.'
-out = 'build'
-
 def options(ctx):
 	# Load GCC options
 	ctx.load('gcc')
@@ -40,6 +37,9 @@ def configure(ctx):
 
 	# Setup CFLAGS
 	ctx.env.append_unique('CFLAGS_CSP', ['-Os','-Wall', '-g'] + ctx.options.cflags.split(','))
+	
+	# Setup extra includes
+	ctx.env.append_unique('INCLUDES_CSP', ctx.options.includes.split(','))
 
 	# Add default files
 	ctx.env.append_unique('FILES_CSP', ['src/*.c','src/crypto/*.c','src/interfaces/csp_if_lo.c','src/transport/*.c','src/arch/{0}/**/*.c'.format(ctx.options.os)])
@@ -59,7 +59,7 @@ def configure(ctx):
 def build(ctx):
 	ctx.stlib(source=ctx.path.ant_glob(ctx.env.FILES_CSP),
 		target='csp',
-		includes='include',
+		includes=['include'] + ctx.env.INCLUDES_CSP,
 		export_includes='include', 
 		use='CSP',
 		install_path = ctx.options.libdir)

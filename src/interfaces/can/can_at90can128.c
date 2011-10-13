@@ -146,7 +146,7 @@ int can_init(uint32_t id, uint32_t mask, can_tx_callback_t atxcb, can_rx_callbac
 	CANIE2 = 0xFF;
 
 	/* Configure bitrate */
-	can_configure_bitrate(fcpu, bitrate);
+	can_configure_bitrate(clock_speed, bitrate);
 
 	/* Configure MOBS */
 	can_configure_mobs();
