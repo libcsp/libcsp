@@ -3,7 +3,7 @@
 
 import os
 
-APPNAME = 'csp'
+APPNAME = 'libcsp'
 VERSION = '1.0'
 
 top = '.'
@@ -12,6 +12,7 @@ out = 'build'
 def options(ctx):
 	# Load GCC options
 	ctx.load('gcc')
+	ctx.load('eclipse')
 
 	# Set CSP options
 	ctx.add_option('--toolchain', default='', help='Set toolchain prefix')
