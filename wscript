@@ -35,7 +35,7 @@ def configure(ctx):
 	ctx.load('gcc')
 
 	# Setup CFLAGS
-	ctx.env.append_unique('CFLAGS_CSP', ['-Os','-Wall', '-g'] + ctx.options.cflags.split(','))
+	ctx.env.append_unique('CFLAGS_CSP', ['-Os','-Wall', '-g', '-std=gnu99'] + ctx.options.cflags.split(','))
 	
 	# Setup extra includes
 	ctx.env.append_unique('INCLUDES_CSP', ctx.options.includes.split(','))
@@ -60,6 +60,7 @@ def build(ctx):
 		target='csp',
 		includes=['include'] + ctx.env.INCLUDES_CSP,
 		export_includes='include', 
-		use='CSP',
+		cflags = ctx.env.CFLAGS_CSP,
+		defines = ctx.env.DEFINES_CSP,
 		install_path = ctx.options.libdir)
 
