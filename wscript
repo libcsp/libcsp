@@ -12,14 +12,15 @@ def options(ctx):
 	ctx.load('eclipse')
 
 	# Set CSP options
-	ctx.add_option('--toolchain', default='', help='Set toolchain prefix')
-	ctx.add_option('--os', default='posix', help='Set operating system. Must be either \'posix\' or \'freertos\'')
-	ctx.add_option('--cflags', default='', help='Add additional CFLAGS. Separate with comma')
-	ctx.add_option('--includes', default='', help='Add additional include paths. Separate with comma')
-	ctx.add_option('--libdir', default='build', help='Set output directory of libcsp.a')
-	ctx.add_option('--with-can', default=None, metavar='CHIP', help='Enable CAN driver. CHIP must be either socketcan, at91sam7a1, at91sam7a3 or at90can128')
-	ctx.add_option('--with-freertos', metavar="PATH", default='../../libgomspace/include', help='Set path to FreeRTOS header files')
-	ctx.add_option('--with-csp-config', metavar="CONFIG", default=None, help='Set CSP configuration file')
+	gr = ctx.add_option_group('CSP options')
+	gr.add_option('--toolchain', default='', help='Set toolchain prefix')
+	gr.add_option('--os', default='posix', help='Set operating system. Must be either \'posix\' or \'freertos\'')
+	gr.add_option('--cflags', default='', help='Add additional CFLAGS. Separate with comma')
+	gr.add_option('--includes', default='', help='Add additional include paths. Separate with comma')
+	gr.add_option('--libdir', default='build', help='Set output directory of libcsp.a')
+	gr.add_option('--with-can', default=None, metavar='CHIP', help='Enable CAN driver. CHIP must be either socketcan, at91sam7a1, at91sam7a3 or at90can128')
+	gr.add_option('--with-freertos', metavar="PATH", default='../../libgomspace/include', help='Set path to FreeRTOS header files')
+	gr.add_option('--with-csp-config', metavar="CONFIG", default=None, help='Set CSP configuration file')
 
 def configure(ctx):
 	# Validate OS
@@ -39,7 +40,7 @@ def configure(ctx):
 	ctx.env.append_unique('CFLAGS_CSP', ['-Os','-Wall', '-g', '-std=gnu99'] + ctx.options.cflags.split(','))
 	
 	# Setup extra includes
-	ctx.env.append_unique('INCLUDES_CSP', ctx.options.includes.split(','))
+	ctx.env.append_unique('INCLUDES_CSP', ['include'] + ctx.options.includes.split(','))
 
 	# Add default files
 	ctx.env.append_unique('FILES_CSP', ['src/*.c','src/crypto/*.c','src/interfaces/csp_if_lo.c','src/transport/*.c','src/arch/{0}/**/*.c'.format(ctx.options.os)])
@@ -58,9 +59,9 @@ def configure(ctx):
 
 def build(ctx):
 	ctx.stlib(source=ctx.path.ant_glob(ctx.env.FILES_CSP),
-		target='csp',
-		includes=['include'] + ctx.env.INCLUDES_CSP,
-		export_includes='include', 
+		target = 'csp',
+		includes= ctx.env.INCLUDES_CSP,
+		export_includes = 'include',
 		cflags = ctx.env.CFLAGS_CSP,
 		defines = ctx.env.DEFINES_CSP,
 		install_path = ctx.options.libdir)
