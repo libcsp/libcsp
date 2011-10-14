@@ -1,6 +1,24 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
+# Cubesat Space Protocol - A small network-layer protocol designed for Cubesats
+# Copyright (C) 2011 GomSpace ApS (http://www.gomspace.com)
+# Copyright (C) 2011 AAUSAT3 Project (http://aausat3.space.aau.dk) 
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+
 import os
 
 APPNAME = 'libcsp'
@@ -21,6 +39,7 @@ def options(ctx):
 	gr.add_option('--with-can', default=None, metavar='CHIP', help='Enable CAN driver. CHIP must be either socketcan, at91sam7a1, at91sam7a3 or at90can128')
 	gr.add_option('--with-freertos', metavar="PATH", default='../../libgomspace/include', help='Set path to FreeRTOS header files')
 	gr.add_option('--with-csp-config', metavar="CONFIG", default=None, help='Set CSP configuration file')
+	gr.add_option('--enable-bindings', action='store_true', help='Enable Python bindings')
 
 def configure(ctx):
 	# Validate OS
@@ -58,11 +77,20 @@ def configure(ctx):
 		ctx.define('CSP_CONFIG', os.path.abspath(ctx.options.with_csp_config))
 
 def build(ctx):
-	ctx.stlib(source=ctx.path.ant_glob(ctx.env.FILES_CSP),
+	ctx.stlib(
+		source=ctx.path.ant_glob(ctx.env.FILES_CSP),
 		target = 'csp',
 		includes= ctx.env.INCLUDES_CSP,
 		export_includes = 'include',
 		cflags = ctx.env.CFLAGS_CSP,
 		defines = ctx.env.DEFINES_CSP,
 		install_path = ctx.options.libdir)
+	if ctx.options.enable_bindings:
+		ctx.shlib(source=ctx.path.ant_glob(ctx.env.FILES_CSP),
+			target = 'pycsp',
+			includes= ctx.env.INCLUDES_CSP,
+			export_includes = 'include',
+			cflags = ctx.env.CFLAGS_CSP,
+			defines = ctx.env.DEFINES_CSP)
+		
 
