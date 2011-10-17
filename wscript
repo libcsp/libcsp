@@ -19,8 +19,6 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
-import os
-
 APPNAME = 'libcsp'
 VERSION = '1.0-rc1'
 
@@ -75,7 +73,9 @@ def configure(ctx):
 		ctx.env.append_unique('FILES_CSP', 'src/interfaces/can/can_{0}.c'.format(ctx.options.with_can))
 
 	if ctx.options.with_csp_config:
-		ctx.define('CSP_CONFIG', os.path.abspath(ctx.options.with_csp_config))
+		conf = ctx.path.find_resource(ctx.options.with_csp_config)
+		if not conf: ctx.fatal("No such config file: {0}".format(ctx.options.with_csp_config))
+		ctx.define('CSP_CONFIG', conf.abspath())
 
 def build(ctx):
 	ctx.stlib(
@@ -95,8 +95,9 @@ def build(ctx):
 			includes= ctx.env.INCLUDES_CSP,
 			export_includes = 'include',
 			cflags = ctx.env.CFLAGS_CSP,
-			defines = ctx.env.DEFINES_CSP)
+			defines = ctx.env.DEFINES_CSP,
+			lib=['rt', 'pthread'])
 
 def dist(ctx):
-	ctx.excl      = 'build/* **/.* **/eclipse.* **/*.o **/*~ *.tar.gz'
+	ctx.excl = 'build/* **/.* **/*.pyc **/*.o **/*~ *.tar.gz'
 

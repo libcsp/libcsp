@@ -186,7 +186,7 @@ class csp_l4data_t (ctypes.Structure):
 	pass
 
 # Load library
-libcsp = ctypes.CDLL("../build/libpycsp.so", use_errno=True)
+libcsp = ctypes.CDLL("../../build/libpycsp.so", use_errno=True)
 
 my_address = libcsp.my_address
 
@@ -361,12 +361,15 @@ CSP_LOCK		= 6
 class can_socketcan_conf (ctypes.Structure):
 	_fields_ = [("ifc", ctypes.c_char_p)]
 
-csp_if_can = libcsp.csp_if_can
-csp_can_init = libcsp.csp_can_init
-csp_can_init.argtypes = [ctypes.c_uint8, ctypes.c_void_p, ctypes.c_uint]
-csp_can_init.restype = ctypes.c_int
-csp_can_init.errcheck = csp_err_negative
+try:
+    csp_if_can = libcsp.csp_if_can
+    csp_can_init = libcsp.csp_can_init
+    csp_can_init.argtypes = [ctypes.c_uint8, ctypes.c_void_p, ctypes.c_uint]
+    csp_can_init.restype = ctypes.c_int
+    csp_can_init.errcheck = csp_err_negative
 
-csp_can_tx = libcsp.csp_can_tx
-csp_can_tx.argtypes = [csp_id_t, ctypes.POINTER(csp_packet_t), ctypes.c_uint]
-csp_can_tx.restype = ctypes.c_int
+    csp_can_tx = libcsp.csp_can_tx
+    csp_can_tx.argtypes = [csp_id_t, ctypes.POINTER(csp_packet_t), ctypes.c_uint]
+    csp_can_tx.restype = ctypes.c_int
+except:
+    pass
