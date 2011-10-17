@@ -52,7 +52,7 @@ def configure(ctx):
 	ctx.env.CC = ctx.options.toolchain + 'gcc'
 	ctx.env.AR = ctx.options.toolchain + 'ar'
 	ctx.load('gcc')
-        ctx.find_program(ctx.options.toolchain + 'size', var='SIZE')
+	ctx.find_program(ctx.options.toolchain + 'size', var='SIZE')
 
 	# Setup CFLAGS
 	ctx.env.append_unique('CFLAGS_CSP', ['-Os','-Wall', '-g', '-std=gnu99'] + ctx.options.cflags.split(','))
@@ -72,12 +72,14 @@ def configure(ctx):
 		ctx.env.append_unique('FILES_CSP', 'src/interfaces/csp_if_can.c')
 		ctx.env.append_unique('FILES_CSP', 'src/interfaces/can/can_{0}.c'.format(ctx.options.with_can))
 
+	# Validate config file
 	if ctx.options.with_csp_config:
 		conf = ctx.path.find_resource(ctx.options.with_csp_config)
 		if not conf: ctx.fatal("No such config file: {0}".format(ctx.options.with_csp_config))
 		ctx.define('CSP_CONFIG', conf.abspath())
 
 def build(ctx):
+	# Build static library
 	ctx.stlib(
 		source=ctx.path.ant_glob(ctx.env.FILES_CSP),
 		target = 'csp',
@@ -87,8 +89,12 @@ def build(ctx):
 		defines = ctx.env.DEFINES_CSP,
 		install_path = ctx.options.libdir,
 		use = 'csp_size')
-        if ctx.options.verbose > 0:
-                ctx(rule='${SIZE} --format=berkeley ${SRC}', source='libcsp.a', name='csp_size', always=True)
+
+	# Print library size
+ 	if ctx.options.verbose > 0:
+		ctx(rule='${SIZE} --format=berkeley ${SRC}', source='libcsp.a', name='csp_size', always=True)
+
+	# Build shared library for Python bindings
 	if ctx.options.enable_bindings:
 		ctx.shlib(source=ctx.path.ant_glob(ctx.env.FILES_CSP),
 			target = 'pycsp',
