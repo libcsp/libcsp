@@ -4,3 +4,5 @@ build/
 .lock*
 *~ 
 *.pyc
+*.tar.gz
+*.tar.bz2
