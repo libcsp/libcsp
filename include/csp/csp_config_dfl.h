@@ -1,7 +1,7 @@
 /*
 Cubesat Space Protocol - A small network-layer protocol designed for Cubesats
 Copyright (C) 2011 Gomspace ApS (http://www.gomspace.com)
-Copyright (C) 2011 AAUSAT3 Project (http://aausat3.space.aau.dk) 
+Copyright (C) 2011 AAUSAT3 Project (http://aausat3.space.aau.dk)
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -37,91 +37,33 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
-#ifndef _CSP_CONFIG_H_
-#define _CSP_CONFIG_H_
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#ifdef CSP_CONFIG
-	#include CSP_CONFIG
-#else
-	#include "csp_config_dfl.h"
-#endif
+#ifndef CSP_CONFIG_DFL_H_
+#define CSP_CONFIG_DFL_H_
 
 /* General config */
-#ifndef CSP_DEBUG
-	#error "Missing config option: CSP_DEBUG"
-#endif
-
-#ifndef CSP_CONN_MAX
-	#error "Missing config option: CSP_CONN_MAX"
-#endif
-
-#ifndef CSP_CONN_QUEUE_LENGTH
-	#error "Missing config option: CSP_CONN_QUEUE_LENGTH"
-#endif
-
-#ifndef CSP_FIFO_INPUT
-	#error "Missing config option: CSP_FIFO_INPUT"
-#endif
-
-#ifndef CSP_MAX_BIND_PORT
-	#error "Missing config option: CSP_MAX_BIND_PORT"
-#endif
-
-#ifndef CSP_USE_QOS
-#error "Missing config option: CSP_USE_QOS"
-#endif
+#define CSP_DEBUG			   	0	   	// Enable/disable debugging output
+#define CSP_CONN_MAX			10  	// Number of statically allocated connection structs
+#define CSP_CONN_QUEUE_LENGTH	100		// Number of packets potentially in queue for a connection
+#define CSP_FIFO_INPUT			100		// Number of packets to be queued at the input of the router
+#define CSP_MAX_BIND_PORT		15		// Highest incoming port number to bind to (must be below (2^CSP_ID_PORT_SIZE)-1)
+#define CSP_USE_QOS 			1 		// Enable Quality of Service
 
 /* Transport layer config */
-#ifndef CSP_USE_RDP
-#error "Missing config option: CSP_USE_RDP"
-#endif
-
-#ifndef CSP_RDP_MAX_WINDOW
-#error "Missing config option: CSP_RDP_MAX_WINDOW"
-#endif
+#define CSP_USE_RDP				1		// Enable RDP transport protocol
+#define CSP_RDP_MAX_WINDOW		20		// Maximum RDP window size
 
 /* Router config */
-#ifndef CSP_USE_PROMISC
-#error "Missing config option: CSP_USE_PROMISC"
-#endif
+#define CSP_USE_PROMISC			1		// Enable promiscuous mode functions
 
 /* Buffer config */
-#ifndef CSP_BUFFER_CALLOC
-#error "Missing config option: CSP_BUFFER_CALLOC"
-#endif
+#define CSP_BUFFER_CALLOC		0		// Set to 1 to clear buffer at allocation
+#define CSP_BUFFER_STATIC   	0		// Use a statically allocated buffer
+#define CSP_BUFFER_SIZE		 	320		// Size of each buffer element
+#define CSP_BUFFER_COUNT		12		// Number of buffer elements
 
-#ifndef CSP_BUFFER_STATIC
-#error "Missing config option: CSP_BUFFER_STATIC"
-#endif
+/* CRC32/Crypto config */
+#define CSP_ENABLE_CRC32		1		// Enable CRC32 packet validation
+#define CSP_ENABLE_HMAC			1		// Enable Hash-based Message Authentication Code
+#define CSP_ENABLE_XTEA			1		// Enable XTEA packet encryption
 
-#ifndef CSP_BUFFER_SIZE
-#error "Missing config option: CSP_BUFFER_SIZE"
-#endif
-
-#ifndef CSP_BUFFER_COUNT
-#error "Missing config option: CSP_BUFFER_COUNT"
-#endif
-
-/* CRC32 config */
-#ifndef CSP_ENABLE_CRC32
-#error "Missing config option: CSP_ENABLE_CRC32"
-#endif
-
-/* Crypto config */
-#ifndef CSP_ENABLE_HMAC
-#error "Missing config option: CSP_ENABLE_HMAC"
-#endif
-
-#ifndef CSP_ENABLE_XTEA
-#error "Missing config option: CSP_ENABLE_XTEA"
-#endif
-
-#ifdef __cplusplus
-} /* extern "C" */
-#endif
-
-#endif // _CSP_CONFIG_H_
+#endif /* CSP_CONFIG_DFL_H_ */
