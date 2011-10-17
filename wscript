@@ -22,7 +22,7 @@
 import os
 
 APPNAME = 'libcsp'
-VERSION = '1.0'
+VERSION = '1.0-rc1'
 
 def options(ctx):
 	# Load GCC options
@@ -92,5 +92,7 @@ def build(ctx):
 			export_includes = 'include',
 			cflags = ctx.env.CFLAGS_CSP,
 			defines = ctx.env.DEFINES_CSP)
-		
+
+def dist(ctx):
+	ctx.excl      = 'build/* **/.* **/eclipse.* **/*.o **/*~ *.tar.gz'
 
