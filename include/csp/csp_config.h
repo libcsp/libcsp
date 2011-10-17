@@ -43,7 +43,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #ifdef __cplusplus
 extern "C" {
 #endif
-
+#define CSP_DFL_CONFIG
+#define CSP_DFL_CONFIG
 #ifdef CSP_DFL_CONFIG
 /* General config */
 #define CSP_DEBUG			   	0	   	// Enable/disable debugging output

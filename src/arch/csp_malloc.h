@@ -26,13 +26,13 @@ extern "C" {
 #endif
 
 #include <stdint.h>
-
+#include <stddef.h>
 /* POSIX interface */
-#if defined(_CSP_POSIX_)
+#if defined(_CSP_POSIX_) || defined(_CSP_WINDOWS_)
 
 #include <stdlib.h>
 
-#endif // _CSP_POSIX_
+#endif // _CSP_POSIX_ || _CSP_WINDOWS_
 
 /* FreeRTOS interface */
 #if defined(_CSP_FREERTOS_)

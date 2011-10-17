@@ -31,9 +31,14 @@ CFLAGS += -fshort-enums
 else ifeq ($(TOOLCHAIN),bfin-linux-uclibc-)
 CFLAGS += -D_GNU_SOURCE
 else ifeq ($(TOOLCHAIN),)
+ifneq ($(ARCH),windows)
 CFLAGS += -fPIC
 endif
-CFLAGS += -Wall -Werror -Wno-unused-parameter -std=gnu99 -Os
+ifeq ($(ARCH),windows)
+CFLAGS += -D_WIN32_WINNT=0x0600
+endif
+endif
+CFLAGS += -Wall -Werror -Wno-unused-parameter -std=gnu99 -Os 
 
 ## Assembly specific flags
 ASMFLAGS = $(COMMON)
@@ -71,8 +76,10 @@ SOURCES += src/crypto/csp_hmac.c
 SOURCES += src/crypto/csp_xtea.c
 
 ifeq ($(TOOLCHAIN),)
-SOURCES += src/csp_debug.c
+ifneq ($(ARCH),windows)
 SOURCES += src/interfaces/can/can_socketcan.c
+endif
+SOURCES += src/csp_debug.c
 endif
 
 ifeq ($(TOOLCHAIN),avr-)
@@ -96,6 +103,9 @@ endif
 ## POSIX archs requires pthread_queue
 ifeq ($(ARCH),posix)
 SOURCES += src/arch/$(ARCH)/pthread_queue.c
+endif
+ifeq ($(ARCH),windows)
+SOURCES += src/arch/$(ARCH)/windows_queue.c
 endif
 
 OBJECTS=$(SOURCES:.c=.o)

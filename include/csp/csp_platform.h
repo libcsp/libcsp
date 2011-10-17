@@ -26,7 +26,10 @@ extern "C" {
 #endif
 
 /* Set platform endianness and OS */
-#if defined(__i386__) || defined(__x86_64__) || defined(__BFIN__)
+#if defined(WIN32)
+    #define _CSP_LITTLE_ENDIAN_
+    #define _CSP_WINDOWS_
+#elif defined(__i386__) || defined(__x86_64__) || defined(__BFIN__)
     #define _CSP_LITTLE_ENDIAN_
     #define _CSP_POSIX_
 #elif defined(__AVR__) || defined(__arm__)
@@ -43,7 +46,7 @@ extern "C" {
 #endif
 
 /* Set OS dependant features */
-#if defined(_CSP_POSIX_)
+#if defined(_CSP_POSIX_) || defined(_CSP_WINDOWS_)
     #define CSP_BASE_TYPE int
     #define CSP_MAX_DELAY (1000000000)
 	#define CSP_ENTER_CRITICAL(lock) do { csp_bin_sem_wait(&lock, CSP_MAX_DELAY); } while(0)

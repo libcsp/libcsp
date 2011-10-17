@@ -45,6 +45,21 @@ typedef pthread_mutex_t csp_mutex_t;
 
 #endif // _CSP_POSIX_
 
+#if defined(_CSP_WINDOWS_)
+
+#include <Windows.h>
+#undef interface
+
+#define CSP_SEMAPHORE_OK 	1
+#define CSP_SEMAPHORE_ERROR 2
+#define CSP_MUTEX_OK 		CSP_SEMAPHORE_OK
+#define CSP_MUTEX_ERROR		CSP_SEMAPHORE_ERROR
+
+typedef HANDLE csp_bin_sem_handle_t;
+typedef HANDLE csp_mutex_t;
+
+#endif
+
 /* FreeRTOS interface */
 #if defined(_CSP_FREERTOS_)
 
