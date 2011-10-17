@@ -72,52 +72,52 @@ extern "C" {
 #endif
 
 #ifndef CSP_USE_QOS
-#error "Missing config option: CSP_USE_QOS"
+	#error "Missing config option: CSP_USE_QOS"
 #endif
 
 /* Transport layer config */
 #ifndef CSP_USE_RDP
-#error "Missing config option: CSP_USE_RDP"
+	#error "Missing config option: CSP_USE_RDP"
 #endif
 
 #ifndef CSP_RDP_MAX_WINDOW
-#error "Missing config option: CSP_RDP_MAX_WINDOW"
+	#error "Missing config option: CSP_RDP_MAX_WINDOW"
 #endif
 
 /* Router config */
 #ifndef CSP_USE_PROMISC
-#error "Missing config option: CSP_USE_PROMISC"
+	#error "Missing config option: CSP_USE_PROMISC"
 #endif
 
 /* Buffer config */
 #ifndef CSP_BUFFER_CALLOC
-#error "Missing config option: CSP_BUFFER_CALLOC"
+	#error "Missing config option: CSP_BUFFER_CALLOC"
 #endif
 
 #ifndef CSP_BUFFER_STATIC
-#error "Missing config option: CSP_BUFFER_STATIC"
+	#error "Missing config option: CSP_BUFFER_STATIC"
 #endif
 
 #ifndef CSP_BUFFER_SIZE
-#error "Missing config option: CSP_BUFFER_SIZE"
+	#error "Missing config option: CSP_BUFFER_SIZE"
 #endif
 
 #ifndef CSP_BUFFER_COUNT
-#error "Missing config option: CSP_BUFFER_COUNT"
+	#error "Missing config option: CSP_BUFFER_COUNT"
 #endif
 
 /* CRC32 config */
 #ifndef CSP_ENABLE_CRC32
-#error "Missing config option: CSP_ENABLE_CRC32"
+	#error "Missing config option: CSP_ENABLE_CRC32"
 #endif
 
 /* Crypto config */
 #ifndef CSP_ENABLE_HMAC
-#error "Missing config option: CSP_ENABLE_HMAC"
+	#error "Missing config option: CSP_ENABLE_HMAC"
 #endif
 
 #ifndef CSP_ENABLE_XTEA
-#error "Missing config option: CSP_ENABLE_XTEA"
+	#error "Missing config option: CSP_ENABLE_XTEA"
 #endif
 
 #ifdef __cplusplus
