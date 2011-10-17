@@ -54,6 +54,7 @@ def configure(ctx):
 	ctx.env.CC = ctx.options.toolchain + 'gcc'
 	ctx.env.AR = ctx.options.toolchain + 'ar'
 	ctx.load('gcc')
+        ctx.find_program(ctx.options.toolchain + 'size', var='SIZE')
 
 	# Setup CFLAGS
 	ctx.env.append_unique('CFLAGS_CSP', ['-Os','-Wall', '-g', '-std=gnu99'] + ctx.options.cflags.split(','))
@@ -84,7 +85,10 @@ def build(ctx):
 		export_includes = 'include',
 		cflags = ctx.env.CFLAGS_CSP,
 		defines = ctx.env.DEFINES_CSP,
-		install_path = ctx.options.libdir)
+		install_path = ctx.options.libdir,
+		use = 'csp_size')
+        if ctx.options.verbose > 0:
+                ctx(rule='${SIZE} --format=berkeley ${SRC}', source='libcsp.a', name='csp_size', always=True)
 	if ctx.options.enable_bindings:
 		ctx.shlib(source=ctx.path.ant_glob(ctx.env.FILES_CSP),
 			target = 'pycsp',
