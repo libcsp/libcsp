@@ -530,7 +530,7 @@ int csp_rx_callback(can_frame_t * frame, CSP_BASE_TYPE * task_woken) {
 
 }
 
-int csp_can_tx(csp_packet_t * packet, unsigned int timeout) {
+int csp_can_tx(csp_packet_t * packet, uint32_t timeout) {
 
 	uint8_t bytes, overhead, avail;
 	uint8_t frame_buf[8];

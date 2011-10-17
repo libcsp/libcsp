@@ -61,7 +61,7 @@ struct can_at91sam7a3_conf {
  * @param timeout Timout in ms
  * @return 1 if packet was successfully transmitted, 0 on error
  */
-int csp_can_tx(csp_packet_t * packet, unsigned int timeout);
+int csp_can_tx(csp_packet_t * packet, uint32_t timeout);
 
 /**
  * Init CAN interface

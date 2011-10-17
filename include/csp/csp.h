@@ -191,7 +191,7 @@ typedef struct __attribute__((__packed__)) {
 } csp_packet_t;
 
 /** Next hop function prototype */
-typedef int (*nexthop_t)(csp_packet_t * packet, unsigned int timeout);
+typedef int (*nexthop_t)(csp_packet_t * packet, uint32_t timeout);
 
 /** Interface struct */
 typedef struct csp_iface_s {
@@ -243,7 +243,7 @@ csp_socket_t * csp_socket(uint32_t opts);
  * @param timeout use portMAX_DELAY for infinite timeout
  * @return Return pointer to csp_conn_t or NULL if timeout was reached
  */
-csp_conn_t * csp_accept(csp_socket_t * socket, unsigned int timeout);
+csp_conn_t * csp_accept(csp_socket_t * socket, uint32_t timeout);
 
 /**
  * Read data from a connection
@@ -255,7 +255,7 @@ csp_conn_t * csp_accept(csp_socket_t * socket, unsigned int timeout);
  * @param timeout timeout in ms, use CSP_MAX_DELAY for infinite blocking time
  * @return Returns pointer to csp_packet_t, which you MUST free yourself, either by calling csp_buffer_free() or reusing the buffer for a new csp_send.
  */
-csp_packet_t * csp_read(csp_conn_t * conn, unsigned int timeout);
+csp_packet_t * csp_read(csp_conn_t * conn, uint32_t timeout);
 
 /**
  * Send a packet on an already established connection
@@ -264,7 +264,7 @@ csp_packet_t * csp_read(csp_conn_t * conn, unsigned int timeout);
  * @param timeout a timeout to wait for TX to complete. NOTE: not all underlying drivers supports flow-control.
  * @return returns 1 if successful and 0 otherwise. you MUST free the frame yourself if the transmission was not successful.
  */
-int csp_send(csp_conn_t * conn, csp_packet_t * packet, unsigned int timeout);
+int csp_send(csp_conn_t * conn, csp_packet_t * packet, uint32_t timeout);
 
 /**
  * Perform an entire request/reply transaction
@@ -280,7 +280,7 @@ int csp_send(csp_conn_t * conn, csp_packet_t * packet, unsigned int timeout);
  * @param inlen length of expected reply, -1 for unknown size (note inbuf MUST be large enough)
  * @return Return 1 or reply size if successful, 0 if error or incoming length does not match or -1 if timeout was reached
  */
-int csp_transaction(uint8_t prio, uint8_t dest, uint8_t port, unsigned int timeout, void * outbuf, int outlen, void * inbuf, int inlen);
+int csp_transaction(uint8_t prio, uint8_t dest, uint8_t port, uint32_t timeout, void * outbuf, int outlen, void * inbuf, int inlen);
 
 /**
  * Use an existing connection to perform a transaction,
@@ -293,7 +293,7 @@ int csp_transaction(uint8_t prio, uint8_t dest, uint8_t port, unsigned int timeo
  * @param inlen length of expected reply, -1 for unknown size (note inbuf MUST be large enough)
  * @return
  */
-int csp_transaction_persistent(csp_conn_t * conn, unsigned int timeout, void * outbuf, int outlen, void * inbuf, int inlen);
+int csp_transaction_persistent(csp_conn_t * conn, uint32_t timeout, void * outbuf, int outlen, void * inbuf, int inlen);
 
 /**
  * Read data from a connection-less server socket
@@ -302,7 +302,7 @@ int csp_transaction_persistent(csp_conn_t * conn, unsigned int timeout, void * o
  * Do NOT call this from ISR
  * @return Returns pointer to csp_packet_t, which you MUST free yourself, either by calling csp_buffer_free() or reusing the buffer for a new csp_send.
  */
-csp_packet_t * csp_recvfrom(csp_socket_t * socket, unsigned int timeout);
+csp_packet_t * csp_recvfrom(csp_socket_t * socket, uint32_t timeout);
 
 /**
  * Send a packet without previously opening a connection
@@ -315,7 +315,7 @@ csp_packet_t * csp_recvfrom(csp_socket_t * socket, unsigned int timeout);
  * @param timeout timeout used by interfaces with blocking send
  * @return -1 if error (you must free packet), 0 if OK (you must discard pointer)
  */
-int csp_sendto(uint8_t prio, uint8_t dest, uint8_t dport, uint8_t src_port, uint32_t opts, csp_packet_t * packet, unsigned int timeout);
+int csp_sendto(uint8_t prio, uint8_t dest, uint8_t dport, uint8_t src_port, uint32_t opts, csp_packet_t * packet, uint32_t timeout);
 
 /** csp_connect
  * Used to establish outgoing connections
@@ -329,7 +329,7 @@ int csp_sendto(uint8_t prio, uint8_t dest, uint8_t dport, uint8_t src_port, uint
  * @param opts Connection options.
  * @return a pointer to a new connection or NULL
  */
-csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport, unsigned int timeout, uint32_t opts);
+csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport, uint32_t timeout, uint32_t opts);
 
 /** csp_close
  * Closes a given connection and frees buffers used.
@@ -425,7 +425,7 @@ void csp_promisc_disable(void);
  *
  * @param timeout Timeout in ms to wait for a new packet
  */
-csp_packet_t * csp_promisc_read(unsigned int timeout);
+csp_packet_t * csp_promisc_read(uint32_t timeout);
 
 /**
  * If the given packet is a service-request (that is uses one of the csp service ports)
@@ -448,7 +448,7 @@ void csp_service_handler(csp_conn_t * conn, csp_packet_t * packet);
  * @param conn_options csp connection options
  * @return >0 = Echo time in ms, -1 = ERR
  */
-int csp_ping(uint8_t node, unsigned int timeout, unsigned int size, uint8_t conn_options);
+int csp_ping(uint8_t node, uint32_t timeout, unsigned int size, uint8_t conn_options);
 
 /**
  * Send a single ping/echo packet without waiting for reply
@@ -462,21 +462,21 @@ void csp_ping_noreply(uint8_t node);
  * @param node node id
  * @param timeout timeout in ms
  */
-void csp_ps(uint8_t node, unsigned int timeout);
+void csp_ps(uint8_t node, uint32_t timeout);
 
 /**
  * Request amount of free memory
  * @param node node id
  * @param timeout timeout in ms
  */
-void csp_memfree(uint8_t node, unsigned int timeout);
+void csp_memfree(uint8_t node, uint32_t timeout);
 
 /**
  * Request number of free buffer elements
  * @param node node id
  * @param timeout timeout in ms
  */
-void csp_buf_free(uint8_t node, unsigned int timeout);
+void csp_buf_free(uint8_t node, uint32_t timeout);
 
 /**
  * Reboot subsystem
@@ -489,7 +489,7 @@ void csp_reboot(uint8_t node);
  * @param node node id
  * @param timeout timeout in ms
  */
-void csp_uptime(uint8_t node, unsigned int timeout);
+void csp_uptime(uint8_t node, uint32_t timeout);
 
 /**
  * Set RDP options

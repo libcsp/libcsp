@@ -63,11 +63,11 @@ typedef xSemaphoreHandle csp_mutex_t;
 
 int csp_mutex_create(csp_mutex_t * mutex);
 int csp_mutex_remove(csp_mutex_t * mutex);
-int csp_mutex_lock(csp_mutex_t * mutex, int timeout);
+int csp_mutex_lock(csp_mutex_t * mutex, uint32_t timeout);
 int csp_mutex_unlock(csp_mutex_t * mutex);
 int csp_bin_sem_create(csp_bin_sem_handle_t * sem);
 int csp_bin_sem_remove(csp_bin_sem_handle_t * sem);
-int csp_bin_sem_wait(csp_bin_sem_handle_t * sem, int timeout);
+int csp_bin_sem_wait(csp_bin_sem_handle_t * sem, uint32_t timeout);
 int csp_bin_sem_post(csp_bin_sem_handle_t * sem);
 int csp_bin_sem_post_isr(csp_bin_sem_handle_t * sem, CSP_BASE_TYPE * task_woken);
 

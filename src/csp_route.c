@@ -430,7 +430,7 @@ csp_route_t * csp_route_if(uint8_t id) {
 
 }
 
-int csp_route_enqueue(csp_queue_handle_t handle, void * value, int timeout, CSP_BASE_TYPE * pxTaskWoken) {
+int csp_route_enqueue(csp_queue_handle_t handle, void * value, uint32_t timeout, CSP_BASE_TYPE * pxTaskWoken) {
 
 	int result;
 
@@ -602,7 +602,7 @@ void csp_promisc_disable(void) {
 	csp_promisc_enabled = 0;
 }
 
-csp_packet_t * csp_promisc_read(unsigned int timeout) {
+csp_packet_t * csp_promisc_read(uint32_t timeout) {
 
     if (csp_promisc_queue == NULL)
     	return NULL;

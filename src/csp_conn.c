@@ -67,7 +67,7 @@ int csp_conn_get_rxq(int prio) {
 
 }
 
-int csp_conn_lock(csp_conn_t * conn, int timeout) {
+int csp_conn_lock(csp_conn_t * conn, uint32_t timeout) {
 
 	if (csp_mutex_lock(&conn->lock, timeout) != CSP_MUTEX_OK)
 		return CSP_ERR_TIMEDOUT;
@@ -280,7 +280,7 @@ int csp_close(csp_conn_t * conn) {
     return CSP_ERR_NONE;
 }
 
-csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport, unsigned int timeout, uint32_t opts) {
+csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport, uint32_t timeout, uint32_t opts) {
 
 	/* Generate identifier */
 	csp_id_t incoming_id, outgoing_id;

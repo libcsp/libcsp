@@ -125,7 +125,7 @@ csp_socket_t * csp_socket(uint32_t opts) {
 
 }
 
-csp_conn_t * csp_accept(csp_socket_t * sock, unsigned int timeout) {
+csp_conn_t * csp_accept(csp_socket_t * sock, uint32_t timeout) {
 
     if (sock == NULL)
         return NULL;
@@ -141,7 +141,7 @@ csp_conn_t * csp_accept(csp_socket_t * sock, unsigned int timeout) {
 
 }
 
-csp_packet_t * csp_read(csp_conn_t * conn, unsigned int timeout) {
+csp_packet_t * csp_read(csp_conn_t * conn, uint32_t timeout) {
 
 	csp_packet_t * packet = NULL;
 
@@ -171,7 +171,7 @@ csp_packet_t * csp_read(csp_conn_t * conn, unsigned int timeout) {
 
 }
 
-int csp_send_direct(csp_id_t idout, csp_packet_t * packet, unsigned int timeout) {
+int csp_send_direct(csp_id_t idout, csp_packet_t * packet, uint32_t timeout) {
 
 	if (packet == NULL) {
 		csp_debug(CSP_ERROR, "csp_send_direct called with NULL packet\r\n");
@@ -277,7 +277,7 @@ err:
 
 }
 
-int csp_send(csp_conn_t * conn, csp_packet_t * packet, unsigned int timeout) {
+int csp_send(csp_conn_t * conn, csp_packet_t * packet, uint32_t timeout) {
 
 	int ret;
 
@@ -304,7 +304,7 @@ int csp_send(csp_conn_t * conn, csp_packet_t * packet, unsigned int timeout) {
 
 }
 
-int csp_transaction_persistent(csp_conn_t * conn, unsigned int timeout, void * outbuf, int outlen, void * inbuf, int inlen) {
+int csp_transaction_persistent(csp_conn_t * conn, uint32_t timeout, void * outbuf, int outlen, void * inbuf, int inlen) {
 
 	int size = (inlen > outlen) ? inlen : outlen;
 	csp_packet_t * packet = csp_buffer_get(size);
@@ -344,7 +344,7 @@ int csp_transaction_persistent(csp_conn_t * conn, unsigned int timeout, void * o
 
 }
 
-int csp_transaction(uint8_t prio, uint8_t dest, uint8_t port, unsigned int timeout, void * outbuf, int outlen, void * inbuf, int inlen) {
+int csp_transaction(uint8_t prio, uint8_t dest, uint8_t port, uint32_t timeout, void * outbuf, int outlen, void * inbuf, int inlen) {
 
 	csp_conn_t * conn = csp_connect(prio, dest, port, 0, 0);
 	if (conn == NULL)
@@ -358,7 +358,7 @@ int csp_transaction(uint8_t prio, uint8_t dest, uint8_t port, unsigned int timeo
 
 }
 
-csp_packet_t * csp_recvfrom(csp_socket_t * socket, unsigned int timeout) {
+csp_packet_t * csp_recvfrom(csp_socket_t * socket, uint32_t timeout) {
 
 	if ((socket == NULL) || (!(socket->opts & CSP_SO_CONN_LESS)))
 		return NULL;
@@ -370,7 +370,7 @@ csp_packet_t * csp_recvfrom(csp_socket_t * socket, unsigned int timeout) {
 
 }
 
-int csp_sendto(uint8_t prio, uint8_t dest, uint8_t dport, uint8_t src_port, uint32_t opts, csp_packet_t * packet, unsigned int timeout) {
+int csp_sendto(uint8_t prio, uint8_t dest, uint8_t dport, uint8_t src_port, uint32_t opts, csp_packet_t * packet, uint32_t timeout) {
 
 	packet->id.flags = 0;
 

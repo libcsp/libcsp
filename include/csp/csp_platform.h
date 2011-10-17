@@ -25,6 +25,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 extern "C" {
 #endif
 
+#include <stdint.h>
+
 /* Set platform endianness and OS */
 #if defined(__i386__) || defined(__x86_64__) || defined(__BFIN__)
     #define _CSP_LITTLE_ENDIAN_
@@ -45,13 +47,15 @@ extern "C" {
 /* Set OS dependant features */
 #if defined(_CSP_POSIX_)
     #define CSP_BASE_TYPE int
-    #define CSP_MAX_DELAY (1000000000)
+    #define CSP_MAX_DELAY (UINT32_MAX)
+    #define CSP_INFINITY (UINT32_MAX)
 	#define CSP_ENTER_CRITICAL(lock) do { csp_bin_sem_wait(&lock, CSP_MAX_DELAY); } while(0)
 	#define CSP_EXIT_CRITICAL(lock) do { csp_bin_sem_post(&lock); } while(0)
 #elif defined(_CSP_FREERTOS_)
     #include <freertos/FreeRTOS.h>
     #define CSP_BASE_TYPE portBASE_TYPE
     #define CSP_MAX_DELAY portMAX_DELAY
+    #define CSP_INFINITY portMAX_DELAY
 	#define CSP_ENTER_CRITICAL(lock) do { portENTER_CRITICAL(); } while (0)
 	#define CSP_EXIT_CRITICAL(lock) do { portEXIT_CRITICAL(); } while (0)
 #else

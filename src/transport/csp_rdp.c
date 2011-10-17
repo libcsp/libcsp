@@ -865,7 +865,7 @@ accepted_open:
 
 }
 
-int csp_rdp_connect(csp_conn_t * conn, unsigned int timeout) {
+int csp_rdp_connect(csp_conn_t * conn, uint32_t timeout) {
 
 	int retry = 1;
 
@@ -932,7 +932,7 @@ error:
 
 }
 
-int csp_rdp_send(csp_conn_t * conn, csp_packet_t * packet, unsigned int timeout) {
+int csp_rdp_send(csp_conn_t * conn, csp_packet_t * packet, uint32_t timeout) {
 
 	if (conn->rdp.state != RDP_OPEN) {
 		csp_debug(CSP_ERROR, "RDP: ERROR cannot send, connection reset by peer!\r\n");

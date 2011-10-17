@@ -45,7 +45,7 @@ int csp_mutex_remove(csp_mutex_t * mutex) {
 	return csp_bin_sem_remove(mutex);
 }
 
-int csp_mutex_lock(csp_mutex_t * mutex, int timeout) {
+int csp_mutex_lock(csp_mutex_t * mutex, uint32_t timeout) {
 	return csp_bin_sem_wait(mutex, timeout);
 }
 
@@ -65,7 +65,7 @@ int csp_bin_sem_remove(csp_bin_sem_handle_t * sem) {
 	return CSP_SEMAPHORE_OK;
 }
 
-int csp_bin_sem_wait(csp_bin_sem_handle_t * sem, int timeout) {
+int csp_bin_sem_wait(csp_bin_sem_handle_t * sem, uint32_t timeout) {
 	csp_debug(CSP_LOCK, "Wait: %p\r\n", sem);
 	if (timeout != CSP_MAX_DELAY)
 		timeout = timeout / portTICK_RATE_MS;
