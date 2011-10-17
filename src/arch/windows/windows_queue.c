@@ -1,4 +1,5 @@
 #include "windows_queue.h"
+#include "windows_glue.h"
 #include <Windows.h>
 
 static int queueFull(windows_queue_t * queue) {

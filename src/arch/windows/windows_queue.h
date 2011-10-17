@@ -6,6 +6,7 @@ extern "C" {
 #endif
 
 #include <Windows.h>
+#include "windows_glue.h"
 #undef interface
 
 #include "../csp_queue.h"

@@ -38,7 +38,7 @@ ifeq ($(ARCH),windows)
 CFLAGS += -D_WIN32_WINNT=0x0600
 endif
 endif
-CFLAGS += -Wall -Werror -Wno-unused-parameter -std=gnu99 -Os 
+CFLAGS += -Wall -Werror -Wno-unused-parameter -std=gnu99 -g
 
 ## Assembly specific flags
 ASMFLAGS = $(COMMON)
