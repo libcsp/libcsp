@@ -71,7 +71,6 @@ typedef struct __attribute__((__packed__)) {
 } rdp_packet_t;
 
 typedef struct __attribute__((__packed__)) {
-#if !CSP_RDP_COMP
 	union __attribute__((__packed__)) {
 		uint8_t flags;
 		struct __attribute__((__packed__)) {
@@ -92,12 +91,6 @@ typedef struct __attribute__((__packed__)) {
 #endif
 		};
 	};
-#else
-	uint8_t syn;
-	uint8_t ack;
-	uint8_t eak;
-	uint8_t rst;
-#endif
 	uint16_t seq_nr;
 	uint16_t ack_nr;
 } rdp_header_t;

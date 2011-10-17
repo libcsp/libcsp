@@ -30,7 +30,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #define CSP_CAN_MASKED		0
 #define CSP_CAN_PROMISC		1
 
-csp_iface_t csp_if_can;
+extern csp_iface_t csp_if_can;
 
 /** AT90CAN128 config struct */
 struct can_at90can128_conf {

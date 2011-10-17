@@ -60,80 +60,6 @@ enum csp_reserved_ports_e {
 	CSP_PROMISC		 	= (CSP_MAX_BIND_PORT + 2)
 };
 
-#if CSP_HDR_0_9
-
-/**
- * PRIORITIES
- */
-
-typedef enum csp_prio_e {
-        CSP_PRIO_CRITICAL   = 0,
-        CSP_PRIO_ALERT      = 1,
-        CSP_PRIO_HIGH       = 2,
-        CSP_PRIO_RESERVED   = 3,
-        CSP_PRIO_NORM       = 4,
-        CSP_PRIO_LOW        = 5,
-        CSP_PRIO_BULK       = 6,
-        CSP_PRIO_DEBUG      = 7
-} csp_prio_t;
-
-/** Size of bit-fields in CSP header */
-#define CSP_ID_PROTOCOL_SIZE    		3
-#define CSP_ID_PRIO_SIZE                3
-#define CSP_ID_HOST_SIZE                4
-#define CSP_ID_PORT_SIZE                5
-#define CSP_ID_FLAGS_SIZE               8
-
-#if CSP_ID_PROTOCOL_SIZE + CSP_ID_PRIO_SIZE + 2 * CSP_ID_HOST_SIZE + 2 * CSP_ID_PORT_SIZE + CSP_ID_FLAGS_SIZE != 32 && __GNUC__
-#error "Header lenght must be 32 bits"
-#endif
-
-/** Highest number to be entered in field */
-#define CSP_ID_PROTOCOL_MAX             ((1 << (CSP_ID_PROTOCOL_SIZE)) - 1)
-#define CSP_ID_PRIO_MAX                 ((1 << (CSP_ID_PRIO_SIZE)) - 1)
-#define CSP_ID_HOST_MAX                 ((1 << (CSP_ID_HOST_SIZE)) - 1)
-#define CSP_ID_PORT_MAX                 ((1 << (CSP_ID_PORT_SIZE)) - 1)
-#define CSP_ID_FLAGS_MAX                ((1 << (CSP_ID_FLAGS_SIZE)) - 1)
-
-/** Identifier field masks */
-#define CSP_ID_PROTOCOL_MASK    ((uint32_t) CSP_ID_PROTOCOL_MAX << (CSP_ID_FLAGS_SIZE + 2 * CSP_ID_PORT_SIZE + 2 * CSP_ID_HOST_SIZE + CSP_ID_PROTOCOL_SIZE))
-#define CSP_ID_PRIO_MASK        ((uint32_t) CSP_ID_PRIO_MAX     << (CSP_ID_FLAGS_SIZE + 2 * CSP_ID_PORT_SIZE + 2 * CSP_ID_HOST_SIZE))
-#define CSP_ID_SRC_MASK         ((uint32_t) CSP_ID_HOST_MAX     << (CSP_ID_FLAGS_SIZE + 2 * CSP_ID_PORT_SIZE + 1 * CSP_ID_HOST_SIZE))
-#define CSP_ID_DST_MASK         ((uint32_t) CSP_ID_HOST_MAX     << (CSP_ID_FLAGS_SIZE + 2 * CSP_ID_PORT_SIZE))
-#define CSP_ID_DPORT_MASK       ((uint32_t) CSP_ID_PORT_MAX     << (CSP_ID_FLAGS_SIZE + 1 * CSP_ID_PORT_SIZE))
-#define CSP_ID_SPORT_MASK       ((uint32_t) CSP_ID_PORT_MAX     << (CSP_ID_FLAGS_SIZE))
-#define CSP_ID_FLAGS_MASK       ((uint32_t) CSP_ID_FLAGS_MAX    << (0))
-
-#define CSP_ID_CONN_MASK                (CSP_ID_SRC_MASK | CSP_ID_DST_MASK | CSP_ID_DPORT_MASK | CSP_ID_SPORT_MASK)
-
-/** @brief This union defines a CSP identifier and allows to access it in mode standard, extended or through a table. */
-typedef union {
-	uint32_t ext;
-	struct __attribute__((__packed__)) {
-#if defined(_CSP_BIG_ENDIAN_) && !defined(_CSP_LITTLE_ENDIAN_)
-		unsigned int protocol : CSP_ID_PROTOCOL_SIZE;
-		unsigned int pri : CSP_ID_PRIO_SIZE;
-		unsigned int src : CSP_ID_HOST_SIZE;
-		unsigned int dst : CSP_ID_HOST_SIZE;
-		unsigned int dport : CSP_ID_PORT_SIZE;
-		unsigned int sport : CSP_ID_PORT_SIZE;
-		unsigned int flags : CSP_ID_FLAGS_SIZE;
-#elif defined(_CSP_LITTLE_ENDIAN_) && !defined(_CSP_BIG_ENDIAN_)
-		unsigned int flags : CSP_ID_FLAGS_SIZE;
-		unsigned int sport : CSP_ID_PORT_SIZE;
-		unsigned int dport : CSP_ID_PORT_SIZE;
-		unsigned int dst : CSP_ID_HOST_SIZE;
-		unsigned int src : CSP_ID_HOST_SIZE;
-		unsigned int pri : CSP_ID_PRIO_SIZE;
-		unsigned int protocol : CSP_ID_PROTOCOL_SIZE;
-#else
-#error "Must define one of _CSP_BIG_ENDIAN_ or _CSP_LITTLE_ENDIAN_ in csp_platform.h"
-#endif
-	};
-}csp_id_t;
-
-#else
-
 typedef enum {
 	CSP_PRIO_CRITICAL	= 0,
 	CSP_PRIO_HIGH		= 1,
@@ -202,8 +128,6 @@ typedef union {
 #endif
 	};
 } csp_id_t;
-
-#endif // CSP_HDR_0.9
 
 /** Broadcast address */
 #define CSP_BROADCAST_ADDR	CSP_ID_HOST_MAX
