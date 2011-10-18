@@ -91,7 +91,7 @@ def build(ctx):
 		use = 'csp_size')
 
 	# Print library size
- 	if ctx.options.verbose > 0:
+	if ctx.options.verbose > 0:
 		ctx(rule='${SIZE} --format=berkeley ${SRC}', source='libcsp.a', name='csp_size', always=True)
 
 	# Build shared library for Python bindings
