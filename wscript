@@ -40,6 +40,7 @@ def options(ctx):
 	gr.add_option('--with-freertos', metavar="PATH", default='../../libgomspace/include', help='Set path to FreeRTOS header files')
 	gr.add_option('--with-csp-config', metavar="CONFIG", default=None, help='Set CSP configuration file')
 	gr.add_option('--enable-bindings', action='store_true', help='Enable Python bindings')
+	gr.add_option('--enable-examples', action='store_true', help='Enable examples')
 
 def configure(ctx):
 	# Validate OS
@@ -78,6 +79,12 @@ def configure(ctx):
 	if ctx.options.with_csp_config:
 		ctx.define('CSP_CONFIG', os.path.abspath(ctx.options.with_csp_config))
 
+	# Store configuration options
+	if ctx.options.enable_bindings:
+		ctx.env.ENABLE_BINDINGS = 'Y'
+	if ctx.options.enable_examples:
+		ctx.env.ENABLE_EXAMPLES = 'Y'
+
 def build(ctx):
 	# Build static library
 	ctx.stlib(
@@ -95,7 +102,7 @@ def build(ctx):
 		ctx(rule='${SIZE} --format=berkeley ${SRC}', source='libcsp.a', name='csp_size', always=True)
 
 	# Build shared library for Python bindings
-	if ctx.options.enable_bindings:
+	if ctx.env.ENABLE_BINDINGS == 'Y':
 		ctx.shlib(source=ctx.path.ant_glob(ctx.env.FILES_CSP),
 			target = 'pycsp',
 			includes= ctx.env.INCLUDES_CSP,
@@ -103,6 +110,15 @@ def build(ctx):
 			cflags = ctx.env.CFLAGS_CSP,
 			defines = ctx.env.DEFINES_CSP,
 			lib=['rt', 'pthread'])
+
+	if ctx.env.ENABLE_EXAMPLES == 'Y':
+		ctx.program(source = ctx.path.ant_glob('examples/simple.c'),
+			target = 'simple',
+			includes = ctx.env.INCLUDES_CSP,
+			cflags = ctx.env.CFLAGS_CSP,
+			defines = ctx.env.DEFINES_CSP,
+			lib=['rt', 'pthread'],
+			use = 'csp')
 
 def dist(ctx):
 	ctx.excl = 'build/* **/.* **/*.pyc **/*.o **/*~ *.tar.gz'
