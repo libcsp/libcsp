@@ -115,13 +115,11 @@ int csp_xtea_encrypt(uint8_t * plain, const uint32_t len, uint32_t iv[2]) {
 		remain = len - i * XTEA_BLOCKSIZE;
 
 		/* XOR plain text with stream to generate cipher text */
-		if (remain < XTEA_BLOCKSIZE)
-			csp_xtea_xor_byte(&plain[len - remain], (uint8_t *)stream, remain);
-		else
-			csp_xtea_xor_byte(&plain[len - remain], (uint8_t *)stream, XTEA_BLOCKSIZE);
+		csp_xtea_xor_byte(&plain[len - remain], (uint8_t *)stream, remain < XTEA_BLOCKSIZE ? remain : XTEA_BLOCKSIZE);
 
 		/* Increment counter */
-		stream[1] = csp_htobe32(csp_betoh32(iv[1]) + 1);
+		stream[0] = csp_htobe32(iv[0]);
+		stream[1] = csp_htobe32(iv[1]++);
 	}
 
 	return 0;
