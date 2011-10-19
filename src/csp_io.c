@@ -81,6 +81,11 @@ int csp_init(unsigned char address) {
 	if (ret != CSP_ERR_NONE)
 		return ret;
 
+	/* Also register loopback as default, until user redefines default route */
+	ret = csp_route_set(CSP_DEFAULT_ROUTE, &csp_if_lo, CSP_NODE_MAC);
+	if (ret != CSP_ERR_NONE)
+		return ret;
+
 	return CSP_ERR_NONE;
 
 }
