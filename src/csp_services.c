@@ -24,6 +24,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 /* CSP includes */
 #include <csp/csp.h>
+#include <csp/csp_cmp.h>
 #include <csp/csp_endian.h>
 
 #include "arch/csp_time.h"
@@ -207,3 +208,12 @@ void csp_uptime(uint8_t node, uint32_t timeout) {
 	printf("Uptime of node %u is %u s\r\n", (unsigned int) node, (unsigned int) uptime);
 
 }
+
+int csp_cmp(uint8_t node, uint32_t timeout, uint8_t code, int membsize, struct csp_cmp_message * msg) {
+    int status = csp_transaction(CSP_PRIO_NORM, node, CSP_CMP, timeout, NULL, 0, msg, membsize);
+	if (status == 0)
+		return CSP_ERR_TIMEDOUT;
+
+    return CSP_ERR_NONE;
+}
+

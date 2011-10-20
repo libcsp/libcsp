@@ -58,6 +58,12 @@ def configure(ctx):
 	ctx.load('gcc')
 	ctx.find_program('size', var='SIZE')
 
+	# Set git revision define
+	git_rev = os.popen("(git log --pretty=format:%H -n 1 | egrep -o \"^.{8}\") 2> /dev/null || echo none").read().strip()
+
+	# Setup DEFINES
+	ctx.env.append_unique('DEFINES_CSP', ['GIT_REV="{0}"'.format(git_rev)])
+
 	# Setup CFLAGS
 	ctx.env.append_unique('CFLAGS_CSP', ['-Os','-Wall', '-g', '-std=gnu99'] + ctx.options.cflags.split(','))
 	

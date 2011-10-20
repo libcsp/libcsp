@@ -50,6 +50,7 @@ extern uint8_t my_address;
  */
 
 enum csp_reserved_ports_e {
+	CSP_CMP				= 0,
 	CSP_PING			= 1,
 	CSP_PS			  	= 2,
 	CSP_MEMFREE		 	= 3,

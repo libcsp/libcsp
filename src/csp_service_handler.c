@@ -24,6 +24,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 /* CSP includes */
 #include <csp/csp.h>
+#include <csp/csp_cmp.h>
 #include <csp/csp_endian.h>
 #include <csp/csp_platform.h>
 
@@ -34,9 +35,48 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <sys/sysinfo.h>
 #endif
 
+/* CSP Management Protocol handler */
+int csp_cmp_handler(csp_conn_t * conn, csp_packet_t * packet) {
+
+    struct csp_cmp_message * cmp = (struct csp_cmp_message *) packet->data;
+
+    /* Ignore everything but requests */
+    if (cmp->type != CSP_CMP_REQUEST)
+        return CSP_ERR_INVAL;
+
+    switch (cmp->code) {
+
+    case CSP_CMP_VERSION: {
+        cmp->type = CSP_CMP_REPLY;
+
+        strncpy(cmp->version.revision, GIT_REV, CSP_CMP_VERSION_REV_LEN);
+        cmp->version.revision[CSP_CMP_VERSION_REV_LEN - 1] = '\0';
+        strncpy(cmp->version.date, __DATE__, CSP_CMP_VERSION_DATE_LEN);
+        cmp->version.date[CSP_CMP_VERSION_DATE_LEN - 1] = '\0';
+        strncpy(cmp->version.date, __TIME__, CSP_CMP_VERSION_TIME_LEN);
+        cmp->version.date[CSP_CMP_VERSION_TIME_LEN - 1] = '\0';
+        
+        break;
+    }
+    
+    default:
+        return CSP_ERR_INVAL;
+    }
+
+    return CSP_ERR_NONE;
+}
+
 void csp_service_handler(csp_conn_t * conn, csp_packet_t * packet) {
 
 	switch (csp_conn_dport(conn)) {
+
+    /* Pass to CMP handler */
+    case CSP_CMP:
+        if (csp_cmp_handler(conn, packet) != CSP_ERR_NONE) {
+            csp_buffer_free(packet);
+            return;
+        }
+        break;
 
 	/* A ping means, just echo the packet, so no changes */
 	case CSP_PING:
