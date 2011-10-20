@@ -54,8 +54,9 @@ def configure(ctx):
 	# Setup and validate toolchain
 	ctx.env.CC = ctx.options.toolchain + 'gcc'
 	ctx.env.AR = ctx.options.toolchain + 'ar'
+	ctx.env.SIZE = ctx.options.toolchain + 'size'
 	ctx.load('gcc')
-	ctx.find_program(ctx.options.toolchain + 'size', var='SIZE')
+	ctx.find_program('size', var='SIZE')
 
 	# Setup CFLAGS
 	ctx.env.append_unique('CFLAGS_CSP', ['-Os','-Wall', '-g', '-std=gnu99'] + ctx.options.cflags.split(','))
