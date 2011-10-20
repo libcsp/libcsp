@@ -18,8 +18,8 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef CSP_BUFFER_H_
-#define CSP_BUFFER_H_
+#ifndef _CSP_BUFFER_H_
+#define _CSP_BUFFER_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -77,4 +77,4 @@ int csp_buffer_remaining(void);
 } /* extern "C" */
 #endif
 
-#endif /* CSP_BUFFER_H_ */
+#endif /* _CSP_BUFFER_H_ */
