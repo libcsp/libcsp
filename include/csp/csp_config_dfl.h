@@ -20,25 +20,23 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 /*
  * This is the default version of the CSP configuration file. It
- * contains all the required values to compile CSP. If you make
- * any changes to the values in this file, please avoid committing
- * them back to the repository unless they are required.
+ * contains all the required values to compile CSP. Instead of 
+ * directly modifying this file, you should make your changes 
+ * to a copy, and configure CSP with --with-csp-config=COPY.
  *
- * This can be done by copying the file to another directory
- * and using include-path prioritization, to prefer your local
- * copy over the default. Or perhaps even simpler by defining the
- * symbol CSP_USER_CONFIG in your makefile and naming your copy
- * csp_config_user.h
- *
- * This will also ensure that your copy of the configuration will never
- * be overwritten by a SVN checkout. However, please notice that
- * sometimes new configuration directives will be added to the configuration
- * at which point you should copy these to your local configuration too.
- *
+ * This will also ensure that your copy of the configuration will 
+ * never be overwritten by a new version of CSP. However, please 
+ * notice that sometimes new configuration directives are added to 
+ * the configuration at which point you should copy these to your 
+ * local configuration too.
  */
 
-#ifndef CSP_CONFIG_DFL_H_
-#define CSP_CONFIG_DFL_H_
+#ifndef _CSP_CONFIG_DFL_H_
+#define _CSP_CONFIG_DFL_H_
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* General config */
 #define CSP_DEBUG			   	1	   	// Enable/disable debugging output
@@ -66,4 +64,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #define CSP_ENABLE_HMAC			1		// Enable Hash-based Message Authentication Code
 #define CSP_ENABLE_XTEA			1		// Enable XTEA packet encryption
 
-#endif /* CSP_CONFIG_DFL_H_ */
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
+
+#endif /* _CSP_CONFIG_DFL_H_ */
