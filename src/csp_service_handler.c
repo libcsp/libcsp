@@ -53,8 +53,10 @@ int csp_cmp_handler(csp_conn_t * conn, csp_packet_t * packet) {
         cmp->version.revision[CSP_CMP_VERSION_REV_LEN - 1] = '\0';
         strncpy(cmp->version.date, __DATE__, CSP_CMP_VERSION_DATE_LEN);
         cmp->version.date[CSP_CMP_VERSION_DATE_LEN - 1] = '\0';
-        strncpy(cmp->version.date, __TIME__, CSP_CMP_VERSION_TIME_LEN);
-        cmp->version.date[CSP_CMP_VERSION_TIME_LEN - 1] = '\0';
+        strncpy(cmp->version.time, __TIME__, CSP_CMP_VERSION_TIME_LEN);
+        cmp->version.time[CSP_CMP_VERSION_TIME_LEN - 1] = '\0';
+
+        packet->length = CMP_SIZE(version);
         
         break;
     }

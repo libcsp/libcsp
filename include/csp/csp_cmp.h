@@ -45,13 +45,15 @@ struct csp_cmp_message {
             char time[CSP_CMP_VERSION_TIME_LEN];
         } version;
     };
-};
+} __attribute__ ((packed));
+
+#define CMP_SIZE(_memb) (sizeof(((struct csp_cmp_message *)0)->_memb) + sizeof(uint8_t) + sizeof(uint8_t))
 
 int csp_cmp(uint8_t node, uint32_t timeout, uint8_t code, int membsize, struct csp_cmp_message * msg);
 
 #define CMP_MESSAGE(_code, _memb) \
 static inline int csp_cmp_##_memb(uint8_t node, uint32_t timeout, struct csp_cmp_message * msg) { \
-    return csp_cmp(node, timeout, _code, sizeof(((struct csp_cmp_message *)0)->_memb), msg); \
+    return csp_cmp(node, timeout, _code, CMP_SIZE(_memb), msg); \
 }
 
 CMP_MESSAGE(CSP_CMP_VERSION, version);
