@@ -245,7 +245,7 @@ int csp_set_hostname(char * hostname);
  */
 char * csp_get_hostname(void);
 
-#define CSP_MODEL_LEN		20
+#define CSP_MODEL_LEN		30
 /** csp_set_model
  * Set subsystem model name. The default model is 'CSP Subsystem'
  * @param model Model name to set
