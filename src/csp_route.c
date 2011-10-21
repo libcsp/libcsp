@@ -55,11 +55,11 @@ csp_route_t routes[CSP_ID_HOST_MAX + 2];
 csp_mutex_t routes_lock;
 
 static csp_queue_handle_t router_input_fifo[CSP_ROUTE_FIFOS];
-#if CSP_USE_QOS
+#ifdef CSP_USE_QOS
 static csp_queue_handle_t router_input_event;
 #endif
 
-#if CSP_USE_PROMISC
+#ifdef CSP_USE_PROMISC
 csp_queue_handle_t csp_promisc_queue = NULL;
 int csp_promisc_enabled = 0;
 #endif
@@ -82,7 +82,7 @@ static int csp_route_security_check(uint32_t security_opts, csp_iface_t * interf
 
 	/* XTEA encrypted packet */
 	if (packet->id.flags & CSP_FXTEA) {
-#if CSP_ENABLE_XTEA
+#ifdef CSP_ENABLE_XTEA
 		/* Read nonce */
 		uint32_t nonce;
 		memcpy(&nonce, &packet->data[packet->length - sizeof(nonce)], sizeof(nonce));
@@ -112,7 +112,7 @@ static int csp_route_security_check(uint32_t security_opts, csp_iface_t * interf
 
 	/* CRC32 verified packet */
 	if (packet->id.flags & CSP_FCRC32) {
-#if CSP_ENABLE_CRC32
+#ifdef CSP_ENABLE_CRC32
 		/* Verify CRC32  */
 		if (csp_crc32_verify(packet) != 0) {
 			/* Checksum failed */
@@ -133,7 +133,7 @@ static int csp_route_security_check(uint32_t security_opts, csp_iface_t * interf
 
 	/* HMAC authenticated packet */
 	if (packet->id.flags & CSP_FHMAC) {
-#if CSP_ENABLE_HMAC
+#ifdef CSP_ENABLE_HMAC
 		/* Verify HMAC */
 		if (csp_hmac_verify(packet) != 0) {
 			/* HMAC failed */
@@ -174,7 +174,7 @@ int csp_route_table_init(void) {
 			return CSP_ERR_NOMEM;
 	}
 
-#if CSP_USE_QOS
+#ifdef CSP_USE_QOS
 	/* Create QoS fifo notification queue */
 	router_input_event = csp_queue_create(CSP_FIFO_INPUT, sizeof(int));
 	if (!router_input_event)
@@ -187,7 +187,7 @@ int csp_route_table_init(void) {
 
 int csp_route_next_packet(csp_route_queue_t * input) {
 
-#if CSP_USE_QOS
+#ifdef CSP_USE_QOS
 	int prio, found, event;
 
 	/* Wait for packet in any queue */
@@ -256,7 +256,7 @@ csp_thread_return_t vTaskCSPRouter(__attribute__ ((unused)) void * pvParameters)
 				packet->id.sport, packet->id.flags);
 
 		/* Here there be promiscuous mode */
-#if CSP_USE_PROMISC
+#ifdef CSP_USE_PROMISC
 		csp_promisc_add(packet, csp_promisc_queue);
 #endif
 
@@ -345,7 +345,7 @@ csp_thread_return_t vTaskCSPRouter(__attribute__ ((unused)) void * pvParameters)
 
 		/* Pass packet to the right transport module */
 		if (packet->id.flags & CSP_FRDP) {
-#if CSP_USE_RDP
+#ifdef CSP_USE_RDP
 			/*if (csp_conn_lock(conn, 100) != CSP_ERR_NONE) {
 				csp_debug(CSP_WARN, "Failed to lock connection\r\n");
 				csp_buffer_free(packet);
@@ -439,7 +439,7 @@ int csp_route_enqueue(csp_queue_handle_t handle, void * value, uint32_t timeout,
 	else
 		result = csp_queue_enqueue_isr(handle, value, pxTaskWoken);
 
-#if CSP_USE_QOS
+#ifdef CSP_USE_QOS
 	static int event = 0;
 
 	if (result == CSP_QUEUE_OK) {
@@ -456,7 +456,7 @@ int csp_route_enqueue(csp_queue_handle_t handle, void * value, uint32_t timeout,
 
 int csp_route_get_fifo(int prio) {
 
-#if CSP_USE_QOS
+#ifdef CSP_USE_QOS
 	return prio;
 #else
 	return 0;
@@ -502,7 +502,7 @@ uint8_t csp_route_get_nexthop_mac(uint8_t node) {
 
 }
 
-#if CSP_DEBUG
+#ifdef CSP_DEBUG
 static int csp_bytesize(char *buf, int len, unsigned long int n) {
 
     char * postfix;
@@ -577,7 +577,7 @@ void csp_route_print_table(void) {
 }
 #endif
 
-#if CSP_USE_PROMISC
+#ifdef CSP_USE_PROMISC
 int csp_promisc_enable(unsigned int buf_size) {
 
 	/* If queue already initialised */

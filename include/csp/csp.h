@@ -33,7 +33,6 @@ extern "C" {
 
 /* CSP includes */
 #include "csp_platform.h"
-#include "csp_config.h"
 #include "csp_error.h"
 
 /* TODO: move this include to the files that actually use them */

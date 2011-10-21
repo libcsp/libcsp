@@ -25,13 +25,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 /* CSP includes */
 #include <csp/csp.h>
-#include <csp/csp_config.h>
 #include <csp/csp_endian.h>
 
 #include "csp_sha1.h"
 #include "csp_xtea.h"
 
-#if CSP_ENABLE_XTEA
+#ifdef CSP_ENABLE_XTEA
 
 #define XTEA_BLOCKSIZE 	8
 #define XTEA_ROUNDS 	32

@@ -28,23 +28,40 @@ def options(ctx):
 	# Load GCC options
 	ctx.load('gcc')
 	ctx.load('eclipse')
+	
+	ctx.add_option('--toolchain', default='', help='Set toolchain prefix')
 
 	# Set CSP options
 	gr = ctx.add_option_group('CSP options')
-	gr.add_option('--toolchain', default='', help='Set toolchain prefix')
-	gr.add_option('--os', default='posix', help='Set operating system. Must be either \'posix\' or \'freertos\'')
 	gr.add_option('--cflags', default='', help='Add additional CFLAGS. Separate with comma')
 	gr.add_option('--includes', default='', help='Add additional include paths. Separate with comma')
 	gr.add_option('--libdir', default='build', help='Set output directory of libcsp.a')
-	gr.add_option('--with-can', default=None, metavar='CHIP', help='Enable CAN driver. CHIP must be either socketcan, at91sam7a1, at91sam7a3 or at90can128')
-	gr.add_option('--with-freertos', metavar="PATH", default='../../libgomspace/include', help='Set path to FreeRTOS header files')
-	gr.add_option('--with-csp-config', metavar="CONFIG", default=None, help='Set CSP configuration file')
+	
+	gr.add_option('--disable-output', action='store_true', help='Disable CSP output')
+	gr.add_option('--enable-rdp', action='store_true', help='Enable RDP support')
+	gr.add_option('--enable-qos', action='store_true', help='Enable Quality of Service support')
+	gr.add_option('--enable-promisc', action='store_true', help='Enable promiscuous mode support')
+	gr.add_option('--enable-crc32', action='store_true', help='Enable CRC32 support')
+	gr.add_option('--enable-hmac', action='store_true', help='Enable HMAC-SHA1 support')
+	gr.add_option('--enable-xtea', action='store_true', help='Enable XTEA support')
 	gr.add_option('--enable-bindings', action='store_true', help='Enable Python bindings')
 	gr.add_option('--enable-examples', action='store_true', help='Enable examples')
+	gr.add_option('--enable-static-buffer', action='store_true', help='Enable static buffer system')
+
+	gr.add_option('--with-os', default='posix', help='Set operating system. Must be either \'posix\' or \'freertos\'')
+	gr.add_option('--with-can', default=None, metavar='CHIP', help='Enable CAN driver. CHIP must be either socketcan, at91sam7a1, at91sam7a3 or at90can128')
+	gr.add_option('--with-freertos', metavar="PATH", default='../../libgomspace/include', help='Set path to FreeRTOS header files')
+	gr.add_option('--with-static-buffer-size', default=320, help='Set size of static buffer elements')
+	gr.add_option('--with-static-buffer-count', default=12, help='Set number of static buffer elements')
+	gr.add_option('--with-rdp-max-window', default=20, help='Set maximum window size for RDP')
+	gr.add_option('--with-max-bind-port', default=31, help='Set maximum bindable port')
+	gr.add_option('--with-max-connections', default=10, help='Set maximum number of concurrent connections')
+	gr.add_option('--with-conn-queue-length', default=10, help='Set maximum number of packets in queue for a connection')
+	gr.add_option('--with-router-queue-length', default=10, help='Set maximum number of packets to be queued at the input of the router')
 
 def configure(ctx):
 	# Validate OS
-	if not ctx.options.os in ('posix', 'freertos'):
+	if not ctx.options.with_os in ('posix', 'freertos'):
 		ctx.fatal('ARCH must be either \'posix\' or \'freertos\'')
 
 	# Validate CAN drivers
@@ -71,10 +88,10 @@ def configure(ctx):
 	ctx.env.append_unique('INCLUDES_CSP', ['include'] + ctx.options.includes.split(','))
 
 	# Add default files
-	ctx.env.append_unique('FILES_CSP', ['src/*.c','src/crypto/*.c','src/interfaces/csp_if_lo.c','src/transport/*.c','src/arch/{0}/**/*.c'.format(ctx.options.os)])
+	ctx.env.append_unique('FILES_CSP', ['src/*.c','src/interfaces/csp_if_lo.c','src/transport/csp_udp.c','src/arch/{0}/**/*.c'.format(ctx.options.with_os)])
 
 	# Add FreeRTOS 
-	if ctx.options.os == 'freertos':
+	if ctx.options.with_os == 'freertos':
 		ctx.env.append_unique('INCLUDES_CSP', ctx.options.with_freertos)
 
 	# Add CAN driver
@@ -82,23 +99,53 @@ def configure(ctx):
 		ctx.env.append_unique('FILES_CSP', 'src/interfaces/csp_if_can.c')
 		ctx.env.append_unique('FILES_CSP', 'src/interfaces/can/can_{0}.c'.format(ctx.options.with_can))
 
-	# Validate config file
-	if ctx.options.with_csp_config:
-		ctx.env.append_unique('DEFINES', 'CSP_CONFIG="'+os.path.abspath(ctx.options.with_csp_config+'"'))
-
 	# Store configuration options
-	if ctx.options.enable_bindings:
-		ctx.env.ENABLE_BINDINGS = 'Y'
-	if ctx.options.enable_examples:
-		ctx.env.ENABLE_EXAMPLES = 'Y'
+	ctx.env.ENABLE_BINDINGS = ctx.options.enable_bindings
+	ctx.env.ENABLE_EXAMPLES = ctx.options.enable_examples
 
-	ctx.write_config_header('waf_config.h', top=True, remove=False)
+	# Create config file
+	ctx.define_cond('CSP_DEBUG', ctx.options.disable_output)
+	if not ctx.options.disable_output:
+		ctx.env.append_unique('FILES_CSP', 'src/csp_debug.c')
+	else:
+		ctx.env.append_unique('EXCL_CSP', 'src/csp_debug.c')
+
+	ctx.define_cond('CSP_USE_RDP', ctx.options.enable_rdp)
+	if ctx.options.enable_rdp:
+		ctx.env.append_unique('FILES_CSP', 'src/transport/csp_rdp.c')
+
+	ctx.define_cond('CSP_USE_CRC32', ctx.options.enable_crc32)
+	if ctx.options.enable_crc32:
+		ctx.env.append_unique('FILES_CSP', 'src/csp_crc32.c')
+	else:
+		ctx.env.append_unique('EXCL_CSP', 'src/csp_crc32.c')
+
+	if ctx.options.enable_hmac:
+		ctx.env.append_unique('FILES_CSP', 'src/crypto/csp_hmac.c')
+		ctx.define_cond('CSP_USE_HMAC', ctx.options.enable_hmac)
+
+	if ctx.options.enable_xtea:
+		ctx.env.append_unique('FILES_CSP', 'src/crypto/csp_xtea.c')
+		ctx.define_cond('CSP_USE_XTEA', ctx.options.enable_xtea)
+
+	ctx.define_cond('CSP_USE_PROMISC', ctx.options.enable_promisc)
+	ctx.define_cond('CSP_USE_QOS', ctx.options.enable_qos)
+	ctx.define_cond('CSP_BUFFER_STATIC', ctx.options.enable_static_buffer)
+	ctx.define('CSP_BUFFER_COUNT', ctx.options.with_static_buffer_count)
+	ctx.define('CSP_BUFFER_SIZE', ctx.options.with_static_buffer_size)
+	ctx.define('CSP_CONN_MAX', ctx.options.with_max_connections)
+	ctx.define('CSP_CONN_QUEUE_LENGTH', ctx.options.with_conn_queue_length)
+	ctx.define('CSP_FIFO_INPUT', ctx.options.with_router_queue_length)
+	ctx.define('CSP_MAX_BIND_PORT', ctx.options.with_max_bind_port)
+	ctx.define('CSP_RDP_MAX_WINDOW', ctx.options.with_rdp_max_window)
+
+	ctx.write_config_header('waf_config.h', top=True, remove=True)
 	ctx.env.append_unique('CFLAGS', ['-imacros', 'waf_config.h'])
 
 def build(ctx):
 	# Build static library
 	ctx.stlib(
-		source=ctx.path.ant_glob(ctx.env.FILES_CSP),
+		source=ctx.path.ant_glob(ctx.env.FILES_CSP, excl=ctx.env.EXCL_CSP),
 		target = 'csp',
 		includes= ctx.env.INCLUDES_CSP,
 		export_includes = 'include',
@@ -112,7 +159,7 @@ def build(ctx):
 		ctx(rule='${SIZE} --format=berkeley ${SRC}', source='libcsp.a', name='csp_size', always=True)
 
 	# Build shared library for Python bindings
-	if ctx.env.ENABLE_BINDINGS == 'Y':
+	if ctx.env.ENABLE_BINDINGS:
 		ctx.shlib(source=ctx.path.ant_glob(ctx.env.FILES_CSP),
 			target = 'pycsp',
 			includes= ctx.env.INCLUDES_CSP,
@@ -121,7 +168,7 @@ def build(ctx):
 			defines = ctx.env.DEFINES_CSP,
 			lib=['rt', 'pthread'])
 
-	if ctx.env.ENABLE_EXAMPLES == 'Y':
+	if ctx.env.ENABLE_EXAMPLES:
 		ctx.program(source = ctx.path.ant_glob('examples/simple.c'),
 			target = 'simple',
 			includes = ctx.env.INCLUDES_CSP,

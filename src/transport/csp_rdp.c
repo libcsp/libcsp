@@ -31,7 +31,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <inttypes.h>
 
 #include <csp/csp.h>
-#include <csp/csp_config.h>
 #include <csp/csp_endian.h>
 #include <csp/csp_error.h>
 #include "../arch/csp_queue.h"
@@ -43,7 +42,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../csp_io.h"
 #include "csp_transport.h"
 
-#if CSP_USE_RDP
+#ifdef CSP_USE_RDP
 
 #define RDP_SYN	0x01
 #define RDP_ACK 0x02
