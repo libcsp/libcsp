@@ -92,6 +92,9 @@ def configure(ctx):
 	if ctx.options.enable_examples:
 		ctx.env.ENABLE_EXAMPLES = 'Y'
 
+	ctx.write_config_header('waf_config.h', top=True, remove=False)
+	ctx.env.append_unique('CFLAGS', ['-imacros', 'waf_config.h'])
+
 def build(ctx):
 	# Build static library
 	ctx.stlib(
