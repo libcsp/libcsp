@@ -84,7 +84,7 @@ def configure(ctx):
 
 	# Validate config file
 	if ctx.options.with_csp_config:
-		ctx.define('CSP_CONFIG', os.path.abspath(ctx.options.with_csp_config))
+		ctx.env.append_unique('DEFINES', 'CSP_CONFIG="'+os.path.abspath(ctx.options.with_csp_config+'"'))
 
 	# Store configuration options
 	if ctx.options.enable_bindings:
