@@ -48,9 +48,33 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 /** Static local variables */
 unsigned char my_address;
 
+/* Hostname and model */ 
+static char csp_hostname[CSP_HOSTNAME_LEN] = "csp";
+static char csp_model[CSP_MODEL_LEN]       = "CSP Subsystem";
+
 #if CSP_USE_PROMISC
 extern csp_queue_handle_t csp_promisc_queue;
 #endif
+
+int csp_set_hostname(char * hostname) {
+	strncpy(csp_hostname, hostname, CSP_HOSTNAME_LEN);
+	csp_hostname[CSP_HOSTNAME_LEN - 1] = '\0';
+	return CSP_ERR_NONE;
+}
+
+char * csp_get_hostname(void) {
+	return csp_hostname;
+}
+
+int csp_set_model(char * model) {
+	strncpy(csp_model, model, CSP_MODEL_LEN);
+	csp_model[CSP_MODEL_LEN - 1] = '\0';
+	return CSP_ERR_NONE;
+}
+
+char * csp_get_model(void) {
+	return csp_model;
+}
 
 int csp_init(unsigned char address) {
 

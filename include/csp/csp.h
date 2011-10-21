@@ -232,6 +232,32 @@ typedef struct csp_l4data_s csp_l4data_t;
  */
 int csp_init(uint8_t my_node_address);
 
+#define CSP_HOSTNAME_LEN	20
+/** csp_set_hostname
+ * Set subsystem hostname. The default hostname is 'csp'.
+ * @param hostname Hostname to set
+ */
+int csp_set_hostname(char * hostname);
+
+/** csp_get_hostname
+ * Get current subsystem hostname.
+ * @return Pointer to char array with current hostname.
+ */
+char * csp_get_hostname(void);
+
+#define CSP_MODEL_LEN		20
+/** csp_set_model
+ * Set subsystem model name. The default model is 'CSP Subsystem'
+ * @param model Model name to set
+ */
+int csp_set_model(char * model);
+
+/** csp_get_model
+ * Get current model name.
+ * @return Pointer to char array with current model name.
+ */
+char * csp_get_model(void);
+
 /** csp_socket
  * Create CSP socket endpoint
  * @param opts Socket options

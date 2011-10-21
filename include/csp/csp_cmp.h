@@ -26,25 +26,28 @@ extern "C" {
 #endif
 
 #include <stdint.h>
+#include <csp/csp.h>
 
 #define CSP_CMP_REQUEST 0x00
 #define CSP_CMP_REPLY   0xff
 
-#define CSP_CMP_VERSION 1
-#define CSP_CMP_VERSION_REV_LEN  9
-#define CSP_CMP_VERSION_DATE_LEN 12
-#define CSP_CMP_VERSION_TIME_LEN 9
+#define CSP_CMP_IDENT 1
+#define CSP_CMP_IDENT_REV_LEN  9
+#define CSP_CMP_IDENT_DATE_LEN 12
+#define CSP_CMP_IDENT_TIME_LEN 9
 
 struct csp_cmp_message {
-    uint8_t type;
-    uint8_t code;
-    union {
-        struct {
-            char revision[CSP_CMP_VERSION_REV_LEN];
-            char date[CSP_CMP_VERSION_DATE_LEN];
-            char time[CSP_CMP_VERSION_TIME_LEN];
-        } version;
-    };
+	uint8_t type;
+	uint8_t code;
+	union {
+		struct {
+			char hostname[CSP_HOSTNAME_LEN];
+			char model[CSP_MODEL_LEN];
+			char revision[CSP_CMP_IDENT_REV_LEN];
+			char date[CSP_CMP_IDENT_DATE_LEN];
+			char time[CSP_CMP_IDENT_TIME_LEN];
+		} ident;
+	};
 } __attribute__ ((packed));
 
 #define CMP_SIZE(_memb) (sizeof(((struct csp_cmp_message *)0)->_memb) + sizeof(uint8_t) + sizeof(uint8_t))
@@ -53,10 +56,10 @@ int csp_cmp(uint8_t node, uint32_t timeout, uint8_t code, int membsize, struct c
 
 #define CMP_MESSAGE(_code, _memb) \
 static inline int csp_cmp_##_memb(uint8_t node, uint32_t timeout, struct csp_cmp_message * msg) { \
-    return csp_cmp(node, timeout, _code, CMP_SIZE(_memb), msg); \
+	return csp_cmp(node, timeout, _code, CMP_SIZE(_memb), msg); \
 }
 
-CMP_MESSAGE(CSP_CMP_VERSION, version);
+CMP_MESSAGE(CSP_CMP_IDENT, ident);
 
 #ifdef __cplusplus
 } /* extern "C" */
