@@ -172,11 +172,6 @@ typedef union {
 #define CSP_O_CRC32			CSP_SO_CRC32REQ		// Enable CRC32
 #define CSP_O_NOCRC32		CSP_SO_CRC32PROHIB	// Disable CRC32
 
-/* Default padding size is 8 bytes */
-#ifndef CSP_PADDING_BYTES
-#define CSP_PADDING_BYTES 8
-#endif
-
 /**
  * CSP PACKET STRUCTURE
  * Note: This structure is constructed to fit
