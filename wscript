@@ -31,8 +31,8 @@ def options(ctx):
 	
 	ctx.add_option('--toolchain', default='', help='Set toolchain prefix')
 
-	# Set CSP options
-	gr = ctx.add_option_group('CSP options')
+	# Set libcsp options
+	gr = ctx.add_option_group('libcsp options')
 	gr.add_option('--cflags', default='', help='Add additional CFLAGS. Separate with comma')
 	gr.add_option('--includes', default='', help='Add additional include paths. Separate with comma')
 	
