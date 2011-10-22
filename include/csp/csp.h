@@ -31,21 +31,21 @@ extern "C" {
 #include <stdlib.h>
 #include <string.h>
 
+/* Include configuration file */
+#include "csp_autoconfig.h"
+
 /* CSP includes */
 #include "csp_platform.h"
 #include "csp_error.h"
 
-/* TODO: move this include to the files that actually use them */
+/* Include CSP buffer system */
 #include "csp_buffer.h"
-
-/* Include configuration file */
-#include "csp_autoconfig.h"
 
 /** The address of the node */
 extern uint8_t my_address;
 
 /** Define used to specify MAC_ADDR = NODE_ID */
-#define CSP_NODE_MAC			0xFF
+#define CSP_NODE_MAC	0xFF
 
 /**
  * RESERVED PORTS (SERVICES)

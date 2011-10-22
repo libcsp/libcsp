@@ -27,21 +27,18 @@ extern "C" {
 
 #include <stdint.h>
 
-/* Set platform endianness and OS */
-#if defined(__i386__) || defined(__x86_64__) || defined(__BFIN__)
+/* Attempt to include endian.h to get endianness defines */
+#if !defined(__BYTE_ORDER__) && !defined(__ORDER_LITTLE_ENDIAN__) && !defined(__ORDER_BIG_ENDIAN__)
+    #include <endian.h>
+#endif
+
+/* Set platform endianness */
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
     #define _CSP_LITTLE_ENDIAN_
-    #define _CSP_POSIX_
-#elif defined(__AVR__) || defined(__arm__)
-    #define _CSP_LITTLE_ENDIAN_
-    #define _CSP_FREERTOS_
-#elif defined (__PPC__) || defined(__sparc__)
+#elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
     #define _CSP_BIG_ENDIAN_
-    #define _CSP_POSIX_    
-#elif defined(__AVR32__) || defined(__AVR32_AP7000__)
-    #define _CSP_BIG_ENDIAN_
-    #define _CSP_FREERTOS_
 #else
-    #error "Unknown architecture"
+    #error "Unknown endianness"
 #endif
 
 /* Set OS dependant features */

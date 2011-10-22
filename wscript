@@ -92,6 +92,9 @@ def configure(ctx):
 	# Add FreeRTOS 
 	if ctx.options.with_os == 'freertos':
 		ctx.env.append_unique('INCLUDES_CSP', ctx.options.with_freertos)
+		ctx.define('_CSP_FREERTOS_', 1)
+	else:
+		ctx.define('_CSP_POSIX_', 1)
 
 	# Add CAN driver
 	if ctx.options.with_can:
