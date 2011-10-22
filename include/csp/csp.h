@@ -32,7 +32,7 @@ extern "C" {
 #include <string.h>
 
 /* Include configuration file */
-#include "csp_autoconfig.h"
+#include <csp/csp_autoconfig.h>
 
 /* CSP includes */
 #include "csp_platform.h"

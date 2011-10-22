@@ -50,13 +50,15 @@ def options(ctx):
 	gr.add_option('--with-os', default='posix', help='Set operating system. Must be either \'posix\' or \'freertos\'')
 	gr.add_option('--with-can', default=None, metavar='CHIP', help='Enable CAN driver. CHIP must be either socketcan, at91sam7a1, at91sam7a3 or at90can128')
 	gr.add_option('--with-freertos', metavar="PATH", default='../../libgomspace/include', help='Set path to FreeRTOS header files')
-	gr.add_option('--with-static-buffer-size', default=320, help='Set size of static buffer elements')
-	gr.add_option('--with-static-buffer-count', default=12, help='Set number of static buffer elements')
-	gr.add_option('--with-rdp-max-window', default=20, help='Set maximum window size for RDP')
-	gr.add_option('--with-max-bind-port', default=31, help='Set maximum bindable port')
-	gr.add_option('--with-max-connections', default=10, help='Set maximum number of concurrent connections')
-	gr.add_option('--with-conn-queue-length', default=10, help='Set maximum number of packets in queue for a connection')
-	gr.add_option('--with-router-queue-length', default=10, help='Set maximum number of packets to be queued at the input of the router')
+	gr.add_option('--with-static-buffer-size', type=int, default=320, help='Set size of static buffer elements')
+	gr.add_option('--with-static-buffer-count', type=int, default=12, help='Set number of static buffer elements')
+	gr.add_option('--with-rdp-max-window', type=int, default=20, help='Set maximum window size for RDP')
+	gr.add_option('--with-max-bind-port', type=int, default=31, help='Set maximum bindable port')
+	gr.add_option('--with-max-connections', type=int, default=10, help='Set maximum number of concurrent connections')
+	gr.add_option('--with-conn-queue-length', type=int, default=10, help='Set maximum number of packets in queue for a connection')
+	gr.add_option('--with-router-queue-length', type=int, default=10, help='Set maximum number of packets to be queued at the input of the router')
+	gr.add_option('--with-padding', type=int, default=8, help='Set padding bytes before packet length field')
+
 
 def configure(ctx):
 	# Validate OS
@@ -140,8 +142,9 @@ def configure(ctx):
 	ctx.define('CSP_FIFO_INPUT', ctx.options.with_router_queue_length)
 	ctx.define('CSP_MAX_BIND_PORT', ctx.options.with_max_bind_port)
 	ctx.define('CSP_RDP_MAX_WINDOW', ctx.options.with_rdp_max_window)
+	ctx.define('CSP_PADDING_BYTES', ctx.options.with_padding)
 
-	ctx.write_config_header('include/csp_autoconfig.h', top=True, remove=True)
+	ctx.write_config_header('include/csp/csp_autoconfig.h', top=True, remove=True)
 	
 	# Check for endian.h
 	ctx.env.DEFINES = {}
@@ -183,7 +186,7 @@ def build(ctx):
 
 	# Set install path for header files
 	ctx.install_files('${PREFIX}', ctx.path.ant_glob('include/**/*.h'), relative_trick=True)
-	ctx.install_files('${PREFIX}/include', 'include/csp_autoconfig.h')
+	ctx.install_files('${PREFIX}/include/csp', 'include/csp/csp_autoconfig.h')
 	ctx.install_files('${PREFIX}/lib', 'libcsp.a')
 
 def dist(ctx):
