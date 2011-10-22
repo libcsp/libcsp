@@ -38,6 +38,9 @@ extern "C" {
 /* TODO: move this include to the files that actually use them */
 #include "csp_buffer.h"
 
+/* Include configuration file */
+#include "csp_autoconfig.h"
+
 /** The address of the node */
 extern uint8_t my_address;
 

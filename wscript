@@ -35,7 +35,6 @@ def options(ctx):
 	gr = ctx.add_option_group('CSP options')
 	gr.add_option('--cflags', default='', help='Add additional CFLAGS. Separate with comma')
 	gr.add_option('--includes', default='', help='Add additional include paths. Separate with comma')
-	gr.add_option('--libdir', default='build', help='Set output directory of libcsp.a')
 	
 	gr.add_option('--disable-output', action='store_true', help='Disable CSP output')
 	gr.add_option('--enable-rdp', action='store_true', help='Enable RDP support')
@@ -139,8 +138,7 @@ def configure(ctx):
 	ctx.define('CSP_MAX_BIND_PORT', ctx.options.with_max_bind_port)
 	ctx.define('CSP_RDP_MAX_WINDOW', ctx.options.with_rdp_max_window)
 
-	ctx.write_config_header('waf_config.h', top=True, remove=True)
-	ctx.env.append_unique('CFLAGS', ['-imacros', 'waf_config.h'])
+	ctx.write_config_header('include/csp_autoconfig.h', top=True, remove=True)
 
 def build(ctx):
 	# Build static library
@@ -151,7 +149,6 @@ def build(ctx):
 		export_includes = 'include',
 		cflags = ctx.env.CFLAGS_CSP,
 		defines = ctx.env.DEFINES_CSP,
-		install_path = ctx.options.libdir,
 		use = 'csp_size')
 
 	# Print library size
@@ -176,6 +173,11 @@ def build(ctx):
 			defines = ctx.env.DEFINES_CSP,
 			lib=['rt', 'pthread'],
 			use = 'csp')
+
+	# Set install path for header files
+	ctx.install_files('${PREFIX}', ctx.path.ant_glob('include/**/*.h'), relative_trick=True)
+	ctx.install_files('${PREFIX}/include', 'include/csp_autoconfig.h')
+	ctx.install_files('${PREFIX}/lib', 'libcsp.a')
 
 def dist(ctx):
 	ctx.excl = 'build/* **/.* **/*.pyc **/*.o **/*~ *.tar.gz'
