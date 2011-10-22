@@ -142,6 +142,10 @@ def configure(ctx):
 	ctx.define('CSP_RDP_MAX_WINDOW', ctx.options.with_rdp_max_window)
 
 	ctx.write_config_header('include/csp_autoconfig.h', top=True, remove=True)
+	
+	# Check for endian.h
+	ctx.env.DEFINES = {}
+	ctx.check(header_name='endian.h', mandatory=False)
 
 def build(ctx):
 	# Build static library
