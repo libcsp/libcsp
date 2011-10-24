@@ -4,21 +4,20 @@ to compile for, the location of required libraries and whether to enable
 certain optional features.
 
 To configure CSP to build with the AVR32 toolchain for FreeRTOS and output
-the compiled libcsp.a file to the currect directory, issue:
+the compiled libcsp.a and header files to the install directory, issue:
 
-./waf configure --toolchain=avr32- --os=freertos --libdir=.
+./waf configure --toolchain=avr32- --with-os=freertos --prefix=install
 
 When compiling for FreeRTOS, the path to the FreeRTOS header files must be
 specified with --with-freertos=PATH.
 
-A custom CSP config file can be included with --with-csp-config=CONFIG. See 
-include/csp/csp_config.h for a list of available options. The custom config
-need only specify the options that differ from the default values.
+A number of optional features can be enabled by from the configure script.
+Support for XTEA encryption can e.g. be enabled with --enable-xtea. Run 
+./waf configure --help to list the available configure options.
 
 The CAN drivers can be enabled by appending the configure option --with-can=CHIP,
 where CHIP is one of 'socketcan', 'at91sam7a1', 'at91sam7a3' or 'at90can128'. 
-Run ./waf configure --help to list the available configure options.
 
-To build and copy the library to the location specified with --libdir, use:
+To build and copy the library to the location specified with --prefix, use:
 
 ./waf build install
