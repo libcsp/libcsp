@@ -27,7 +27,7 @@ VERSION = '1.0-rc1'
 def options(ctx):
 	# Load GCC options
 	ctx.load('gcc')
-	ctx.load('eclipse')
+	ctx.load('eclipse', tooldir='tools')
 	
 	ctx.add_option('--toolchain', default='', help='Set toolchain prefix')
 
