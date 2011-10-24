@@ -107,7 +107,7 @@ def configure(ctx):
 	ctx.env.ENABLE_EXAMPLES = ctx.options.enable_examples
 
 	# Create config file
-	ctx.define_cond('CSP_DEBUG', ctx.options.disable_output)
+	ctx.define_cond('CSP_DEBUG', not ctx.options.disable_output)
 	if not ctx.options.disable_output:
 		ctx.env.append_unique('FILES_CSP', 'src/csp_debug.c')
 	else:
