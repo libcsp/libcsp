@@ -69,7 +69,7 @@ int csp_crc32_append(csp_packet_t * packet) {
 	crc = csp_crc32_memory(packet->data, packet->length);
 	crc = csp_hton32(crc);
 
-	/* Truncate hash and copy to packet */
+	/* Copy checksum to packet */
 	memcpy(&packet->data[packet->length], &crc, sizeof(uint32_t));
 	packet->length += sizeof(uint32_t);
 
@@ -89,7 +89,7 @@ int csp_crc32_verify(csp_packet_t * packet) {
 	crc = csp_crc32_memory(packet->data, packet->length - sizeof(uint32_t));
 	crc = csp_hton32(crc);
 
-	/* Compare calculated HMAC with packet header */
+	/* Compare calculated checksum with packet header */
 	if (memcmp(&packet->data[packet->length] - sizeof(uint32_t), &crc, sizeof(uint32_t)) != 0) {
 		/* CRC32 failed */
 		return -1;

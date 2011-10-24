@@ -338,7 +338,6 @@ csp_thread_return_t vTaskCSPRouter(__attribute__ ((unused)) void * pvParameters)
 
 		/* Run security check on incoming packet */
 		if (csp_route_security_check(conn->conn_opts, input.interface, packet) < 0) {
-			csp_debug(CSP_WARN, "Packet discarded\r\n");
 			csp_buffer_free(packet);
 			continue;
 		}
@@ -346,15 +345,7 @@ csp_thread_return_t vTaskCSPRouter(__attribute__ ((unused)) void * pvParameters)
 		/* Pass packet to the right transport module */
 		if (packet->id.flags & CSP_FRDP) {
 #ifdef CSP_USE_RDP
-			/*if (csp_conn_lock(conn, 100) != CSP_ERR_NONE) {
-				csp_debug(CSP_WARN, "Failed to lock connection\r\n");
-				csp_buffer_free(packet);
-				continue;
-			}*/
-
 			csp_rdp_new_packet(conn, packet);
-
-			//csp_conn_unlock(conn);
 		} else if (conn->conn_opts & CSP_SO_RDPREQ) {
 			csp_debug(CSP_WARN, "Received packet without RDP header. Discarding packet\r\n");
 			input.interface->rx_error++;

@@ -117,7 +117,7 @@ def configure(ctx):
 	if ctx.options.enable_rdp:
 		ctx.env.append_unique('FILES_CSP', 'src/transport/csp_rdp.c')
 
-	ctx.define_cond('CSP_USE_CRC32', ctx.options.enable_crc32)
+	ctx.define_cond('CSP_ENABLE_CRC32', ctx.options.enable_crc32)
 	if ctx.options.enable_crc32:
 		ctx.env.append_unique('FILES_CSP', 'src/csp_crc32.c')
 	else:
@@ -125,11 +125,13 @@ def configure(ctx):
 
 	if ctx.options.enable_hmac:
 		ctx.env.append_unique('FILES_CSP', 'src/crypto/csp_hmac.c')
-		ctx.define_cond('CSP_USE_HMAC', ctx.options.enable_hmac)
+		ctx.env.append_unique('FILES_CSP', 'src/crypto/csp_sha1.c')
+		ctx.define_cond('CSP_ENABLE_HMAC', ctx.options.enable_hmac)
 
 	if ctx.options.enable_xtea:
 		ctx.env.append_unique('FILES_CSP', 'src/crypto/csp_xtea.c')
-		ctx.define_cond('CSP_USE_XTEA', ctx.options.enable_xtea)
+		ctx.env.append_unique('FILES_CSP', 'src/crypto/csp_sha1.c')
+		ctx.define_cond('CSP_ENABLE_XTEA', ctx.options.enable_xtea)
 
 	ctx.define_cond('CSP_USE_PROMISC', ctx.options.enable_promisc)
 	ctx.define_cond('CSP_USE_QOS', ctx.options.enable_qos)
