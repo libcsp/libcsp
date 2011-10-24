@@ -59,7 +59,6 @@ def options(ctx):
 	gr.add_option('--with-router-queue-length', type=int, default=10, help='Set maximum number of packets to be queued at the input of the router')
 	gr.add_option('--with-padding', type=int, default=8, help='Set padding bytes before packet length field')
 
-
 def configure(ctx):
 	# Validate OS
 	if not ctx.options.with_os in ('posix', 'freertos'):
