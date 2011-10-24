@@ -144,7 +144,7 @@ def configure(ctx):
 	ctx.define('CSP_RDP_MAX_WINDOW', ctx.options.with_rdp_max_window)
 	ctx.define('CSP_PADDING_BYTES', ctx.options.with_padding)
 
-	ctx.write_config_header('include/csp/csp_autoconfig.h', top=True, remove=False)
+	ctx.write_config_header('include/csp/csp_autoconfig.h', top=False, remove=False)
 	
 	# Check for endian.h
 	ctx.check(header_name='endian.h', mandatory=False)
