@@ -7,3 +7,5 @@ build/
 *.tar.gz
 *.tar.bz2
 *.swp
+.project
+.cproject
