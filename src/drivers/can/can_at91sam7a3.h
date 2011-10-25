@@ -21,6 +21,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef _CAN_AT91SAM7A3_H_
 #define _CAN_AT91SAM7A3_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>
 
 /** CAN controller base address */
@@ -151,5 +155,9 @@ typedef struct {
 /** CAN Message Control Register: MCR */
 #define  MACR		(0x01 << 22)   	/* Mailbox Abort Request */
 #define  MTCR		(0x01 << 23) 	/* Mailbox Transfer Command */
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif /* _CAN_AT91SAM7A3_H_ */
