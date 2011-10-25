@@ -62,11 +62,11 @@ def options(ctx):
 def configure(ctx):
 	# Validate OS
 	if not ctx.options.with_os in ('posix', 'windows', 'freertos'):
-		ctx.fatal('ARCH must be either \'posix\', \'windows\' or \'freertos\'')
+		ctx.fatal('--with-os must be either \'posix\', \'windows\' or \'freertos\'')
 
 	# Validate CAN drivers
 	if not ctx.options.with_can in (None, 'socketcan', 'at91sam7a1', 'at91sam7a3', 'at90can128'):
-		ctx.fatal('CAN must be either \'socketcan\', \'at91sam7a1\', \'at91sam7a3\', \'at90can128\'')
+		ctx.fatal('--with-can must be either \'socketcan\', \'at91sam7a1\', \'at91sam7a3\', \'at90can128\'')
 
 	# Setup and validate toolchain
 	ctx.env.CC = ctx.options.toolchain + 'gcc'
