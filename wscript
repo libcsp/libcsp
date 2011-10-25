@@ -100,7 +100,7 @@ def configure(ctx):
 	# Add CAN driver
 	if ctx.options.with_can:
 		ctx.env.append_unique('FILES_CSP', 'src/interfaces/csp_if_can.c')
-		ctx.env.append_unique('FILES_CSP', 'src/interfaces/can/can_{0}.c'.format(ctx.options.with_can))
+		ctx.env.append_unique('FILES_CSP', 'src/drivers/can/can_{0}.c'.format(ctx.options.with_can))
 
 	# Store configuration options
 	ctx.env.ENABLE_BINDINGS = ctx.options.enable_bindings
