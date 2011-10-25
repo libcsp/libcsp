@@ -21,6 +21,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef _CAN_AT91SAM7A1_H_
 #define _CAN_AT91SAM7A1_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>
 
 /** CAN controller base address */
@@ -139,5 +143,9 @@ typedef struct {
 #define  DLCW       (0x01 << 9)   /* DLC Warning                            */
 #define  FILLED     (0x01 << 10)  /* Reception buffer filled                */
 #define  OVRUN      (0x01 << 11)  /* Overrun                                */
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif /* _CAN_AT91SAM7A1_H_ */

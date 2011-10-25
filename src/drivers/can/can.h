@@ -21,6 +21,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef _CAN_H_
 #define _CAN_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>
 
 #include <csp/csp.h>
@@ -59,5 +63,9 @@ typedef int (*can_rx_callback_t)(can_frame_t * frame, CSP_BASE_TYPE * task_woken
 
 int can_init(uint32_t id, uint32_t mask, can_tx_callback_t txcb, can_rx_callback_t rxcb, void * conf, int conflen);
 int can_send(can_id_t id, uint8_t * data, uint8_t dlc, CSP_BASE_TYPE * task_woken);
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif /* _CAN_H_ */
