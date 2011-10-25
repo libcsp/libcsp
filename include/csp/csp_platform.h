@@ -42,6 +42,7 @@ extern "C" {
         /* We don't support PDP endianness */
         #error "Unsupported endianness"
     #endif
+
 #else
     /* Try to guess system endianness */
     #if defined(__i386__) || defined(__x86_64__) || defined(__BFIN__) || defined(__AVR__) || defined(__ARMEL__)
@@ -53,8 +54,8 @@ extern "C" {
     #endif
 #endif
 
-/* Set OS */
-#if defined(_CSP_POSIX_)
+/* Set OS dependant features */
+#if defined(_CSP_POSIX_) || defined(_CSP_WINDOWS_)
     #define CSP_BASE_TYPE int
     #define CSP_MAX_DELAY (UINT32_MAX)
     #define CSP_INFINITY (UINT32_MAX)

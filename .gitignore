@@ -1,3 +1,5 @@
+*.a
+*.o
 build/
 .waf-*
 .waf3-*

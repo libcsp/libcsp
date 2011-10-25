@@ -215,8 +215,11 @@ int csp_route_next_packet(csp_route_queue_t * input) {
 	return CSP_ERR_NONE;
 
 }
-
+#ifndef _CSP_WINDOWS_
 csp_thread_return_t vTaskCSPRouter(__attribute__ ((unused)) void * pvParameters) {
+#else
+csp_thread_return_t __stdcall vTaskCSPRouter(__attribute__ ((unused)) void * pvParameters) {
+#endif
 
 	int prio;
 	csp_route_queue_t input;
