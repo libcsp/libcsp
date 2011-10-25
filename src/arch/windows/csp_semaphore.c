@@ -18,7 +18,7 @@ int csp_mutex_remove(csp_mutex_t * mutex) {
     return CSP_MUTEX_OK;
 }
 
-int csp_mutex_lock(csp_mutex_t * mutex, int timeout) {
+int csp_mutex_lock(csp_mutex_t * mutex, uint32_t timeout) {
     if(WaitForSingleObject(*mutex, timeout) == WAIT_OBJECT_0) {
             return CSP_MUTEX_OK;
     }
@@ -49,7 +49,7 @@ int csp_bin_sem_remove(csp_bin_sem_handle_t * sem) {
     return CSP_SEMAPHORE_OK;
 }
 
-int csp_bin_sem_wait(csp_bin_sem_handle_t * sem, int timeout) {
+int csp_bin_sem_wait(csp_bin_sem_handle_t * sem, uint32_t timeout) {
     if( WaitForSingleObject(*sem, timeout) == WAIT_OBJECT_0 ) {
             return CSP_SEMAPHORE_OK;
     }
