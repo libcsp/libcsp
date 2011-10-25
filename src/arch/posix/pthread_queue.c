@@ -28,6 +28,7 @@ http://code.google.com/p/c-pthread-queue/
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <stdint.h>
 #include <sys/time.h>
 
 /* CSP includes */
@@ -73,7 +74,7 @@ void pthread_queue_delete(pthread_queue_t * q) {
 }
     
 
-int pthread_queue_enqueue(pthread_queue_t * queue, void * value, int timeout) {
+int pthread_queue_enqueue(pthread_queue_t * queue, void * value, uint32_t timeout) {
     
     int ret;
 
@@ -115,7 +116,7 @@ int pthread_queue_enqueue(pthread_queue_t * queue, void * value, int timeout) {
     
 }
 
-int pthread_queue_dequeue(pthread_queue_t * queue, void * buf, int timeout) {
+int pthread_queue_dequeue(pthread_queue_t * queue, void * buf, uint32_t timeout) {
 
     int ret;
     

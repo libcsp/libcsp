@@ -18,6 +18,7 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+#include <stdint.h>
 #include <pthread.h>
 
 /* CSP includes */
@@ -35,7 +36,7 @@ void csp_queue_remove(csp_queue_handle_t queue) {
 	return pthread_queue_delete(queue);
 }
 
-int csp_queue_enqueue(csp_queue_handle_t handle, void *value, int timeout) {
+int csp_queue_enqueue(csp_queue_handle_t handle, void *value, uint32_t timeout) {
     return pthread_queue_enqueue(handle, value, timeout);
 }
 
@@ -45,7 +46,7 @@ int csp_queue_enqueue_isr(csp_queue_handle_t handle, void * value, CSP_BASE_TYPE
     return csp_queue_enqueue(handle, value, 0);
 }
 
-int csp_queue_dequeue(csp_queue_handle_t handle, void *buf, int timeout) {
+int csp_queue_dequeue(csp_queue_handle_t handle, void *buf, uint32_t timeout) {
     return pthread_queue_dequeue(handle, buf, timeout);
 }
 

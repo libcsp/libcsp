@@ -92,7 +92,7 @@ struct csp_socket_s {
     uint32_t opts;					/**< Socket options */
 };
 
-int csp_conn_lock(csp_conn_t * conn, int timeout);
+int csp_conn_lock(csp_conn_t * conn, uint32_t timeout);
 int csp_conn_unlock(csp_conn_t * conn);
 int csp_conn_enqueue_packet(csp_conn_t * conn, csp_packet_t * packet);
 int csp_conn_init(void);

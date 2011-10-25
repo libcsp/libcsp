@@ -37,16 +37,20 @@ void csp_queue_remove(csp_queue_handle_t queue) {
 	vQueueDelete(queue);
 }
 
-int csp_queue_enqueue(csp_queue_handle_t handle, void * value, int timeout) {
-    return xQueueSendToBack(handle, value, timeout / portTICK_RATE_MS);
+int csp_queue_enqueue(csp_queue_handle_t handle, void * value, uint32_t timeout) {
+	if (timeout != CSP_MAX_DELAY)
+		timeout = timeout / portTICK_RATE_MS;
+    return xQueueSendToBack(handle, value, timeout);
 }
 
 int csp_queue_enqueue_isr(csp_queue_handle_t handle, void * value, CSP_BASE_TYPE * task_woken) {
     return xQueueSendToBackFromISR(handle, value, (signed CSP_BASE_TYPE *)task_woken);
 }
 
-int csp_queue_dequeue(csp_queue_handle_t handle, void * buf, int timeout) {
-    return xQueueReceive(handle, buf, timeout / portTICK_RATE_MS);
+int csp_queue_dequeue(csp_queue_handle_t handle, void * buf, uint32_t timeout) {
+	if (timeout != CSP_MAX_DELAY)
+		timeout = timeout / portTICK_RATE_MS;
+    return xQueueReceive(handle, buf, timeout);
 }
 
 int csp_queue_dequeue_isr(csp_queue_handle_t handle, void * buf, CSP_BASE_TYPE * task_woken) {

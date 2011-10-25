@@ -21,12 +21,20 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef _CSP_IF_LO_H_
 #define _CSP_IF_LO_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* CSP includes */
 #include <csp/csp.h>
 #include <csp/csp_interface.h>
 
 extern csp_iface_t csp_if_lo;
 
-int csp_lo_tx(csp_packet_t * packet, unsigned int timeout);
+int csp_lo_tx(csp_packet_t * packet, uint32_t timeout);
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif // _CSP_IF_LO_H_

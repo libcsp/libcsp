@@ -21,6 +21,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef _CSP_IF_CAN_H_
 #define _CSP_IF_CAN_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>
 
 #include <csp/csp.h>
@@ -61,7 +65,7 @@ struct can_at91sam7a3_conf {
  * @param timeout Timout in ms
  * @return 1 if packet was successfully transmitted, 0 on error
  */
-int csp_can_tx(csp_packet_t * packet, unsigned int timeout);
+int csp_can_tx(csp_packet_t * packet, uint32_t timeout);
 
 /**
  * Init CAN interface
@@ -71,5 +75,9 @@ int csp_can_tx(csp_packet_t * packet, unsigned int timeout);
  * @return 0 if CAN interface was successfully initialized, -1 otherwise
  */
 int csp_can_init(uint8_t mode, void * conf, int conflen);
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif /* _CSP_IF_CAN_H_ */

@@ -23,6 +23,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef _CAN_AT90CAN128_H_
 #define _CAN_AT90CAN128_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>
 
 /** General errors interrupt mask */
@@ -136,5 +140,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 									 CANIDM4   = CAN_SET_EXT_ID_4_0(  mask); } while (0)
 
 #define CAN_CLEAR_IDEMSK() 	(CANIDM4 &= ~(1<<IDEMSK))
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif /* _CAN_AT90CAN128_H_ */

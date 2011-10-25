@@ -11,7 +11,7 @@ void csp_queue_remove(csp_queue_handle_t queue) {
 	windows_queue_delete(queue);
 }
 
-int csp_queue_enqueue(csp_queue_handle_t handle, void *value, int timeout) {
+int csp_queue_enqueue(csp_queue_handle_t handle, void *value, uint32_t timeout) {
 	return windows_queue_enqueue(handle, value, timeout);
 }
 
@@ -21,7 +21,7 @@ int csp_queue_enqueue_isr(csp_queue_handle_t handle, void * value, CSP_BASE_TYPE
 	return windows_queue_enqueue(handle, value, 0);
 }
 
-int csp_queue_dequeue(csp_queue_handle_t handle, void *buf, int timeout) {
+int csp_queue_dequeue(csp_queue_handle_t handle, void *buf, uint32_t timeout) {
 	return windows_queue_dequeue(handle, buf, timeout);
 }
 

@@ -48,7 +48,7 @@ static uint8_t sport;
 static csp_bin_sem_handle_t sport_lock;
 
 void csp_conn_check_timeouts(void) {
-#if CSP_USE_RDP
+#ifdef CSP_USE_RDP
 	int i;
 	for (i = 0; i < CSP_CONN_MAX; i++)
 		if (arr_conn[i].state == CONN_OPEN)
@@ -59,7 +59,7 @@ void csp_conn_check_timeouts(void) {
 
 int csp_conn_get_rxq(int prio) {
 
-#if CSP_USE_QOS
+#ifdef CSP_USE_QOS
 	return prio;
 #else
 	return 0;
@@ -67,7 +67,7 @@ int csp_conn_get_rxq(int prio) {
 
 }
 
-int csp_conn_lock(csp_conn_t * conn, int timeout) {
+int csp_conn_lock(csp_conn_t * conn, uint32_t timeout) {
 
 	if (csp_mutex_lock(&conn->lock, timeout) != CSP_MUTEX_OK)
 		return CSP_ERR_TIMEDOUT;
@@ -94,7 +94,7 @@ int csp_conn_enqueue_packet(csp_conn_t * conn, csp_packet_t * packet) {
 	if (csp_queue_enqueue(conn->rx_queue[rxq], &packet, 0) != CSP_QUEUE_OK)
 		return CSP_ERR_NOMEM;
 
-#if CSP_USE_QOS
+#ifdef CSP_USE_QOS
 	int event = 0;
 	if (csp_queue_enqueue(conn->rx_event, &event, 0) != CSP_QUEUE_OK)
 		return CSP_ERR_NOMEM;
@@ -106,7 +106,7 @@ int csp_conn_enqueue_packet(csp_conn_t * conn, csp_packet_t * packet) {
 int csp_conn_init(void) {
 
 	/* Initialize source port */
-#if CSP_RANDOMIZE_EPHEM
+#ifdef CSP_RANDOMIZE_EPHEM
 	srand(csp_get_ms());
 	sport = (rand() % (CSP_ID_PORT_MAX - CSP_MAX_BIND_PORT)) + (CSP_MAX_BIND_PORT + 1);
 #else
@@ -123,7 +123,7 @@ int csp_conn_init(void) {
 		for (prio = 0; prio < CSP_RX_QUEUES; prio++)
 			arr_conn[i].rx_queue[prio] = csp_queue_create(CSP_RX_QUEUE_LENGTH, sizeof(csp_packet_t *));
 
-#if CSP_USE_QOS
+#ifdef CSP_USE_QOS
 		arr_conn[i].rx_event = csp_queue_create(CSP_CONN_QUEUE_LENGTH, sizeof(int));
 #endif
 		arr_conn[i].state = CONN_CLOSED;
@@ -133,7 +133,7 @@ int csp_conn_init(void) {
 			return CSP_ERR_NOMEM;
 		}
 
-#if CSP_USE_RDP
+#ifdef CSP_USE_RDP
 		if (csp_rdp_allocate(&arr_conn[i]) != CSP_ERR_NONE) {
 			csp_debug(CSP_ERROR, "Failed to create queues for RDP in csp_conn_init\r\n");
 			return CSP_ERR_NOMEM;
@@ -180,7 +180,7 @@ int csp_conn_flush_rx_queue(csp_conn_t * conn) {
 	}
 
 	/* Flush event queue */
-#if CSP_USE_QOS
+#ifdef CSP_USE_QOS
 	int event;
 	while (csp_queue_dequeue(conn->rx_event, &event, 0) == CSP_QUEUE_OK);
 #endif
@@ -249,7 +249,7 @@ int csp_close(csp_conn_t * conn) {
 		return CSP_ERR_NONE;
 	}
 
-#if CSP_USE_RDP
+#ifdef CSP_USE_RDP
 	/* Ensure RDP knows this connection is closing */
     if (conn->idin.flags & CSP_FRDP || conn->idout.flags & CSP_FRDP)
 		if (csp_rdp_close(conn) == 1)
@@ -269,7 +269,7 @@ int csp_close(csp_conn_t * conn) {
 	csp_conn_flush_rx_queue(conn);
 
     /* Reset RDP state */
-#if CSP_USE_RDP
+#ifdef CSP_USE_RDP
     if (conn->idin.flags & CSP_FRDP)
     	csp_rdp_flush_all(conn);
 #endif
@@ -280,7 +280,7 @@ int csp_close(csp_conn_t * conn) {
     return CSP_ERR_NONE;
 }
 
-csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport, unsigned int timeout, uint32_t opts) {
+csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport, uint32_t timeout, uint32_t opts) {
 
 	/* Generate identifier */
 	csp_id_t incoming_id, outgoing_id;
@@ -297,7 +297,7 @@ csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport, unsigned int
 
 	/* Set connection options */
 	if (opts & CSP_O_RDP) {
-#if CSP_USE_RDP
+#ifdef CSP_USE_RDP
 		incoming_id.flags |= CSP_FRDP;
 		outgoing_id.flags |= CSP_FRDP;
 #else
@@ -307,7 +307,7 @@ csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport, unsigned int
 	}
 
 	if (opts & CSP_O_HMAC) {
-#if CSP_ENABLE_HMAC
+#ifdef CSP_ENABLE_HMAC
 		outgoing_id.flags |= CSP_FHMAC;
 		incoming_id.flags |= CSP_FHMAC;
 #else
@@ -317,7 +317,7 @@ csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport, unsigned int
 	}
 
 	if (opts & CSP_O_XTEA) {
-#if CSP_ENABLE_XTEA
+#ifdef CSP_ENABLE_XTEA
 		outgoing_id.flags |= CSP_FXTEA;
 		incoming_id.flags |= CSP_FXTEA;
 #else
@@ -327,7 +327,7 @@ csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport, unsigned int
 	}
 
 	if (opts & CSP_O_CRC32) {
-#if CSP_ENABLE_CRC32
+#ifdef CSP_ENABLE_CRC32
 		outgoing_id.flags |= CSP_FCRC32;
 		incoming_id.flags |= CSP_FCRC32;
 #else
@@ -374,7 +374,7 @@ csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport, unsigned int
     /* Set connection options */
     conn->conn_opts = opts;
 
-#if CSP_USE_RDP
+#ifdef CSP_USE_RDP
     /* Call Transport Layer connect */
     if (outgoing_id.flags & CSP_FRDP) {
 		/* If the transport layer has failed to connect
@@ -421,7 +421,7 @@ inline int csp_conn_flags(csp_conn_t * conn) {
 
 }
 
-#if CSP_DEBUG
+#ifdef CSP_DEBUG
 void csp_conn_print_table(void) {
 
 	int i;
@@ -432,7 +432,7 @@ void csp_conn_print_table(void) {
 		printf("[%02u %p] S:%u, %u -> %u, %u -> %u, sock: %p\r\n",
 				i, conn, conn->state, conn->idin.src, conn->idin.dst,
 				conn->idin.dport, conn->idin.sport, conn->rx_socket);
-#if CSP_USE_RDP
+#ifdef CSP_USE_RDP
 		if (conn->idin.flags & CSP_FRDP)
 			csp_rdp_conn_print(conn);
 #endif

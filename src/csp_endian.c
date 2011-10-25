@@ -21,31 +21,17 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <stdint.h>
 
 /* CSP includes */
+#include <csp/csp.h>
 #include <csp/csp_endian.h>
-
-/*
- * These functions are declared __const__, so the compiler
- * should identify their return value as a runtime constant
- */
-
-static inline int __attribute__ ((__const__)) csp_host_be(void) {
-    static union {
-        uint32_t i;
-        uint8_t c[4];
-    } un = {0x11223344};
-
-    /* Return 1 on big endian archs and 0 on little endian */
-    return un.c[0] == 0x11;
-} 
 
 /* Convert 16-bit number from host byte order to network byte order */
 inline uint16_t __attribute__ ((__const__)) csp_hton16(uint16_t h16) {
-	if (csp_host_be()) {
-		return h16;
-	} else {
-		return (((h16 & 0xff00) >> 8) |
-				((h16 & 0x00ff) << 8));
-	}
+#ifdef _CSP_BIG_ENDIAN_
+	return h16;
+#else
+	return (((h16 & 0xff00) >> 8) |
+			((h16 & 0x00ff) << 8));
+#endif
 }
 
 /* Convert 16-bit number from network byte order to host byte order */
@@ -55,14 +41,14 @@ inline uint16_t __attribute__ ((__const__)) csp_ntoh16(uint16_t n16) {
 
 /* Convert 32-bit number from host byte order to network byte order */
 inline uint32_t __attribute__ ((__const__)) csp_hton32(uint32_t h32) {
-	if (csp_host_be()) {
-		return h32;
-	} else {
-		return (((h32 & 0xff000000) >> 24) |
-				((h32 & 0x000000ff) << 24) |
-				((h32 & 0x0000ff00) <<  8) |
-				((h32 & 0x00ff0000) >>  8));
-	}
+#ifdef _CSP_BIG_ENDIAN_
+	return h32;
+#else
+	return (((h32 & 0xff000000) >> 24) |
+			((h32 & 0x000000ff) << 24) |
+			((h32 & 0x0000ff00) <<  8) |
+			((h32 & 0x00ff0000) >>  8));
+#endif
 }
 
 /* Convert 32-bit number from network byte order to host byte order */
@@ -72,18 +58,18 @@ inline uint32_t __attribute__ ((__const__)) csp_ntoh32(uint32_t n32) {
 
 /* Convert 64-bit number from host byte order to network byte order */
 inline uint64_t __attribute__ ((__const__)) csp_hton64(uint64_t h64) {
-	if (csp_host_be()) {
-		return h64;
-	} else {
-		return (((h64 & 0xff00000000000000LL) >> 56) |
-				((h64 & 0x00000000000000ffLL) << 56) |
-				((h64 & 0x00ff000000000000LL) >> 40) |
-				((h64 & 0x000000000000ff00LL) << 40) |
-				((h64 & 0x0000ff0000000000LL) >> 24) |
-				((h64 & 0x0000000000ff0000LL) << 24) |
-				((h64 & 0x000000ff00000000LL) >>  8) |
-				((h64 & 0x00000000ff000000LL) <<  8));
-	}
+#ifdef _CSP_BIG_ENDIAN_
+	return h64;
+#else
+	return (((h64 & 0xff00000000000000LL) >> 56) |
+			((h64 & 0x00000000000000ffLL) << 56) |
+			((h64 & 0x00ff000000000000LL) >> 40) |
+			((h64 & 0x000000000000ff00LL) << 40) |
+			((h64 & 0x0000ff0000000000LL) >> 24) |
+			((h64 & 0x0000000000ff0000LL) << 24) |
+			((h64 & 0x000000ff00000000LL) >>  8) |
+			((h64 & 0x00000000ff000000LL) <<  8));
+#endif
 }
 
 /* Convert 64-bit number from host byte order to network byte order */
@@ -98,12 +84,12 @@ inline uint16_t __attribute__ ((__const__)) csp_htobe16(uint16_t h16) {
 
 /* Convert 16-bit number from host byte order to little endian byte order */
 inline uint16_t __attribute__ ((__const__)) csp_htole16(uint16_t h16) {
-	if (!csp_host_be()) {
-		return h16;
-	} else {
-		return (((h16 & 0xff00) >> 8) |
-				((h16 & 0x00ff) << 8));
-	}
+#ifdef _CSP_LITTLE_ENDIAN_
+	return h16;
+#else
+	return (((h16 & 0xff00) >> 8) |
+			((h16 & 0x00ff) << 8));
+#endif
 }
 
 /* Convert 16-bit number from big endian byte order to little endian byte order */
@@ -123,14 +109,14 @@ inline uint32_t __attribute__ ((__const__)) csp_htobe32(uint32_t h32) {
 
 /* Convert 32-bit number from little endian byte order to host byte order */
 inline uint32_t __attribute__ ((__const__)) csp_htole32(uint32_t h32) {
-	if (!csp_host_be()) {
-		return h32;
-	} else {
-		return (((h32 & 0xff000000) >> 24) |
-				((h32 & 0x000000ff) << 24) |
-				((h32 & 0x0000ff00) <<  8) |
-				((h32 & 0x00ff0000) >>  8));
-	}
+#ifdef _CSP_LITTLE_ENDIAN_
+	return h32;
+#else
+	return (((h32 & 0xff000000) >> 24) |
+			((h32 & 0x000000ff) << 24) |
+			((h32 & 0x0000ff00) <<  8) |
+			((h32 & 0x00ff0000) >>  8));
+#endif
 }
 
 /* Convert 32-bit number from big endian byte order to host byte order */
@@ -150,18 +136,18 @@ inline uint64_t __attribute__ ((__const__)) csp_htobe64(uint64_t h64) {
 
 /* Convert 64-bit number from host byte order to little endian byte order */
 inline uint64_t __attribute__ ((__const__)) csp_htole64(uint64_t h64) {
-	if (!csp_host_be()) {
-		return h64;
-	} else {
-		return (((h64 & 0xff00000000000000LL) >> 56) |
-				((h64 & 0x00000000000000ffLL) << 56) |
-				((h64 & 0x00ff000000000000LL) >> 40) |
-				((h64 & 0x000000000000ff00LL) << 40) |
-				((h64 & 0x0000ff0000000000LL) >> 24) |
-				((h64 & 0x0000000000ff0000LL) << 24) |
-				((h64 & 0x000000ff00000000LL) >>  8) |
-				((h64 & 0x00000000ff000000LL) <<  8));
-	}
+#ifdef _CSP_LITTLE_ENDIAN_
+	return h64;
+#else
+	return (((h64 & 0xff00000000000000LL) >> 56) |
+			((h64 & 0x00000000000000ffLL) << 56) |
+			((h64 & 0x00ff000000000000LL) >> 40) |
+			((h64 & 0x000000000000ff00LL) << 40) |
+			((h64 & 0x0000ff0000000000LL) >> 24) |
+			((h64 & 0x0000000000ff0000LL) << 24) |
+			((h64 & 0x000000ff00000000LL) >>  8) |
+			((h64 & 0x00000000ff000000LL) <<  8));
+#endif
 }
 
 /* Convert 64-bit number from big endian byte order to host byte order */

@@ -18,8 +18,8 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef CSP_TRANSPORT_H_
-#define CSP_TRANSPORT_H_
+#ifndef _CSP_TRANSPORT_H_
+#define _CSP_TRANSPORT_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -30,11 +30,11 @@ void csp_udp_new_packet(csp_conn_t * conn, csp_packet_t * packet);
 void csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet);
 
 /** RDP: USER REQUESTS */
-int csp_rdp_connect(csp_conn_t * conn, unsigned int timeout);
+int csp_rdp_connect(csp_conn_t * conn, uint32_t timeout);
 int csp_rdp_allocate(csp_conn_t * conn);
 int csp_rdp_close(csp_conn_t * conn);
 void csp_rdp_conn_print(csp_conn_t * conn);
-int csp_rdp_send(csp_conn_t * conn, csp_packet_t * packet, unsigned int timeout);
+int csp_rdp_send(csp_conn_t * conn, csp_packet_t * packet, uint32_t timeout);
 int csp_rdp_check_ack(csp_conn_t * conn);
 void csp_rdp_check_timeouts(csp_conn_t * conn);
 void csp_rdp_flush_all(csp_conn_t * conn);
@@ -43,4 +43,4 @@ void csp_rdp_flush_all(csp_conn_t * conn);
 } /* extern "C" */
 #endif
 
-#endif /* CSP_TRANSPORT_H_ */
+#endif /* _CSP_TRANSPORT_H_ */

@@ -23,8 +23,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <inttypes.h>
 
 #include <csp/csp.h>
+#include <csp/csp_endian.h>
 
-#if CSP_ENABLE_CRC32
+#ifdef CSP_ENABLE_CRC32
 
 #define CSP_CRC32_POLY 0x82F63B78L
 
@@ -64,10 +65,11 @@ int csp_crc32_append(csp_packet_t * packet) {
 	if (packet == NULL)
 		return -1;
 
-	/* Calculate CRC32 */
+	/* Calculate CRC32, convert to network byte order */
 	crc = csp_crc32_memory(packet->data, packet->length);
+	crc = csp_hton32(crc);
 
-	/* Truncate hash and copy to packet */
+	/* Copy checksum to packet */
 	memcpy(&packet->data[packet->length], &crc, sizeof(uint32_t));
 	packet->length += sizeof(uint32_t);
 
@@ -83,10 +85,11 @@ int csp_crc32_verify(csp_packet_t * packet) {
 	if (packet == NULL)
 		return -1;
 
-	/* Calculate CRC32 */
+	/* Calculate CRC32, convert to network byte order */
 	crc = csp_crc32_memory(packet->data, packet->length - sizeof(uint32_t));
+	crc = csp_hton32(crc);
 
-	/* Compare calculated HMAC with packet header */
+	/* Compare calculated checksum with packet header */
 	if (memcmp(&packet->data[packet->length] - sizeof(uint32_t), &crc, sizeof(uint32_t)) != 0) {
 		/* CRC32 failed */
 		return -1;

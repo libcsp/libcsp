@@ -18,32 +18,51 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef _CSP_QUEUE_H_
-#define _CSP_QUEUE_H_
+#ifndef _CSP_CMP_H_
+#define _CSP_CMP_H_
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define CSP_QUEUE_FULL 0
-#define CSP_QUEUE_ERROR 0
-#define CSP_QUEUE_OK 1
-typedef void * csp_queue_handle_t;
-
 #include <stdint.h>
 #include <csp/csp.h>
 
-csp_queue_handle_t csp_queue_create(int length, size_t item_size);
-void csp_queue_remove(csp_queue_handle_t queue);
-int csp_queue_enqueue(csp_queue_handle_t handle, void *value, uint32_t timeout);
-int csp_queue_enqueue_isr(csp_queue_handle_t handle, void * value, CSP_BASE_TYPE * task_woken);
-int csp_queue_dequeue(csp_queue_handle_t handle, void *buf, uint32_t timeout);
-int csp_queue_dequeue_isr(csp_queue_handle_t handle, void * buf, CSP_BASE_TYPE * task_woken);
-int csp_queue_size(csp_queue_handle_t handle);
-int csp_queue_size_isr(csp_queue_handle_t handle);
+#define CSP_CMP_REQUEST 0x00
+#define CSP_CMP_REPLY   0xff
+
+#define CSP_CMP_IDENT 1
+#define CSP_CMP_IDENT_REV_LEN  9
+#define CSP_CMP_IDENT_DATE_LEN 12
+#define CSP_CMP_IDENT_TIME_LEN 9
+
+struct csp_cmp_message {
+	uint8_t type;
+	uint8_t code;
+	union {
+		struct {
+			char hostname[CSP_HOSTNAME_LEN];
+			char model[CSP_MODEL_LEN];
+			char revision[CSP_CMP_IDENT_REV_LEN];
+			char date[CSP_CMP_IDENT_DATE_LEN];
+			char time[CSP_CMP_IDENT_TIME_LEN];
+		} ident;
+	};
+} __attribute__ ((packed));
+
+#define CMP_SIZE(_memb) (sizeof(((struct csp_cmp_message *)0)->_memb) + sizeof(uint8_t) + sizeof(uint8_t))
+
+int csp_cmp(uint8_t node, uint32_t timeout, uint8_t code, int membsize, struct csp_cmp_message * msg);
+
+#define CMP_MESSAGE(_code, _memb) \
+static inline int csp_cmp_##_memb(uint8_t node, uint32_t timeout, struct csp_cmp_message * msg) { \
+	return csp_cmp(node, timeout, _code, CMP_SIZE(_memb), msg); \
+}
+
+CMP_MESSAGE(CSP_CMP_IDENT, ident);
 
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
 
-#endif // _CSP_QUEUE_H_
+#endif // _CSP_CMP_H_

@@ -25,9 +25,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 /* CSP includes */
 #include <csp/csp.h>
-#include <csp/csp_config.h>
 
-#if CSP_DEBUG
+#ifdef CSP_DEBUG
 
 /* Custom debug function */
 csp_debug_hook_func_t csp_debug_hook_func = NULL;

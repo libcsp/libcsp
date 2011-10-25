@@ -24,11 +24,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 /* CSP includes */
 #include <csp/csp.h>
+#include <csp/csp_cmp.h>
 #include <csp/csp_endian.h>
 
 #include "arch/csp_time.h"
 
-int csp_ping(uint8_t node, unsigned int timeout, unsigned int size, uint8_t conn_options) {
+int csp_ping(uint8_t node, uint32_t timeout, unsigned int size, uint8_t conn_options) {
 
 	int i;
 	uint32_t start, time, status = 0;
@@ -120,7 +121,7 @@ void csp_reboot(uint8_t node) {
 	csp_transaction(CSP_PRIO_NORM, node, CSP_REBOOT, 0, &magic_word, sizeof(magic_word), NULL, 0);
 }
 
-void csp_ps(uint8_t node, unsigned int timeout) {
+void csp_ps(uint8_t node, uint32_t timeout) {
 
 	/* Open connection */
 	csp_conn_t * conn = csp_connect(CSP_PRIO_NORM, node, CSP_PS, 0, 0);
@@ -163,7 +164,7 @@ out:
 
 }
 
-void csp_memfree(uint8_t node, unsigned int timeout) {
+void csp_memfree(uint8_t node, uint32_t timeout) {
 
 	uint32_t memfree;
 
@@ -180,7 +181,7 @@ void csp_memfree(uint8_t node, unsigned int timeout) {
 
 }
 
-void csp_buf_free(uint8_t node, unsigned int timeout) {
+void csp_buf_free(uint8_t node, uint32_t timeout) {
 
 	uint32_t size = 0;
 
@@ -194,7 +195,7 @@ void csp_buf_free(uint8_t node, unsigned int timeout) {
 
 }
 
-void csp_uptime(uint8_t node, unsigned int timeout) {
+void csp_uptime(uint8_t node, uint32_t timeout) {
 
 	uint32_t uptime = 0;
 
@@ -207,3 +208,15 @@ void csp_uptime(uint8_t node, unsigned int timeout) {
 	printf("Uptime of node %u is %u s\r\n", (unsigned int) node, (unsigned int) uptime);
 
 }
+
+int csp_cmp(uint8_t node, uint32_t timeout, uint8_t code, int membsize, struct csp_cmp_message * msg) {
+    msg->type = CSP_CMP_REQUEST;
+    msg->code = code;
+    int status = csp_transaction(CSP_PRIO_NORM, node, CSP_CMP, timeout, msg, 
+                          sizeof(uint8_t) + sizeof(uint8_t), msg, membsize);
+	if (status == 0)
+		return CSP_ERR_TIMEDOUT;
+
+    return CSP_ERR_NONE;
+}
+

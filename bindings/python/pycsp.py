@@ -269,7 +269,7 @@ csp_bind.argtypes = [ctypes.POINTER(csp_socket_t), ctypes.c_uint8]
 csp_bind.restype = ctypes.c_int
 
 # csp_route.c
-#typedef int (*nexthop_t)(csp_id_t idout, csp_packet_t * packet, unsigned int timeout);
+#typedef int (*nexthop_t)(csp_id_t idout, csp_packet_t * packet, uint32_t timeout);
 
 csp_route_set = libcsp.csp_route_set
 # TODO, add argtypes (i.e. figure out how to define function pointer)

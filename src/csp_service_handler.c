@@ -24,6 +24,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 /* CSP includes */
 #include <csp/csp.h>
+#include <csp/csp_cmp.h>
 #include <csp/csp_endian.h>
 #include <csp/csp_platform.h>
 
@@ -33,18 +34,58 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #ifdef _CSP_POSIX_
 #include <sys/sysinfo.h>
 #endif
-
 #ifdef _CSP_WINDOWS_
 #include <Windows.h>
 #endif
 
-#ifdef _CSP_WINDOWS_
-static size_t get_free_memory_windows();
-#endif
+/* CSP Management Protocol handler */
+int csp_cmp_handler(csp_conn_t * conn, csp_packet_t * packet) {
+
+    struct csp_cmp_message * cmp = (struct csp_cmp_message *) packet->data;
+
+    /* Ignore everything but requests */
+    if (cmp->type != CSP_CMP_REQUEST)
+        return CSP_ERR_INVAL;
+
+    switch (cmp->code) {
+
+    case CSP_CMP_IDENT: {
+        cmp->type = CSP_CMP_REPLY;
+
+        strncpy(cmp->ident.revision, GIT_REV, CSP_CMP_IDENT_REV_LEN);
+        cmp->ident.revision[CSP_CMP_IDENT_REV_LEN - 1] = '\0';
+        strncpy(cmp->ident.date, __DATE__, CSP_CMP_IDENT_DATE_LEN);
+        cmp->ident.date[CSP_CMP_IDENT_DATE_LEN - 1] = '\0';
+        strncpy(cmp->ident.time, __TIME__, CSP_CMP_IDENT_TIME_LEN);
+        cmp->ident.time[CSP_CMP_IDENT_TIME_LEN - 1] = '\0';
+        strncpy(cmp->ident.hostname, csp_get_hostname(), CSP_HOSTNAME_LEN);
+        cmp->ident.hostname[CSP_HOSTNAME_LEN - 1] = '\0';
+        strncpy(cmp->ident.model, csp_get_model(), CSP_MODEL_LEN);
+        cmp->ident.model[CSP_MODEL_LEN - 1] = '\0';
+
+        packet->length = CMP_SIZE(ident);
+        
+        break;
+    }
+    
+    default:
+        return CSP_ERR_INVAL;
+    }
+
+    return CSP_ERR_NONE;
+}
 
 void csp_service_handler(csp_conn_t * conn, csp_packet_t * packet) {
 
 	switch (csp_conn_dport(conn)) {
+
+    /* Pass to CMP handler */
+    case CSP_CMP:
+        if (csp_cmp_handler(conn, packet) != CSP_ERR_NONE) {
+            csp_buffer_free(packet);
+            return;
+        }
+        break;
 
 	/* A ping means, just echo the packet, so no changes */
 	case CSP_PING:
@@ -56,12 +97,12 @@ void csp_service_handler(csp_conn_t * conn, csp_packet_t * packet) {
 #if defined(_CSP_FREERTOS_)
 		vTaskList((signed portCHAR *) packet->data);
 #elif defined(_CSP_POSIX_)
-        strcpy((char *)packet->data, "Tasklist in not available on posix");
+		strcpy((char *)packet->data, "Tasklist in not available on posix");
 #elif defined(_CSP_WINDOWS_)
 		strcpy((char *)packet->data, "Tasklist in not available on windows");
 #endif
-        packet->length = strlen((char *)packet->data);
-        packet->data[packet->length] = '\0';
+		packet->length = strlen((char *)packet->data);
+		packet->data[packet->length] = '\0';
 		packet->length++;
         break;
     }
@@ -89,11 +130,15 @@ void csp_service_handler(csp_conn_t * conn, csp_packet_t * packet) {
 #elif defined(_CSP_POSIX_)
 		/* Read system statistics */
 		size_t total = 0;
-        struct sysinfo info;
-        sysinfo(&info);
-        total = info.freeram * info.mem_unit;
+		struct sysinfo info;
+		sysinfo(&info);
+		total = info.freeram * info.mem_unit;
 #elif defined(_CSP_WINDOWS_)
-		size_t total = get_free_memory_windows();
+		MEMORYSTATUSEX statex;
+		statex.dwLength = sizeof(statex);
+		GlobalMemoryStatusEx(&statex);
+		DWORDLONG freePhysicalMem = statex.ullAvailPhys;
+		size_t total = (size_t) freePhysicalMem;
 #endif
 
 		/* Prepare for network transmission */
@@ -161,12 +206,3 @@ void csp_service_handler(csp_conn_t * conn, csp_packet_t * packet) {
 
 }
 
-#ifdef _CSP_WINDOWS_
-static size_t get_free_memory_windows() {
-	MEMORYSTATUSEX statex;
-	statex.dwLength = sizeof(statex);
-	GlobalMemoryStatusEx(&statex);
-	DWORDLONG freePhysicalMem = statex.ullAvailPhys;
-	return freePhysicalMem;
-}
-#endif

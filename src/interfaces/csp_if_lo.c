@@ -41,7 +41,7 @@ csp_iface_t csp_if_lo = {
  * @param timeout Timout in ms
  * @return 1 if packet was successfully transmitted, 0 on error
  */
-int csp_lo_tx(csp_packet_t * packet, unsigned int timeout) {
+int csp_lo_tx(csp_packet_t * packet, uint32_t timeout) {
 
 	/* Send back into CSP, notice calling from task so last argument must be NULL! */
 	csp_new_packet(packet, &csp_if_lo, NULL);

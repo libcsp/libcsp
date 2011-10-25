@@ -25,7 +25,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 /* CSP includes */
 #include <csp/csp.h>
 #include <csp/csp_error.h>
-#include <csp/csp_config.h>
 
 #include "arch/csp_malloc.h"
 #include "arch/csp_semaphore.h"
@@ -35,7 +34,7 @@ typedef enum csp_buffer_state_t {
 	CSP_BUFFER_USED	= 1,
 } csp_buffer_state_t;
 
-#if CSP_BUFFER_STATIC
+#ifdef CSP_BUFFER_STATIC
 	typedef struct { uint8_t data[CSP_BUFFER_SIZE]; } csp_buffer_element_t;
 	static csp_buffer_element_t csp_buffer[CSP_BUFFER_COUNT];
 	static csp_buffer_state csp_buffer_list[CSP_BUFFER_COUNT];
@@ -55,7 +54,7 @@ static csp_bin_sem_handle_t csp_critical_lock;
 
 int csp_buffer_init(int buf_count, int buf_size) {
 
-#if CSP_BUFFER_STATIC == 0
+#ifndef CSP_BUFFER_STATIC
 	/* Remember size */
 	count = buf_count;
 	size = buf_size;
@@ -109,9 +108,6 @@ void * csp_buffer_get_isr(size_t buf_size) {
 		if (csp_buffer_list[i] == CSP_BUFFER_FREE) { // Check the buffer list
 			csp_buffer_list[i] = CSP_BUFFER_USED; // Mark as used
 			csp_buffer_last_given = i; // Remember the progress
-#if CSP_BUFFER_CALLOC
-			memset(csp_buffer_p + (i * size), 0x00, size);
-#endif
 			csp_debug(CSP_BUFFER, "BUFFER: Using element %u at %p\r\n", i, csp_buffer_p + (i * size));
 			return csp_buffer_p + (i * size); // Return poniter
 		}
@@ -179,7 +175,7 @@ int csp_buffer_remaining(void) {
 	return buf_count;
 }
 
-#if CSP_DEBUG
+#ifdef CSP_DEBUG
 void csp_buffer_print_table(void) {
 	int i;
 	csp_packet_t * packet;

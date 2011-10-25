@@ -25,12 +25,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 /* CSP includes */
 #include <csp/csp.h>
-#include <csp/csp_config.h>
+#include <csp/csp_endian.h>
 
 #include "csp_sha1.h"
 #include "csp_xtea.h"
 
-#if CSP_ENABLE_XTEA
+#ifdef CSP_ENABLE_XTEA
 
 #define XTEA_BLOCKSIZE 	8
 #define XTEA_ROUNDS 	32
@@ -39,16 +39,37 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 /* XTEA key */
 static uint32_t csp_xtea_key[XTEA_KEY_LENGTH/sizeof(uint32_t)] __attribute__ ((aligned(sizeof(uint32_t))));
 
-/* This function takes 64 bits of data in block[0] and block[1] and the 128 bits key in key[0] - key[3] */
-static inline void csp_xtea_encrypt_block(uint32_t block[2], uint32_t const key[4]) {
+#define STORE32L(x, y) do { (y)[3] = (uint8_t)(((x) >> 24) & 0xff); \
+                            (y)[2] = (uint8_t)(((x) >> 16) & 0xff); \
+                            (y)[1] = (uint8_t)(((x) >> 8) & 0xff); \
+                            (y)[0] = (uint8_t)(((x) >> 0) & 0xff); } while (0)
 
-	uint32_t i, v0 = block[0], v1 = block[1], delta = 0x9E3779B9, sum = 0;
-	for (i = 0; i < XTEA_ROUNDS; i++) {
-		v0 += (((v1 << 4) ^ (v1 >> 5)) + v1) ^ (sum + key[sum & 3]);
-		sum += delta;
-		v1 += (((v0 << 4) ^ (v0 >> 5)) + v0) ^ (sum + key[(sum >> 11) & 3]);
-	}
-	block[0] = v0; block[1] = v1;
+#define LOAD32L(x, y) do { (x) = ((uint32_t)((y)[3] & 0xff) << 24) | \
+                                 ((uint32_t)((y)[2] & 0xff) << 16) | \
+                                 ((uint32_t)((y)[1] & 0xff) << 8)  | \
+                                 ((uint32_t)((y)[0] & 0xff) << 0); } while (0)
+
+/* This function takes 64 bits of data in block and the 128 bits key in key */
+static inline void csp_xtea_encrypt_block(uint8_t *block, uint8_t const *key) {
+
+    uint32_t i, v0, v1, delta = 0x9E3779B9, sum = 0, k[4];
+
+    LOAD32L(k[0], &key[0]);
+    LOAD32L(k[1], &key[4]);
+    LOAD32L(k[2], &key[8]);
+    LOAD32L(k[3], &key[12]);
+
+    LOAD32L(v0, &block[0]);
+    LOAD32L(v1, &block[4]);
+
+    for (i = 0; i < XTEA_ROUNDS; i++) {
+        v0 += (((v1 << 4) ^ (v1 >> 5)) + v1) ^ (sum + k[sum & 3]);
+        sum += delta;
+        v1 += (((v0 << 4) ^ (v0 >> 5)) + v0) ^ (sum + k[(sum >> 11) & 3]);
+    }
+
+    STORE32L(v0, &block[0]);
+    STORE32L(v1, &block[4]);
 
 }
 
@@ -82,25 +103,22 @@ int csp_xtea_encrypt(uint8_t * plain, const uint32_t len, uint32_t iv[2]) {
 	uint32_t remain;
 
 	/* Initialize stream */
-	stream[0] = iv[0];
-	stream[1] = iv[1];
+	stream[0] = csp_htobe32(iv[0]);
+	stream[1] = csp_htobe32(iv[1]);
 
 	for (i = 0; i < blocks; i++) {
 		/* Create stream */
-		csp_xtea_encrypt_block(stream, csp_xtea_key);
+		csp_xtea_encrypt_block((uint8_t *)stream, (uint8_t *)csp_xtea_key);
 
 		/* Calculate remaining bytes */
 		remain = len - i * XTEA_BLOCKSIZE;
 
 		/* XOR plain text with stream to generate cipher text */
-		if (remain < XTEA_BLOCKSIZE)
-			csp_xtea_xor_byte(&plain[len - remain], (uint8_t *)stream, remain);
-		else
-			csp_xtea_xor_byte(&plain[len - remain], (uint8_t *)stream, XTEA_BLOCKSIZE);
+		csp_xtea_xor_byte(&plain[len - remain], (uint8_t *)stream, remain < XTEA_BLOCKSIZE ? remain : XTEA_BLOCKSIZE);
 
 		/* Increment counter */
-		stream[0] = iv[0];
-		stream[1] = ++iv[1];
+		stream[0] = csp_htobe32(iv[0]);
+		stream[1] = csp_htobe32(iv[1]++);
 	}
 
 	return 0;
