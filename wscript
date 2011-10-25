@@ -24,10 +24,14 @@ import os
 APPNAME = 'libcsp'
 VERSION = '1.0'
 
+top	= '../'
+out	= 'build'
+
 def options(ctx):
 	# Load GCC options
 	ctx.load('gcc')
-	ctx.load('eclipse', tooldir='tools')
+	if os.path.exists('../tools/eclipse.py'):
+		ctx.load('eclipse', tooldir='../tools/')
 	
 	ctx.add_option('--toolchain', default='', help='Set toolchain prefix')
 
