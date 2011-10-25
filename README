@@ -8,7 +8,7 @@ containing both transport and network-layer information. Its implementation is
 designed for, but not limited to, embedded systems such as the 8-bit AVR 
 microprocessor and the 32-bit ARM and AVR from Atmel. The implementation is 
 written in GNU C and is currently ported to run on FreeRTOS or POSIX operating 
-systems like Linux and BSD.
+systems such as Linux.
 
 The three letter acronym CSP was originally an abbreviation for CAN Space 
 Protocol because the first MAC-layer driver was written for CAN-bus. The 

@@ -53,7 +53,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../arch/csp_semaphore.h"
 #include "../arch/csp_time.h"
 
-#include "can/can.h"
+#include "../drivers/can/can.h"
 
 /** Interface definition */
 csp_iface_t csp_if_can = {
