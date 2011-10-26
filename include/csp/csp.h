@@ -579,14 +579,8 @@ typedef enum {
 #define csp_assert(...) do {} while (0)
 #endif
 
-#if defined(_CSP_WINDOWS_)
-#define PATH_SEP    '\\'
-#else
-#define PATH_SEP    '/'
-#endif
-
 #if CSP_DEBUG
-#define csp_debug(level, format, ...) csp_debug_ex(level, "%"PRIu8" %s:%d " format, my_address, strrchr(__FILE__, PATH_SEP)+1, __LINE__, ##__VA_ARGS__)
+#define csp_debug(level, format, ...) csp_debug_ex(level, "%"PRIu8" %s:%d " format, my_address, strrchr(__FILE__, _CSP_PATH_SEP_)+1, __LINE__, ##__VA_ARGS__)
 typedef void (*csp_debug_hook_func_t)(csp_debug_level_t level, char * str);
 void csp_debug_ex(csp_debug_level_t level, const char * format, ...);
 
