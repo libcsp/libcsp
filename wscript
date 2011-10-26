@@ -59,7 +59,7 @@ def options(ctx):
 	gr.add_option('--with-rdp-max-window', type=int, default=20, help='Set maximum window size for RDP')
 	gr.add_option('--with-max-bind-port', type=int, default=31, help='Set maximum bindable port')
 	gr.add_option('--with-max-connections', type=int, default=10, help='Set maximum number of concurrent connections')
-	gr.add_option('--with-conn-queue-length', type=int, default=10, help='Set maximum number of packets in queue for a connection')
+	gr.add_option('--with-conn-queue-length', type=int, default=100, help='Set maximum number of packets in queue for a connection')
 	gr.add_option('--with-router-queue-length', type=int, default=10, help='Set maximum number of packets to be queued at the input of the router')
 	gr.add_option('--with-padding', type=int, default=8, help='Set padding bytes before packet length field')
 
