@@ -25,7 +25,6 @@ typedef struct windows_queue_s {
     CRITICAL_SECTION mutex;
     CONDITION_VARIABLE cond_full;
     CONDITION_VARIABLE cond_empty;
-    HANDLE event_interrupt;
 } windows_queue_t;
 
 windows_queue_t * windows_queue_create(int length, size_t item_size);
@@ -33,7 +32,6 @@ void windows_queue_delete(windows_queue_t * q);
 int windows_queue_enqueue(windows_queue_t * queue, void * value, int timeout);
 int windows_queue_dequeue(windows_queue_t * queue, void * buf, int timeout);
 int windows_queue_items(windows_queue_t * queue);
-void windows_queue_interrupt(windows_queue_t * queue);
 
 #ifdef __cplusplus
 } /* extern "C" */

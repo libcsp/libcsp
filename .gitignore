@@ -12,4 +12,5 @@ build
 ~*
 pdebug*
 *.tar*
-
+*.swp
+tags

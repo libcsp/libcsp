@@ -102,10 +102,14 @@ def configure(ctx):
 		ctx.define('_CSP_POSIX_', 1)
 	elif ctx.options.with_os == 'windows':
 		ctx.define('_CSP_WINDOWS_', 1)
-		ctx.define('D_WIN32_WINNT', '0x0600')
+		ctx.env.append_unique('CFLAGS_CSP', ['-D_WIN32_WINNT=0x0600'] + ctx.options.cflags.split(','))
 	else:
 		ctx.fatal('ARCH must be either \'posix\', \'windows\' or \'freertos\'')
 
+	if ctx.options.with_os == 'windows':
+		ctx.define('_CSP_PATH_SEP_',92)
+	else:
+		ctx.define('_CSP_PATH_SEP_',47);
 	# Add CAN driver
 	if ctx.options.with_can:
 		ctx.env.append_unique('FILES_CSP', 'src/interfaces/csp_if_can.c')
