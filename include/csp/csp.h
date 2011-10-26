@@ -580,7 +580,7 @@ typedef enum {
 #endif
 
 #if defined(_CSP_WINDOWS_)
-#define PATH_SEP    '/'
+#define PATH_SEP    '\\'
 #else
 #define PATH_SEP    '/'
 #endif
