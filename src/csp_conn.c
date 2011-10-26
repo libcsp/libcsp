@@ -106,12 +106,8 @@ int csp_conn_enqueue_packet(csp_conn_t * conn, csp_packet_t * packet) {
 int csp_conn_init(void) {
 
 	/* Initialize source port */
-#ifdef CSP_RANDOMIZE_EPHEM
 	srand(csp_get_ms());
 	sport = (rand() % (CSP_ID_PORT_MAX - CSP_MAX_BIND_PORT)) + (CSP_MAX_BIND_PORT + 1);
-#else
-	sport = CSP_MAX_BIND_PORT + 1;
-#endif
 
 	if (csp_bin_sem_create(&sport_lock) != CSP_SEMAPHORE_OK) {
 		csp_debug(CSP_ERROR, "No more memory for sport semaphore\r\n");
