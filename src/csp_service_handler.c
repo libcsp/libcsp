@@ -46,24 +46,32 @@ int csp_cmp_handler(csp_conn_t * conn, csp_packet_t * packet) {
 
 	switch (cmp->code) {
 
-	case CSP_CMP_IDENT: {
+	case CSP_CMP_IDENT:
 		cmp->type = CSP_CMP_REPLY;
 
+		/* Copy revision */
 		strncpy(cmp->ident.revision, GIT_REV, CSP_CMP_IDENT_REV_LEN);
 		cmp->ident.revision[CSP_CMP_IDENT_REV_LEN - 1] = '\0';
+
+		/* Copy compilation date */
 		strncpy(cmp->ident.date, __DATE__, CSP_CMP_IDENT_DATE_LEN);
 		cmp->ident.date[CSP_CMP_IDENT_DATE_LEN - 1] = '\0';
+
+		/* Copy compilation time */
 		strncpy(cmp->ident.time, __TIME__, CSP_CMP_IDENT_TIME_LEN);
 		cmp->ident.time[CSP_CMP_IDENT_TIME_LEN - 1] = '\0';
+
+		/* Copy hostname */
 		strncpy(cmp->ident.hostname, csp_get_hostname(), CSP_HOSTNAME_LEN);
 		cmp->ident.hostname[CSP_HOSTNAME_LEN - 1] = '\0';
+
+		/* Copy model name */
 		strncpy(cmp->ident.model, csp_get_model(), CSP_MODEL_LEN);
 		cmp->ident.model[CSP_MODEL_LEN - 1] = '\0';
 
 		packet->length = CMP_SIZE(ident);
 		
 		break;
-	}
 	
 	default:
 		return CSP_ERR_INVAL;
