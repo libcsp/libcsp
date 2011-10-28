@@ -27,10 +27,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../csp_malloc.h"
 
 void * csp_malloc(size_t size) {
-    return malloc(size);
+	return malloc(size);
 }
 
 void csp_free(void *ptr) {
-    free(ptr);
+	free(ptr);
 }
 

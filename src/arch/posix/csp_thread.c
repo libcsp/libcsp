@@ -27,5 +27,5 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../csp_thread.h"
 
 int csp_thread_create(csp_thread_return_t (* routine)(void *), const signed char * const thread_name, unsigned short stack_depth, void * parameters, unsigned int priority, csp_thread_handle_t * handle) {
-    return pthread_create(handle, NULL, routine, parameters);
+	return pthread_create(handle, NULL, routine, parameters);
 }

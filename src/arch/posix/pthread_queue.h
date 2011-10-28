@@ -42,15 +42,15 @@ extern "C" {
 #define PTHREAD_QUEUE_OK CSP_QUEUE_OK
 
 typedef struct pthread_queue_s {
-    void * buffer;
-    int size;
-    int item_size;
-    int items;
-    int in;
-    int out;
-    pthread_mutex_t mutex;
-    pthread_cond_t cond_full;
-    pthread_cond_t cond_empty;
+	void * buffer;
+	int size;
+	int item_size;
+	int items;
+	int in;
+	int out;
+	pthread_mutex_t mutex;
+	pthread_cond_t cond_full;
+	pthread_cond_t cond_empty;
 } pthread_queue_t;
 
 pthread_queue_t * pthread_queue_create(int length, size_t item_size);

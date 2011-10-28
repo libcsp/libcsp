@@ -193,21 +193,21 @@ typedef int (*nexthop_t)(csp_packet_t * packet, uint32_t timeout);
 
 /** Interface struct */
 typedef struct csp_iface_s {
-    const char * name;			/**< Interface name */
-    nexthop_t nexthop; 			/**< Next hop function */
-    uint8_t promisc;			/**< Promiscuous mode enabled */
-    uint16_t mtu;				/**< Maximum Transmission Unit of interface */
-    uint8_t split_horizon_off;	/**< Disable the route-loop prevention on if */
-    uint32_t tx;				/**< Successfully transmitted packets */
-    uint32_t rx;				/**< Successfully received packets */
-    uint32_t tx_error;			/**< Transmit errors */
-    uint32_t rx_error;			/**< Receive errors */
-    uint32_t drop;				/**< Dropped packets */
-    uint32_t autherr; 			/**< Authentication errors */
-    uint32_t frame;				/**< Frame format errors */
-    uint32_t txbytes;			/**< Transmitted bytes */
-    uint32_t rxbytes;			/**< Received bytes */
-    struct csp_iface_s * next;	/**< Next interface */
+	const char * name;			/**< Interface name */
+	nexthop_t nexthop; 			/**< Next hop function */
+	uint8_t promisc;			/**< Promiscuous mode enabled */
+	uint16_t mtu;				/**< Maximum Transmission Unit of interface */
+	uint8_t split_horizon_off;	/**< Disable the route-loop prevention on if */
+	uint32_t tx;				/**< Successfully transmitted packets */
+	uint32_t rx;				/**< Successfully received packets */
+	uint32_t tx_error;			/**< Transmit errors */
+	uint32_t rx_error;			/**< Receive errors */
+	uint32_t drop;				/**< Dropped packets */
+	uint32_t autherr; 			/**< Authentication errors */
+	uint32_t frame;				/**< Frame format errors */
+	uint32_t txbytes;			/**< Transmitted bytes */
+	uint32_t rxbytes;			/**< Received bytes */
+	struct csp_iface_s * next;	/**< Next interface */
 } csp_iface_t;
 
 /**

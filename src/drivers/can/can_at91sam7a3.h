@@ -33,38 +33,38 @@ extern "C" {
 
 /** CAN Channel Structure */
 typedef struct {
-   uint32_t     MMR;     		 	/* Mailbox Mode Register                */
-   uint32_t     MAM;                /* Mailbox Acceptance Mask Register     */
-   uint32_t     MID;                /* Mailbox ID Register             		*/
-   uint32_t     MFID;               /* Mailbox Family ID Register    		*/
-   uint32_t     MSR;          		/* Mailbox Status Register            	*/
-   uint32_t     MDL;                /* Mailbox Data Low Register         	*/
-   uint32_t     MDH;                /* Mailbox Date High Register          	*/
-   uint32_t     MCR;          		/* Mailbox Control Register        		*/
+   uint32_t	 MMR;	 		 	/* Mailbox Mode Register				*/
+   uint32_t	 MAM;				/* Mailbox Acceptance Mask Register	 */
+   uint32_t	 MID;				/* Mailbox ID Register			 		*/
+   uint32_t	 MFID;			   /* Mailbox Family ID Register			*/
+   uint32_t	 MSR;		  		/* Mailbox Status Register				*/
+   uint32_t	 MDL;				/* Mailbox Data Low Register		 	*/
+   uint32_t	 MDH;				/* Mailbox Date High Register		  	*/
+   uint32_t	 MCR;		  		/* Mailbox Control Register				*/
 } volatile can_channel_t;
 
 /** CAN Controller Structure 16 Channels */
 typedef struct {
-   uint32_t  MR;					/* Mode Register                       	*/
-   uint32_t  IER;            		/* Interrupt Enable Register          	*/
-   uint32_t  IDR;            		/* Interrupt Disable Register         	*/
-   uint32_t  IMR;            		/* Interrupt Mask Register            	*/
-   uint32_t  SR;             		/* Status Register                  	*/
-   uint32_t  BR;             		/* Baudrate Register                    */
-   uint32_t  TIM;            		/* Timer Register                      	*/
-   uint32_t  TIMESTP;          		/* Timestamp Register               	*/
-   uint32_t  ECR;             		/* Error Counter Register         		*/
-   uint32_t  TCR;            		/* Tranfer Counter Register            	*/
-   uint32_t  ACR;            		/* Abort Command Register           	*/
-   uint32_t  Reserved[117];         /* Reserved         					*/
-   can_channel_t CHANNEL[16]; 		/* CAN Channels                       	*/
+   uint32_t  MR;					/* Mode Register					   	*/
+   uint32_t  IER;					/* Interrupt Enable Register		  	*/
+   uint32_t  IDR;					/* Interrupt Disable Register		 	*/
+   uint32_t  IMR;					/* Interrupt Mask Register				*/
+   uint32_t  SR;			 		/* Status Register				  	*/
+   uint32_t  BR;			 		/* Baudrate Register					*/
+   uint32_t  TIM;					/* Timer Register					  	*/
+   uint32_t  TIMESTP;		  		/* Timestamp Register			   	*/
+   uint32_t  ECR;			 		/* Error Counter Register		 		*/
+   uint32_t  TCR;					/* Tranfer Counter Register				*/
+   uint32_t  ACR;					/* Abort Command Register		   	*/
+   uint32_t  Reserved[117];		 /* Reserved		 					*/
+   can_channel_t CHANNEL[16]; 		/* CAN Channels					   	*/
 } volatile can_controller_t;
 
 /** CAN Mode Register: MR */
-#define  CANEN    	(0x01 << 0)   	/* CAN Controller Enable            	*/
-#define  LPM     	(0x01 << 1)   	/* Disable/Enable Low Power Mode  		*/
-#define  ABM      	(0x01 << 2)  	/* Disable/Enable Autobaud/Listen mode 	*/
-#define  OVL      	(0x01 << 3)  	/* Disable/Enable Overload Frame 		*/
+#define  CANEN		(0x01 << 0)   	/* CAN Controller Enable				*/
+#define  LPM	 	(0x01 << 1)   	/* Disable/Enable Low Power Mode  		*/
+#define  ABM	  	(0x01 << 2)  	/* Disable/Enable Autobaud/Listen mode 	*/
+#define  OVL	  	(0x01 << 3)  	/* Disable/Enable Overload Frame 		*/
 #define  TEOF   	(0x01 << 4)  	/* Timestamp messages at each end of Frame */
 #define  TTM   		(0x01 << 5)  	/* Disable/Enable Time Triggered Mode 	*/
 #define  TIMFRZ   	(0x01 << 6)  	/* Enable Timer Freeze 					*/
@@ -89,34 +89,34 @@ typedef struct {
 #define  MB15   	(0x01 << 15)   	/* Mailbox 15 Interrupt Enable 			*/
 #define  ERRA  		(0x01 << 16)   	/* Error Active mode Interrupt Enable  	*/
 #define  WARN  		(0x01 << 17)   	/* Warning Limit Interrupt Enable 		*/
-#define  ERRP    	(0x01 << 18)   	/* Error Passive mode Interrupt Enable	*/
+#define  ERRP		(0x01 << 18)   	/* Error Passive mode Interrupt Enable	*/
 #define  BOFF   	(0x01 << 19)   	/* Bus-off mode Interrupt Enable 		*/
-#define  SLEEP     	(0x01 << 20)   	/* Sleep Interrupt Enable 				*/
-#define  WAKEUP         (0x01 << 21)   	/* Wakeup Interrupt Enable 				*/
-#define  TOVF      	(0x01 << 22)   	/* Timer Overflow Interrupt Enable 		*/
-#define  TSTP      	(0x01 << 23)  	/* TimeStamp Interrupt Enable			*/
-#define  CERR      	(0x01 << 24)  	/* CRC Error Interrupt Enable 			*/
-#define  SERR      	(0x01 << 25)  	/* Stuffing Error Interrupt Enable 		*/
-#define  AERR      	(0x01 << 26)  	/* Acknowledgment Error Interrupt Enable */
-#define  FERR      	(0x01 << 27)  	/* Form Error Interrupt Enable 			*/
-#define  BERR      	(0x01 << 28)  	/* Bit Error Interrupt Enable 			*/
+#define  SLEEP	 	(0x01 << 20)   	/* Sleep Interrupt Enable 				*/
+#define  WAKEUP		 (0x01 << 21)   	/* Wakeup Interrupt Enable 				*/
+#define  TOVF	  	(0x01 << 22)   	/* Timer Overflow Interrupt Enable 		*/
+#define  TSTP	  	(0x01 << 23)  	/* TimeStamp Interrupt Enable			*/
+#define  CERR	  	(0x01 << 24)  	/* CRC Error Interrupt Enable 			*/
+#define  SERR	  	(0x01 << 25)  	/* Stuffing Error Interrupt Enable 		*/
+#define  AERR	  	(0x01 << 26)  	/* Acknowledgment Error Interrupt Enable */
+#define  FERR	  	(0x01 << 27)  	/* Form Error Interrupt Enable 			*/
+#define  BERR	  	(0x01 << 28)  	/* Bit Error Interrupt Enable 			*/
 #define  RBSY		(0x01 << 29) 	/* Receiver busy */
 #define  TBSY		(0x01 << 30) 	/* Transmitter busy */
 #define  OVLSY		(0x01 << 31) 	/* Overload busy */
 
 /** CAN Baudrate Register: BR */
-#define  PHASE2   	(0x07 << 0)  	/* Phase 2 segment  	              	*/
-#define  PHASE1   	(0x07 << 4)  	/* Phase 1 segment                		*/
-#define  PROPAG    	(0x07 << 8)   	/* Propagation Time Segment            	*/
-#define  SWJ      	(0x03 << 12)  	/* Re-synchronization jump width 		*/
-#define  BRP     	(0x7F << 16)   	/* Baudrate Prescaler 					*/
-#define  SMP      	(0x01 << 24)  	/* Sampling Mode                        */
+#define  PHASE2   	(0x07 << 0)  	/* Phase 2 segment  				  	*/
+#define  PHASE1   	(0x07 << 4)  	/* Phase 1 segment						*/
+#define  PROPAG		(0x07 << 8)   	/* Propagation Time Segment				*/
+#define  SWJ	  	(0x03 << 12)  	/* Re-synchronization jump width 		*/
+#define  BRP	 	(0x7F << 16)   	/* Baudrate Prescaler 					*/
+#define  SMP	  	(0x01 << 24)  	/* Sampling Mode						*/
 
 /** CAN Timer Register: TIM */
-#define  TIMER   	(0xffff << 0)  	/* Timer	              				*/
+#define  TIMER   	(0xffff << 0)  	/* Timer				  				*/
 
 /** CAN Timestamp Register: TIMESTP */
-#define  MTIMESTAMP (0xffff << 0)  	/* Timestamp              				*/
+#define  MTIMESTAMP (0xffff << 0)  	/* Timestamp			  				*/
 
 /** CAN Timestamp Register: TIMESTP */
 #define  REC 		(0xffff << 0)  	/* Receive Error Counter 				*/

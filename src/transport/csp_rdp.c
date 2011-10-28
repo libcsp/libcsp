@@ -60,13 +60,13 @@ static uint32_t csp_rdp_ack_delay_count = 4 / 2;
 static CSP_BASE_TYPE pdTrue = 1;
 
 typedef struct __attribute__((__packed__)) {
-    /* The timestamp is placed in the padding bytes */
-    uint8_t padding[CSP_PADDING_BYTES - 2 * sizeof(uint32_t)];
-    uint32_t quarantine; 		// EACK quarantine period
-    uint32_t timestamp;			// Time the message was sent
-    uint16_t length;            // Length field must be just before CSP ID
-    csp_id_t id;                // CSP id must be just before data
-    uint8_t data[];				// This just points to the rest of the buffer, without a size indication.
+	/* The timestamp is placed in the padding bytes */
+	uint8_t padding[CSP_PADDING_BYTES - 2 * sizeof(uint32_t)];
+	uint32_t quarantine; 		// EACK quarantine period
+	uint32_t timestamp;			// Time the message was sent
+	uint16_t length;			// Length field must be just before CSP ID
+	csp_id_t id;				// CSP id must be just before data
+	uint8_t data[];				// This just points to the rest of the buffer, without a size indication.
 } rdp_packet_t;
 
 typedef struct __attribute__((__packed__)) {
@@ -438,15 +438,15 @@ void csp_rdp_flush_all(csp_conn_t * conn) {
 	rdp_packet_t * packet;
 
 	/* Empty TX queue */
-    while (csp_queue_dequeue_isr(conn->rdp.tx_queue, &packet, &pdTrue) == CSP_QUEUE_OK) {
-    	if (packet != NULL) {
-    		csp_debug(CSP_PROTOCOL, "Flush TX Element, time %u, seq %u\r\n", packet->timestamp, csp_ntoh16(csp_rdp_header_ref((csp_packet_t *) packet)->seq_nr));
-    		csp_buffer_free(packet);
-    	}
-    }
+	while (csp_queue_dequeue_isr(conn->rdp.tx_queue, &packet, &pdTrue) == CSP_QUEUE_OK) {
+		if (packet != NULL) {
+			csp_debug(CSP_PROTOCOL, "Flush TX Element, time %u, seq %u\r\n", packet->timestamp, csp_ntoh16(csp_rdp_header_ref((csp_packet_t *) packet)->seq_nr));
+			csp_buffer_free(packet);
+		}
+	}
 
 	/* Empty RX queue */
-    while (csp_queue_dequeue_isr(conn->rdp.rx_queue, &packet, &pdTrue) == CSP_QUEUE_OK) {
+	while (csp_queue_dequeue_isr(conn->rdp.rx_queue, &packet, &pdTrue) == CSP_QUEUE_OK) {
 		if (packet != NULL) {
 			csp_debug(CSP_PROTOCOL, "Flush RX Element, time %u, seq %u\r\n", packet->timestamp, csp_ntoh16(csp_rdp_header_ref((csp_packet_t *) packet)->seq_nr));
 			csp_buffer_free(packet);
@@ -745,7 +745,7 @@ void csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 			goto discard_open;
 		}
 
-        /* Check ACK number */
+		/* Check ACK number */
 		if (!csp_rdp_seq_between(rx_header->ack_nr, conn->rdp.snd_una - 1 - (conn->rdp.window_size * 2), conn->rdp.snd_nxt - 1)) {
 			csp_debug(CSP_ERROR, "Invalid ACK number! %u not between %u and %u\r\n",
 					rx_header->ack_nr, conn->rdp.snd_una - 1 - (conn->rdp.window_size * 2), conn->rdp.snd_nxt - 1);
@@ -851,8 +851,8 @@ discard_close:
 	 * by sending a NULL pointer, user-space should close connection */
 	if (conn->rx_socket == NULL) {
 		csp_debug(CSP_PROTOCOL, "Waiting for userspace to close\r\n");
-	    void * null_pointer = NULL;
-	    csp_conn_enqueue_packet(conn, (csp_packet_t *) null_pointer);
+		void * null_pointer = NULL;
+		csp_conn_enqueue_packet(conn, (csp_packet_t *) null_pointer);
 	} else {
 		csp_close(conn);
 	}
@@ -868,10 +868,10 @@ int csp_rdp_connect(csp_conn_t * conn, uint32_t timeout) {
 
 	int retry = 1;
 
-	conn->rdp.window_size     = csp_rdp_window_size;
-	conn->rdp.conn_timeout    = csp_rdp_conn_timeout;
+	conn->rdp.window_size	 = csp_rdp_window_size;
+	conn->rdp.conn_timeout	= csp_rdp_conn_timeout;
 	conn->rdp.packet_timeout  = csp_rdp_packet_timeout;
-	conn->rdp.delayed_acks    = csp_rdp_delayed_acks;
+	conn->rdp.delayed_acks	= csp_rdp_delayed_acks;
 	conn->rdp.ack_timeout 	  = csp_rdp_ack_timeout;
 	conn->rdp.ack_delay_count = csp_rdp_ack_delay_count;
 	conn->rdp.ack_timestamp   = csp_get_ms();

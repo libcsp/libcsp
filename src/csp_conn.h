@@ -34,8 +34,8 @@ extern "C" {
 
 /** @brief Connection states */
 typedef enum {
-    CONN_CLOSED = 0,
-    CONN_OPEN = 1,
+	CONN_CLOSED = 0,
+	CONN_OPEN = 1,
 } csp_conn_state_t;
 
 typedef enum {
@@ -70,26 +70,26 @@ typedef struct {
 
 /** @brief Connection struct */
 struct csp_conn_s {
-    csp_conn_state_t state;         // Connection state (SOCKET_OPEN or SOCKET_CLOSED)
-    csp_mutex_t lock;				// Connection structure lock
-    csp_id_t idin;                  // Identifier received
-    csp_id_t idout;                 // Identifier transmitted
+	csp_conn_state_t state;		 // Connection state (SOCKET_OPEN or SOCKET_CLOSED)
+	csp_mutex_t lock;				// Connection structure lock
+	csp_id_t idin;				  // Identifier received
+	csp_id_t idout;				 // Identifier transmitted
 #if CSP_USE_QOS
-    csp_queue_handle_t rx_event;	// Event queue for RX packets
+	csp_queue_handle_t rx_event;	// Event queue for RX packets
 #endif
-    csp_queue_handle_t rx_queue[CSP_RX_QUEUES]; // Queue for RX packets
-    csp_queue_handle_t rx_socket;	// Socket to be "woken" when first packet is ready
-    uint32_t timestamp;				// Time the connection was opened
-    uint32_t conn_opts;				// Connection options
+	csp_queue_handle_t rx_queue[CSP_RX_QUEUES]; // Queue for RX packets
+	csp_queue_handle_t rx_socket;	// Socket to be "woken" when first packet is ready
+	uint32_t timestamp;				// Time the connection was opened
+	uint32_t conn_opts;				// Connection options
 #if CSP_USE_RDP
-    csp_rdp_t rdp;					// RDP state
+	csp_rdp_t rdp;					// RDP state
 #endif
 };
 
 /** @brief Socket struct */
 struct csp_socket_s {
-    csp_queue_handle_t queue;		/**< Connection queue handle */
-    uint32_t opts;					/**< Socket options */
+	csp_queue_handle_t queue;		/**< Connection queue handle */
+	uint32_t opts;					/**< Socket options */
 };
 
 int csp_conn_lock(csp_conn_t * conn, uint32_t timeout);

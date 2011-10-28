@@ -210,13 +210,13 @@ void csp_uptime(uint8_t node, uint32_t timeout) {
 }
 
 int csp_cmp(uint8_t node, uint32_t timeout, uint8_t code, int membsize, struct csp_cmp_message * msg) {
-    msg->type = CSP_CMP_REQUEST;
-    msg->code = code;
-    int status = csp_transaction(CSP_PRIO_NORM, node, CSP_CMP, timeout, msg, 
-                          sizeof(uint8_t) + sizeof(uint8_t), msg, membsize);
+	msg->type = CSP_CMP_REQUEST;
+	msg->code = code;
+	int status = csp_transaction(CSP_PRIO_NORM, node, CSP_CMP, timeout, msg, 
+						  sizeof(uint8_t) + sizeof(uint8_t), msg, membsize);
 	if (status == 0)
 		return CSP_ERR_TIMEDOUT;
 
-    return CSP_ERR_NONE;
+	return CSP_ERR_NONE;
 }
 

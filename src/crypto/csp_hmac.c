@@ -76,41 +76,41 @@ int csp_hmac_process(hmac_state * hmac, const uint8_t * in, uint32_t inlen) {
 
 	/* NULL pointer check */
 	if (!hmac || !in)
-    	return -1;
+		return -1;
 
 	/* Process data */
-    csp_sha1_process(&hmac->md, in, inlen);
+	csp_sha1_process(&hmac->md, in, inlen);
 
-    return 0;
+	return 0;
 }
 
 int csp_hmac_done(hmac_state * hmac, uint8_t * out) {
 
 	uint32_t i;
-    uint8_t buf[SHA1_BLOCKSIZE];
-    uint8_t isha[SHA1_DIGESTSIZE];
+	uint8_t buf[SHA1_BLOCKSIZE];
+	uint8_t isha[SHA1_DIGESTSIZE];
 
-    if (!hmac || !out)
-    	return -1;
+	if (!hmac || !out)
+		return -1;
 
-    /* Get the hash of the first HMAC vector plus the data */
-    csp_sha1_done(&hmac->md, isha);
+	/* Get the hash of the first HMAC vector plus the data */
+	csp_sha1_done(&hmac->md, isha);
 
-    /* Create the second HMAC vector vector */
-    for(i = 0; i < SHA1_BLOCKSIZE; i++)
-    	buf[i] = hmac->key[i] ^ 0x5C;
+	/* Create the second HMAC vector vector */
+	for(i = 0; i < SHA1_BLOCKSIZE; i++)
+		buf[i] = hmac->key[i] ^ 0x5C;
 
-    /* Now calculate the outer hash */
-    csp_sha1_init(&hmac->md);
-    csp_sha1_process(&hmac->md, buf, SHA1_BLOCKSIZE);
-    csp_sha1_process(&hmac->md, isha, SHA1_DIGESTSIZE);
-    csp_sha1_done(&hmac->md, buf);
+	/* Now calculate the outer hash */
+	csp_sha1_init(&hmac->md);
+	csp_sha1_process(&hmac->md, buf, SHA1_BLOCKSIZE);
+	csp_sha1_process(&hmac->md, isha, SHA1_DIGESTSIZE);
+	csp_sha1_done(&hmac->md, buf);
 
-    /* Copy to output  */
-    for (i = 0; i < SHA1_DIGESTSIZE; i++)
-    	out[i] = buf[i];
+	/* Copy to output  */
+	for (i = 0; i < SHA1_DIGESTSIZE; i++)
+		out[i] = buf[i];
 
-    return 0;
+	return 0;
 }
 
 int csp_hmac_memory(const uint8_t * key, uint32_t keylen, const uint8_t * data, uint32_t datalen, uint8_t * hmac) {

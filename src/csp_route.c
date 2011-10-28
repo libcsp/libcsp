@@ -233,7 +233,7 @@ csp_thread_return_t vTaskCSPRouter(__attribute__ ((unused)) void * pvParameters)
 		}
 	}
 
-    /* Here there be routing */
+	/* Here there be routing */
 	while (1) {
 
 		/* Check connection timeouts */
@@ -278,7 +278,7 @@ csp_thread_return_t vTaskCSPRouter(__attribute__ ((unused)) void * pvParameters)
 				csp_buffer_free(packet);
 			}
 
-            /* Next message, please */
+			/* Next message, please */
 			continue;
 
 		}
@@ -496,21 +496,21 @@ uint8_t csp_route_get_nexthop_mac(uint8_t node) {
 #ifdef CSP_DEBUG
 static int csp_bytesize(char *buf, int len, unsigned long int n) {
 
-    char * postfix;
-    double size;
+	char * postfix;
+	double size;
 
-    if (n >= 1048576) {
-        size = n/1048576.0;
-        postfix = "M";
-    } else if (n >= 1024) {
-        size = n/1024.;
-        postfix = "K";
-    } else {
-        size = n;
-        postfix = "B";
-    }
+	if (n >= 1048576) {
+		size = n/1048576.0;
+		postfix = "M";
+	} else if (n >= 1024) {
+		size = n/1024.;
+		postfix = "K";
+	} else {
+		size = n;
+		postfix = "B";
+	}
 
-    return snprintf(buf, len, "%.1f%s", size, postfix);
+	return snprintf(buf, len, "%.1f%s", size, postfix);
 }
 
 void csp_route_print_interfaces(void) {
@@ -522,8 +522,8 @@ void csp_route_print_interfaces(void) {
 		csp_bytesize(txbuf, 25, i->txbytes);
 		csp_bytesize(rxbuf, 25, i->rxbytes);
 		printf("%-5s   tx: %05"PRIu32" rx: %05"PRIu32" txe: %05"PRIu32" rxe: %05"PRIu32"\r\n"
-				"        drop: %05"PRIu32" autherr: %05"PRIu32 " frame: %05"PRIu32"\r\n"
-				"        txb: %"PRIu32" (%s) rxb: %"PRIu32" (%s)\r\n\r\n",
+				"		drop: %05"PRIu32" autherr: %05"PRIu32 " frame: %05"PRIu32"\r\n"
+				"		txb: %"PRIu32" (%s) rxb: %"PRIu32" (%s)\r\n\r\n",
 				i->name, i->tx, i->rx, i->tx_error, i->rx_error, i->drop,
 				i->autherr, i->frame, i->txbytes, txbuf, i->rxbytes, rxbuf);
 		i = i->next;
@@ -541,13 +541,13 @@ int csp_route_print_interfaces_str(char * str_buf, int str_size) {
 		csp_bytesize(txbuf, 25, i->txbytes);
 		csp_bytesize(rxbuf, 25, i->rxbytes);
 		printed += snprintf(str_buf+printed, str_size, "%-5s   tx: %05"PRIu32" rx: %05"PRIu32
-                "txe: %05"PRIu32" rxe: %05"PRIu32"\r\n"
-				"        drop: %05"PRIu32" autherr: %05"PRIu32 " frame: %05"PRIu32"\r\n"
-				"        txb: %"PRIu32" (%s) rxb: %"PRIu32" (%s)\r\n\r\n",
+				"txe: %05"PRIu32" rxe: %05"PRIu32"\r\n"
+				"		drop: %05"PRIu32" autherr: %05"PRIu32 " frame: %05"PRIu32"\r\n"
+				"		txb: %"PRIu32" (%s) rxb: %"PRIu32" (%s)\r\n\r\n",
 				i->name, i->tx, i->rx, i->tx_error, i->rx_error, i->drop,
 				i->autherr, i->frame, i->txbytes, txbuf, i->rxbytes, rxbuf);
 		if ((str_size -= printed) <= 0)
-            break;
+			break;
 		i = i->next;
 	}
 
@@ -572,20 +572,20 @@ void csp_route_print_table(void) {
 int csp_promisc_enable(unsigned int buf_size) {
 
 	/* If queue already initialised */
-    if (csp_promisc_queue != NULL) {
-    	csp_promisc_enabled = 1;
-    	return 1;
-    }
-    
-    /* Create packet queue */
-    csp_promisc_queue = csp_queue_create(buf_size, sizeof(csp_packet_t *));
-    
-    if (csp_promisc_queue != NULL) {
-    	csp_promisc_enabled = 1;
-    	return 1;
-    } else {
-    	return 0;
-    }
+	if (csp_promisc_queue != NULL) {
+		csp_promisc_enabled = 1;
+		return 1;
+	}
+	
+	/* Create packet queue */
+	csp_promisc_queue = csp_queue_create(buf_size, sizeof(csp_packet_t *));
+	
+	if (csp_promisc_queue != NULL) {
+		csp_promisc_enabled = 1;
+		return 1;
+	} else {
+		return 0;
+	}
 
 }
 
@@ -595,13 +595,13 @@ void csp_promisc_disable(void) {
 
 csp_packet_t * csp_promisc_read(uint32_t timeout) {
 
-    if (csp_promisc_queue == NULL)
-    	return NULL;
+	if (csp_promisc_queue == NULL)
+		return NULL;
 
-    csp_packet_t * packet = NULL;
-    csp_queue_dequeue(csp_promisc_queue, &packet, timeout);
+	csp_packet_t * packet = NULL;
+	csp_queue_dequeue(csp_promisc_queue, &packet, timeout);
 
-    return packet;
+	return packet;
 
 }
 

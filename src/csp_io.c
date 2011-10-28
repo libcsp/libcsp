@@ -50,7 +50,7 @@ unsigned char my_address;
 
 /* Hostname and model */ 
 static char csp_hostname[CSP_HOSTNAME_LEN] = "csp";
-static char csp_model[CSP_MODEL_LEN]       = "CSP Subsystem";
+static char csp_model[CSP_MODEL_LEN]	   = "CSP Subsystem";
 
 #ifdef CSP_USE_PROMISC
 extern csp_queue_handle_t csp_promisc_queue;
@@ -80,8 +80,8 @@ int csp_init(unsigned char address) {
 
 	int ret;
 
-    /* Initialize CSP */
-    my_address = address;
+	/* Initialize CSP */
+	my_address = address;
 
 	ret = csp_conn_init();
 	if (ret != CSP_ERR_NONE)
@@ -115,8 +115,8 @@ int csp_init(unsigned char address) {
 }
 
 csp_socket_t * csp_socket(uint32_t opts) {
-    
-    /* Validate socket options */
+	
+	/* Validate socket options */
 #ifndef CSP_USE_RDP
 	if (opts & CSP_SO_RDPREQ) {
 		csp_debug(CSP_ERROR, "Attempt to create socket that requires RDP, but CSP was compiled without RDP support\r\n");
@@ -152,19 +152,19 @@ csp_socket_t * csp_socket(uint32_t opts) {
 	}
 
 	/* Use CSP buffers instead? */
-    csp_socket_t * sock = csp_malloc(sizeof(csp_socket_t));
-    if (sock == NULL)
-    	return NULL;
+	csp_socket_t * sock = csp_malloc(sizeof(csp_socket_t));
+	if (sock == NULL)
+		return NULL;
 
-    /* If connection less, init the queue to a pre-defined size
-     * if not, the user must init the queue using csp_listen */
-    if (opts & CSP_SO_CONN_LESS) {
-    	sock->queue = csp_queue_create(CSP_CONN_QUEUE_LENGTH, sizeof(csp_packet_t *));
-    	if (sock->queue == NULL)
-    		return NULL;
-    } else {
-    	sock->queue = NULL;
-    }
+	/* If connection less, init the queue to a pre-defined size
+	 * if not, the user must init the queue using csp_listen */
+	if (opts & CSP_SO_CONN_LESS) {
+		sock->queue = csp_queue_create(CSP_CONN_QUEUE_LENGTH, sizeof(csp_packet_t *));
+		if (sock->queue == NULL)
+			return NULL;
+	} else {
+		sock->queue = NULL;
+	}
 	sock->opts = opts;
 
 	return sock;
@@ -173,15 +173,15 @@ csp_socket_t * csp_socket(uint32_t opts) {
 
 csp_conn_t * csp_accept(csp_socket_t * sock, uint32_t timeout) {
 
-    if (sock == NULL)
-        return NULL;
+	if (sock == NULL)
+		return NULL;
 
-    if (sock->queue == NULL)
-    	return NULL;
+	if (sock->queue == NULL)
+		return NULL;
 
 	csp_conn_t * conn;
-    if (csp_queue_dequeue(sock->queue, &conn, timeout) == CSP_QUEUE_OK)
-        return conn;
+	if (csp_queue_dequeue(sock->queue, &conn, timeout) == CSP_QUEUE_OK)
+		return conn;
 
 	return NULL;
 
@@ -203,13 +203,13 @@ csp_packet_t * csp_read(csp_conn_t * conn, uint32_t timeout) {
 		if (csp_queue_dequeue(conn->rx_queue[prio], &packet, 0) == CSP_QUEUE_OK)
 			break;
 #else
-    if (csp_queue_dequeue(conn->rx_queue[0], &packet, timeout) != CSP_QUEUE_OK)
-    	return NULL;
+	if (csp_queue_dequeue(conn->rx_queue[0], &packet, timeout) != CSP_QUEUE_OK)
+		return NULL;
 #endif
 
 #ifdef CSP_USE_RDP
-    /* Packet read could trigger ACK transmission */
-    if (conn->idin.flags & CSP_FRDP)
+	/* Packet read could trigger ACK transmission */
+	if (conn->idin.flags & CSP_FRDP)
 		csp_rdp_check_ack(conn);
 #endif
 
@@ -234,15 +234,15 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, uint32_t timeout) {
 	csp_debug(CSP_PACKET, "Sending packet size %u from %u to %u port %u via interface %s\r\n", packet->length, idout.src, idout.dst, idout.dport, ifout->interface->name);
 	
 #ifdef CSP_USE_PROMISC
-    /* Loopback traffic is added to promisc queue by the router */
-    if (idout.dst != my_address) {
-        packet->id.ext = idout.ext;
-        csp_promisc_add(packet, csp_promisc_queue);
-    }
+	/* Loopback traffic is added to promisc queue by the router */
+	if (idout.dst != my_address) {
+		packet->id.ext = idout.ext;
+		csp_promisc_add(packet, csp_promisc_queue);
+	}
 #endif
 
 	/* Only encrypt packets from the current node */
-    if (idout.src == my_address) {
+	if (idout.src == my_address) {
 		/* Append HMAC */
 		if (idout.flags & CSP_FHMAC) {
 #ifdef CSP_ENABLE_HMAC
@@ -299,15 +299,15 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, uint32_t timeout) {
 		}
 	}
 
-    /* Copy identifier to packet */
-    packet->id.ext = idout.ext;
+	/* Copy identifier to packet */
+	packet->id.ext = idout.ext;
 
-    /* Store length before passing to interface */
-    uint16_t bytes = packet->length;
-    uint16_t mtu = ifout->interface->mtu;
+	/* Store length before passing to interface */
+	uint16_t bytes = packet->length;
+	uint16_t mtu = ifout->interface->mtu;
 
-    if (mtu > 0 && bytes > mtu)
-    	goto tx_err;
+	if (mtu > 0 && bytes > mtu)
+		goto tx_err;
 
 	if ((*ifout->interface->nexthop)(packet, timeout) != 1)
 		goto tx_err;
@@ -410,7 +410,7 @@ csp_packet_t * csp_recvfrom(csp_socket_t * socket, uint32_t timeout) {
 		return NULL;
 
 	csp_packet_t * packet = NULL;
-    csp_queue_dequeue(socket->queue, &packet, timeout);
+	csp_queue_dequeue(socket->queue, &packet, timeout);
 
 	return packet;
 

@@ -51,42 +51,42 @@ extern "C" {
 #define CONMOB_MSK  			((1 << CONMOB1) | (1 << CONMOB0))
 
 /** Data Lenght Code mask */
-#define DLC_MSK     			((1 << DLC3) | (1 << DLC2) | (1 << DLC1) | (1 << DLC0))
+#define DLC_MSK	 			((1 << DLC3) | (1 << DLC2) | (1 << DLC1) | (1 << DLC0))
 
 /** MOB status */
-#define MOB_NOT_COMPLETED      	0x00
-#define MOB_TX_COMPLETED        (1 << TXOK)
-#define MOB_RX_COMPLETED        (1 << RXOK)
+#define MOB_NOT_COMPLETED	  	0x00
+#define MOB_TX_COMPLETED		(1 << TXOK)
+#define MOB_RX_COMPLETED		(1 << RXOK)
 #define MOB_RX_COMPLETED_DLCW  	((1 << RXOK) | (1 << DLCW))
-#define MOB_ACK_ERROR           (1 << AERR)
-#define MOB_FORM_ERROR          (1 << FERR)
-#define MOB_CRC_ERROR           (1 << CERR)
-#define MOB_STUFF_ERROR         (1 << SERR)
-#define MOB_BIT_ERROR           (1 << BERR)
-#define MOB_PENDING            	((1 << RXOK) | (1 << TXOK))
-#define MOB_NOT_REACHED        	((1 << AERR) | (1 << FERR) | (1 << CERR) | (1 << SERR) | (1 << BERR))
-#define MOB_DISABLE           	0xFF
+#define MOB_ACK_ERROR		   (1 << AERR)
+#define MOB_FORM_ERROR		  (1 << FERR)
+#define MOB_CRC_ERROR		   (1 << CERR)
+#define MOB_STUFF_ERROR		 (1 << SERR)
+#define MOB_BIT_ERROR		   (1 << BERR)
+#define MOB_PENDING				((1 << RXOK) | (1 << TXOK))
+#define MOB_NOT_REACHED			((1 << AERR) | (1 << FERR) | (1 << CERR) | (1 << SERR) | (1 << BERR))
+#define MOB_DISABLE		   	0xFF
 
 /** Interrupt control */
 #define CAN_SET_INTERRUPT() 	(CANGIE |= (1 << ENIT) | (1 << ENRX) | (1 << ENTX) | (1 << ENERR) | (1 << ENBOFF))
 #define CAN_CLEAR_INTERRUPT() 	(CANGIE &= ~(1 << ENIT))
 
 /** CAN module control */
-#define CAN_RESET()       		(CANGCON = (1 << SWRES))
-#define CAN_ENABLE()      		(CANGCON |= (1 << ENASTB))
-#define CAN_DISABLE()     		(CANGCON &= ~(1 << ENASTB))
+#define CAN_RESET()	   		(CANGCON = (1 << SWRES))
+#define CAN_ENABLE()	  		(CANGCON |= (1 << ENASTB))
+#define CAN_DISABLE()	 		(CANGCON &= ~(1 << ENASTB))
 
 #define CAN_FULL_ABORT()  		do {CANGCON |= (1<<ABRQ); \
 									CANGCON &= ~(1<<ABRQ);} while (0)
 
-#define CAN_SET_MOB(mob)       	do { CANPAGE = ((mob) << 4);} while(0)
+#define CAN_SET_MOB(mob)	   	do { CANPAGE = ((mob) << 4);} while(0)
 
 #define CAN_GET_MOB()			((CANPAGE & 0xF0) >> 4)
 
 #define CAN_CLEAR_STATUS_MOB() 	do {CANSTMOB=0x00;} while (0)
 
 #define CAN_CLEAR_INT_MOB() 	do {CANSTMOB = (CANSTMOB & ~(1 << RXOK));} while (0)
-#define CAN_CLEAR_MOB()        	do {uint8_t volatile *__i_; \
+#define CAN_CLEAR_MOB()			do {uint8_t volatile *__i_; \
 									for (__i_=&CANSTMOB; __i_<&CANSTML; __i_++) { \
 										*__i_=0x00 ; \
 								}} while (0)
@@ -97,7 +97,7 @@ extern "C" {
 #define CAN_MOB_ABORT()   		(DISABLE_MOB)
 
 #define CAN_SET_DLC(dlc)  		(CANCDMOB |= (dlc))
-#define CAN_SET_IDE()     		(CANCDMOB |= (1 << IDE))
+#define CAN_SET_IDE()	 		(CANCDMOB |= (1 << IDE))
 
 #define CAN_CLEAR_DLC()   		(CANCDMOB &= ~DLC_MSK)
 #define CAN_CLEAR_IDE()   		(CANCDMOB &= ~(1<<IDE))
@@ -105,23 +105,23 @@ extern "C" {
 #define DISABLE_MOB				(CANCDMOB &= (~CONMOB_MSK))
 
 /** Configure TX MOB */
-#define CAN_CONFIG_TX()        	do { DISABLE_MOB; \
+#define CAN_CONFIG_TX()			do { DISABLE_MOB; \
 									CANCDMOB |= (0x01 << CONMOB0); \
 								} while (0)
 
 /** Configure RX MOB */
-#define CAN_CONFIG_RX()        	do { DISABLE_MOB; \
+#define CAN_CONFIG_RX()			do { DISABLE_MOB; \
 									CANCDMOB |= (0x02 << CONMOB0); \
 								} while(0)
 
 /** Identifier macros */
-#define CAN_GET_DLC()     		((CANCDMOB & DLC_MSK) >> DLC0)
-#define CAN_GET_IDE()      		((CANCDMOB & (1 << IDE)) >> IDE)
+#define CAN_GET_DLC()	 		((CANCDMOB & DLC_MSK) >> DLC0)
+#define CAN_GET_IDE()	  		((CANCDMOB & (1 << IDE)) >> IDE)
 
 #define CAN_GET_EXT_ID(_id)  	do { *((uint8_t *)(&(_id))+3) = (uint8_t)(CANIDT1>>3); \
 									 *((uint8_t *)(&(_id))+2) = (uint8_t)((CANIDT2>>3)+(CANIDT1<<5)); \
-                                     *((uint8_t *)(&(_id))+1) = (uint8_t)((CANIDT3>>3)+(CANIDT2<<5)); \
-                                     *((uint8_t *)(&(_id))  ) = (uint8_t)((CANIDT4>>3)+(CANIDT3<<5)); } while (0)
+									 *((uint8_t *)(&(_id))+1) = (uint8_t)((CANIDT3>>3)+(CANIDT2<<5)); \
+									 *((uint8_t *)(&(_id))  ) = (uint8_t)((CANIDT4>>3)+(CANIDT3<<5)); } while (0)
 
 #define CAN_SET_EXT_ID_28_21(_id)  	(((*((uint8_t *)(&(_id))+3))<<3)+((*((uint8_t *)(&(_id))+2))>>5))
 #define CAN_SET_EXT_ID_20_13(_id)  	(((*((uint8_t *)(&(_id))+2))<<3)+((*((uint8_t *)(&(_id))+1))>>5))
@@ -132,7 +132,7 @@ extern "C" {
 									 CANIDT2   = CAN_SET_EXT_ID_20_13(_id); \
 									 CANIDT3   = CAN_SET_EXT_ID_12_5( _id); \
 									 CANIDT4   = CAN_SET_EXT_ID_4_0(  _id); \
-									 CANCDMOB |= (1<<IDE);                         } while (0)
+									 CANCDMOB |= (1<<IDE);						 } while (0)
 
 #define CAN_SET_EXT_MSK(mask)   do { CANIDM1   = CAN_SET_EXT_ID_28_21(mask); \
 									 CANIDM2   = CAN_SET_EXT_ID_20_13(mask); \

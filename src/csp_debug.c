@@ -119,7 +119,7 @@ void csp_debug_ex(csp_debug_level_t level, const char * format, ...) {
 		printf("\E[0m");
 	}
 
-    va_end(args);
+	va_end(args);
 
 }
 

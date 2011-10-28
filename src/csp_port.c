@@ -62,20 +62,20 @@ int csp_port_init(void) {
 }
 
 int csp_listen(csp_socket_t * socket, size_t conn_queue_length) {
-    
-    if (socket == NULL)
-        return CSP_ERR_INVAL;
+	
+	if (socket == NULL)
+		return CSP_ERR_INVAL;
 
-    socket->queue = csp_queue_create(conn_queue_length, sizeof(csp_conn_t *));
-    if (socket->queue == NULL)
-        return CSP_ERR_NOMEM;
+	socket->queue = csp_queue_create(conn_queue_length, sizeof(csp_conn_t *));
+	if (socket->queue == NULL)
+		return CSP_ERR_NOMEM;
 
-    return CSP_ERR_NONE;
+	return CSP_ERR_NONE;
 
 }
 
 int csp_bind(csp_socket_t * socket, uint8_t port) {
-    
+	
 	if (port > CSP_ANY) {
 		csp_debug(CSP_ERROR, "Only ports from 0-%u (and CSP_ANY for default) are available for incoming ports\r\n", CSP_ANY);
 		return CSP_ERR_INVAL;
@@ -93,7 +93,7 @@ int csp_bind(csp_socket_t * socket, uint8_t port) {
 	ports[port].socket = socket;
 	ports[port].state = PORT_OPEN;
 
-    return CSP_ERR_NONE;
+	return CSP_ERR_NONE;
 
 }
 

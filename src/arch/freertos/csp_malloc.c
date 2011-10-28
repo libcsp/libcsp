@@ -29,9 +29,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../csp_malloc.h"
 
 void * csp_malloc(size_t size) {
-    return pvPortMalloc(size);
+	return pvPortMalloc(size);
 }
 
 void csp_free(void *ptr) {
-    vPortFree(ptr);
+	vPortFree(ptr);
 }
