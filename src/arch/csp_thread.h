@@ -40,6 +40,20 @@ typedef void* csp_thread_return_t;
 
 #endif // _CSP_POSIX_
 
+/* Windows interface */
+#if defined(_CSP_WINDOWS_)
+
+#include <Windows.h>
+#undef interface
+#include <process.h>
+
+#define csp_thread_exit() _endthreadex(0)
+
+typedef HANDLE csp_thread_handle_t;
+typedef unsigned int csp_thread_return_t;
+
+#endif // _CSP_WINDOWS_
+
 /* FreeRTOS interface */
 #if defined(_CSP_FREERTOS_)
 
@@ -53,7 +67,11 @@ typedef void csp_thread_return_t;
 
 #endif // _CSP_FREERTOS_
 
+#ifndef _CSP_WINDOWS_
 int csp_thread_create(csp_thread_return_t (* routine)(void *), const signed char * const thread_name, unsigned short stack_depth, void * parameters, unsigned int priority, csp_thread_handle_t * handle);
+#else
+int csp_thread_create(csp_thread_return_t (* routine)(void *)__attribute__((stdcall)), const signed char * const thread_name, unsigned short stack_depth, void * parameters, unsigned int priority, csp_thread_handle_t * handle);
+#endif
 
 #ifdef __cplusplus
 } /* extern "C" */

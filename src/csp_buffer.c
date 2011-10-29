@@ -48,7 +48,7 @@ typedef enum csp_buffer_state_t {
 	static int count;
 #endif
 
-#ifdef _CSP_POSIX_
+#if defined(_CSP_POSIX_) || defined(_CSP_WINDOWS_)
 static csp_bin_sem_handle_t csp_critical_lock;
 #endif
 
@@ -72,7 +72,7 @@ int csp_buffer_init(int buf_count, int buf_size) {
 	}
 #endif
 
-#ifdef _CSP_POSIX_
+#if defined(_CSP_POSIX_) || defined(_CSP_WINDOWS_)
 	/* Initialize critical lock */
 	if (csp_bin_sem_create(&csp_critical_lock) != CSP_SEMAPHORE_OK) {
 		csp_debug(CSP_ERROR, "No more memory for buffer semaphore\r\n");

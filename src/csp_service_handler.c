@@ -34,6 +34,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #ifdef _CSP_POSIX_
 #include <sys/sysinfo.h>
 #endif
+#ifdef _CSP_WINDOWS_
+#include <Windows.h>
+#endif
 
 /* CSP Management Protocol handler */
 int csp_cmp_handler(csp_conn_t * conn, csp_packet_t * packet) {
@@ -103,6 +106,8 @@ void csp_service_handler(csp_conn_t * conn, csp_packet_t * packet) {
 		vTaskList((signed portCHAR *) packet->data);
 #elif defined(_CSP_POSIX_)
 		strcpy((char *)packet->data, "Tasklist in not available on posix");
+#elif defined(_CSP_WINDOWS_)
+		strcpy((char *)packet->data, "Tasklist in not available on windows");
 #endif
 		packet->length = strlen((char *)packet->data);
 		packet->data[packet->length] = '\0';
@@ -136,6 +141,12 @@ void csp_service_handler(csp_conn_t * conn, csp_packet_t * packet) {
 		struct sysinfo info;
 		sysinfo(&info);
 		total = info.freeram * info.mem_unit;
+#elif defined(_CSP_WINDOWS_)
+		MEMORYSTATUSEX statex;
+		statex.dwLength = sizeof(statex);
+		GlobalMemoryStatusEx(&statex);
+		DWORDLONG freePhysicalMem = statex.ullAvailPhys;
+		size_t total = (size_t) freePhysicalMem;
 #endif
 
 		/* Prepare for network transmission */
