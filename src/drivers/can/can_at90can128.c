@@ -50,8 +50,8 @@ uint32_t can_mask;
 
 /** Mailbox */
 typedef enum {
-    MBOX_FREE = 0,
-    MBOX_USED = 1,
+	MBOX_FREE = 0,
+	MBOX_USED = 1,
 } mbox_t;
 
 /** List of mobs */
@@ -91,20 +91,20 @@ int can_configure_bitrate(unsigned long int afcpu, uint32_t bps) {
 
 	/* TODO: Set arbitrary bitrate */
 	if (afcpu == 8000000) {
-		CANTCON = 0x02;      // Set CAN Timer Prescaler
-		CANBT1 = 0x02;       //!< Tscl  = 2x Tclkio = 250 ns
-		CANBT2 = 0x04;       //!< Tsync = 1x Tscl, Tprs = 3x Tscl, Tsjw = 1x Tscl
-		CANBT3 = 0x13;       //!< Tpsh1 = 2x Tscl, Tpsh2 = 2x Tscl, 3 sample points
+		CANTCON = 0x02;	  // Set CAN Timer Prescaler
+		CANBT1 = 0x02;	   //!< Tscl  = 2x Tclkio = 250 ns
+		CANBT2 = 0x04;	   //!< Tsync = 1x Tscl, Tprs = 3x Tscl, Tsjw = 1x Tscl
+		CANBT3 = 0x13;	   //!< Tpsh1 = 2x Tscl, Tpsh2 = 2x Tscl, 3 sample points
 	} else if (afcpu == 12000000) {
-		CANTCON = 0x02;      // Set CAN Timer Prescaler
-		CANBT1 = 0x02;       //!< Tscl  = 2x Tclkio = 166.666 ns
-		CANBT2 = 0x08;       //!< Tsync = 1x Tscl, Tprs = 5x Tscl, Tsjw = 1x Tscl
-		CANBT3 = 0x25;       //!< Tpsh1 = 3x Tscl, Tpsh2 = 3x Tscl, 3 sample points
+		CANTCON = 0x02;	  // Set CAN Timer Prescaler
+		CANBT1 = 0x02;	   //!< Tscl  = 2x Tclkio = 166.666 ns
+		CANBT2 = 0x08;	   //!< Tsync = 1x Tscl, Tprs = 5x Tscl, Tsjw = 1x Tscl
+		CANBT3 = 0x25;	   //!< Tpsh1 = 3x Tscl, Tpsh2 = 3x Tscl, 3 sample points
 	} else if (afcpu == 16000000) {
-		CANTCON = 128;       // Set CAN Timer Prescaler
-		CANBT1 = 0x06;       //!< Tscl  = 4x Tclkio = 250 ns
-		CANBT2 = 0x04;       //!< Tsync = 1x Tscl, Tprs = 3x Tscl, Tsjw = 1x Tscl
-		CANBT3 = 0x13;       //!< Tpsh1 = 2x Tscl, Tpsh2 = 2x Tscl, 3 sample points
+		CANTCON = 128;	   // Set CAN Timer Prescaler
+		CANBT1 = 0x06;	   //!< Tscl  = 4x Tclkio = 250 ns
+		CANBT2 = 0x04;	   //!< Tsync = 1x Tscl, Tprs = 3x Tscl, Tsjw = 1x Tscl
+		CANBT3 = 0x13;	   //!< Tpsh1 = 2x Tscl, Tpsh2 = 2x Tscl, 3 sample points
 	} else {
 		csp_debug(CSP_ERROR, "Error, missing CAN driver defines for that FCPU=%d\r\n", afcpu);
 		return -1;
@@ -161,9 +161,9 @@ int can_init(uint32_t id, uint32_t mask, can_tx_callback_t atxcb, can_rx_callbac
 
 int can_send(can_id_t id, uint8_t data[], uint8_t dlc, CSP_BASE_TYPE * task_woken) {
 
-    int i, m = -1;
+	int i, m = -1;
 
-    /* Disable CAN interrupt while looping MOBs */
+	/* Disable CAN interrupt while looping MOBs */
 	CAN_CLEAR_INTERRUPT();
 
 	/* Disable interrupts while looping mailboxes */
@@ -203,17 +203,17 @@ int can_send(can_id_t id, uint8_t data[], uint8_t dlc, CSP_BASE_TYPE * task_woke
 	CAN_SET_EXT_ID(id);
 
 	/* Set data - CANMSG is auto incrementing */
-    for (i = 0; i < dlc; i++)
-        CANMSG = data[i];
+	for (i = 0; i < dlc; i++)
+		CANMSG = data[i];
 
-    /* Set DLC */
-    CAN_CLEAR_DLC();
-    CAN_SET_DLC(dlc);
+	/* Set DLC */
+	CAN_CLEAR_DLC();
+	CAN_SET_DLC(dlc);
 
-    /* Start TX */
+	/* Start TX */
 	CAN_CONFIG_TX();
 
-    return 0;
+	return 0;
 
 }
 

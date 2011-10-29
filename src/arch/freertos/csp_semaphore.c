@@ -54,8 +54,8 @@ int csp_mutex_unlock(csp_mutex_t * mutex) {
 }
 
 int csp_bin_sem_create(csp_bin_sem_handle_t * sem) {
-    vSemaphoreCreateBinary(*sem);
-    return CSP_SEMAPHORE_OK;
+	vSemaphoreCreateBinary(*sem);
+	return CSP_SEMAPHORE_OK;
 }
 
 int csp_bin_sem_remove(csp_bin_sem_handle_t * sem) {
@@ -69,28 +69,28 @@ int csp_bin_sem_wait(csp_bin_sem_handle_t * sem, uint32_t timeout) {
 	csp_debug(CSP_LOCK, "Wait: %p\r\n", sem);
 	if (timeout != CSP_MAX_DELAY)
 		timeout = timeout / portTICK_RATE_MS;
-    if (xSemaphoreTake(*sem, timeout) == pdPASS) {
-        return CSP_SEMAPHORE_OK;
-    } else {
-        return CSP_SEMAPHORE_ERROR;
-    }
+	if (xSemaphoreTake(*sem, timeout) == pdPASS) {
+		return CSP_SEMAPHORE_OK;
+	} else {
+		return CSP_SEMAPHORE_ERROR;
+	}
 }
 
 int csp_bin_sem_post(csp_bin_sem_handle_t * sem) {
 	csp_debug(CSP_LOCK, "Post: %p\r\n", sem);
-    if (xSemaphoreGive(*sem) == pdPASS) {
-        return CSP_SEMAPHORE_OK;
-    } else {
-        return CSP_SEMAPHORE_ERROR;
-    }
+	if (xSemaphoreGive(*sem) == pdPASS) {
+		return CSP_SEMAPHORE_OK;
+	} else {
+		return CSP_SEMAPHORE_ERROR;
+	}
 }
 
 int csp_bin_sem_post_isr(csp_bin_sem_handle_t * sem, CSP_BASE_TYPE * task_woken) {
 	csp_debug(CSP_LOCK, "Post: %p\r\n", sem);
-    if (xSemaphoreGiveFromISR(*sem, (signed CSP_BASE_TYPE *)task_woken) == pdPASS) {
-        return CSP_SEMAPHORE_OK;
-    } else {
-        return CSP_SEMAPHORE_ERROR;
-    }
+	if (xSemaphoreGiveFromISR(*sem, (signed CSP_BASE_TYPE *)task_woken) == pdPASS) {
+		return CSP_SEMAPHORE_OK;
+	} else {
+		return CSP_SEMAPHORE_ERROR;
+	}
 }
 

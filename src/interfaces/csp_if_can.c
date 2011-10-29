@@ -24,11 +24,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  * identifier.
  *
  * The CAN identifier is divided in these fields:
- * src:             5 bits
- * dst:             5 bits
- * type:            1 bit
- * remain:          8 bits
- * identifier:     10 bits
+ * src:			 5 bits
+ * dst:			 5 bits
+ * type:			1 bit
+ * remain:		  8 bits
+ * identifier:	 10 bits
  *
  * Source and Destination addresses must match the CSP packet. The type field
  * is used to distinguish the first and subsequent frames in a fragmented CSP
@@ -100,8 +100,8 @@ csp_iface_t csp_if_can = {
 
 /** CFP Frame Types */
 enum cfp_frame_t {
-    CFP_BEGIN = 0,
-    CFP_MORE = 1
+	CFP_BEGIN = 0,
+	CFP_MORE = 1
 };
 
 /** CFP identification number */
@@ -118,46 +118,46 @@ static csp_bin_sem_handle_t pbuf_sem;
 /* Identification number */
 static int id_init(void) {
 
-    /* Init ID field to random number */
-    srand((int)csp_get_ms());
-    cfp_id = rand() & ((1 << CFP_ID_SIZE) - 1);
-    
-    if (csp_bin_sem_create(&id_sem) == CSP_SEMAPHORE_OK) {
-    	return 0;
-    } else {
-    	csp_debug(CSP_ERROR, "Could not initialize CFP id semaphore");
-    	return -1;
-    }
+	/* Init ID field to random number */
+	srand((int)csp_get_ms());
+	cfp_id = rand() & ((1 << CFP_ID_SIZE) - 1);
+	
+	if (csp_bin_sem_create(&id_sem) == CSP_SEMAPHORE_OK) {
+		return 0;
+	} else {
+		csp_debug(CSP_ERROR, "Could not initialize CFP id semaphore");
+		return -1;
+	}
 
 }
 
 static int id_get(void) {
 
-    int id;
-    if (csp_bin_sem_wait(&id_sem, 1000) != CSP_SEMAPHORE_OK)
-    	return -1;
-    id = cfp_id++;
-    cfp_id = cfp_id & ((1 << CFP_ID_SIZE) - 1);
-    csp_bin_sem_post(&id_sem);
-    return id;
+	int id;
+	if (csp_bin_sem_wait(&id_sem, 1000) != CSP_SEMAPHORE_OK)
+		return -1;
+	id = cfp_id++;
+	cfp_id = cfp_id & ((1 << CFP_ID_SIZE) - 1);
+	csp_bin_sem_post(&id_sem);
+	return id;
 
 }
 
 /* Packet buffers */
 typedef enum {
-    BUF_FREE = 0,					/**< Buffer element free */
-    BUF_USED = 1,					/**< Buffer element used */
+	BUF_FREE = 0,					/**< Buffer element free */
+	BUF_USED = 1,					/**< Buffer element used */
 } pbuf_state_t;
 
 typedef struct {
-    uint16_t rx_count;				/**< Received bytes */
-    uint16_t tx_count;				/**< Transmitted bytes */
-    uint32_t remain;				/**< Remaining packets */
-    csp_bin_sem_handle_t tx_sem;	/**< Transmit semaphore for blocking mode */
-    uint32_t cfpid;					/**< Connection CFP identification number */
-    csp_packet_t * packet;			/**< Pointer to packet buffer */
-    pbuf_state_t state;				/**< Element state */
-    uint32_t last_used;				/**< Timestamp in ms for last use of buffer */
+	uint16_t rx_count;				/**< Received bytes */
+	uint16_t tx_count;				/**< Transmitted bytes */
+	uint32_t remain;				/**< Remaining packets */
+	csp_bin_sem_handle_t tx_sem;	/**< Transmit semaphore for blocking mode */
+	uint32_t cfpid;					/**< Connection CFP identification number */
+	csp_packet_t * packet;			/**< Pointer to packet buffer */
+	pbuf_state_t state;				/**< Element state */
+	uint32_t last_used;				/**< Timestamp in ms for last use of buffer */
 } pbuf_element_t;
 
 static pbuf_element_t pbuf[PBUF_ELEMENTS];
@@ -168,25 +168,25 @@ static pbuf_element_t pbuf[PBUF_ELEMENTS];
  */
 static int pbuf_init(void) {
 
-    /* Initialize packet buffers */
-    int i;
-    pbuf_element_t * buf;
+	/* Initialize packet buffers */
+	int i;
+	pbuf_element_t * buf;
 
-    for (i = 0; i < PBUF_ELEMENTS; i++) {
-        buf = &pbuf[i];
-        buf->rx_count = 0;
-        buf->tx_count = 0;
-        buf->cfpid = 0;
-        buf->packet = NULL;
-        buf->state = BUF_FREE;
-        buf->last_used = 0;
-        buf->remain = 0;
-        /* Create tx semaphore if blocking mode is enabled */
+	for (i = 0; i < PBUF_ELEMENTS; i++) {
+		buf = &pbuf[i];
+		buf->rx_count = 0;
+		buf->tx_count = 0;
+		buf->cfpid = 0;
+		buf->packet = NULL;
+		buf->state = BUF_FREE;
+		buf->last_used = 0;
+		buf->remain = 0;
+		/* Create tx semaphore if blocking mode is enabled */
 	if (csp_bin_sem_create(&buf->tx_sem) != CSP_SEMAPHORE_OK) {
 		csp_debug(CSP_ERROR, "Failed to allocate TX semaphore\n");
 		return -1;
 	}
-    }
+	}
 
 #if defined(_CSP_POSIX_) || defined(_CSP_WINDOWS_)
     /* Initialize global lock */
@@ -196,8 +196,8 @@ static int pbuf_init(void) {
 	}
 #endif
 
-    return 0;
-    
+	return 0;
+	
 }
 
 /** pbuf_timestamp
@@ -224,19 +224,19 @@ int pbuf_timestamp(pbuf_element_t * buf, CSP_BASE_TYPE * task_woken) {
  */
 static int pbuf_free(pbuf_element_t * buf, CSP_BASE_TYPE * task_woken) {
 
-    /* Lock packet buffer */
+	/* Lock packet buffer */
 	if (task_woken == NULL)
 		CSP_ENTER_CRITICAL(pbuf_sem);
 		
 	/* Free CSP packet */
-    if (buf->packet != NULL) {
-        csp_buffer_free(buf->packet);
-        buf->packet = NULL;
-    }
+	if (buf->packet != NULL) {
+		csp_buffer_free(buf->packet);
+		buf->packet = NULL;
+	}
 
-    /* Mark buffer element free */
-    buf->state = BUF_FREE;
-    buf->rx_count = 0;
+	/* Mark buffer element free */
+	buf->state = BUF_FREE;
+	buf->rx_count = 0;
 	buf->tx_count = 0;
 	buf->cfpid = 0;
 	buf->last_used = 0;
@@ -246,7 +246,7 @@ static int pbuf_free(pbuf_element_t * buf, CSP_BASE_TYPE * task_woken) {
 	if (task_woken == NULL)
 		CSP_EXIT_CRITICAL(pbuf_sem);
 
-    return 0;
+	return 0;
 
 }
 
@@ -257,47 +257,47 @@ static int pbuf_free(pbuf_element_t * buf, CSP_BASE_TYPE * task_woken) {
  */
 static pbuf_element_t * pbuf_new(uint32_t id, CSP_BASE_TYPE * task_woken) {
 
-    /* Search for free buffer */
-    int i;
-    pbuf_element_t * buf, * ret = NULL;
+	/* Search for free buffer */
+	int i;
+	pbuf_element_t * buf, * ret = NULL;
 
-    /* Lock packet buffer */
+	/* Lock packet buffer */
 	if (task_woken == NULL)
 		CSP_ENTER_CRITICAL(pbuf_sem);
 
 	/* Loop through buffer elements */
-    for (i = 0; i < PBUF_ELEMENTS; i++) {
-        buf = &pbuf[i];
-        if(buf->state == BUF_FREE) {
-            buf->state = BUF_USED;
-            buf->cfpid = id;
-            buf->remain = 0;
-            pbuf_timestamp(buf, task_woken);
-            ret = buf;
-            break;
-        } else if (buf->state == BUF_USED) {
-        	/* Check timeout */
-        	uint32_t now = task_woken ? csp_get_ms_isr() : csp_get_ms();
-        	if (now - buf->last_used > PBUF_TIMEOUT_MS) {
-        		csp_debug(CSP_WARN, "CAN Buffer element timeout. Reusing buffer\r\n", PBUF_TIMEOUT_MS);
-        		/* Reuse packet buffer */
-        		pbuf_free(buf, task_woken);
-        		buf->state = BUF_USED;
+	for (i = 0; i < PBUF_ELEMENTS; i++) {
+		buf = &pbuf[i];
+		if(buf->state == BUF_FREE) {
+			buf->state = BUF_USED;
+			buf->cfpid = id;
+			buf->remain = 0;
+			pbuf_timestamp(buf, task_woken);
+			ret = buf;
+			break;
+		} else if (buf->state == BUF_USED) {
+			/* Check timeout */
+			uint32_t now = task_woken ? csp_get_ms_isr() : csp_get_ms();
+			if (now - buf->last_used > PBUF_TIMEOUT_MS) {
+				csp_debug(CSP_WARN, "CAN Buffer element timeout. Reusing buffer\r\n", PBUF_TIMEOUT_MS);
+				/* Reuse packet buffer */
+				pbuf_free(buf, task_woken);
+				buf->state = BUF_USED;
 				buf->cfpid = id;
 				buf->remain = 0;
 				pbuf_timestamp(buf, task_woken);
 				ret = buf;
 				break;
-        	}
-        }
-    }
+			}
+		}
+	}
 
-    /* Unlock packet buffer */
+	/* Unlock packet buffer */
 	if (task_woken == NULL)
 		CSP_EXIT_CRITICAL(pbuf_sem);
 
-    /* No free buffer was found */
-    return ret;
+	/* No free buffer was found */
+	return ret;
   
 }
 
@@ -309,64 +309,64 @@ static pbuf_element_t * pbuf_new(uint32_t id, CSP_BASE_TYPE * task_woken) {
  * @return Pointer to matching or new packet buffer element on success, NULL on error.
  */
 static pbuf_element_t * pbuf_find(uint32_t id, uint32_t mask, CSP_BASE_TYPE * task_woken) {
-    
-    /* Search for matching buffer */
-    int i;
-    pbuf_element_t * buf, * ret = NULL;
+	
+	/* Search for matching buffer */
+	int i;
+	pbuf_element_t * buf, * ret = NULL;
 
-    /* Lock packet buffer */
-    if (task_woken == NULL)
-    	CSP_ENTER_CRITICAL(pbuf_sem);
+	/* Lock packet buffer */
+	if (task_woken == NULL)
+		CSP_ENTER_CRITICAL(pbuf_sem);
 
-    /* Loop through buffer elements */
-    for (i = 0; i < PBUF_ELEMENTS; i++) {
-        buf = &pbuf[i];
+	/* Loop through buffer elements */
+	for (i = 0; i < PBUF_ELEMENTS; i++) {
+		buf = &pbuf[i];
 
-        if((buf->state == BUF_USED) && ((buf->cfpid & mask) == (id & mask))) {
-        	pbuf_timestamp(buf, task_woken);
-        	ret = buf;
-        	break;
-        }
-    }
+		if((buf->state == BUF_USED) && ((buf->cfpid & mask) == (id & mask))) {
+			pbuf_timestamp(buf, task_woken);
+			ret = buf;
+			break;
+		}
+	}
 
-    /* Unlock packet buffer */
-    if (task_woken == NULL)
+	/* Unlock packet buffer */
+	if (task_woken == NULL)
 		CSP_EXIT_CRITICAL(pbuf_sem);
 
-    /* No matching buffer was found */
-    return ret;
+	/* No matching buffer was found */
+	return ret;
 
 }
 
 int csp_tx_callback(can_id_t canid, can_error_t error, CSP_BASE_TYPE * task_woken) {
 
-    int bytes;
+	int bytes;
 
-    /* Match buffer element */
-    pbuf_element_t * buf = pbuf_find(canid, CFP_ID_CONN_MASK, task_woken);
+	/* Match buffer element */
+	pbuf_element_t * buf = pbuf_find(canid, CFP_ID_CONN_MASK, task_woken);
 
-    if (buf == NULL) {
-    	csp_debug(CSP_WARN, "Failed to match buffer element in tx callback\r\n");
-    	csp_if_can.tx_error++;
-    	return -1;
-    }
+	if (buf == NULL) {
+		csp_debug(CSP_WARN, "Failed to match buffer element in tx callback\r\n");
+		csp_if_can.tx_error++;
+		return -1;
+	}
 
-    if (buf->packet == NULL) {
-    	csp_debug(CSP_WARN, "Buffer packet was NULL\r\n");
-    	csp_if_can.tx_error++;
-    	pbuf_free(buf, task_woken);
-    	return -1;
-    }
+	if (buf->packet == NULL) {
+		csp_debug(CSP_WARN, "Buffer packet was NULL\r\n");
+		csp_if_can.tx_error++;
+		pbuf_free(buf, task_woken);
+		return -1;
+	}
 
-    /* Free packet buffer if send failed */
-    if (error != CAN_NO_ERROR) {
-    	csp_debug(CSP_WARN, "Error in transmit callback\r\n");
-    	csp_if_can.tx_error++;
-    	pbuf_free(buf, task_woken);
-    	return -1;
-    }
+	/* Free packet buffer if send failed */
+	if (error != CAN_NO_ERROR) {
+		csp_debug(CSP_WARN, "Error in transmit callback\r\n");
+		csp_if_can.tx_error++;
+		pbuf_free(buf, task_woken);
+		return -1;
+	}
 
-    /* Send next frame if not complete */
+	/* Send next frame if not complete */
 	if (buf->tx_count < buf->packet->length) {
 		/* Calculate frame data bytes */
 		bytes = (buf->packet->length - buf->tx_count >= 8) ? 8 : buf->packet->length - buf->tx_count;
@@ -408,80 +408,80 @@ int csp_tx_callback(can_id_t canid, can_error_t error, CSP_BASE_TYPE * task_woke
 int csp_rx_callback(can_frame_t * frame, CSP_BASE_TYPE * task_woken) {
 
 	pbuf_element_t * buf;
-    uint8_t offset;
-    
-    can_id_t id = frame->id;
+	uint8_t offset;
+	
+	can_id_t id = frame->id;
 
-    /* Bind incoming frame to a packet buffer */
-    buf = pbuf_find(id, CFP_ID_CONN_MASK, task_woken);
+	/* Bind incoming frame to a packet buffer */
+	buf = pbuf_find(id, CFP_ID_CONN_MASK, task_woken);
 
-    /* Check returned buffer */
-    if (buf == NULL) {
-    	if (CFP_TYPE(id) == CFP_BEGIN) {
+	/* Check returned buffer */
+	if (buf == NULL) {
+		if (CFP_TYPE(id) == CFP_BEGIN) {
 			buf = pbuf_new(id, task_woken);
 			if (buf == NULL) {
 				csp_debug(CSP_WARN, "No available packet buffer for CAN\r\n");
 				csp_if_can.rx_error++;
 				return -1;
 			}
-    	} else {
-    		csp_debug(CSP_WARN, "Out of order MORE frame received\r\n");
-    		csp_if_can.frame++;
-    		return -1;
-    	}
-    }
+		} else {
+			csp_debug(CSP_WARN, "Out of order MORE frame received\r\n");
+			csp_if_can.frame++;
+			return -1;
+		}
+	}
 
-    /* Reset frame data offset */
-    offset = 0;
+	/* Reset frame data offset */
+	offset = 0;
 
-    switch (CFP_TYPE(id)) {
+	switch (CFP_TYPE(id)) {
 
-        case CFP_BEGIN:
-        
-            /* Discard packet if DLC is less than CSP id + CSP length fields */
-            if (frame->dlc < sizeof(csp_id_t) + sizeof(uint16_t)) {
-                csp_debug(CSP_WARN, "Short BEGIN frame received\r\n");
-                csp_if_can.frame++;
-                pbuf_free(buf, task_woken);
-                break;
-            }
-                        
-            /* Check for incomplete frame */
-            if (buf->packet != NULL) {
-            	/* Reuse the buffer */
-                csp_debug(CSP_WARN, "Incomplete frame\r\n");
-                csp_if_can.frame++;
-            } else {
-                /* Allocate memory for frame */
-                buf->packet = task_woken ? csp_buffer_get_isr(CSP_CAN_MTU) : csp_buffer_get(CSP_CAN_MTU);
-                if (buf->packet == NULL) {
-                    csp_debug(CSP_ERROR, "Failed to get buffer for CSP_BEGIN packet\n");
-                    csp_if_can.frame++;
-                    pbuf_free(buf, task_woken);
-                    break;
-                }
-            }
+		case CFP_BEGIN:
+		
+			/* Discard packet if DLC is less than CSP id + CSP length fields */
+			if (frame->dlc < sizeof(csp_id_t) + sizeof(uint16_t)) {
+				csp_debug(CSP_WARN, "Short BEGIN frame received\r\n");
+				csp_if_can.frame++;
+				pbuf_free(buf, task_woken);
+				break;
+			}
+						
+			/* Check for incomplete frame */
+			if (buf->packet != NULL) {
+				/* Reuse the buffer */
+				csp_debug(CSP_WARN, "Incomplete frame\r\n");
+				csp_if_can.frame++;
+			} else {
+				/* Allocate memory for frame */
+				buf->packet = task_woken ? csp_buffer_get_isr(CSP_CAN_MTU) : csp_buffer_get(CSP_CAN_MTU);
+				if (buf->packet == NULL) {
+					csp_debug(CSP_ERROR, "Failed to get buffer for CSP_BEGIN packet\n");
+					csp_if_can.frame++;
+					pbuf_free(buf, task_woken);
+					break;
+				}
+			}
 
-            /* Copy CSP identifier and length*/
-            memcpy(&(buf->packet->id), frame->data, sizeof(csp_id_t));
-            buf->packet->id.ext = csp_ntoh32(buf->packet->id.ext);
-            memcpy(&(buf->packet->length), frame->data + sizeof(csp_id_t), sizeof(uint16_t));
-            buf->packet->length = csp_ntoh16(buf->packet->length);
-            
-            /* Reset RX count */
-            buf->rx_count = 0;
-            
-            /* Set offset to prevent CSP header from being copied to CSP data */
-            offset = sizeof(csp_id_t) + sizeof(uint16_t);
+			/* Copy CSP identifier and length*/
+			memcpy(&(buf->packet->id), frame->data, sizeof(csp_id_t));
+			buf->packet->id.ext = csp_ntoh32(buf->packet->id.ext);
+			memcpy(&(buf->packet->length), frame->data + sizeof(csp_id_t), sizeof(uint16_t));
+			buf->packet->length = csp_ntoh16(buf->packet->length);
+			
+			/* Reset RX count */
+			buf->rx_count = 0;
+			
+			/* Set offset to prevent CSP header from being copied to CSP data */
+			offset = sizeof(csp_id_t) + sizeof(uint16_t);
 
-            /* Set remain field - increment to include begin packet */
-            buf->remain = CFP_REMAIN(id) + 1;
+			/* Set remain field - increment to include begin packet */
+			buf->remain = CFP_REMAIN(id) + 1;
 
-            /* Note fall through! */
-            
-        case CFP_MORE:
+			/* Note fall through! */
+			
+		case CFP_MORE:
 
-        	/* Check 'remain' field match */
+			/* Check 'remain' field match */
 			if (CFP_REMAIN(id) != buf->remain - 1) {
 				csp_debug(CSP_ERROR, "CAN frame lost in CSP packet\r\n");
 				pbuf_free(buf, task_woken);
@@ -492,41 +492,41 @@ int csp_rx_callback(can_frame_t * frame, CSP_BASE_TYPE * task_woken) {
 			/* Decrement remaining frames */
 			buf->remain--;
 
-            /* Check for overflow */
-            if ((buf->rx_count + frame->dlc - offset) > buf->packet->length) {
-                csp_debug(CSP_ERROR, "RX buffer overflow\r\n");
-                csp_if_can.frame++;
-                pbuf_free(buf, task_woken);
-                break;
-            }
+			/* Check for overflow */
+			if ((buf->rx_count + frame->dlc - offset) > buf->packet->length) {
+				csp_debug(CSP_ERROR, "RX buffer overflow\r\n");
+				csp_if_can.frame++;
+				pbuf_free(buf, task_woken);
+				break;
+			}
 
-            /* Copy dlc bytes into buffer */
-            memcpy(&buf->packet->data[buf->rx_count], frame->data + offset, frame->dlc - offset);
-            buf->rx_count += frame->dlc - offset;
+			/* Copy dlc bytes into buffer */
+			memcpy(&buf->packet->data[buf->rx_count], frame->data + offset, frame->dlc - offset);
+			buf->rx_count += frame->dlc - offset;
 
-            /* Check if more data is expected */
-            if (buf->rx_count != buf->packet->length)
-                break;
+			/* Check if more data is expected */
+			if (buf->rx_count != buf->packet->length)
+				break;
 
-            /* Data is available */
-            csp_new_packet(buf->packet, &csp_if_can, task_woken);
+			/* Data is available */
+			csp_new_packet(buf->packet, &csp_if_can, task_woken);
 
-            /* Drop packet buffer reference */
-            buf->packet = NULL;
+			/* Drop packet buffer reference */
+			buf->packet = NULL;
 
-            /* Free packet buffer */
-            pbuf_free(buf, task_woken);
+			/* Free packet buffer */
+			pbuf_free(buf, task_woken);
 
-            break;
+			break;
 
-        default:
-            csp_debug(CSP_WARN, "Received unknown CFP message type\r\n");
-            pbuf_free(buf, task_woken);
-            break;
+		default:
+			csp_debug(CSP_WARN, "Received unknown CFP message type\r\n");
+			pbuf_free(buf, task_woken);
+			break;
 
-    }
+	}
 
-    return 0;
+	return 0;
 
 }
 
@@ -588,53 +588,53 @@ int csp_can_tx(csp_packet_t * packet, uint32_t timeout) {
 		return 0;
 	}
 
-    /* Non blocking mode */
-    if (timeout == 0)
-        return 1;
+	/* Non blocking mode */
+	if (timeout == 0)
+		return 1;
 
-    /* Blocking mode */
-    if (csp_bin_sem_wait(&buf->tx_sem, timeout) != CSP_SEMAPHORE_OK) {
-        csp_bin_sem_post(&buf->tx_sem);
-        return 0;
-    } else {
-    	csp_bin_sem_post(&buf->tx_sem);
-        return 1;
-    }
+	/* Blocking mode */
+	if (csp_bin_sem_wait(&buf->tx_sem, timeout) != CSP_SEMAPHORE_OK) {
+		csp_bin_sem_post(&buf->tx_sem);
+		return 0;
+	} else {
+		csp_bin_sem_post(&buf->tx_sem);
+		return 1;
+	}
 
 }
 
 int csp_can_init(uint8_t mode, void * conf, int conflen) {
 
-    uint32_t mask;
+	uint32_t mask;
 
-    /* Initialize packet buffer */
-    if (pbuf_init() != 0) {
-    	csp_debug(CSP_ERROR, "Failed to initialize CAN packet buffers\r\n");
-    	return -1;
+	/* Initialize packet buffer */
+	if (pbuf_init() != 0) {
+		csp_debug(CSP_ERROR, "Failed to initialize CAN packet buffers\r\n");
+		return -1;
 	}
 
-    /* Initialize CFP identifier */
-    if (id_init() != 0) {
-    	csp_debug(CSP_ERROR, "Failed to initialize CAN identification number\r\n");
-    	return -1;
-    }
-    
-    if (mode == CSP_CAN_MASKED) {
-    	mask = CFP_MAKE_DST((1 << CFP_HOST_SIZE) - 1);
-    } else if (mode == CSP_CAN_PROMISC) {
-    	mask = 0;
-    	csp_if_can.promisc = 1;
-    } else {
-    	csp_debug(CSP_ERROR, "Unknown CAN mode\r\n");
-    	return -1;
-    }
+	/* Initialize CFP identifier */
+	if (id_init() != 0) {
+		csp_debug(CSP_ERROR, "Failed to initialize CAN identification number\r\n");
+		return -1;
+	}
+	
+	if (mode == CSP_CAN_MASKED) {
+		mask = CFP_MAKE_DST((1 << CFP_HOST_SIZE) - 1);
+	} else if (mode == CSP_CAN_PROMISC) {
+		mask = 0;
+		csp_if_can.promisc = 1;
+	} else {
+		csp_debug(CSP_ERROR, "Unknown CAN mode\r\n");
+		return -1;
+	}
 
-    /* Initialize CAN driver */
-    if (can_init(CFP_MAKE_DST(my_address), mask, csp_tx_callback, csp_rx_callback, conf, conflen) != 0) {
-    	csp_debug(CSP_ERROR, "Failed to initialize CAN driver\r\n");
-    	return -1;
-    }
+	/* Initialize CAN driver */
+	if (can_init(CFP_MAKE_DST(my_address), mask, csp_tx_callback, csp_rx_callback, conf, conflen) != 0) {
+		csp_debug(CSP_ERROR, "Failed to initialize CAN driver\r\n");
+		return -1;
+	}
 
-    return 0;
+	return 0;
 
 }

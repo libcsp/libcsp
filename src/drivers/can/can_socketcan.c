@@ -58,8 +58,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 /* These constants are not defined for Blackfin */
 #if !defined(PF_CAN) && !defined(AF_CAN)
-    #define PF_CAN 29
-    #define AF_CAN PF_CAN
+	#define PF_CAN 29
+	#define AF_CAN PF_CAN
 #endif
 
 int can_socket; /** SocketCAN socket handle */
@@ -71,15 +71,15 @@ can_rx_callback_t rxcb;
 
 /* Mailbox pool */
 typedef enum {
-    MBOX_FREE = 0,
-    MBOX_USED = 1,
+	MBOX_FREE = 0,
+	MBOX_USED = 1,
 } mbox_state_t;
 
 typedef struct {
-    pthread_t thread;  		/** Thread handle */
-    sem_t signal_sem;   	/** Signalling semaphore */
-    mbox_state_t state;		/** Thread state */
-    struct can_frame frame;	/** CAN Frame */
+	pthread_t thread;  		/** Thread handle */
+	sem_t signal_sem;   	/** Signalling semaphore */
+	mbox_state_t state;		/** Thread state */
+	struct can_frame frame;	/** CAN Frame */
 } mbox_t;
 
 /* List of mailboxes */
@@ -89,12 +89,12 @@ static mbox_t mbox[MBOX_NUM];
 static void * mbox_tx_thread(void * parameters) {
 
 	/* Set thread parameters */
-    mbox_t * m = (mbox_t *)parameters;
+	mbox_t * m = (mbox_t *)parameters;
 
-    while (1) {
+	while (1) {
 
-        /* Wait for a new packet to process */
-        sem_wait(&(m->signal_sem));
+		/* Wait for a new packet to process */
+		sem_wait(&(m->signal_sem));
 
 		/* Send frame */
 		int tries = 0, error = CAN_NO_ERROR;
@@ -117,79 +117,79 @@ static void * mbox_tx_thread(void * parameters) {
 		m->state = MBOX_FREE;
 		sem_post(&mbox_sem);
 
-    }
+	}
 
-    /* We should never reach this point */
-    pthread_exit(NULL);
+	/* We should never reach this point */
+	pthread_exit(NULL);
 
 }
 
 static void * mbox_rx_thread(void * parameters) {
 
-    struct can_frame frame;
-    int nbytes;
+	struct can_frame frame;
+	int nbytes;
 
-    while (1) {
-        /* Read CAN frame */
-        nbytes = read(can_socket, &frame, sizeof(frame));
+	while (1) {
+		/* Read CAN frame */
+		nbytes = read(can_socket, &frame, sizeof(frame));
 
 	if (nbytes < 0) {
-	    csp_debug(CSP_ERROR, "read: %s\r\n", strerror(errno));
-	    break;
+		csp_debug(CSP_ERROR, "read: %s\r\n", strerror(errno));
+		break;
 	}
 
-        if (nbytes != sizeof(frame)) {
-            csp_debug(CSP_WARN, "Read incomplete CAN frame\n");
-            continue;
-        }
+		if (nbytes != sizeof(frame)) {
+			csp_debug(CSP_WARN, "Read incomplete CAN frame\n");
+			continue;
+		}
 
-        /* Frame type */
-        if (frame.can_id & (CAN_ERR_FLAG | CAN_RTR_FLAG) || !(frame.can_id & CAN_EFF_FLAG)) {
-        	/* Drop error and remote frames */
-        	csp_debug(CSP_WARN, "Discarding ERR/RTR/SFF frame\r\n");
-        } else {
-        	/* Strip flags */
-        	frame.can_id &= CAN_EFF_MASK;
-        }
+		/* Frame type */
+		if (frame.can_id & (CAN_ERR_FLAG | CAN_RTR_FLAG) || !(frame.can_id & CAN_EFF_FLAG)) {
+			/* Drop error and remote frames */
+			csp_debug(CSP_WARN, "Discarding ERR/RTR/SFF frame\r\n");
+		} else {
+			/* Strip flags */
+			frame.can_id &= CAN_EFF_MASK;
+		}
 
-        /* Call RX callback */
-        if (rxcb) rxcb((can_frame_t *)&frame, NULL);
-    }
+		/* Call RX callback */
+		if (rxcb) rxcb((can_frame_t *)&frame, NULL);
+	}
 
-    /* We should never reach this point */
-    pthread_exit(NULL);
+	/* We should never reach this point */
+	pthread_exit(NULL);
 
 }
 
 int can_mbox_init(void) {
 
-    int i;
-    mbox_t * m;
+	int i;
+	mbox_t * m;
 
-    for (i = 0; i < MBOX_NUM; i++) {
-    	m = &mbox[i];
-        m->state = MBOX_FREE;
+	for (i = 0; i < MBOX_NUM; i++) {
+		m = &mbox[i];
+		m->state = MBOX_FREE;
 
-        /* Init signal semaphore */
-        if (sem_init(&(m->signal_sem), 0, 1) != 0) {
-        	csp_debug(CSP_ERROR, "sem_init: %s\r\n", strerror(errno));
-            return -1;
-        } else {
-        	/* Take signal semaphore so the thread waits for tx data */
-            sem_wait(&(m->signal_sem));
-        }
+		/* Init signal semaphore */
+		if (sem_init(&(m->signal_sem), 0, 1) != 0) {
+			csp_debug(CSP_ERROR, "sem_init: %s\r\n", strerror(errno));
+			return -1;
+		} else {
+			/* Take signal semaphore so the thread waits for tx data */
+			sem_wait(&(m->signal_sem));
+		}
 
-        /* Create mailbox */
-        if (pthread_create(&m->thread, NULL, mbox_tx_thread, (void *)m) != 0) {
-        	csp_debug(CSP_ERROR, "pthread_create: %s\r\n", strerror(errno));
-            return -1;
-        }
-    }
+		/* Create mailbox */
+		if (pthread_create(&m->thread, NULL, mbox_tx_thread, (void *)m) != 0) {
+			csp_debug(CSP_ERROR, "pthread_create: %s\r\n", strerror(errno));
+			return -1;
+		}
+	}
 
-    /* Init mailbox pool semaphore */
-    sem_init(&mbox_sem, 0, 1);
+	/* Init mailbox pool semaphore */
+	sem_init(&mbox_sem, 0, 1);
 
-    return 0;
+	return 0;
 
 }
 

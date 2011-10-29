@@ -50,8 +50,8 @@ uint32_t can_mask;
 
 /** Mailbox */
 typedef enum {
-    MBOX_FREE = 0,
-    MBOX_USED = 1,
+	MBOX_FREE = 0,
+	MBOX_USED = 1,
 } mbox_t;
 
 /** List of mobs */
@@ -220,7 +220,7 @@ int can_send(can_id_t id, uint8_t data[], uint8_t dlc, CSP_BASE_TYPE * task_woke
 	/* Set IDE bit, PCB to producer, DLC and CHANEN to enable */
 	CAN_CTRL->CHANNEL[m].CR = (CHANEN | PCB | IDE | dlc);
 
-    return 0;
+	return 0;
 
 }
 

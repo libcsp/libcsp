@@ -54,30 +54,30 @@ int csp_mutex_remove(csp_mutex_t * mutex) {
 
 int csp_mutex_lock(csp_mutex_t * mutex, uint32_t timeout) {
 
-    int ret;
-    struct timespec ts;
-    uint32_t sec, nsec;
+	int ret;
+	struct timespec ts;
+	uint32_t sec, nsec;
 
 	csp_debug(CSP_LOCK, "Wait: %p timeout %"PRIu32"\r\n", mutex, timeout);
 
-    if (timeout == CSP_INFINITY) {
-        ret = pthread_mutex_lock(mutex);
-    } else {
-        if (clock_gettime(CLOCK_REALTIME, &ts))
-            return CSP_SEMAPHORE_ERROR;
+	if (timeout == CSP_INFINITY) {
+		ret = pthread_mutex_lock(mutex);
+	} else {
+		if (clock_gettime(CLOCK_REALTIME, &ts))
+			return CSP_SEMAPHORE_ERROR;
 
-        sec = timeout / 1000;
-        nsec = (timeout - 1000 * sec) * 1000000;
+		sec = timeout / 1000;
+		nsec = (timeout - 1000 * sec) * 1000000;
 
-        ts.tv_sec += sec;
+		ts.tv_sec += sec;
 
-        if (ts.tv_nsec + nsec >= 1000000000)
-            ts.tv_sec++;
+		if (ts.tv_nsec + nsec >= 1000000000)
+			ts.tv_sec++;
 
-        ts.tv_nsec = (ts.tv_nsec + nsec) % 1000000000;
+		ts.tv_nsec = (ts.tv_nsec + nsec) % 1000000000;
 
-        ret = pthread_mutex_timedlock(mutex, &ts);
-    }
+		ret = pthread_mutex_timedlock(mutex, &ts);
+	}
 
 	if (ret != 0)
 		return CSP_SEMAPHORE_ERROR;
@@ -95,11 +95,11 @@ int csp_mutex_unlock(csp_mutex_t * mutex) {
 
 int csp_bin_sem_create(csp_bin_sem_handle_t * sem) {
 	csp_debug(CSP_LOCK, "Semaphore init: %p\r\n", sem);
-    if (sem_init(sem, 0, 1) == 0) {
-        return CSP_SEMAPHORE_OK;
-    } else {
-        return CSP_SEMAPHORE_ERROR;
-    }
+	if (sem_init(sem, 0, 1) == 0) {
+		return CSP_SEMAPHORE_OK;
+	} else {
+		return CSP_SEMAPHORE_ERROR;
+	}
 }
 
 int csp_bin_sem_remove(csp_bin_sem_handle_t * sem) {
@@ -111,54 +111,54 @@ int csp_bin_sem_remove(csp_bin_sem_handle_t * sem) {
 
 int csp_bin_sem_wait(csp_bin_sem_handle_t * sem, uint32_t timeout) {
 
-    int ret;
-    struct timespec ts;
-    uint32_t sec, nsec;
+	int ret;
+	struct timespec ts;
+	uint32_t sec, nsec;
 
 	csp_debug(CSP_LOCK, "Wait: %p timeout %"PRIu32"\r\n", sem, timeout);
 
-    if (timeout == CSP_INFINITY) {
-        ret = sem_wait(sem);
-    } else {
-        if (clock_gettime(CLOCK_REALTIME, &ts))
-            return CSP_SEMAPHORE_ERROR;
-        
-        sec = timeout / 1000;
-        nsec = (timeout - 1000 * sec) * 1000000;
+	if (timeout == CSP_INFINITY) {
+		ret = sem_wait(sem);
+	} else {
+		if (clock_gettime(CLOCK_REALTIME, &ts))
+			return CSP_SEMAPHORE_ERROR;
+		
+		sec = timeout / 1000;
+		nsec = (timeout - 1000 * sec) * 1000000;
 
-        ts.tv_sec += sec;
+		ts.tv_sec += sec;
 
-        if (ts.tv_nsec + nsec >= 1000000000)
-            ts.tv_sec++;
+		if (ts.tv_nsec + nsec >= 1000000000)
+			ts.tv_sec++;
 
-        ts.tv_nsec = (ts.tv_nsec + nsec) % 1000000000;
+		ts.tv_nsec = (ts.tv_nsec + nsec) % 1000000000;
 
-        ret = sem_timedwait(sem, &ts);
-    }
+		ret = sem_timedwait(sem, &ts);
+	}
 
-    if (ret != 0)
-        return CSP_SEMAPHORE_ERROR;
+	if (ret != 0)
+		return CSP_SEMAPHORE_ERROR;
 
-    return CSP_SEMAPHORE_OK;
+	return CSP_SEMAPHORE_OK;
 }
 
 int csp_bin_sem_post(csp_bin_sem_handle_t * sem) {
-    CSP_BASE_TYPE dummy = 0;
-    return csp_bin_sem_post_isr(sem, &dummy);
+	CSP_BASE_TYPE dummy = 0;
+	return csp_bin_sem_post_isr(sem, &dummy);
 }
 
 int csp_bin_sem_post_isr(csp_bin_sem_handle_t * sem, CSP_BASE_TYPE * task_woken) {
 	csp_debug(CSP_LOCK, "Post: %p\r\n", sem);
-    *task_woken = 0;
+	*task_woken = 0;
 
-    int value;
-    sem_getvalue(sem, &value);
-    if (value > 0)
-    	return CSP_SEMAPHORE_OK;
+	int value;
+	sem_getvalue(sem, &value);
+	if (value > 0)
+		return CSP_SEMAPHORE_OK;
 
-    if (sem_post(sem) == 0) {
-        return CSP_SEMAPHORE_OK;
-    } else {
-        return CSP_SEMAPHORE_ERROR;
-    }
+	if (sem_post(sem) == 0) {
+		return CSP_SEMAPHORE_OK;
+	} else {
+		return CSP_SEMAPHORE_ERROR;
+	}
 }

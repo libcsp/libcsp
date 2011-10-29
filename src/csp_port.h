@@ -31,14 +31,14 @@ extern "C" {
 
 /** @brief Port states */
 typedef enum {
-    PORT_CLOSED = 0,
-    PORT_OPEN = 1,
+	PORT_CLOSED = 0,
+	PORT_OPEN = 1,
 } csp_port_state_t;
 
 /** @brief Port struct */
 typedef struct {
-    csp_port_state_t state;         // Port state
-    csp_socket_t * socket;          // New connections are added to this socket's conn queue
+	csp_port_state_t state;		 // Port state
+	csp_socket_t * socket;		  // New connections are added to this socket's conn queue
 } csp_port_t;
 
 /**

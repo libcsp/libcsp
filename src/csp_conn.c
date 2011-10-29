@@ -152,13 +152,13 @@ csp_conn_t * csp_conn_find(uint32_t id, uint32_t mask) {
 	int i;
 	csp_conn_t * conn;
 
-    for (i = 0; i < CSP_CONN_MAX; i++) {
+	for (i = 0; i < CSP_CONN_MAX; i++) {
 		conn = &arr_conn[i];
 		if ((conn->state != CONN_CLOSED) && (conn->idin.ext & mask) == (id & mask))
 			return conn;
-    }
-    
-    return NULL;
+	}
+	
+	return NULL;
 
 }
 
@@ -204,8 +204,8 @@ csp_conn_t * csp_conn_new(csp_id_t idin, csp_id_t idout) {
 		conn = &arr_conn[i];
 		if (conn->state == CONN_CLOSED) {
 			conn->state = CONN_OPEN;
-            break;
-        }
+			break;
+		}
 		i = (i + 1) % CSP_CONN_MAX;
 	} while (i != csp_conn_last_given);
 
@@ -229,7 +229,7 @@ csp_conn_t * csp_conn_new(csp_id_t idin, csp_id_t idout) {
 	/* Ensure connection queue is empty */
 	csp_conn_flush_rx_queue(conn);
 
-    return conn;
+	return conn;
 
 }
 
@@ -247,33 +247,33 @@ int csp_close(csp_conn_t * conn) {
 
 #ifdef CSP_USE_RDP
 	/* Ensure RDP knows this connection is closing */
-    if (conn->idin.flags & CSP_FRDP || conn->idout.flags & CSP_FRDP)
+	if (conn->idin.flags & CSP_FRDP || conn->idout.flags & CSP_FRDP)
 		if (csp_rdp_close(conn) == 1)
 			return CSP_ERR_NONE;
 #endif
 
-    /* Lock connection array while closing connection */
-    if (csp_bin_sem_wait(&conn_lock, 100) != CSP_SEMAPHORE_OK) {
+	/* Lock connection array while closing connection */
+	if (csp_bin_sem_wait(&conn_lock, 100) != CSP_SEMAPHORE_OK) {
 		csp_debug(CSP_ERROR, "Failed to lock conn array\r\n");
 		return CSP_ERR_TIMEDOUT;
 	}
 
-    /* Set to closed */
+	/* Set to closed */
 	conn->state = CONN_CLOSED;
 
 	/* Ensure connection queue is empty */
 	csp_conn_flush_rx_queue(conn);
 
-    /* Reset RDP state */
+	/* Reset RDP state */
 #ifdef CSP_USE_RDP
-    if (conn->idin.flags & CSP_FRDP)
-    	csp_rdp_flush_all(conn);
+	if (conn->idin.flags & CSP_FRDP)
+		csp_rdp_flush_all(conn);
 #endif
 
-    /* Unlock connection array */
-    csp_bin_sem_post(&conn_lock);
+	/* Unlock connection array */
+	csp_bin_sem_post(&conn_lock);
 
-    return CSP_ERR_NONE;
+	return CSP_ERR_NONE;
 }
 
 csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport, uint32_t timeout, uint32_t opts) {
@@ -331,83 +331,83 @@ csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport, uint32_t tim
 		return NULL;
 #endif
 	}
-    
-    /* Find an unused ephemeral port */
-    csp_conn_t * conn;
+	
+	/* Find an unused ephemeral port */
+	csp_conn_t * conn;
 
-    /* Wait for sport lock */
-    if (csp_bin_sem_wait(&sport_lock, 1000) != CSP_SEMAPHORE_OK)
-    	return NULL;
+	/* Wait for sport lock */
+	if (csp_bin_sem_wait(&sport_lock, 1000) != CSP_SEMAPHORE_OK)
+		return NULL;
 
-    uint8_t start = sport;
-    while (++sport != start) {
-        if (sport > CSP_ID_PORT_MAX)
-            sport = CSP_MAX_BIND_PORT + 1;
+	uint8_t start = sport;
+	while (++sport != start) {
+		if (sport > CSP_ID_PORT_MAX)
+			sport = CSP_MAX_BIND_PORT + 1;
 
-        outgoing_id.sport = sport;
-        incoming_id.dport = sport;
-        
-        /* Match on destination port of _incoming_ identifier */
-        conn = csp_conn_find(incoming_id.ext, CSP_ID_DPORT_MASK);
+		outgoing_id.sport = sport;
+		incoming_id.dport = sport;
+		
+		/* Match on destination port of _incoming_ identifier */
+		conn = csp_conn_find(incoming_id.ext, CSP_ID_DPORT_MASK);
 
-        /* Break if we found an unused ephemeral port */
-        if (conn == NULL)
-            break;
-    }
+		/* Break if we found an unused ephemeral port */
+		if (conn == NULL)
+			break;
+	}
 
-    /* Post sport lock */
-    csp_bin_sem_post(&sport_lock);
+	/* Post sport lock */
+	csp_bin_sem_post(&sport_lock);
 
-    /* If no available ephemeral port was found */
-    if (sport == start)
-        return NULL;
+	/* If no available ephemeral port was found */
+	if (sport == start)
+		return NULL;
 
-    /* Get storage for new connection */
-    conn = csp_conn_new(incoming_id, outgoing_id);
-    if (conn == NULL)
-    	return NULL;
+	/* Get storage for new connection */
+	conn = csp_conn_new(incoming_id, outgoing_id);
+	if (conn == NULL)
+		return NULL;
 
-    /* Set connection options */
-    conn->conn_opts = opts;
+	/* Set connection options */
+	conn->conn_opts = opts;
 
 #ifdef CSP_USE_RDP
-    /* Call Transport Layer connect */
-    if (outgoing_id.flags & CSP_FRDP) {
+	/* Call Transport Layer connect */
+	if (outgoing_id.flags & CSP_FRDP) {
 		/* If the transport layer has failed to connect
 		 * deallocate connection structure again and return NULL */
 		if (csp_rdp_connect(conn, timeout) != CSP_ERR_NONE) {
 			csp_close(conn);
 			return NULL;
 		}
-    }
+	}
 #endif
 
-    /* We have a successful connection */
-    return conn;
+	/* We have a successful connection */
+	return conn;
 
 }
 
 inline int csp_conn_dport(csp_conn_t * conn) {
 
-    return conn->idin.dport;
+	return conn->idin.dport;
 
 }
 
 inline int csp_conn_sport(csp_conn_t * conn) {
 
-    return conn->idin.sport;
+	return conn->idin.sport;
 
 }
 
 inline int csp_conn_dst(csp_conn_t * conn) {
 
-    return conn->idin.dst;
+	return conn->idin.dst;
 
 }
 
 inline int csp_conn_src(csp_conn_t * conn) {
 
-    return conn->idin.src;
+	return conn->idin.src;
 
 }
 
@@ -423,7 +423,7 @@ void csp_conn_print_table(void) {
 	int i;
 	csp_conn_t * conn;
 
-    for (i = 0; i < CSP_CONN_MAX; i++) {
+	for (i = 0; i < CSP_CONN_MAX; i++) {
 		conn = &arr_conn[i];
 		printf("[%02u %p] S:%u, %u -> %u, %u -> %u, sock: %p\r\n",
 				i, conn, conn->state, conn->idin.src, conn->idin.dst,
@@ -432,31 +432,31 @@ void csp_conn_print_table(void) {
 		if (conn->idin.flags & CSP_FRDP)
 			csp_rdp_conn_print(conn);
 #endif
-    }
+	}
 }
 
 int csp_conn_print_table_str(char * str_buf, int str_size) {
 
-    int i, start = 0;
+	int i, start = 0;
 	csp_conn_t * conn;
-    char buf[100];
+	char buf[100];
 
-    /* Display up to 10 connections */
+	/* Display up to 10 connections */
 	if (CSP_CONN_MAX - 10 > 0)
-    	start = CSP_CONN_MAX - 10;
+		start = CSP_CONN_MAX - 10;
 
-    for (i = start; i < CSP_CONN_MAX; i++) {
+	for (i = start; i < CSP_CONN_MAX; i++) {
 		conn = &arr_conn[i];
 		snprintf(buf, sizeof(buf), "[%02u %p] S:%u, %u -> %u, %u -> %u, sock: %p\r\n",
 				i, conn, conn->state, conn->idin.src, conn->idin.dst,
 				conn->idin.dport, conn->idin.sport, conn->rx_socket);
 
 		strncat(str_buf, buf, str_size);
-        if ((str_size -= strlen(buf)) <= 0)
-            break;
-    }
+		if ((str_size -= strlen(buf)) <= 0)
+			break;
+	}
 
-    return CSP_ERR_NONE;
+	return CSP_ERR_NONE;
 
 }
 #endif
