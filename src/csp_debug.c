@@ -114,9 +114,13 @@ void csp_debug_ex(csp_debug_level_t level, const char * format, ...) {
 		if (csp_debug_printf_hook)
 			csp_debug_printf_hook(level);
 
+#if defined(_CSP_WINDOWS_)
+		vprintf(format, args);
+#else
 		printf("%s", color);
 		vprintf(format, args);
 		printf("\E[0m");
+#endif
 	}
 
 	va_end(args);
