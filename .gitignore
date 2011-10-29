@@ -1,7 +1,3 @@
-*.a
-*.o
-.waf-*
-.waf3-*
 build
 *.swp
 .lock*
@@ -12,5 +8,4 @@ build
 ~*
 pdebug*
 *.tar*
-*.swp
-tags
+
