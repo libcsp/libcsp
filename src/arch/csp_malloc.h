@@ -26,21 +26,8 @@ extern "C" {
 #endif
 
 #include <stdint.h>
-
-/* POSIX interface */
-#if defined(_CSP_POSIX_)
-
+#include <stddef.h>
 #include <stdlib.h>
-
-#endif // _CSP_POSIX_
-
-/* FreeRTOS interface */
-#if defined(_CSP_FREERTOS_)
-
-#include <freertos/FreeRTOS.h>
-#include <freertos/queue.h>
-
-#endif // _CSP_FREERTOS_
 
 void * csp_malloc(size_t size);
 void csp_free(void * ptr);

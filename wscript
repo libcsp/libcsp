@@ -49,7 +49,7 @@ def options(ctx):
 	gr.add_option('--enable-examples', action='store_true', help='Enable examples')
 	gr.add_option('--enable-static-buffer', action='store_true', help='Enable static buffer system')
 
-	gr.add_option('--with-os', default='posix', help='Set operating system. Must be either \'posix\' or \'freertos\'')
+	gr.add_option('--with-os', default='posix', help='Set operating system. Must be either \'posix\', \'windows\' or \'freertos\'')
 	gr.add_option('--with-can', default=None, metavar='CHIP', help='Enable CAN driver. CHIP must be either socketcan, at91sam7a1, at91sam7a3 or at90can128')
 	gr.add_option('--with-freertos', metavar="PATH", default='../../libgomspace/include', help='Set path to FreeRTOS header files')
 	gr.add_option('--with-static-buffer-size', type=int, default=320, help='Set size of static buffer elements')
@@ -63,12 +63,12 @@ def options(ctx):
 
 def configure(ctx):
 	# Validate OS
-	if not ctx.options.with_os in ('posix', 'freertos'):
-		ctx.fatal('ARCH must be either \'posix\' or \'freertos\'')
+	if not ctx.options.with_os in ('posix', 'windows', 'freertos'):
+		ctx.fatal('--with-os must be either \'posix\', \'windows\' or \'freertos\'')
 
 	# Validate CAN drivers
 	if not ctx.options.with_can in (None, 'socketcan', 'at91sam7a1', 'at91sam7a3', 'at90can128'):
-		ctx.fatal('CAN must be either \'socketcan\', \'at91sam7a1\', \'at91sam7a3\', \'at90can128\'')
+		ctx.fatal('--with-can must be either \'socketcan\', \'at91sam7a1\', \'at91sam7a3\', \'at90can128\'')
 
 	# Setup and validate toolchain
 	ctx.env.CC = ctx.options.toolchain + 'gcc'
@@ -96,8 +96,13 @@ def configure(ctx):
 	if ctx.options.with_os == 'freertos':
 		ctx.env.append_unique('INCLUDES_CSP', ctx.options.with_freertos)
 		ctx.define('_CSP_FREERTOS_', 1)
-	else:
+	elif ctx.options.with_os == 'posix':
 		ctx.define('_CSP_POSIX_', 1)
+	elif ctx.options.with_os == 'windows':
+		ctx.define('_CSP_WINDOWS_', 1)
+		ctx.env.append_unique('CFLAGS_CSP', ['-D_WIN32_WINNT=0x0600'] + ctx.options.cflags.split(','))
+	else:
+		ctx.fatal('ARCH must be either \'posix\', \'windows\' or \'freertos\'')
 
 	# Add CAN driver
 	if ctx.options.with_can:

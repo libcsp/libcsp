@@ -54,13 +54,13 @@ extern "C" {
 #endif
 
 /* Set OS */
-#if defined(_CSP_POSIX_) && !defined(_CSP_FREERTOS_)
+#if defined(_CSP_POSIX_) || defined(_CSP_WINDOWS_)
 	#define CSP_BASE_TYPE int
 	#define CSP_MAX_DELAY (UINT32_MAX)
 	#define CSP_INFINITY (UINT32_MAX)
 	#define CSP_ENTER_CRITICAL(lock) do { csp_bin_sem_wait(&lock, CSP_MAX_DELAY); } while(0)
 	#define CSP_EXIT_CRITICAL(lock) do { csp_bin_sem_post(&lock); } while(0)
-#elif defined(_CSP_FREERTOS_) && !defined(_CSP_POSIX_)
+#elif defined(_CSP_FREERTOS_)
 	#include <freertos/FreeRTOS.h>
 	#define CSP_BASE_TYPE portBASE_TYPE
 	#define CSP_MAX_DELAY portMAX_DELAY
@@ -68,7 +68,7 @@ extern "C" {
 	#define CSP_ENTER_CRITICAL(lock) do { portENTER_CRITICAL(); } while (0)
 	#define CSP_EXIT_CRITICAL(lock) do { portEXIT_CRITICAL(); } while (0)
 #else
-	#error "OS must be either _CSP_POSIX_ or _CSP_FREERTOS_"
+	#error "OS must be either _CSP_POSIX_, _CSP_FREERTOS_ OR _CSP_WINDOWS_"
 #endif
 
 #ifdef __cplusplus
