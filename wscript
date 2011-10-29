@@ -182,7 +182,7 @@ def build(ctx):
 			defines = ctx.env.DEFINES_CSP,
 			lib=['rt', 'pthread'])
 
-	if ctx.env.ENABLE_EXAMPLES:
+	if ctx.env.ENABLE_EXAMPLES and ctx.options.with_os == 'posix':
 		ctx.program(source = ctx.path.ant_glob('examples/simple.c'),
 			target = 'simple',
 			includes = ctx.env.INCLUDES_CSP,
