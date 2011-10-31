@@ -88,7 +88,10 @@ typedef enum {
 #define CSP_ID_PORT_SIZE		6
 #define CSP_ID_FLAGS_SIZE		8
 
-#if CSP_ID_PRIO_SIZE + 2 * CSP_ID_HOST_SIZE + 2 * CSP_ID_PORT_SIZE + CSP_ID_FLAGS_SIZE != 32 && __GNUC__
+#define CSP_HEADER_BITS			(CSP_ID_PRIO_SIZE + 2 * CSP_ID_HOST_SIZE + 2 * CSP_ID_PORT_SIZE + CSP_ID_FLAGS_SIZE)
+#define CSP_HEADER_LENGTH		(CSP_HEADER_BITS/8)
+
+#if CSP_HEADER_BITS != 32 && __GNUC__
 #error "Header length must be 32 bits"
 #endif
 

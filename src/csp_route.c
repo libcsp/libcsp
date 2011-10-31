@@ -121,13 +121,12 @@ static int csp_route_security_check(uint32_t security_opts, csp_iface_t * interf
 			return CSP_ERR_CRC32;
 		}
 	} else if (security_opts & CSP_SO_CRC32REQ) {
-		csp_debug(CSP_WARN, "Received packet without CRC32. Discarding packet\r\n");
-		interface->rx_error++;
-		return CSP_ERR_CRC32;
+		csp_debug(CSP_WARN, "Received packet without CRC32. Accepting packet\r\n");
+		packet->length -= sizeof(uint32_t);
 #else
-		csp_debug(CSP_ERROR, "Received packet with CRC32, but CSP was compiled without CRC32 support. Discarding packet\r\n");
-		interface->rx_error++;
-		return CSP_ERR_NOTSUP;
+		/* Strip CRC32 field and accept the packet */
+		csp_debug(CSP_WARN, "Received packet with CRC32, but CSP was compiled without CRC32 support. Accepting packet\r\n");
+		packet->length -= sizeof(uint32_t);
 #endif
 	}
 
