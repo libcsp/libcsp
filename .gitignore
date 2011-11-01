@@ -2,10 +2,11 @@ build
 *.swp
 .lock*
 .waf*
+.waf3*
 *.pyc
 .project
 .cproject
 ~*
 pdebug*
 *.tar*
-
+tags
