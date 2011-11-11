@@ -191,8 +191,13 @@ def build(ctx):
 			lib=['rt', 'pthread'],
 			use = 'csp')
 	if ctx.env.ENABLE_EXAMPLES and ctx.options.with_os == 'windows':
-			print "Windows"
 			ctx.program(source = ctx.path.ant_glob('examples/csp_if_fifo_windows.c'),
+			target = 'csp_if_fifo',
+			includes = ctx.env.INCLUDES_CSP,
+			cflags = ctx.env.CFLAGS_CSP,
+			defines = ctx.env.DEFINES_CSP,
+			use = 'csp')
+			ctx.program(source = ctx.path.ant_glob('examples/simple_windows.c'),
 			target = 'simple',
 			includes = ctx.env.INCLUDES_CSP,
 			cflags = ctx.env.CFLAGS_CSP,
