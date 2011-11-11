@@ -3,6 +3,8 @@ build
 .lock*
 .waf*
 .waf3*
+waf-*/
+*.o
 *.pyc
 .project
 .cproject

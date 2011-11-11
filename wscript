@@ -190,6 +190,15 @@ def build(ctx):
 			defines = ctx.env.DEFINES_CSP,
 			lib=['rt', 'pthread'],
 			use = 'csp')
+	if ctx.env.ENABLE_EXAMPLES and ctx.options.with_os == 'windows':
+			print "Windows"
+			ctx.program(source = ctx.path.ant_glob('examples/csp_if_fifo_windows.c'),
+			target = 'simple',
+			includes = ctx.env.INCLUDES_CSP,
+			cflags = ctx.env.CFLAGS_CSP,
+			defines = ctx.env.DEFINES_CSP,
+			use = 'csp')
+
 
 	# Set install path for header files
 	ctx.install_files('${PREFIX}', ctx.path.ant_glob('include/**/*.h'), relative_trick=True)
