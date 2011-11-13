@@ -23,14 +23,20 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <stdint.h>
 #include <string.h>
 
-#include <dev/usart.h>
+//#include <dev/usart.h>
 
 #include <csp/csp.h>
 #include <csp/csp_endian.h>
 #include <csp/csp_platform.h>
 #include <csp/csp_interface.h>
+#include <csp/interfaces/csp_if_kiss.h>
 
-#include <csp_extra/csp_if_kiss.h>
+#include <csp/drivers/usart_windows.h>
+
+//#include <csp_extra/csp_if_kiss.h>
+
+#include <Windows.h>
+#undef interface
 
 #define KISS_MODE_NOT_STARTED 0
 #define KISS_MODE_STARTED 1
@@ -58,7 +64,7 @@ static int usart_handle;
 /* Send a CSP packet over the KISS RS232 protocol */
 int csp_kiss_tx(csp_packet_t * packet, uint32_t timeout) {
 
-	int i, txbufin;
+	int i, txbufin = 0;
 	char txbuf[csp_if_kiss.mtu * 2];
 
 	/* Save the outgoing id in the buffer */

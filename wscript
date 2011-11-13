@@ -51,6 +51,7 @@ def options(ctx):
 
 	gr.add_option('--with-os', default='posix', help='Set operating system. Must be either \'posix\', \'windows\' or \'freertos\'')
 	gr.add_option('--with-can', default=None, metavar='CHIP', help='Enable CAN driver. CHIP must be either socketcan, at91sam7a1, at91sam7a3 or at90can128')
+	gr.add_option('--with-usart', default=None, metavar='DRIVER', help='Enable usart driver. DRIVER must be windows')
 	gr.add_option('--with-freertos', metavar="PATH", default='../../libgomspace/include', help='Set path to FreeRTOS header files')
 	gr.add_option('--with-static-buffer-size', type=int, default=320, help='Set size of static buffer elements')
 	gr.add_option('--with-static-buffer-count', type=int, default=12, help='Set number of static buffer elements')
@@ -70,6 +71,10 @@ def configure(ctx):
 	if not ctx.options.with_can in (None, 'socketcan', 'at91sam7a1', 'at91sam7a3', 'at90can128'):
 		ctx.fatal('--with-can must be either \'socketcan\', \'at91sam7a1\', \'at91sam7a3\', \'at90can128\'')
 
+	# Validate USART drivers
+	if not ctx.options.with_usart in (None, 'windows'):
+		ctx.fatal('--with-usart must be \'windows\'')
+	
 	# Setup and validate toolchain
 	ctx.env.CC = ctx.options.toolchain + 'gcc'
 	ctx.env.AR = ctx.options.toolchain + 'ar'
@@ -108,6 +113,11 @@ def configure(ctx):
 	if ctx.options.with_can:
 		ctx.env.append_unique('FILES_CSP', 'src/interfaces/csp_if_can.c')
 		ctx.env.append_unique('FILES_CSP', 'src/drivers/can/can_{0}.c'.format(ctx.options.with_can))
+
+	# Add USART driver
+	if ctx.options.with_usart:
+		ctx.env.append_unique('FILES_CSP', 'src/interfaces/csp_if_kiss.c')
+		ctx.env.append_unique('FILES_CSP', 'src/drivers/usart/usart_{0}.c'.format(ctx.options.with_usart))
 
 	# Store configuration options
 	ctx.env.ENABLE_BINDINGS = ctx.options.enable_bindings
