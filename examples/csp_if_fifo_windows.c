@@ -51,9 +51,9 @@ int csp_fifo_tx(csp_packet_t *packet, uint32_t timeout) {
 int main(int argc, char *argv[]) {
     int me, other, type;
     char *message = "Testing CSP";
-    csp_socket_t *sock;
-    csp_conn_t *conn;
-    csp_packet_t *packet;
+    csp_socket_t *sock = NULL;
+    csp_conn_t *conn = NULL;
+    csp_packet_t *packet = NULL;
 
     /* Run as either server or client */
     if (argc != 2) {
