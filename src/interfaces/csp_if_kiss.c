@@ -29,8 +29,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/csp_endian.h>
 #include <csp/csp_platform.h>
 #include <csp/csp_interface.h>
-
-#include <csp_extra/csp_if_kiss.h>
+#include <csp/interfaces/csp_if_kiss.h>
 
 #define KISS_MODE_NOT_STARTED 0
 #define KISS_MODE_STARTED 1
@@ -58,7 +57,7 @@ static int usart_handle;
 /* Send a CSP packet over the KISS RS232 protocol */
 int csp_kiss_tx(csp_packet_t * packet, uint32_t timeout) {
 
-	int i, txbufin;
+	int i, txbufin = 0;
 	char txbuf[csp_if_kiss.mtu * 2];
 
 	/* Save the outgoing id in the buffer */
@@ -84,7 +83,7 @@ int csp_kiss_tx(csp_packet_t * packet, uint32_t timeout) {
 
 	csp_buffer_free(packet);
 
-	return 1;
+	return CSP_ERR_NONE;
 }
 
 /**
@@ -176,12 +175,14 @@ void csp_kiss_rx(uint8_t * buf, int len, void * pxTaskWoken) {
 
 }
 
-void csp_kiss_init(int handle) {
+int csp_kiss_init(int handle) {
 
 	/* Store which handle is used */
 	usart_handle = handle;
 
 	/* Redirect USART input to csp_kiss_rs */
 	usart_set_callback(usart_handle, csp_kiss_rx);
+
+	return CSP_ERR_NONE;
 
 }
