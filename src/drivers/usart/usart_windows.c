@@ -132,7 +132,7 @@ unsigned WINAPI prvRxTask(void* params) {
         if( !(eventStatus & EV_RXCHAR) ) {
             continue;
         }
-        if( !ReadFile(portHandle, recvBuffer, 100, &bytesRead, NULL)) {
+        if( !ReadFile(portHandle, recvBuffer, 24, &bytesRead, NULL)) {
             fprintf(stderr, "Error receiving data! Code: %lu\n", GetLastError());
             continue;
         }
