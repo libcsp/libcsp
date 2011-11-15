@@ -32,7 +32,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/interfaces/csp_if_kiss.h>
 
 /** Todo: Stop using CRC on layer 2 and move to layer 3 */
-#define KISS_CRC32 1
+//#define KISS_CRC32 1
 
 #define KISS_MODE_NOT_STARTED 0
 #define KISS_MODE_STARTED 1
