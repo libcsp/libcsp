@@ -57,6 +57,7 @@ csp_iface_t csp_if_kiss = {
 
 static int usart_handle;
 
+#ifdef KISS_CRC32
 /**
  * crc_tab[] -- this crcTable is being build by chksum_crc32GenTab().
  * so make sure, you call it before using the other functions!
@@ -100,6 +101,7 @@ static uint32_t kiss_crc(unsigned char *block, unsigned int length) {
 		crc = ((crc >> 8) & 0x00FFFFFF) ^ kiss_crc_tab[(crc ^ *block++) & (uint32_t) 0xFF];
 	return (crc ^ 0xFFFFFFFF);
 }
+#endif // KISS_CRC32
 
 
 /* Send a CSP packet over the KISS RS232 protocol */
@@ -139,7 +141,7 @@ int csp_kiss_tx(csp_packet_t * packet, uint32_t timeout) {
 
 	csp_buffer_free(packet);
 
-	return CSP_ERR_NONE;
+	return 1;
 }
 
 /**
@@ -254,8 +256,10 @@ void csp_kiss_rx(uint8_t * buf, int len, void * pxTaskWoken) {
 
 int csp_kiss_init(int handle) {
 
+#ifdef KISS_CRC32
 	/* Generate lookup table for CRC32 */
 	kiss_crc_gentab();
+#endif
 
 	/* Store which handle is used */
 	usart_handle = handle;
