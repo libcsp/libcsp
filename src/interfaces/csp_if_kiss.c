@@ -32,7 +32,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/interfaces/csp_if_kiss.h>
 
 /** Todo: Stop using CRC on layer 2 and move to layer 3 */
-//#define KISS_CRC32 1
+#define KISS_CRC32 1
 
 #define KISS_MODE_NOT_STARTED 0
 #define KISS_MODE_STARTED 1
@@ -69,7 +69,7 @@ static uint32_t kiss_crc_tab[256];
  * calculate the crcTable for crc32-checksums.
  */
 static void kiss_crc_gentab(void) {
-	volatile uint32_t crc, poly;
+	uint32_t crc, poly;
 	int i, j;
 
 	poly = 0xEDB88320L;
@@ -103,12 +103,15 @@ static uint32_t kiss_crc(unsigned char *block, unsigned int length) {
 }
 #endif // KISS_CRC32
 
-
 /* Send a CSP packet over the KISS RS232 protocol */
 int csp_kiss_tx(csp_packet_t * packet, uint32_t timeout) {
 
 	int i, txbufin = 0;
 	char txbuf[csp_if_kiss.mtu * 2];
+
+	/* Save the outgoing id in the buffer */
+	packet->id.ext = csp_hton32(packet->id.ext);
+	packet->length += sizeof(packet->id.ext);
 
 	/* Add CRC32 checksum */
 #if defined(KISS_CRC32)
@@ -117,10 +120,6 @@ int csp_kiss_tx(csp_packet_t * packet, uint32_t timeout) {
 	memcpy(((char *)&packet->id.ext) + packet->length, &crc, sizeof(crc));
 	packet->length += sizeof(crc);
 #endif
-
-	/* Save the outgoing id in the buffer */
-	packet->id.ext = csp_hton32(packet->id.ext);
-	packet->length += sizeof(packet->id.ext);
 
 	txbuf[txbufin++] = FEND;
 	txbuf[txbufin++] = TNC_DATA;
