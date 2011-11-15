@@ -52,7 +52,6 @@ def options(ctx):
 	# Interfaces	
 	gr.add_option('--enable-if-i2c', action='store_true', help='Enable I2C interface')
 	gr.add_option('--enable-if-kiss', action='store_true', help='Enable KISS/RS.232 interface')
-	gr.add_option('--enable-if-sia', action='store_true', help='Enable Static IP interface')
 	gr.add_option('--enable-if-can', action='store_true', help='Enable CAN interface')
 	
 	# Drivers
@@ -131,8 +130,6 @@ def configure(ctx):
 		ctx.env.append_unique('FILES_CSP', 'src/interfaces/csp_if_i2c.c')
 	if ctx.options.enable_if_kiss:
 		ctx.env.append_unique('FILES_CSP', 'src/interfaces/csp_if_kiss.c')
-	if ctx.options.enable_if_sia:
-		ctx.env.append_unique('FILES_CSP', 'src/interfaces/csp_if_sia.c')
 
 	# Store configuration options
 	ctx.env.ENABLE_BINDINGS = ctx.options.enable_bindings
@@ -217,7 +214,16 @@ def build(ctx):
 			use = 'csp')
 
 	# Set install path for header files
-	ctx.install_files('${PREFIX}', ctx.path.ant_glob('include/**/*.h'), relative_trick=True)
+	ctx.install_files('${PREFIX}/include/csp', ctx.path.ant_glob('include/csp/*.h'))
+	ctx.install_files('${PREFIX}/include/csp/interfaces', 'include/csp/interfaces/csp_if_lo.h')
+
+	if 'src/interfaces/csp_if_can.c' in ctx.env.FILES_CSP:
+		ctx.install_files('${PREFIX}/include/csp/interfaces', 'include/csp/interfaces/csp_if_can.h')
+	if 'src/interfaces/csp_if_i2c.c' in ctx.env.FILES_CSP:
+		ctx.install_files('${PREFIX}/include/csp/interfaces', 'include/csp/interfaces/csp_if_i2c.h')
+	if 'src/interfaces/csp_if_kiss.c' in ctx.env.FILES_CSP:
+		ctx.install_files('${PREFIX}/include/csp/interfaces', 'include/csp/interfaces/csp_if_kiss.h')
+
 	ctx.install_files('${PREFIX}/include/csp', 'include/csp/csp_autoconfig.h')
 	ctx.install_files('${PREFIX}/lib', 'libcsp.a')
 
