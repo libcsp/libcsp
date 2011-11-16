@@ -36,27 +36,11 @@ extern "C" {
 
 extern csp_iface_t csp_if_can;
 
-/** AT90CAN128 config struct */
-struct can_at90can128_conf {
+/* CAN configuration struct */
+struct csp_can_config {
 	uint32_t bitrate;
 	uint32_t clock_speed;
-};
-
-/** SocketCAN config struct */
-struct can_socketcan_conf {
 	char * ifc;
-};
-
-/** AT91SAM7A1 config struct */
-struct can_at91sam7a1_conf {
-	uint32_t bitrate;
-	uint32_t clock_speed;
-};
-
-/** AT91SAM7A3 config struct */
-struct can_at91sam7a3_conf {
-	uint32_t bitrate;
-	uint32_t clock_speed;
 };
 
 /**
@@ -70,11 +54,10 @@ int csp_can_tx(csp_packet_t * packet, uint32_t timeout);
 /**
  * Init CAN interface
  * @param mode Must be either CSP_CAN_MASKED or CSP_CAN_PROMISC
- * @param conf Pointer to configuration struct. This is subsystem dependent
- * @param conflen Size of configuration struct
+ * @param conf Pointer to configuration struct. 
  * @return 0 if CAN interface was successfully initialized, -1 otherwise
  */
-int csp_can_init(uint8_t mode, void * conf, int conflen);
+int csp_can_init(uint8_t mode, struct csp_can_config *conf);
 
 #ifdef __cplusplus
 } /* extern "C" */

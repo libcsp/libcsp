@@ -114,20 +114,9 @@ int can_configure_bitrate(unsigned long int afcpu, uint32_t bps) {
 
 }
 
-int can_init(uint32_t id, uint32_t mask, can_tx_callback_t atxcb, can_rx_callback_t arxcb, void * conf, int conflen) {
+int can_init(uint32_t id, uint32_t mask, can_tx_callback_t atxcb, can_rx_callback_t arxcb, struct csp_can_config *conf) {
 
-	uint32_t bitrate;
-	uint32_t clock_speed;
-	struct can_at90can128_conf * can_conf;
-
-	/* Validate config size */
-	if (conf != NULL && conflen == sizeof(struct can_at90can128_conf)) {
-		can_conf = (struct can_at90can128_conf *)conf;
-		bitrate = can_conf->bitrate;
-		clock_speed = can_conf->clock_speed;
-	} else {
-		return -1;
-	}
+	csp_assert(conf && conf->bitrate && conf->clock_speed);
 
 	/* Set id and mask */
 	can_id = id;
@@ -146,7 +135,7 @@ int can_init(uint32_t id, uint32_t mask, can_tx_callback_t atxcb, can_rx_callbac
 	CANIE2 = 0xFF;
 
 	/* Configure bitrate */
-	can_configure_bitrate(clock_speed, bitrate);
+	can_configure_bitrate(conf->clock_speed, conf->bitrate);
 
 	/* Configure MOBS */
 	can_configure_mobs();
