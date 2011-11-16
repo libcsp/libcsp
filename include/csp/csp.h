@@ -223,7 +223,6 @@ typedef struct csp_iface_s {
 /** Forward declaration of socket, connection and l4data structure */
 typedef struct csp_socket_s csp_socket_t;
 typedef struct csp_conn_s csp_conn_t;
-typedef struct csp_l4data_s csp_l4data_t;
 
 /** csp_init
  * Start up the can-space protocol
