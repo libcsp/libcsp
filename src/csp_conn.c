@@ -154,7 +154,7 @@ csp_conn_t * csp_conn_find(uint32_t id, uint32_t mask) {
 
 	for (i = 0; i < CSP_CONN_MAX; i++) {
 		conn = &arr_conn[i];
-		if ((conn->state != CONN_CLOSED) && (conn->idin.ext & mask) == (id & mask))
+		if ((conn->state != CONN_CLOSED) && (conn->type == CONN_CLIENT) && (conn->idin.ext & mask) == (id & mask))
 			return conn;
 	}
 	
@@ -185,10 +185,10 @@ int csp_conn_flush_rx_queue(csp_conn_t * conn) {
 
 }
 
-csp_conn_t * csp_conn_new(csp_id_t idin, csp_id_t idout) {
+csp_conn_t * csp_conn_allocate(csp_conn_type_t type) {
 
-	static uint8_t csp_conn_last_given = 0;
 	int i;
+	static uint8_t csp_conn_last_given = 0;
 	csp_conn_t * conn;
 
 	if (csp_bin_sem_wait(&conn_lock, 100) != CSP_SEMAPHORE_OK) {
@@ -215,19 +215,30 @@ csp_conn_t * csp_conn_new(csp_id_t idin, csp_id_t idout) {
 		return NULL;
 	}
 
+	conn->socket = NULL;
+	conn->type = type;
 	csp_conn_last_given = i;
 	csp_bin_sem_post(&conn_lock);
 
-	/* No lock is needed here, because nobody else
-	 * has a reference to this connection yet.
-	 */
-	conn->idin = idin;
-	conn->idout = idout;
-	conn->rx_socket = NULL;
-	conn->timestamp = csp_get_ms();
+	return conn;
 
-	/* Ensure connection queue is empty */
-	csp_conn_flush_rx_queue(conn);
+}
+
+csp_conn_t * csp_conn_new(csp_id_t idin, csp_id_t idout) {
+
+	/* Allocate connection structure */
+	csp_conn_t * conn = csp_conn_allocate(CONN_CLIENT);
+
+	if (conn) {
+		/* No lock is needed here, because nobody else *
+		 * has a reference to this connection yet.     */
+		conn->idin = idin;
+		conn->idout = idout;
+		conn->timestamp = csp_get_ms();
+
+		/* Ensure connection queue is empty */
+		csp_conn_flush_rx_queue(conn);
+	}
 
 	return conn;
 
@@ -368,7 +379,7 @@ csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport, uint32_t tim
 		return NULL;
 
 	/* Set connection options */
-	conn->conn_opts = opts;
+	conn->opts = opts;
 
 #ifdef CSP_USE_RDP
 	/* Call Transport Layer connect */
@@ -427,7 +438,7 @@ void csp_conn_print_table(void) {
 		conn = &arr_conn[i];
 		printf("[%02u %p] S:%u, %u -> %u, %u -> %u, sock: %p\r\n",
 				i, conn, conn->state, conn->idin.src, conn->idin.dst,
-				conn->idin.dport, conn->idin.sport, conn->rx_socket);
+				conn->idin.dport, conn->idin.sport, conn->socket);
 #ifdef CSP_USE_RDP
 		if (conn->idin.flags & CSP_FRDP)
 			csp_rdp_conn_print(conn);
@@ -449,7 +460,7 @@ int csp_conn_print_table_str(char * str_buf, int str_size) {
 		conn = &arr_conn[i];
 		snprintf(buf, sizeof(buf), "[%02u %p] S:%u, %u -> %u, %u -> %u, sock: %p\r\n",
 				i, conn, conn->state, conn->idin.src, conn->idin.dst,
-				conn->idin.dport, conn->idin.sport, conn->rx_socket);
+				conn->idin.dport, conn->idin.sport, conn->socket);
 
 		strncat(str_buf, buf, str_size);
 		if ((str_size -= strlen(buf)) <= 0)

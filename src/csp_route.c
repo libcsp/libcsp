@@ -224,8 +224,7 @@ csp_thread_return_t __stdcall vTaskCSPRouter(__attribute__ ((unused)) void * pvP
 	csp_route_queue_t input;
 	csp_packet_t * packet;
 	csp_conn_t * conn;
-	
-	csp_socket_t * socket = NULL;
+	csp_socket_t * socket;
 	csp_route_t * dst;
 
 	for (prio = 0; prio < CSP_ROUTE_FIFOS; prio++) {
@@ -289,12 +288,12 @@ csp_thread_return_t __stdcall vTaskCSPRouter(__attribute__ ((unused)) void * pvP
 		socket = csp_port_get_socket(packet->id.dport);
 
 		/* If the socket is connection-less, deliver now */
-		if (socket && (socket->opts & CSP_SO_CONN_LESS)) {
+		if (socket && (socket->opts & CSP_SO_CONN_LESS)) { 
 			if (csp_route_security_check(socket->opts, input.interface, packet) < 0) {
 				csp_buffer_free(packet);
 				continue;
 			}
-			if (csp_queue_enqueue(socket->queue, &packet, 0) != CSP_QUEUE_OK) {
+			if (csp_queue_enqueue(socket->socket, &packet, 0) != CSP_QUEUE_OK) {
 				csp_debug(CSP_ERROR, "Conn-less socket queue full\r\n");
 				csp_buffer_free(packet);
 				continue;
@@ -333,13 +332,13 @@ csp_thread_return_t __stdcall vTaskCSPRouter(__attribute__ ((unused)) void * pvP
 			}
 
 			/* Store the socket queue and options */
-			conn->rx_socket = socket->queue;
-			conn->conn_opts = socket->opts;
+			conn->socket = socket->socket;
+			conn->opts = socket->opts;
 
 		}
 
 		/* Run security check on incoming packet */
-		if (csp_route_security_check(conn->conn_opts, input.interface, packet) < 0) {
+		if (csp_route_security_check(conn->opts, input.interface, packet) < 0) {
 			csp_buffer_free(packet);
 			continue;
 		}
@@ -348,7 +347,7 @@ csp_thread_return_t __stdcall vTaskCSPRouter(__attribute__ ((unused)) void * pvP
 		if (packet->id.flags & CSP_FRDP) {
 #ifdef CSP_USE_RDP
 			csp_rdp_new_packet(conn, packet);
-		} else if (conn->conn_opts & CSP_SO_RDPREQ) {
+		} else if (conn->opts & CSP_SO_RDPREQ) {
 			csp_debug(CSP_WARN, "Received packet without RDP header. Discarding packet\r\n");
 			input.interface->rx_error++;
 			csp_buffer_free(packet);

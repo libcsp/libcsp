@@ -66,8 +66,8 @@ int csp_listen(csp_socket_t * socket, size_t conn_queue_length) {
 	if (socket == NULL)
 		return CSP_ERR_INVAL;
 
-	socket->queue = csp_queue_create(conn_queue_length, sizeof(csp_conn_t *));
-	if (socket->queue == NULL)
+	socket->socket = csp_queue_create(conn_queue_length, sizeof(csp_conn_t *));
+	if (socket->socket == NULL)
 		return CSP_ERR_NOMEM;
 
 	return CSP_ERR_NONE;

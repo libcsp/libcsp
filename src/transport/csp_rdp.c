@@ -262,20 +262,20 @@ static int csp_rdp_send_syn(csp_conn_t * conn) {
 
 static inline int csp_rdp_receive_data(csp_conn_t * conn, csp_packet_t * packet) {
 
-	/* If a rx_socket is set, this message is the first in a new connection
+	/* If a socket is set, this message is the first in a new connection
 	 * so the connection must be queued to the socket. */
-	if (conn->rx_socket != NULL) {
+	if (conn->socket != NULL) {
 
 		/* Try queueing */
-		if (csp_queue_enqueue(conn->rx_socket, &conn, 0) == CSP_QUEUE_FULL) {
+		if (csp_queue_enqueue(conn->socket, &conn, 0) == CSP_QUEUE_FULL) {
 			csp_debug(CSP_ERROR, "ERROR socket cannot accept more connections\r\n");
 			return 0;
 		}
 
 		/* Ensure that this connection will not be posted to this socket again
 		 * and remember that the connection handle has been passed to userspace
-		 * by setting the rx_socket = 1. */
-		conn->rx_socket = NULL;
+		 * by setting the socket = NULL */
+		conn->socket = NULL;
 	}
 
 	/* Remove RDP header before passing to userspace */
@@ -491,7 +491,7 @@ void csp_rdp_check_timeouts(csp_conn_t * conn) {
 	 * Check that connection has not timed out inside the network stack
 	 * */
 	uint32_t time_now = csp_get_ms();
-	if (conn->rx_socket != NULL) {
+	if (conn->socket != NULL) {
 		if (csp_rdp_time_after(time_now, conn->timestamp + conn->rdp.conn_timeout)) {
 			csp_debug(CSP_WARN, "Found a lost connection, closing now\r\n");
 			csp_close(conn);
@@ -849,7 +849,7 @@ void csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 discard_close:
 	/* If user-space has received the connection handle, wake it up,
 	 * by sending a NULL pointer, user-space should close connection */
-	if (conn->rx_socket == NULL) {
+	if (conn->socket == NULL) {
 		csp_debug(CSP_PROTOCOL, "Waiting for userspace to close\r\n");
 		void * null_pointer = NULL;
 		csp_conn_enqueue_packet(conn, (csp_packet_t *) null_pointer);

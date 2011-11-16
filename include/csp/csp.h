@@ -220,8 +220,8 @@ typedef struct csp_iface_s {
  */
 #define CSP_BUFFER_PACKET_OVERHEAD 	(sizeof(csp_packet_t) - sizeof(((csp_packet_t *)0)->data))
 
-/** Forward declaration of socket, connection and l4data structure */
-typedef struct csp_socket_s csp_socket_t;
+/** Forward declaration of socket and connection structures */
+typedef struct csp_conn_s csp_socket_t;
 typedef struct csp_conn_s csp_conn_t;
 
 /** csp_init
