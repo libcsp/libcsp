@@ -572,18 +572,31 @@ typedef enum {
 } csp_debug_level_t;
 
 #ifndef NDEBUG
-#define csp_assert(exp) 																							\
-	do { 																											\
-		if (!(exp)) {																								\
-			printf("\E[1;31mAssertion \'" #exp "\' failed in %s:%d\E[0m\r\n", strrchr(__FILE__, '/')+1, __LINE__); 	\
-		} 																											\
+
+/* Extract filename component from path */
+#define BASENAME(_file) ((strrchr(_file, '/') ? : (strrchr(_file, '\\') ? : _file))+1)
+
+/* Implement csp_assert_fail_action to override default failure action */
+extern void __attribute__((weak)) csp_assert_fail_action(char *assertion, const char *file, int line);
+
+#define csp_assert(exp) 																\
+	do { 																				\
+		if (!(exp)) {																	\
+			char *assertion = #exp;														\
+			const char *file = BASENAME(__FILE__);										\
+			int line = __LINE__;														\
+			printf("\E[1;31m[%02"PRIu8"] Assertion \'%s\' failed in %s:%d\E[0m\r\n",	\
+													my_address, assertion, file, line); \
+			if (csp_assert_fail_action)													\
+				csp_assert_fail_action(assertion, file, line);							\
+		} 																				\
 	} while (0)
 #else
 #define csp_assert(...) do {} while (0)
 #endif
 
 #if CSP_DEBUG
-#define csp_debug(level, format, ...) csp_debug_ex(level, "[%02"PRIu8"] %s:%d " format, my_address, (strrchr(__FILE__, '/') ? : (strrchr(__FILE__, '\\') ? : __FILE__))+1 , __LINE__, ##__VA_ARGS__)
+#define csp_debug(level, format, ...) csp_debug_ex(level, "[%02"PRIu8"] %s:%d " format, my_address, BASENAME(__FILE__), __LINE__, ##__VA_ARGS__)
 typedef void (*csp_debug_hook_func_t)(csp_debug_level_t level, char * str);
 void csp_debug_ex(csp_debug_level_t level, const char * format, ...);
 
