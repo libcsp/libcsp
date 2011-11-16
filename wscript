@@ -174,8 +174,8 @@ def configure(ctx):
 	ctx.define('CSP_RDP_MAX_WINDOW', ctx.options.with_rdp_max_window)
 	ctx.define('CSP_PADDING_BYTES', ctx.options.with_padding)
 
-	ctx.write_config_header('include/csp/csp_autoconfig.h', top=False, remove=False)
-	
+	ctx.write_config_header('include/conf_csp.h', top=True, remove=True)
+
 	# Check for endian.h
 	ctx.check(header_name='endian.h', mandatory=False)
 
@@ -188,7 +188,7 @@ def build(ctx):
 		export_includes = 'include',
 		cflags = ctx.env.CFLAGS_CSP,
 		defines = ctx.env.DEFINES_CSP,
-		use = 'csp_size')
+		use = 'csp_size include')
 
 	# Print library size
 	if ctx.options.verbose > 0:
@@ -224,7 +224,7 @@ def build(ctx):
 	if 'src/interfaces/csp_if_kiss.c' in ctx.env.FILES_CSP:
 		ctx.install_files('${PREFIX}/include/csp/interfaces', 'include/csp/interfaces/csp_if_kiss.h')
 
-	ctx.install_files('${PREFIX}/include/csp', 'include/csp/csp_autoconfig.h')
+	ctx.install_files('${PREFIX}/include', 'include/conf_csp.h', cwd=ctx.bldnode)
 	ctx.install_files('${PREFIX}/lib', 'libcsp.a')
 
 def dist(ctx):
