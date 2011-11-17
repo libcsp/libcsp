@@ -37,7 +37,8 @@ def options(ctx):
 	gr = ctx.add_option_group('libcsp options')
 	gr.add_option('--cflags', default='', help='Add additional CFLAGS. Separate with comma')
 	gr.add_option('--includes', default='', help='Add additional include paths. Separate with comma')
-	
+	gr.add_option('--install-csp', action='store_true', help='Installs CSP headers and lib')
+
 	gr.add_option('--disable-output', action='store_true', help='Disable CSP output')
 	gr.add_option('--enable-rdp', action='store_true', help='Enable RDP support')
 	gr.add_option('--enable-qos', action='store_true', help='Enable Quality of Service support')
@@ -89,10 +90,10 @@ def configure(ctx):
 	ctx.find_program('size', var='SIZE')
 
 	# Set git revision define
-	git_rev = os.popen("(git log --pretty=format:%H -n 1 | egrep -o \"^.{8}\") 2> /dev/null || echo none").read().strip()
+	git_rev = os.popen("(git log --pretty=format:%H -n 1 | egrep -o \"^.{8}\") 2> /dev/null || echo unknown").read().strip()
 
 	# Setup DEFINES
-	ctx.env.append_unique('DEFINES_CSP', ['GIT_REV="{0}"'.format(git_rev)])
+	ctx.define('GIT_REV', git_rev)
 
 	# Setup CFLAGS
 	ctx.env.append_unique('CFLAGS_CSP', ['-Os','-Wall', '-g', '-std=gnu99'] + ctx.options.cflags.split(','))
@@ -102,6 +103,10 @@ def configure(ctx):
 
 	# Add default files
 	ctx.env.append_unique('FILES_CSP', ['src/*.c','src/interfaces/csp_if_lo.c','src/transport/csp_udp.c','src/arch/{0}/**/*.c'.format(ctx.options.with_os)])
+
+	# Check for recursion
+	if ctx.path == ctx.srcnode:
+		ctx.options.install_csp = True
 
 	# Add FreeRTOS 
 	if not ctx.options.with_os in ('freertos', 'posix', 'windows'):
@@ -215,18 +220,20 @@ def build(ctx):
 			use = 'csp')
 
 	# Set install path for header files
-	ctx.install_files('${PREFIX}/include/csp', ctx.path.ant_glob('include/csp/*.h'))
-	ctx.install_files('${PREFIX}/include/csp/interfaces', 'include/csp/interfaces/csp_if_lo.h')
 
-	if 'src/interfaces/csp_if_can.c' in ctx.env.FILES_CSP:
-		ctx.install_files('${PREFIX}/include/csp/interfaces', 'include/csp/interfaces/csp_if_can.h')
-	if 'src/interfaces/csp_if_i2c.c' in ctx.env.FILES_CSP:
-		ctx.install_files('${PREFIX}/include/csp/interfaces', 'include/csp/interfaces/csp_if_i2c.h')
-	if 'src/interfaces/csp_if_kiss.c' in ctx.env.FILES_CSP:
-		ctx.install_files('${PREFIX}/include/csp/interfaces', 'include/csp/interfaces/csp_if_kiss.h')
+	if ctx.options.install_csp:
+		ctx.install_files('${PREFIX}/include/csp', ctx.path.ant_glob('include/csp/*.h'))
+		ctx.install_files('${PREFIX}/include/csp/interfaces', 'include/csp/interfaces/csp_if_lo.h')
 
-	ctx.install_files('${PREFIX}/include/csp', 'include/csp/csp_autoconfig.h', cwd=ctx.bldnode)
-	ctx.install_files('${PREFIX}/lib', 'libcsp.a')
+		if 'src/interfaces/csp_if_can.c' in ctx.env.FILES_CSP:
+			ctx.install_files('${PREFIX}/include/csp/interfaces', 'include/csp/interfaces/csp_if_can.h')
+		if 'src/interfaces/csp_if_i2c.c' in ctx.env.FILES_CSP:
+			ctx.install_files('${PREFIX}/include/csp/interfaces', 'include/csp/interfaces/csp_if_i2c.h')
+		if 'src/interfaces/csp_if_kiss.c' in ctx.env.FILES_CSP:
+			ctx.install_files('${PREFIX}/include/csp/interfaces', 'include/csp/interfaces/csp_if_kiss.h')
+
+		ctx.install_files('${PREFIX}/include/csp', 'include/csp/csp_autoconfig.h', cwd=ctx.bldnode)
+		ctx.install_files('${PREFIX}/lib', 'libcsp.a')
 
 def dist(ctx):
 	ctx.excl = 'build/* **/.* **/*.pyc **/*.o **/*~ *.tar.gz'
