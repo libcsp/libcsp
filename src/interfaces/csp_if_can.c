@@ -110,7 +110,7 @@ int cfp_id;
 /** CFP identification number semaphore */
 csp_bin_sem_handle_t id_sem;
 
-#if defined(_CSP_POSIX_) || defined(_CSP_WINDOWS_)
+#if defined(CSP_POSIX) || defined(CSP_WINDOWS)
 /** Packet buffer semaphore */
 static csp_bin_sem_handle_t pbuf_sem;
 #endif
@@ -188,7 +188,7 @@ static int pbuf_init(void) {
 	}
 	}
 
-#if defined(_CSP_POSIX_) || defined(_CSP_WINDOWS_)
+#if defined(CSP_POSIX) || defined(CSP_WINDOWS)
     /* Initialize global lock */
 	if (csp_bin_sem_create(&pbuf_sem) != CSP_SEMAPHORE_OK) {
 		csp_debug(CSP_ERROR, "No more memory for packet buffer semaphore\r\n");

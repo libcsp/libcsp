@@ -32,7 +32,7 @@ extern "C" {
 #include <string.h>
 
 /* Include configuration file */
-#include <conf_csp.h>
+#include <csp/csp_autoconfig.h>
 
 /* CSP includes */
 #include "csp_platform.h"
@@ -72,7 +72,7 @@ typedef enum {
 
 #define CSP_PRIORITIES			(1 << CSP_ID_PRIO_SIZE)
 
-#if CSP_USE_QOS
+#ifdef CSP_USE_QOS
 #define CSP_RX_QUEUE_LENGTH		(CSP_CONN_QUEUE_LENGTH / CSP_PRIORITIES)
 #define CSP_ROUTE_FIFOS			CSP_PRIORITIES
 #define CSP_RX_QUEUES			CSP_PRIORITIES
@@ -115,14 +115,14 @@ typedef enum {
 typedef union {
 	uint32_t ext;
 	struct __attribute__((__packed__)) {
-#if defined(_CSP_BIG_ENDIAN_) && !defined(_CSP_LITTLE_ENDIAN_)
+#if defined(CSP_BIG_ENDIAN) && !defined(CSP_LITTLE_ENDIAN)
 		unsigned int pri : CSP_ID_PRIO_SIZE;
 		unsigned int src : CSP_ID_HOST_SIZE;
 		unsigned int dst : CSP_ID_HOST_SIZE;
 		unsigned int dport : CSP_ID_PORT_SIZE;
 		unsigned int sport : CSP_ID_PORT_SIZE;
 		unsigned int flags : CSP_ID_FLAGS_SIZE;
-#elif defined(_CSP_LITTLE_ENDIAN_) && !defined(_CSP_BIG_ENDIAN_)
+#elif defined(CSP_LITTLE_ENDIAN) && !defined(CSP_BIG_ENDIAN)
 		unsigned int flags : CSP_ID_FLAGS_SIZE;
 		unsigned int sport : CSP_ID_PORT_SIZE;
 		unsigned int dport : CSP_ID_PORT_SIZE;
@@ -130,7 +130,7 @@ typedef union {
 		unsigned int src : CSP_ID_HOST_SIZE;
 		unsigned int pri : CSP_ID_PRIO_SIZE;
 #else
-		#error "Must define one of _CSP_BIG_ENDIAN_ or _CSP_LITTLE_ENDIAN_ in csp_platform.h"
+		#error "Must define one of CSP_BIG_ENDIAN or CSP_LITTLE_ENDIAN in csp_platform.h"
 #endif
 	};
 } csp_id_t;
@@ -181,13 +181,13 @@ typedef union {
  * have buffer reuse
  */
 typedef struct __attribute__((__packed__)) {
-	uint8_t padding[CSP_PADDING_BYTES];   	/**< Interface dependent padding */
-	uint16_t length;			/**< Length field must be just before CSP ID */
-	csp_id_t id;				/**< CSP id must be just before data */
+	uint8_t padding[CSP_PADDING_BYTES];	/**< Interface dependent padding */
+	uint16_t length;					/**< Length field must be just before CSP ID */
+	csp_id_t id;						/**< CSP id must be just before data */
 	union {
-		uint8_t data[0];		/**< This just points to the rest of the buffer, without a size indication. */
-		uint16_t data16[0];		/**< The data 16 and 32 types makes it easy to reference an integer (properly aligned) */
-		uint32_t data32[0];		/**< without the compiler warning about strict aliasing rules. */
+		uint8_t data[0];				/**< This just points to the rest of the buffer, without a size indication. */
+		uint16_t data16[0];				/**< The data 16 and 32 types makes it easy to reference an integer (properly aligned) */
+		uint32_t data32[0];				/**< without the compiler warning about strict aliasing rules. */
 	};
 } csp_packet_t;
 
@@ -594,7 +594,7 @@ extern void __attribute__((weak)) csp_assert_fail_action(char *assertion, const 
 #define csp_assert(...) do {} while (0)
 #endif
 
-#if CSP_DEBUG
+#ifdef CSP_DEBUG
 #define csp_debug(level, format, ...) csp_debug_ex(level, "[%02"PRIu8"] %s:%d " format, my_address, BASENAME(__FILE__), __LINE__, ##__VA_ARGS__)
 typedef void (*csp_debug_hook_func_t)(csp_debug_level_t level, char * str);
 void csp_debug_ex(csp_debug_level_t level, const char * format, ...);
@@ -641,7 +641,7 @@ void csp_debug_hook_set(csp_debug_hook_func_t f);
 #endif
 
 /* Quick and dirty hack to place AVR debug info in progmem */
-#if CSP_DEBUG && defined(__AVR__)
+#if defined(CSP_DEBUG) && defined(__AVR__)
 #include <avr/pgmspace.h>
 #undef csp_debug
 #define csp_debug(level, format, ...) printf_P(PSTR(format), ##__VA_ARGS__)

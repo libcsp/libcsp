@@ -73,20 +73,20 @@ typedef struct __attribute__((__packed__)) {
 	union __attribute__((__packed__)) {
 		uint8_t flags;
 		struct __attribute__((__packed__)) {
-#if defined(_CSP_BIG_ENDIAN_) && !defined(_CSP_LITTLE_ENDIAN_)
+#if defined(CSP_BIG_ENDIAN) && !defined(CSP_LITTLE_ENDIAN)
 			unsigned int res : 4;
 			unsigned int syn : 1;
 			unsigned int ack : 1;
 			unsigned int eak : 1;
 			unsigned int rst : 1;
-#elif defined(_CSP_LITTLE_ENDIAN_) && !defined(_CSP_BIG_ENDIAN_)
+#elif defined(CSP_LITTLE_ENDIAN) && !defined(CSP_BIG_ENDIAN)
 			unsigned int rst : 1;
 			unsigned int eak : 1;
 			unsigned int ack : 1;
 			unsigned int syn : 1;
 			unsigned int res : 4;
 #else
-  #error "Must define one of _CSP_BIG_ENDIAN_ or _CSP_LITTLE_ENDIAN_ in csp_platform.h"
+  #error "Must define one of CSP_BIG_ENDIAN or CSP_LITTLE_ENDIAN in csp_platform.h"
 #endif
 		};
 	};

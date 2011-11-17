@@ -29,21 +29,21 @@ extern "C" {
 #include <csp/csp.h>
 
 /* Blackfin/x86 on Linux */
-#if defined(_CSP_POSIX_)
+#if defined(CSP_POSIX)
 
 #include <time.h>
 #include <sys/time.h>
 #include <limits.h>
 
-#endif // _CSP_POSIX_
+#endif // CSP_POSIX
 
 /* AVR/ARM on FreeRTOS */
-#if defined(_CSP_FREERTOS_)
+#if defined(CSP_FREERTOS)
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 
-#endif // _CSP_FREERTOS_
+#endif // CSP_FREERTOS
 
 uint32_t csp_get_ms(void);
 uint32_t csp_get_ms_isr(void);

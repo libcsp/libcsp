@@ -114,7 +114,7 @@ void csp_debug_ex(csp_debug_level_t level, const char * format, ...) {
 		if (csp_debug_printf_hook)
 			csp_debug_printf_hook(level);
 
-#if defined(_CSP_WINDOWS_)
+#if defined(CSP_WINDOWS)
 		vprintf(format, args);
 #else
 		printf("%s", color);

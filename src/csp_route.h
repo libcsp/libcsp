@@ -57,13 +57,13 @@ csp_route_t * csp_route_if(uint8_t id);
  * on the connection. All data is forwarded out of the router
  * using the csp_send call
  */
-#ifndef _CSP_WINDOWS_
+#ifndef CSP_WINDOWS
 csp_thread_return_t vTaskCSPRouter(void * pvParameters);
 #else
 csp_thread_return_t vTaskCSPRouter(void * pvParameters)  __attribute__((stdcall));
 #endif
 
-#if CSP_USE_PROMISC
+#ifdef CSP_USE_PROMISC
 /**
  * Add packet to promiscuous mode packet queue
  *

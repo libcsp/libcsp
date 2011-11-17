@@ -30,7 +30,7 @@ extern "C" {
 #include <csp/csp.h>
 
 /* POSIX interface */
-#if defined(_CSP_POSIX_)
+#if defined(CSP_POSIX)
 
 #include <pthread.h>
 #include <semaphore.h>
@@ -43,9 +43,9 @@ extern "C" {
 typedef sem_t csp_bin_sem_handle_t;
 typedef pthread_mutex_t csp_mutex_t;
 
-#endif // _CSP_POSIX_
+#endif // CSP_POSIX
 
-#if defined(_CSP_WINDOWS_)
+#if defined(CSP_WINDOWS)
 
 #include <Windows.h>
 #undef interface
@@ -61,7 +61,7 @@ typedef HANDLE csp_mutex_t;
 #endif
 
 /* FreeRTOS interface */
-#if defined(_CSP_FREERTOS_)
+#if defined(CSP_FREERTOS)
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/semphr.h>
@@ -74,7 +74,7 @@ typedef HANDLE csp_mutex_t;
 typedef xSemaphoreHandle csp_bin_sem_handle_t;
 typedef xSemaphoreHandle csp_mutex_t;
 
-#endif // _CSP_FREERTOS_
+#endif // CSP_FREERTOS
 
 int csp_mutex_create(csp_mutex_t * mutex);
 int csp_mutex_remove(csp_mutex_t * mutex);

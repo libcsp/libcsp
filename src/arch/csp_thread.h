@@ -29,7 +29,7 @@ extern "C" {
 #include <csp/csp.h>
 
 /* POSIX interface */
-#if defined(_CSP_POSIX_)
+#if defined(CSP_POSIX)
 
 #include <pthread.h>
 
@@ -38,10 +38,10 @@ extern "C" {
 typedef pthread_t csp_thread_handle_t;
 typedef void* csp_thread_return_t;
 
-#endif // _CSP_POSIX_
+#endif // CSP_POSIX
 
 /* Windows interface */
-#if defined(_CSP_WINDOWS_)
+#if defined(CSP_WINDOWS)
 
 #include <Windows.h>
 #undef interface
@@ -52,10 +52,10 @@ typedef void* csp_thread_return_t;
 typedef HANDLE csp_thread_handle_t;
 typedef unsigned int csp_thread_return_t;
 
-#endif // _CSP_WINDOWS_
+#endif // CSP_WINDOWS
 
 /* FreeRTOS interface */
-#if defined(_CSP_FREERTOS_)
+#if defined(CSP_FREERTOS)
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
@@ -65,9 +65,9 @@ typedef unsigned int csp_thread_return_t;
 typedef xTaskHandle csp_thread_handle_t;
 typedef void csp_thread_return_t;
 
-#endif // _CSP_FREERTOS_
+#endif // CSP_FREERTOS
 
-#ifndef _CSP_WINDOWS_
+#ifndef CSP_WINDOWS
 int csp_thread_create(csp_thread_return_t (* routine)(void *), const signed char * const thread_name, unsigned short stack_depth, void * parameters, unsigned int priority, csp_thread_handle_t * handle);
 #else
 int csp_thread_create(csp_thread_return_t (* routine)(void *)__attribute__((stdcall)), const signed char * const thread_name, unsigned short stack_depth, void * parameters, unsigned int priority, csp_thread_handle_t * handle);
