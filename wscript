@@ -49,10 +49,22 @@ def options(ctx):
 	gr.add_option('--enable-examples', action='store_true', help='Enable examples')
 	gr.add_option('--enable-static-buffer', action='store_true', help='Enable static buffer system')
 
+	# Interfaces	
+	gr.add_option('--enable-if-i2c', action='store_true', help='Enable I2C interface')
+	gr.add_option('--enable-if-kiss', action='store_true', help='Enable KISS/RS.232 interface')
+	gr.add_option('--enable-if-sia', action='store_true', help='Enable Static IP interface')
+	gr.add_option('--enable-if-can', action='store_true', help='Enable CAN interface')
+	
+	# Drivers
+	gr.add_option('--with-driver-can', default=None, metavar='CHIP', help='Enable CAN driver. CHIP must be either socketcan, at91sam7a1, at91sam7a3 or at90can128')
+	gr.add_option('--with-drivers', metavar="PATH", default='../../libgomspace/include', help='Set path to Driver header files')
+
+	# OS	
 	gr.add_option('--with-os', default='posix', help='Set operating system. Must be either \'posix\', \'windows\' or \'freertos\'')
-	gr.add_option('--with-can', default=None, metavar='CHIP', help='Enable CAN driver. CHIP must be either socketcan, at91sam7a1, at91sam7a3 or at90can128')
 	gr.add_option('--with-usart', default=None, metavar='DRIVER', help='Enable usart driver. DRIVER must be windows')
 	gr.add_option('--with-freertos', metavar="PATH", default='../../libgomspace/include', help='Set path to FreeRTOS header files')
+
+	# Options
 	gr.add_option('--with-static-buffer-size', type=int, default=320, help='Set size of static buffer elements')
 	gr.add_option('--with-static-buffer-count', type=int, default=12, help='Set number of static buffer elements')
 	gr.add_option('--with-rdp-max-window', type=int, default=20, help='Set maximum window size for RDP')
@@ -68,7 +80,7 @@ def configure(ctx):
 		ctx.fatal('--with-os must be either \'posix\', \'windows\' or \'freertos\'')
 
 	# Validate CAN drivers
-	if not ctx.options.with_can in (None, 'socketcan', 'at91sam7a1', 'at91sam7a3', 'at90can128'):
+	if not ctx.options.with_driver_can in (None, 'socketcan', 'at91sam7a1', 'at91sam7a3', 'at90can128'):
 		ctx.fatal('--with-can must be either \'socketcan\', \'at91sam7a1\', \'at91sam7a3\', \'at90can128\'')
 
 	# Validate USART drivers
@@ -108,11 +120,24 @@ def configure(ctx):
 		ctx.env.append_unique('CFLAGS_CSP', ['-D_WIN32_WINNT=0x0600'] + ctx.options.cflags.split(','))
 	else:
 		ctx.fatal('ARCH must be either \'posix\', \'windows\' or \'freertos\'')
+		
+	# Add Eternal Drivers
+	if ctx.options.with_drivers:
+		ctx.env.append_unique('INCLUDES_CSP', ctx.options.with_drivers)
 
 	# Add CAN driver
-	if ctx.options.with_can:
+	if ctx.options.with_driver_can:
+		ctx.env.append_unique('FILES_CSP', 'src/drivers/can/can_{0}.c'.format(ctx.options.with_driver_can))
+		
+	# Interfaces
+	if ctx.options.enable_if_can:
 		ctx.env.append_unique('FILES_CSP', 'src/interfaces/csp_if_can.c')
-		ctx.env.append_unique('FILES_CSP', 'src/drivers/can/can_{0}.c'.format(ctx.options.with_can))
+	if ctx.options.enable_if_i2c:
+		ctx.env.append_unique('FILES_CSP', 'src/interfaces/csp_if_i2c.c')
+	if ctx.options.enable_if_kiss:
+		ctx.env.append_unique('FILES_CSP', 'src/interfaces/csp_if_kiss.c')
+	if ctx.options.enable_if_sia:
+		ctx.env.append_unique('FILES_CSP', 'src/interfaces/csp_if_sia.c')
 
 	# Add USART driver
 	if ctx.options.with_usart:
