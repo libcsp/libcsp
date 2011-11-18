@@ -208,6 +208,23 @@ def configure(ctx):
 	ctx.write_config_header('include/csp/csp_autoconfig.h', top=True, remove=True)
 
 def build(ctx):
+
+	# Set install path for header files
+	install_path = False
+	if ctx.options.install_csp:
+		install_path = '${PREFIX}/lib'
+		ctx.install_files('${PREFIX}/include/csp', ctx.path.ant_glob('include/csp/*.h'))
+		ctx.install_files('${PREFIX}/include/csp/interfaces', 'include/csp/interfaces/csp_if_lo.h')
+
+		if 'src/interfaces/csp_if_can.c' in ctx.env.FILES_CSP:
+			ctx.install_files('${PREFIX}/include/csp/interfaces', 'include/csp/interfaces/csp_if_can.h')
+		if 'src/interfaces/csp_if_i2c.c' in ctx.env.FILES_CSP:
+			ctx.install_files('${PREFIX}/include/csp/interfaces', 'include/csp/interfaces/csp_if_i2c.h')
+		if 'src/interfaces/csp_if_kiss.c' in ctx.env.FILES_CSP:
+			ctx.install_files('${PREFIX}/include/csp/interfaces', 'include/csp/interfaces/csp_if_kiss.h')
+
+		ctx.install_files('${PREFIX}/include/csp', 'include/csp/csp_autoconfig.h', cwd=ctx.bldnode)
+
 	# Build static library
 	ctx.stlib(
 		source=ctx.path.ant_glob(ctx.env.FILES_CSP, excl=ctx.env.EXCL_CSP),
@@ -216,7 +233,9 @@ def build(ctx):
 		export_includes = 'include',
 		cflags = ctx.env.CFLAGS_CSP,
 		defines = ctx.env.DEFINES_CSP,
-		use = 'csp_size include')
+		use = 'csp_size include',
+		install_path = install_path,
+	)
 
 	# Print library size
 	if ctx.options.verbose > 0:
@@ -240,22 +259,6 @@ def build(ctx):
 			defines = ctx.env.DEFINES_CSP,
 			lib=['rt', 'pthread'],
 			use = 'csp')
-
-	# Set install path for header files
-
-	if ctx.options.install_csp:
-		ctx.install_files('${PREFIX}/include/csp', ctx.path.ant_glob('include/csp/*.h'))
-		ctx.install_files('${PREFIX}/include/csp/interfaces', 'include/csp/interfaces/csp_if_lo.h')
-
-		if 'src/interfaces/csp_if_can.c' in ctx.env.FILES_CSP:
-			ctx.install_files('${PREFIX}/include/csp/interfaces', 'include/csp/interfaces/csp_if_can.h')
-		if 'src/interfaces/csp_if_i2c.c' in ctx.env.FILES_CSP:
-			ctx.install_files('${PREFIX}/include/csp/interfaces', 'include/csp/interfaces/csp_if_i2c.h')
-		if 'src/interfaces/csp_if_kiss.c' in ctx.env.FILES_CSP:
-			ctx.install_files('${PREFIX}/include/csp/interfaces', 'include/csp/interfaces/csp_if_kiss.h')
-
-		ctx.install_files('${PREFIX}/include/csp', 'include/csp/csp_autoconfig.h', cwd=ctx.bldnode)
-		ctx.install_files('${PREFIX}/lib', 'libcsp.a')
 
 def dist(ctx):
 	ctx.excl = 'build/* **/.* **/*.pyc **/*.o **/*~ *.tar.gz'
