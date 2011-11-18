@@ -37,6 +37,7 @@ short int ascii_ii[]={0x694C,0x5454,0x656C,0x6E45,0x6944,0x6E61,0};
 
 class grep_for_endianness(Task.Task):
 	def run(self):
+		global endianness
 		contents = open(self.inputs[0].abspath()).read()
 		endianness = 'big' if 'BIGenDianSyS' in contents else 'little' 
 
