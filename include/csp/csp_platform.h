@@ -27,32 +27,6 @@ extern "C" {
 
 #include <stdint.h>
 
-/* Attempt to include endian.h to get endianness defines */
-#ifdef CSP_HAVE_ENDIAN_H
-	#include <endian.h>
-#endif
-
-/* Set platform endianness */
-#if defined(__BYTE_ORDER__) && defined(__ORDER_LITTLE_ENDIAN__) && defined(__ORDER_BIG_ENDIAN__)
-	#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-		#define CSP_LITTLE_ENDIAN
-	#elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-		#define CSP_BIG_ENDIAN
-	#else
-		/* We don't support PDP endianness */
-		#error "Unsupported endianness"
-	#endif
-#else
-	/* Try to guess system endianness */
-	#if defined(__i386__) || defined(__x86_64__) || defined(__BFIN__) || defined(__AVR__) || defined(__ARMEL__)
-		#define CSP_LITTLE_ENDIAN
-	#elif defined (__PPC__) || defined(__sparc__) || defined(__AVR32__) || defined(__AVR32_AP7000__) || defined(__ARMEB__)
-		#define CSP_BIG_ENDIAN
-	#else
-		#error "Could not guess system endianness"
-	#endif
-#endif
-
 /* Set OS */
 #if defined(CSP_POSIX) || defined(CSP_WINDOWS)
 	#define CSP_BASE_TYPE int

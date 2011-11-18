@@ -20,12 +20,32 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 import os
+from waflib import Task, Configure, Errors
+from waflib.TaskGen import before_method, after_method, feature
 
 APPNAME = 'libcsp'
 VERSION = '1.0'
 
 top	= '.'
 out	= 'build'
+
+endianness = None
+endian_test_code = '''
+short int ascii_mm[]={0x4249,0x4765,0x6E44,0x6961,0x6E53,0x7953,0};
+short int ascii_ii[]={0x694C,0x5454,0x656C,0x6E45,0x6944,0x6E61,0};
+'''
+
+class grep_for_endianness(Task.Task):
+	def run(self):
+		global endianness
+		contents =  open(self.inputs[0].abspath()).read()
+		endianness = 'big' if 'BIGenDianSyS' in contents else 'little' 
+
+@feature('grep_for_endianness')
+@after_method('apply_link')
+def grep_for_endianness_fun(self):
+	objs = [t.outputs[0] for t in getattr(self, 'compiled_tasks', [])]
+	self.create_task('grep_for_endianness', objs)
 
 def options(ctx):
 	# Load GCC options
@@ -56,11 +76,11 @@ def options(ctx):
 	
 	# Drivers
 	gr.add_option('--with-driver-can', default=None, metavar='CHIP', help='Enable CAN driver. CHIP must be either socketcan, at91sam7a1, at91sam7a3 or at90can128')
-	gr.add_option('--with-drivers', metavar="PATH", default='../../libgomspace/include', help='Set path to Driver header files')
+	gr.add_option('--with-drivers', metavar='PATH', default='../../libgomspace/include', help='Set path to Driver header files')
 
 	# OS	
 	gr.add_option('--with-os', default='posix', help='Set operating system. Must be either \'posix\', \'windows\' or \'freertos\'')
-	gr.add_option('--with-freertos', metavar="PATH", default='../../libgomspace/include', help='Set path to FreeRTOS header files')
+	gr.add_option('--with-freertos', metavar='PATH', default='../../libgomspace/include', help='Set path to FreeRTOS header files')
 
 	# Options
 	gr.add_option('--with-static-buffer-size', type=int, default=320, help='Set size of static buffer elements')
@@ -89,7 +109,7 @@ def configure(ctx):
 	ctx.find_program('size', var='SIZE')
 
 	# Set git revision define
-	git_rev = os.popen("(git log --pretty=format:%H -n 1 | egrep -o \"^.{8}\") 2> /dev/null || echo none").read().strip()
+	git_rev = os.popen('(git log --pretty=format:%H -n 1 | egrep -o \"^.{8}\") 2> /dev/null || echo none').read().strip()
 
 	# Setup DEFINES
 	ctx.env.append_unique('DEFINES_CSP', ['GIT_REV="{0}"'.format(git_rev)])
@@ -175,8 +195,10 @@ def configure(ctx):
 	ctx.define('CSP_RDP_MAX_WINDOW', ctx.options.with_rdp_max_window)
 	ctx.define('CSP_PADDING_BYTES', ctx.options.with_padding)
 
-	# Check for endian.h
-	ctx.check(header_name='endian.h', mandatory=False, define_name='CSP_HAVE_ENDIAN_H')
+	# Check compiler endianness
+	ctx.check(fragment=endian_test_code, features='c grep_for_endianness', msg='Checking for endianness', okmsg='ok', errmsg='error')
+	ctx.define_cond('CSP_LITTLE_ENDIAN', endianness == 'little')
+	ctx.define_cond('CSP_BIG_ENDIAN', endianness == 'big')
 
 	ctx.write_config_header('include/csp/csp_autoconfig.h', top=True, remove=True)
 
