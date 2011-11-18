@@ -37,9 +37,11 @@ short int ascii_ii[]={0x694C,0x5454,0x656C,0x6E45,0x6944,0x6E61,0};
 
 class grep_for_endianness(Task.Task):
 	def run(self):
-		global endianness
-		contents =  open(self.inputs[0].abspath()).read()
+		contents = open(self.inputs[0].abspath()).read()
 		endianness = 'big' if 'BIGenDianSyS' in contents else 'little' 
+
+def endianmsg(kw):
+	return endianness
 
 @feature('grep_for_endianness')
 @after_method('apply_link')
@@ -201,7 +203,7 @@ def configure(ctx):
 	ctx.define('CSP_PADDING_BYTES', ctx.options.with_padding)
 
 	# Check compiler endianness
-	ctx.check(fragment=endian_test_code, features='c grep_for_endianness', msg='Checking for endianness', okmsg='ok', errmsg='error')
+	ctx.check(fragment=endian_test_code, features='c grep_for_endianness', msg='Checking for endianness', okmsg=endianmsg, errmsg='error')
 	ctx.define_cond('CSP_LITTLE_ENDIAN', endianness == 'little')
 	ctx.define_cond('CSP_BIG_ENDIAN', endianness == 'big')
 
