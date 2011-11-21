@@ -55,13 +55,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #define TNC_SET_HARDWARE	0x06
 #define TNC_RETURN			0xFF
 
-/** Interface definition */
-csp_iface_t csp_if_kiss = {
-	.name = "KISS",
-	.nexthop = csp_kiss_tx,
-	.mtu = 256,
-};
-
 static int usart_handle;
 
 #ifdef KISS_CRC32
@@ -276,3 +269,10 @@ int csp_kiss_init(int handle) {
 	return CSP_ERR_NONE;
 
 }
+
+/** Interface definition */
+csp_iface_t csp_if_kiss = {
+	.name = "KISS",
+	.nexthop = csp_kiss_tx,
+	.mtu = 256,
+};

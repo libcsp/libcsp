@@ -44,14 +44,6 @@ struct csp_can_config {
 };
 
 /**
- * CAN interface transmit function
- * @param packet Packet to transmit
- * @param timeout Timout in ms
- * @return 1 if packet was successfully transmitted, 0 on error
- */
-int csp_can_tx(csp_packet_t * packet, uint32_t timeout);
-
-/**
  * Init CAN interface
  * @param mode Must be either CSP_CAN_MASKED or CSP_CAN_PROMISC
  * @param conf Pointer to configuration struct. 

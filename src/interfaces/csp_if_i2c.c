@@ -36,12 +36,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 static int csp_i2c_handle = 0;
 
-/** Interface definition */
-csp_iface_t csp_if_i2c = {
-	.name = "I2C",
-	.nexthop = csp_i2c_tx,
-};
-
 int csp_i2c_tx(csp_packet_t * packet, uint32_t timeout) {
 
 	/* Cast the CSP packet buffer into an i2c frame */
@@ -118,3 +112,8 @@ int csp_i2c_init(uint8_t addr, int handle) {
 
 }
 
+/** Interface definition */
+csp_iface_t csp_if_i2c = {
+	.name = "I2C",
+	.nexthop = csp_i2c_tx,
+};
