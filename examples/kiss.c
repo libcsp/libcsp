@@ -1,9 +1,7 @@
 #include <stdio.h>
 #include <process.h>
 #include <Windows.h>
-#ifdef interface
 #undef interface
-#endif
 #include <csp/csp.h>
 #include <csp/interfaces/csp_if_kiss.h>
 #include <csp/drivers/usart_windows.h>
@@ -13,6 +11,7 @@
 
 #define SERVER_TIDX 0
 #define CLIENT_TIDX 1
+#define USART_HANDLE 0
 
 unsigned WINAPI serverTask(void *params);
 unsigned WINAPI clientTask(void *params);
@@ -20,8 +19,11 @@ unsigned WINAPI clientTask(void *params);
 static HANDLE threads[2];
 
 int main(void) {
+    csp_debug_toggle_level(CSP_PACKET);
+    csp_debug_toggle_level(CSP_INFO);
+
     usart_win_conf_t settings;
-    settings.intf = L"COM4";
+    settings.intf = "COM4";
     settings.baudrate = CBR_9600;
     settings.databits = 8;
     settings.paritysetting = NOPARITY;
@@ -35,13 +37,12 @@ int main(void) {
         printf("Failure when initialising USART!\n");
         return 1;
     }
-    csp_kiss_init(0);
+    csp_kiss_init(USART_HANDLE);
     usart_listen();
 
     csp_route_set(MY_ADDRESS, &csp_if_kiss, CSP_NODE_MAC);
     csp_route_start_task(0, 0);
 
-    csp_debug_toggle_level(4);
     csp_conn_print_table();
     csp_route_print_table();
     csp_route_print_interfaces();
@@ -83,14 +84,12 @@ unsigned WINAPI serverTask(void *params) {
         while( (packet = csp_read(conn, 100)) != NULL ) {
             switch( csp_conn_dport(conn) ) {
                 case PORT:
-                    printf("Received packet!\n");
                     if( packet->data[0] == 'q' )
                         running = 0;
                     csp_buffer_free(packet);
                     csp_send(conn, response, 1000);
                     break;
                 default:
-                    printf("Received other packet. Passing it to the service handler\n");
                     csp_service_handler(conn, packet);
                     break;
             }
@@ -107,10 +106,13 @@ unsigned WINAPI serverTask(void *params) {
 unsigned WINAPI clientTask(void *params) {
     char outbuf = 'q';
     char inbuf[3] = {0};
-    int result = csp_ping(MY_ADDRESS, 10000, 100, CSP_O_NONE);
-    printf("Ping result %d ms\n", result);
-    /*
-    Sleep(1000);
+    int pingResult;
+
+    for(int i = 50; i <= 200; i+= 50) {
+        pingResult = csp_ping(MY_ADDRESS, 1000, 100, CSP_O_NONE);
+        printf("Ping with payload of %d bytes, took %d ms\n", i, pingResult);
+        Sleep(1000);
+    }
     csp_ps(MY_ADDRESS, 1000);
     Sleep(1000);
     csp_memfree(MY_ADDRESS, 1000);
@@ -118,8 +120,8 @@ unsigned WINAPI clientTask(void *params) {
     csp_buf_free(MY_ADDRESS, 1000);
     Sleep(1000);
     csp_uptime(MY_ADDRESS, 1000);
+
     Sleep(1000);
-    */
     csp_transaction(0, MY_ADDRESS, PORT, 1000, &outbuf, 1, inbuf, 2);
     printf("Quit response from server: %s\n", inbuf);
 
