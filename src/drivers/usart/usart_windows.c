@@ -1,7 +1,5 @@
 #include <stdio.h>
-#define UNICODE
 #include <Windows.h>
-#undef interface
 #include <process.h>
 
 #include <csp/csp.h>
@@ -14,47 +12,23 @@ static LONG isListening = 0;
 static usart_rx_func usart_rx_callback = NULL;
 
 static void prvSendData(uint8_t *buf, size_t bufsz);
-static int prvTryOpenPort(const TCHAR* intf);
+static int prvTryOpenPort(const char* intf);
 static int prvTryConfigurePort(const usart_win_conf_t*);
 static int prvTrySetPortTimeouts(void);
 static const char* prvParityToStr(BYTE paritySetting);
-#undef CSP_DEBUG
+
+#define USART_HANDLE 0
+
 #ifdef CSP_DEBUG
 static void prvPrintError(void);
 #endif
+
 #ifdef CSP_DEBUG
 #define printError() prvPrintError()
 #else
 #define printError() do {} while(0)
 #endif
 
-#ifdef CSP_DEBUG
-static void prvPrintError(void) {
-    TCHAR *messageBuffer = NULL;
-    DWORD errorCode = GetLastError();
-    DWORD formatMessageRet;
-    formatMessageRet = FormatMessage(
-        FORMAT_MESSAGE_ALLOCATE_BUFFER |
-        FORMAT_MESSAGE_FROM_SYSTEM,
-        NULL,
-        errorCode,
-        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-        (LPTSTR)&messageBuffer,
-        0,
-        NULL);
-
-    if( !formatMessageRet ) {
-        csp_debug(CSP_ERROR, "FormatMessage error, code: %lu\n", GetLastError());
-        return;
-    }
-#ifdef UNICODE
-    wprintf(TEXT("%s\n"), messageBuffer);
-#else
-    csp_debug(CSP_ERROR, "%s\n", messageBuffer);
-#endif
-    LocalFree(messageBuffer);
-}
-#endif
 
 int usart_init(const usart_win_conf_t *config) {
     if( prvTryOpenPort(config->intf) ) {
@@ -74,11 +48,11 @@ int usart_init(const usart_win_conf_t *config) {
 
     InitializeCriticalSection(&txSection);
 
-    return 0;
+    return USART_HANDLE;
 }
 
-static int prvTryOpenPort(const TCHAR *intf) {
-    portHandle = CreateFile(
+static int prvTryOpenPort(const char *intf) {
+    portHandle = CreateFileA(
         intf, 
         GENERIC_READ|GENERIC_WRITE,
         0,
@@ -250,3 +224,28 @@ void usart_insert(int handle, char c, void *pxTaskWoken) {
 void usart_set_callback(int handle, usart_rx_func fp) {
     usart_set_rx_callback(fp);
 }
+
+#ifdef CSP_DEBUG
+static void prvPrintError(void) {
+    char *messageBuffer = NULL;
+    DWORD errorCode = GetLastError();
+    DWORD formatMessageRet;
+    formatMessageRet = FormatMessageA(
+        FORMAT_MESSAGE_ALLOCATE_BUFFER |
+        FORMAT_MESSAGE_FROM_SYSTEM,
+        NULL,
+        errorCode,
+        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+        (char*)&messageBuffer,
+        0,
+        NULL);
+
+    if( !formatMessageRet ) {
+        csp_debug(CSP_ERROR, "FormatMessage error, code: %lu\n", GetLastError());
+        return;
+    }
+    csp_debug(CSP_ERROR, "%s\n", messageBuffer);
+    LocalFree(messageBuffer);
+}
+#endif
+
