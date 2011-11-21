@@ -233,21 +233,13 @@ int can_send(can_id_t id, uint8_t data[], uint8_t dlc, CSP_BASE_TYPE * task_woke
 
 }
 
-int can_init(uint32_t id, uint32_t mask, can_tx_callback_t atxcb, can_rx_callback_t arxcb, void * conf, int conflen) {
+int can_init(uint32_t id, uint32_t mask, can_tx_callback_t atxcb, can_rx_callback_t arxcb, struct csp_can_config *conf) {
 
 	struct ifreq ifr;
 	struct sockaddr_can addr;
 	pthread_t rx_thread;
-	char * ifc;
-	struct can_socketcan_conf * can_conf;
 
-	/* Validate config size */
-	if (conf != NULL && conflen == sizeof(struct can_socketcan_conf)) {
-		can_conf = (struct can_socketcan_conf *)conf;
-		ifc = can_conf->ifc;
-	} else {
-		return -1;
-	}
+	csp_assert(conf && conf->ifc);
 
 	txcb = atxcb;
 	rxcb = arxcb;
@@ -259,7 +251,7 @@ int can_init(uint32_t id, uint32_t mask, can_tx_callback_t atxcb, can_rx_callbac
 	}
 
 	/* Locate interface */
-	strncpy(ifr.ifr_name, ifc, IFNAMSIZ - 1);
+	strncpy(ifr.ifr_name, conf->ifc, IFNAMSIZ - 1);
 	if (ioctl(can_socket, SIOCGIFINDEX, &ifr) < 0) {
 		csp_debug(CSP_ERROR, "ioctl: %s\r\n", strerror(errno));
 		return -1;

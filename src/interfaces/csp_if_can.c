@@ -110,7 +110,7 @@ int cfp_id;
 /** CFP identification number semaphore */
 csp_bin_sem_handle_t id_sem;
 
-#if defined(_CSP_POSIX_) || defined(_CSP_WINDOWS_)
+#if defined(CSP_POSIX) || defined(CSP_WINDOWS)
 /** Packet buffer semaphore */
 static csp_bin_sem_handle_t pbuf_sem;
 #endif
@@ -188,7 +188,7 @@ static int pbuf_init(void) {
 	}
 	}
 
-#if defined(_CSP_POSIX_) || defined(_CSP_WINDOWS_)
+#if defined(CSP_POSIX) || defined(CSP_WINDOWS)
     /* Initialize global lock */
 	if (csp_bin_sem_create(&pbuf_sem) != CSP_SEMAPHORE_OK) {
 		csp_debug(CSP_ERROR, "No more memory for packet buffer semaphore\r\n");
@@ -603,7 +603,7 @@ int csp_can_tx(csp_packet_t * packet, uint32_t timeout) {
 
 }
 
-int csp_can_init(uint8_t mode, void * conf, int conflen) {
+int csp_can_init(uint8_t mode, struct csp_can_config *conf) {
 
 	uint32_t mask;
 
@@ -630,7 +630,7 @@ int csp_can_init(uint8_t mode, void * conf, int conflen) {
 	}
 
 	/* Initialize CAN driver */
-	if (can_init(CFP_MAKE_DST(my_address), mask, csp_tx_callback, csp_rx_callback, conf, conflen) != 0) {
+	if (can_init(CFP_MAKE_DST(my_address), mask, csp_tx_callback, csp_rx_callback, conf) != 0) {
 		csp_debug(CSP_ERROR, "Failed to initialize CAN driver\r\n");
 		return -1;
 	}

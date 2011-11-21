@@ -18,8 +18,8 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef CSP_IF_KISS_H_
-#define CSP_IF_KISS_H_
+#ifndef _CSP_IF_KISS_H_
+#define _CSP_IF_KISS_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -53,4 +53,4 @@ int csp_kiss_tx(csp_packet_t * packet, uint32_t timeout);
  */
 void csp_kiss_rx(uint8_t * buf, int len, void * pxTaskWoken);
 
-#endif /* CSP_IF_KISS_H_ */
+#endif /* _CSP_IF_KISS_H_ */

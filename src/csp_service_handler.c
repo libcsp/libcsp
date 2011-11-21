@@ -31,10 +31,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "arch/csp_time.h"
 #include "arch/csp_malloc.h"
 
-#ifdef _CSP_POSIX_
+#ifdef CSP_POSIX
 #include <sys/sysinfo.h>
 #endif
-#ifdef _CSP_WINDOWS_
+#ifdef CSP_WINDOWS
 #include <Windows.h>
 #endif
 
@@ -102,11 +102,11 @@ void csp_service_handler(csp_conn_t * conn, csp_packet_t * packet) {
 
 	/* Retrieve the ProcessList as a string */
 	case CSP_PS: {
-#if defined(_CSP_FREERTOS_)
+#if defined(CSP_FREERTOS)
 		vTaskList((signed portCHAR *) packet->data);
-#elif defined(_CSP_POSIX_)
+#elif defined(CSP_POSIX)
 		strcpy((char *)packet->data, "Tasklist in not available on posix");
-#elif defined(_CSP_WINDOWS_)
+#elif defined(CSP_WINDOWS)
 		strcpy((char *)packet->data, "Tasklist in not available on windows");
 #endif
 		packet->length = strlen((char *)packet->data);
@@ -118,7 +118,7 @@ void csp_service_handler(csp_conn_t * conn, csp_packet_t * packet) {
 	/* Do a search for the largest block of free memory */
 	case CSP_MEMFREE: {
 
-#if defined(_CSP_FREERTOS_)
+#if defined(CSP_FREERTOS)
 		/* Try to malloc a lot */
 		uint32_t size = 1000000, total = 0, max = UINT32_MAX;
 		void * pmem;
@@ -135,13 +135,13 @@ void csp_service_handler(csp_conn_t * conn, csp_packet_t * packet) {
 			}
 			if (size < 32) break;
 		}
-#elif defined(_CSP_POSIX_)
+#elif defined(CSP_POSIX)
 		/* Read system statistics */
 		size_t total = 0;
 		struct sysinfo info;
 		sysinfo(&info);
 		total = info.freeram * info.mem_unit;
-#elif defined(_CSP_WINDOWS_)
+#elif defined(CSP_WINDOWS)
 		MEMORYSTATUSEX statex;
 		statex.dwLength = sizeof(statex);
 		GlobalMemoryStatusEx(&statex);

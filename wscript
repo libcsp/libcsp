@@ -52,7 +52,6 @@ def options(ctx):
 	# Interfaces	
 	gr.add_option('--enable-if-i2c', action='store_true', help='Enable I2C interface')
 	gr.add_option('--enable-if-kiss', action='store_true', help='Enable KISS/RS.232 interface')
-	gr.add_option('--enable-if-sia', action='store_true', help='Enable Static IP interface')
 	gr.add_option('--enable-if-can', action='store_true', help='Enable CAN interface')
 	
 	# Drivers
@@ -110,16 +109,17 @@ def configure(ctx):
 	ctx.env.append_unique('FILES_CSP', ['src/*.c','src/interfaces/csp_if_lo.c','src/transport/csp_udp.c','src/arch/{0}/**/*.c'.format(ctx.options.with_os)])
 
 	# Add FreeRTOS 
+	if not ctx.options.with_os in ('freertos', 'posix', 'windows'):
+		ctx.fatal('ARCH must be either \'posix\', \'windows\' or \'freertos\'')
+
 	if ctx.options.with_os == 'freertos':
 		ctx.env.append_unique('INCLUDES_CSP', ctx.options.with_freertos)
-		ctx.define('_CSP_FREERTOS_', 1)
-	elif ctx.options.with_os == 'posix':
-		ctx.define('_CSP_POSIX_', 1)
 	elif ctx.options.with_os == 'windows':
-		ctx.define('_CSP_WINDOWS_', 1)
 		ctx.env.append_unique('CFLAGS_CSP', ['-D_WIN32_WINNT=0x0600'] + ctx.options.cflags.split(','))
-	else:
-		ctx.fatal('ARCH must be either \'posix\', \'windows\' or \'freertos\'')
+
+	ctx.define_cond('CSP_FREERTOS', ctx.options.with_os == 'freertos')
+	ctx.define_cond('CSP_POSIX', ctx.options.with_os == 'posix')
+	ctx.define_cond('CSP_WINDOWS', ctx.options.with_os == 'windows')
 		
 	# Add Eternal Drivers
 	if ctx.options.with_drivers:
@@ -136,8 +136,6 @@ def configure(ctx):
 		ctx.env.append_unique('FILES_CSP', 'src/interfaces/csp_if_i2c.c')
 	if ctx.options.enable_if_kiss:
 		ctx.env.append_unique('FILES_CSP', 'src/interfaces/csp_if_kiss.c')
-	if ctx.options.enable_if_sia:
-		ctx.env.append_unique('FILES_CSP', 'src/interfaces/csp_if_sia.c')
 
 	# Add USART driver
 	if ctx.options.with_usart:
@@ -187,10 +185,10 @@ def configure(ctx):
 	ctx.define('CSP_RDP_MAX_WINDOW', ctx.options.with_rdp_max_window)
 	ctx.define('CSP_PADDING_BYTES', ctx.options.with_padding)
 
-	ctx.write_config_header('include/csp/csp_autoconfig.h', top=False, remove=False)
-	
 	# Check for endian.h
-	ctx.check(header_name='endian.h', mandatory=False)
+	ctx.check(header_name='endian.h', mandatory=False, define_name='CSP_HAVE_ENDIAN_H')
+
+	ctx.write_config_header('include/csp/csp_autoconfig.h', top=True, remove=True)
 
 def build(ctx):
 	# Build static library
@@ -201,7 +199,7 @@ def build(ctx):
 		export_includes = 'include',
 		cflags = ctx.env.CFLAGS_CSP,
 		defines = ctx.env.DEFINES_CSP,
-		use = 'csp_size')
+		use = 'csp_size include')
 
 	# Print library size
 	if ctx.options.verbose > 0:
@@ -241,8 +239,17 @@ def build(ctx):
 
 
 	# Set install path for header files
-	ctx.install_files('${PREFIX}', ctx.path.ant_glob('include/**/*.h'), relative_trick=True)
-	ctx.install_files('${PREFIX}/include/csp', 'include/csp/csp_autoconfig.h')
+	ctx.install_files('${PREFIX}/include/csp', ctx.path.ant_glob('include/csp/*.h'))
+	ctx.install_files('${PREFIX}/include/csp/interfaces', 'include/csp/interfaces/csp_if_lo.h')
+
+	if 'src/interfaces/csp_if_can.c' in ctx.env.FILES_CSP:
+		ctx.install_files('${PREFIX}/include/csp/interfaces', 'include/csp/interfaces/csp_if_can.h')
+	if 'src/interfaces/csp_if_i2c.c' in ctx.env.FILES_CSP:
+		ctx.install_files('${PREFIX}/include/csp/interfaces', 'include/csp/interfaces/csp_if_i2c.h')
+	if 'src/interfaces/csp_if_kiss.c' in ctx.env.FILES_CSP:
+		ctx.install_files('${PREFIX}/include/csp/interfaces', 'include/csp/interfaces/csp_if_kiss.h')
+
+	ctx.install_files('${PREFIX}/include/csp', 'include/csp/csp_autoconfig.h', cwd=ctx.bldnode)
 	ctx.install_files('${PREFIX}/lib', 'libcsp.a')
 
 def dist(ctx):

@@ -121,27 +121,16 @@ static void can_init_interrupt(uint32_t id, uint32_t mask) {
 	}
 }
 
-int can_init(uint32_t id, uint32_t mask, can_tx_callback_t atxcb, can_rx_callback_t arxcb, void * conf, int conflen) {
+int can_init(uint32_t id, uint32_t mask, can_tx_callback_t atxcb, can_rx_callback_t arxcb, struct csp_can_config *conf) {
 
-	uint32_t bitrate;
-	uint32_t clock_speed;
-	struct can_at91sam7a3_conf * can_conf;
-
-	/* Validate config size */
-	if (conf != NULL && conflen == sizeof(struct can_at91sam7a3_conf)) {
-		can_conf = (struct can_at91sam7a3_conf *)conf;
-		bitrate = can_conf->bitrate;
-		clock_speed = can_conf->clock_speed;
-	} else {
-		return -1;
-	}
+	csp_assert(conf && conf->bitrate && conf->clock_speed);
 
 	/* Set callbacks */
 	txcb = atxcb;
 	rxcb = arxcb;
 
 	/* Configure baudrate */
-	CAN_CTRL->BR = CAN_MODE(bitrate, clock_speed);
+	CAN_CTRL->BR = CAN_MODE(conf->bitrate, conf->clock_speed);
 
 	/* Enable interrupts */
 	can_init_interrupt(id, mask);

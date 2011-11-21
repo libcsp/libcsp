@@ -28,16 +28,16 @@ extern "C" {
 #include <stdint.h>
 
 /* Attempt to include endian.h to get endianness defines */
-#ifdef HAVE_ENDIAN_H
+#ifdef CSP_HAVE_ENDIAN_H
 	#include <endian.h>
 #endif
 
 /* Set platform endianness */
 #if defined(__BYTE_ORDER__) && defined(__ORDER_LITTLE_ENDIAN__) && defined(__ORDER_BIG_ENDIAN__)
 	#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-		#define _CSP_LITTLE_ENDIAN_
+		#define CSP_LITTLE_ENDIAN
 	#elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-		#define _CSP_BIG_ENDIAN_
+		#define CSP_BIG_ENDIAN
 	#else
 		/* We don't support PDP endianness */
 		#error "Unsupported endianness"
@@ -45,22 +45,22 @@ extern "C" {
 #else
 	/* Try to guess system endianness */
 	#if defined(__i386__) || defined(__x86_64__) || defined(__BFIN__) || defined(__AVR__) || defined(__ARMEL__)
-		#define _CSP_LITTLE_ENDIAN_
+		#define CSP_LITTLE_ENDIAN
 	#elif defined (__PPC__) || defined(__sparc__) || defined(__AVR32__) || defined(__AVR32_AP7000__) || defined(__ARMEB__)
-		#define _CSP_BIG_ENDIAN_
+		#define CSP_BIG_ENDIAN
 	#else
 		#error "Could not guess system endianness"
 	#endif
 #endif
 
 /* Set OS */
-#if defined(_CSP_POSIX_) || defined(_CSP_WINDOWS_)
+#if defined(CSP_POSIX) || defined(CSP_WINDOWS)
 	#define CSP_BASE_TYPE int
 	#define CSP_MAX_DELAY (UINT32_MAX)
 	#define CSP_INFINITY (UINT32_MAX)
 	#define CSP_ENTER_CRITICAL(lock) do { csp_bin_sem_wait(&lock, CSP_MAX_DELAY); } while(0)
 	#define CSP_EXIT_CRITICAL(lock) do { csp_bin_sem_post(&lock); } while(0)
-#elif defined(_CSP_FREERTOS_)
+#elif defined(CSP_FREERTOS)
 	#include <freertos/FreeRTOS.h>
 	#define CSP_BASE_TYPE portBASE_TYPE
 	#define CSP_MAX_DELAY portMAX_DELAY
@@ -68,7 +68,7 @@ extern "C" {
 	#define CSP_ENTER_CRITICAL(lock) do { portENTER_CRITICAL(); } while (0)
 	#define CSP_EXIT_CRITICAL(lock) do { portEXIT_CRITICAL(); } while (0)
 #else
-	#error "OS must be either _CSP_POSIX_, _CSP_FREERTOS_ OR _CSP_WINDOWS_"
+	#error "OS must be either CSP_POSIX, CSP_FREERTOS OR CSP_WINDOWS"
 #endif
 
 #ifdef __cplusplus

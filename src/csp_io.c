@@ -152,18 +152,18 @@ csp_socket_t * csp_socket(uint32_t opts) {
 	}
 
 	/* Use CSP buffers instead? */
-	csp_socket_t * sock = csp_malloc(sizeof(csp_socket_t));
+	csp_socket_t * sock = csp_conn_allocate(CONN_SERVER);
 	if (sock == NULL)
 		return NULL;
 
-	/* If connection less, init the queue to a pre-defined size
+	/* If connectionless, init the queue to a pre-defined size
 	 * if not, the user must init the queue using csp_listen */
 	if (opts & CSP_SO_CONN_LESS) {
-		sock->queue = csp_queue_create(CSP_CONN_QUEUE_LENGTH, sizeof(csp_packet_t *));
-		if (sock->queue == NULL)
+		sock->socket = csp_queue_create(CSP_CONN_QUEUE_LENGTH, sizeof(csp_packet_t *));
+		if (sock->socket == NULL)
 			return NULL;
 	} else {
-		sock->queue = NULL;
+		sock->socket = NULL;
 	}
 	sock->opts = opts;
 
@@ -176,11 +176,11 @@ csp_conn_t * csp_accept(csp_socket_t * sock, uint32_t timeout) {
 	if (sock == NULL)
 		return NULL;
 
-	if (sock->queue == NULL)
+	if (sock->socket == NULL)
 		return NULL;
 
 	csp_conn_t * conn;
-	if (csp_queue_dequeue(sock->queue, &conn, timeout) == CSP_QUEUE_OK)
+	if (csp_queue_dequeue(sock->socket, &conn, timeout) == CSP_QUEUE_OK)
 		return conn;
 
 	return NULL;
@@ -410,7 +410,7 @@ csp_packet_t * csp_recvfrom(csp_socket_t * socket, uint32_t timeout) {
 		return NULL;
 
 	csp_packet_t * packet = NULL;
-	csp_queue_dequeue(socket->queue, &packet, timeout);
+	csp_queue_dequeue(socket->socket, &packet, timeout);
 
 	return packet;
 

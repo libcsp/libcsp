@@ -35,15 +35,15 @@ void csp_udp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 	}
 
 	/* Try to queue up the new connection pointer */
-	if (conn->rx_socket != NULL) {
-		if (csp_queue_enqueue(conn->rx_socket, &conn, 0) != CSP_QUEUE_OK) {
+	if (conn->socket != NULL) {
+		if (csp_queue_enqueue(conn->socket, &conn, 0) != CSP_QUEUE_OK) {
 			csp_debug(CSP_WARN, "Warning Routing Queue Full\r\n");
 			csp_close(conn);
 			return;
 		}
 
 		/* Ensure that this connection will not be posted to this socket again */
-		conn->rx_socket = NULL;
+		conn->socket = NULL;
 	}
 
 }
