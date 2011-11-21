@@ -85,7 +85,7 @@ static int prvTryConfigurePort(const usart_win_conf_t* conf) {
     portSettings.StopBits = conf->stopbits;
     portSettings.fParity = conf->checkparity;
     portSettings.fBinary = TRUE;
-    portSettings.ByteSize = conf->databits; // Data size, both for tx and rx
+    portSettings.ByteSize = conf->databits;
     if( !SetCommState(portHandle, &portSettings) ) {
         csp_debug(CSP_ERROR, "Error when setting COM port settings! Code:%lu\n", GetLastError());
         return 1;
@@ -126,19 +126,16 @@ static const char* prvParityToStr(BYTE paritySetting) {
 static int prvTrySetPortTimeouts(void) {
     COMMTIMEOUTS timeouts = {0};
 
-    // Setting of timeouts. This means that an ReadFile or WriteFile could return with fewer read or written bytes, due to a timeout condition
-    // Return from ReadFile and WriteFile due to timeout is not an error, and is not signalled as such
     if( !GetCommTimeouts(portHandle, &timeouts) ) {
         csp_debug(CSP_ERROR, "Error gettings current timeout settings\n");
         return 1;
     }
 
-    timeouts.ReadIntervalTimeout = 5; // ms that can elapse between two chars
-    timeouts.ReadTotalTimeoutMultiplier = 1; // Total timeout period. This is multiplied by the requested number of bytes to read
-    timeouts.ReadTotalTimeoutConstant = 5; // This is added to the result of ReadTotalTimeoutMultiplier, to get ms elapsed before timeout for read
+    timeouts.ReadIntervalTimeout = 5;
+    timeouts.ReadTotalTimeoutMultiplier = 1;
+    timeouts.ReadTotalTimeoutConstant = 5;
     timeouts.WriteTotalTimeoutMultiplier = 1;
     timeouts.WriteTotalTimeoutConstant = 5;
-    // To immediately receive all data in input buffer, set ReadIntervalTimeout=MAXDWORD and both ReadTotalTimeoutMultiplier & ReadTotalTimeoutConstant to zero
 
     if(!SetCommTimeouts(portHandle, &timeouts)) {
         csp_debug(CSP_ERROR, "Error setting timeouts!");
