@@ -1,0 +1,226 @@
+/*
+Cubesat Space Protocol - A small network-layer protocol designed for Cubesats
+Copyright (C) 2011 GomSpace ApS (http://www.gomspace.com)
+Copyright (C) 2011 AAUSAT3 Project (http://aausat3.space.aau.dk)
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
+#include <csp/drivers/usart_linux.h>
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+#include <pthread.h>
+#include <unistd.h>
+#include <errno.h>
+#include <termios.h>
+#include <fcntl.h>
+
+int fd;
+usart_callback_t usart_callback = NULL;
+char * usart_device = NULL;
+static void *serial_rx_thread(void *vptr_args);
+
+void usart_set_device(char * device) {
+	usart_device = device;
+}
+
+int getbaud(int fd) {
+	struct termios termAttr;
+	int inputSpeed = -1;
+	speed_t baudRate;
+	tcgetattr(fd, &termAttr);
+	/* Get the input speed. */
+	baudRate = cfgetispeed(&termAttr);
+	switch (baudRate) {
+	case B0:
+		inputSpeed = 0;
+		break;
+	case B50:
+		inputSpeed = 50;
+		break;
+	case B110:
+		inputSpeed = 110;
+		break;
+	case B134:
+		inputSpeed = 134;
+		break;
+	case B150:
+		inputSpeed = 150;
+		break;
+	case B200:
+		inputSpeed = 200;
+		break;
+	case B300:
+		inputSpeed = 300;
+		break;
+	case B600:
+		inputSpeed = 600;
+		break;
+	case B1200:
+		inputSpeed = 1200;
+		break;
+	case B1800:
+		inputSpeed = 1800;
+		break;
+	case B2400:
+		inputSpeed = 2400;
+		break;
+	case B4800:
+		inputSpeed = 4800;
+		break;
+	case B9600:
+		inputSpeed = 9600;
+		break;
+	case B19200:
+		inputSpeed = 19200;
+		break;
+	case B38400:
+		inputSpeed = 38400;
+		break;
+	case B57600:
+		inputSpeed = 57600;
+		break;
+	case B115200:
+		inputSpeed = 115200;
+		break;
+	case B460800:
+		inputSpeed = 460800;
+		break;
+	case B500000:
+		inputSpeed = 500000;
+		break;
+	case B921600:
+		inputSpeed = 921600;
+		break;
+	case B1000000:
+		inputSpeed = 1000000;
+		break;
+	case B1500000:
+		inputSpeed = 1500000;
+		break;
+	case B2000000:
+		inputSpeed = 2000000;
+		break;
+	case B2500000:
+		inputSpeed = 2500000;
+		break;
+	case B3000000:
+		inputSpeed = 3000000;
+		break;
+	}
+
+	return inputSpeed;
+
+}
+
+void usart_init(int handle, uint32_t fcpu, uint32_t usart_baud) {
+	struct termios options;
+	pthread_t rx_thread;
+
+	fd = open(usart_device, O_RDWR | O_NOCTTY | O_NONBLOCK);
+
+	if (fd < 0) {
+		printf("Failed to open %s: %s\r\n", usart_device, strerror(errno));
+		return;
+	}
+
+	int brate = 0;
+    switch(usart_baud) {
+    case 4800:    brate=B4800;    break;
+    case 9600:    brate=B9600;    break;
+    case 19200:   brate=B19200;   break;
+    case 38400:   brate=B38400;   break;
+    case 57600:   brate=B57600;   break;
+    case 115200:  brate=B115200;  break;
+    case 460800:  brate=B460800;  break;
+    case 500000:  brate=B500000;  break;
+    case 921600:  brate=B921600;  break;
+    case 1000000: brate=B1000000; break;
+    case 1500000: brate=B1500000; break;
+    case 2000000: brate=B2000000; break;
+    case 2500000: brate=B2500000; break;
+    case 3000000: brate=B3000000; break;
+    }
+
+	tcgetattr(fd, &options);
+	cfsetispeed(&options, brate);
+	cfsetospeed(&options, brate);
+	options.c_cflag |= (CLOCAL | CREAD);
+	options.c_cflag &= ~PARENB;
+	options.c_cflag &= ~CSTOPB;
+	options.c_cflag &= ~CSIZE;
+	options.c_cflag |= CS8;
+	options.c_lflag &= ~(ECHO | ECHONL | ICANON | IEXTEN | ISIG);
+	options.c_iflag &= ~(IGNBRK | BRKINT | ICRNL | INLCR | PARMRK | INPCK | ISTRIP | IXON);
+	options.c_oflag &= ~(OCRNL | ONLCR | ONLRET | ONOCR | OFILL | OLCUC | OPOST);
+	options.c_cc[VTIME] = 0;
+	options.c_cc[VMIN] = 1;
+	tcsetattr(fd, TCSANOW, &options);
+	if (tcgetattr(fd, &options) == -1)
+		perror("error setting options");
+	fcntl(fd, F_SETFL, 0);
+
+	/* Flush old transmissions */
+	if (tcflush(fd, TCIOFLUSH) == -1)
+		printf("Error flushing serial port - %s(%d).\n", strerror(errno), errno);
+
+	if (pthread_create(&rx_thread, NULL, serial_rx_thread, NULL) != 0)
+		return;
+
+}
+
+void usart_set_callback(int handle, usart_callback_t callback) {
+	usart_callback = callback;
+}
+
+void usart_insert(int handle, char c, void * pxTaskWoken) {
+	printf("%c", c);
+}
+
+void usart_putstr(int handle, char * buf, int len) {
+	if (write(fd, buf, len) != len)
+		return;
+}
+
+void usart_putc(int handle, char c) {
+	if (write(fd, &c, 1) != 1)
+		return;
+}
+
+char usart_getc(int handle) {
+	char c;
+	if (read(fd, &c, 1) != 1) return 0;
+	return c;
+}
+
+static void *serial_rx_thread(void *vptr_args) {
+	unsigned int length;
+	uint8_t * cbuf = malloc(100000);
+
+	// Receive loop
+	while (1) {
+		length = read(fd, cbuf, 300);
+		if (length <= 0) {
+			perror("Error: ");
+			exit(1);
+		}
+		if (usart_callback)
+			usart_callback(cbuf, length, NULL);
+	}
+	return NULL;
+}
