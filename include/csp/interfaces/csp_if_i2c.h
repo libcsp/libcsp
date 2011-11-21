@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 /*
 Cubesat Space Protocol - A small network-layer protocol designed for Cubesats
 Copyright (C) 2011 GomSpace ApS (http://www.gomspace.com)
