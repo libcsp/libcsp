@@ -55,13 +55,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "../drivers/can/can.h"
 
-/** Interface definition */
-csp_iface_t csp_if_can = {
-	.name = "CAN",
-	.nexthop = csp_can_tx,
-	.mtu = 256,
-};
-
 /** CAN header macros */
 #define CFP_HOST_SIZE 	5
 #define CFP_TYPE_SIZE 	1
@@ -638,3 +631,10 @@ int csp_can_init(uint8_t mode, struct csp_can_config *conf) {
 	return 0;
 
 }
+
+/** Interface definition */
+csp_iface_t csp_if_can = {
+	.name = "CAN",
+	.nexthop = csp_can_tx,
+	.mtu = 256,
+};

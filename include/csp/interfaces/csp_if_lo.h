@@ -31,8 +31,6 @@ extern "C" {
 
 extern csp_iface_t csp_if_lo;
 
-int csp_lo_tx(csp_packet_t * packet, uint32_t timeout);
-
 #ifdef __cplusplus
 } /* extern "C" */
 #endif

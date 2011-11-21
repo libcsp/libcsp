@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /*
 Cubesat Space Protocol - A small network-layer protocol designed for Cubesats
 Copyright (C) 2011 GomSpace ApS (http://www.gomspace.com)
@@ -40,12 +41,8 @@ extern csp_iface_t csp_if_i2c;
  */
 int csp_i2c_init(uint8_t opt_addr, int handle);
 
-/**
- * CAN interface transmit function
- * @param packet Packet to transmit
- * @param timeout Timout in ms
- * @return csp_error.h code
- */
-int csp_i2c_tx(csp_packet_t * packet, uint32_t timeout);
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif /* _CSP_IF_I2C_H_ */

@@ -39,18 +39,8 @@ extern csp_iface_t csp_if_kiss;
  */
 int csp_kiss_init(int handle);
 
-/**
- * CAN interface transmit function
- * @param packet Packet to transmit
- * @param timeout Timout in ms
- * @return 1 if packet was successfully transmitted, 0 on error
- */
-int csp_kiss_tx(csp_packet_t * packet, uint32_t timeout);
-
-/**
- * When a frame is received, decode the kiss-stuff
- * and eventually send it directly to the CSP new packet function.
- */
-void csp_kiss_rx(uint8_t * buf, int len, void * pxTaskWoken);
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif /* _CSP_IF_KISS_H_ */
