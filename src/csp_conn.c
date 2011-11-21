@@ -314,7 +314,7 @@ csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport, uint32_t tim
 	}
 
 	if (opts & CSP_O_HMAC) {
-#ifdef CSP_ENABLE_HMAC
+#ifdef CSP_USE_HMAC
 		outgoing_id.flags |= CSP_FHMAC;
 		incoming_id.flags |= CSP_FHMAC;
 #else
@@ -324,7 +324,7 @@ csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport, uint32_t tim
 	}
 
 	if (opts & CSP_O_XTEA) {
-#ifdef CSP_ENABLE_XTEA
+#ifdef CSP_USE_XTEA
 		outgoing_id.flags |= CSP_FXTEA;
 		incoming_id.flags |= CSP_FXTEA;
 #else
@@ -334,7 +334,7 @@ csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport, uint32_t tim
 	}
 
 	if (opts & CSP_O_CRC32) {
-#ifdef CSP_ENABLE_CRC32
+#ifdef CSP_USE_CRC32
 		outgoing_id.flags |= CSP_FCRC32;
 		incoming_id.flags |= CSP_FCRC32;
 #else
