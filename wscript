@@ -20,35 +20,12 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 import os
-from waflib import Task, Configure, Errors
-from waflib.TaskGen import before_method, after_method, feature
 
 APPNAME = 'libcsp'
 VERSION = '1.0'
 
 top	= '.'
 out	= 'build'
-
-endianness = None
-endian_test_code = '''
-short int ascii_mm[]={0x4249,0x4765,0x6E44,0x6961,0x6E53,0x7953,0};
-short int ascii_ii[]={0x694C,0x5454,0x656C,0x6E45,0x6944,0x6E61,0};
-'''
-
-class grep_for_endianness(Task.Task):
-	def run(self):
-		global endianness
-		contents = open(self.inputs[0].abspath()).read()
-		endianness = 'big' if 'BIGenDianSyS' in contents else 'little' 
-
-def endianmsg(kw):
-	return endianness
-
-@feature('grep_for_endianness')
-@after_method('apply_link')
-def grep_for_endianness_fun(self):
-	objs = [t.outputs[0] for t in getattr(self, 'compiled_tasks', [])]
-	self.create_task('grep_for_endianness', objs)
 
 def options(ctx):
 	# Load GCC options
@@ -204,7 +181,7 @@ def configure(ctx):
 	ctx.define('CSP_PADDING_BYTES', ctx.options.with_padding)
 
 	# Check compiler endianness
-	ctx.check(fragment=endian_test_code, features='c grep_for_endianness', msg='Checking for endianness', okmsg=endianmsg, errmsg='error')
+	endianness = ctx.check_endianness()
 	ctx.define_cond('CSP_LITTLE_ENDIAN', endianness == 'little')
 	ctx.define_cond('CSP_BIG_ENDIAN', endianness == 'big')
 
