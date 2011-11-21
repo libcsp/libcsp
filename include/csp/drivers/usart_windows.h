@@ -13,7 +13,7 @@ extern "C" {
 typedef void (*usart_rx_func)(uint8_t *buffer, int bufsz, void *pxTaskWoken);
 
 typedef struct usart_win_conf {
-	LPCWSTR intf;
+	const TCHAR *intf;
 	DWORD baudrate;
 	BYTE databits;
 	BYTE stopbits; // Domain: ONESTOPBIT, ONE5STOPBITS, TWOSTOPBITS

@@ -23,11 +23,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <stdint.h>
 #include <string.h>
 
-//#include <dev/usart.h>
+#ifdef _CSP_WINDOWS_
 #include <csp/drivers/usart_windows.h>
-
 #include <Windows.h>
 #undef interface
+#else
+#include <dev/usart.h>
+#endif
 
 #include <csp/csp.h>
 #include <csp/csp_endian.h>
