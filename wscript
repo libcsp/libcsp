@@ -56,13 +56,12 @@ def options(ctx):
 	gr.add_option('--enable-if-can', action='store_true', help='Enable CAN interface')
 	
 	# Drivers
-	gr.add_option('--with-driver-can', default=None, metavar='CHIP', help='Enable CAN driver. CHIP must be either socketcan, at91sam7a1, at91sam7a3 or at90can128')
+	gr.add_option('--with-driver-can', default=None, metavar='CHIP', help='Build CAN driver. [socketcan, at91sam7a1, at91sam7a3 or at90can128]')
+	gr.add_option('--with-driver-usart', default=None, metavar='DRIVER', help='Build USART driver. [windows, linux, None]')
 	gr.add_option('--with-drivers', metavar='PATH', default='../../libgomspace/include', help='Set path to Driver header files')
 
 	# OS	
 	gr.add_option('--with-os', default='posix', help='Set operating system. Must be either \'posix\', \'windows\' or \'freertos\'')
-	gr.add_option('--with-freertos', metavar="PATH", default='../../libgomspace/include', help='Set path to FreeRTOS header files')
-	gr.add_option('--with-usart', default=None, metavar='DRIVER', help='Enable usart driver. DRIVER must be windows')
 	gr.add_option('--with-freertos', metavar="PATH", default='../../libgomspace/include', help='Set path to FreeRTOS header files')
 
 	# Options
@@ -82,11 +81,11 @@ def configure(ctx):
 
 	# Validate CAN drivers
 	if not ctx.options.with_driver_can in (None, 'socketcan', 'at91sam7a1', 'at91sam7a3', 'at90can128'):
-		ctx.fatal('--with-can must be either \'socketcan\', \'at91sam7a1\', \'at91sam7a3\', \'at90can128\'')
+		ctx.fatal('--with-driver-can must be either \'socketcan\', \'at91sam7a1\', \'at91sam7a3\', \'at90can128\'')
 
 	# Validate USART drivers
-	if not ctx.options.with_usart in (None, 'windows'):
-		ctx.fatal('--with-usart must be \'windows\'')
+	if not ctx.options.with_driver_usart in (None, 'windows', 'linux'):
+		ctx.fatal('--with-driver-usart must be either \'windows\' or \'linux\'')
 	
 	# Setup and validate toolchain
 	ctx.env.CC = ctx.options.toolchain + 'gcc'
@@ -115,9 +114,6 @@ def configure(ctx):
 		ctx.options.install_csp = True
 
 	# Add FreeRTOS 
-	if not ctx.options.with_os in ('freertos', 'posix', 'windows'):
-		ctx.fatal('ARCH must be either \'posix\', \'windows\' or \'freertos\'')
-
 	if ctx.options.with_os == 'freertos':
 		ctx.env.append_unique('INCLUDES_CSP', ctx.options.with_freertos)
 	elif ctx.options.with_os == 'windows':
@@ -134,6 +130,10 @@ def configure(ctx):
 	# Add CAN driver
 	if ctx.options.with_driver_can:
 		ctx.env.append_unique('FILES_CSP', 'src/drivers/can/can_{0}.c'.format(ctx.options.with_driver_can))
+
+	# Add USART driver
+	if ctx.options.with_driver_usart != None:
+		ctx.env.append_unique('FILES_CSP', 'src/drivers/usart/usart_{0}.c'.format(ctx.options.with_driver_usart))
 		
 	# Interfaces
 	if ctx.options.enable_if_can:
@@ -142,11 +142,6 @@ def configure(ctx):
 		ctx.env.append_unique('FILES_CSP', 'src/interfaces/csp_if_i2c.c')
 	if ctx.options.enable_if_kiss:
 		ctx.env.append_unique('FILES_CSP', 'src/interfaces/csp_if_kiss.c')
-
-	# Add USART driver
-	if ctx.options.with_usart:
-		ctx.env.append_unique('FILES_CSP', 'src/interfaces/csp_if_kiss.c')
-		ctx.env.append_unique('FILES_CSP', 'src/drivers/usart/usart_{0}.c'.format(ctx.options.with_usart))
 
 	# Store configuration options
 	ctx.env.ENABLE_BINDINGS = ctx.options.enable_bindings
