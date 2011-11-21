@@ -82,7 +82,7 @@ static int csp_route_security_check(uint32_t security_opts, csp_iface_t * interf
 
 	/* XTEA encrypted packet */
 	if (packet->id.flags & CSP_FXTEA) {
-#ifdef CSP_ENABLE_XTEA
+#ifdef CSP_USE_XTEA
 		/* Read nonce */
 		uint32_t nonce;
 		memcpy(&nonce, &packet->data[packet->length - sizeof(nonce)], sizeof(nonce));
@@ -112,7 +112,7 @@ static int csp_route_security_check(uint32_t security_opts, csp_iface_t * interf
 
 	/* CRC32 verified packet */
 	if (packet->id.flags & CSP_FCRC32) {
-#ifdef CSP_ENABLE_CRC32
+#ifdef CSP_USE_CRC32
 		/* Verify CRC32  */
 		if (csp_crc32_verify(packet) != 0) {
 			/* Checksum failed */
@@ -132,7 +132,7 @@ static int csp_route_security_check(uint32_t security_opts, csp_iface_t * interf
 
 	/* HMAC authenticated packet */
 	if (packet->id.flags & CSP_FHMAC) {
-#ifdef CSP_ENABLE_HMAC
+#ifdef CSP_USE_HMAC
 		/* Verify HMAC */
 		if (csp_hmac_verify(packet) != 0) {
 			/* HMAC failed */

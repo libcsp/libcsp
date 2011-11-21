@@ -30,7 +30,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "csp_sha1.h"
 #include "csp_xtea.h"
 
-#ifdef CSP_ENABLE_XTEA
+#ifdef CSP_USE_XTEA
 
 #define XTEA_BLOCKSIZE 	8
 #define XTEA_ROUNDS 	32
@@ -132,4 +132,4 @@ int csp_xtea_decrypt(uint8_t * cipher, const uint32_t len, uint32_t iv[2]) {
 
 }
 
-#endif // CSP_ENABLE_XTEA
+#endif // CSP_USE_XTEA

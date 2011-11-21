@@ -29,7 +29,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "csp_hmac.h"
 #include "csp_sha1.h"
 
-#ifdef CSP_ENABLE_HMAC
+#ifdef CSP_USE_HMAC
 
 #define HMAC_KEY_LENGTH	16
 
@@ -190,4 +190,4 @@ int csp_hmac_verify(csp_packet_t * packet) {
 
 }
 
-#endif // CSP_ENABLE_HMAC
+#endif // CSP_USE_HMAC

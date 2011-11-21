@@ -96,7 +96,7 @@ int csp_init(unsigned char address) {
 		return ret;
 
 	/* Generate CRC32 table */
-#ifdef CSP_ENABLE_CRC32
+#ifdef CSP_USE_CRC32
 	csp_crc32_gentab();
 #endif
 
@@ -124,21 +124,21 @@ csp_socket_t * csp_socket(uint32_t opts) {
 	}
 #endif
 
-#ifndef CSP_ENABLE_XTEA
+#ifndef CSP_USE_XTEA
 	if (opts & CSP_SO_XTEAREQ) {
 		csp_debug(CSP_ERROR, "Attempt to create socket that requires XTEA, but CSP was compiled without XTEA support\r\n");
 		return NULL;
 	}
 #endif
 
-#ifndef CSP_ENABLE_HMAC
+#ifndef CSP_USE_HMAC
 	if (opts & CSP_SO_HMACREQ) {
 		csp_debug(CSP_ERROR, "Attempt to create socket that requires HMAC, but CSP was compiled without HMAC support\r\n");
 		return NULL;
 	} 
 #endif
 
-#ifndef CSP_ENABLE_CRC32
+#ifndef CSP_USE_CRC32
 	if (opts & CSP_SO_CRC32REQ) {
 		csp_debug(CSP_ERROR, "Attempt to create socket that requires CRC32, but CSP was compiled without CRC32 support\r\n");
 		return NULL;
@@ -245,7 +245,7 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, uint32_t timeout) {
 	if (idout.src == my_address) {
 		/* Append HMAC */
 		if (idout.flags & CSP_FHMAC) {
-#ifdef CSP_ENABLE_HMAC
+#ifdef CSP_USE_HMAC
 			/* Calculate and add HMAC */
 			if (csp_hmac_append(packet) != 0) {
 				/* HMAC append failed */
@@ -260,7 +260,7 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, uint32_t timeout) {
 
 		/* Append CRC32 */
 		if (idout.flags & CSP_FCRC32) {
-#ifdef CSP_ENABLE_CRC32
+#ifdef CSP_USE_CRC32
 			/* Calculate and add CRC32 */
 			if (csp_crc32_append(packet) != 0) {
 				/* CRC32 append failed */
@@ -274,7 +274,7 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, uint32_t timeout) {
 		}
 
 		if (idout.flags & CSP_FXTEA) {
-#ifdef CSP_ENABLE_XTEA
+#ifdef CSP_USE_XTEA
 			/* Create nonce */
 			uint32_t nonce, nonce_n;
 			nonce = (uint32_t)rand();
@@ -426,7 +426,7 @@ int csp_sendto(uint8_t prio, uint8_t dest, uint8_t dport, uint8_t src_port, uint
 	}
 
 	if (opts & CSP_O_HMAC) {
-#ifdef CSP_ENABLE_HMAC
+#ifdef CSP_USE_HMAC
 		packet->id.flags |= CSP_FHMAC;
 #else
 		csp_debug(CSP_ERROR, "Attempt to create HMAC authenticated packet, but CSP was compiled without HMAC support\r\n");
@@ -435,7 +435,7 @@ int csp_sendto(uint8_t prio, uint8_t dest, uint8_t dport, uint8_t src_port, uint
 	}
 
 	if (opts & CSP_O_XTEA) {
-#ifdef CSP_ENABLE_XTEA
+#ifdef CSP_USE_XTEA
 		packet->id.flags |= CSP_FXTEA;
 #else
 		csp_debug(CSP_ERROR, "Attempt to create XTEA encrypted packet, but CSP was compiled without XTEA support\r\n");
@@ -444,7 +444,7 @@ int csp_sendto(uint8_t prio, uint8_t dest, uint8_t dport, uint8_t src_port, uint
 	}
 
 	if (opts & CSP_O_CRC32) {
-#ifdef CSP_ENABLE_CRC32
+#ifdef CSP_USE_CRC32
 		packet->id.flags |= CSP_FCRC32;
 #else
 		csp_debug(CSP_ERROR, "Attempt to create CRC32 validated packet, but CSP was compiled without CRC32 support\r\n");
