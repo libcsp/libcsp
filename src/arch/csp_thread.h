@@ -58,7 +58,7 @@ typedef void * csp_thread_return_t;
 typedef HANDLE csp_thread_handle_t;
 typedef unsigned int csp_thread_return_t;
 
-#define CSP_DEFINE_TASK(task_name) csp_thread_return_t task_name(void * param) __attribute__((stdcall))
+#define CSP_DEFINE_TASK(task_name) csp_thread_return_t __attribute__((stdcall)) task_name(void * param) 
 #define CSP_TASK_RETURN 0
 
 #define csp_sleep_ms(time_ms) Sleep(time_ms);
