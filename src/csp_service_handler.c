@@ -137,7 +137,7 @@ void csp_service_handler(csp_conn_t * conn, csp_packet_t * packet) {
 		}
 #elif defined(CSP_POSIX)
 		/* Read system statistics */
-		size_t total = 0;
+		uint32_t total = 0;
 		struct sysinfo info;
 		sysinfo(&info);
 		total = info.freeram * info.mem_unit;
