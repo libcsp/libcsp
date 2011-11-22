@@ -1,10 +1,18 @@
 #include <stdio.h>
-#include <process.h>
-#include <Windows.h>
-#undef interface
 #include <csp/csp.h>
 #include <csp/interfaces/csp_if_kiss.h>
+
+#if defined(CSP_POSIX)
+#include <csp/drivers/usart_linux.h>
+#elif defined(CSP_WINDOWS)
 #include <csp/drivers/usart_windows.h>
+#else
+#error "This example does not build without USART drivers"
+#endif
+
+/* Using un-exported header file.
+ * This is allowed since we are still in libcsp */
+#include "../src/arch/csp_thread.h"
 
 #define PORT 10
 #define MY_ADDRESS 1
@@ -13,50 +21,7 @@
 #define CLIENT_TIDX 1
 #define USART_HANDLE 0
 
-unsigned WINAPI serverTask(void *params);
-unsigned WINAPI clientTask(void *params);
-
-static HANDLE threads[2];
-
-int main(void) {
-    csp_debug_toggle_level(CSP_PACKET);
-    csp_debug_toggle_level(CSP_INFO);
-
-    usart_win_conf_t settings;
-    settings.intf = "COM4";
-    settings.baudrate = CBR_9600;
-    settings.databits = 8;
-    settings.paritysetting = NOPARITY;
-    settings.stopbits = ONESTOPBIT;
-    settings.checkparity = FALSE;
-
-    csp_buffer_init(10, 300);
-    csp_init(MY_ADDRESS);
-
-    if( usart_init(&settings) ) {
-        printf("Failure when initialising USART!\n");
-        return 1;
-    }
-    csp_kiss_init(USART_HANDLE);
-    usart_listen();
-
-    csp_route_set(MY_ADDRESS, &csp_if_kiss, CSP_NODE_MAC);
-    csp_route_start_task(0, 0);
-
-    csp_conn_print_table();
-    csp_route_print_table();
-    csp_route_print_interfaces();
-
-    threads[SERVER_TIDX] = (HANDLE)_beginthreadex(NULL, 0, &serverTask, NULL, 0, NULL);
-    threads[CLIENT_TIDX] = (HANDLE)_beginthreadex(NULL, 0, &clientTask, NULL, 0, NULL);
-
-    WaitForMultipleObjects(2, threads, TRUE, INFINITE);
-    
-    return 0;
-}
-
-
-unsigned WINAPI serverTask(void *params) {
+CSP_DEFINE_TASK(task_server) {
     int running = 1;
     csp_socket_t *socket = csp_socket(CSP_SO_NONE);
     csp_conn_t *conn;
@@ -66,15 +31,16 @@ unsigned WINAPI serverTask(void *params) {
     response = csp_buffer_get(sizeof(csp_packet_t) + 2);
     if( response == NULL ) {
         fprintf(stderr, "Could not allocate memory for response packet!\n");
-        return 1;
+        return CSP_TASK_RETURN;
     }
     response->data[0] = 'O';
     response->data[1] = 'K';
     response->length = 2;
 
-
     csp_bind(socket, CSP_ANY);
     csp_listen(socket, 5);
+
+    printf("Server task started\r\n");
 
     while(running) {
         if( (conn = csp_accept(socket, 10000)) == NULL ) {
@@ -100,10 +66,11 @@ unsigned WINAPI serverTask(void *params) {
 
     csp_buffer_free(response);
 
-    return 0;
+    return CSP_TASK_RETURN;
 }
 
-unsigned WINAPI clientTask(void *params) {
+CSP_DEFINE_TASK(task_client) {
+
     char outbuf = 'q';
     char inbuf[3] = {0};
     int pingResult;
@@ -111,19 +78,74 @@ unsigned WINAPI clientTask(void *params) {
     for(int i = 50; i <= 200; i+= 50) {
         pingResult = csp_ping(MY_ADDRESS, 1000, 100, CSP_O_NONE);
         printf("Ping with payload of %d bytes, took %d ms\n", i, pingResult);
-        Sleep(1000);
+        csp_sleep_ms(1000);
     }
     csp_ps(MY_ADDRESS, 1000);
-    Sleep(1000);
+    csp_sleep_ms(1000);
     csp_memfree(MY_ADDRESS, 1000);
-    Sleep(1000);
+    csp_sleep_ms(1000);
     csp_buf_free(MY_ADDRESS, 1000);
-    Sleep(1000);
+    csp_sleep_ms(1000);
     csp_uptime(MY_ADDRESS, 1000);
+    csp_sleep_ms(1000);
 
-    Sleep(1000);
     csp_transaction(0, MY_ADDRESS, PORT, 1000, &outbuf, 1, inbuf, 2);
     printf("Quit response from server: %s\n", inbuf);
 
+    return CSP_TASK_RETURN;
+}
+
+int main(void) {
+    csp_debug_toggle_level(CSP_PACKET);
+    csp_debug_toggle_level(CSP_INFO);
+
+    csp_buffer_init(10, 300);
+    csp_init(MY_ADDRESS);
+
+/** Todo: Make general USART driver init function for win/linux */
+#if defined(CSP_POSIX)
+
+    extern void usart_set_device(char * device);
+    usart_set_device("/dev/ttyUSB0");
+	usart_init(0, 0, 500000);
+	csp_kiss_init(0);
+
+#elif defined(CSP_WINDOWS)
+
+    usart_win_conf_t settings;
+    settings.intf = "COM4";
+    settings.baudrate = CBR_9600;
+    settings.databits = 8;
+    settings.paritysetting = NOPARITY;
+    settings.stopbits = ONESTOPBIT;
+    settings.checkparity = FALSE;
+
+    if( usart_init(&settings) ) {
+        printf("Failure when initialising USART!\n");
+        return 1;
+    }
+    csp_kiss_init(USART_HANDLE);
+    usart_listen();
+
+#endif
+
+    csp_route_set(MY_ADDRESS, &csp_if_kiss, CSP_NODE_MAC);
+    csp_route_start_task(0, 0);
+
+    csp_conn_print_table();
+    csp_route_print_table();
+    csp_route_print_interfaces();
+
+    csp_thread_handle_t handle_server;
+    csp_thread_create(task_server, (signed char *) "SERVER", 1000, NULL, 0, &handle_server);
+    csp_thread_handle_t handle_client;
+    csp_thread_create(task_client, (signed char *) "CLIENT", 1000, NULL, 0, &handle_client);
+
+    /* Wait for program to terminate (ctrl + c) */
+    while(1) {
+    	csp_sleep_ms(1000000);
+    }
+
     return 0;
+
 }

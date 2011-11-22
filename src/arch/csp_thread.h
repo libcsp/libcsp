@@ -32,6 +32,7 @@ extern "C" {
 #if defined(CSP_POSIX)
 
 #include <pthread.h>
+#include <unistd.h>
 
 #define csp_thread_exit() pthread_exit(NULL)
 
@@ -40,6 +41,8 @@ typedef void * csp_thread_return_t;
 
 #define CSP_DEFINE_TASK(task_name) csp_thread_return_t task_name(void * param)
 #define CSP_TASK_RETURN NULL
+
+#define csp_sleep_ms(time_ms) usleep(time_ms * 1000);
 
 #endif // CSP_POSIX
 
@@ -58,6 +61,8 @@ typedef unsigned int csp_thread_return_t;
 #define CSP_DEFINE_TASK(task_name) csp_thread_return_t task_name(void * param) __attribute__((stdcall))
 #define CSP_TASK_RETURN 0
 
+#define csp_sleep_ms(time_ms) Sleep(time_ms);
+
 #endif // CSP_WINDOWS
 
 /* FreeRTOS interface */
@@ -73,6 +78,8 @@ typedef void csp_thread_return_t;
 
 #define CSP_DEFINE_TASK(task_name) csp_thread_return_t task_name(void * param)
 #define CSP_TASK_RETURN
+
+#define csp_sleep_ms(time_ms) vTaskDelay(time_ms * 1000 / portTICK_RATE_MS);
 
 #endif // CSP_FREERTOS
 
