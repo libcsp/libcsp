@@ -11,9 +11,9 @@ static CRITICAL_SECTION txSection;
 static LONG isListening = 0;
 static usart_callback_t usart_callback = NULL;
 
-static void prvSendData(uint8_t *buf, size_t bufsz);
+static void prvSendData(char *buf, int bufsz);
 static int prvTryOpenPort(const char* intf);
-static int prvTryConfigurePort(const usart_win_conf_t*);
+static int prvTryConfigurePort(const struct usart_conf*);
 static int prvTrySetPortTimeouts(void);
 static const char* prvParityToStr(BYTE paritySetting);
 
@@ -69,7 +69,7 @@ static int prvTryOpenPort(const char *intf) {
     return 0;
 }
 
-static int prvTryConfigurePort(struct usart_conf * conf) {
+static int prvTryConfigurePort(const struct usart_conf * conf) {
     DCB portSettings = {0};
     portSettings.DCBlength = sizeof(DCB);
     if(!GetCommState(portHandle, &portSettings) ) {
@@ -162,7 +162,7 @@ unsigned WINAPI prvRxTask(void* params) {
     return 0;
 }
 
-static void prvSendData(uint8_t *buf, size_t bufsz) {
+static void prvSendData(char *buf, int bufsz) {
     DWORD bytesTotal = 0;
     DWORD bytesActual;
     if( !WriteFile(portHandle, buf, bufsz-bytesTotal, &bytesActual, NULL) ) {
@@ -190,43 +190,41 @@ void usart_listen(void) {
     rxThread = (HANDLE)_beginthreadex(NULL, 0, &prvRxTask, NULL, 0, NULL);
 }
 
-void usart_putstr(char* buf, size_t bufsz) {
-	EnterCriticalSection(&txSection);
-	prvSendData(buf, bufsz);
-	LeaveCriticalSection(&txSection);
+void usart_putstr(char* buf, int bufsz) {
+    EnterCriticalSection(&txSection);
+    prvSendData(buf, bufsz);
+    LeaveCriticalSection(&txSection);
 }
 
 void usart_insert(char c, void *pxTaskWoken) {
-	/* redirect debug output to stdout */
-	printf("%c", c);
+    /* redirect debug output to stdout */
+    printf("%c", c);
 }
 
 void usart_set_callback(usart_callback_t callback) {
-	usart_callback = callback;
+    usart_callback = callback;
 }
 
-int usart_init(struct usart_conf * conf) {
+void usart_init(struct usart_conf * conf) {
     if( prvTryOpenPort(conf->device) ) {
         printError();
-        return CSP_ERR_DRIVER;
+        return;
     }
 
     if( prvTryConfigurePort(conf) ) {
         printError();
-        return CSP_ERR_DRIVER;
+        return;
     }
 
     if( prvTrySetPortTimeouts() ) {
         printError();
-        return CSP_ERR_DRIVER;
+        return;
     }
 
     InitializeCriticalSection(&txSection);
 
     /* Start receiver thread */
     usart_listen();
-
-    return CSP_ERR_NONE;
 }
 
 
