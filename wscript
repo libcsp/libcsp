@@ -238,16 +238,17 @@ def build(ctx):
 			lib=['rt', 'pthread'])
 
 	if ctx.env.ENABLE_EXAMPLES:
+
 		if ctx.options.with_os == 'posix':
 			ctx.program(source = ctx.path.ant_glob('examples/simple.c'),
-			  target = 'simple',
-			  includes = ctx.env.INCLUDES_CSP,
-			  cflags = ctx.env.CFLAGS_CSP,
-			  defines = ctx.env.DEFINES_CSP,
-			  lib=['rt', 'pthread'],
-			  use = 'csp')
-	elif ctx.options.with_os == 'windows':
-		ctx.program(source = ctx.path.ant_glob('examples/simple.c'),
+				target = 'simple',
+				includes = ctx.env.INCLUDES_CSP,
+				cflags = ctx.env.CFLAGS_CSP,
+				defines = ctx.env.DEFINES_CSP,
+				lib=['rt', 'pthread'],
+				use = 'csp')
+		elif ctx.options.with_os == 'windows':
+			ctx.program(source = ctx.path.ant_glob('examples/simple.c'),
 				target = 'simple',
 				includes = ctx.env.INCLUDES_CSP,
 				cflags = ctx.env.CFLAGS_CSP,
