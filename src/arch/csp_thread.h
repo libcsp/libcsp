@@ -36,7 +36,10 @@ extern "C" {
 #define csp_thread_exit() pthread_exit(NULL)
 
 typedef pthread_t csp_thread_handle_t;
-typedef void* csp_thread_return_t;
+typedef void * csp_thread_return_t;
+
+#define CSP_DEFINE_TASK(task_name) csp_thread_return_t task_name(void * param)
+#define CSP_TASK_RETURN NULL
 
 #endif // CSP_POSIX
 
@@ -52,6 +55,9 @@ typedef void* csp_thread_return_t;
 typedef HANDLE csp_thread_handle_t;
 typedef unsigned int csp_thread_return_t;
 
+#define CSP_DEFINE_TASK(task_name) csp_thread_return_t task_name(void * param) __attribute__((stdcall))
+#define CSP_TASK_RETURN 0
+
 #endif // CSP_WINDOWS
 
 /* FreeRTOS interface */
@@ -64,6 +70,9 @@ typedef unsigned int csp_thread_return_t;
 
 typedef xTaskHandle csp_thread_handle_t;
 typedef void csp_thread_return_t;
+
+#define CSP_DEFINE_TASK(task_name) csp_thread_return_t task_name(void * param)
+#define CSP_TASK_RETURN
 
 #endif // CSP_FREERTOS
 

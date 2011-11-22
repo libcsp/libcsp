@@ -214,11 +214,8 @@ int csp_route_next_packet(csp_route_queue_t * input) {
 	return CSP_ERR_NONE;
 
 }
-#ifndef CSP_WINDOWS
-csp_thread_return_t vTaskCSPRouter(__attribute__ ((unused)) void * pvParameters) {
-#else
-csp_thread_return_t __stdcall vTaskCSPRouter(__attribute__ ((unused)) void * pvParameters) {
-#endif
+
+CSP_DEFINE_TASK(csp_task_router) {
 
 	int prio;
 	csp_route_queue_t input;
@@ -366,7 +363,7 @@ csp_thread_return_t __stdcall vTaskCSPRouter(__attribute__ ((unused)) void * pvP
 
 int csp_route_start_task(unsigned int task_stack_size, unsigned int priority) {
 
-	int ret = csp_thread_create(vTaskCSPRouter, (signed char *) "RTE", task_stack_size, NULL, priority, &handle_router);
+	int ret = csp_thread_create(csp_task_router, (signed char *) "RTE", task_stack_size, NULL, priority, &handle_router);
 
 	if (ret != 0) {
 		csp_debug(CSP_ERROR, "Failed to start router task\n");
