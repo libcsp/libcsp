@@ -18,35 +18,14 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef _CSP_PLATFORM_H_
-#define _CSP_PLATFORM_H_
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <stdint.h>
+#include <pthread.h>
 
-/* Set OS */
-#if defined(CSP_POSIX) || defined(CSP_WINDOWS) || defined(CSP_MACOSX)
-	#define CSP_BASE_TYPE int
-	#define CSP_MAX_DELAY (UINT32_MAX)
-	#define CSP_INFINITY (UINT32_MAX)
-	#define CSP_ENTER_CRITICAL(lock) do { csp_bin_sem_wait(&lock, CSP_MAX_DELAY); } while(0)
-	#define CSP_EXIT_CRITICAL(lock) do { csp_bin_sem_post(&lock); } while(0)
-#elif defined(CSP_FREERTOS)
-	#include <freertos/FreeRTOS.h>
-	#define CSP_BASE_TYPE portBASE_TYPE
-	#define CSP_MAX_DELAY portMAX_DELAY
-	#define CSP_INFINITY portMAX_DELAY
-	#define CSP_ENTER_CRITICAL(lock) do { portENTER_CRITICAL(); } while (0)
-	#define CSP_EXIT_CRITICAL(lock) do { portEXIT_CRITICAL(); } while (0)
-#else
-	#error "OS must be either CSP_POSIX, CSP_MACOSX, CSP_FREERTOS OR CSP_WINDOWS"
-#endif
+/* CSP includes */
+#include <csp/csp.h>
 
-#ifdef __cplusplus
-} /* extern "C" */
-#endif
+#include "../csp_thread.h"
 
-#endif // _CSP_PLATFORM_H_
+int csp_thread_create(csp_thread_return_t (* routine)(void *), const signed char * const thread_name, unsigned short stack_depth, void * parameters, unsigned int priority, csp_thread_handle_t * handle) {
+	return pthread_create(handle, NULL, routine, parameters);
+}

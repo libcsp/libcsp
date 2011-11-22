@@ -29,7 +29,7 @@ extern "C" {
 #include <csp/csp.h>
 
 /* POSIX interface */
-#if defined(CSP_POSIX)
+#if defined(CSP_POSIX) || defined(CSP_MACOSX)
 
 #include <pthread.h>
 

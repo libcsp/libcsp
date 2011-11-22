@@ -106,6 +106,8 @@ void csp_service_handler(csp_conn_t * conn, csp_packet_t * packet) {
 		vTaskList((signed portCHAR *) packet->data);
 #elif defined(CSP_POSIX)
 		strcpy((char *)packet->data, "Tasklist in not available on posix");
+#elif defined(CSP_MACOSX)
+		strcpy((char *)packet->data, "Tasklist in not available on macosx");
 #elif defined(CSP_WINDOWS)
 		strcpy((char *)packet->data, "Tasklist in not available on windows");
 #endif
@@ -141,6 +143,8 @@ void csp_service_handler(csp_conn_t * conn, csp_packet_t * packet) {
 		struct sysinfo info;
 		sysinfo(&info);
 		total = info.freeram * info.mem_unit;
+#elif defined(CSP_MACOSX)
+		uint32_t total = 0; /* TODO: Fix memory free on OSX */
 #elif defined(CSP_WINDOWS)
 		MEMORYSTATUSEX statex;
 		statex.dwLength = sizeof(statex);

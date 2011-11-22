@@ -18,35 +18,51 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef _CSP_PLATFORM_H_
-#define _CSP_PLATFORM_H_
+/*
+Inspired by c-pthread-queue by Matthew Dickinson
+http://code.google.com/p/c-pthread-queue/
+*/
+
+#ifndef _PTHREAD_QUEUE_H_
+#define _PTHREAD_QUEUE_H_
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#include <stdlib.h>
 #include <stdint.h>
+#include <sys/time.h>
+#include <pthread.h>
 
-/* Set OS */
-#if defined(CSP_POSIX) || defined(CSP_WINDOWS) || defined(CSP_MACOSX)
-	#define CSP_BASE_TYPE int
-	#define CSP_MAX_DELAY (UINT32_MAX)
-	#define CSP_INFINITY (UINT32_MAX)
-	#define CSP_ENTER_CRITICAL(lock) do { csp_bin_sem_wait(&lock, CSP_MAX_DELAY); } while(0)
-	#define CSP_EXIT_CRITICAL(lock) do { csp_bin_sem_post(&lock); } while(0)
-#elif defined(CSP_FREERTOS)
-	#include <freertos/FreeRTOS.h>
-	#define CSP_BASE_TYPE portBASE_TYPE
-	#define CSP_MAX_DELAY portMAX_DELAY
-	#define CSP_INFINITY portMAX_DELAY
-	#define CSP_ENTER_CRITICAL(lock) do { portENTER_CRITICAL(); } while (0)
-	#define CSP_EXIT_CRITICAL(lock) do { portEXIT_CRITICAL(); } while (0)
-#else
-	#error "OS must be either CSP_POSIX, CSP_MACOSX, CSP_FREERTOS OR CSP_WINDOWS"
-#endif
+#include "../csp_queue.h"
+
+#define PTHREAD_QUEUE_ERROR CSP_QUEUE_ERROR
+#define PTHREAD_QUEUE_EMPTY CSP_QUEUE_ERROR
+#define PTHREAD_QUEUE_FULL CSP_QUEUE_ERROR
+#define PTHREAD_QUEUE_OK CSP_QUEUE_OK
+
+typedef struct pthread_queue_s {
+	void * buffer;
+	int size;
+	int item_size;
+	int items;
+	int in;
+	int out;
+	pthread_mutex_t mutex;
+	pthread_cond_t cond_full;
+	pthread_cond_t cond_empty;
+} pthread_queue_t;
+
+pthread_queue_t * pthread_queue_create(int length, size_t item_size);
+void pthread_queue_delete(pthread_queue_t * q);
+int pthread_queue_enqueue(pthread_queue_t * queue, void * value, uint32_t timeout);
+int pthread_queue_dequeue(pthread_queue_t * queue, void * buf, uint32_t timeout);
+int pthread_queue_items(pthread_queue_t * queue);
 
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
 
-#endif // _CSP_PLATFORM_H_
+#endif // _PTHREAD_QUEUE_H_
+
