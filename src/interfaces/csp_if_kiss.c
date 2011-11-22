@@ -24,14 +24,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <string.h>
 #include <csp/csp.h>
 
-#ifdef CSP_WINDOWS
-#include <csp/drivers/usart_windows.h>
-#include <Windows.h>
-#undef interface
-#else
-#include <dev/usart.h>
-#endif
-
 #include <csp/csp.h>
 #include <csp/csp_endian.h>
 #include <csp/csp_platform.h>
@@ -55,7 +47,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #define TNC_SET_HARDWARE	0x06
 #define TNC_RETURN			0xFF
 
-static int usart_handle;
+csp_kiss_putstr_f kiss_putstr;
+csp_kiss_discard_f kiss_discard;
 
 #ifdef KISS_CRC32
 /**
@@ -136,7 +129,8 @@ int csp_kiss_tx(csp_packet_t * packet, uint32_t timeout) {
 	}
 	txbuf[txbufin++] = FEND;
 
-	usart_putstr(usart_handle, txbuf, txbufin);
+	kiss_putstr(txbuf, txbufin);
+
 
 	csp_buffer_free(packet);
 
@@ -172,7 +166,8 @@ void csp_kiss_rx(uint8_t * buf, int len, void * pxTaskWoken) {
 				first = 1;
 			} else {
 				/* If the char was not part of a kiss frame, send back to usart driver */
-				usart_insert(usart_handle, *buf, pxTaskWoken);
+				if (kiss_discard != NULL)
+					kiss_discard(*buf, pxTaskWoken);
 			}
 			break;
 		case KISS_MODE_STARTED:
@@ -253,18 +248,16 @@ void csp_kiss_rx(uint8_t * buf, int len, void * pxTaskWoken) {
 
 }
 
-int csp_kiss_init(int handle) {
+int csp_kiss_init(csp_kiss_putstr_f kiss_putstr_f, csp_kiss_discard_f kiss_discard_f) {
 
 #ifdef KISS_CRC32
 	/* Generate lookup table for CRC32 */
 	kiss_crc_gentab();
 #endif
 
-	/* Store which handle is used */
-	usart_handle = handle;
-
-	/* Redirect USART input to csp_kiss_rs */
-	usart_set_callback(usart_handle, csp_kiss_rx);
+	/* Store function pointers */
+	kiss_putstr = kiss_putstr_f;
+	kiss_discard = kiss_discard_f;
 
 	return CSP_ERR_NONE;
 
