@@ -105,10 +105,20 @@ int main(void) {
 /** Todo: Make general USART driver init function for win/linux */
 #if defined(CSP_POSIX)
 
+    /* Setup USART */
     extern void usart_set_device(char * device);
     usart_set_device("/dev/ttyUSB0");
 	usart_init(0, 0, 500000);
-	csp_kiss_init(0);
+
+	/* Setup KISS */
+	void inline kiss_putstr_f(char *buf, int len) {
+		usart_putstr(0, buf, len);
+	}
+	void inline kiss_discard_f(char c, void * pxTaskWoken) {
+		usart_insert(0, c, pxTaskWoken);
+	}
+	csp_kiss_init(kiss_putstr_f, kiss_discard_f);
+	usart_set_callback(0, csp_kiss_rx);
 
 #elif defined(CSP_WINDOWS)
 
