@@ -156,6 +156,8 @@ static inline int csp_rdp_time_after(uint32_t time, uint32_t cmp) {
  */
 static int csp_rdp_send_cmp(csp_conn_t * conn, csp_packet_t * packet, int flags, int seq_nr, int ack_nr) {
 
+	csp_id_t idout;
+
 	/* Generate message */
 	if (!packet) {
 		packet = csp_buffer_get(20);
@@ -182,8 +184,12 @@ static int csp_rdp_send_cmp(csp_conn_t * conn, csp_packet_t * packet, int flags,
 			csp_buffer_free(rdp_packet);
 	}
 
+	/* Send control messages with high priority */
+	idout = conn->idout;
+	idout.pri = conn->idout.pri < CSP_PRIO_HIGH ? conn->idout.pri : CSP_PRIO_HIGH;
+
 	/* Send packet to IF */
-	if (csp_send_direct(conn->idout, packet, 0) != CSP_ERR_NONE) {
+	if (csp_send_direct(idout, packet, 0) != CSP_ERR_NONE) {
 		csp_debug(CSP_ERROR, "INTERFACE ERROR: not possible to send\r\n");
 		csp_buffer_free(packet);
 		return CSP_ERR_BUSY;
