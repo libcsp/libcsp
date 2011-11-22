@@ -21,15 +21,15 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
-#include <pthread.h>
 
 #include <csp/csp.h>
+#include "../src/arch/csp_thread.h"
 
 /** Example defines */
 #define MY_ADDRESS  1			// Address of local CSP node
 #define MY_PORT		10			// Port to send test traffic to
 
-void * task_server(void * parameters) {
+CSP_DEFINE_TASK(task_server) {
 
 	/* Create socket without any socket options */
 	csp_socket_t *sock = csp_socket(CSP_SO_NONE);
@@ -71,11 +71,11 @@ void * task_server(void * parameters) {
 
 	}
 
-	return NULL;
+	return CSP_TASK_RETURN;
 
 }
 
-void * task_client(void * parameters) {
+CSP_DEFINE_TASK(task_client) {
 
 	csp_packet_t * packet;
 	csp_conn_t * conn;
@@ -102,7 +102,7 @@ void * task_client(void * parameters) {
 		if (packet == NULL) {
 			/* Could not get buffer element */
 			printf("Failed to get buffer element\n");
-			return NULL;
+			return CSP_TASK_RETURN;
 		}
 
 		/* Connect to host HOST, port PORT with regular UDP-like protocol and 1000 ms timeout */
@@ -112,7 +112,7 @@ void * task_client(void * parameters) {
 			printf("Connection failed\n");
 			/* Remember to free packet buffer */
 			csp_buffer_free(packet);
-			return NULL;
+			return CSP_TASK_RETURN;
 		}
 
 		/* Copy dummy data to packet */
@@ -134,6 +134,7 @@ void * task_client(void * parameters) {
 
 	}
 
+	return CSP_TASK_RETURN;
 }
 
 int main(int argc, char * argv[]) {
@@ -174,19 +175,20 @@ int main(int argc, char * argv[]) {
 	 * Initialise example threads, using pthreads.
 	 */
 
-	pthread_t handle_server;
-	pthread_t handle_client;
-
 	/* Server */
 	printf("Starting Server task\r\n");
-	pthread_create(&handle_server, NULL, task_server, NULL);
+	csp_thread_handle_t handle_server;
+	csp_thread_create(task_server, (signed char *) "SERVER", 1000, NULL, 0, &handle_server);
 
 	/* Client */
 	printf("Starting Client task\r\n");
-	pthread_create(&handle_client, NULL, task_client, NULL);
+	csp_thread_handle_t handle_client;
+	csp_thread_create(task_client, (signed char *) "SERVER", 1000, NULL, 0, &handle_client);
 
-	/* Wait for execution to end */
-	pthread_join(handle_server, NULL);
+	/* Wait for execution to end (ctrl+c) */
+	while(1) {
+		sleep(10000);
+	}
 
 	return 0;
 
