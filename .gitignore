@@ -10,3 +10,4 @@ build
 pdebug*
 *.tar*
 tags
+.DS_store
