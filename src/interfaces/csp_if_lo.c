@@ -29,12 +29,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "../csp_route.h"
 
-/* Interface definition */
-csp_iface_t csp_if_lo = {
-	.name = "LOOP",
-	.nexthop = csp_lo_tx,
-};
-
 /**
  * Loopback interface transmit function
  * @param packet Packet to transmit
@@ -49,3 +43,9 @@ int csp_lo_tx(csp_packet_t * packet, uint32_t timeout) {
 	return 1;
 
 }
+
+/* Interface definition */
+csp_iface_t csp_if_lo = {
+	.name = "LOOP",
+	.nexthop = csp_lo_tx,
+};
