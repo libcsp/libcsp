@@ -239,6 +239,9 @@ def build(ctx):
 			defines = ctx.env.DEFINES_CSP,
 			lib=['rt', 'pthread'],
 			use = 'csp')
+		ctx.objects(source = 'examples/csp_if_fifo.c',
+			target = 'csp_if_fifo.o',
+			use = 'csp')
 
 def dist(ctx):
 	ctx.excl = 'build/* **/.* **/*.pyc **/*.o **/*~ *.tar.gz'
