@@ -3,13 +3,13 @@
 #include <process.h>
 
 #include <csp/csp.h>
-#include <csp/drivers/usart_windows.h>
+#include <csp/drivers/usart.h>
 
 static HANDLE portHandle = INVALID_HANDLE_VALUE;
 static HANDLE rxThread = INVALID_HANDLE_VALUE;
 static CRITICAL_SECTION txSection;
 static LONG isListening = 0;
-static usart_rx_func usart_rx_callback = NULL;
+static usart_callback_t usart_callback = NULL;
 
 static void prvSendData(uint8_t *buf, size_t bufsz);
 static int prvTryOpenPort(const char* intf);
@@ -17,10 +17,28 @@ static int prvTryConfigurePort(const usart_win_conf_t*);
 static int prvTrySetPortTimeouts(void);
 static const char* prvParityToStr(BYTE paritySetting);
 
-#define USART_HANDLE 0
-
 #ifdef CSP_DEBUG
-static void prvPrintError(void);
+static void prvPrintError(void) {
+    char *messageBuffer = NULL;
+    DWORD errorCode = GetLastError();
+    DWORD formatMessageRet;
+    formatMessageRet = FormatMessageA(
+        FORMAT_MESSAGE_ALLOCATE_BUFFER |
+        FORMAT_MESSAGE_FROM_SYSTEM,
+        NULL,
+        errorCode,
+        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+        (char*)&messageBuffer,
+        0,
+        NULL);
+
+    if( !formatMessageRet ) {
+        csp_debug(CSP_ERROR, "FormatMessage error, code: %lu\n", GetLastError());
+        return;
+    }
+    csp_debug(CSP_ERROR, "%s\n", messageBuffer);
+    LocalFree(messageBuffer);
+}
 #endif
 
 #ifdef CSP_DEBUG
@@ -28,28 +46,6 @@ static void prvPrintError(void);
 #else
 #define printError() do {} while(0)
 #endif
-
-
-int usart_init(const usart_win_conf_t *config) {
-    if( prvTryOpenPort(config->intf) ) {
-        printError();
-        return 1;
-    }
-
-    if( prvTryConfigurePort(config) ) {
-        printError();
-        return 1;
-    }
-
-    if( prvTrySetPortTimeouts() ) {
-        printError();
-        return 1;
-    }   
-
-    InitializeCriticalSection(&txSection);
-
-    return USART_HANDLE;
-}
 
 static int prvTryOpenPort(const char *intf) {
     portHandle = CreateFileA(
@@ -73,7 +69,7 @@ static int prvTryOpenPort(const char *intf) {
     return 0;
 }
 
-static int prvTryConfigurePort(const usart_win_conf_t* conf) {
+static int prvTryConfigurePort(struct usart_conf * conf) {
     DCB portSettings = {0};
     portSettings.DCBlength = sizeof(DCB);
     if(!GetCommState(portHandle, &portSettings) ) {
@@ -94,7 +90,7 @@ static int prvTryConfigurePort(const usart_win_conf_t* conf) {
     GetCommState(portHandle, &portSettings);
 
     csp_debug(CSP_INFO, "Port: %s, Baudrate: %lu, Data bits: %d, Stop bits: %d, Parity: %s\r\n",
-            conf->intf, conf->baudrate, conf->databits, conf->stopbits, prvParityToStr(conf->paritysetting));
+            conf->device, conf->baudrate, conf->databits, conf->stopbits, prvParityToStr(conf->paritysetting));
     return 0;
 }
 
@@ -145,22 +141,11 @@ static int prvTrySetPortTimeouts(void) {
     return 0;
 }
 
-
-
-void usart_set_rx_callback(usart_rx_func fp) {
-    if( rxThread != INVALID_HANDLE_VALUE ) {
-        csp_debug(CSP_WARN, "Listening thread already active. Unable to change rx callback!\n");
-        return;
-    }
-    usart_rx_callback = fp;
-}
-
 unsigned WINAPI prvRxTask(void* params) {
     DWORD bytesRead;
     DWORD eventStatus;
     uint8_t recvBuffer[24]; 
     SetCommMask(portHandle, EV_RXCHAR);
-
     
     while(isListening) {
         WaitCommEvent(portHandle, &eventStatus, NULL);
@@ -171,8 +156,8 @@ unsigned WINAPI prvRxTask(void* params) {
             csp_debug(CSP_WARN, "Error receiving data! Code: %lu\n", GetLastError());
             continue;
         }
-        if( usart_rx_callback != NULL )
-            usart_rx_callback(recvBuffer, (size_t)bytesRead, NULL);
+        if( usart_callback != NULL )
+            usart_callback(recvBuffer, (size_t)bytesRead, NULL);
     }
     return 0;
 }
@@ -187,12 +172,6 @@ static void prvSendData(uint8_t *buf, size_t bufsz) {
     if( !FlushFileBuffers(portHandle) ) {
         csp_debug(CSP_WARN, "Could not flush write buffer. Code: %lu\n", GetLastError());
     }
-}
-
-void usart_send(uint8_t *buf, size_t bufsz) {
-    EnterCriticalSection(&txSection);
-    prvSendData(buf, bufsz);
-    LeaveCriticalSection(&txSection);
 }
 
 void usart_shutdown(void) {
@@ -211,38 +190,43 @@ void usart_listen(void) {
     rxThread = (HANDLE)_beginthreadex(NULL, 0, &prvRxTask, NULL, 0, NULL);
 }
 
-void usart_putstr(int handle, char* buf, size_t bufsz) {
-    usart_send((uint8_t*)buf, bufsz);
+void usart_putstr(char* buf, size_t bufsz) {
+	EnterCriticalSection(&txSection);
+	prvSendData(buf, bufsz);
+	LeaveCriticalSection(&txSection);
 }
 
-void usart_insert(int handle, char c, void *pxTaskWoken) {
+void usart_insert(char c, void *pxTaskWoken) {
+	/* redirect debug output to stdout */
+	printf("%c", c);
 }
 
-void usart_set_callback(int handle, usart_rx_func fp) {
-    usart_set_rx_callback(fp);
+void usart_set_callback(usart_callback_t callback) {
+	usart_callback = callback;
 }
 
-#ifdef CSP_DEBUG
-static void prvPrintError(void) {
-    char *messageBuffer = NULL;
-    DWORD errorCode = GetLastError();
-    DWORD formatMessageRet;
-    formatMessageRet = FormatMessageA(
-        FORMAT_MESSAGE_ALLOCATE_BUFFER |
-        FORMAT_MESSAGE_FROM_SYSTEM,
-        NULL,
-        errorCode,
-        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-        (char*)&messageBuffer,
-        0,
-        NULL);
-
-    if( !formatMessageRet ) {
-        csp_debug(CSP_ERROR, "FormatMessage error, code: %lu\n", GetLastError());
-        return;
+int usart_init(struct usart_conf * conf) {
+    if( prvTryOpenPort(conf->device) ) {
+        printError();
+        return CSP_ERR_DRIVER;
     }
-    csp_debug(CSP_ERROR, "%s\n", messageBuffer);
-    LocalFree(messageBuffer);
+
+    if( prvTryConfigurePort(conf) ) {
+        printError();
+        return CSP_ERR_DRIVER;
+    }
+
+    if( prvTrySetPortTimeouts() ) {
+        printError();
+        return CSP_ERR_DRIVER;
+    }
+
+    InitializeCriticalSection(&txSection);
+
+    /* Start receiver thread */
+    usart_listen();
+
+    return CSP_ERR_NONE;
 }
-#endif
+
 

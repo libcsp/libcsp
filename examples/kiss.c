@@ -2,12 +2,10 @@
 #include <csp/csp.h>
 #include <csp/interfaces/csp_if_kiss.h>
 
-#if defined(CSP_POSIX)
-#include <csp/drivers/usart_linux.h>
-#elif defined(CSP_WINDOWS)
-#include <csp/drivers/usart_windows.h>
+#if defined(CSP_POSIX) || defined(CSP_WINDOWS)
+#include <csp/drivers/usart.h>
 #else
-#error "This example does not build without USART drivers"
+#error "This example does not build without win/linux USART drivers"
 #endif
 
 /* Using un-exported header file.
@@ -102,42 +100,23 @@ int main(void) {
     csp_buffer_init(10, 300);
     csp_init(MY_ADDRESS);
 
-/** Todo: Make general USART driver init function for win/linux */
-#if defined(CSP_POSIX)
+    struct usart_conf conf;
 
-    /* Setup USART */
-    extern void usart_set_device(char * device);
-    usart_set_device("/dev/ttyUSB0");
-	usart_init(0, 0, 500000);
-
-	/* Setup KISS */
-	void inline kiss_putstr_f(char *buf, int len) {
-		usart_putstr(0, buf, len);
-	}
-	void inline kiss_discard_f(char c, void * pxTaskWoken) {
-		usart_insert(0, c, pxTaskWoken);
-	}
-	csp_kiss_init(kiss_putstr_f, kiss_discard_f);
-	usart_set_callback(0, csp_kiss_rx);
-
-#elif defined(CSP_WINDOWS)
-
-    usart_win_conf_t settings;
-    settings.intf = "COM4";
-    settings.baudrate = CBR_9600;
-    settings.databits = 8;
-    settings.paritysetting = NOPARITY;
-    settings.stopbits = ONESTOPBIT;
-    settings.checkparity = FALSE;
-
-    if( usart_init(&settings) ) {
-        printf("Failure when initialising USART!\n");
-        return 1;
-    }
-    csp_kiss_init(USART_HANDLE);
-    usart_listen();
-
+#if defined(CSP_WINDOWS)
+    conf.device = "COM4";
+    conf.baudrate = CBR_9600;
+    conf.databits = 8;
+    conf.paritysetting = NOPARITY;
+    conf.stopbits = ONESTOPBIT;
+    conf.checkparity = FALSE;
+#else
+    conf.device = "/dev/ttyUSB0";
+	conf.baudrate = 500000;
 #endif
+
+	usart_init(&conf);
+	csp_kiss_init(usart_putstr, usart_insert);
+	usart_set_callback(csp_kiss_rx);
 
     csp_route_set(MY_ADDRESS, &csp_if_kiss, CSP_NODE_MAC);
     csp_route_start_task(0, 0);

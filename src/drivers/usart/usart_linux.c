@@ -18,7 +18,7 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <csp/drivers/usart_linux.h>
+#include <csp/drivers/usart.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -32,12 +32,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 int fd;
 usart_callback_t usart_callback = NULL;
-char * usart_device = NULL;
-static void *serial_rx_thread(void *vptr_args);
 
-void usart_set_device(char * device) {
-	usart_device = device;
-}
+static void *serial_rx_thread(void *vptr_args);
 
 int getbaud(int fd) {
 	struct termios termAttr;
@@ -128,19 +124,20 @@ int getbaud(int fd) {
 
 }
 
-void usart_init(int handle, uint32_t fcpu, uint32_t usart_baud) {
+void usart_init(struct usart_conf * conf) {
+
 	struct termios options;
 	pthread_t rx_thread;
 
-	fd = open(usart_device, O_RDWR | O_NOCTTY | O_NONBLOCK);
+	fd = open(conf->device, O_RDWR | O_NOCTTY | O_NONBLOCK);
 
 	if (fd < 0) {
-		printf("Failed to open %s: %s\r\n", usart_device, strerror(errno));
+		printf("Failed to open %s: %s\r\n", conf->device, strerror(errno));
 		return;
 	}
 
 	int brate = 0;
-    switch(usart_baud) {
+    switch(conf->baudrate) {
     case 4800:    brate=B4800;    break;
     case 9600:    brate=B9600;    break;
     case 19200:   brate=B19200;   break;
@@ -184,25 +181,25 @@ void usart_init(int handle, uint32_t fcpu, uint32_t usart_baud) {
 
 }
 
-void usart_set_callback(int handle, usart_callback_t callback) {
+void usart_set_callback(usart_callback_t callback) {
 	usart_callback = callback;
 }
 
-void usart_insert(int handle, char c, void * pxTaskWoken) {
+void usart_insert(char c, void * pxTaskWoken) {
 	printf("%c", c);
 }
 
-void usart_putstr(int handle, char * buf, int len) {
+void usart_putstr(char * buf, int len) {
 	if (write(fd, buf, len) != len)
 		return;
 }
 
-void usart_putc(int handle, char c) {
+void usart_putc(char c) {
 	if (write(fd, &c, 1) != 1)
 		return;
 }
 
-char usart_getc(int handle) {
+char usart_getc(void) {
 	char c;
 	if (read(fd, &c, 1) != 1) return 0;
 	return c;

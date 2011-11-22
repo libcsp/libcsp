@@ -20,7 +20,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 /**
  * @file usart.h
- * Common USART interface
+ * Common USART interface,
+ * This file is derived from the Gomspace USART driver,
+ * the main difference is the assumption that only one USART will be present on a PC
  *
  * @author Johan De Claville Christiansen
  * Copyright 2011 GomSpace ApS. All rights reserved.
@@ -32,13 +34,22 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <stdint.h>
 
 /**
- * Initialise UART
- *
- * @param handle usart[0,1,2,3]
- * @param fcpu CPU speed in Hz
- * @param usart_baud Baud rate in bps
+ * Usart configuration, to be used with the usart_init call.
  */
-void usart_init(int handle, uint32_t fcpu, uint32_t usart_baud);
+struct usart_conf {
+	const char * device;
+	uint32_t baudrate;
+	uint8_t databits;
+	uint8_t stopbits;
+	uint8_t paritysetting;
+	uint8_t checkparity;
+};
+
+/**
+ * Initialise UART with the usart_conf data structure
+ * @param usart_conf full configuration structure
+ */
+void usart_init(struct usart_conf * conf);
 
 /**
  * In order to catch incoming chars use the callback.
@@ -47,14 +58,14 @@ void usart_init(int handle, uint32_t fcpu, uint32_t usart_baud);
  * @param callback function pointer
  */
 typedef void (*usart_callback_t) (uint8_t * buf, int len, void * pxTaskWoken);
-void usart_set_callback(int handle, usart_callback_t callback);
+void usart_set_callback(usart_callback_t callback);
 
 /**
  * Insert a character to the RX buffer of a usart
  * @param handle usart[0,1,2,3]
  * @param c Character to insert
  */
-void usart_insert(int handle, char c, void * pxTaskWoken);
+void usart_insert(char c, void * pxTaskWoken);
 
 /**
  * Polling putchar
@@ -62,7 +73,7 @@ void usart_insert(int handle, char c, void * pxTaskWoken);
  * @param handle usart[0,1,2,3]
  * @param c Character to transmit
  */
-void usart_putc(int handle, char c);
+void usart_putc(char c);
 
 /**
  * Send char buffer on UART
@@ -71,7 +82,7 @@ void usart_putc(int handle, char c);
  * @param buf Pointer to data
  * @param len Length of data
  */
-void usart_putstr(int handle, char *buf, int len);
+void usart_putstr(char *buf, int len);
 
 /**
  * Buffered getchar
@@ -79,14 +90,6 @@ void usart_putstr(int handle, char *buf, int len);
  * @param handle usart[0,1,2,3]
  * @return Character received
  */
-char usart_getc(int handle);
-
-/**
- * Buffered getchar (not blocking)
- *
- * @param handle usart[0,1,2,3]
- * @return Character received
- */
-char usart_getc_nblock(int handle);
+char usart_getc(void);
 
 #endif /* USART_H_ */
