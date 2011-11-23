@@ -31,8 +31,13 @@ int csp_sys_tasklist(char * out) {
 }
 
 uint32_t csp_sys_memfree(void) {
-	uint32_t size = 1000000, total = 0, max = UINT32_MAX;
+
+	uint32_t total = 0, max = UINT32_MAX, size;
 	void * pmem;
+
+	/* If size_t is less than 32 bits, start with 10 KiB */
+	size = sizeof(uint32_t) > sizeof(size_t) ? 10000 : 1000000;
+
 	while (1) {
 		pmem = pvPortMalloc(size + total);
 		if (pmem == NULL) {
