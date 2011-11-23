@@ -112,12 +112,12 @@ def configure(ctx):
 	# Check for recursion
 	if ctx.path == ctx.srcnode:
 		ctx.options.install_csp = True
-
+	
 	# Add FreeRTOS 
 	if ctx.options.with_os == 'freertos':
 		ctx.env.append_unique('INCLUDES_CSP', ctx.options.with_freertos)
 	elif ctx.options.with_os == 'windows':
-		ctx.env.append_unique('CFLAGS', ['-D_WIN32_WINNT=0x0600'] + ctx.options.cflags.split(','))
+		ctx.env.append_unique('CFLAGS', ['-D_WIN32_WINNT=0x0600'])
 	
 	# Store OS as env variable
 	ctx.env.append_unique('OS', ctx.options.with_os)
