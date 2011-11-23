@@ -35,7 +35,6 @@ def options(ctx):
 
 	# Set libcsp options
 	gr = ctx.add_option_group('libcsp options')
-	gr.add_option('--cflags', default='', help='Add additional CFLAGS. Separate with comma')
 	gr.add_option('--includes', default='', help='Add additional include paths. Separate with comma')
 	gr.add_option('--install-csp', action='store_true', help='Installs CSP headers and lib')
 
@@ -102,7 +101,7 @@ def configure(ctx):
 
 	# Setup CFLAGS
 	if not ctx.env.CFLAGS:
-		ctx.env.append_unique('CFLAGS', ['-Os','-Wall', '-g', '-std=gnu99'] + ctx.options.cflags.split(','))
+		ctx.env.append_unique('CFLAGS', ['-Os','-Wall', '-g', '-std=gnu99'])
 	
 	# Setup extra includes
 	ctx.env.append_unique('INCLUDES_CSP', ['include'] + ctx.options.includes.split(','))
