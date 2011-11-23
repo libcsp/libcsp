@@ -61,8 +61,8 @@ def options(ctx):
 	gr.add_option('--with-drivers', metavar='PATH', default='../../libgomspace/include', help='Set path to Driver header files')
 
 	# OS	
-	gr.add_option('--with-os', default='posix', help='Set operating system. Must be either \'posix\', \'windows\' or \'freertos\'')
-	gr.add_option('--with-freertos', metavar="PATH", default='../../libgomspace/include', help='Set path to FreeRTOS header files')
+	gr.add_option('--with-os', default='posix', help='Set operating system. Must be either \'posix\', \'macosx\', \'windows\' or \'freertos\'')
+	gr.add_option('--with-freertos', metavar='PATH', default='../../libgomspace/include', help='Set path to FreeRTOS header files')
 
 	# Options
 	gr.add_option('--with-static-buffer-size', type=int, default=320, help='Set size of static buffer elements')
@@ -76,8 +76,8 @@ def options(ctx):
 
 def configure(ctx):
 	# Validate OS
-	if not ctx.options.with_os in ('posix', 'windows', 'freertos'):
-		ctx.fatal('--with-os must be either \'posix\', \'windows\' or \'freertos\'')
+	if not ctx.options.with_os in ('posix', 'windows', 'freertos', 'macosx'):
+		ctx.fatal('--with-os must be either \'posix\', \'windows\', \'macosx\' or \'freertos\'')
 
 	# Validate CAN drivers
 	if not ctx.options.with_driver_can in (None, 'socketcan', 'at91sam7a1', 'at91sam7a3', 'at90can128'):
@@ -95,7 +95,7 @@ def configure(ctx):
 	ctx.find_program('size', var='SIZE')
 
 	# Set git revision define
-	git_rev = os.popen('(git log --pretty=format:%H -n 1 | egrep -o \"^.{8}\") 2> /dev/null || echo unknown').read().strip()
+	git_rev = os.popen('(git log --pretty=format:%H -n 1 | cut -b 1-8) 2> /dev/null || echo unknown').read().strip()
 
 	# Setup DEFINES
 	ctx.define('GIT_REV', git_rev)
@@ -122,6 +122,7 @@ def configure(ctx):
 	ctx.define_cond('CSP_FREERTOS', ctx.options.with_os == 'freertos')
 	ctx.define_cond('CSP_POSIX', ctx.options.with_os == 'posix')
 	ctx.define_cond('CSP_WINDOWS', ctx.options.with_os == 'windows')
+	ctx.define_cond('CSP_MACOSX', ctx.options.with_os == 'macosx')
 		
 	# Add Eternal Drivers
 	if ctx.options.with_drivers:
@@ -225,7 +226,7 @@ def build(ctx):
 
 	# Print library size
 	if ctx.options.verbose > 0:
-		ctx(rule='${SIZE} --format=berkeley ${SRC}', source='libcsp.a', name='csp_size', always=True)
+		ctx(rule='${SIZE}  ${SRC}', source='libcsp.a', name='csp_size', always=True)
 
 	# Build shared library for Python bindings
 	if ctx.env.ENABLE_BINDINGS:
@@ -235,7 +236,7 @@ def build(ctx):
 			export_includes = 'include',
 			cflags = ctx.env.CFLAGS_CSP,
 			defines = ctx.env.DEFINES_CSP,
-			lib=['rt', 'pthread'])
+			lib=['pthread'] + ['rt'] if not ctx.options.with_os == 'macosx' else [])
 
 	if ctx.env.ENABLE_EXAMPLES:
 

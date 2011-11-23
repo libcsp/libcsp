@@ -30,13 +30,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "arch/csp_time.h"
 #include "arch/csp_malloc.h"
-
-#ifdef CSP_POSIX
-#include <sys/sysinfo.h>
-#endif
-#ifdef CSP_WINDOWS
-#include <Windows.h>
-#endif
+#include "arch/csp_system.h"
 
 /* CSP Management Protocol handler */
 int csp_cmp_handler(csp_conn_t * conn, csp_packet_t * packet) {
@@ -87,69 +81,30 @@ void csp_service_handler(csp_conn_t * conn, csp_packet_t * packet) {
 
 	switch (csp_conn_dport(conn)) {
 
-	/* Pass to CMP handler */
 	case CSP_CMP:
+		/* Pass to CMP handler */
 		if (csp_cmp_handler(conn, packet) != CSP_ERR_NONE) {
 			csp_buffer_free(packet);
 			return;
 		}
 		break;
 
-	/* A ping means, just echo the packet, so no changes */
 	case CSP_PING:
+		/* A ping means, just echo the packet, so no changes */
 		csp_debug(CSP_INFO, "SERVICE: Ping received\r\n");
 		break;
 
-	/* Retrieve the ProcessList as a string */
 	case CSP_PS: {
-#if defined(CSP_FREERTOS)
-		vTaskList((signed portCHAR *) packet->data);
-#elif defined(CSP_POSIX)
-		strcpy((char *)packet->data, "Tasklist in not available on posix");
-#elif defined(CSP_WINDOWS)
-		strcpy((char *)packet->data, "Tasklist in not available on windows");
-#endif
+		csp_sys_tasklist((char *)packet->data);
 		packet->length = strlen((char *)packet->data);
 		packet->data[packet->length] = '\0';
 		packet->length++;
 		break;
 	}
 
-	/* Do a search for the largest block of free memory */
 	case CSP_MEMFREE: {
+		uint32_t total = csp_sys_memfree();
 
-#if defined(CSP_FREERTOS)
-		/* Try to malloc a lot */
-		uint32_t size = 1000000, total = 0, max = UINT32_MAX;
-		void * pmem;
-		while (1) {
-			pmem = csp_malloc(size + total);
-			if (pmem == NULL) {
-				max = size + total;
-				size = size / 2;
-			} else {
-				total += size;
-				if (total + size >= max)
-					size = size / 2;
-				csp_free(pmem);
-			}
-			if (size < 32) break;
-		}
-#elif defined(CSP_POSIX)
-		/* Read system statistics */
-		uint32_t total = 0;
-		struct sysinfo info;
-		sysinfo(&info);
-		total = info.freeram * info.mem_unit;
-#elif defined(CSP_WINDOWS)
-		MEMORYSTATUSEX statex;
-		statex.dwLength = sizeof(statex);
-		GlobalMemoryStatusEx(&statex);
-		DWORDLONG freePhysicalMem = statex.ullAvailPhys;
-		size_t total = (size_t) freePhysicalMem;
-#endif
-
-		/* Prepare for network transmission */
 		total = csp_hton32(total);
 		memcpy(packet->data, &total, sizeof(total));
 		packet->length = sizeof(total);
@@ -157,7 +112,6 @@ void csp_service_handler(csp_conn_t * conn, csp_packet_t * packet) {
 		break;
 	}
 
-	/* Call this port with the magic word to reboot */
 	case CSP_REBOOT: {
 		uint32_t magic_word;
 		memcpy(&magic_word, packet->data, sizeof(magic_word));
@@ -171,23 +125,14 @@ void csp_service_handler(csp_conn_t * conn, csp_packet_t * packet) {
 		}
 
 		/* Otherwise Reboot */
-		extern void __attribute__((weak)) cpu_set_reset_cause(unsigned int);
-		if (cpu_set_reset_cause)
-			cpu_set_reset_cause(1);
-		extern void __attribute__((weak)) cpu_reset(void);
-		if (cpu_reset) {
-			cpu_reset();
-			while (1);
-		}
-
+		csp_sys_reboot();
+		
 		csp_buffer_free(packet);
 		return;
 	}
 
-	/* Return the number of free CSP buffers */
 	case CSP_BUF_FREE: {
 		uint32_t size = csp_buffer_remaining();
-		/* Prepare for network transmission */
 		size = csp_hton32(size);
 		memcpy(packet->data, &size, sizeof(size));
 		packet->length = sizeof(size);
@@ -203,12 +148,10 @@ void csp_service_handler(csp_conn_t * conn, csp_packet_t * packet) {
 	}
 
 	default:
-		/* The connection was not a service-request, free the packet and return */
 		csp_buffer_free(packet);
 		return;
 	}
 
-	/* Try to send packet, by reusing the incoming buffer */
 	if (!csp_send(conn, packet, 0))
 		csp_buffer_free(packet);
 

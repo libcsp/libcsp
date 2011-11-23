@@ -48,9 +48,7 @@ typedef enum csp_buffer_state_t {
 	static int count;
 #endif
 
-#if defined(CSP_POSIX) || defined(CSP_WINDOWS)
-static csp_bin_sem_handle_t csp_critical_lock;
-#endif
+CSP_DEFINE_CRITICAL(csp_critical_lock);
 
 int csp_buffer_init(int buf_count, int buf_size) {
 
@@ -72,9 +70,9 @@ int csp_buffer_init(int buf_count, int buf_size) {
 	}
 #endif
 
-#if defined(CSP_POSIX) || defined(CSP_WINDOWS)
 	/* Initialize critical lock */
-	if (csp_bin_sem_create(&csp_critical_lock) != CSP_SEMAPHORE_OK) {
+	CSP_INIT_CRITICAL(csp_critical_lock);
+	if (CSP_INIT_CRITICAL(csp_critical_lock) != CSP_ERR_NONE) {
 		csp_debug(CSP_ERROR, "No more memory for buffer semaphore\r\n");
 
 		if (csp_buffer_list)
@@ -84,7 +82,6 @@ int csp_buffer_init(int buf_count, int buf_size) {
 
 		return CSP_ERR_NOMEM;
 	}
-#endif
 
 	/* Clear housekeeping memory = all free mem */
 	memset(csp_buffer_list, 0, count * sizeof(csp_buffer_state_t));

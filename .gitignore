@@ -12,3 +12,4 @@ waf-*/
 pdebug*
 *.tar*
 tags
+.DS_store
