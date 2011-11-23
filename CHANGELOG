@@ -1,3 +1,21 @@
+libcsp NEXT, DATE
+-----------------------
+- Feature release
+- New: I2C interface
+- New: KISS interface
+- New: USART drivers for Linux, Mac and Windows
+- New: Windows/MinGW support
+- New: MacOSX support
+- Improvement: Better QoS support
+- Improvement: Send RDP control messages with high priority
+- Improvement: WAF distcheck now works
+- Improvement: Automatic endian discovery
+- Improvement: Accept packets with CRC32 checksum if compiled without CRC32 support
+- Cleanup: Simplify CAN configuration
+- Cleanup: Move architecture specific code to src/arch
+- Bugfix: CSP_MEMFREE gives wrong answer on freertos AVR due to truncation
+- Bugfix: Fixed wrong 64-bit size_t in csp_service_handler
+
 libcsp 1.0.1, 2011-10-30
 ------------------------
 - Hotfix release
