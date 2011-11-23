@@ -23,6 +23,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <unistd.h>
 
 #include <csp/csp.h>
+
+/* Using un-exported header file.
+ * This is allowed since we are still in libcsp */
 #include "../src/arch/csp_thread.h"
 
 /** Example defines */
@@ -86,12 +89,12 @@ CSP_DEFINE_TASK(task_client) {
 		 * Try ping
 		 */
 
-		sleep(1);
+		csp_sleep_ms(1000);
 
 		int result = csp_ping(MY_ADDRESS, 100, 100, CSP_O_NONE);
 		printf("Ping result %d [ms]\r\n", result);
 
-		sleep(1);
+		csp_sleep_ms(1000);
 
 		/**
 		 * Try data packet to server
@@ -187,7 +190,7 @@ int main(int argc, char * argv[]) {
 
 	/* Wait for execution to end (ctrl+c) */
 	while(1) {
-		sleep(10000);
+		csp_sleep_ms(100000);
 	}
 
 	return 0;

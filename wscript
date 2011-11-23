@@ -35,7 +35,6 @@ def options(ctx):
 
 	# Set libcsp options
 	gr = ctx.add_option_group('libcsp options')
-	gr.add_option('--cflags', default='', help='Add additional CFLAGS. Separate with comma')
 	gr.add_option('--includes', default='', help='Add additional include paths. Separate with comma')
 	gr.add_option('--install-csp', action='store_true', help='Installs CSP headers and lib')
 
@@ -56,7 +55,8 @@ def options(ctx):
 	gr.add_option('--enable-if-can', action='store_true', help='Enable CAN interface')
 	
 	# Drivers
-	gr.add_option('--with-driver-can', default=None, metavar='CHIP', help='Enable CAN driver. CHIP must be either socketcan, at91sam7a1, at91sam7a3 or at90can128')
+	gr.add_option('--with-driver-can', default=None, metavar='CHIP', help='Build CAN driver. [socketcan, at91sam7a1, at91sam7a3 or at90can128]')
+	gr.add_option('--with-driver-usart', default=None, metavar='DRIVER', help='Build USART driver. [windows, linux, None]')
 	gr.add_option('--with-drivers', metavar='PATH', default='../../libgomspace/include', help='Set path to Driver header files')
 
 	# OS	
@@ -80,8 +80,12 @@ def configure(ctx):
 
 	# Validate CAN drivers
 	if not ctx.options.with_driver_can in (None, 'socketcan', 'at91sam7a1', 'at91sam7a3', 'at90can128'):
-		ctx.fatal('--with-can must be either \'socketcan\', \'at91sam7a1\', \'at91sam7a3\', \'at90can128\'')
+		ctx.fatal('--with-driver-can must be either \'socketcan\', \'at91sam7a1\', \'at91sam7a3\', \'at90can128\'')
 
+	# Validate USART drivers
+	if not ctx.options.with_driver_usart in (None, 'windows', 'linux'):
+		ctx.fatal('--with-driver-usart must be either \'windows\' or \'linux\'')
+	
 	# Setup and validate toolchain
 	ctx.env.CC = ctx.options.toolchain + 'gcc'
 	ctx.env.AR = ctx.options.toolchain + 'ar'
@@ -96,7 +100,8 @@ def configure(ctx):
 	ctx.define('GIT_REV', git_rev)
 
 	# Setup CFLAGS
-	ctx.env.append_unique('CFLAGS_CSP', ['-Os','-Wall', '-g', '-std=gnu99'] + ctx.options.cflags.split(','))
+	if not ctx.env.CFLAGS:
+		ctx.env.append_unique('CFLAGS', ['-Os','-Wall', '-g', '-std=gnu99'])
 	
 	# Setup extra includes
 	ctx.env.append_unique('INCLUDES_CSP', ['include'] + ctx.options.includes.split(','))
@@ -108,10 +113,14 @@ def configure(ctx):
 	if ctx.path == ctx.srcnode:
 		ctx.options.install_csp = True
 
+	# Add FreeRTOS 
 	if ctx.options.with_os == 'freertos':
 		ctx.env.append_unique('INCLUDES_CSP', ctx.options.with_freertos)
 	elif ctx.options.with_os == 'windows':
-		ctx.env.append_unique('CFLAGS_CSP', ['-D_WIN32_WINNT=0x0600'] + ctx.options.cflags.split(','))
+		ctx.env.append_unique('CFLAGS', ['-D_WIN32_WINNT=0x0600'] + ctx.options.cflags.split(','))
+	
+	# Store OS as env variable
+	ctx.env.append_unique('OS', ctx.options.with_os)
 
 	ctx.define_cond('CSP_FREERTOS', ctx.options.with_os == 'freertos')
 	ctx.define_cond('CSP_POSIX', ctx.options.with_os == 'posix')
@@ -125,6 +134,10 @@ def configure(ctx):
 	# Add CAN driver
 	if ctx.options.with_driver_can:
 		ctx.env.append_unique('FILES_CSP', 'src/drivers/can/can_{0}.c'.format(ctx.options.with_driver_can))
+
+	# Add USART driver
+	if ctx.options.with_driver_usart != None:
+		ctx.env.append_unique('FILES_CSP', 'src/drivers/usart/usart_{0}.c'.format(ctx.options.with_driver_usart))
 		
 	# Interfaces
 	if ctx.options.enable_if_can:
@@ -208,8 +221,6 @@ def build(ctx):
 		target = 'csp',
 		includes= ctx.env.INCLUDES_CSP,
 		export_includes = 'include',
-		cflags = ctx.env.CFLAGS_CSP,
-		defines = ctx.env.DEFINES_CSP,
 		use = 'csp_size include',
 		install_path = install_path,
 	)
@@ -218,27 +229,46 @@ def build(ctx):
 	if ctx.options.verbose > 0:
 		ctx(rule='${SIZE}  ${SRC}', source='libcsp.a', name='csp_size', always=True)
 
+	libs = []
+	if 'posix' in ctx.env.OS:
+		libs = ['rt', 'pthread']
+	elif 'macosx' in ctx.env.OS:
+		libs = ['pthread']
+
 	# Build shared library for Python bindings
 	if ctx.env.ENABLE_BINDINGS:
 		ctx.shlib(source=ctx.path.ant_glob(ctx.env.FILES_CSP),
 			target = 'pycsp',
 			includes= ctx.env.INCLUDES_CSP,
 			export_includes = 'include',
-			cflags = ctx.env.CFLAGS_CSP,
-			defines = ctx.env.DEFINES_CSP,
-			lib=['pthread'] + ['rt'] if not ctx.options.with_os == 'macosx' else [])
+			lib=libs)
 
-	if ctx.env.ENABLE_EXAMPLES and ctx.options.with_os in ('posix', 'macosx'):
+	if ctx.env.ENABLE_EXAMPLES:
+
+		print(libs)
 		ctx.program(source = ctx.path.ant_glob('examples/simple.c'),
 			target = 'simple',
 			includes = ctx.env.INCLUDES_CSP,
-			cflags = ctx.env.CFLAGS_CSP,
-			defines = ctx.env.DEFINES_CSP,
-			lib=['pthread'] + ['rt'] if not ctx.options.with_os == 'macosx' else [],
+			lib = libs,
 			use = 'csp')
-		ctx.objects(source = 'examples/csp_if_fifo.c',
-			target = 'csp_if_fifo.o',
-			use = 'csp')
+
+		if ctx.options.enable_if_kiss:
+			ctx.program(source = 'examples/kiss.c',
+				target = 'kiss',
+				includes = ctx.env.INCLUDES_CSP,
+				lib = libs,
+				use = 'csp')
+
+		if ctx.env.OS == 'posix':
+			ctx.objects(source = 'examples/csp_if_fifo.c',
+				target = 'csp_if_fifo.o',
+				use = 'csp')
+
+		if ctx.env.OS == 'windows':
+			ctx.program(source = ctx.path.ant_glob('examples/csp_if_fifo_windows.c'),
+				target = 'csp_if_fifo',
+				includes = ctx.env.INCLUDES_CSP,
+				use = 'csp')
 
 def dist(ctx):
 	ctx.excl = 'build/* **/.* **/*.pyc **/*.o **/*~ *.tar.gz'
