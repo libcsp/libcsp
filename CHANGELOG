@@ -19,8 +19,18 @@ libcsp NEXT, DATE
 libcsp 1.0.1, 2011-10-30
 ------------------------
 - Hotfix release
-- Added missing extern in csp_if_lo.h
+- Bugfix: missing extern in csp_if_lo.h
 
 libcsp 1.0, 2011-10-24
 ----------------------
-- First release of libcsp
+- First official release
+- New: CSP 32-bit header 1.0
+- Features: Network Router with promiscous mode, broadcast and QoS
+- Features: Connection-oriented transport protocol w. flow-control
+- Features: Connection-less "UDP" like transport
+- Features: Encryption, Authentication and message check
+- Features: Loopback interface
+- Features: Python Bindings
+- Features: CAN interface w. drivers for several chips
+- Features: CSP-services (ping, reboot, uptime, memfree, buffree, ident)
+
