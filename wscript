@@ -101,7 +101,8 @@ def configure(ctx):
 	ctx.define('GIT_REV', git_rev)
 
 	# Setup CFLAGS
-	ctx.env.append_unique('CFLAGS_CSP', ['-Os','-Wall', '-g', '-std=gnu99'] + ctx.options.cflags.split(','))
+	if not ctx.env.CFLAGS:
+		ctx.env.append_unique('CFLAGS', ['-Os','-Wall', '-g', '-std=gnu99'] + ctx.options.cflags.split(','))
 	
 	# Setup extra includes
 	ctx.env.append_unique('INCLUDES_CSP', ['include'] + ctx.options.includes.split(','))
@@ -117,7 +118,10 @@ def configure(ctx):
 	if ctx.options.with_os == 'freertos':
 		ctx.env.append_unique('INCLUDES_CSP', ctx.options.with_freertos)
 	elif ctx.options.with_os == 'windows':
-		ctx.env.append_unique('CFLAGS_CSP', ['-D_WIN32_WINNT=0x0600'] + ctx.options.cflags.split(','))
+		ctx.env.append_unique('CFLAGS', ['-D_WIN32_WINNT=0x0600'] + ctx.options.cflags.split(','))
+	
+	# Store OS as env variable
+	ctx.env.append_unique('OS', ctx.options.with_os)
 
 	ctx.define_cond('CSP_FREERTOS', ctx.options.with_os == 'freertos')
 	ctx.define_cond('CSP_POSIX', ctx.options.with_os == 'posix')
@@ -218,8 +222,6 @@ def build(ctx):
 		target = 'csp',
 		includes= ctx.env.INCLUDES_CSP,
 		export_includes = 'include',
-		cflags = ctx.env.CFLAGS_CSP,
-		defines = ctx.env.DEFINES_CSP,
 		use = 'csp_size include',
 		install_path = install_path,
 	)
@@ -228,54 +230,45 @@ def build(ctx):
 	if ctx.options.verbose > 0:
 		ctx(rule='${SIZE}  ${SRC}', source='libcsp.a', name='csp_size', always=True)
 
+	libs = []
+	if 'posix' in ctx.env.OS:
+		libs = ['rt', 'pthread']
+	elif 'macosx' in ctx.env.OS:
+		libs = ['pthread']
+
 	# Build shared library for Python bindings
 	if ctx.env.ENABLE_BINDINGS:
 		ctx.shlib(source=ctx.path.ant_glob(ctx.env.FILES_CSP),
 			target = 'pycsp',
 			includes= ctx.env.INCLUDES_CSP,
 			export_includes = 'include',
-			cflags = ctx.env.CFLAGS_CSP,
-			defines = ctx.env.DEFINES_CSP,
-			lib=['pthread'] + ['rt'] if not ctx.options.with_os == 'macosx' else [])
+			lib=libs)
 
 	if ctx.env.ENABLE_EXAMPLES:
 
-		if ctx.options.with_os == 'posix':
-			ctx.program(source = ctx.path.ant_glob('examples/simple.c'),
-				target = 'simple',
-				includes = ctx.env.INCLUDES_CSP,
-				cflags = ctx.env.CFLAGS_CSP,
-				defines = ctx.env.DEFINES_CSP,
-				lib=['rt', 'pthread'],
-				use = 'csp')
-		elif ctx.options.with_os == 'windows':
-			ctx.program(source = ctx.path.ant_glob('examples/simple.c'),
-				target = 'simple',
-				includes = ctx.env.INCLUDES_CSP,
-				cflags = ctx.env.CFLAGS_CSP,
-				defines = ctx.env.DEFINES_CSP,
-				use = 'csp')
-
-		if ctx.options.with_os == 'posix':
-			ctx.objects(source = 'examples/csp_if_fifo.c',
-				target = 'csp_if_fifo.o',
-				use = 'csp')
+		print(libs)
+		ctx.program(source = ctx.path.ant_glob('examples/simple.c'),
+			target = 'simple',
+			includes = ctx.env.INCLUDES_CSP,
+			lib = libs,
+			use = 'csp')
 
 		if ctx.options.enable_if_kiss:
 			ctx.program(source = 'examples/kiss.c',
 				target = 'kiss',
 				includes = ctx.env.INCLUDES_CSP,
-				cflags = ctx.env.CFLAGS_CSP,
-				defines = ctx.env.DEFINES_CSP,
-				lib=['rt', 'pthread'],
+				lib = libs,
 				use = 'csp')
 
-		if ctx.options.with_os == 'windows':
+		if ctx.env.OS == 'posix':
+			ctx.objects(source = 'examples/csp_if_fifo.c',
+				target = 'csp_if_fifo.o',
+				use = 'csp')
+
+		if ctx.env.OS == 'windows':
 			ctx.program(source = ctx.path.ant_glob('examples/csp_if_fifo_windows.c'),
 				target = 'csp_if_fifo',
 				includes = ctx.env.INCLUDES_CSP,
-				cflags = ctx.env.CFLAGS_CSP,
-				defines = ctx.env.DEFINES_CSP,
 				use = 'csp')
 
 def dist(ctx):
