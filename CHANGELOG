@@ -1,3 +1,8 @@
+libcsp 1.0.1, 2011-10-30
+------------------------
+- Hotfix release
+- Added missing extern in csp_if_lo.h
+
 libcsp 1.0, 2011-10-24
 ----------------------
 - First release of libcsp
