@@ -104,12 +104,8 @@ void csp_service_handler(csp_conn_t * conn, csp_packet_t * packet) {
 	case CSP_PS: {
 #if defined(CSP_FREERTOS)
 		vTaskList((signed portCHAR *) packet->data);
-#elif defined(CSP_POSIX)
-		strcpy((char *)packet->data, "Tasklist in not available on posix");
-#elif defined(CSP_MACOSX)
-		strcpy((char *)packet->data, "Tasklist in not available on macosx");
-#elif defined(CSP_WINDOWS)
-		strcpy((char *)packet->data, "Tasklist in not available on windows");
+#else
+		strcpy((char *)packet->data, "Tasklist not available");
 #endif
 		packet->length = strlen((char *)packet->data);
 		packet->data[packet->length] = '\0';
@@ -175,6 +171,7 @@ void csp_service_handler(csp_conn_t * conn, csp_packet_t * packet) {
 		}
 
 		/* Otherwise Reboot */
+#ifndef __MACH__
 		extern void __attribute__((weak)) cpu_set_reset_cause(unsigned int);
 		if (cpu_set_reset_cause)
 			cpu_set_reset_cause(1);
@@ -183,6 +180,7 @@ void csp_service_handler(csp_conn_t * conn, csp_packet_t * packet) {
 			cpu_reset();
 			while (1);
 		}
+#endif
 
 		csp_buffer_free(packet);
 		return;

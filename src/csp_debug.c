@@ -42,12 +42,6 @@ static uint8_t levels_enable[] = {
 		0	// Locks
 };
 
-/* Called by csp_debug on each execution, before calling printf */
-void csp_debug_printf_hook(csp_debug_level_t level) __attribute__((weak));
-
-/* Implement this symbol if custom formatting of debug messages is required */
-void csp_debug_hook(csp_debug_level_t level, char * str) __attribute__((weak));
-
 /* Some compilers do not support weak symbols, so this function
  * can be used instead to set a custom debug hook */
 void csp_debug_hook_set(csp_debug_hook_func_t f) {
@@ -102,23 +96,16 @@ void csp_debug_ex(csp_debug_level_t level, const char * format, ...) {
 
 	/* If csp_debug_hook symbol is defined, pass on the message.
 	 * Otherwise, just print with pretty colors ... */
-	if (csp_debug_hook || csp_debug_hook_func) {
+	if (csp_debug_hook_func) {
 		char buf[250];
 		vsnprintf(buf, 250, format, args);
-		if (csp_debug_hook) {
-			csp_debug_hook(level, buf);
-		} else if (csp_debug_hook_func) {
-			csp_debug_hook_func(level, buf);
-		}
+		csp_debug_hook_func(level, buf);
 	} else {
-		if (csp_debug_printf_hook)
-			csp_debug_printf_hook(level);
-
-#if defined(CSP_WINDOWS)
-		vprintf(format, args);
-#else
+#ifndef CSP_WINDOWS
 		printf("%s", color);
+#endif
 		vprintf(format, args);
+#ifndef CSP_WINDOWS
 		printf("\E[0m");
 #endif
 	}
