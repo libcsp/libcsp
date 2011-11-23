@@ -2,11 +2,7 @@
 #include <csp/csp.h>
 #include <csp/interfaces/csp_if_kiss.h>
 
-#if defined(CSP_POSIX) || defined(CSP_WINDOWS)
 #include <csp/drivers/usart.h>
-#else
-#error "This example does not build without win/linux USART drivers"
-#endif
 
 /* Using un-exported header file.
  * This is allowed since we are still in libcsp */
@@ -93,7 +89,7 @@ CSP_DEFINE_TASK(task_client) {
     return CSP_TASK_RETURN;
 }
 
-int main(void) {
+int main(int argc, char **argv) {
     csp_debug_toggle_level(CSP_PACKET);
     csp_debug_toggle_level(CSP_INFO);
 
@@ -103,15 +99,18 @@ int main(void) {
     struct usart_conf conf;
 
 #if defined(CSP_WINDOWS)
-    conf.device = "COM4";
+    conf.device = argc != 2 ? "COM4" : argv[1];
     conf.baudrate = CBR_9600;
     conf.databits = 8;
     conf.paritysetting = NOPARITY;
     conf.stopbits = ONESTOPBIT;
     conf.checkparity = FALSE;
-#else
-    conf.device = "/dev/ttyUSB0";
-	conf.baudrate = 500000;
+#elif defined(CSP_POSIX)
+    conf.device = argc != 2 ? "/dev/ttyUSB0" : argv[1];
+    conf.baudrate = 500000;
+#elif defined(CSP_MACOSX)
+    conf.device = argc != 2 ? "/dev/tty.usbserial-FTSM9EGE" : argv[1];
+    conf.baudrate = 115200;
 #endif
 
 	usart_init(&conf);

@@ -30,6 +30,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <termios.h>
 #include <fcntl.h>
 
+#include <csp/csp.h>
+
 int fd;
 usart_callback_t usart_callback = NULL;
 
@@ -94,6 +96,7 @@ int getbaud(int fd) {
 	case B115200:
 		inputSpeed = 115200;
 		break;
+#ifndef CSP_MACOSX
 	case B460800:
 		inputSpeed = 460800;
 		break;
@@ -118,6 +121,7 @@ int getbaud(int fd) {
 	case B3000000:
 		inputSpeed = 3000000;
 		break;
+#endif
 	}
 
 	return inputSpeed;
@@ -144,6 +148,7 @@ void usart_init(struct usart_conf * conf) {
     case 38400:   brate=B38400;   break;
     case 57600:   brate=B57600;   break;
     case 115200:  brate=B115200;  break;
+#ifndef CSP_MACOSX
     case 460800:  brate=B460800;  break;
     case 500000:  brate=B500000;  break;
     case 921600:  brate=B921600;  break;
@@ -152,6 +157,7 @@ void usart_init(struct usart_conf * conf) {
     case 2000000: brate=B2000000; break;
     case 2500000: brate=B2500000; break;
     case 3000000: brate=B3000000; break;
+#endif
     }
 
 	tcgetattr(fd, &options);
@@ -164,7 +170,7 @@ void usart_init(struct usart_conf * conf) {
 	options.c_cflag |= CS8;
 	options.c_lflag &= ~(ECHO | ECHONL | ICANON | IEXTEN | ISIG);
 	options.c_iflag &= ~(IGNBRK | BRKINT | ICRNL | INLCR | PARMRK | INPCK | ISTRIP | IXON);
-	options.c_oflag &= ~(OCRNL | ONLCR | ONLRET | ONOCR | OFILL | OLCUC | OPOST);
+	options.c_oflag &= ~(OCRNL | ONLCR | ONLRET | ONOCR | OFILL | OPOST);
 	options.c_cc[VTIME] = 0;
 	options.c_cc[VMIN] = 1;
 	tcsetattr(fd, TCSANOW, &options);

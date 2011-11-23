@@ -244,8 +244,6 @@ def build(ctx):
 			lib=libs)
 
 	if ctx.env.ENABLE_EXAMPLES:
-
-		print(libs)
 		ctx.program(source = ctx.path.ant_glob('examples/simple.c'),
 			target = 'simple',
 			includes = ctx.env.INCLUDES_CSP,
