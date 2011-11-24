@@ -103,10 +103,8 @@ int cfp_id;
 /** CFP identification number semaphore */
 csp_bin_sem_handle_t id_sem;
 
-#ifndef CSP_FREERTOS
 /** Packet buffer semaphore */
-static csp_bin_sem_handle_t pbuf_sem;
-#endif
+CSP_DEFINE_CRITICAL(pbuf_sem);
 
 /* Identification number */
 static int id_init(void) {
@@ -175,19 +173,17 @@ static int pbuf_init(void) {
 		buf->last_used = 0;
 		buf->remain = 0;
 		/* Create tx semaphore if blocking mode is enabled */
-	if (csp_bin_sem_create(&buf->tx_sem) != CSP_SEMAPHORE_OK) {
-		csp_debug(CSP_ERROR, "Failed to allocate TX semaphore\n");
-		return -1;
-	}
+		if (csp_bin_sem_create(&buf->tx_sem) != CSP_SEMAPHORE_OK) {
+			csp_debug(CSP_ERROR, "Failed to allocate TX semaphore\n");
+			return -1;
+		}
 	}
 
-#ifndef CSP_FREERTOS
     /* Initialize global lock */
-	if (csp_bin_sem_create(&pbuf_sem) != CSP_SEMAPHORE_OK) {
+	if (CSP_INIT_CRITICAL(pbuf_sem) != CSP_ERR_NONE) {
 		csp_debug(CSP_ERROR, "No more memory for packet buffer semaphore\r\n");
 		return -1;
 	}
-#endif
 
 	return 0;
 	
