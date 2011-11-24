@@ -18,12 +18,15 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+#include <stdio.h>
 #include <stdint.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 
 #include <csp/csp.h>
 #include <csp/csp_error.h>
+
+#include "../csp_system.h"
 
 int csp_sys_tasklist(char * out) {
 	vTaskList((signed portCHAR *) out);
@@ -72,3 +75,44 @@ int csp_sys_reboot(void) {
 	return CSP_ERR_INVAL;
 }
 
+void csp_sys_set_color(csp_color_t color) {
+
+	unsigned int color_code, modifier_code;
+	switch (color & COLOR_MASK_COLOR) {
+		case COLOR_BLACK:
+			color_code = 30; break;
+		case COLOR_RED:
+			color_code = 31; break;
+		case COLOR_GREEN:
+			color_code = 32; break;
+		case COLOR_YELLOW:
+			color_code = 33; break;
+		case COLOR_BLUE:
+			color_code = 34; break;
+		case COLOR_MAGENTA:
+			color_code = 35; break;
+		case COLOR_CYAN:
+			color_code = 36; break;
+		case COLOR_WHITE:
+			color_code = 37; break;
+		case COLOR_RESET:
+		default:
+			color_code = 0; break;
+	}
+	
+	switch (color & COLOR_MASK_MODIFIER) {
+		case COLOR_BOLD:
+			modifier_code = 1; break;
+		case COLOR_UNDERLINE:
+			modifier_code = 2; break;
+		case COLOR_BLINK:
+			modifier_code = 3; break;
+		case COLOR_HIDE:
+			modifier_code = 4; break;
+		case COLOR_NORMAL:
+		default:
+			modifier_code = 0; break;
+	}
+
+	printf("\033[%u;%um", modifier_code, color_code);
+}

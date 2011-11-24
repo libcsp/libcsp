@@ -26,7 +26,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 /* CSP includes */
 #include <csp/csp.h>
 
-#ifdef CSP_DEBUG
+#include "arch/csp_system.h"
 
 /* Custom debug function */
 csp_debug_hook_func_t csp_debug_hook_func = NULL;
@@ -52,7 +52,7 @@ void csp_debug_hook_set(csp_debug_hook_func_t f) {
 
 void csp_debug_ex(csp_debug_level_t level, const char * format, ...) {
 
-	const char * color = "";
+	int color = COLOR_RESET;
 	va_list args;
 	va_start(args, format);
 
@@ -65,32 +65,32 @@ void csp_debug_ex(csp_debug_level_t level, const char * format, ...) {
 	case CSP_ERROR:
 		if (!levels_enable[CSP_ERROR])
 			return;
-		color = "\E[1;31m";
+		color = COLOR_RED | COLOR_BOLD;
 		break;
 	case CSP_WARN:
 		if (!levels_enable[CSP_WARN])
 			return;
-		color = "\E[0;33m";
+		color = COLOR_YELLOW;
 		break;
 	case CSP_BUFFER:
 		if (!levels_enable[CSP_BUFFER])
 			return;
-		color = "\E[0;33m";
+		color = COLOR_YELLOW;
 		break;
 	case CSP_PACKET:
 		if (!levels_enable[CSP_PACKET])
 			return;
-		color = "\E[0;32m";
+		color = COLOR_GREEN;
 		break;
 	case CSP_PROTOCOL:
 		if (!levels_enable[CSP_PROTOCOL])
 			return;
-		color = "\E[0;34m";
+		color = COLOR_BLUE;
 		break;
 	case CSP_LOCK:
 		if (!levels_enable[CSP_LOCK])
 			return;
-		color = "\E[0;36m";
+		color = COLOR_CYAN;
 		break;
 	}
 
@@ -101,13 +101,9 @@ void csp_debug_ex(csp_debug_level_t level, const char * format, ...) {
 		vsnprintf(buf, 250, format, args);
 		csp_debug_hook_func(level, buf);
 	} else {
-#ifndef CSP_WINDOWS
-		printf("%s", color);
-#endif
+		csp_sys_set_color(color);
 		vprintf(format, args);
-#ifndef CSP_WINDOWS
-		printf("\E[0m");
-#endif
+		csp_sys_set_color(COLOR_RESET);
 	}
 
 	va_end(args);
@@ -122,4 +118,3 @@ void csp_debug_toggle_level(csp_debug_level_t level) {
 	levels_enable[level] = (levels_enable[level]) ? 0 : 1;
 	printf("Level %u: value %u\r\n", level, levels_enable[level]);
 }
-#endif
