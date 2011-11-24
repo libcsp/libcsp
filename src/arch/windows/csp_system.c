@@ -25,6 +25,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/csp.h>
 #include <csp/csp_error.h>
 
+#include "../csp_system.h"
+
 int csp_sys_tasklist(char * out) {
 	strcpy(out, "Tasklist not available on Windows");
 	return CSP_ERR_NONE;
