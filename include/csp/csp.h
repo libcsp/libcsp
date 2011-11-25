@@ -37,6 +37,7 @@ extern "C" {
 /* CSP includes */
 #include "csp_platform.h"
 #include "csp_error.h"
+#include "csp_debug.h"
 
 /* Include CSP buffer system */
 #include "csp_buffer.h"
@@ -559,46 +560,6 @@ int csp_xtea_set_key(char * key, uint32_t keylen);
  */
 int csp_hmac_set_key(char * key, uint32_t keylen);
 
-/** Debug levels */
-typedef enum {
-	CSP_INFO		= 0,
-	CSP_ERROR	 	= 1,
-	CSP_WARN	 	= 2,
-	CSP_BUFFER   	= 3,
-	CSP_PACKET   	= 4,
-	CSP_PROTOCOL	= 5,
-	CSP_LOCK	 	= 6,
-} csp_debug_level_t;
-
-#ifndef NDEBUG
-
-/* Extract filename component from path */
-#define BASENAME(_file) ((strrchr(_file, '/') ? : (strrchr(_file, '\\') ? : _file))+1)
-
-/* Implement csp_assert_fail_action to override default failure action */
-extern void __attribute__((weak)) csp_assert_fail_action(char *assertion, const char *file, int line);
-
-#define csp_assert(exp) 																\
-	do { 																				\
-		if (!(exp)) {																	\
-			char *assertion = #exp;														\
-			const char *file = BASENAME(__FILE__);										\
-			int line = __LINE__;														\
-			printf("\E[1;31m[%02"PRIu8"] Assertion \'%s\' failed in %s:%d\E[0m\r\n",	\
-													my_address, assertion, file, line); \
-			if (csp_assert_fail_action)													\
-				csp_assert_fail_action(assertion, file, line);							\
-		} 																				\
-	} while (0)
-#else
-#define csp_assert(...) do {} while (0)
-#endif
-
-#ifdef CSP_DEBUG
-#define csp_debug(level, format, ...) csp_debug_ex(level, "[%02"PRIu8"] %s:%d " format, my_address, BASENAME(__FILE__), __LINE__, ##__VA_ARGS__)
-typedef void (*csp_debug_hook_func_t)(csp_debug_level_t level, char * str);
-void csp_debug_ex(csp_debug_level_t level, const char * format, ...);
-
 /**
  * Toggle debug level on/off
  * @param level Level to toggle
@@ -629,23 +590,8 @@ void csp_buffer_print_table(void);
  * Set csp_debug hook function
  * @param f Hook function
  */
+typedef void (*csp_debug_hook_func_t)(csp_debug_level_t level, char * str);
 void csp_debug_hook_set(csp_debug_hook_func_t f);
-#else
-#define csp_debug(...) do {} while (0)
-#define csp_debug_toggle_level(...) do {} while (0)
-#define csp_route_print_interfaces(...) do {} while (0)
-#define csp_route_print_table(...) do {} while (0)
-#define csp_conn_print_table(...) do {} while (0)
-#define csp_buffer_print_table(...) do {} while (0)
-#define csp_debug_hook_set(...) do {} while (0)
-#endif
-
-/* Quick and dirty hack to place AVR debug info in progmem */
-#if defined(CSP_DEBUG) && defined(__AVR__)
-#include <avr/pgmspace.h>
-#undef csp_debug
-#define csp_debug(level, format, ...) printf_P(PSTR(format), ##__VA_ARGS__)
-#endif
 
 #ifdef __cplusplus
 } /* extern "C" */
