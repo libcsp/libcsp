@@ -64,12 +64,6 @@ extern void __attribute__((weak)) csp_assert_fail_action(char *assertion, const 
 	void csp_debug_ex(csp_debug_level_t level, const char * format, ...);
 #else
 	#define csp_debug(...) do {} while (0)
-	#define csp_debug_toggle_level(...) do {} while (0)
-	#define csp_route_print_interfaces(...) do {} while (0)
-	#define csp_route_print_table(...) do {} while (0)
-	#define csp_conn_print_table(...) do {} while (0)
-	#define csp_buffer_print_table(...) do {} while (0)
-	#define csp_debug_hook_set(...) do {} while (0)
 #endif
 
 /* Quick and dirty hack to place AVR debug info in progmem */

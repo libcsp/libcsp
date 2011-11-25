@@ -38,8 +38,6 @@ extern "C" {
 #include "csp_platform.h"
 #include "csp_error.h"
 #include "csp_debug.h"
-
-/* Include CSP buffer system */
 #include "csp_buffer.h"
 
 /** The address of the node */
