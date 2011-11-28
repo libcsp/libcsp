@@ -560,11 +560,13 @@ int csp_route_print_interfaces_str(char * str_buf, int str_size) {
 void csp_route_print_table(void) {
 
 	int i;
+	printf("Node  Interface  Address\r\n");
 	for (i = 0; i < CSP_DEFAULT_ROUTE; i++)
 		if (routes[i].interface != NULL)
-			printf("Node: %u\t\tNexthop: %s[%u]\r\n", i,
-					routes[i].interface->name, routes[i].nexthop_mac_addr);
-	printf("Default\t\tNexthop: %s [%u]\r\n", routes[CSP_DEFAULT_ROUTE].interface->name,
+			printf("%4u  %-9s  %u\r\n", i,
+				routes[i].interface->name,
+				routes[i].nexthop_mac_addr == CSP_NODE_MAC ? i : routes[i].nexthop_mac_addr);
+	printf("   *  %-9s  %u\r\n", routes[CSP_DEFAULT_ROUTE].interface->name,
 	routes[CSP_DEFAULT_ROUTE].nexthop_mac_addr);
 
 }
