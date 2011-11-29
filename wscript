@@ -60,18 +60,18 @@ def options(ctx):
 	gr.add_option('--with-drivers', metavar='PATH', default='../../libgomspace/include', help='Set path to Driver header files')
 
 	# OS	
-	gr.add_option('--with-os', default='posix', help='Set operating system. Must be either \'posix\', \'macosx\', \'windows\' or \'freertos\'')
+	gr.add_option('--with-os', metavar='OS', default='posix', help='Set operating system. Must be either \'posix\', \'macosx\', \'windows\' or \'freertos\'')
 	gr.add_option('--with-freertos', metavar='PATH', default='../../libgomspace/include', help='Set path to FreeRTOS header files')
 
 	# Options
-	gr.add_option('--with-static-buffer-size', type=int, default=320, help='Set size of static buffer elements')
-	gr.add_option('--with-static-buffer-count', type=int, default=12, help='Set number of static buffer elements')
-	gr.add_option('--with-rdp-max-window', type=int, default=20, help='Set maximum window size for RDP')
-	gr.add_option('--with-max-bind-port', type=int, default=31, help='Set maximum bindable port')
-	gr.add_option('--with-max-connections', type=int, default=10, help='Set maximum number of concurrent connections')
-	gr.add_option('--with-conn-queue-length', type=int, default=100, help='Set maximum number of packets in queue for a connection')
-	gr.add_option('--with-router-queue-length', type=int, default=10, help='Set maximum number of packets to be queued at the input of the router')
-	gr.add_option('--with-padding', type=int, default=8, help='Set padding bytes before packet length field')
+	gr.add_option('--with-static-buffer-size', metavar='SIZE', type=int, default=320, help='Set size of static buffer elements')
+	gr.add_option('--with-static-buffer-count', metavar='COUNT', type=int, default=12, help='Set number of static buffer elements')
+	gr.add_option('--with-rdp-max-window', metavar='SIZE', type=int, default=20, help='Set maximum window size for RDP')
+	gr.add_option('--with-max-bind-port', metavar='PORT', type=int, default=31, help='Set maximum bindable port')
+	gr.add_option('--with-max-connections', metavar='COUNT', type=int, default=10, help='Set maximum number of concurrent connections')
+	gr.add_option('--with-conn-queue-length', metavar='SIZE', type=int, default=100, help='Set maximum number of packets in queue for a connection')
+	gr.add_option('--with-router-queue-length', metavar='SIZE', type=int, default=10, help='Set maximum number of packets to be queued at the input of the router')
+	gr.add_option('--with-padding', metavar='BYTES', type=int, default=8, help='Set padding bytes before packet length field')
 
 def configure(ctx):
 	# Validate OS
