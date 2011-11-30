@@ -63,9 +63,9 @@ int csp_i2c_tx(csp_packet_t * packet, uint32_t timeout) {
 
 	/* enqueue the frame */
 	if (i2c_send(csp_i2c_handle, frame, timeout) != E_NO_ERR)
-		return CSP_ERR_DRIVER;
+		return 0;
 
-	return CSP_ERR_NONE;
+	return 1;
 
 }
 
