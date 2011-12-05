@@ -422,7 +422,7 @@ int csp_sendto(uint8_t prio, uint8_t dest, uint8_t dport, uint8_t src_port, uint
 
 	if (opts & CSP_O_RDP) {
 		csp_debug(CSP_ERROR, "Attempt to create RDP packet on connection-less socket\r\n");
-		return -1;
+		return CSP_ERR_INVAL;
 	}
 
 	if (opts & CSP_O_HMAC) {
@@ -430,7 +430,7 @@ int csp_sendto(uint8_t prio, uint8_t dest, uint8_t dport, uint8_t src_port, uint
 		packet->id.flags |= CSP_FHMAC;
 #else
 		csp_debug(CSP_ERROR, "Attempt to create HMAC authenticated packet, but CSP was compiled without HMAC support\r\n");
-		return -1;
+		return CSP_ERR_NOTSUP;
 #endif
 	}
 
@@ -439,7 +439,7 @@ int csp_sendto(uint8_t prio, uint8_t dest, uint8_t dport, uint8_t src_port, uint
 		packet->id.flags |= CSP_FXTEA;
 #else
 		csp_debug(CSP_ERROR, "Attempt to create XTEA encrypted packet, but CSP was compiled without XTEA support\r\n");
-		return -1;
+		return CSP_ERR_NOTSUP;
 #endif
 	}
 
@@ -448,7 +448,7 @@ int csp_sendto(uint8_t prio, uint8_t dest, uint8_t dport, uint8_t src_port, uint
 		packet->id.flags |= CSP_FCRC32;
 #else
 		csp_debug(CSP_ERROR, "Attempt to create CRC32 validated packet, but CSP was compiled without CRC32 support\r\n");
-		return -1;
+		return CSP_ERR_NOTSUP;
 #endif
 	}
 
@@ -458,10 +458,9 @@ int csp_sendto(uint8_t prio, uint8_t dest, uint8_t dport, uint8_t src_port, uint
 	packet->id.sport = src_port;
 	packet->id.pri = prio;
 
-	if (csp_send_direct(packet->id, packet, timeout) != CSP_ERR_NONE) {
-		return -1;
-	} else {
-		return 0;
-	}
+	if (csp_send_direct(packet->id, packet, timeout) != CSP_ERR_NONE)
+		return CSP_ERR_NOTSUP;
+	
+	return CSP_ERR_NONE;
 
 }

@@ -90,7 +90,7 @@ int csp_xtea_set_key(char * key, uint32_t keylen) {
 	/* Copy key */
 	memcpy(csp_xtea_key, hash, XTEA_KEY_LENGTH);
 
-	return 0;
+	return CSP_ERR_NONE;
 
 }
 
@@ -121,7 +121,7 @@ int csp_xtea_encrypt(uint8_t * plain, const uint32_t len, uint32_t iv[2]) {
 		stream[1] = csp_htobe32(iv[1]++);
 	}
 
-	return 0;
+	return CSP_ERR_NONE;
 
 }
 

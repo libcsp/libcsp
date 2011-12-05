@@ -553,7 +553,7 @@ int csp_route_print_interfaces_str(char * str_buf, int str_size) {
 		i = i->next;
 	}
 
-	return 0;
+	return CSP_ERR_NONE;
 
 }
 
@@ -578,18 +578,17 @@ int csp_promisc_enable(unsigned int buf_size) {
 	/* If queue already initialised */
 	if (csp_promisc_queue != NULL) {
 		csp_promisc_enabled = 1;
-		return 1;
+		return CSP_ERR_NONE;
 	}
 	
 	/* Create packet queue */
 	csp_promisc_queue = csp_queue_create(buf_size, sizeof(csp_packet_t *));
 	
-	if (csp_promisc_queue != NULL) {
-		csp_promisc_enabled = 1;
-		return 1;
-	} else {
-		return 0;
-	}
+	if (csp_promisc_queue == NULL) {
+		return CSP_ERR_INVAL;
+
+	csp_promisc_enabled = 1;
+	return CSP_ERR_NONE;
 
 }
 

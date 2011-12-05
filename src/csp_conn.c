@@ -259,7 +259,7 @@ int csp_close(csp_conn_t * conn) {
 #ifdef CSP_USE_RDP
 	/* Ensure RDP knows this connection is closing */
 	if (conn->idin.flags & CSP_FRDP || conn->idout.flags & CSP_FRDP)
-		if (csp_rdp_close(conn) == 1)
+		if (csp_rdp_close(conn) == CSP_ERR_AGAIN)
 			return CSP_ERR_NONE;
 #endif
 

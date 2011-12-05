@@ -48,7 +48,7 @@ int csp_hmac_init(hmac_state * hmac, const uint8_t * key, uint32_t keylen) {
 
 	/* NULL pointer and key check */
 	if (!hmac || !key || keylen < 1)
-		return -1;
+		return CSP_ERR_INVAL;
 
 	/* Make sure we have a large enough key */
 	if(keylen > SHA1_BLOCKSIZE) {
@@ -69,19 +69,19 @@ int csp_hmac_init(hmac_state * hmac, const uint8_t * key, uint32_t keylen) {
 	csp_sha1_init(&hmac->md);
 	csp_sha1_process(&hmac->md, buf, SHA1_BLOCKSIZE);
 
-	return 0;
+	return CSP_ERR_NONE;
 }
 
 int csp_hmac_process(hmac_state * hmac, const uint8_t * in, uint32_t inlen) {
 
 	/* NULL pointer check */
 	if (!hmac || !in)
-		return -1;
+		return CSP_ERR_INVAL;
 
 	/* Process data */
 	csp_sha1_process(&hmac->md, in, inlen);
 
-	return 0;
+	return CSP_ERR_NONE;
 }
 
 int csp_hmac_done(hmac_state * hmac, uint8_t * out) {
@@ -91,7 +91,7 @@ int csp_hmac_done(hmac_state * hmac, uint8_t * out) {
 	uint8_t isha[SHA1_DIGESTSIZE];
 
 	if (!hmac || !out)
-		return -1;
+		return CSP_ERR_INVAL;
 
 	/* Get the hash of the first HMAC vector plus the data */
 	csp_sha1_done(&hmac->md, isha);
@@ -110,7 +110,7 @@ int csp_hmac_done(hmac_state * hmac, uint8_t * out) {
 	for (i = 0; i < SHA1_DIGESTSIZE; i++)
 		out[i] = buf[i];
 
-	return 0;
+	return CSP_ERR_NONE;
 }
 
 int csp_hmac_memory(const uint8_t * key, uint32_t keylen, const uint8_t * data, uint32_t datalen, uint8_t * hmac) {
@@ -118,21 +118,21 @@ int csp_hmac_memory(const uint8_t * key, uint32_t keylen, const uint8_t * data, 
 
 	/* NULL pointer check */
 	if (!key || !data || !hmac)
-		return -1;
+		return CSP_ERR_INVAL;
 
 	/* Init HMAC state */
 	if (csp_hmac_init(&state, key, keylen) != 0)
-		return -1;
+		return CSP_ERR_INVAL;
 
 	/* Process data */
 	if (csp_hmac_process(&state, data, datalen) != 0)
-		return -1;
+		return CSP_ERR_INVAL;
 
 	/* Output HMAC */
 	if (csp_hmac_done(&state, hmac) != 0)
-		return -1;
+		return CSP_ERR_INVAL;
 
-	return 0;
+	return CSP_ERR_NONE;
 }
 
 int csp_hmac_set_key(char * key, uint32_t keylen) {
@@ -144,7 +144,7 @@ int csp_hmac_set_key(char * key, uint32_t keylen) {
 	/* Copy key */
 	memcpy(csp_hmac_key, hash, HMAC_KEY_LENGTH);
 
-	return 0;
+	return CSP_ERR_NONE;
 
 }
 
@@ -152,7 +152,7 @@ int csp_hmac_append(csp_packet_t * packet) {
 
 	/* NULL pointer check */
 	if (packet == NULL)
-		return -1;
+		return CSP_ERR_INVAL;
 
 	uint8_t hmac[SHA1_DIGESTSIZE];
 
@@ -163,7 +163,7 @@ int csp_hmac_append(csp_packet_t * packet) {
 	memcpy(&packet->data[packet->length], hmac, CSP_HMAC_LENGTH);
 	packet->length += CSP_HMAC_LENGTH;
 
-	return 0;
+	return CSP_ERR_NONE;
 
 }
 
@@ -171,7 +171,7 @@ int csp_hmac_verify(csp_packet_t * packet) {
 
 	/* NULL pointer check */
 	if (packet == NULL)
-		return -1;
+		return CSP_ERR_INVAL;
 
 	uint8_t hmac[SHA1_DIGESTSIZE];
 
@@ -181,11 +181,11 @@ int csp_hmac_verify(csp_packet_t * packet) {
 	/* Compare calculated HMAC with packet header */
 	if (memcmp(&packet->data[packet->length] - CSP_HMAC_LENGTH, hmac, CSP_HMAC_LENGTH) != 0) {
 		/* HMAC failed */
-		return -1;
+		return CSP_ERR_HMAC;
 	} else {
 		/* Strip HMAC */
 		packet->length -= CSP_HMAC_LENGTH;
-		return 0;
+		return CSP_ERR_NONE;
 	}
 
 }
