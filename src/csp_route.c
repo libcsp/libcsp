@@ -584,7 +584,7 @@ int csp_promisc_enable(unsigned int buf_size) {
 	/* Create packet queue */
 	csp_promisc_queue = csp_queue_create(buf_size, sizeof(csp_packet_t *));
 	
-	if (csp_promisc_queue == NULL) {
+	if (csp_promisc_queue == NULL)
 		return CSP_ERR_INVAL;
 
 	csp_promisc_enabled = 1;
