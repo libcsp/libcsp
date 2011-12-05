@@ -309,7 +309,7 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, uint32_t timeout) {
 	if (mtu > 0 && bytes > mtu)
 		goto tx_err;
 
-	if ((*ifout->interface->nexthop)(packet, timeout) != 1)
+	if ((*ifout->interface->nexthop)(packet, timeout) != CSP_ERR_NONE)
 		goto tx_err;
 
 	ifout->interface->tx++;

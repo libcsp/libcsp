@@ -132,7 +132,7 @@ int csp_kiss_tx(csp_packet_t * packet, uint32_t timeout) {
 
 	csp_buffer_free(packet);
 
-	return 1;
+	return CSP_ERR_NONE;
 }
 
 /**
