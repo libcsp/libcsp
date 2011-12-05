@@ -130,7 +130,6 @@ int csp_kiss_tx(csp_packet_t * packet, uint32_t timeout) {
 
 	kiss_putstr(txbuf, txbufin);
 
-
 	csp_buffer_free(packet);
 
 	return 1;
@@ -217,7 +216,11 @@ void csp_kiss_rx(uint8_t * buf, int len, void * pxTaskWoken) {
 				if (crc_remote != crc_local) {
 					csp_debug(CSP_WARN, "CRC remote 0x%08X, local 0x%08X\r\n", crc_remote, crc_local);
 					csp_if_kiss.rx_error++;
-					csp_buffer_free(packet);
+					if (pxTaskWoken == NULL) {
+						csp_buffer_free(packet);
+					} else {
+						csp_buffer_free_isr(packet);
+					}
 					mode = KISS_MODE_NOT_STARTED;
 					length = 0;
 					continue;

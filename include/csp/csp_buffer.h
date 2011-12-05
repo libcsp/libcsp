@@ -56,10 +56,16 @@ void * csp_buffer_get(size_t size);
 void * csp_buffer_get_isr(size_t buf_size);
 
 /**
- * Free a buffer after use. This call is both interrupt and thread safe.
+ * Free a buffer after use.
  * @param packet pointer to memory area, must be acquired by csp_buffer_get().
  */
-void csp_buffer_free(void * packet);
+void csp_buffer_free(void *packet);
+
+/**
+ * Free a buffer after use in ISR context.
+ * @param packet pointer to memory area, must be acquired by csp_buffer_get().
+ */
+void csp_buffer_free_isr(void *packet);
 
 /**
  * Clone an existing packet and increase/decrease cloned packet size.

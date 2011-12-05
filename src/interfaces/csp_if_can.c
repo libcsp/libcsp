@@ -219,7 +219,11 @@ static int pbuf_free(pbuf_element_t * buf, CSP_BASE_TYPE * task_woken) {
 		
 	/* Free CSP packet */
 	if (buf->packet != NULL) {
-		csp_buffer_free(buf->packet);
+		if (task_woken == NULL) {
+			csp_buffer_free(buf->packet);
+		} else {
+			csp_buffer_free_isr(buf->packet);
+		}
 		buf->packet = NULL;
 	}
 
