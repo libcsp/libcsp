@@ -796,7 +796,7 @@ void csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 		uint16_t seq_nr = rx_header->seq_nr;
 
 		/* Receive data */
-		if (!csp_rdp_receive_data(conn, packet))
+		if (csp_rdp_receive_data(conn, packet) != CSP_ERR_NONE)
 			goto discard_open;
 
 		/* Update last received packet */
