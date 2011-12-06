@@ -63,7 +63,7 @@ int csp_crc32_append(csp_packet_t * packet) {
 
 	/* NULL pointer check */
 	if (packet == NULL)
-		return -1;
+		return CSP_ERR_INVAL;
 
 	/* Calculate CRC32, convert to network byte order */
 	crc = csp_crc32_memory(packet->data, packet->length);
@@ -73,7 +73,7 @@ int csp_crc32_append(csp_packet_t * packet) {
 	memcpy(&packet->data[packet->length], &crc, sizeof(uint32_t));
 	packet->length += sizeof(uint32_t);
 
-	return 0;
+	return CSP_ERR_NONE;
 
 }
 
@@ -83,7 +83,7 @@ int csp_crc32_verify(csp_packet_t * packet) {
 
 	/* NULL pointer check */
 	if (packet == NULL)
-		return -1;
+		return CSP_ERR_INVAL;
 
 	/* Calculate CRC32, convert to network byte order */
 	crc = csp_crc32_memory(packet->data, packet->length - sizeof(uint32_t));
@@ -92,11 +92,11 @@ int csp_crc32_verify(csp_packet_t * packet) {
 	/* Compare calculated checksum with packet header */
 	if (memcmp(&packet->data[packet->length] - sizeof(uint32_t), &crc, sizeof(uint32_t)) != 0) {
 		/* CRC32 failed */
-		return -1;
+		return CSP_ERR_INVAL;
 	} else {
 		/* Strip CRC32 */
 		packet->length -= sizeof(uint32_t);
-		return 0;
+		return CSP_ERR_NONE;
 	}
 
 }

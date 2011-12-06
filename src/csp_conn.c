@@ -187,7 +187,7 @@ int csp_conn_flush_rx_queue(csp_conn_t * conn) {
 
 csp_conn_t * csp_conn_allocate(csp_conn_type_t type) {
 
-	int i;
+	int i, j;
 	static uint8_t csp_conn_last_given = 0;
 	csp_conn_t * conn;
 
@@ -200,21 +200,20 @@ csp_conn_t * csp_conn_allocate(csp_conn_type_t type) {
 	i = csp_conn_last_given;
 	i = (i + 1) % CSP_CONN_MAX;
 
-	do {
+	for (j = 0; j < CSP_CONN_MAX; j++) {
 		conn = &arr_conn[i];
-		if (conn->state == CONN_CLOSED) {
-			conn->state = CONN_OPEN;
+		if (conn->state == CONN_CLOSED)
 			break;
-		}
 		i = (i + 1) % CSP_CONN_MAX;
-	} while (i != csp_conn_last_given);
+	}
 
-	if (i == csp_conn_last_given) {
+	if (conn->state == CONN_OPEN) {
 		csp_debug(CSP_ERROR, "No more free connections\r\n");
 		csp_bin_sem_post(&conn_lock);
 		return NULL;
 	}
 
+	conn->state = CONN_OPEN;
 	conn->socket = NULL;
 	conn->type = type;
 	csp_conn_last_given = i;
@@ -259,7 +258,7 @@ int csp_close(csp_conn_t * conn) {
 #ifdef CSP_USE_RDP
 	/* Ensure RDP knows this connection is closing */
 	if (conn->idin.flags & CSP_FRDP || conn->idout.flags & CSP_FRDP)
-		if (csp_rdp_close(conn) == 1)
+		if (csp_rdp_close(conn) == CSP_ERR_AGAIN)
 			return CSP_ERR_NONE;
 #endif
 

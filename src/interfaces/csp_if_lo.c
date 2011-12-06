@@ -40,7 +40,7 @@ int csp_lo_tx(csp_packet_t * packet, uint32_t timeout) {
 	/* Send back into CSP, notice calling from task so last argument must be NULL! */
 	csp_new_packet(packet, &csp_if_lo, NULL);
 
-	return 1;
+	return CSP_ERR_NONE;
 
 }
 

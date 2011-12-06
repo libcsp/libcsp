@@ -47,7 +47,6 @@ def options(ctx):
 	gr.add_option('--enable-xtea', action='store_true', help='Enable XTEA support')
 	gr.add_option('--enable-bindings', action='store_true', help='Enable Python bindings')
 	gr.add_option('--enable-examples', action='store_true', help='Enable examples')
-	gr.add_option('--enable-static-buffer', action='store_true', help='Enable static buffer system')
 
 	# Interfaces	
 	gr.add_option('--enable-if-i2c', action='store_true', help='Enable I2C interface')
@@ -64,8 +63,6 @@ def options(ctx):
 	gr.add_option('--with-freertos', metavar='PATH', default='../../libgomspace/include', help='Set path to FreeRTOS header files')
 
 	# Options
-	gr.add_option('--with-static-buffer-size', metavar='SIZE', type=int, default=320, help='Set size of static buffer elements')
-	gr.add_option('--with-static-buffer-count', metavar='COUNT', type=int, default=12, help='Set number of static buffer elements')
 	gr.add_option('--with-rdp-max-window', metavar='SIZE', type=int, default=20, help='Set maximum window size for RDP')
 	gr.add_option('--with-max-bind-port', metavar='PORT', type=int, default=31, help='Set maximum bindable port')
 	gr.add_option('--with-max-connections', metavar='COUNT', type=int, default=10, help='Set maximum number of concurrent connections')
@@ -180,9 +177,6 @@ def configure(ctx):
 	ctx.define_cond('CSP_USE_XTEA', ctx.options.enable_xtea)
 	ctx.define_cond('CSP_USE_PROMISC', ctx.options.enable_promisc)
 	ctx.define_cond('CSP_USE_QOS', ctx.options.enable_qos)
-	ctx.define_cond('CSP_BUFFER_STATIC', ctx.options.enable_static_buffer)
-	ctx.define('CSP_BUFFER_COUNT', ctx.options.with_static_buffer_count)
-	ctx.define('CSP_BUFFER_SIZE', ctx.options.with_static_buffer_size)
 	ctx.define('CSP_CONN_MAX', ctx.options.with_max_connections)
 	ctx.define('CSP_CONN_QUEUE_LENGTH', ctx.options.with_conn_queue_length)
 	ctx.define('CSP_FIFO_INPUT', ctx.options.with_router_queue_length)
@@ -194,6 +188,9 @@ def configure(ctx):
 	endianness = ctx.check_endianness()
 	ctx.define_cond('CSP_LITTLE_ENDIAN', endianness == 'little')
 	ctx.define_cond('CSP_BIG_ENDIAN', endianness == 'big')
+
+	# Check for stdbool.h
+	ctx.check(header_name='stdbool.h', mandatory=False, define_name='CSP_HAVE_STDBOOL_H')
 
 	ctx.write_config_header('include/csp/csp_autoconfig.h', top=True, remove=True)
 

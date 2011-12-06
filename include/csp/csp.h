@@ -34,6 +34,15 @@ extern "C" {
 /* Include configuration file */
 #include <csp/csp_autoconfig.h>
 
+/* Make bool for compilers without stdbool.h */
+#ifdef CSP_HAVE_STDBOOL_H
+#include <stdbool.h>
+#else
+#define bool int
+#define false 0
+#define true !false
+#endif
+
 /* CSP includes */
 #include "csp_platform.h"
 #include "csp_error.h"

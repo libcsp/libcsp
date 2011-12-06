@@ -49,7 +49,7 @@ int csp_fifo_tx(csp_packet_t *packet, uint32_t timeout) {
     if (write(tx_channel, &packet->length, packet->length + sizeof(uint32_t) + sizeof(uint16_t)) < 0)
         printf("Failed to write frame\r\n");
     csp_buffer_free(packet);
-    return 1;
+    return CSP_ERR_NONE;
 }
 
 void * fifo_rx(void * parameters) {
