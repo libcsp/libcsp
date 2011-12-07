@@ -102,7 +102,7 @@ extern void __attribute__((weak)) csp_assert_fail_action(char *assertion, const 
 	#define csp_log_lock(...) do {} while (0)
 #endif
 
-void csp_debug_ex(csp_debug_level_t level, const char * format, ...);
+void csp_debug_ex(csp_debug_level_t level, const char *format, ...);
 
 #ifdef __cplusplus
 } /* extern "C" */

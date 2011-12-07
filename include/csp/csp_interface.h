@@ -45,7 +45,7 @@ extern "C" {
  * @param interface A pointer to the incoming interface TX function.
  * @param pxTaskWoken This must be a pointer a valid variable if called from ISR or NULL otherwise!
  */
-void csp_new_packet(csp_packet_t * packet, csp_iface_t * interface, CSP_BASE_TYPE * pxTaskWoken);
+void csp_new_packet(csp_packet_t *packet, csp_iface_t *interface, CSP_BASE_TYPE *pxTaskWoken);
 
 /**
  * Get MAC layer address of next hop.

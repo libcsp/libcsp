@@ -40,7 +40,7 @@ extern csp_iface_t csp_if_can;
 struct csp_can_config {
 	uint32_t bitrate;
 	uint32_t clock_speed;
-	char * ifc;
+	char *ifc;
 };
 
 /**

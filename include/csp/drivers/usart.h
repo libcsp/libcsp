@@ -37,7 +37,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  * Usart configuration, to be used with the usart_init call.
  */
 struct usart_conf {
-	const char * device;
+	const char *device;
 	uint32_t baudrate;
 	uint8_t databits;
 	uint8_t stopbits;
@@ -49,7 +49,7 @@ struct usart_conf {
  * Initialise UART with the usart_conf data structure
  * @param usart_conf full configuration structure
  */
-void usart_init(struct usart_conf * conf);
+void usart_init(struct usart_conf *conf);
 
 /**
  * In order to catch incoming chars use the callback.
@@ -57,7 +57,7 @@ void usart_init(struct usart_conf * conf);
  * @param handle usart[0,1,2,3]
  * @param callback function pointer
  */
-typedef void (*usart_callback_t) (uint8_t * buf, int len, void * pxTaskWoken);
+typedef void (*usart_callback_t) (uint8_t *buf, int len, void *pxTaskWoken);
 void usart_set_callback(usart_callback_t callback);
 
 /**
@@ -65,7 +65,7 @@ void usart_set_callback(usart_callback_t callback);
  * @param handle usart[0,1,2,3]
  * @param c Character to insert
  */
-void usart_insert(char c, void * pxTaskWoken);
+void usart_insert(char c, void *pxTaskWoken);
 
 /**
  * Polling putchar

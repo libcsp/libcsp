@@ -47,7 +47,7 @@ extern csp_iface_t csp_if_kiss;
  * @param len length of incoming data
  * @param pxTaskWoken NULL if task context, pointer to variable if ISR
  */
-void csp_kiss_rx(uint8_t * buf, int len, void * pxTaskWoken);
+void csp_kiss_rx(uint8_t *buf, int len, void *pxTaskWoken);
 
 /**
  * The putstr function is used by the kiss interface to send
@@ -71,7 +71,7 @@ typedef void (*csp_kiss_putstr_f)(char *buf, int len);
  * @param c rejected character
  * @param pxTaskWoken NULL if task context, pointer to variable if ISR
  */
-typedef void (*csp_kiss_discard_f)(char c, void * pxTaskWoken);
+typedef void (*csp_kiss_discard_f)(char c, void *pxTaskWoken);
 
 /**
  * Initialise kiss interface.

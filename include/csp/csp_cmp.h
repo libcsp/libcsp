@@ -52,10 +52,10 @@ struct csp_cmp_message {
 
 #define CMP_SIZE(_memb) (sizeof(((struct csp_cmp_message *)0)->_memb) + sizeof(uint8_t) + sizeof(uint8_t))
 
-int csp_cmp(uint8_t node, uint32_t timeout, uint8_t code, int membsize, struct csp_cmp_message * msg);
+int csp_cmp(uint8_t node, uint32_t timeout, uint8_t code, int membsize, struct csp_cmp_message *msg);
 
 #define CMP_MESSAGE(_code, _memb) \
-static inline int csp_cmp_##_memb(uint8_t node, uint32_t timeout, struct csp_cmp_message * msg) { \
+static inline int csp_cmp_##_memb(uint8_t node, uint32_t timeout, struct csp_cmp_message *msg) { \
 	return csp_cmp(node, timeout, _code, CMP_SIZE(_memb), msg); \
 }
 

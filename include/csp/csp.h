@@ -200,11 +200,11 @@ typedef struct __attribute__((__packed__)) {
 } csp_packet_t;
 
 /** Next hop function prototype */
-typedef int (*nexthop_t)(csp_packet_t * packet, uint32_t timeout);
+typedef int (*nexthop_t)(csp_packet_t *packet, uint32_t timeout);
 
 /** Interface struct */
 typedef struct csp_iface_s {
-	const char * name;			/**< Interface name */
+	const char *name;			/**< Interface name */
 	nexthop_t nexthop; 			/**< Next hop function */
 	uint8_t promisc;			/**< Promiscuous mode enabled */
 	uint16_t mtu;				/**< Maximum Transmission Unit of interface */
@@ -218,7 +218,7 @@ typedef struct csp_iface_s {
 	uint32_t frame;				/**< Frame format errors */
 	uint32_t txbytes;			/**< Transmitted bytes */
 	uint32_t rxbytes;			/**< Received bytes */
-	struct csp_iface_s * next;	/**< Next interface */
+	struct csp_iface_s *next;	/**< Next interface */
 } csp_iface_t;
 
 /**
@@ -243,33 +243,33 @@ int csp_init(uint8_t my_node_address);
  * Set subsystem hostname. The default hostname is 'csp'.
  * @param hostname Hostname to set
  */
-int csp_set_hostname(char * hostname);
+int csp_set_hostname(char *hostname);
 
 /** csp_get_hostname
  * Get current subsystem hostname.
  * @return Pointer to char array with current hostname.
  */
-char * csp_get_hostname(void);
+char *csp_get_hostname(void);
 
 #define CSP_MODEL_LEN		30
 /** csp_set_model
  * Set subsystem model name. The default model is 'CSP Subsystem'
  * @param model Model name to set
  */
-int csp_set_model(char * model);
+int csp_set_model(char *model);
 
 /** csp_get_model
  * Get current model name.
  * @return Pointer to char array with current model name.
  */
-char * csp_get_model(void);
+char *csp_get_model(void);
 
 /** csp_socket
  * Create CSP socket endpoint
  * @param opts Socket options
  * @return Pointer to socket on success, NULL on failure
  */
-csp_socket_t * csp_socket(uint32_t opts);
+csp_socket_t *csp_socket(uint32_t opts);
 
 /**
  * Wait for a new connection on a socket created by csp_socket
@@ -277,7 +277,7 @@ csp_socket_t * csp_socket(uint32_t opts);
  * @param timeout use portMAX_DELAY for infinite timeout
  * @return Return pointer to csp_conn_t or NULL if timeout was reached
  */
-csp_conn_t * csp_accept(csp_socket_t * socket, uint32_t timeout);
+csp_conn_t *csp_accept(csp_socket_t *socket, uint32_t timeout);
 
 /**
  * Read data from a connection
@@ -289,7 +289,7 @@ csp_conn_t * csp_accept(csp_socket_t * socket, uint32_t timeout);
  * @param timeout timeout in ms, use CSP_MAX_DELAY for infinite blocking time
  * @return Returns pointer to csp_packet_t, which you MUST free yourself, either by calling csp_buffer_free() or reusing the buffer for a new csp_send.
  */
-csp_packet_t * csp_read(csp_conn_t * conn, uint32_t timeout);
+csp_packet_t *csp_read(csp_conn_t *conn, uint32_t timeout);
 
 /**
  * Send a packet on an already established connection
@@ -298,7 +298,7 @@ csp_packet_t * csp_read(csp_conn_t * conn, uint32_t timeout);
  * @param timeout a timeout to wait for TX to complete. NOTE: not all underlying drivers supports flow-control.
  * @return returns 1 if successful and 0 otherwise. you MUST free the frame yourself if the transmission was not successful.
  */
-int csp_send(csp_conn_t * conn, csp_packet_t * packet, uint32_t timeout);
+int csp_send(csp_conn_t *conn, csp_packet_t *packet, uint32_t timeout);
 
 /**
  * Perform an entire request/reply transaction
@@ -314,7 +314,7 @@ int csp_send(csp_conn_t * conn, csp_packet_t * packet, uint32_t timeout);
  * @param inlen length of expected reply, -1 for unknown size (note inbuf MUST be large enough)
  * @return Return 1 or reply size if successful, 0 if error or incoming length does not match or -1 if timeout was reached
  */
-int csp_transaction(uint8_t prio, uint8_t dest, uint8_t port, uint32_t timeout, void * outbuf, int outlen, void * inbuf, int inlen);
+int csp_transaction(uint8_t prio, uint8_t dest, uint8_t port, uint32_t timeout, void *outbuf, int outlen, void *inbuf, int inlen);
 
 /**
  * Use an existing connection to perform a transaction,
@@ -327,7 +327,7 @@ int csp_transaction(uint8_t prio, uint8_t dest, uint8_t port, uint32_t timeout, 
  * @param inlen length of expected reply, -1 for unknown size (note inbuf MUST be large enough)
  * @return
  */
-int csp_transaction_persistent(csp_conn_t * conn, uint32_t timeout, void * outbuf, int outlen, void * inbuf, int inlen);
+int csp_transaction_persistent(csp_conn_t *conn, uint32_t timeout, void *outbuf, int outlen, void *inbuf, int inlen);
 
 /**
  * Read data from a connection-less server socket
@@ -336,7 +336,7 @@ int csp_transaction_persistent(csp_conn_t * conn, uint32_t timeout, void * outbu
  * Do NOT call this from ISR
  * @return Returns pointer to csp_packet_t, which you MUST free yourself, either by calling csp_buffer_free() or reusing the buffer for a new csp_send.
  */
-csp_packet_t * csp_recvfrom(csp_socket_t * socket, uint32_t timeout);
+csp_packet_t *csp_recvfrom(csp_socket_t *socket, uint32_t timeout);
 
 /**
  * Send a packet without previously opening a connection
@@ -349,7 +349,7 @@ csp_packet_t * csp_recvfrom(csp_socket_t * socket, uint32_t timeout);
  * @param timeout timeout used by interfaces with blocking send
  * @return -1 if error (you must free packet), 0 if OK (you must discard pointer)
  */
-int csp_sendto(uint8_t prio, uint8_t dest, uint8_t dport, uint8_t src_port, uint32_t opts, csp_packet_t * packet, uint32_t timeout);
+int csp_sendto(uint8_t prio, uint8_t dest, uint8_t dport, uint8_t src_port, uint32_t opts, csp_packet_t *packet, uint32_t timeout);
 
 /** csp_connect
  * Used to establish outgoing connections
@@ -363,44 +363,44 @@ int csp_sendto(uint8_t prio, uint8_t dest, uint8_t dport, uint8_t src_port, uint
  * @param opts Connection options.
  * @return a pointer to a new connection or NULL
  */
-csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport, uint32_t timeout, uint32_t opts);
+csp_conn_t *csp_connect(uint8_t prio, uint8_t dest, uint8_t dport, uint32_t timeout, uint32_t opts);
 
 /** csp_close
  * Closes a given connection and frees buffers used.
  * @param conn pointer to connection structure
  * @return CSP_ERR_NONE if connection was closed. Otherwise, an err code is returned.
  */
-int csp_close(csp_conn_t * conn);
+int csp_close(csp_conn_t *conn);
 
 /**
  * @param conn pointer to connection structure
  * @return destination port of an incoming connection
  */
-int csp_conn_dport(csp_conn_t * conn);
+int csp_conn_dport(csp_conn_t *conn);
 
 /**
  * @param conn pointer to connection structure
  * @return source port of an incoming connection
  */
-int csp_conn_sport(csp_conn_t * conn);
+int csp_conn_sport(csp_conn_t *conn);
 
 /**
  * @param conn pointer to connection structure
  * @return destination address of an incoming connection
  */
-int csp_conn_dst(csp_conn_t * conn);
+int csp_conn_dst(csp_conn_t *conn);
 
 /**
  * @param conn pointer to connection structure
  * @return source address of an incoming connection
  */
-int csp_conn_src(csp_conn_t * conn);
+int csp_conn_src(csp_conn_t *conn);
 
 /**
  * @param conn pointer to connection structure
  * @return flags field of an incoming connection
  */
-int csp_conn_flags(csp_conn_t * conn);
+int csp_conn_flags(csp_conn_t *conn);
 
 /**
  * Set socket to listen for incoming connections
@@ -408,7 +408,7 @@ int csp_conn_flags(csp_conn_t * conn);
  * @param conn_queue_length Lenght of backlog connection queue
  * @return 0 on success, -1 on error.
  */
-int csp_listen(csp_socket_t * socket, size_t conn_queue_length);
+int csp_listen(csp_socket_t *socket, size_t conn_queue_length);
 
 /**
  * Bind port to socket
@@ -416,7 +416,7 @@ int csp_listen(csp_socket_t * socket, size_t conn_queue_length);
  * @param port Port number to bind
  * @return 0 on success, -1 on error.
  */
-int csp_bind(csp_socket_t * socket, uint8_t port);
+int csp_bind(csp_socket_t *socket, uint8_t port);
 
 /**
  * Set route
@@ -424,7 +424,7 @@ int csp_bind(csp_socket_t * socket, uint8_t port);
  * To set default route use nodeid CSP_DEFAULT_ROUTE
  * To clear a value pass a NULL value
  */
-int csp_route_set(uint8_t node, csp_iface_t * ifc, uint8_t nexthop_mac_addr);
+int csp_route_set(uint8_t node, csp_iface_t *ifc, uint8_t nexthop_mac_addr);
 
 /**
  * Start the router task.
@@ -459,7 +459,7 @@ void csp_promisc_disable(void);
  *
  * @param timeout Timeout in ms to wait for a new packet
  */
-csp_packet_t * csp_promisc_read(uint32_t timeout);
+csp_packet_t *csp_promisc_read(uint32_t timeout);
 
 /**
  * If the given packet is a service-request (that is uses one of the csp service ports)
@@ -472,7 +472,7 @@ csp_packet_t * csp_promisc_read(uint32_t timeout);
  * @param conn Pointer to the new connection
  * @param packet Pointer to the first packet, obtained by using csp_read()
  */
-void csp_service_handler(csp_conn_t * conn, csp_packet_t * packet);
+void csp_service_handler(csp_conn_t *conn, csp_packet_t *packet);
 
 /**
  * Send a single ping/echo packet
@@ -547,9 +547,9 @@ void csp_rdp_set_opt(unsigned int window_size, unsigned int conn_timeout_ms,
  * @param ack_timeout Acknowledgement timeout when delayed ACKs is enabled
  * @param ack_delay_count Send acknowledgement for every ack_delay_count packets
  */
-void csp_rdp_get_opt(unsigned int * window_size, unsigned int * conn_timeout_ms,
-		unsigned int * packet_timeout_ms, unsigned int * delayed_acks,
-		unsigned int * ack_timeout, unsigned int * ack_delay_count);
+void csp_rdp_get_opt(unsigned int *window_size, unsigned int *conn_timeout_ms,
+		unsigned int *packet_timeout_ms, unsigned int *delayed_acks,
+		unsigned int *ack_timeout, unsigned int *ack_delay_count);
 
 /**
  * Set XTEA key
@@ -557,7 +557,7 @@ void csp_rdp_get_opt(unsigned int * window_size, unsigned int * conn_timeout_ms,
  * @param keylen Length of key
  * @return 0 if key was successfully set, -1 otherwise
  */
-int csp_xtea_set_key(char * key, uint32_t keylen);
+int csp_xtea_set_key(char *key, uint32_t keylen);
 
 /**
  * Set HMAC key
@@ -565,7 +565,7 @@ int csp_xtea_set_key(char * key, uint32_t keylen);
  * @param keylen Length of key
  * @return 0 if key was successfully set, -1 otherwise
  */
-int csp_hmac_set_key(char * key, uint32_t keylen);
+int csp_hmac_set_key(char *key, uint32_t keylen);
 
 /**
  * Toggle debug level on/off
@@ -597,7 +597,7 @@ void csp_buffer_print_table(void);
  * Set csp_debug hook function
  * @param f Hook function
  */
-typedef void (*csp_debug_hook_func_t)(csp_debug_level_t level, char * str);
+typedef void (*csp_debug_hook_func_t)(csp_debug_level_t level, char *str);
 void csp_debug_hook_set(csp_debug_hook_func_t f);
 
 #ifdef __cplusplus
