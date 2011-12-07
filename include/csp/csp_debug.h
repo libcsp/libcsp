@@ -67,7 +67,7 @@ extern void __attribute__((weak)) csp_assert_fail_action(char *assertion, const 
 #endif
 
 #ifdef CSP_DEBUG
-	#define csp_debug(level, format, ...) csp_debug_ex(level, CONSTSTR("[%02"PRIu8"] %s:%d " format), my_address, BASENAME(__FILE__), __LINE__, ##__VA_ARGS__)
+	#define csp_debug(level, format, ...) do_csp_debug(level, CONSTSTR("[%02"PRIu8"] %s:%d " format), my_address, BASENAME(__FILE__), __LINE__, ##__VA_ARGS__)
 #else
 	#define csp_debug(...) do {} while (0)
 #endif
@@ -102,7 +102,7 @@ extern void __attribute__((weak)) csp_assert_fail_action(char *assertion, const 
 	#define csp_log_lock(...) do {} while (0)
 #endif
 
-void csp_debug_ex(csp_debug_level_t level, const char *format, ...);
+void do_csp_debug(csp_debug_level_t level, const char *format, ...);
 
 #ifdef __cplusplus
 } /* extern "C" */

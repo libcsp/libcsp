@@ -52,49 +52,42 @@ void csp_debug_hook_set(csp_debug_hook_func_t f) {
 	csp_debug_hook_func = f;
 }
 
-void csp_debug_ex(csp_debug_level_t level, const char * format, ...) {
+void do_csp_debug(csp_debug_level_t level, const char * format, ...) {
 
 	int color = COLOR_RESET;
 	va_list args;
-	va_start(args, format);
 
 	/* Don't print anything if log level is disabled */
+	if (level > CSP_LOCK || !levels_enable[level])
+		return;
+
 	switch(level) {
 	case CSP_INFO:
-		if (!levels_enable[CSP_INFO])
-			return;
+		color = COLOR_GREEN | COLOR_BOLD;
 		break;
 	case CSP_ERROR:
-		if (!levels_enable[CSP_ERROR])
-			return;
 		color = COLOR_RED | COLOR_BOLD;
 		break;
 	case CSP_WARN:
-		if (!levels_enable[CSP_WARN])
-			return;
-		color = COLOR_YELLOW;
+		color = COLOR_YELLOW | COLOR_BOLD;
 		break;
 	case CSP_BUFFER:
-		if (!levels_enable[CSP_BUFFER])
-			return;
-		color = COLOR_YELLOW;
+		color = COLOR_MAGENTA;
 		break;
 	case CSP_PACKET:
-		if (!levels_enable[CSP_PACKET])
-			return;
 		color = COLOR_GREEN;
 		break;
 	case CSP_PROTOCOL:
-		if (!levels_enable[CSP_PROTOCOL])
-			return;
 		color = COLOR_BLUE;
 		break;
 	case CSP_LOCK:
-		if (!levels_enable[CSP_LOCK])
-			return;
 		color = COLOR_CYAN;
 		break;
+	default:
+		return;
 	}
+	
+	va_start(args, format);
 
 	/* If csp_debug_hook symbol is defined, pass on the message.
 	 * Otherwise, just print with pretty colors ... */
