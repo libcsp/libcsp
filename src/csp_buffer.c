@@ -78,16 +78,16 @@ void *csp_buffer_get_isr(size_t buf_size) {
 	CSP_BASE_TYPE task_woken = 0;
 
 	if (buf_size + CSP_BUFFER_PACKET_OVERHEAD > size) {
-		csp_debug(CSP_ERROR, "Attempt to allocate too large block %u\r\n", buf_size);
+		csp_log_error("Attempt to allocate too large block %u\r\n", buf_size);
 		return NULL;
 	}
 
 	csp_queue_dequeue_isr(csp_buffers, &buffer, &task_woken);
 		
 	if (buffer) {
-		csp_debug(CSP_BUFFER, "BUFFER: Using element at %p\r\n", buffer);
+		csp_log_buffer("BUFFER: Using element at %p\r\n", buffer);
 	} else {
-		csp_debug(CSP_ERROR, "Out of buffers\r\n");
+		csp_log_error("Out of buffers\r\n");
 	}
 
 	return buffer;

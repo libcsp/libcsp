@@ -69,6 +69,7 @@ def options(ctx):
 	gr.add_option('--with-conn-queue-length', metavar='SIZE', type=int, default=100, help='Set maximum number of packets in queue for a connection')
 	gr.add_option('--with-router-queue-length', metavar='SIZE', type=int, default=10, help='Set maximum number of packets to be queued at the input of the router')
 	gr.add_option('--with-padding', metavar='BYTES', type=int, default=8, help='Set padding bytes before packet length field')
+	gr.add_option('--with-loglevel', metavar='LEVEL', default='debug', help='Set minimum compile time log level. Must be one of \'error\', \'warn\', \'info\' or \'debug\'')
 
 def configure(ctx):
 	# Validate OS
@@ -82,6 +83,9 @@ def configure(ctx):
 	# Validate USART drivers
 	if not ctx.options.with_driver_usart in (None, 'windows', 'linux'):
 		ctx.fatal('--with-driver-usart must be either \'windows\' or \'linux\'')
+
+	if not ctx.options.with_loglevel in ('error', 'warn', 'info', 'debug'):
+		ctx.fatal('--with-loglevel must be either \'error\', \'warn\', \'info\' or \'debug\'')
 	
 	# Setup and validate toolchain
 	ctx.env.CC = ctx.options.toolchain + 'gcc'
@@ -183,6 +187,12 @@ def configure(ctx):
 	ctx.define('CSP_MAX_BIND_PORT', ctx.options.with_max_bind_port)
 	ctx.define('CSP_RDP_MAX_WINDOW', ctx.options.with_rdp_max_window)
 	ctx.define('CSP_PADDING_BYTES', ctx.options.with_padding)
+
+	# Set logging level
+	ctx.define_cond('CSP_LOG_LEVEL_DEBUG', ctx.options.with_loglevel in ('debug'))
+	ctx.define_cond('CSP_LOG_LEVEL_INFO', ctx.options.with_loglevel in ('debug', 'info'))
+	ctx.define_cond('CSP_LOG_LEVEL_WARN', ctx.options.with_loglevel in ('debug', 'info', 'warn'))
+	ctx.define_cond('CSP_LOG_LEVEL_ERROR', ctx.options.with_loglevel in ('debug', 'info', 'warn', 'error'))
 
 	# Check compiler endianness
 	endianness = ctx.check_endianness()

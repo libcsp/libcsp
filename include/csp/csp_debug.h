@@ -27,9 +27,9 @@ extern "C" {
 
 /** Debug levels */
 typedef enum {
-	CSP_INFO		= 0,
-	CSP_ERROR	 	= 1,
-	CSP_WARN	 	= 2,
+	CSP_ERROR	 	= 0,
+	CSP_WARN	 	= 1,
+	CSP_INFO		= 2,
 	CSP_BUFFER   	= 3,
 	CSP_PACKET   	= 4,
 	CSP_PROTOCOL	= 5,
@@ -59,19 +59,50 @@ extern void __attribute__((weak)) csp_assert_fail_action(char *assertion, const 
 	#define csp_assert(...) do {} while (0)
 #endif
 
+#ifdef __AVR__
+	#include <avr/pgmspace.h>
+	#define CONSTSTR(data) PSTR(data)
+#else
+	#define CONSTSTR(data) data
+#endif
+
 #ifdef CSP_DEBUG
-	#define csp_debug(level, format, ...) csp_debug_ex(level, "[%02"PRIu8"] %s:%d " format, my_address, BASENAME(__FILE__), __LINE__, ##__VA_ARGS__)
-	void csp_debug_ex(csp_debug_level_t level, const char * format, ...);
+	#define csp_debug(level, format, ...) csp_debug_ex(level, CONSTSTR("[%02"PRIu8"] %s:%d " format), my_address, BASENAME(__FILE__), __LINE__, ##__VA_ARGS__)
 #else
 	#define csp_debug(...) do {} while (0)
 #endif
 
-/* Quick and dirty hack to place AVR debug info in progmem */
-#if defined(CSP_DEBUG) && defined(__AVR__)
-	#include <avr/pgmspace.h>
-	#undef csp_debug
-	#define csp_debug(level, format, ...) printf_P(PSTR(format), ##__VA_ARGS__)
+#ifdef CSP_LOG_LEVEL_ERROR
+	#define csp_log_error(format, ...) csp_debug(CSP_ERROR, format, ##__VA_ARGS__)
+#else
+	#define csp_log_error(...) do {} while (0)
 #endif
+
+#ifdef CSP_LOG_LEVEL_WARN
+	#define csp_log_warn(format, ...) csp_debug(CSP_WARN, format, ##__VA_ARGS__)
+#else
+	#define csp_log_warn(...) do {} while (0)
+#endif
+	
+#ifdef CSP_LOG_LEVEL_INFO
+	#define csp_log_info(format, ...) csp_debug(CSP_INFO, format, ##__VA_ARGS__)
+#else
+	#define csp_log_info(...) do {} while (0)
+#endif
+
+#ifdef CSP_LOG_LEVEL_DEBUG
+	#define csp_log_buffer(format, ...) csp_debug(CSP_BUFFER, format, ##__VA_ARGS__)
+	#define csp_log_packet(format, ...) csp_debug(CSP_PACKET, format, ##__VA_ARGS__)
+	#define csp_log_protocol(format, ...) csp_debug(CSP_PROTOCOL, format, ##__VA_ARGS__)
+	#define csp_log_lock(format, ...) csp_debug(CSP_LOCK, format, ##__VA_ARGS__)
+#else
+	#define csp_log_buffer(...) do {} while (0)
+	#define csp_log_packet(...) do {} while (0)
+	#define csp_log_protocol(...) do {} while (0)
+	#define csp_log_lock(...) do {} while (0)
+#endif
+
+void csp_debug_ex(csp_debug_level_t level, const char * format, ...);
 
 #ifdef __cplusplus
 } /* extern "C" */

@@ -110,7 +110,7 @@ int csp_conn_init(void) {
 	sport = (rand() % (CSP_ID_PORT_MAX - CSP_MAX_BIND_PORT)) + (CSP_MAX_BIND_PORT + 1);
 
 	if (csp_bin_sem_create(&sport_lock) != CSP_SEMAPHORE_OK) {
-		csp_debug(CSP_ERROR, "No more memory for sport semaphore\r\n");
+		csp_log_error("No more memory for sport semaphore\r\n");
 		return CSP_ERR_NOMEM;
 	}
 
@@ -125,20 +125,20 @@ int csp_conn_init(void) {
 		arr_conn[i].state = CONN_CLOSED;
 
 		if (csp_mutex_create(&arr_conn[i].lock) != CSP_MUTEX_OK) {
-			csp_debug(CSP_ERROR, "Failed to create connection lock\r\n");
+			csp_log_error("Failed to create connection lock\r\n");
 			return CSP_ERR_NOMEM;
 		}
 
 #ifdef CSP_USE_RDP
 		if (csp_rdp_allocate(&arr_conn[i]) != CSP_ERR_NONE) {
-			csp_debug(CSP_ERROR, "Failed to create queues for RDP in csp_conn_init\r\n");
+			csp_log_error("Failed to create queues for RDP in csp_conn_init\r\n");
 			return CSP_ERR_NOMEM;
 		}
 #endif
 	}
 
 	if (csp_bin_sem_create(&conn_lock) != CSP_SEMAPHORE_OK) {
-		csp_debug(CSP_ERROR, "No more memory for conn semaphore\r\n");
+		csp_log_error("No more memory for conn semaphore\r\n");
 		return CSP_ERR_NOMEM;
 	}
 
@@ -192,7 +192,7 @@ csp_conn_t * csp_conn_allocate(csp_conn_type_t type) {
 	csp_conn_t * conn;
 
 	if (csp_bin_sem_wait(&conn_lock, 100) != CSP_SEMAPHORE_OK) {
-		csp_debug(CSP_ERROR, "Failed to lock conn array\r\n");
+		csp_log_error("Failed to lock conn array\r\n");
 		return NULL;
 	}
 
@@ -208,7 +208,7 @@ csp_conn_t * csp_conn_allocate(csp_conn_type_t type) {
 	}
 
 	if (conn->state == CONN_OPEN) {
-		csp_debug(CSP_ERROR, "No more free connections\r\n");
+		csp_log_error("No more free connections\r\n");
 		csp_bin_sem_post(&conn_lock);
 		return NULL;
 	}
@@ -246,12 +246,12 @@ csp_conn_t * csp_conn_new(csp_id_t idin, csp_id_t idout) {
 int csp_close(csp_conn_t * conn) {
 
 	if (conn == NULL) {
-		csp_debug(CSP_ERROR, "NULL Pointer given to csp_close\r\n");
+		csp_log_error("NULL Pointer given to csp_close\r\n");
 		return CSP_ERR_INVAL;
 	}
 
 	if (conn->state == CONN_CLOSED) {
-		csp_debug(CSP_PROTOCOL, "Conn already closed by transport layer\r\n");
+		csp_log_protocol("Conn already closed by transport layer\r\n");
 		return CSP_ERR_NONE;
 	}
 
@@ -264,7 +264,7 @@ int csp_close(csp_conn_t * conn) {
 
 	/* Lock connection array while closing connection */
 	if (csp_bin_sem_wait(&conn_lock, 100) != CSP_SEMAPHORE_OK) {
-		csp_debug(CSP_ERROR, "Failed to lock conn array\r\n");
+		csp_log_error("Failed to lock conn array\r\n");
 		return CSP_ERR_TIMEDOUT;
 	}
 
@@ -307,7 +307,7 @@ csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport, uint32_t tim
 		incoming_id.flags |= CSP_FRDP;
 		outgoing_id.flags |= CSP_FRDP;
 #else
-		csp_debug(CSP_ERROR, "Attempt to create RDP connection, but CSP was compiled without RDP support\r\n");
+		csp_log_error("Attempt to create RDP connection, but CSP was compiled without RDP support\r\n");
 		return NULL;
 #endif
 	}
@@ -317,7 +317,7 @@ csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport, uint32_t tim
 		outgoing_id.flags |= CSP_FHMAC;
 		incoming_id.flags |= CSP_FHMAC;
 #else
-		csp_debug(CSP_ERROR, "Attempt to create HMAC authenticated connection, but CSP was compiled without HMAC support\r\n");
+		csp_log_error("Attempt to create HMAC authenticated connection, but CSP was compiled without HMAC support\r\n");
 		return NULL;
 #endif
 	}
@@ -327,7 +327,7 @@ csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport, uint32_t tim
 		outgoing_id.flags |= CSP_FXTEA;
 		incoming_id.flags |= CSP_FXTEA;
 #else
-		csp_debug(CSP_ERROR, "Attempt to create XTEA encrypted connection, but CSP was compiled without XTEA support\r\n");
+		csp_log_error("Attempt to create XTEA encrypted connection, but CSP was compiled without XTEA support\r\n");
 		return NULL;
 #endif
 	}
@@ -337,7 +337,7 @@ csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport, uint32_t tim
 		outgoing_id.flags |= CSP_FCRC32;
 		incoming_id.flags |= CSP_FCRC32;
 #else
-		csp_debug(CSP_ERROR, "Attempt to create CRC32 validated connection, but CSP was compiled without CRC32 support\r\n");
+		csp_log_error("Attempt to create CRC32 validated connection, but CSP was compiled without CRC32 support\r\n");
 		return NULL;
 #endif
 	}

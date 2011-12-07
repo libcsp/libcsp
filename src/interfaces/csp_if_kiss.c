@@ -217,7 +217,7 @@ void csp_kiss_rx(uint8_t * buf, int len, void * pxTaskWoken) {
 				uint32_t crc_local = kiss_crc((unsigned char *) &packet->id.ext, packet->length - sizeof(crc_remote));
 
 				if (crc_remote != crc_local) {
-					csp_debug(CSP_WARN, "CRC remote 0x%08X, local 0x%08X\r\n", crc_remote, crc_local);
+					csp_log_warn("CRC remote 0x%08X, local 0x%08X\r\n", crc_remote, crc_local);
 					csp_if_kiss.rx_error++;
 					if (pxTaskWoken == NULL) {
 						csp_buffer_free(packet);
@@ -241,7 +241,7 @@ void csp_kiss_rx(uint8_t * buf, int len, void * pxTaskWoken) {
 				/* Send back into CSP, notice calling from task so last argument must be NULL! */
 				csp_new_packet(packet, &csp_if_kiss, pxTaskWoken);
 			} else {
-				csp_debug(CSP_WARN, "Weird kiss frame received! Size %u\r\n",
+				csp_log_warn("Weird kiss frame received! Size %u\r\n",
 						packet->length);
 				csp_buffer_free(packet);
 			}

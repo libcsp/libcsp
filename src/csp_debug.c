@@ -23,6 +23,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <stdarg.h>
 #include <string.h>
 
+#ifdef __AVR__
+#include <avr/pgmspace.h>
+#endif
+
 /* CSP includes */
 #include <csp/csp.h>
 
@@ -33,21 +37,19 @@ csp_debug_hook_func_t csp_debug_hook_func = NULL;
 
 /* Debug levels */
 static uint8_t levels_enable[] = {
-		0,	// Info
-		1,	// Error
-		1,	// Warn
-		0,	// Buffer
-		0,	// Packet
-		0,	// Protocol
-		0	// Locks
+	[CSP_ERROR]		= 1,
+	[CSP_WARN]		= 1,
+	[CSP_INFO]		= 0,
+	[CSP_BUFFER]	= 0,
+	[CSP_PACKET]	= 0,
+	[CSP_PROTOCOL]	= 0,
+	[CSP_LOCK]		= 0,
 };
 
 /* Some compilers do not support weak symbols, so this function
  * can be used instead to set a custom debug hook */
 void csp_debug_hook_set(csp_debug_hook_func_t f) {
-
 	csp_debug_hook_func = f;
-
 }
 
 void csp_debug_ex(csp_debug_level_t level, const char * format, ...) {
@@ -102,7 +104,11 @@ void csp_debug_ex(csp_debug_level_t level, const char * format, ...) {
 		csp_debug_hook_func(level, buf);
 	} else {
 		csp_sys_set_color(color);
+#ifdef __AVR__
+		vfprintf_P(stdout, format, args);
+#else
 		vprintf(format, args);
+#endif
 		csp_sys_set_color(COLOR_RESET);
 	}
 

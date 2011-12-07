@@ -77,17 +77,17 @@ int csp_listen(csp_socket_t * socket, size_t conn_queue_length) {
 int csp_bind(csp_socket_t * socket, uint8_t port) {
 	
 	if (port > CSP_ANY) {
-		csp_debug(CSP_ERROR, "Only ports from 0-%u (and CSP_ANY for default) are available for incoming ports\r\n", CSP_ANY);
+		csp_log_error("Only ports from 0-%u (and CSP_ANY for default) are available for incoming ports\r\n", CSP_ANY);
 		return CSP_ERR_INVAL;
 	}
 
 	/* Check if port number is valid */
 	if (ports[port].state != PORT_CLOSED) {
-		csp_debug(CSP_ERROR, "Port %d is already in use\r\n", port);
+		csp_log_error("Port %d is already in use\r\n", port);
 		return CSP_ERR_USED;
 	}
 
-	csp_debug(CSP_INFO, "Binding socket %p to port %u\r\n", socket, port);
+	csp_log_info("Binding socket %p to port %u\r\n", socket, port);
 
 	/* Save listener */
 	ports[port].socket = socket;

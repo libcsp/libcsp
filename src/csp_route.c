@@ -97,16 +97,16 @@ static int csp_route_security_check(uint32_t security_opts, csp_iface_t * interf
 		/* Decrypt data */
 		if (csp_xtea_decrypt(packet->data, packet->length, iv) != 0) {
 			/* Decryption failed */
-			csp_debug(CSP_ERROR, "Decryption failed! Discarding packet\r\n");
+			csp_log_error("Decryption failed! Discarding packet\r\n");
 			interface->autherr++;
 			return CSP_ERR_XTEA;
 		}
 	} else if (security_opts & CSP_SO_XTEAREQ) {
-		csp_debug(CSP_WARN, "Received packet without XTEA encryption. Discarding packet\r\n");
+		csp_log_warn("Received packet without XTEA encryption. Discarding packet\r\n");
 		interface->autherr++;
 		return CSP_ERR_XTEA;
 #else
-		csp_debug(CSP_ERROR, "Received XTEA encrypted packet, but CSP was compiled without XTEA support. Discarding packet\r\n");
+		csp_log_error("Received XTEA encrypted packet, but CSP was compiled without XTEA support. Discarding packet\r\n");
 		interface->autherr++;
 		return CSP_ERR_NOTSUP;
 #endif
@@ -118,16 +118,16 @@ static int csp_route_security_check(uint32_t security_opts, csp_iface_t * interf
 		/* Verify CRC32  */
 		if (csp_crc32_verify(packet) != 0) {
 			/* Checksum failed */
-			csp_debug(CSP_ERROR, "CRC32 verification error! Discarding packet\r\n");
+			csp_log_error("CRC32 verification error! Discarding packet\r\n");
 			interface->rx_error++;
 			return CSP_ERR_CRC32;
 		}
 	} else if (security_opts & CSP_SO_CRC32REQ) {
-		csp_debug(CSP_WARN, "Received packet without CRC32. Accepting packet\r\n");
+		csp_log_warn("Received packet without CRC32. Accepting packet\r\n");
 		packet->length -= sizeof(uint32_t);
 #else
 		/* Strip CRC32 field and accept the packet */
-		csp_debug(CSP_WARN, "Received packet with CRC32, but CSP was compiled without CRC32 support. Accepting packet\r\n");
+		csp_log_warn("Received packet with CRC32, but CSP was compiled without CRC32 support. Accepting packet\r\n");
 		packet->length -= sizeof(uint32_t);
 #endif
 	}
@@ -138,16 +138,16 @@ static int csp_route_security_check(uint32_t security_opts, csp_iface_t * interf
 		/* Verify HMAC */
 		if (csp_hmac_verify(packet) != 0) {
 			/* HMAC failed */
-			csp_debug(CSP_ERROR, "HMAC verification error! Discarding packet\r\n");
+			csp_log_error("HMAC verification error! Discarding packet\r\n");
 			interface->autherr++;
 			return CSP_ERR_HMAC;
 		}
 	} else if (security_opts & CSP_SO_HMACREQ) {
-		csp_debug(CSP_WARN, "Received packet without HMAC. Discarding packet\r\n");
+		csp_log_warn("Received packet without HMAC. Discarding packet\r\n");
 		interface->autherr++;
 		return CSP_ERR_HMAC;
 #else
-		csp_debug(CSP_ERROR, "Received packet with HMAC, but CSP was compiled without HMAC support. Discarding packet\r\n");
+		csp_log_error("Received packet with HMAC, but CSP was compiled without HMAC support. Discarding packet\r\n");
 		interface->autherr++;
 		return CSP_ERR_NOTSUP;
 #endif
@@ -205,7 +205,7 @@ int csp_route_next_packet(csp_route_queue_t * input) {
 	}
 
 	if (!found) {
-		csp_debug(CSP_WARN, "Spurious wakeup of router task. No packet found\r\n");
+		csp_log_warn("Spurious wakeup of router task. No packet found\r\n");
 		return CSP_ERR_TIMEDOUT;
 	}
 #else
@@ -228,7 +228,7 @@ CSP_DEFINE_TASK(csp_task_router) {
 
 	for (prio = 0; prio < CSP_ROUTE_FIFOS; prio++) {
 		if (!router_input_fifo[prio]) {
-			csp_debug(CSP_ERROR, "Router %d not initialized\r\n", prio);
+			csp_log_error("Router %d not initialized\r\n", prio);
 			csp_thread_exit();
 		}
 	}
@@ -253,7 +253,7 @@ CSP_DEFINE_TASK(csp_task_router) {
 
 		packet = input.packet;
 
-		csp_debug(CSP_PACKET, "Router input: P 0x%02X, S 0x%02X, D 0x%02X, Dp 0x%02X, Sp 0x%02X, F 0x%02X\r\n",
+		csp_log_packet("Router input: P 0x%02X, S 0x%02X, D 0x%02X, Dp 0x%02X, Sp 0x%02X, F 0x%02X\r\n",
 				packet->id.pri, packet->id.src, packet->id.dst, packet->id.dport,
 				packet->id.sport, packet->id.flags);
 
@@ -276,7 +276,7 @@ CSP_DEFINE_TASK(csp_task_router) {
 
 			/* Otherwise, actually send the message */
 			if (csp_send_direct(packet->id, packet, 0) != CSP_ERR_NONE) {
-				csp_debug(CSP_WARN, "Router failed to send\r\n");
+				csp_log_warn("Router failed to send\r\n");
 				csp_buffer_free(packet);
 			}
 
@@ -295,7 +295,7 @@ CSP_DEFINE_TASK(csp_task_router) {
 				continue;
 			}
 			if (csp_queue_enqueue(socket->socket, &packet, 0) != CSP_QUEUE_OK) {
-				csp_debug(CSP_ERROR, "Conn-less socket queue full\r\n");
+				csp_log_error("Conn-less socket queue full\r\n");
 				csp_buffer_free(packet);
 				continue;
 			}
@@ -327,7 +327,7 @@ CSP_DEFINE_TASK(csp_task_router) {
 			conn = csp_conn_new(packet->id, idout);
 
 			if (!conn) {
-				csp_debug(CSP_ERROR, "No more connections available\r\n");
+				csp_log_error("No more connections available\r\n");
 				csp_buffer_free(packet);
 				continue;
 			}
@@ -349,11 +349,11 @@ CSP_DEFINE_TASK(csp_task_router) {
 #ifdef CSP_USE_RDP
 			csp_rdp_new_packet(conn, packet);
 		} else if (conn->opts & CSP_SO_RDPREQ) {
-			csp_debug(CSP_WARN, "Received packet without RDP header. Discarding packet\r\n");
+			csp_log_warn("Received packet without RDP header. Discarding packet\r\n");
 			input.interface->rx_error++;
 			csp_buffer_free(packet);
 #else
-			csp_debug(CSP_ERROR, "Received RDP packet, but CSP was compiled without RDP support. Discarding packet\r\n");
+			csp_log_error("Received RDP packet, but CSP was compiled without RDP support. Discarding packet\r\n");
 			input.interface->rx_error++;
 			csp_buffer_free(packet);
 #endif
@@ -370,7 +370,7 @@ int csp_route_start_task(unsigned int task_stack_size, unsigned int priority) {
 	int ret = csp_thread_create(csp_task_router, (signed char *) "RTE", task_stack_size, NULL, priority, &handle_router);
 
 	if (ret != 0) {
-		csp_debug(CSP_ERROR, "Failed to start router task\n");
+		csp_log_error("Failed to start router task\n");
 		return CSP_ERR_NOMEM;
 	}
 
@@ -405,7 +405,7 @@ int csp_route_set(uint8_t node, csp_iface_t * ifc, uint8_t nexthop_mac_addr) {
 		routes[node].interface = ifc;
 		routes[node].nexthop_mac_addr = nexthop_mac_addr;
 	} else {
-		csp_debug(CSP_ERROR, "Failed to set route: invalid node id %u\r\n", node);
+		csp_log_error("Failed to set route: invalid node id %u\r\n", node);
 	}
 
 	return CSP_ERR_NONE;
@@ -462,10 +462,10 @@ void csp_new_packet(csp_packet_t * packet, csp_iface_t * interface, CSP_BASE_TYP
 	int result, fifo;
 
 	if (packet == NULL) {
-		csp_debug(CSP_WARN, "csp_new packet called with NULL packet\r\n");
+		csp_log_warn("csp_new packet called with NULL packet\r\n");
 		return;
 	} else if (interface == NULL) {
-		csp_debug(CSP_WARN, "csp_new packet called with NULL interface\r\n");
+		csp_log_warn("csp_new packet called with NULL interface\r\n");
 		csp_buffer_free(packet);
 		return;
 	}
@@ -478,7 +478,7 @@ void csp_new_packet(csp_packet_t * packet, csp_iface_t * interface, CSP_BASE_TYP
 	result = csp_route_enqueue(router_input_fifo[fifo], &queue_element, 0, pxTaskWoken);
 
 	if (result != CSP_ERR_NONE) {
-		csp_debug(CSP_WARN, "ERROR: Routing input FIFO is FULL. Dropping packet.\r\n");
+		csp_log_warn("ERROR: Routing input FIFO is FULL. Dropping packet.\r\n");
 		interface->drop++;
 		csp_buffer_free(packet);
 	} else {
@@ -620,7 +620,7 @@ void csp_promisc_add(csp_packet_t * packet, csp_queue_handle_t queue) {
 		if (packet_copy != NULL) {
 			memcpy(&packet_copy->length, &packet->length, packet->length + 6);
 			if (csp_queue_enqueue(queue, &packet_copy, 0) != CSP_QUEUE_OK) {
-				csp_debug(CSP_ERROR, "Promiscuous mode input queue full\r\n");
+				csp_log_error("Promiscuous mode input queue full\r\n");
 				csp_buffer_free(packet_copy);
 			}
 		}

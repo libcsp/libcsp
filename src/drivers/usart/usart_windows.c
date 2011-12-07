@@ -33,10 +33,10 @@ static void prvPrintError(void) {
         NULL);
 
     if( !formatMessageRet ) {
-        csp_debug(CSP_ERROR, "FormatMessage error, code: %lu\n", GetLastError());
+        csp_log_error("FormatMessage error, code: %lu\n", GetLastError());
         return;
     }
-    csp_debug(CSP_ERROR, "%s\n", messageBuffer);
+    csp_log_error("%s\n", messageBuffer);
     LocalFree(messageBuffer);
 }
 #endif
@@ -60,10 +60,10 @@ static int prvTryOpenPort(const char *intf) {
     if( portHandle == INVALID_HANDLE_VALUE ) {
         DWORD errorCode = GetLastError();
         if( errorCode == ERROR_FILE_NOT_FOUND ) {
-            csp_debug(CSP_ERROR, "Could not open serial port, because it didn't exist!\n");
+            csp_log_error("Could not open serial port, because it didn't exist!\n");
         }
         else
-            csp_debug(CSP_ERROR, "Failure opening serial port! Code: %lu", errorCode);
+            csp_log_error("Failure opening serial port! Code: %lu", errorCode);
         return 1;
     }
     return 0;
@@ -73,7 +73,7 @@ static int prvTryConfigurePort(const struct usart_conf * conf) {
     DCB portSettings = {0};
     portSettings.DCBlength = sizeof(DCB);
     if(!GetCommState(portHandle, &portSettings) ) {
-        csp_debug(CSP_ERROR, "Could not get default settings for open COM port! Code: %lu\n", GetLastError());
+        csp_log_error("Could not get default settings for open COM port! Code: %lu\n", GetLastError());
         return -1;
     }
     portSettings.BaudRate = conf->baudrate;
@@ -83,13 +83,13 @@ static int prvTryConfigurePort(const struct usart_conf * conf) {
     portSettings.fBinary = TRUE;
     portSettings.ByteSize = conf->databits;
     if( !SetCommState(portHandle, &portSettings) ) {
-        csp_debug(CSP_ERROR, "Error when setting COM port settings! Code:%lu\n", GetLastError());
+        csp_log_error("Error when setting COM port settings! Code:%lu\n", GetLastError());
         return 1;
     }
 
     GetCommState(portHandle, &portSettings);
 
-    csp_debug(CSP_INFO, "Port: %s, Baudrate: %lu, Data bits: %d, Stop bits: %d, Parity: %s\r\n",
+    csp_log_info("Port: %s, Baudrate: %lu, Data bits: %d, Stop bits: %d, Parity: %s\r\n",
             conf->device, conf->baudrate, conf->databits, conf->stopbits, prvParityToStr(conf->paritysetting));
     return 0;
 }
@@ -123,7 +123,7 @@ static int prvTrySetPortTimeouts(void) {
     COMMTIMEOUTS timeouts = {0};
 
     if( !GetCommTimeouts(portHandle, &timeouts) ) {
-        csp_debug(CSP_ERROR, "Error gettings current timeout settings\n");
+        csp_log_error("Error gettings current timeout settings\n");
         return 1;
     }
 
@@ -134,7 +134,7 @@ static int prvTrySetPortTimeouts(void) {
     timeouts.WriteTotalTimeoutConstant = 5;
 
     if(!SetCommTimeouts(portHandle, &timeouts)) {
-        csp_debug(CSP_ERROR, "Error setting timeouts!");
+        csp_log_error("Error setting timeouts!");
         return 1;
     }
 
@@ -153,7 +153,7 @@ unsigned WINAPI prvRxTask(void* params) {
             continue;
         }
         if( !ReadFile(portHandle, recvBuffer, 24, &bytesRead, NULL)) {
-            csp_debug(CSP_WARN, "Error receiving data! Code: %lu\n", GetLastError());
+            csp_log_warn("Error receiving data! Code: %lu\n", GetLastError());
             continue;
         }
         if( usart_callback != NULL )
@@ -166,11 +166,11 @@ static void prvSendData(char *buf, int bufsz) {
     DWORD bytesTotal = 0;
     DWORD bytesActual;
     if( !WriteFile(portHandle, buf, bufsz-bytesTotal, &bytesActual, NULL) ) {
-        csp_debug(CSP_ERROR, "Could not write data. Code: %lu\n", GetLastError());
+        csp_log_error("Could not write data. Code: %lu\n", GetLastError());
         return;
     }
     if( !FlushFileBuffers(portHandle) ) {
-        csp_debug(CSP_WARN, "Could not flush write buffer. Code: %lu\n", GetLastError());
+        csp_log_warn("Could not flush write buffer. Code: %lu\n", GetLastError());
     }
 }
 

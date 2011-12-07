@@ -70,7 +70,7 @@ int csp_sys_reboot(void) {
 		while (1);
 	}
 	
-	csp_debug(CSP_ERROR, "Failed to reboot\r\n");
+	csp_log_error("Failed to reboot\r\n");
 
 	return CSP_ERR_INVAL;
 }

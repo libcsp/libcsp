@@ -172,7 +172,7 @@ int can_send(can_id_t id, uint8_t data[], uint8_t dlc, CSP_BASE_TYPE * task_woke
 
 	/* Return if no available MOB was found */
 	if (m < 0) {
-		csp_debug(CSP_ERROR, "TX overflow, no available MOB\r\n");
+		csp_log_error("TX overflow, no available MOB\r\n");
 		return -1;
 	}
 
@@ -233,7 +233,7 @@ void __attribute__ ((__interrupt__)) can_isr(void) {
 
 					if (m == CAN_MBOXES - 1) {
 						/* RX overflow */
-						csp_debug(CSP_ERROR, "RX Overflow!\r\n");
+						csp_log_error("RX Overflow!\r\n");
 					} else {
 						/* Read DLC */
 						frame.dlc = (uint8_t)((CAN_CTRL->CHANNEL[m].MSR >> 16) & 0x0F);

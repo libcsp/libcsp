@@ -91,7 +91,7 @@ void csp_service_handler(csp_conn_t * conn, csp_packet_t * packet) {
 
 	case CSP_PING:
 		/* A ping means, just echo the packet, so no changes */
-		csp_debug(CSP_INFO, "SERVICE: Ping received\r\n");
+		csp_log_info("SERVICE: Ping received\r\n");
 		break;
 
 	case CSP_PS: {
