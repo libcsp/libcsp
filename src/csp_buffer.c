@@ -103,8 +103,10 @@ void *csp_buffer_get(size_t buf_size) {
 
 void csp_buffer_free_isr(void *packet) {
 	CSP_BASE_TYPE task_woken = 0;
-	if (packet)
+	if (packet) {
+		csp_log_buffer("BUFFER: Free element at %p\r\n", packet);
 		csp_queue_enqueue_isr(csp_buffers, &packet, &task_woken);
+	}
 }
 
 void csp_buffer_free(void *packet) {
