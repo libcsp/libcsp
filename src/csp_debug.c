@@ -36,14 +36,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 csp_debug_hook_func_t csp_debug_hook_func = NULL;
 
 /* Debug levels */
-static uint8_t levels_enable[] = {
-	[CSP_ERROR]		= 1,
-	[CSP_WARN]		= 1,
-	[CSP_INFO]		= 0,
-	[CSP_BUFFER]	= 0,
-	[CSP_PACKET]	= 0,
-	[CSP_PROTOCOL]	= 0,
-	[CSP_LOCK]		= 0,
+static bool levels_enable[] = {
+	[CSP_ERROR]		= true,
+	[CSP_WARN]		= true,
+	[CSP_INFO]		= false,
+	[CSP_BUFFER]	= false,
+	[CSP_PACKET]	= false,
+	[CSP_PROTOCOL]	= false,
+	[CSP_LOCK]		= false,
 };
 
 /* Some compilers do not support weak symbols, so this function
@@ -109,11 +109,22 @@ void do_csp_debug(csp_debug_level_t level, const char * format, ...) {
 
 }
 
+void csp_debug_set_level(csp_debug_level_t level, bool value) {
+	if (level <= CSP_LOCK)
+		levels_enable[level] = value;
+}
+
+bool csp_debug_get_level(csp_debug_level_t level) {
+	if (level <= CSP_LOCK)
+		return levels_enable[level];
+	return false;
+}
+
 void csp_debug_toggle_level(csp_debug_level_t level) {
-	if (level >= 7) {
+	if (level > CSP_LOCK) {
 		printf("Max level is 6\r\n");
 		return;
 	}
-	levels_enable[level] = (levels_enable[level]) ? 0 : 1;
+	levels_enable[level] = (levels_enable[level]) ? false : true;
 	printf("Level %u: value %u\r\n", level, levels_enable[level]);
 }
