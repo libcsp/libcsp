@@ -372,10 +372,8 @@ int csp_transaction_persistent(csp_conn_t * conn, uint32_t timeout, void * outbu
 		return 1;
 
 	packet = csp_read(conn, timeout);
-	if (packet == NULL) {
-		csp_log_warn("Transaction with node %u timeout\r\n", conn->idout.dst);
+	if (packet == NULL)
 		return 0;
-	}
 
 	if ((inlen != -1) && ((int)packet->length != inlen)) {
 		csp_log_error("Reply length %u expected %u\r\n", packet->length, inlen);
