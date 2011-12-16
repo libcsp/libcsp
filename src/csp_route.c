@@ -64,10 +64,6 @@ csp_queue_handle_t csp_promisc_queue = NULL;
 int csp_promisc_enabled = 0;
 #endif
 
-#ifndef CSP_MACOSX
-extern int csp_route_input_hook(csp_packet_t * packet) __attribute__((weak));
-#endif
-
 typedef struct {
 	csp_iface_t * interface;
 	csp_packet_t * packet;
@@ -242,14 +238,6 @@ CSP_DEFINE_TASK(csp_task_router) {
 		/* Get next packet to route */
 		if (csp_route_next_packet(&input) != CSP_ERR_NONE)
 			continue;
-
-		/* Here is last chance to drop packet, call user hook */
-#ifndef CSP_MACOSX
-		if ((csp_route_input_hook) && (csp_route_input_hook(packet) == 0)) {
-			csp_buffer_free(packet);
-			continue;
-		}
-#endif
 
 		packet = input.packet;
 
