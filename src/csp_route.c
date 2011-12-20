@@ -64,6 +64,12 @@ csp_queue_handle_t csp_promisc_queue = NULL;
 int csp_promisc_enabled = 0;
 #endif
 
+#ifdef CSP_USE_RDP
+#define CSP_ROUTER_RX_TIMEOUT 100				//! If RDP is enabled, the router needs to awake some times to check timeouts
+#else
+#define CSP_ROUTER_RX_TIMEOUT CSP_MAX_DELAY		//! If no RDP, the router can sleep untill data arrives
+#endif
+
 typedef struct {
 	csp_iface_t * interface;
 	csp_packet_t * packet;
@@ -188,7 +194,7 @@ int csp_route_next_packet(csp_route_queue_t * input) {
 	int prio, found, event;
 
 	/* Wait for packet in any queue */
-	if (csp_queue_dequeue(router_input_event, &event, 100) != CSP_QUEUE_OK)
+	if (csp_queue_dequeue(router_input_event, &event, CSP_ROUTER_RX_TIMEOUT) != CSP_QUEUE_OK)
 		return CSP_ERR_TIMEDOUT;
 
 	/* Find packet with highest priority */
@@ -205,7 +211,7 @@ int csp_route_next_packet(csp_route_queue_t * input) {
 		return CSP_ERR_TIMEDOUT;
 	}
 #else
-	if (csp_queue_dequeue(router_input_fifo[0], input, 100) != CSP_QUEUE_OK)
+	if (csp_queue_dequeue(router_input_fifo[0], input, CSP_ROUTER_RX_TIMEOUT) != CSP_QUEUE_OK)
 		return CSP_ERR_TIMEDOUT;
 #endif
 
@@ -232,8 +238,10 @@ CSP_DEFINE_TASK(csp_task_router) {
 	/* Here there be routing */
 	while (1) {
 
-		/* Check connection timeouts */
+#ifdef CSP_USE_RDP
+		/* Check connection timeouts (currently only for RDP) */
 		csp_conn_check_timeouts();
+#endif
 
 		/* Get next packet to route */
 		if (csp_route_next_packet(&input) != CSP_ERR_NONE)

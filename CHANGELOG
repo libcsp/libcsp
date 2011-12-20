@@ -11,6 +11,7 @@ libcsp NEXT, DATE
 - Improvement: WAF distcheck now works
 - Improvement: Automatic endian discovery
 - Improvement: Accept packets with CRC32 checksum if compiled without CRC32 support
+- Improvement: Do not wake the router task if RDP is not enabled
 - Cleanup: Simplify CAN configuration
 - Cleanup: Move architecture specific code to src/arch
 - Bugfix: CSP_MEMFREE gives wrong answer on freertos AVR due to truncation
