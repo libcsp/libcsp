@@ -200,7 +200,7 @@ def configure(ctx):
 	ctx.define_cond('CSP_BIG_ENDIAN', endianness == 'big')
 
 	# Check for stdbool.h
-	ctx.check(header_name='stdbool.h', mandatory=False, define_name='CSP_HAVE_STDBOOL_H')
+	ctx.check_cc(header_name='stdbool.h', mandatory=False, define_name='CSP_HAVE_STDBOOL_H', type='cstlib')
 
 	ctx.write_config_header('include/csp/csp_autoconfig.h', top=True, remove=True)
 
