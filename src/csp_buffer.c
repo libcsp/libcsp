@@ -74,7 +74,7 @@ fail_malloc:
 }
 
 void *csp_buffer_get_isr(size_t buf_size) {
-	void *buffer;
+	void *buffer = NULL;
 	CSP_BASE_TYPE task_woken = 0;
 
 	if (buf_size + CSP_BUFFER_PACKET_OVERHEAD > size) {
@@ -84,7 +84,7 @@ void *csp_buffer_get_isr(size_t buf_size) {
 
 	csp_queue_dequeue_isr(csp_buffers, &buffer, &task_woken);
 		
-	if (buffer) {
+	if (buffer != NULL) {
 		csp_log_buffer("BUFFER: Using element at %p\r\n", buffer);
 	} else {
 		csp_log_error("Out of buffers\r\n");
