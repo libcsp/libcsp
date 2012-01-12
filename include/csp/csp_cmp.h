@@ -32,7 +32,7 @@ extern "C" {
 #define CSP_CMP_REPLY   0xff
 
 #define CSP_CMP_IDENT 1
-#define CSP_CMP_IDENT_REV_LEN  9
+#define CSP_CMP_IDENT_REV_LEN  20
 #define CSP_CMP_IDENT_DATE_LEN 12
 #define CSP_CMP_IDENT_TIME_LEN 9
 
