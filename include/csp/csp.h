@@ -301,6 +301,20 @@ csp_packet_t *csp_read(csp_conn_t *conn, uint32_t timeout);
 int csp_send(csp_conn_t *conn, csp_packet_t *packet, uint32_t timeout);
 
 /**
+ * Send a packet on an already established connection, and change the default priority of the connection
+ *
+ * @note When using this function, the priority of the connection will change. If you need to change it back
+ * use another call to csp_send_prio, or ensure that all packets sent on a given connection is using send_prio call.
+ *
+ * @param prio csp priority
+ * @param conn pointer to connection
+ * @param packet pointer to packet,
+ * @param timeout a timeout to wait for TX to complete. NOTE: not all underlying drivers supports flow-control.
+ * @return returns 1 if successful and 0 otherwise. you MUST free the frame yourself if the transmission was not successful.
+ */
+int csp_send_prio(uint8_t prio, csp_conn_t *conn, csp_packet_t *packet, uint32_t timeout);
+
+/**
  * Perform an entire request/reply transaction
  * Copies both input buffer and reply to output buffeer.
  * Also makes the connection and closes it again

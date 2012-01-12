@@ -350,6 +350,11 @@ int csp_send(csp_conn_t * conn, csp_packet_t * packet, uint32_t timeout) {
 
 }
 
+int csp_send_prio(uint8_t prio, csp_conn_t * conn, csp_packet_t * packet, uint32_t timeout) {
+	conn->idout.pri = prio;
+	return csp_send(conn, packet, timeout);
+}
+
 int csp_transaction_persistent(csp_conn_t * conn, uint32_t timeout, void * outbuf, int outlen, void * inbuf, int inlen) {
 
 	int size = (inlen > outlen) ? inlen : outlen;
