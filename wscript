@@ -95,8 +95,7 @@ def configure(ctx):
 	ctx.find_program('size', var='SIZE')
 
 	# Set git revision define
-	#git_rev = os.popen('(git log --pretty=format:%H -n 1 | cut -b 1-8) 2> /dev/null || echo unknown').read().strip()
-	git_rev = os.popen('git describe --always').read().strip()
+	git_rev = os.popen('git describe --always 2> /dev/null || echo unknown').read().strip()
 
 	# Setup DEFINES
 	ctx.define('GIT_REV', git_rev)
