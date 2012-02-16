@@ -31,6 +31,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "arch/csp_time.h"
 #include "arch/csp_malloc.h"
 #include "arch/csp_system.h"
+#include "csp_route.h"
 
 /* CSP Management Protocol handler */
 int csp_cmp_handler(csp_conn_t * conn, csp_packet_t * packet) {
@@ -69,7 +70,19 @@ int csp_cmp_handler(csp_conn_t * conn, csp_packet_t * packet) {
 		packet->length = CMP_SIZE(ident);
 		
 		break;
-	
+
+	case CSP_CMP_ROUTE_SET: {
+
+		/* Search for interface */
+		csp_iface_t * ifc = csp_route_get_if_by_name(cmp->route_set.interface);
+		if (ifc == NULL)
+			return CSP_ERR_INVAL;
+
+		csp_route_set(cmp->route_set.dest_node, ifc, cmp->route_set.next_hop_mac);
+
+		cmp->type = CSP_CMP_REPLY;
+		return CSP_ERR_NONE;
+	}
 	default:
 		return CSP_ERR_INVAL;
 	}

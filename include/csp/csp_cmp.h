@@ -35,6 +35,8 @@ extern "C" {
 #define CSP_CMP_IDENT_REV_LEN  20
 #define CSP_CMP_IDENT_DATE_LEN 12
 #define CSP_CMP_IDENT_TIME_LEN 9
+#define CSP_CMP_ROUTE_SET 2
+#define CSP_CMP_ROUTE_IFACE_LEN 11
 
 struct csp_cmp_message {
 	uint8_t type;
@@ -47,6 +49,11 @@ struct csp_cmp_message {
 			char date[CSP_CMP_IDENT_DATE_LEN];
 			char time[CSP_CMP_IDENT_TIME_LEN];
 		} ident;
+		struct {
+			uint8_t dest_node;
+			uint8_t next_hop_mac;
+			char interface[CSP_CMP_ROUTE_IFACE_LEN];
+		} route_set;
 	};
 } __attribute__ ((packed));
 
@@ -60,6 +67,7 @@ static inline int csp_cmp_##_memb(uint8_t node, uint32_t timeout, struct csp_cmp
 }
 
 CMP_MESSAGE(CSP_CMP_IDENT, ident);
+CMP_MESSAGE(CSP_CMP_ROUTE_SET, route_set);
 
 #ifdef __cplusplus
 } /* extern "C" */
