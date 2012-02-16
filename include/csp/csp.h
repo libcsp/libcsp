@@ -204,7 +204,7 @@ typedef int (*nexthop_t)(csp_packet_t *packet, uint32_t timeout);
 
 /** Interface struct */
 typedef struct csp_iface_s {
-	const char *name;			/**< Interface name */
+	const char *name;			/**< Interface name (keep below 10 bytes)*/
 	nexthop_t nexthop; 			/**< Next hop function */
 	uint8_t promisc;			/**< Promiscuous mode enabled */
 	uint16_t mtu;				/**< Maximum Transmission Unit of interface */

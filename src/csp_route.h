@@ -51,6 +51,13 @@ int csp_route_table_init(void);
  */
 csp_route_t * csp_route_if(uint8_t id);
 
+/**
+ * Interface lookup by name
+ * @param name NUL terminated interface name
+ * @return pointer to interface or NULL
+ */
+csp_iface_t * csp_route_get_if_by_name(char *name);
+
 #ifdef CSP_USE_PROMISC
 /**
  * Add packet to promiscuous mode packet queue

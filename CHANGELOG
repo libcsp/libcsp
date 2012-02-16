@@ -6,6 +6,8 @@ libcsp NEXT, DATE
 - New: USART drivers for Linux, Mac and Windows
 - New: Windows/MinGW support
 - New: MacOSX support
+- New: Interface register function
+- New: Interface search function
 - Improvement: Better QoS support
 - Improvement: Send RDP control messages with high priority
 - Improvement: WAF distcheck now works

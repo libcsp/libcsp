@@ -374,7 +374,17 @@ int csp_route_start_task(unsigned int task_stack_size, unsigned int priority) {
 
 }
 
-void csp_route_add_if(csp_iface_t * ifc) {
+csp_iface_t * csp_route_get_if_by_name(char *name) {
+	csp_iface_t *ifc = interfaces;
+	while(ifc) {
+		if (strncmp(ifc->name, name, 10) == 0)
+			break;
+		ifc = ifc->next;
+	}
+	return ifc;
+}
+
+void csp_route_add_if(csp_iface_t *ifc) {
 
 	/* Add interface to pool */
 	if (interfaces == NULL) {
@@ -396,7 +406,7 @@ void csp_route_add_if(csp_iface_t * ifc) {
 
 }
 
-int csp_route_set(uint8_t node, csp_iface_t * ifc, uint8_t nexthop_mac_addr) {
+int csp_route_set(uint8_t node, csp_iface_t *ifc, uint8_t nexthop_mac_addr) {
 
 	/* Don't add nothing */
 	csp_assert(ifc != NULL);
