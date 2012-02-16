@@ -409,7 +409,8 @@ void csp_route_add_if(csp_iface_t *ifc) {
 int csp_route_set(uint8_t node, csp_iface_t *ifc, uint8_t nexthop_mac_addr) {
 
 	/* Don't add nothing */
-	csp_assert(ifc != NULL);
+	if (ifc == NULL)
+		return CSP_ERR_INVAL;
 
 	/**
 	 * Check if the interface has been added.
@@ -427,6 +428,7 @@ int csp_route_set(uint8_t node, csp_iface_t *ifc, uint8_t nexthop_mac_addr) {
 		routes[node].nexthop_mac_addr = nexthop_mac_addr;
 	} else {
 		csp_log_error("Failed to set route: invalid node id %u\r\n", node);
+		return CSP_ERR_INVAL;
 	}
 
 	return CSP_ERR_NONE;

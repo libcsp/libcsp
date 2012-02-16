@@ -78,7 +78,8 @@ int csp_cmp_handler(csp_conn_t * conn, csp_packet_t * packet) {
 		if (ifc == NULL)
 			return CSP_ERR_INVAL;
 
-		csp_route_set(cmp->route_set.dest_node, ifc, cmp->route_set.next_hop_mac);
+		if (csp_route_set(cmp->route_set.dest_node, ifc, cmp->route_set.next_hop_mac) != CSP_ERR_NONE)
+			return CSP_ERR_INVAL;
 
 		cmp->type = CSP_CMP_REPLY;
 		return CSP_ERR_NONE;
