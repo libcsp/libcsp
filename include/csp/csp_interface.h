@@ -54,6 +54,12 @@ void csp_new_packet(csp_packet_t *packet, csp_iface_t *interface, CSP_BASE_TYPE 
  */
 uint8_t csp_route_get_nexthop_mac(uint8_t node);
 
+/**
+ * Register your interface in the router core using this function.
+ * This must be done in the interface init() function.
+ */
+void csp_route_add_if(csp_iface_t * ifc);
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif

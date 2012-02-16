@@ -108,6 +108,9 @@ int csp_i2c_init(uint8_t addr, int handle) {
 	if (i2c_init(csp_i2c_handle, I2C_MASTER, addr, CSP_I2C_SPEED, 5, 5, csp_i2c_rx) != E_NO_ERR)
 		return CSP_ERR_DRIVER;
 
+	/* Regsiter interface */
+	csp_route_add_if(&csp_if_i2c);
+
 	return CSP_ERR_NONE;
 
 }

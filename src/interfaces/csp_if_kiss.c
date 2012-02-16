@@ -266,6 +266,9 @@ int csp_kiss_init(csp_kiss_putstr_f kiss_putstr_f, csp_kiss_discard_f kiss_disca
 	kiss_putstr = kiss_putstr_f;
 	kiss_discard = kiss_discard_f;
 
+	/* Regsiter interface */
+	csp_route_add_if(&csp_if_kiss);
+
 	return CSP_ERR_NONE;
 
 }

@@ -374,27 +374,42 @@ int csp_route_start_task(unsigned int task_stack_size, unsigned int priority) {
 
 }
 
-int csp_route_set(uint8_t node, csp_iface_t * ifc, uint8_t nexthop_mac_addr) {
+void csp_route_add_if(csp_iface_t * ifc) {
 
 	/* Add interface to pool */
-	if (ifc != NULL) {
-		if (interfaces == NULL) {
-			/* This is the first interface to be added */
-			interfaces = ifc;
-			ifc->next = NULL;
-		} else {
-			/* One or more interfaces were already added */
-			csp_iface_t * i = interfaces;
-			while (i != ifc && i->next)
-				i = i->next;
+	if (interfaces == NULL) {
+		/* This is the first interface to be added */
+		interfaces = ifc;
+		ifc->next = NULL;
+	} else {
+		/* One or more interfaces were already added */
+		csp_iface_t * i = interfaces;
+		while (i != ifc && i->next)
+			i = i->next;
 
-			/* Insert interface last if not already in pool */
-			if (i != ifc && i->next == NULL) {
-				i->next = ifc;
-				ifc->next = NULL;
-			}
+		/* Insert interface last if not already in pool */
+		if (i != ifc && i->next == NULL) {
+			i->next = ifc;
+			ifc->next = NULL;
 		}
 	}
+
+}
+
+int csp_route_set(uint8_t node, csp_iface_t * ifc, uint8_t nexthop_mac_addr) {
+
+	/* Don't add nothing */
+	csp_assert(ifc != NULL);
+
+	/**
+	 * Check if the interface has been added.
+	 *
+	 * NOTE: For future implementations, interfaces should call
+	 * csp_route_add_if in its csp_if_<name>_init function, instead
+	 * of registering at first route_set, in order to make the interface
+	 * available to network based (CMP) route configuration.
+	 */
+	csp_route_add_if(ifc);
 
 	/* Set route */
 	if (node <= CSP_DEFAULT_ROUTE) {
