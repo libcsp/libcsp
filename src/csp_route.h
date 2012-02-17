@@ -30,6 +30,7 @@ extern "C" {
 #include <csp/csp.h>
 
 #include "arch/csp_thread.h"
+#include "arch/csp_queue.h"
 
 typedef struct {
 	csp_iface_t * interface;
