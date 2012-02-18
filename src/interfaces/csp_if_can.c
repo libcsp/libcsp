@@ -572,6 +572,8 @@ CSP_DEFINE_TASK(csp_can_rx_task) {
 		csp_can_process_frame(&frame);
 	}
 
+	csp_thread_exit();
+
 }
 
 int csp_can_tx(csp_packet_t *packet, uint32_t timeout) {
