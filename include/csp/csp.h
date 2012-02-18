@@ -218,6 +218,7 @@ typedef struct csp_iface_s {
 	uint32_t frame;				/**< Frame format errors */
 	uint32_t txbytes;			/**< Transmitted bytes */
 	uint32_t rxbytes;			/**< Received bytes */
+	uint32_t irq;				/**< Interrupts */
 	struct csp_iface_s *next;	/**< Next interface */
 } csp_iface_t;
 
