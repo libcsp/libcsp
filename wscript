@@ -101,8 +101,7 @@ def configure(ctx):
 	ctx.define('GIT_REV', git_rev)
 
 	# Setup CFLAGS
-	if not ctx.env.CFLAGS:
-		ctx.env.append_unique('CFLAGS', ['-Os','-Wall', '-g', '-std=gnu99'])
+	ctx.env.prepend_value('CFLAGS', ['-Os','-Wall', '-g', '-std=gnu99'])
 	
 	# Setup extra includes
 	ctx.env.append_unique('INCLUDES_CSP', ['include'] + ctx.options.includes.split(','))
