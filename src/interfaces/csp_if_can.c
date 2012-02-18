@@ -279,20 +279,6 @@ static pbuf_element_t *pbuf_new(uint32_t id, CSP_BASE_TYPE *task_woken) {
 			pbuf_timestamp(buf, task_woken);
 			ret = buf;
 			break;
-		} else if (buf->state == BUF_USED) {
-			/* Check timeout */
-			uint32_t now = task_woken ? csp_get_ms_isr() : csp_get_ms();
-			if (now - buf->last_used > PBUF_TIMEOUT_MS) {
-				csp_log_warn("CAN Buffer element timeout. Reusing buffer\r\n", PBUF_TIMEOUT_MS);
-				/* Reuse packet buffer */
-				pbuf_free(buf, task_woken);
-				buf->state = BUF_USED;
-				buf->cfpid = id;
-				buf->remain = 0;
-				pbuf_timestamp(buf, task_woken);
-				ret = buf;
-				break;
-			}
 		}
 	}
 
@@ -339,6 +325,36 @@ static pbuf_element_t *pbuf_find(uint32_t id, uint32_t mask, CSP_BASE_TYPE *task
 
 	/* No matching buffer was found */
 	return ret;
+
+}
+
+/** pbuf_cleanup
+ * Purge all packets buffers that have timed out
+ */
+static void pbuf_cleanup(void) {
+
+	int i;
+	pbuf_element_t *buf;
+
+	/* Lock packet buffer */
+	CSP_ENTER_CRITICAL(pbuf_sem);
+
+	/* Loop through buffer elements */
+	for (i = 0; i < PBUF_ELEMENTS; i++) {
+		buf = &pbuf[i];
+		if (buf->state == BUF_USED) {
+			/* Check timeout */
+			uint32_t now = csp_get_ms();
+			if (now - buf->last_used > PBUF_TIMEOUT_MS) {
+				csp_log_warn("CAN Buffer element timed out\r\n");
+				/* Reuse packet buffer */
+				pbuf_free(buf, NULL);
+			}
+		}
+	}
+
+	/* Unlock packet buffer */
+	CSP_EXIT_CRITICAL(pbuf_sem);
 
 }
 
@@ -547,9 +563,11 @@ CSP_DEFINE_TASK(csp_can_rx_task) {
 	can_frame_t frame;
 
 	while (1) {
-		ret = csp_queue_dequeue(can_rx_queue, &frame, CSP_INFINITY);
-		if (ret != CSP_QUEUE_OK)
+		ret = csp_queue_dequeue(can_rx_queue, &frame, 1000);
+		if (ret != CSP_QUEUE_OK) {
+			pbuf_cleanup();
 			continue;
+		}
 
 		csp_can_process_frame(&frame);
 	}
