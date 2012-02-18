@@ -9,6 +9,7 @@ libcsp NEXT, DATE
 - New: Interface register function
 - New: Interface search function
 - New: CMP service for remote route updating
+- New: CMP service for interface statistics
 - Improvement: Better QoS support
 - Improvement: Send RDP control messages with high priority
 - Improvement: WAF distcheck now works
