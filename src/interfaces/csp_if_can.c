@@ -88,7 +88,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #define CSP_CAN_MTU 256
 
 /** Maximum number of frames in RX queue */
-#define CSP_CAN_RX_QUEUE_SIZE 10
+#define CSP_CAN_RX_QUEUE_SIZE 100
 
 /** Number of packet buffer elements */
 #define PBUF_ELEMENTS CSP_CONN_MAX
