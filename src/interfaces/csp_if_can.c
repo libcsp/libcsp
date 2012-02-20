@@ -127,7 +127,7 @@ static int id_init(void) {
 	if (csp_bin_sem_create(&id_sem) == CSP_SEMAPHORE_OK) {
 		return CSP_ERR_NONE;
 	} else {
-		csp_log_error("Could not initialize CFP id semaphore");
+		csp_log_error("Could not initialize CFP id semaphore\r\n");
 		return CSP_ERR_NOMEM;
 	}
 
@@ -185,7 +185,7 @@ static int pbuf_init(void) {
 		buf->remain = 0;
 		/* Create tx semaphore if blocking mode is enabled */
 		if (csp_bin_sem_create(&buf->tx_sem) != CSP_SEMAPHORE_OK) {
-			csp_log_error("Failed to allocate TX semaphore\n");
+			csp_log_error("Failed to allocate TX semaphore\r\n");
 			return CSP_ERR_NOMEM;
 		}
 	}
@@ -482,7 +482,7 @@ static int csp_can_process_frame(can_frame_t *frame) {
 				/* Allocate memory for frame */
 				buf->packet = csp_buffer_get(CSP_CAN_MTU);
 				if (buf->packet == NULL) {
-					csp_log_error("Failed to get buffer for CSP_BEGIN packet\n");
+					csp_log_error("Failed to get buffer for CSP_BEGIN packet\r\n");
 					csp_if_can.frame++;
 					pbuf_free(buf, NULL);
 					break;
