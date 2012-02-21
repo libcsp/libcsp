@@ -33,62 +33,99 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "arch/csp_system.h"
 #include "csp_route.h"
 
+static int do_cmp_ident(struct csp_cmp_message *cmp) {
+
+	/* Copy revision */
+	strncpy(cmp->ident.revision, GIT_REV, CSP_CMP_IDENT_REV_LEN);
+	cmp->ident.revision[CSP_CMP_IDENT_REV_LEN - 1] = '\0';
+
+	/* Copy compilation date */
+	strncpy(cmp->ident.date, __DATE__, CSP_CMP_IDENT_DATE_LEN);
+	cmp->ident.date[CSP_CMP_IDENT_DATE_LEN - 1] = '\0';
+
+	/* Copy compilation time */
+	strncpy(cmp->ident.time, __TIME__, CSP_CMP_IDENT_TIME_LEN);
+	cmp->ident.time[CSP_CMP_IDENT_TIME_LEN - 1] = '\0';
+
+	/* Copy hostname */
+	strncpy(cmp->ident.hostname, csp_get_hostname(), CSP_HOSTNAME_LEN);
+	cmp->ident.hostname[CSP_HOSTNAME_LEN - 1] = '\0';
+
+	/* Copy model name */
+	strncpy(cmp->ident.model, csp_get_model(), CSP_MODEL_LEN);
+	cmp->ident.model[CSP_MODEL_LEN - 1] = '\0';
+
+	return CSP_ERR_NONE;
+
+}
+
+static int do_cmp_route_set(struct csp_cmp_message *cmp) {
+
+	csp_iface_t *ifc = csp_route_get_if_by_name(cmp->route_set.interface);
+	if (ifc == NULL)
+		return CSP_ERR_INVAL;
+
+	if (csp_route_set(cmp->route_set.dest_node, ifc, cmp->route_set.next_hop_mac) != CSP_ERR_NONE)
+		return CSP_ERR_INVAL;
+
+	return CSP_ERR_NONE;
+
+}
+
+static int do_cmp_if_stats(struct csp_cmp_message *cmp) {
+
+	csp_iface_t *ifc = csp_route_get_if_by_name(cmp->if_stats.interface);
+	if (ifc == NULL)
+		return CSP_ERR_INVAL;
+
+	cmp->if_stats.tx =       csp_hton32(ifc->tx);
+	cmp->if_stats.rx =       csp_hton32(ifc->rx);
+	cmp->if_stats.tx_error = csp_hton32(ifc->tx_error);
+	cmp->if_stats.rx_error = csp_hton32(ifc->rx_error);
+	cmp->if_stats.drop =     csp_hton32(ifc->drop);
+	cmp->if_stats.autherr =  csp_hton32(ifc->autherr);
+	cmp->if_stats.frame =    csp_hton32(ifc->frame);
+	cmp->if_stats.txbytes =  csp_hton32(ifc->txbytes);
+	cmp->if_stats.rxbytes =  csp_hton32(ifc->rxbytes);
+	cmp->if_stats.irq = 	 csp_hton32(ifc->irq);
+
+	return CSP_ERR_NONE;
+}
+
 /* CSP Management Protocol handler */
 int csp_cmp_handler(csp_conn_t * conn, csp_packet_t * packet) {
 
+	int ret = CSP_ERR_INVAL;
 	struct csp_cmp_message * cmp = (struct csp_cmp_message *) packet->data;
 
 	/* Ignore everything but requests */
 	if (cmp->type != CSP_CMP_REQUEST)
-		return CSP_ERR_INVAL;
+		return ret;
 
 	switch (cmp->code) {
+		case CSP_CMP_IDENT:
+			ret = do_cmp_ident(cmp);
+			packet->length = CMP_SIZE(ident);
+			break;
 
-	case CSP_CMP_IDENT:
-		cmp->type = CSP_CMP_REPLY;
+		case CSP_CMP_ROUTE_SET:
+			ret = do_cmp_route_set(cmp);
+			packet->length = CMP_SIZE(route_set);
+			break;
 
-		/* Copy revision */
-		strncpy(cmp->ident.revision, GIT_REV, CSP_CMP_IDENT_REV_LEN);
-		cmp->ident.revision[CSP_CMP_IDENT_REV_LEN - 1] = '\0';
+		case CSP_CMP_IF_STATS:
+			ret = do_cmp_if_stats(cmp);
+			packet->length = CMP_SIZE(if_stats);
+			break;
 
-		/* Copy compilation date */
-		strncpy(cmp->ident.date, __DATE__, CSP_CMP_IDENT_DATE_LEN);
-		cmp->ident.date[CSP_CMP_IDENT_DATE_LEN - 1] = '\0';
-
-		/* Copy compilation time */
-		strncpy(cmp->ident.time, __TIME__, CSP_CMP_IDENT_TIME_LEN);
-		cmp->ident.time[CSP_CMP_IDENT_TIME_LEN - 1] = '\0';
-
-		/* Copy hostname */
-		strncpy(cmp->ident.hostname, csp_get_hostname(), CSP_HOSTNAME_LEN);
-		cmp->ident.hostname[CSP_HOSTNAME_LEN - 1] = '\0';
-
-		/* Copy model name */
-		strncpy(cmp->ident.model, csp_get_model(), CSP_MODEL_LEN);
-		cmp->ident.model[CSP_MODEL_LEN - 1] = '\0';
-
-		packet->length = CMP_SIZE(ident);
-		
-		break;
-
-	case CSP_CMP_ROUTE_SET: {
-
-		/* Search for interface */
-		csp_iface_t * ifc = csp_route_get_if_by_name(cmp->route_set.interface);
-		if (ifc == NULL)
-			return CSP_ERR_INVAL;
-
-		if (csp_route_set(cmp->route_set.dest_node, ifc, cmp->route_set.next_hop_mac) != CSP_ERR_NONE)
-			return CSP_ERR_INVAL;
-
-		cmp->type = CSP_CMP_REPLY;
-		return CSP_ERR_NONE;
-	}
-	default:
-		return CSP_ERR_INVAL;
+		default:
+			ret = CSP_ERR_INVAL;
+			break;
 	}
 
-	return CSP_ERR_NONE;
+	cmp->type = CSP_CMP_REPLY;
+
+	return ret;
 }
 
 void csp_service_handler(csp_conn_t * conn, csp_packet_t * packet) {
