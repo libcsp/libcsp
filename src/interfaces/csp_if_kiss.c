@@ -181,9 +181,11 @@ void csp_kiss_rx(uint8_t * buf, int len, void * pxTaskWoken) {
 		case KISS_MODE_STARTED:
 			if (*buf == FESC)
 				mode = KISS_MODE_ESCAPED;
-			else if (*buf == FEND)
-				mode = KISS_MODE_ENDED;
-			else {
+			else if (*buf == FEND) {
+				if (length > 0) {
+					mode = KISS_MODE_ENDED;
+				}
+			} else {
 				*cbuf = *buf;
 				if (first) {
 					first = 0;
@@ -224,7 +226,7 @@ void csp_kiss_rx(uint8_t * buf, int len, void * pxTaskWoken) {
 				uint32_t crc_local = kiss_crc((unsigned char *) &packet->id.ext, packet->length - sizeof(crc_remote));
 
 				if (crc_remote != crc_local) {
-					csp_log_warn("CRC remote 0x%08X, local 0x%08X\r\n", crc_remote, crc_local);
+					csp_log_warn("CRC remote 0x%08X, local 0x%08X, len %u\r\n", crc_remote, crc_local, length);
 					csp_if_kiss.rx_error++;
 					if (pxTaskWoken == NULL) {
 						csp_buffer_free(packet);
