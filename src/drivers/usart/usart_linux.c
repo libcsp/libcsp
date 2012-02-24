@@ -211,6 +211,10 @@ char usart_getc(void) {
 	return c;
 }
 
+int usart_messages_waiting(int handle) {
+	return 0;
+}
+
 static void *serial_rx_thread(void *vptr_args) {
 	unsigned int length;
 	uint8_t * cbuf = malloc(100000);
