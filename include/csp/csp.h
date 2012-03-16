@@ -366,6 +366,17 @@ csp_packet_t *csp_recvfrom(csp_socket_t *socket, uint32_t timeout);
  */
 int csp_sendto(uint8_t prio, uint8_t dest, uint8_t dport, uint8_t src_port, uint32_t opts, csp_packet_t *packet, uint32_t timeout);
 
+/**
+ * Send a packet as a direct reply to the source of an incoming packet,
+ * but still without holding an entire connection
+ * @param request_packet pointer to packet to reply to
+ * @param reply_packet actual reply data
+ * @param opts CSP_O_x
+ * @param timeout timeout used by interfaces with blocking send
+ * @return -1 if error (you must free packet), 0 if OK (you must discard pointer)
+ */
+int csp_sendto_reply(csp_packet_t * request_packet, csp_packet_t * reply_packet, uint32_t opts, uint32_t timeout);
+
 /** csp_connect
  * Used to establish outgoing connections
  * This function searches the port table for free slots and finds an unused
