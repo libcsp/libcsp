@@ -480,7 +480,7 @@ static int csp_can_process_frame(can_frame_t *frame) {
 				csp_if_can.frame++;
 			} else {
 				/* Allocate memory for frame */
-				buf->packet = csp_buffer_get(CSP_CAN_MTU);
+				buf->packet = csp_buffer_get(csp_buffer_size());
 				if (buf->packet == NULL) {
 					csp_log_error("Failed to get buffer for CSP_BEGIN packet\r\n");
 					csp_if_can.frame++;
