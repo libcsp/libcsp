@@ -134,3 +134,7 @@ void *csp_buffer_clone(void *buffer) {
 int csp_buffer_remaining(void) {
 	return csp_queue_size(csp_buffers);
 }
+
+int csp_buffer_size(void) {
+	return size;
+}

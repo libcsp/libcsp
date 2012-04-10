@@ -79,6 +79,12 @@ void * csp_buffer_clone(void *buffer);
  */
 int csp_buffer_remaining(void);
 
+/**
+ * Return the size of the CSP buffers
+ * @return size of CSP buffers
+ */
+int csp_buffer_size(void);
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
