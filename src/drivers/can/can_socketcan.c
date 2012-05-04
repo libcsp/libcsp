@@ -99,7 +99,7 @@ static void * mbox_tx_thread(void * parameters) {
 		/* Send frame */
 		int tries = 0, error = CAN_NO_ERROR;
 		while (write(can_socket, &m->frame, sizeof(m->frame)) != sizeof(m->frame)) {
-			if (++tries < 10 && errno == ENOBUFS) {
+			if (++tries < 1000 && errno == ENOBUFS) {
 				/* Wait 10 ms and try again */
 				usleep(10000);
 			} else {
