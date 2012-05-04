@@ -578,7 +578,7 @@ CSP_DEFINE_TASK(csp_can_rx_task) {
 
 int csp_can_tx(csp_packet_t *packet, uint32_t timeout) {
 
-	uint8_t bytes, overhead, avail;
+	uint8_t bytes, overhead, avail, dest;
 	uint8_t frame_buf[8];
 
 	/* Get CFP identification number */
@@ -591,10 +591,15 @@ int csp_can_tx(csp_packet_t *packet, uint32_t timeout) {
 	/* Calculate overhead */
 	overhead = sizeof(csp_id_t) + sizeof(uint16_t);
 
+	/* Insert destination node mac address into the CFP destination field */
+	dest = csp_route_get_nexthop_mac(packet->id.dst);
+	if (dest == CSP_NODE_MAC)
+		dest = packet->id.dst;
+
 	/* Create CAN identifier */
 	can_id_t id = 0;
 	id |= CFP_MAKE_SRC(packet->id.src);
-	id |= CFP_MAKE_DST(packet->id.dst);
+	id |= CFP_MAKE_DST(dest);
 	id |= CFP_MAKE_ID(ident);
 	id |= CFP_MAKE_TYPE(CFP_BEGIN);
 	id |= CFP_MAKE_REMAIN((packet->length + overhead - 1) / 8);
