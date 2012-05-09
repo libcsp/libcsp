@@ -91,6 +91,8 @@ static void * mbox_tx_thread(void * parameters) {
 	/* Set thread parameters */
 	mbox_t * m = (mbox_t *)parameters;
 
+	uint32_t id;
+
 	while (1) {
 
 		/* Wait for a new packet to process */
@@ -109,13 +111,15 @@ static void * mbox_tx_thread(void * parameters) {
 			}
 		}
 
+		id = m->frame.can_id;
+
 		/* Free mailbox */
 		sem_wait(&mbox_sem);
 		m->state = MBOX_FREE;
 		sem_post(&mbox_sem);
 		
 		/* Call tx callback */
-		if (txcb) txcb(m->frame.can_id, error, NULL);
+		if (txcb) txcb(id, error, NULL);
 
 	}
 
