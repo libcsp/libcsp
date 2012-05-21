@@ -77,13 +77,26 @@ void *csp_buffer_get_isr(size_t buf_size) {
 	void *buffer = NULL;
 	CSP_BASE_TYPE task_woken = 0;
 
+	if (buf_size + CSP_BUFFER_PACKET_OVERHEAD > size)
+		return NULL;
+
+	csp_queue_dequeue_isr(csp_buffers, &buffer, &task_woken);
+		
+	return buffer;
+}
+
+void *csp_buffer_get(size_t buf_size) {
+	void *buffer;
+
 	if (buf_size + CSP_BUFFER_PACKET_OVERHEAD > size) {
 		csp_log_error("Attempt to allocate too large block %u\r\n", buf_size);
 		return NULL;
 	}
 
-	csp_queue_dequeue_isr(csp_buffers, &buffer, &task_woken);
-		
+	CSP_ENTER_CRITICAL(csp_critical_lock);
+	buffer = csp_buffer_get_isr(buf_size);
+	CSP_EXIT_CRITICAL(csp_critical_lock);
+
 	if (buffer != NULL) {
 		csp_log_buffer("BUFFER: Using element at %p\r\n", buffer);
 	} else {
@@ -93,23 +106,14 @@ void *csp_buffer_get_isr(size_t buf_size) {
 	return buffer;
 }
 
-void *csp_buffer_get(size_t buf_size) {
-	void *buffer;
-	CSP_ENTER_CRITICAL(csp_critical_lock);
-	buffer = csp_buffer_get_isr(buf_size);
-	CSP_EXIT_CRITICAL(csp_critical_lock);
-	return buffer;
-}
-
 void csp_buffer_free_isr(void *packet) {
 	CSP_BASE_TYPE task_woken = 0;
-	if (packet) {
-		csp_log_buffer("BUFFER: Free element at %p\r\n", packet);
+	if (packet)
 		csp_queue_enqueue_isr(csp_buffers, &packet, &task_woken);
-	}
 }
 
 void csp_buffer_free(void *packet) {
+	csp_log_buffer("BUFFER: Free element at %p\r\n", packet);
 	CSP_ENTER_CRITICAL(csp_critical_lock);
 	csp_buffer_free_isr(packet);
 	CSP_EXIT_CRITICAL(csp_critical_lock);
