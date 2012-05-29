@@ -338,7 +338,7 @@ int csp_send(csp_conn_t * conn, csp_packet_t * packet, uint32_t timeout) {
 			csp_route_t * ifout = csp_route_if(conn->idout.dst);
 			if (ifout != NULL && ifout->interface != NULL)
 				ifout->interface->tx_error++;
-			csp_log_warn("RPD send failed\r\n!");
+			csp_log_warn("RDP send failed\r\n!");
 			return 0;
 		}
 	}
