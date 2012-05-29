@@ -76,6 +76,9 @@ int csp_listen(csp_socket_t * socket, size_t conn_queue_length) {
 
 int csp_bind(csp_socket_t * socket, uint8_t port) {
 	
+	if (socket == NULL)
+		return CSP_ERR_NOMEM;
+
 	if (port > CSP_ANY) {
 		csp_log_error("Only ports from 0-%u (and CSP_ANY for default) are available for incoming ports\r\n", CSP_ANY);
 		return CSP_ERR_INVAL;
