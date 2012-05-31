@@ -275,7 +275,7 @@ csp_socket_t *csp_socket(uint32_t opts);
 /**
  * Wait for a new connection on a socket created by csp_socket
  * @param socket Socket to accept connections on
- * @param timeout use portMAX_DELAY for infinite timeout
+ * @param timeout use CSP_MAX_DELAY for infinite timeout
  * @return Return pointer to csp_conn_t or NULL if timeout was reached
  */
 csp_conn_t *csp_accept(csp_socket_t *socket, uint32_t timeout);
