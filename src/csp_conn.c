@@ -251,7 +251,7 @@ int csp_close(csp_conn_t * conn) {
 	}
 
 	if (conn->state == CONN_CLOSED) {
-		csp_log_protocol("Conn already closed by transport layer\r\n");
+		csp_log_protocol("Conn already closed\r\n");
 		return CSP_ERR_NONE;
 	}
 
