@@ -54,6 +54,10 @@ typedef enum {
 	MBOX_USED = 1,
 } mbox_t;
 
+/* fcpu and bitrate */
+static unsigned long int clock_speed;
+static uint32_t bitrate;
+
 /** List of mobs */
 static mbox_t mbox[CAN_TX_MOBS];
 
@@ -114,6 +118,30 @@ int can_configure_bitrate(unsigned long int afcpu, uint32_t bps) {
 
 }
 
+int can_reset(unsigned long int afcpu, uint32_t bps) {
+
+	/* Configure CAN module */
+	CAN_DISABLE();
+	CAN_RESET();
+
+	/* Enables mob 0-14 interrupts */
+	CANIE1 = 0x7F;
+	CANIE2 = 0xFF;
+
+	/* Configure bitrate */
+	can_configure_bitrate(afcpu, bps);
+
+	/* Configure MOBS */
+	can_configure_mobs();
+
+	/* Enable and return */
+	CAN_ENABLE();
+	CAN_SET_INTERRUPT();
+
+	return 0;
+
+}
+
 int can_init(uint32_t id, uint32_t mask, can_tx_callback_t atxcb, can_rx_callback_t arxcb, struct csp_can_config *conf) {
 
 	csp_assert(conf && conf->bitrate && conf->clock_speed);
@@ -126,25 +154,11 @@ int can_init(uint32_t id, uint32_t mask, can_tx_callback_t atxcb, can_rx_callbac
 	txcb = atxcb;
 	rxcb = arxcb;
 
-	/* Configure CAN module */
-	CAN_DISABLE();
-	CAN_RESET();
+	/* Set fcpu and bps */
+	clock_speed = conf->clock_speed;
+	bitrate = conf->bitrate;
 
-	/* Enables mob 0-14 interrupts */
-	CANIE1 = 0x7F;
-	CANIE2 = 0xFF;
-
-	/* Configure bitrate */
-	can_configure_bitrate(conf->clock_speed, conf->bitrate);
-
-	/* Configure MOBS */
-	can_configure_mobs();
-
-	/* Enable and return */
-	CAN_ENABLE();
-	CAN_SET_INTERRUPT();
-
-	return 0;
+	return can_reset(clock_speed, bitrate);
 
 }
 
@@ -248,9 +262,27 @@ static inline uint8_t can_find_oldest_mob(void) {
  * lower handlers of the protocol layer through a callback.
  */
 ISR(CANIT_vect) {
-
+	static can_id_t id;
 	static uint8_t mob;
 	static portBASE_TYPE xTaskWoken = pdFALSE;
+
+	/* Handle general interrupt */
+	if (CANGIT & INT_GEN_MSK) {
+		CAN_CLEAR_GENINT();
+
+		/* Report error to all ongoing transfers */
+		for(mob = 0; mob < CAN_TX_MOBS; mob++) {
+			if (mbox[mob] == MBOX_USED && txcb != NULL) {
+				CAN_SET_MOB(mob);
+				CAN_GET_EXT_ID(id);
+				txcb(id, CAN_ERROR, &xTaskWoken);
+				mbox[mob] = MBOX_FREE;
+			}
+		}
+
+		/* Reset controller and all interrupts */
+		can_reset(clock_speed, bitrate);
+	}
 	
 	/* For each MOB that has interrupted */
 	while (CAN_HPMOB() != 0xF) {
@@ -261,20 +293,13 @@ ISR(CANIT_vect) {
 
 		if (CANSTMOB & ERR_MOB_MSK) {
 			/* Error */
-			csp_log_warn("MOB error: %#x\r\n", CANSTMOB);
+			CAN_MOB_ABORT();
 
-			/* Clear status */
-			CAN_CLEAR_STATUS_MOB();
-
-			can_id_t id;
 			CAN_GET_EXT_ID(id);
 
 			/* Do TX-Callback */
 			if (txcb != NULL)
 				txcb(id, CAN_ERROR, &xTaskWoken);
-
-			/* Error */
-			CAN_MOB_ABORT();
 
 			/* Remember to re-enable RX */
 			if (mob >= CAN_TX_MOBS)
@@ -282,6 +307,9 @@ ISR(CANIT_vect) {
 
 			/* Release mailbox */
 			mbox[mob] = MBOX_FREE;
+
+			/* Clear status */
+			CAN_CLEAR_STATUS_MOB();
 
 		} else if (CANSTMOB & MOB_RX_COMPLETED) {
 			/* RX Complete */
@@ -293,7 +321,6 @@ ISR(CANIT_vect) {
 
 			if (mob == CAN_MOBS - 1) {
 				/* RX overflow */
-				csp_log_warn("RX Overflow!\r\n");
 				CAN_DISABLE();
 				can_configure_mobs();
 				CAN_ENABLE();
@@ -317,9 +344,6 @@ ISR(CANIT_vect) {
 			CAN_CONFIG_RX();
 
 		} else if (CANSTMOB & MOB_TX_COMPLETED) {
-			/* TX Complete */
-			can_id_t id;
-
 			/* Clear status */
 			CAN_CLEAR_STATUS_MOB();
 
@@ -334,7 +358,7 @@ ISR(CANIT_vect) {
 			mbox[mob] = MBOX_FREE;
 		}
 	}
-	
+
 	/* End of ISR */
 	if (xTaskWoken == pdTRUE)
 		taskYIELD();

@@ -30,7 +30,7 @@ extern "C" {
 #include <stdint.h>
 
 /** General errors interrupt mask */
-#define ERR_GEN_MSK 			((1 << SERG) | (1 << CERG) | (1 << FERG) | (1 << AERG))
+#define ERR_GEN_MSK 			((1 << SERG) | (1 << CERG) | (1 << FERG) | (1 << AERG) | (1 << BOFFIT))
 
 /** General interrupt mask */
 #define INT_GEN_MSK 			((1 << BOFFIT) | (1 << BXOK) | (ERR_GEN_MSK))
@@ -68,7 +68,7 @@ extern "C" {
 #define MOB_DISABLE		   	0xFF
 
 /** Interrupt control */
-#define CAN_SET_INTERRUPT() 	(CANGIE |= (1 << ENIT) | (1 << ENRX) | (1 << ENTX) | (1 << ENERR) | (1 << ENBOFF))
+#define CAN_SET_INTERRUPT() 	(CANGIE |= (1 << ENIT) | (1 << ENRX) | (1 << ENTX) | (1 << ENERR) | (1 << ENBOFF) | (1 << ENERG))
 #define CAN_CLEAR_INTERRUPT() 	(CANGIE &= ~(1 << ENIT))
 
 /** CAN module control */
@@ -83,7 +83,9 @@ extern "C" {
 
 #define CAN_GET_MOB()			((CANPAGE & 0xF0) >> 4)
 
-#define CAN_CLEAR_STATUS_MOB() 	do {CANSTMOB=0x00;} while (0)
+#define CAN_CLEAR_STATUS_MOB() 	do {CANSTMOB&=0x00;} while (0)
+
+#define CAN_CLEAR_GENINT()	do {CANGIT|=CANGIT;} while (0);
 
 #define CAN_CLEAR_INT_MOB() 	do {CANSTMOB = (CANSTMOB & ~(1 << RXOK));} while (0)
 #define CAN_CLEAR_MOB()			do {uint8_t volatile *__i_; \
