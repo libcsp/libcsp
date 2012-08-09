@@ -167,10 +167,14 @@ void csp_kiss_rx(uint8_t * buf, int len, void * pxTaskWoken) {
 				} else {
 					packet = csp_buffer_get_isr(csp_if_kiss.mtu);
 				}
-				if (packet == NULL)
-					continue;
+
+				if (packet != NULL) {
+					cbuf = (unsigned char *) &packet->id.ext;
+				} else {
+					cbuf = NULL;
+				}
+
 				mode = KISS_MODE_STARTED;
-				cbuf = (unsigned char *) &packet->id.ext;
 				first = 1;
 			} else {
 				/* If the char was not part of a kiss frame, send back to usart driver */
@@ -186,21 +190,25 @@ void csp_kiss_rx(uint8_t * buf, int len, void * pxTaskWoken) {
 					mode = KISS_MODE_ENDED;
 				}
 			} else {
-				*cbuf = *buf;
+				if (cbuf != NULL)
+					*cbuf = *buf;
 				if (first) {
 					first = 0;
 					break;
 				}
+				if (cbuf != NULL)
+					cbuf++;
 				length++;
-				cbuf++;
 			}
 			break;
 		case KISS_MODE_ESCAPED:
 			if (*buf == TFESC) {
-				*cbuf++ = FESC;
+				if (cbuf != NULL)
+					*cbuf++ = FESC;
 				length++;
 			} else if (*buf == TFEND) {
-				*cbuf++ = FEND;
+				if (cbuf != NULL)
+					*cbuf++ = FEND;
 				length++;
 			}
 			mode = KISS_MODE_STARTED;
@@ -211,6 +219,12 @@ void csp_kiss_rx(uint8_t * buf, int len, void * pxTaskWoken) {
 		buf++;
 
 		if (mode == KISS_MODE_ENDED) {
+
+			if (packet == NULL) {
+				mode = KISS_MODE_NOT_STARTED;
+				length = 0;
+				continue;
+			}
 
 			packet->length = length;
 
@@ -257,7 +271,9 @@ void csp_kiss_rx(uint8_t * buf, int len, void * pxTaskWoken) {
 
 			mode = KISS_MODE_NOT_STARTED;
 			length = 0;
+
 		}
+
 	}
 
 }
