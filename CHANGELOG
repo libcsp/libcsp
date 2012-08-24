@@ -1,6 +1,7 @@
-libcsp NEXT, DATE
------------------------
+libcsp 1.1, 2012-08-24
+----------------------
 - Feature release
+- Defacto stable since Feb 2012
 - New: I2C interface
 - New: KISS interface
 - New: USART drivers for Linux, Mac and Windows
@@ -16,10 +17,13 @@ libcsp NEXT, DATE
 - Improvement: Automatic endian discovery
 - Improvement: Accept packets with CRC32 checksum if compiled without CRC32 support
 - Improvement: Do not wake the router task if RDP is not enabled
+- Improvement: Save 102 bytes of RAM by packing route entries
 - Cleanup: Simplify CAN configuration
 - Cleanup: Move architecture specific code to src/arch
 - Bugfix: CSP_MEMFREE gives wrong answer on freertos AVR due to truncation
 - Bugfix: Fixed wrong 64-bit size_t in csp_service_handler
+- Bugfix: Fixed problem in csp_if_kiss when out of buffers
+- Bigfix: Handle bus-off CAN IRQ for AT90CAN128
 
 libcsp 1.0.1, 2011-10-30
 ------------------------
