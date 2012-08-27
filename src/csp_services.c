@@ -31,7 +31,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 int csp_ping(uint8_t node, uint32_t timeout, unsigned int size, uint8_t conn_options) {
 
-	int i;
+	unsigned int i;
 	uint32_t start, time, status = 0;
 
 	/* Counter */

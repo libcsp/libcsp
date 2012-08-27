@@ -32,13 +32,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 static csp_queue_handle_t csp_buffers;
 static void *csp_buffer_list;
-static int count, size;
+static unsigned int count, size;
 
 CSP_DEFINE_CRITICAL(csp_critical_lock);
 
 int csp_buffer_init(int buf_count, int buf_size) {
 
-	int i;
+	unsigned int i;
 	void *element;
 
 	count = buf_count;

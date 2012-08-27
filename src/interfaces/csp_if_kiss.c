@@ -96,7 +96,7 @@ static const uint32_t kiss_crc_tab[256] = {
  */
 static uint32_t kiss_crc(unsigned char *block, unsigned int length) {
 	uint32_t crc;
-	int i;
+	unsigned int i;
 
 	crc = 0xFFFFFFFF;
 	for (i = 0; i < length; i++)
