@@ -92,6 +92,32 @@ static int do_cmp_if_stats(struct csp_cmp_message *cmp) {
 	return CSP_ERR_NONE;
 }
 
+static int do_cmp_peek(struct csp_cmp_message *cmp) {
+
+	cmp->peek.addr = csp_hton32(cmp->peek.addr);
+	if (cmp->peek.len > CSP_CMP_PEEK_MAX_LEN)
+		return CSP_ERR_INVAL;
+
+	/* Dangerous, you better know what you are doing */
+	memcpy(cmp->peek.data, (void *) cmp->peek.addr, cmp->peek.len);
+
+	return CSP_ERR_NONE;
+
+}
+
+static int do_cmp_poke(struct csp_cmp_message *cmp) {
+
+	cmp->poke.addr = csp_hton32(cmp->poke.addr);
+	if (cmp->poke.len > CSP_CMP_POKE_MAX_LEN)
+		return CSP_ERR_INVAL;
+
+	/* Extremely dangerous, you better know what you are doing */
+	memcpy((void *) cmp->poke.addr, cmp->poke.data, cmp->poke.len);
+
+	return CSP_ERR_NONE;
+
+}
+
 /* CSP Management Protocol handler */
 int csp_cmp_handler(csp_conn_t * conn, csp_packet_t * packet) {
 
@@ -116,6 +142,14 @@ int csp_cmp_handler(csp_conn_t * conn, csp_packet_t * packet) {
 		case CSP_CMP_IF_STATS:
 			ret = do_cmp_if_stats(cmp);
 			packet->length = CMP_SIZE(if_stats);
+			break;
+
+		case CSP_CMP_PEEK:
+			ret = do_cmp_peek(cmp);
+			break;
+
+		case CSP_CMP_POKE:
+			ret = do_cmp_poke(cmp);
 			break;
 
 		default:

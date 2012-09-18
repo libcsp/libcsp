@@ -1,3 +1,7 @@
+libcsp 1.x, xxxx-xx-xx
+----------------------
+- New: CMP service for peek and poke of memory
+
 libcsp 1.1, 2012-08-24
 ----------------------
 - Feature release

@@ -38,6 +38,10 @@ extern "C" {
 #define CSP_CMP_ROUTE_SET 2
 #define CSP_CMP_ROUTE_IFACE_LEN 11
 #define CSP_CMP_IF_STATS 3
+#define CSP_CMP_PEEK 4
+#define CSP_CMP_PEEK_MAX_LEN 200
+#define CSP_CMP_POKE 5
+#define CSP_CMP_POKE_MAX_LEN 200
 
 struct csp_cmp_message {
 	uint8_t type;
@@ -68,6 +72,16 @@ struct csp_cmp_message {
 			uint32_t rxbytes;
 			uint32_t irq;
 		} if_stats;
+		struct {
+			uint32_t addr;
+			uint8_t len;
+			char data[CSP_CMP_PEEK_MAX_LEN];
+		} peek;
+		struct {
+			uint32_t addr;
+			uint8_t len;
+			char data[CSP_CMP_POKE_MAX_LEN];
+		} poke;
 	};
 } __attribute__ ((packed));
 
@@ -83,6 +97,8 @@ static inline int csp_cmp_##_memb(uint8_t node, uint32_t timeout, struct csp_cmp
 CMP_MESSAGE(CSP_CMP_IDENT, ident);
 CMP_MESSAGE(CSP_CMP_ROUTE_SET, route_set);
 CMP_MESSAGE(CSP_CMP_IF_STATS, if_stats);
+CMP_MESSAGE(CSP_CMP_PEEK, peek);
+CMP_MESSAGE(CSP_CMP_POKE, poke);
 
 #ifdef __cplusplus
 } /* extern "C" */
