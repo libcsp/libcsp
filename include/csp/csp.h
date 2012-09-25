@@ -26,10 +26,7 @@ extern "C" {
 #endif
 
 /* Includes */
-#include <inttypes.h>
 #include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
 
 /* Include configuration file */
 #include <csp/csp_autoconfig.h>

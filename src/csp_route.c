@@ -556,30 +556,6 @@ void csp_route_print_interfaces(void) {
 
 }
 
-int csp_route_print_interfaces_str(char * str_buf, int str_size) {
-
-	int printed = 0;
-	csp_iface_t * i = interfaces;
-	char txbuf[25], rxbuf[25];
-
-	while (i) {
-		csp_bytesize(txbuf, 25, i->txbytes);
-		csp_bytesize(rxbuf, 25, i->rxbytes);
-		printed += snprintf(str_buf+printed, str_size, "%-5s   tx: %05"PRIu32" rx: %05"PRIu32
-				"txe: %05"PRIu32" rxe: %05"PRIu32"\r\n"
-				"		drop: %05"PRIu32" autherr: %05"PRIu32 " frame: %05"PRIu32"\r\n"
-				"		txb: %"PRIu32" (%s) rxb: %"PRIu32" (%s)\r\n\r\n",
-				i->name, i->tx, i->rx, i->tx_error, i->rx_error, i->drop,
-				i->autherr, i->frame, i->txbytes, txbuf, i->rxbytes, rxbuf);
-		if ((str_size -= printed) <= 0)
-			break;
-		i = i->next;
-	}
-
-	return CSP_ERR_NONE;
-
-}
-
 void csp_route_print_table(void) {
 
 	int i;

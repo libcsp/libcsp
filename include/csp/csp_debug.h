@@ -62,12 +62,18 @@ extern void __attribute__((weak)) csp_assert_fail_action(char *assertion, const 
 #ifdef __AVR__
 	#include <avr/pgmspace.h>
 	#define CONSTSTR(data) PSTR(data)
+	#undef printf
+	#define printf(s, ...) printf_P(PSTR(s), ## __VA_ARGS__)
 #else
 	#define CONSTSTR(data) data
 #endif
 
 #ifdef CSP_DEBUG
+#ifdef CSP_VERBOSE
 	#define csp_debug(level, format, ...) do_csp_debug(level, CONSTSTR("[%02"PRIu8"] %s:%d " format), my_address, BASENAME(__FILE__), __LINE__, ##__VA_ARGS__)
+#else
+	#define csp_debug(level, format, ...) do_csp_debug(level, CONSTSTR("[%02"PRIu8"] " format), my_address, ##__VA_ARGS__)
+#endif
 #else
 	#define csp_debug(...) do {} while (0)
 #endif
