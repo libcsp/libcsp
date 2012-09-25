@@ -99,7 +99,7 @@ static int do_cmp_peek(struct csp_cmp_message *cmp) {
 		return CSP_ERR_INVAL;
 
 	/* Dangerous, you better know what you are doing */
-	memcpy(cmp->peek.data, (void *) cmp->peek.addr, cmp->peek.len);
+	memcpy(cmp->peek.data, (void *) (uintptr_t) cmp->peek.addr, cmp->peek.len);
 
 	return CSP_ERR_NONE;
 
@@ -112,7 +112,7 @@ static int do_cmp_poke(struct csp_cmp_message *cmp) {
 		return CSP_ERR_INVAL;
 
 	/* Extremely dangerous, you better know what you are doing */
-	memcpy((void *) cmp->poke.addr, cmp->poke.data, cmp->poke.len);
+	memcpy((void *) (uintptr_t) cmp->poke.addr, cmp->poke.data, cmp->poke.len);
 
 	return CSP_ERR_NONE;
 
