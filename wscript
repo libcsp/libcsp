@@ -175,7 +175,7 @@ def configure(ctx):
 		ctx.env.append_unique('FILES_CSP', 'src/crypto/csp_sha1.c')
 
 	ctx.define_cond('CSP_DEBUG', not ctx.options.disable_output)
-	ctx.define_cond('CSP_DEBUG_VERBOSE', not ctx.options.disable_verbose);
+	ctx.define_cond('CSP_VERBOSE', not ctx.options.disable_verbose);
 	ctx.define_cond('CSP_USE_RDP', ctx.options.enable_rdp)
 	ctx.define_cond('CSP_USE_CRC32', ctx.options.enable_crc32)
 	ctx.define_cond('CSP_USE_HMAC', ctx.options.enable_hmac)
