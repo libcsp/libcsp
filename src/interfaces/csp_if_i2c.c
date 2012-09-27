@@ -85,7 +85,7 @@ void csp_i2c_rx(i2c_frame_t * frame, void * pxTaskWoken) {
 
 	if ((frame->len < 4) || (frame->len > I2C_MTU)) {
 		csp_if_i2c.frame++;
-		csp_buffer_free(frame);
+		csp_buffer_free_isr(frame);
 		return;
 	}
 

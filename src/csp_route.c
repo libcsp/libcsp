@@ -489,7 +489,10 @@ void csp_new_packet(csp_packet_t * packet, csp_iface_t * interface, CSP_BASE_TYP
 		return;
 	} else if (interface == NULL) {
 		csp_log_warn("csp_new packet called with NULL interface\r\n");
-		csp_buffer_free(packet);
+		if (pxTaskWoken == NULL)
+			csp_buffer_free(packet);
+		else
+			csp_buffer_free_isr(packet);
 		return;
 	}
 
@@ -503,7 +506,10 @@ void csp_new_packet(csp_packet_t * packet, csp_iface_t * interface, CSP_BASE_TYP
 	if (result != CSP_ERR_NONE) {
 		csp_log_warn("ERROR: Routing input FIFO is FULL. Dropping packet.\r\n");
 		interface->drop++;
-		csp_buffer_free(packet);
+		if (pxTaskWoken == NULL)
+			csp_buffer_free(packet);
+		else
+			csp_buffer_free_isr(packet);
 	} else {
 		interface->rx++;
 		interface->rxbytes += packet->length;

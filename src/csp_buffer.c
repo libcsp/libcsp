@@ -81,7 +81,7 @@ void *csp_buffer_get_isr(size_t buf_size) {
 		return NULL;
 
 	csp_queue_dequeue_isr(csp_buffers, &buffer, &task_woken);
-		
+
 	return buffer;
 }
 
@@ -93,9 +93,7 @@ void *csp_buffer_get(size_t buf_size) {
 		return NULL;
 	}
 
-	CSP_ENTER_CRITICAL(csp_critical_lock);
-	buffer = csp_buffer_get_isr(buf_size);
-	CSP_EXIT_CRITICAL(csp_critical_lock);
+	csp_queue_dequeue(csp_buffers, &buffer, 0);
 
 	if (buffer != NULL) {
 		csp_log_buffer("BUFFER: Using element at %p\r\n", buffer);
@@ -108,15 +106,14 @@ void *csp_buffer_get(size_t buf_size) {
 
 void csp_buffer_free_isr(void *packet) {
 	CSP_BASE_TYPE task_woken = 0;
-	if (packet)
-		csp_queue_enqueue_isr(csp_buffers, &packet, &task_woken);
+	if (!packet)
+		return;
+	csp_queue_enqueue_isr(csp_buffers, &packet, &task_woken);
 }
 
 void csp_buffer_free(void *packet) {
 	csp_log_buffer("BUFFER: Free element at %p\r\n", packet);
-	CSP_ENTER_CRITICAL(csp_critical_lock);
-	csp_buffer_free_isr(packet);
-	CSP_EXIT_CRITICAL(csp_critical_lock);
+	csp_queue_enqueue(csp_buffers, &packet, 0);
 }
 
 void *csp_buffer_clone(void *buffer) {
