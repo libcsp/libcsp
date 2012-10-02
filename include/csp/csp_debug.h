@@ -39,7 +39,7 @@ typedef enum {
 	CSP_LOCK	 	= 6,
 } csp_debug_level_t;
 
-extern int csp_debug_level_enabled[];
+extern unsigned char csp_debug_level_enabled[];
 
 /* Extract filename component from path */
 #define BASENAME(_file) ((strrchr(_file, '/') ? : (strrchr(_file, '\\') ? : _file))+1)

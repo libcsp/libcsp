@@ -36,7 +36,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 csp_debug_hook_func_t csp_debug_hook_func = NULL;
 
 /* Debug levels */
-int csp_debug_level_enabled[] = {
+unsigned char csp_debug_level_enabled[] = {
 	[CSP_ERROR]		= true,
 	[CSP_WARN]		= true,
 	[CSP_INFO]		= false,
