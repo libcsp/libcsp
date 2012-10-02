@@ -591,26 +591,6 @@ int csp_xtea_set_key(char *key, uint32_t keylen);
 int csp_hmac_set_key(char *key, uint32_t keylen);
 
 /**
- * Toggle debug level on/off
- * @param level Level to toggle
- */
-void csp_debug_toggle_level(csp_debug_level_t level);
-
-/**
- * Set debug level
- * @param level Level to set
- * @param value New level value
- */
-void csp_debug_set_level(csp_debug_level_t level, bool value);
-
-/**
- * Get current debug level value
- * @param level Level value to get
- * @return Level value
- */
-bool csp_debug_get_level(csp_debug_level_t level);
-
-/**
  * Print interface statistics
  */
 void csp_route_print_interfaces(void);

@@ -36,7 +36,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 csp_debug_hook_func_t csp_debug_hook_func = NULL;
 
 /* Debug levels */
-static bool levels_enable[] = {
+int csp_debug_level_enabled[] = {
 	[CSP_ERROR]		= true,
 	[CSP_WARN]		= true,
 	[CSP_INFO]		= false,
@@ -58,7 +58,7 @@ void do_csp_debug(csp_debug_level_t level, const char * format, ...) {
 	va_list args;
 
 	/* Don't print anything if log level is disabled */
-	if (level > CSP_LOCK || !levels_enable[level])
+	if (level > CSP_LOCK || !csp_debug_level_enabled[level])
 		return;
 
 	switch(level) {
@@ -110,14 +110,15 @@ void do_csp_debug(csp_debug_level_t level, const char * format, ...) {
 }
 
 void csp_debug_set_level(csp_debug_level_t level, bool value) {
-	if (level <= CSP_LOCK)
-		levels_enable[level] = value;
+	if (level > CSP_LOCK)
+		return;
+	csp_debug_level_enabled[level] = value;
 }
 
-bool csp_debug_get_level(csp_debug_level_t level) {
-	if (level <= CSP_LOCK)
-		return levels_enable[level];
-	return false;
+int csp_debug_get_level(csp_debug_level_t level) {
+	if (level > CSP_LOCK)
+		return 0;
+	return csp_debug_level_enabled[level];
 }
 
 void csp_debug_toggle_level(csp_debug_level_t level) {
@@ -125,6 +126,6 @@ void csp_debug_toggle_level(csp_debug_level_t level) {
 		printf("Max level is 6\r\n");
 		return;
 	}
-	levels_enable[level] = (levels_enable[level]) ? false : true;
-	printf("Level %u: value %u\r\n", level, levels_enable[level]);
+	csp_debug_level_enabled[level] = (csp_debug_level_enabled[level]) ? false : true;
+	printf("Level %u: value %u\r\n", level, csp_debug_level_enabled[level]);
 }

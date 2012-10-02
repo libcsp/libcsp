@@ -39,6 +39,8 @@ typedef enum {
 	CSP_LOCK	 	= 6,
 } csp_debug_level_t;
 
+extern int csp_debug_level_enabled[];
+
 /* Extract filename component from path */
 #define BASENAME(_file) ((strrchr(_file, '/') ? : (strrchr(_file, '\\') ? : _file))+1)
 
@@ -73,9 +75,9 @@ extern void __attribute__((weak)) csp_assert_fail_action(char *assertion, const 
 
 #ifdef CSP_DEBUG
 #ifdef CSP_VERBOSE
-	#define csp_debug(level, format, ...) do_csp_debug(level, CONSTSTR("[%02"PRIu8"] %s:%d " format), my_address, BASENAME(__FILE__), __LINE__, ##__VA_ARGS__)
+	#define csp_debug(level, format, ...) do { if (csp_debug_level_enabled[level]) { do_csp_debug(level, CONSTSTR("[%02"PRIu8"] %s:%d " format), my_address, BASENAME(__FILE__), __LINE__, ##__VA_ARGS__);}} while(0)
 #else
-	#define csp_debug(level, format, ...) do_csp_debug(level, CONSTSTR("[%02"PRIu8"] " format), my_address, ##__VA_ARGS__)
+	#define csp_debug(level, format, ...) do { if (csp_debug_level_enabled[level]) { do_csp_debug(level, CONSTSTR("[%02"PRIu8"] " format), my_address, ##__VA_ARGS__);}} while(0)
 #endif
 #else
 	#define csp_debug(...) do {} while (0)
@@ -111,7 +113,32 @@ extern void __attribute__((weak)) csp_assert_fail_action(char *assertion, const 
 	#define csp_log_lock(...) do {} while (0)
 #endif
 
+/**
+ * This function should not be used directly, use csp_log_<level>() macro instead
+ * @param level
+ * @param format
+ */
 void do_csp_debug(csp_debug_level_t level, const char *format, ...);
+
+/**
+ * Toggle debug level on/off
+ * @param level Level to toggle
+ */
+void csp_debug_toggle_level(csp_debug_level_t level);
+
+/**
+ * Set debug level
+ * @param level Level to set
+ * @param value New level value
+ */
+void csp_debug_set_level(csp_debug_level_t level, bool value);
+
+/**
+ * Get current debug level value
+ * @param level Level value to get
+ * @return Level value
+ */
+int csp_debug_get_level(csp_debug_level_t level);
 
 #ifdef __cplusplus
 } /* extern "C" */
