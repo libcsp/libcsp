@@ -13,3 +13,5 @@ pdebug*
 *.tar*
 tags
 .DS_store
+*.pdf
+*.html
