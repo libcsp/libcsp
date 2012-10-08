@@ -1,4 +1,5 @@
-About the Cubesat Space Protocol
+The Cubesat Space Protocol
+==========================
 
 Cubesat Space Protocol (CSP) is a small network-layer delivery protocol 
 designed for Cubesats. The idea was developed by a group of students from 
