@@ -8,34 +8,43 @@ Layer 1: Drivers
 
 Lib CSP is not designed for any specific processor or hardware peripheral, but yet these drivers are required in order to work. The intention of LibCSP is not to provide CAN, I2C or UART drivers for all platforms, however some drivers has been included for some platforms. If you do not find your platform supported, it is quite simple to add a driver that conforms to the CSP interfaces. For example the I2C driver just requires three functions: `init`, `send` and `recv`. For good stability and performance interrupt driven drivers are preferred in favor of polled drivers. Where applicable also DMA usage is recommended.
 
-------------
+Layer 2: MAC interfaces
+-----------------------
 
+CSP has interfaces for I2C, CAN, RS232 (KISS) and Loopback. The layer 2 protocol software defines a frame-format that is suitable for the media. CSP can be easily extended with implementations for even more links. For example a radio-link and IP-networks. The file `csp_interface.h` declares the rx and tx functions needed in order to define a network interface in CSP. During initialisation of CSP each interface will be inserted into a linked list of interfaces that is available to the router. In cases where link-layer addresses are required, such as I2C, the routing table supoorts specifying next-hop link-layer address directly. This avoids the need to implement an address resolution protocol to translate CSP addresses to I2C addresses.
 
-Layer 2: MAC-layer protocols
-----------------------------
+Layer 3: Network Router
+-----------------------
 
-The layer 2 protocol software defines a frame-format that is suitable for the media. The interface can be easily extended with implementations for even more links. For example on the space-link, Gomspace uses the CCSDS framing format with forward error correction, scrambling and a 32-bit attached sync marker. The purpose of the MAC-layer protocol is to remove all this extra information, decode the frame correctly and deliver the arrived data to the router core.
+The router core is the backbone of the CSP implementation. The router works by looking at a 32-bit CSP header which contains the delivery and source address together with port numbers for the connection. Each router supports both local delivery and forwarding of frames to another destination. Frames will never exit the router on the same interface that they arrives at, this concept is called split horizon, and helps prevent routing loops.
 
-Layer 3: Router Core
---------------------
+The main purpose of the router is to accept incoming packets and deliver them to the right message queue. Therefore, in order to listen on a port-number on the network, a task must create a socket and call the accept() call. This will make the task block and wait for incoming traffic, just like a web-server or similar. When an incoming connection is opened, the task is woken. Depending on the task-priority, the task can even preempt another task and start execution immediately.
 
-The router core is the backbone of the CSP implementation. Not only does it take care of the basic routing function, it also holds some utility code for buffer handling, which must be used by all the drivers. The router works by looking at a 32-bit CSP header which contains the usual delivery and source address together with port numbers for the connection.
+There is no routing protocol for automatic route discovery, all routing tables are pre-programmed into the subsystems. The table itself contains a separate route to each of the possible 32 nodes in the network and the additional default route. This means that the overall topology must be decided before putting sub-systems together, as explained in the `topology.md` file. However CSP has an extension on port zero CMP (CSP management protocol), which allows for over-the-network routing table configuration. This has the advantage that default routes could be changed if for example the primary radio fails, and the secondary should be used instead.
 
-There is no routing protocol for automatic route discovery, all routing tables are pre-programmed into the subsystems. This means that the overall topology must be decided before putting sub-systems together. An example will be shown later.
+Layer 4: Transport Layer
+------------------------
 
-The buffer handling system can be compiled for either static allocation or a one-time dynamic allocation of the main memory block. After this, the buffer system is entirely self-contained. All allocated elements are of the same size, so the buffer size must be chosen to be able to handle the maximum possible packet length. Since all elements are of the same size, the search algorithm is extremely quick and requires no hard-locking of the processor while running. It can even run from both interrupt and task context at the same time.
+LibCSP implements two different Transport Layer protocols, they are called UDP (unreliable datagram protcol) and RDP (reliable datagram protocol). The name UDP has not been chosen to be an exact replica of the UDP (user datagram protocol) known from the TCP/IP model, but they have certain similarities.
 
-The routing table is implemented as a full 1-to-1 map of destination addresses and next-hop interfaces. The connection table can hold a pre-defined number of connection handles at a time, and all handles must be free’d after use, just like buffers.
+The most important thing to notice is that CSP is entirely a datagram service. There is no stream based service like TCP. A datagram is defined a block of data with a specified size and structure. This block enters the transport layer as a single datagram and exits the transport layer in the other end as a sigle datagram. CSP preserves this structure all the way to the physical layer for I2C, KISS and Loopback interfaces are used. The CAN-bus interface has to fragment the datagram into CAN-frames of 8 bytes, however only a fully completed datagram will arrive at the receiver.
 
-The main purpose of the router is to accept incoming packets and deliver them to the right message queue. Therefore, in order to listen on a port-number on the network, a task must create a socket and call the accept() call. This will make the task block and wait for incoming traffic, just like a web-server or similar. When an incoming connection is opened, the task is woken. Depending on the task-priority, the task can even preempt another task and start execution immediately. 
+### UDP ###
+UDP uses a simple transmission model without implicit hand-shaking dialogues for guaranteeing reliability, ordering, or data integrity. Thus, UDP provides an unreliable service and datagrams may arrive out of order, appear duplicated, or go missing without notice. UDP assumes that error checking and correction is either not necessary or performed in the application, avoiding the overhead of such processing at the network interface level. Time-sensitive applications often use UDP because dropping packets is preferable to waiting for delayed packets, which may not be an option in a real-time system.
 
-More examples of how to use the router and how to listen for incoming traffic is shown later. 
+UDP is very practical to implement request/reply based communication where a single packet forms the request and a single packet forms the reply. In this case a typical request and wait protocol is used between the client and server, which will simply return an error if a reply is not received within a specified time limit. An error would normally lead to a retransmission of the request from the user or operator which sent the request.
 
-Layer 4: Transport Extensions
------------------------------
+While UDP is very simple, it also has some limitations. Normally a human in the loop is a good thing when operating the satellite over UDP. But when it comes to larger file transfers, the human becomes the bottleneck. When a high-speed file transfer is initiated data acknowledgement should be done automatically in order to speed up the transfer. This is where the RDP protocol can help.
 
-As known from the TCP/IP or the OSI model, layer 3 only takes care of packet delivery, nothing else. In the TCP/IP model, the data is handed to the user-space application after the TCP protocol has ensured the packets are correctly ordered, and there are no data missing. This is very practical when using networks like the internet where traffic might take different routes in the network and packets may be lost. However for a small satellite, the internal data-bus is very reliable and delivers information in the correct order, and the space-link is too slow for a 3-way handshake protocol.
+### RDP ###
+CSP provides a transport layer extension called RDP (reliable datagram protocol) which is an implementation of RFC908 and RFC1151. RDP provides a few additional features:
 
-Data packets are therefore handed to the user-space application just as-is, when they entered the node. This resembles the well known UDP (user datagram protocol). UDP uses a simple transmission model without implicit hand-shaking dialogues for guaranteeing reliability, ordering, or data integrity. Thus, UDP provides an unreliable service and datagrams may arrive out of order, appear duplicated, or go missing without notice. UDP assumes that error checking and correction is either not necessary or performed in the application, avoiding the overhead of such processing at the network interface level. Time-sensitive applications often use UDP because dropping packets is preferable to waiting for delayed packets, which may not be an option in a real-time system.
+ * Three-way handshake
+ * Flow Control
+ * Data-buffering
+ * Packet re-ordering
+ * Retransmission
+ * Windowing
+ * Extended Acknowdlegment
 
-In order to control data integrity when using an unreliable protocol, extra software is needed. GomSpace provides a transport layer extension to simple UDP function called RDP (reliable datagram protocol). RDP is an implementation of the RFC 908 and RFC 1151 directly, which adds automatic retransmission and packet re-ordering on top of UDP. Another way of implementing retransmission is to take care of it on application layer, or using a combination of both application layer and transport layer (RDP), which is how the File Transfer Protocol works.
+For more information on this, please refer to RFC908.
