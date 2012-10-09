@@ -1,8 +1,13 @@
-# Client and server example #
+Client and server example
+=========================
+
 The following examples show the initialization of the protocol stack and examples of client/server code.
 
-## Initialization Sequence ##
+Initialization Sequence
+-----------------------
+
 This code initializes the CSP buffer system, device drivers and router core. The example uses the CAN interface function csp_can_tx but the initialization is similar for other interfaces. The loopback interface does not require any explicit initialization.
+
 ``` c
 #include <csp/csp.h>
 #include <csp/interfaces/csp_if_can.h>
@@ -10,14 +15,11 @@ This code initializes the CSP buffer system, device drivers and router core. The
 /* CAN configuration struct for SocketCAN interface "can0" */
 struct csp_can_config can_conf = {.ifc = "can0"};
 
-/* Define subsystem address to 0 */
-#define MY_ADDRESS  0
-
 /* Init buffer system with 10 packets of maximum 320 bytes each */
 csp_buffer_init(10, 320);
 
-/* Init CSP with address MY_ADDRESS */
-csp_init(MY_ADDRESS);
+/* Init CSP with address 1 */
+csp_init(1);
 
 /* Init the CAN interface with hardware filtering */
 csp_can_init(CSP_CAN_MASKED, &can_conf)
@@ -29,8 +31,11 @@ csp_route_set(CSP_DEFAULT_ROUTE, &csp_can_tx, CSP_HOST_MAC);
 csp_route_start_task(500, 1);
 ```
 
-## Server ##
-This example shows how to create a server task that listens for incoming connections. CSP should be initialized before starting this task. Note the use of csp_service_handler() as the default branch in the port switch case. The service handler will automatically reply to ICMP-like requests, such as pings and buffer status requests. 
+Server
+------
+
+This example shows how to create a server task that listens for incoming connections. CSP should be initialized before starting this task. Note the use of `csp_service_handler()` as the default branch in the port switch case. The service handler will automatically reply to ICMP-like requests, such as pings and buffer status requests.
+
 ``` c
 void csp_task(void *parameters) {
     /* Create socket without any socket options */
@@ -70,15 +75,19 @@ void csp_task(void *parameters) {
 }
 ```
 
-## Client ##
-This example shows how to allocate a packet buffer, connect to another host and send the packet. CSP should be initialized before calling this function. RUDP, XTEA, HMAC and CRC checksums can be enabled per connection, by setting the connection option to a bitwise OR of any combination of CSP_O_RDP, CSP_O_XTEA, CSP_O_HMAC and CSP_O_CRC.
+Client
+------
+
+This example shows how to allocate a packet buffer, connect to another host and send the packet. CSP should be initialized before calling this function. RDP, XTEA, HMAC and CRC checksums can be enabled per connection, by setting the connection option to a bitwise OR of any combination of `CSP_O_RDP`, `CSP_O_XTEA`, `CSP_O_HMAC` and `CSP_O_CRC`.
+
 ``` c
 int send_packet(void) {
+
     /* Get packet buffer for data */
     csp_packet_t *packet = csp_buffer_get(data_size);
     if (packet == NULL) {
         /* Could not get buffer element */
-        printf("Failed to get buffer element\n");
+        printf("Failed to get buffer element\\n");
         return -1;
     }
 
@@ -86,7 +95,7 @@ int send_packet(void) {
     csp_conn_t *conn = csp_connect(CSP_PRIO_NORM, HOST, PORT, 1000, CSP_O_NONE);
     if (conn == NULL) {
         /* Connect failed */
-        printf("Connection failed\n");
+        printf("Connection failed\\n");
         /* Remember to free packet buffer */
         csp_buffer_free(packet);
         return -1;
@@ -102,7 +111,7 @@ int send_packet(void) {
     /* Send packet */
     if (!csp_send(conn, packet, 1000)) {
         /* Send failed */
-        printf("Send failed\n");
+        printf("Send failed\\n");
         csp_buffer_free(packet);
     }
 
@@ -112,3 +121,4 @@ int send_packet(void) {
     return 0
 }
 ```
+
