@@ -92,3 +92,4 @@ The two named pipes are created with:
 ``` bash
 % mkfifo server_to_client client_to_server
 ```
+
