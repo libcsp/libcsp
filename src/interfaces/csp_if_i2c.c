@@ -19,10 +19,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 #include <inttypes.h>
-#include <stdio.h>
 #include <stdint.h>
-#include <string.h>
-#include <errno.h>
 
 #include <csp/csp.h>
 #include <csp/csp_endian.h>
