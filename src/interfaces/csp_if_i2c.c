@@ -22,15 +22,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
-
-#include <dev/i2c.h>
-#include <util/error.h>
+#include <errno.h>
 
 #include <csp/csp.h>
 #include <csp/csp_endian.h>
 #include <csp/csp_interface.h>
 #include <csp/csp_error.h>
 #include <csp/interfaces/csp_if_i2c.h>
+#include <csp/drivers/i2c.h>
 
 #define CSP_I2C_SPEED 400
 
@@ -101,11 +100,11 @@ void csp_i2c_rx(i2c_frame_t * frame, void * pxTaskWoken) {
 
 }
 
-int csp_i2c_init(uint8_t addr, int handle) {
+int csp_i2c_init(uint8_t addr, int handle, int speed) {
 
 	/* Create i2c_handle */
 	csp_i2c_handle = handle;
-	if (i2c_init(csp_i2c_handle, I2C_MASTER, addr, CSP_I2C_SPEED, 5, 5, csp_i2c_rx) != E_NO_ERR)
+	if (i2c_init(csp_i2c_handle, I2C_MASTER, addr, speed, 5, 5, csp_i2c_rx) != E_NO_ERR)
 		return CSP_ERR_DRIVER;
 
 	/* Regsiter interface */

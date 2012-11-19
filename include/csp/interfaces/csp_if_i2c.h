@@ -36,9 +36,10 @@ extern csp_iface_t csp_if_i2c;
  * Capture I2C RX events for CSP
  * @param opt_addr local i2c address
  * @param handle which i2c device to use
+ * @param speed interface speed in kHz (normally 100 or 400)
  * @return csp_error.h code
  */
-int csp_i2c_init(uint8_t opt_addr, int handle);
+int csp_i2c_init(uint8_t opt_addr, int handle, int speed);
 
 #ifdef __cplusplus
 } /* extern "C" */

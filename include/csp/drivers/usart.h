@@ -23,9 +23,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  * Common USART interface,
  * This file is derived from the Gomspace USART driver,
  * the main difference is the assumption that only one USART will be present on a PC
- *
- * @author Johan De Claville Christiansen
- * Copyright 2011 GomSpace ApS. All rights reserved.
  */
 
 #ifndef USART_H_
