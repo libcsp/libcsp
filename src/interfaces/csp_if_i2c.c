@@ -31,8 +31,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/interfaces/csp_if_i2c.h>
 #include <csp/drivers/i2c.h>
 
-#define CSP_I2C_SPEED 400
-
 static int csp_i2c_handle = 0;
 
 int csp_i2c_tx(csp_packet_t * packet, uint32_t timeout) {
