@@ -449,6 +449,40 @@ int csp_bind(csp_socket_t *socket, uint8_t port);
  */
 int csp_route_set(uint8_t node, csp_iface_t *ifc, uint8_t nexthop_mac_addr);
 
+#define CSP_ROUTE_COUNT 			(CSP_ID_HOST_MAX + 2)
+#define CSP_ROUTE_TABLE_SIZE		5 * CSP_ROUTE_COUNT
+
+/**
+ * Clear and init the routing table
+ *
+ * This function is called by csp_init and should only be needed in case
+ * the table must be reset after initialization.
+ * @return CSP_ERR
+ */
+int csp_route_table_init(void);
+
+/**
+ * Load the routing table from a buffer
+ *
+ * Warning:
+ * The table will be RAW from memory and contains direct pointers, not interface names.
+ * Therefore it's very important that a saved routing table is deleted after a firmware update
+ *
+ * @param route_table_in pointer to routing table buffer
+ */
+void csp_route_table_load(uint8_t route_table_in[CSP_ROUTE_TABLE_SIZE]);
+
+/**
+ * Save the routing table to a buffer
+ *
+ * Warning:
+ * The table will be RAW from memory and contains direct pointers, not interface names.
+ * Therefore it's very important that a saved routing table is deleted after a firmware update
+ *
+ * @param route_table_out pointer to routing table buffer
+ */
+void csp_route_table_save(uint8_t route_table_out[CSP_ROUTE_TABLE_SIZE]);
+
 /**
  * Start the router task.
  * @param task_stack_size The number of portStackType to allocate. This only affects FreeRTOS systems.

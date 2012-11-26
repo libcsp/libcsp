@@ -30,6 +30,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/csp_endian.h>
 #include <csp/csp_platform.h>
 #include <csp/csp_error.h>
+#include <csp/interfaces/csp_if_lo.h>
 
 #include "arch/csp_thread.h"
 #include "arch/csp_queue.h"
@@ -47,12 +48,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "csp_io.h"
 #include "transport/csp_transport.h"
 
-csp_thread_handle_t handle_router;
-
 /* Static allocation of routes */
-csp_iface_t * interfaces;
-csp_route_t routes[CSP_ID_HOST_MAX + 2];
-csp_mutex_t routes_lock;
+static csp_iface_t * interfaces;
+static csp_route_t routes[CSP_ROUTE_COUNT];
+
+static csp_thread_handle_t handle_router;
 
 static csp_queue_handle_t router_input_fifo[CSP_ROUTE_FIFOS];
 #ifdef CSP_USE_QOS
@@ -163,18 +163,16 @@ int csp_route_table_init(void) {
 
 	int prio;
 
-	/* Clear rounting table */
-	memset(routes, 0, sizeof(csp_route_t) * (CSP_ID_HOST_MAX + 2));
-
-	/* Create routing table lock */
-	if (csp_mutex_create(&routes_lock) != CSP_MUTEX_OK)
-		return CSP_ERR_NOMEM;
+	/* Clear routing table */
+	memset(routes, 0, sizeof(csp_route_t) * CSP_ROUTE_COUNT);
 
 	/* Create router fifos for each priority */
 	for (prio = 0; prio < CSP_ROUTE_FIFOS; prio++) {
-		router_input_fifo[prio] = csp_queue_create(CSP_FIFO_INPUT, sizeof(csp_route_queue_t));
-		if (!router_input_fifo[prio])
-			return CSP_ERR_NOMEM;
+		if (router_input_fifo[prio] == NULL) {
+			router_input_fifo[prio] = csp_queue_create(CSP_FIFO_INPUT, sizeof(csp_route_queue_t));
+			if (!router_input_fifo[prio])
+				return CSP_ERR_NOMEM;
+		}
 	}
 
 #ifdef CSP_USE_QOS
@@ -184,8 +182,22 @@ int csp_route_table_init(void) {
 		return CSP_ERR_NOMEM;
 #endif
 
+	/* Register loopback route */
+	csp_route_set(my_address, &csp_if_lo, CSP_NODE_MAC);
+
+	/* Also register loopback as default, until user redefines default route */
+	csp_route_set(CSP_DEFAULT_ROUTE, &csp_if_lo, CSP_NODE_MAC);
+
 	return CSP_ERR_NONE;
 
+}
+
+void csp_route_table_load(uint8_t route_table_in[CSP_ROUTE_TABLE_SIZE]) {
+	memcpy(routes, route_table_in, sizeof(csp_route_t) * CSP_ROUTE_COUNT);
+}
+
+void csp_route_table_save(uint8_t route_table_out[CSP_ROUTE_TABLE_SIZE]) {
+	memcpy(route_table_out, routes, sizeof(csp_route_t) * CSP_ROUTE_COUNT);
 }
 
 int csp_route_next_packet(csp_route_queue_t * input) {

@@ -100,16 +100,6 @@ int csp_init(unsigned char address) {
 	csp_crc32_gentab();
 #endif
 
-	/* Register loopback route */
-	ret = csp_route_set(address, &csp_if_lo, CSP_NODE_MAC);
-	if (ret != CSP_ERR_NONE)
-		return ret;
-
-	/* Also register loopback as default, until user redefines default route */
-	ret = csp_route_set(CSP_DEFAULT_ROUTE, &csp_if_lo, CSP_NODE_MAC);
-	if (ret != CSP_ERR_NONE)
-		return ret;
-
 	return CSP_ERR_NONE;
 
 }
