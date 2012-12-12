@@ -238,10 +238,11 @@ int csp_init(uint8_t my_node_address);
 
 #define CSP_HOSTNAME_LEN	20
 /** csp_set_hostname
- * Set subsystem hostname. The default hostname is 'csp'.
+ * Set subsystem hostname.
+ * This function takes a pointer to a string, which should remain static
  * @param hostname Hostname to set
  */
-int csp_set_hostname(char *hostname);
+void csp_set_hostname(char *hostname);
 
 /** csp_get_hostname
  * Get current subsystem hostname.
@@ -251,10 +252,11 @@ char *csp_get_hostname(void);
 
 #define CSP_MODEL_LEN		30
 /** csp_set_model
- * Set subsystem model name. The default model is 'CSP Subsystem'
+ * Set subsystem model name.
+ * This function takes a pointer to a string, which should remain static
  * @param model Model name to set
  */
-int csp_set_model(char *model);
+void csp_set_model(char *model);
 
 /** csp_get_model
  * Get current model name.
