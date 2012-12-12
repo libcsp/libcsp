@@ -68,7 +68,15 @@ extern void __attribute__((weak)) csp_assert_fail_action(char *assertion, const 
 	#include <avr/pgmspace.h>
 	#define CONSTSTR(data) PSTR(data)
 	#undef printf
+	#undef sscanf
+	#undef scanf
+	#undef sprintf
+	#undef snprintf
 	#define printf(s, ...) printf_P(PSTR(s), ## __VA_ARGS__)
+	#define sscanf(buf, s, ...) sscanf_P(buf, PSTR(s), ## __VA_ARGS__)
+	#define scanf(s, ...) scanf_P(PSTR(s), ## __VA_ARGS__)
+	#define sprintf(buf, s, ...) sprintf_P(buf, PSTR(s), ## __VA_ARGS__)
+	#define snprintf(buf, size, s, ...) snprintf_P(buf, size, PSTR(s), ## __VA_ARGS__)
 #else
 	#define CONSTSTR(data) data
 #endif
