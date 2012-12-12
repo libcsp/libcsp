@@ -544,16 +544,16 @@ static int csp_bytesize(char *buf, int len, unsigned long int n) {
 
 	if (n >= 1048576) {
 		size = n/1048576.0;
-		postfix = "M";
+		postfix = 'M';
 	} else if (n >= 1024) {
 		size = n/1024.;
-		postfix = "K";
+		postfix = 'K';
 	} else {
 		size = n;
-		postfix = "B";
+		postfix = 'B';
 	}
 
-	return snprintf(buf, len, "%.1f%s", size, postfix);
+	return snprintf(buf, len, "%.1f%c", size, postfix);
 }
 
 void csp_route_print_interfaces(void) {
