@@ -50,8 +50,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #define TNC_SET_HARDWARE	0x06
 #define TNC_RETURN			0xFF
 
-csp_kiss_putstr_f kiss_putstr;
-csp_kiss_discard_f kiss_discard;
+static csp_kiss_putstr_f kiss_putstr;
+static csp_kiss_discard_f kiss_discard;
 
 #ifdef KISS_CRC32
 
