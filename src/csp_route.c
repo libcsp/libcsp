@@ -539,7 +539,7 @@ uint8_t csp_route_get_nexthop_mac(uint8_t node) {
 #ifdef CSP_DEBUG
 static int csp_bytesize(char *buf, int len, unsigned long int n) {
 
-	char * postfix;
+	char postfix;
 	double size;
 
 	if (n >= 1048576) {
