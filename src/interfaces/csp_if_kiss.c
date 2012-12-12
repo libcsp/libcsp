@@ -120,7 +120,7 @@ static uint32_t kiss_crc(unsigned char *block, unsigned int length) {
 /* Send a CSP packet over the KISS RS232 protocol */
 int csp_kiss_tx(csp_packet_t * packet, uint32_t timeout) {
 
-	int i, txbufin = 0;
+	int txbufin = 0;
 	char * txbuf = csp_malloc(packet->length + 30);
 	if (txbuf == NULL)
 		return CSP_ERR_NOMEM;
@@ -139,7 +139,7 @@ int csp_kiss_tx(csp_packet_t * packet, uint32_t timeout) {
 
 	txbuf[txbufin++] = FEND;
 	txbuf[txbufin++] = TNC_DATA;
-	for (i = 0; i < packet->length; i++) {
+	for (unsigned int i = 0; i < packet->length; i++) {
 		if (((unsigned char *) &packet->id.ext)[i] == FEND) {
 			((unsigned char *) &packet->id.ext)[i] = TFEND;
 			txbuf[txbufin++] = FESC;
