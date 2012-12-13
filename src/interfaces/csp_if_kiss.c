@@ -28,6 +28,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/csp_platform.h>
 #include <csp/csp_interface.h>
 #include <csp/interfaces/csp_if_kiss.h>
+#include "../arch/csp_malloc.h"
 
 /**
  * Some day, stop using CRC on layer 2 and move to layer 3
@@ -49,12 +50,17 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #define TNC_SET_HARDWARE	0x06
 #define TNC_RETURN			0xFF
 
-csp_kiss_putstr_f kiss_putstr;
-csp_kiss_discard_f kiss_discard;
+static csp_kiss_putstr_f kiss_putstr;
+static csp_kiss_discard_f kiss_discard;
 
 #ifdef KISS_CRC32
 
+#ifdef __AVR__
+#include <avr/pgmspace.h>
+static const uint32_t kiss_crc_tab[256] PROGMEM = {
+#else
 static const uint32_t kiss_crc_tab[256] = {
+#endif
 		0x00000000, 0x77073096, 0xEE0E612C, 0x990951BA, 0x076DC419, 0x706AF48F, 0xE963A535, 0x9E6495A3,
 		0x0EDB8832, 0x79DCB8A4, 0xE0D5E91E, 0x97D2D988, 0x09B64C2B, 0x7EB17CBD, 0xE7B82D07, 0x90BF1D91,
 		0x1DB71064, 0x6AB020F2, 0xF3B97148, 0x84BE41DE, 0x1ADAD47D, 0x6DDDE4EB, 0xF4D4B551, 0x83D385C7,
@@ -99,17 +105,25 @@ static uint32_t kiss_crc(unsigned char *block, unsigned int length) {
 	unsigned int i;
 
 	crc = 0xFFFFFFFF;
-	for (i = 0; i < length; i++)
-		crc = ((crc >> 8) & 0x00FFFFFF) ^ kiss_crc_tab[(crc ^ *block++) & (uint32_t) 0xFF];
-	return (crc ^ 0xFFFFFFFF);
+	for (i = 0; i < length; i++) {
+#ifdef __AVR__
+		crc = ((crc >> 8) & 0x00FFFFFF) ^ pgm_read_dword(&kiss_crc_tab[(crc ^ (uint32_t) block[i]) & (uint32_t) 0xFF]);
+#else
+		crc = ((crc >> 8) & 0x00FFFFFF) ^ kiss_crc_tab[(crc ^ block[i]) & (uint32_t) 0xFF];
+#endif
+	}
+	crc = crc ^ 0xFFFFFFFF;
+	return crc;
 }
 #endif // KISS_CRC32
 
 /* Send a CSP packet over the KISS RS232 protocol */
 int csp_kiss_tx(csp_packet_t * packet, uint32_t timeout) {
 
-	int i, txbufin = 0;
-	char txbuf[csp_if_kiss.mtu * 2];
+	int txbufin = 0;
+	char * txbuf = csp_malloc(packet->length + 30);
+	if (txbuf == NULL)
+		return CSP_ERR_NOMEM;
 
 	/* Save the outgoing id in the buffer */
 	packet->id.ext = csp_hton32(packet->id.ext);
@@ -125,7 +139,7 @@ int csp_kiss_tx(csp_packet_t * packet, uint32_t timeout) {
 
 	txbuf[txbufin++] = FEND;
 	txbuf[txbufin++] = TNC_DATA;
-	for (i = 0; i < packet->length; i++) {
+	for (unsigned int i = 0; i < packet->length; i++) {
 		if (((unsigned char *) &packet->id.ext)[i] == FEND) {
 			((unsigned char *) &packet->id.ext)[i] = TFEND;
 			txbuf[txbufin++] = FESC;
@@ -137,10 +151,9 @@ int csp_kiss_tx(csp_packet_t * packet, uint32_t timeout) {
 
 	}
 	txbuf[txbufin++] = FEND;
-
-	kiss_putstr(txbuf, txbufin);
-
 	csp_buffer_free(packet);
+	kiss_putstr(txbuf, txbufin);
+	csp_free(txbuf);
 
 	return CSP_ERR_NONE;
 }
@@ -230,8 +243,7 @@ void csp_kiss_rx(uint8_t * buf, int len, void * pxTaskWoken) {
 
 			csp_if_kiss.frame++;
 
-			if (packet->length >= CSP_HEADER_LENGTH
-					&& packet->length <= csp_if_kiss.mtu + CSP_HEADER_LENGTH) {
+			if (packet->length >= CSP_HEADER_LENGTH && packet->length <= csp_if_kiss.mtu + CSP_HEADER_LENGTH) {
 
 #if defined(KISS_CRC32)
 				uint32_t crc_remote;
@@ -240,7 +252,7 @@ void csp_kiss_rx(uint8_t * buf, int len, void * pxTaskWoken) {
 				uint32_t crc_local = kiss_crc((unsigned char *) &packet->id.ext, packet->length - sizeof(crc_remote));
 
 				if (crc_remote != crc_local) {
-					csp_log_warn("CRC remote 0x%08X, local 0x%08X, len %u\r\n", crc_remote, crc_local, length);
+					csp_log_warn("CRC remote 0x%08"PRIX32", local 0x%08"PRIX32", packlen %u\r\n", crc_remote, crc_local, packet->length);
 					csp_if_kiss.rx_error++;
 					if (pxTaskWoken == NULL) {
 						csp_buffer_free(packet);
@@ -264,8 +276,7 @@ void csp_kiss_rx(uint8_t * buf, int len, void * pxTaskWoken) {
 				/* Send back into CSP, notice calling from task so last argument must be NULL! */
 				csp_new_packet(packet, &csp_if_kiss, pxTaskWoken);
 			} else {
-				csp_log_warn("Weird kiss frame received! Size %u\r\n",
-						packet->length);
+				csp_log_warn("Weird kiss frame received! Size %u\r\n", packet->length);
 				csp_buffer_free(packet);
 			}
 
