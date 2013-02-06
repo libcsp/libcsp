@@ -25,10 +25,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 /* CSP includes */
 #include <csp/csp.h>
 #include <csp/csp_error.h>
-
-#include "arch/csp_queue.h"
-#include "arch/csp_malloc.h"
-#include "arch/csp_semaphore.h"
+#include <csp/arch/csp_queue.h>
+#include <csp/arch/csp_malloc.h>
+#include <csp/arch/csp_semaphore.h>
 
 static csp_queue_handle_t csp_buffers;
 static void *csp_buffer_list;

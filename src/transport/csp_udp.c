@@ -19,7 +19,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 #include <csp/csp.h>
-#include "../arch/csp_queue.h"
+#include <csp/arch/csp_queue.h>
 #include "../csp_port.h"
 #include "../csp_conn.h"
 

@@ -25,7 +25,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/csp.h>
 
 #include "pthread_queue.h"
-#include "../csp_queue.h"
+#include <csp/arch/csp_queue.h>
 
 
 csp_queue_handle_t csp_queue_create(int length, size_t item_size) {

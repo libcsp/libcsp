@@ -23,11 +23,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 /* FreeRTOS includes */
 #include <freertos/FreeRTOS.h>
 
-/* CSP includes */
-#include <csp/csp.h>
-
-#include "../csp_malloc.h"
-
 void * csp_malloc(size_t size) {
 	return pvPortMalloc(size);
 }

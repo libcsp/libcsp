@@ -26,7 +26,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/csp.h>
 #include <csp/csp_error.h>
 
-#include "../csp_system.h"
+#include <csp/arch/csp_system.h>
 
 int csp_sys_tasklist(char * out) {
 	vTaskList((signed portCHAR *) out);

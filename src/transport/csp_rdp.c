@@ -33,10 +33,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/csp.h>
 #include <csp/csp_endian.h>
 #include <csp/csp_error.h>
-#include "../arch/csp_queue.h"
-#include "../arch/csp_semaphore.h"
-#include "../arch/csp_malloc.h"
-#include "../arch/csp_time.h"
+#include <csp/arch/csp_queue.h>
+#include <csp/arch/csp_semaphore.h>
+#include <csp/arch/csp_malloc.h>
+#include <csp/arch/csp_time.h>
 #include "../csp_port.h"
 #include "../csp_conn.h"
 #include "../csp_io.h"

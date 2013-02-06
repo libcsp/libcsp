@@ -28,9 +28,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/csp_endian.h>
 #include <csp/csp_platform.h>
 
-#include "arch/csp_time.h"
-#include "arch/csp_malloc.h"
-#include "arch/csp_system.h"
+#include <csp/arch/csp_time.h>
+#include <csp/arch/csp_malloc.h>
+#include <csp/arch/csp_system.h>
 #include "csp_route.h"
 
 static int do_cmp_ident(struct csp_cmp_message *cmp) {

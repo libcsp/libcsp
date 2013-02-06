@@ -28,9 +28,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 /* CSP includes */
 #include <csp/csp.h>
 
-#include "../csp_malloc.h"
-#include "../csp_semaphore.h"
-#include "../csp_queue.h"
+#include <csp/arch/csp_malloc.h>
+#include <csp/arch/csp_semaphore.h>
+#include <csp/arch/csp_queue.h>
 
 int csp_mutex_create(csp_mutex_t * mutex) {
 	*mutex = xSemaphoreCreateMutex();

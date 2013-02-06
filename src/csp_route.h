@@ -29,8 +29,8 @@ extern "C" {
 
 #include <csp/csp.h>
 
-#include "arch/csp_thread.h"
-#include "arch/csp_queue.h"
+#include <csp/arch/csp_thread.h>
+#include <csp/arch/csp_queue.h>
 
 typedef struct __attribute__((__packed__)) {
 	csp_iface_t * interface;

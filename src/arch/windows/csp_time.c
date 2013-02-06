@@ -1,6 +1,6 @@
 #include <Windows.h>
 #include <stdint.h>
-#include "../csp_time.h"
+#include <csp/arch/csp_time.h>
 
 uint32_t csp_get_ms(void) {
 	return (uint32_t)GetTickCount();

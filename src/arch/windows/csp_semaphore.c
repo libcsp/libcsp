@@ -1,6 +1,6 @@
 #include <Windows.h>
 #include <csp/csp.h>
-#include "../csp_semaphore.h"
+#include <csp/arch/csp_semaphore.h>
 
 int csp_mutex_create(csp_mutex_t * mutex) {
     HANDLE mutexHandle = CreateMutex(NULL, FALSE, FALSE);

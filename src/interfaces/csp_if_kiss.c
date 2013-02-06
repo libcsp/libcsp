@@ -28,7 +28,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/csp_platform.h>
 #include <csp/csp_interface.h>
 #include <csp/interfaces/csp_if_kiss.h>
-#include "../arch/csp_malloc.h"
+#include <csp/arch/csp_malloc.h>
 
 /**
  * Some day, stop using CRC on layer 2 and move to layer 3

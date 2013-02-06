@@ -3,10 +3,7 @@
 #include <csp/interfaces/csp_if_kiss.h>
 
 #include <csp/drivers/usart.h>
-
-/* Using un-exported header file.
- * This is allowed since we are still in libcsp */
-#include "../src/arch/csp_thread.h"
+#include <csp/arch/csp_thread.h>
 
 #define PORT 10
 #define MY_ADDRESS 1

@@ -29,8 +29,8 @@ extern "C" {
 
 #include <csp/csp.h>
 
-#include "arch/csp_queue.h"
-#include "arch/csp_semaphore.h"
+#include <csp/arch/csp_queue.h>
+#include <csp/arch/csp_semaphore.h>
 
 /** @brief Connection states */
 typedef enum {

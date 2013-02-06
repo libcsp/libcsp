@@ -9,7 +9,7 @@ extern "C" {
 #include "windows_glue.h"
 #undef interface
 
-#include "../csp_queue.h"
+#include <csp/arch/csp_queue.h>
 
 #define WINDOWS_QUEUE_ERROR CSP_QUEUE_ERROR
 #define WINDOWS_QUEUE_EMPTY CSP_QUEUE_ERROR

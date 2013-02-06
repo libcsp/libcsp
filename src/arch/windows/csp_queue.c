@@ -1,6 +1,6 @@
 #include <stdint.h>
 #include <csp/csp.h>
-#include "../csp_queue.h"
+#include <csp/arch/csp_queue.h>
 #include "windows_queue.h"
 
 csp_queue_handle_t csp_queue_create(int length, size_t item_size) {

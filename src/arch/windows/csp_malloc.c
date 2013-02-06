@@ -1,4 +1,3 @@
-#include "../csp_malloc.h"
 #include <stdlib.h>
 
 void * csp_malloc(size_t size) {

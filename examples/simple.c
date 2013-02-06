@@ -26,7 +26,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 /* Using un-exported header file.
  * This is allowed since we are still in libcsp */
-#include "../src/arch/csp_thread.h"
+#include <csp/arch/csp_thread.h>
 
 /** Example defines */
 #define MY_ADDRESS  1			// Address of local CSP node

@@ -33,7 +33,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 /* CSP includes */
 #include <csp/csp.h>
 
-#include "../csp_semaphore.h"
+#include <csp/arch/csp_semaphore.h>
 
 int csp_mutex_create(csp_mutex_t * mutex) {
 	csp_log_lock("Mutex init: %p\r\n", mutex);
