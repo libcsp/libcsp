@@ -857,8 +857,7 @@ discard_close:
 	 * by sending a NULL pointer, user-space should close connection */
 	if (conn->socket == NULL) {
 		csp_log_protocol("Waiting for userspace to close\r\n");
-		void * null_pointer = NULL;
-		csp_conn_enqueue_packet(conn, (csp_packet_t *) null_pointer);
+		csp_conn_enqueue_packet(conn, NULL);
 	} else {
 		csp_close(conn);
 	}

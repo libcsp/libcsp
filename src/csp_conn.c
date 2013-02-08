@@ -87,10 +87,15 @@ int csp_conn_unlock(csp_conn_t * conn) {
 
 int csp_conn_enqueue_packet(csp_conn_t * conn, csp_packet_t * packet) {
 
-	if (!conn || !packet)
+	if (!conn)
 		return CSP_ERR_INVAL;
 
-	int rxq = csp_conn_get_rxq(packet->id.pri);
+	int rxq;
+	if (packet != NULL) {
+		rxq = csp_conn_get_rxq(packet->id.pri);
+	} else {
+		rxq = 0;
+	}
 
 	if (csp_queue_enqueue(conn->rx_queue[rxq], &packet, 0) != CSP_QUEUE_OK)
 		return CSP_ERR_NOMEM;
