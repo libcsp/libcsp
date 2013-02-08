@@ -94,7 +94,7 @@ int csp_conn_enqueue_packet(csp_conn_t * conn, csp_packet_t * packet) {
 	if (packet != NULL) {
 		rxq = csp_conn_get_rxq(packet->id.pri);
 	} else {
-		rxq = 0;
+		rxq = CSP_RX_QUEUES - 1;
 	}
 
 	if (csp_queue_enqueue(conn->rx_queue[rxq], &packet, 0) != CSP_QUEUE_OK)
