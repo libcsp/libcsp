@@ -85,7 +85,7 @@ void *csp_buffer_get_isr(size_t buf_size) {
 }
 
 void *csp_buffer_get(size_t buf_size) {
-	void *buffer;
+	void *buffer = NULL;
 
 	if (buf_size + CSP_BUFFER_PACKET_OVERHEAD > size) {
 		csp_log_error("Attempt to allocate too large block %u\r\n", buf_size);
