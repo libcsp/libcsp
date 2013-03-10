@@ -633,9 +633,8 @@ void csp_promisc_add(csp_packet_t * packet, csp_queue_handle_t queue) {
 
 	if (queue != NULL) {
 		/* Make a copy of the message and queue it to the promiscuous task */
-		csp_packet_t * packet_copy = csp_buffer_get(packet->length);
+		csp_packet_t *packet_copy = csp_buffer_clone(packet);
 		if (packet_copy != NULL) {
-			memcpy(&packet_copy->length, &packet->length, packet->length + 6);
 			if (csp_queue_enqueue(queue, &packet_copy, 0) != CSP_QUEUE_OK) {
 				csp_log_error("Promiscuous mode input queue full\r\n");
 				csp_buffer_free(packet_copy);
