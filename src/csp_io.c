@@ -221,7 +221,7 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, uint32_t timeout) {
 	
 #ifdef CSP_USE_PROMISC
 	/* Loopback traffic is added to promisc queue by the router */
-	if (idout.dst != my_address) {
+	if (idout.dst != my_address && idout.src == my_address) {
 		packet->id.ext = idout.ext;
 		csp_promisc_add(packet, csp_promisc_queue);
 	}
