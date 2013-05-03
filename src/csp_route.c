@@ -261,9 +261,9 @@ CSP_DEFINE_TASK(csp_task_router) {
 
 		packet = input.packet;
 
-		csp_log_packet("Router input: P 0x%02X, S 0x%02X, D 0x%02X, Dp 0x%02X, Sp 0x%02X, F 0x%02X\r\n",
-				packet->id.pri, packet->id.src, packet->id.dst, packet->id.dport,
-				packet->id.sport, packet->id.flags);
+		csp_log_packet("Input: Src %u, Dst %u, Dport %u, Sport %u, Pri %u, Flags 0x%02X, Size %"PRIu16"\r\n",
+				packet->id.src, packet->id.dst, packet->id.dport,
+				packet->id.sport, packet->id.pri, packet->id.flags, packet->length);
 
 		/* Here there be promiscuous mode */
 #ifdef CSP_USE_PROMISC
