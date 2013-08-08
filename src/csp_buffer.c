@@ -29,8 +29,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/arch/csp_malloc.h>
 #include <csp/arch/csp_semaphore.h>
 
+typedef struct csp_skbf_s {
+	unsigned int refcount;
+	void * skbf_addr;
+	char skbf_data[];
+} csp_skbf_t;
+
 static csp_queue_handle_t csp_buffers;
-static void *csp_buffer_list;
+static void * csp_buffer_pool;
 static unsigned int count, size;
 
 CSP_DEFINE_CRITICAL(csp_critical_lock);
@@ -38,13 +44,15 @@ CSP_DEFINE_CRITICAL(csp_critical_lock);
 int csp_buffer_init(int buf_count, int buf_size) {
 
 	unsigned int i;
-	void *element;
+	csp_skbf_t * buf;
 
 	count = buf_count;
 	size = buf_size;
+	unsigned int skbfsize = (sizeof(csp_skbf_t) + size);
+	unsigned int poolsize = count * skbfsize;
 
-	csp_buffer_list = csp_malloc(count * size);
-	if (csp_buffer_list == NULL)
+	csp_buffer_pool = csp_malloc(poolsize);
+	if (csp_buffer_pool == NULL)
 		goto fail_malloc;
 
 	csp_buffers = csp_queue_create(count, sizeof(void *));
@@ -54,11 +62,22 @@ int csp_buffer_init(int buf_count, int buf_size) {
 	if (CSP_INIT_CRITICAL(csp_critical_lock) != CSP_ERR_NONE)
 		goto fail_critical;
 
-	memset(csp_buffer_list, 0, count * size);
+	memset(csp_buffer_pool, 0, poolsize);
 
 	for (i = 0; i < count; i++) {
-		element = csp_buffer_list + i * size;
-		csp_queue_enqueue(csp_buffers, &element, 0);
+
+		/* The reason for this nasty cast is to align the buffer pool elements to a
+		 * natual pointer boundary for the platform.
+		 * It requires that the buffer size is divisable with the platform integer length
+		 */
+		buf = (csp_skbf_t *) ((int *) csp_buffer_pool + i * skbfsize / sizeof(int *));
+
+		buf->refcount = 0;
+		buf->skbf_addr = buf;
+		printf("Buffer %u addr %p skbf_addr %p skbf_data %p\r\n", i, buf, buf->skbf_addr, buf->skbf_data);
+
+		csp_queue_enqueue(csp_buffers, &buf, 0);
+
 	}
 
 	return CSP_ERR_NONE;
@@ -66,26 +85,39 @@ int csp_buffer_init(int buf_count, int buf_size) {
 fail_critical:
 	csp_queue_remove(csp_buffers);
 fail_queue:
-	csp_free(csp_buffer_list);
+	csp_free(csp_buffer_pool);
 fail_malloc:
 	return CSP_ERR_NOMEM;
 
 }
 
 void *csp_buffer_get_isr(size_t buf_size) {
-	void *buffer = NULL;
+
+	csp_skbf_t * buffer = NULL;
 	CSP_BASE_TYPE task_woken = 0;
 
 	if (buf_size + CSP_BUFFER_PACKET_OVERHEAD > size)
 		return NULL;
 
 	csp_queue_dequeue_isr(csp_buffers, &buffer, &task_woken);
+	if (buffer == NULL)
+		return NULL;
 
-	return buffer;
+	csp_log_buffer("GET ISR: %p %p\r\n", buffer, buffer->skbf_addr);
+
+	if (buffer != buffer->skbf_addr) {
+		csp_log_error("Corrupt CSP buffer\r\n");
+		return NULL;
+	}
+
+	buffer->refcount++;
+	return buffer->skbf_data;
+
 }
 
 void *csp_buffer_get(size_t buf_size) {
-	void *buffer = NULL;
+
+	csp_skbf_t * buffer = NULL;
 
 	if (buf_size + CSP_BUFFER_PACKET_OVERHEAD > size) {
 		csp_log_error("Attempt to allocate too large block %u\r\n", buf_size);
@@ -93,21 +125,47 @@ void *csp_buffer_get(size_t buf_size) {
 	}
 
 	csp_queue_dequeue(csp_buffers, &buffer, 0);
-
-	if (buffer != NULL) {
-		csp_log_buffer("BUFFER: Using element at %p\r\n", buffer);
-	} else {
+	if (buffer == NULL) {
 		csp_log_error("Out of buffers\r\n");
+		return NULL;
 	}
 
-	return buffer;
+	csp_log_buffer("GET: %p %p\r\n", buffer, buffer->skbf_addr);
+
+	if (buffer != buffer->skbf_addr) {
+		csp_log_error("Corrupt CSP buffer\r\n");
+		return NULL;
+	}
+
+	buffer->refcount++;
+	return buffer->skbf_data;
 }
 
 void csp_buffer_free_isr(void *packet) {
 	CSP_BASE_TYPE task_woken = 0;
 	if (!packet)
 		return;
-	csp_queue_enqueue_isr(csp_buffers, &packet, &task_woken);
+
+	csp_skbf_t * buf = packet - sizeof(csp_skbf_t);
+
+	if (buf->skbf_addr != buf) {
+		csp_log_buffer("FREE: Invalid CSP buffer pointer %p\r\n", packet);
+		return;
+	}
+
+	if (buf->refcount == 0) {
+		csp_log_buffer("FREE: Buffer already free %p\r\n", buf);
+		return;
+	} else if (buf->refcount > 1) {
+		buf->refcount--;
+		csp_log_buffer("FREE: Buffer %p in use by %u users\r\n", buf, buf->refcount);
+		return;
+	} else {
+		buf->refcount = 0;
+		csp_log_buffer("FREE: %p\r\n", buf);
+		csp_queue_enqueue_isr(csp_buffers, &buf, &task_woken);
+	}
+
 }
 
 void csp_buffer_free(void *packet) {
@@ -115,8 +173,27 @@ void csp_buffer_free(void *packet) {
 		csp_log_error("Attempt to free null pointer\r\n");
 		return;
 	}
-	csp_log_buffer("BUFFER: Free element at %p\r\n", packet);
-	csp_queue_enqueue(csp_buffers, &packet, 0);
+
+	csp_skbf_t * buf = packet - sizeof(csp_skbf_t);
+
+	if (buf->skbf_addr != buf) {
+		csp_log_buffer("FREE: Invalid CSP buffer pointer %p\r\n", packet);
+		return;
+	}
+
+	if (buf->refcount == 0) {
+		csp_log_buffer("FREE: Buffer already free %p\r\n", buf);
+		return;
+	} else if (buf->refcount > 1) {
+		buf->refcount--;
+		csp_log_buffer("FREE: Buffer %p in use by %u users\r\n", buf, buf->refcount);
+		return;
+	} else {
+		buf->refcount = 0;
+		csp_log_buffer("FREE: %p\r\n", buf);
+		csp_queue_enqueue(csp_buffers, &buf, 0);
+	}
+
 }
 
 void *csp_buffer_clone(void *buffer) {
