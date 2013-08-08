@@ -160,10 +160,8 @@ csp_conn_t * csp_conn_find(uint32_t id, uint32_t mask) {
 
 	for (i = 0; i < CSP_CONN_MAX; i++) {
 		conn = &arr_conn[i];
-		if ((conn->state != CONN_CLOSED) && (conn->type == CONN_CLIENT) && (conn->idin.ext & mask) == (id & mask)) {
-			printf("ID %x conn %p", id, conn);
+		if ((conn->state != CONN_CLOSED) && (conn->type == CONN_CLIENT) && (conn->idin.ext & mask) == (id & mask))
 			return conn;
-		}
 	}
 	
 	return NULL;
