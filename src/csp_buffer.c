@@ -69,11 +69,12 @@ int csp_buffer_init(int buf_count, int buf_size) {
 
 	for (i = 0; i < count; i++) {
 
-		/* The reason for this nasty cast is to align the buffer pool elements to a
-		 * natual pointer boundary for the platform.
-		 * It requires that the buffer size is divisable with the platform integer length
+		/* We have already taken care of pointer alignment since
+		 * skbfsize is an integer multiple of sizeof(int *)
+		 * but the explicit cast to a void * is still necessary
+		 * to tell the compiler so.
 		 */
-		buf = (csp_skbf_t *) &csp_buffer_pool[i * skbfsize];
+		buf = (void *) &csp_buffer_pool[i * skbfsize];
 		buf->refcount = 0;
 		buf->skbf_addr = buf;
 
