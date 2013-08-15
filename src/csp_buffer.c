@@ -29,6 +29,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/arch/csp_malloc.h>
 #include <csp/arch/csp_semaphore.h>
 
+#define CSP_BUFFER_ALIGN	(sizeof(int *))
+
 typedef struct csp_skbf_s {
 	unsigned int refcount;
 	void * skbf_addr;
@@ -36,7 +38,7 @@ typedef struct csp_skbf_s {
 } csp_skbf_t;
 
 static csp_queue_handle_t csp_buffers;
-static void * csp_buffer_pool;
+static char * csp_buffer_pool;
 static unsigned int count, size;
 
 CSP_DEFINE_CRITICAL(csp_critical_lock);
@@ -49,6 +51,7 @@ int csp_buffer_init(int buf_count, int buf_size) {
 	count = buf_count;
 	size = buf_size;
 	unsigned int skbfsize = (sizeof(csp_skbf_t) + size);
+	skbfsize = skbfsize + CSP_BUFFER_ALIGN - (skbfsize % CSP_BUFFER_ALIGN);
 	unsigned int poolsize = count * skbfsize;
 
 	csp_buffer_pool = csp_malloc(poolsize);
@@ -70,7 +73,7 @@ int csp_buffer_init(int buf_count, int buf_size) {
 		 * natual pointer boundary for the platform.
 		 * It requires that the buffer size is divisable with the platform integer length
 		 */
-		buf = (csp_skbf_t *) ((int *) csp_buffer_pool + i * skbfsize / sizeof(int *));
+		buf = (csp_skbf_t *) &csp_buffer_pool[i * skbfsize];
 		buf->refcount = 0;
 		buf->skbf_addr = buf;
 
