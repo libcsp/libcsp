@@ -64,9 +64,13 @@ int csp_ping(uint8_t node, uint32_t timeout, unsigned int size, uint8_t conn_opt
 		goto out;
 
 	/* Ensure that the data was actually echoed */
-	for (i = 0; i < size; i++)
-		if (packet->data[i] != i)
+	for (i = 0; i < size; i++) {
+		if (packet->data[i] != i % (0xff + 1)) {
+			printf("Error on byte %u\r\n", i);
+			hex_dump(packet->data, size);
 			goto out;
+		}
+	}
 
 	status = 1;
 
