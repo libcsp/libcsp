@@ -261,9 +261,9 @@ CSP_DEFINE_TASK(csp_task_router) {
 
 		packet = input.packet;
 
-		csp_log_packet("Router input: P 0x%02X, S 0x%02X, D 0x%02X, Dp 0x%02X, Sp 0x%02X, F 0x%02X\r\n",
-				packet->id.pri, packet->id.src, packet->id.dst, packet->id.dport,
-				packet->id.sport, packet->id.flags);
+		csp_log_packet("Input: Src %u, Dst %u, Dport %u, Sport %u, Pri %u, Flags 0x%02X, Size %"PRIu16"\r\n",
+				packet->id.src, packet->id.dst, packet->id.dport,
+				packet->id.sport, packet->id.pri, packet->id.flags, packet->length);
 
 		/* Here there be promiscuous mode */
 #ifdef CSP_USE_PROMISC
@@ -633,9 +633,8 @@ void csp_promisc_add(csp_packet_t * packet, csp_queue_handle_t queue) {
 
 	if (queue != NULL) {
 		/* Make a copy of the message and queue it to the promiscuous task */
-		csp_packet_t * packet_copy = csp_buffer_get(packet->length);
+		csp_packet_t *packet_copy = csp_buffer_clone(packet);
 		if (packet_copy != NULL) {
-			memcpy(&packet_copy->length, &packet->length, packet->length + 6);
 			if (csp_queue_enqueue(queue, &packet_copy, 0) != CSP_QUEUE_OK) {
 				csp_log_error("Promiscuous mode input queue full\r\n");
 				csp_buffer_free(packet_copy);

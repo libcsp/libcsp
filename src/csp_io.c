@@ -217,11 +217,12 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, uint32_t timeout) {
 		goto err;
 	}
 
-	csp_log_packet("Sending packet size %u from %u to %u port %u via interface %s\r\n", packet->length, idout.src, idout.dst, idout.dport, ifout->interface->name);
-	
+	csp_log_packet("Output: Src %u, Dst %u, Dport %u, Sport %u, Pri %u, Flags 0x%02X, Size %u VIA: %s\r\n",
+		idout.src, idout.dst, idout.dport, idout.sport, idout.pri, idout.flags, packet->length, ifout->interface->name);
+
 #ifdef CSP_USE_PROMISC
 	/* Loopback traffic is added to promisc queue by the router */
-	if (idout.dst != my_address) {
+	if (idout.dst != my_address && idout.src == my_address) {
 		packet->id.ext = idout.ext;
 		csp_promisc_add(packet, csp_promisc_queue);
 	}

@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
+#include <inttypes.h>
 
 /* CSP includes */
 #include <csp/csp.h>
@@ -64,7 +65,7 @@ int csp_ping(uint8_t node, uint32_t timeout, unsigned int size, uint8_t conn_opt
 
 	/* Ensure that the data was actually echoed */
 	for (i = 0; i < size; i++)
-		if (packet->data[i] != i)
+		if (packet->data[i] != i % (0xff + 1))
 			goto out;
 
 	status = 1;
@@ -106,7 +107,7 @@ void csp_ping_noreply(uint8_t node) {
 	packet->data[0] = 0x55;
 	packet->length = 1;
 
-	printf("Ping ignore reply node %u.\r\n", node);
+	printf("Ping ignore reply node %"PRIu8".\r\n", node);
 
 	/* Try to send frame */
 	if (!csp_send(conn, packet, 0))
@@ -139,7 +140,7 @@ void csp_ps(uint8_t node, uint32_t timeout) {
 	packet->data[0] = 0x55;
 	packet->length = 1;
 
-	printf("PS node %u: ", node);
+	printf("PS node %"PRIu8": ", node);
 
 	/* Try to send frame */
 	if (!csp_send(conn, packet, 0))
@@ -153,7 +154,7 @@ void csp_ps(uint8_t node, uint32_t timeout) {
 	}
 
 	/* We have a reply */
-	printf("PS Length %u\r\n", packet->length);
+	printf("PS Length %"PRIu16"\r\n", packet->length);
 	printf("%s\r\n", packet->data);
 
 	/* Clean up */
@@ -177,7 +178,7 @@ void csp_memfree(uint8_t node, uint32_t timeout) {
 	/* Convert from network to host order */
 	memfree = csp_ntoh32(memfree);
 
-	printf("Free Memory at node %u is %u bytes\r\n", node, (unsigned int) memfree);
+	printf("Free Memory at node %"PRIu8" is %"PRIu32" bytes\r\n", node, memfree);
 
 }
 
@@ -191,7 +192,7 @@ void csp_buf_free(uint8_t node, uint32_t timeout) {
 		return;
 	}
 	size = csp_ntoh32(size);
-	printf("Free buffers at node %u is %u\r\n", (unsigned int) node, (unsigned int) size);
+	printf("Free buffers at node %"PRIu8" is %"PRIu32"\r\n", (unsigned int) node, (unsigned int) size);
 
 }
 
@@ -205,7 +206,7 @@ void csp_uptime(uint8_t node, uint32_t timeout) {
 		return;
 	}
 	uptime = csp_ntoh32(uptime);
-	printf("Uptime of node %u is %u s\r\n", (unsigned int) node, (unsigned int) uptime);
+	printf("Uptime of node %"PRIu8" is %"PRIu32" s\r\n", node, uptime);
 
 }
 

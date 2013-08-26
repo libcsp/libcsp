@@ -111,6 +111,10 @@ void csp_buffer_free_isr(void *packet) {
 }
 
 void csp_buffer_free(void *packet) {
+	if (!packet) {
+		csp_log_error("Attempt to free null pointer\r\n");
+		return;
+	}
 	csp_log_buffer("BUFFER: Free element at %p\r\n", packet);
 	csp_queue_enqueue(csp_buffers, &packet, 0);
 }
