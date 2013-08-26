@@ -170,7 +170,7 @@ void csp_kiss_rx(uint8_t * buf, int len, void * pxTaskWoken) {
 	static int mode = KISS_MODE_NOT_STARTED;
 	static int first = 1;
 
-	while (len) {
+	while (len && len < 256) {
 
 		switch (mode) {
 		case KISS_MODE_NOT_STARTED:
