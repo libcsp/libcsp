@@ -170,7 +170,7 @@ void csp_kiss_rx(uint8_t * buf, int len, void * pxTaskWoken) {
 	static int mode = KISS_MODE_NOT_STARTED;
 	static int first = 1;
 
-	while (len && len < 256) {
+	while (len) {
 
 		switch (mode) {
 		case KISS_MODE_NOT_STARTED:
@@ -230,6 +230,13 @@ void csp_kiss_rx(uint8_t * buf, int len, void * pxTaskWoken) {
 
 		len--;
 		buf++;
+
+		if (length >= 256) {
+			mode = KISS_MODE_NOT_STARTED;
+			length = 0;
+			csp_log_warn("KISS RX overflow\r\n");
+			continue;
+		}
 
 		if (mode == KISS_MODE_ENDED) {
 
