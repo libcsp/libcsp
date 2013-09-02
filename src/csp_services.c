@@ -192,7 +192,7 @@ void csp_buf_free(uint8_t node, uint32_t timeout) {
 		return;
 	}
 	size = csp_ntoh32(size);
-	printf("Free buffers at node %"PRIu8" is %"PRIu32"\r\n", (unsigned int) node, (unsigned int) size);
+	printf("Free buffers at node %"PRIu8" is %"PRIu32"\r\n", node, size);
 
 }
 
