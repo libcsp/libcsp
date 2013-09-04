@@ -164,7 +164,7 @@ int csp_kiss_tx(csp_packet_t * packet, uint32_t timeout) {
  */
 void csp_kiss_rx(uint8_t * buf, int len, void * pxTaskWoken) {
 
-	static csp_packet_t * packet;
+	static csp_packet_t * packet = NULL;
 	static int length = 0;
 	static volatile unsigned char *cbuf;
 	static int mode = KISS_MODE_NOT_STARTED;
@@ -175,10 +175,12 @@ void csp_kiss_rx(uint8_t * buf, int len, void * pxTaskWoken) {
 		switch (mode) {
 		case KISS_MODE_NOT_STARTED:
 			if (*buf == FEND) {
-				if (pxTaskWoken == NULL) {
-					packet = csp_buffer_get(csp_if_kiss.mtu);
-				} else {
-					packet = csp_buffer_get_isr(csp_if_kiss.mtu);
+				if (packet == NULL) {
+					if (pxTaskWoken == NULL) {
+						packet = csp_buffer_get(csp_if_kiss.mtu);
+					} else {
+						packet = csp_buffer_get_isr(csp_if_kiss.mtu);
+					}
 				}
 
 				if (packet != NULL) {
@@ -230,6 +232,15 @@ void csp_kiss_rx(uint8_t * buf, int len, void * pxTaskWoken) {
 
 		len--;
 		buf++;
+
+		if (length >= 256) {
+			mode = KISS_MODE_NOT_STARTED;
+			length = 0;
+			if (packet != NULL)
+				csp_buffer_free(packet);
+			csp_log_warn("KISS RX overflow\r\n");
+			continue;
+		}
 
 		if (mode == KISS_MODE_ENDED) {
 
