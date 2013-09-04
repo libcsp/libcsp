@@ -126,7 +126,6 @@ static int csp_route_security_check(uint32_t security_opts, csp_iface_t * interf
 		}
 	} else if (security_opts & CSP_SO_CRC32REQ) {
 		csp_log_warn("Received packet without CRC32. Accepting packet\r\n");
-		packet->length -= sizeof(uint32_t);
 #else
 		/* Strip CRC32 field and accept the packet */
 		csp_log_warn("Received packet with CRC32, but CSP was compiled without CRC32 support. Accepting packet\r\n");
