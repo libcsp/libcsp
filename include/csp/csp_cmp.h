@@ -59,7 +59,7 @@ struct csp_cmp_message {
 			uint8_t next_hop_mac;
 			char interface[CSP_CMP_ROUTE_IFACE_LEN];
 		} route_set;
-		struct {
+		struct __attribute__((__packed__)) {
 			char interface[CSP_CMP_ROUTE_IFACE_LEN];
 			uint32_t tx;
 			uint32_t rx;
