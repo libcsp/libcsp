@@ -236,8 +236,6 @@ void csp_kiss_rx(uint8_t * buf, int len, void * pxTaskWoken) {
 		if (length >= 256) {
 			mode = KISS_MODE_NOT_STARTED;
 			length = 0;
-			if (packet != NULL)
-				csp_buffer_free(packet);
 			csp_log_warn("KISS RX overflow\r\n");
 			continue;
 		}
@@ -265,11 +263,6 @@ void csp_kiss_rx(uint8_t * buf, int len, void * pxTaskWoken) {
 				if (crc_remote != crc_local) {
 					csp_log_warn("CRC remote 0x%08"PRIX32", local 0x%08"PRIX32", packlen %u\r\n", crc_remote, crc_local, packet->length);
 					csp_if_kiss.rx_error++;
-					if (pxTaskWoken == NULL) {
-						csp_buffer_free(packet);
-					} else {
-						csp_buffer_free_isr(packet);
-					}
 					mode = KISS_MODE_NOT_STARTED;
 					length = 0;
 					continue;
@@ -286,9 +279,9 @@ void csp_kiss_rx(uint8_t * buf, int len, void * pxTaskWoken) {
 
 				/* Send back into CSP, notice calling from task so last argument must be NULL! */
 				csp_new_packet(packet, &csp_if_kiss, pxTaskWoken);
+				packet = NULL;
 			} else {
 				csp_log_warn("Weird kiss frame received! Size %u\r\n", packet->length);
-				csp_buffer_free(packet);
 			}
 
 			mode = KISS_MODE_NOT_STARTED;
