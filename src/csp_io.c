@@ -91,11 +91,6 @@ int csp_init(unsigned char address) {
 	if (ret != CSP_ERR_NONE)
 		return ret;
 
-	/* Generate CRC32 table */
-#ifdef CSP_USE_CRC32
-	csp_crc32_gentab();
-#endif
-
 	return CSP_ERR_NONE;
 
 }
