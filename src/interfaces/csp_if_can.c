@@ -582,7 +582,7 @@ CSP_DEFINE_TASK(csp_can_rx_task) {
 
 }
 
-int csp_can_tx(csp_packet_t *packet, uint32_t timeout) {
+int csp_can_tx(csp_iface_t * interface, csp_packet_t *packet, uint32_t timeout) {
 
 	uint8_t bytes, overhead, avail, dest;
 	uint8_t frame_buf[8];

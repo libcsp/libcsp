@@ -31,34 +31,31 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/arch/csp_semaphore.h>
 #include <csp/csp_crc32.h>
 
-/**
- * Some day, stop using CRC on layer 2 and move to layer 3
- * Keeping now for backwards compatability with csp 1.0 devices
- **/
-#define KISS_CRC32 	1
-#define KISS_USE_TXBUF 0
-#define KISS_MTU	256
+#define KISS_CRC32 				1
+#define KISS_MTU				256
 
-#define KISS_MODE_NOT_STARTED 0
-#define KISS_MODE_STARTED 1
-#define KISS_MODE_ESCAPED 2
-#define KISS_MODE_ENDED 3
+#define KISS_MODE_NOT_STARTED 	0
+#define KISS_MODE_STARTED 		1
+#define KISS_MODE_ESCAPED 		2
+#define KISS_MODE_ENDED 		3
 
-#define FEND  0xC0
-#define FESC  0xDB
-#define TFEND 0xDC
-#define TFESC 0xDD
+#define FEND  					0xC0
+#define FESC  					0xDB
+#define TFEND 					0xDC
+#define TFESC 					0xDD
 
-#define TNC_DATA			0x00
-#define TNC_SET_HARDWARE	0x06
-#define TNC_RETURN			0xFF
+#define TNC_DATA				0x00
+#define TNC_SET_HARDWARE		0x06
+#define TNC_RETURN				0xFF
 
-static csp_kiss_putc_f kiss_putc;
-static csp_kiss_discard_f kiss_discard;
+static int kiss_lock_init = 0;
 static csp_bin_sem_handle_t kiss_lock;
 
 /* Send a CSP packet over the KISS RS232 protocol */
-int csp_kiss_tx(csp_packet_t * packet, uint32_t timeout) {
+static int csp_kiss_tx(csp_iface_t * interface, csp_packet_t * packet, uint32_t timeout) {
+
+	if (interface == NULL || interface->driver == NULL)
+		return CSP_ERR_DRIVER;
 
 	/* Add CRC32 checksum */
 #if defined(KISS_CRC32)
@@ -73,19 +70,20 @@ int csp_kiss_tx(csp_packet_t * packet, uint32_t timeout) {
 	csp_bin_sem_wait(&kiss_lock, 1000);
 
 	/* Transmit data */
-	kiss_putc(FEND);
-	kiss_putc(TNC_DATA);
+	csp_kiss_handle_t * driver = interface->driver;
+	driver->kiss_putc(FEND);
+	driver->kiss_putc(TNC_DATA);
 	for (unsigned int i = 0; i < packet->length; i++) {
 		if (((unsigned char *) &packet->id.ext)[i] == FEND) {
 			((unsigned char *) &packet->id.ext)[i] = TFEND;
-			kiss_putc(FESC);
+			driver->kiss_putc(FESC);
 		} else if (((unsigned char *) &packet->id.ext)[i] == FESC) {
 			((unsigned char *) &packet->id.ext)[i] = TFESC;
-			kiss_putc(FESC);
+			driver->kiss_putc(FESC);
 		}
-		kiss_putc(((unsigned char *) &packet->id.ext)[i]);
+		driver->kiss_putc(((unsigned char *) &packet->id.ext)[i]);
 	}
-	kiss_putc(FEND);
+	driver->kiss_putc(FEND);
 
 	/* Free data */
 	csp_buffer_free(packet);
@@ -100,13 +98,15 @@ int csp_kiss_tx(csp_packet_t * packet, uint32_t timeout) {
  * When a frame is received, decode the kiss-stuff
  * and eventually send it directly to the CSP new packet function.
  */
-void csp_kiss_rx(uint8_t * buf, int len, void * pxTaskWoken) {
+void csp_kiss_rx(csp_iface_t * interface, uint8_t * buf, int len, void * pxTaskWoken) {
 
 	static csp_packet_t * packet = NULL;
 	static int length = 0;
 	static volatile unsigned char *cbuf;
 	static int mode = KISS_MODE_NOT_STARTED;
 	static int first = 1;
+
+	csp_kiss_handle_t * driver = interface->driver;
 
 	while (len) {
 
@@ -115,9 +115,9 @@ void csp_kiss_rx(uint8_t * buf, int len, void * pxTaskWoken) {
 			if (*buf == FEND) {
 				if (packet == NULL) {
 					if (pxTaskWoken == NULL) {
-						packet = csp_buffer_get(csp_if_kiss.mtu);
+						packet = csp_buffer_get(interface->mtu);
 					} else {
-						packet = csp_buffer_get_isr(csp_if_kiss.mtu);
+						packet = csp_buffer_get_isr(interface->mtu);
 					}
 				}
 
@@ -131,8 +131,8 @@ void csp_kiss_rx(uint8_t * buf, int len, void * pxTaskWoken) {
 				first = 1;
 			} else {
 				/* If the char was not part of a kiss frame, send back to usart driver */
-				if (kiss_discard != NULL)
-					kiss_discard(*buf, pxTaskWoken);
+				if (driver->kiss_discard != NULL)
+					driver->kiss_discard(*buf, pxTaskWoken);
 			}
 			break;
 		case KISS_MODE_STARTED:
@@ -172,6 +172,7 @@ void csp_kiss_rx(uint8_t * buf, int len, void * pxTaskWoken) {
 		buf++;
 
 		if (length >= 256) {
+			interface->rx_error++;
 			mode = KISS_MODE_NOT_STARTED;
 			length = 0;
 			csp_log_warn("KISS RX overflow\r\n");
@@ -188,9 +189,9 @@ void csp_kiss_rx(uint8_t * buf, int len, void * pxTaskWoken) {
 
 			packet->length = length;
 
-			csp_if_kiss.frame++;
+			interface->frame++;
 
-			if (packet->length >= CSP_HEADER_LENGTH && packet->length <= csp_if_kiss.mtu + CSP_HEADER_LENGTH) {
+			if (packet->length >= CSP_HEADER_LENGTH && packet->length <= interface->mtu + CSP_HEADER_LENGTH) {
 
 				/* Strip the CSP header off the length field before converting to CSP packet */
 				packet->length -= CSP_HEADER_LENGTH;
@@ -201,7 +202,7 @@ void csp_kiss_rx(uint8_t * buf, int len, void * pxTaskWoken) {
 #if defined(KISS_CRC32)
 				if (csp_crc32_verify(packet) != CSP_ERR_NONE) {
 					csp_log_warn("KISS invalid CRC len %u\r\n", packet->length);
-					csp_if_kiss.rx_error++;
+					interface->rx_error++;
 					mode = KISS_MODE_NOT_STARTED;
 					length = 0;
 					continue;
@@ -209,7 +210,7 @@ void csp_kiss_rx(uint8_t * buf, int len, void * pxTaskWoken) {
 #endif
 
 				/* Send back into CSP, notice calling from task so last argument must be NULL! */
-				csp_new_packet(packet, &csp_if_kiss, pxTaskWoken);
+				csp_new_packet(packet, interface, pxTaskWoken);
 				packet = NULL;
 			} else {
 				csp_log_warn("Weird kiss frame received! Size %u\r\n", packet->length);
@@ -224,25 +225,25 @@ void csp_kiss_rx(uint8_t * buf, int len, void * pxTaskWoken) {
 
 }
 
-int csp_kiss_init(csp_kiss_putc_f kiss_putc_f, csp_kiss_discard_f kiss_discard_f) {
+void csp_kiss_init(csp_iface_t * csp_iface, csp_kiss_handle_t * csp_kiss_handle, csp_kiss_putc_f kiss_putc_f, csp_kiss_discard_f kiss_discard_f, const char * name) {
 
-	/* Store function pointers */
-	kiss_putc = kiss_putc_f;
-	kiss_discard = kiss_discard_f;
+	/* Init lock only once */
+	if (kiss_lock_init == 0) {
+		csp_bin_sem_create(&kiss_lock);
+		kiss_lock_init = 1;
+	}
+
+	/* Register device handle as member of interface */
+	csp_iface->driver = csp_kiss_handle;
+	csp_kiss_handle->kiss_discard = kiss_discard_f;
+	csp_kiss_handle->kiss_putc = kiss_putc_f;
+
+	/* Setop other mandatories */
+	csp_iface->mtu = KISS_MTU;
+	csp_iface->nexthop = csp_kiss_tx;
+	csp_iface->name = name;
 
 	/* Regsiter interface */
-	csp_route_add_if(&csp_if_kiss);
-
-	/* Init lock */
-	csp_bin_sem_create(&kiss_lock);
-
-	return CSP_ERR_NONE;
+	csp_route_add_if(csp_iface);
 
 }
-
-/** Interface definition */
-csp_iface_t csp_if_kiss = {
-	.name = "KISS",
-	.nexthop = csp_kiss_tx,
-	.mtu = 256,
-};
