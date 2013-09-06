@@ -62,14 +62,14 @@ int csp_kiss_tx(csp_packet_t * packet, uint32_t timeout) {
 	if (txbuf == NULL)
 		return CSP_ERR_NOMEM;
 
-	/* Save the outgoing id in the buffer */
-	packet->id.ext = csp_hton32(packet->id.ext);
-	packet->length += sizeof(packet->id.ext);
-
 	/* Add CRC32 checksum */
 #if defined(KISS_CRC32)
 	csp_crc32_append(packet);
 #endif
+
+	/* Save the outgoing id in the buffer */
+	packet->id.ext = csp_hton32(packet->id.ext);
+	packet->length += sizeof(packet->id.ext);
 
 	txbuf[txbufin++] = FEND;
 	txbuf[txbufin++] = TNC_DATA;
@@ -188,6 +188,12 @@ void csp_kiss_rx(uint8_t * buf, int len, void * pxTaskWoken) {
 
 			if (packet->length >= CSP_HEADER_LENGTH && packet->length <= csp_if_kiss.mtu + CSP_HEADER_LENGTH) {
 
+				/* Strip the CSP header off the length field before converting to CSP packet */
+				packet->length -= CSP_HEADER_LENGTH;
+
+				/* Convert the packet from network to host order */
+				packet->id.ext = csp_ntoh32(packet->id.ext);
+
 #if defined(KISS_CRC32)
 				if (csp_crc32_verify(packet) != CSP_ERR_NONE) {
 					csp_log_warn("KISS invalid CRC len %u\r\n", packet->length);
@@ -197,12 +203,6 @@ void csp_kiss_rx(uint8_t * buf, int len, void * pxTaskWoken) {
 					continue;
 				}
 #endif
-
-				/* Strip the CSP header off the length field before converting to CSP packet */
-				packet->length -= CSP_HEADER_LENGTH;
-
-				/* Convert the packet from network to host order */
-				packet->id.ext = csp_ntoh32(packet->id.ext);
 
 				/* Send back into CSP, notice calling from task so last argument must be NULL! */
 				csp_new_packet(packet, &csp_if_kiss, pxTaskWoken);
