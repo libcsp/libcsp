@@ -28,14 +28,16 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/csp_platform.h>
 #include <csp/csp_interface.h>
 #include <csp/interfaces/csp_if_kiss.h>
-#include <csp/arch/csp_malloc.h>
+#include <csp/arch/csp_semaphore.h>
 #include <csp/csp_crc32.h>
 
 /**
  * Some day, stop using CRC on layer 2 and move to layer 3
  * Keeping now for backwards compatability with csp 1.0 devices
  **/
-#define KISS_CRC32 1
+#define KISS_CRC32 	1
+#define KISS_USE_TXBUF 0
+#define KISS_MTU	256
 
 #define KISS_MODE_NOT_STARTED 0
 #define KISS_MODE_STARTED 1
@@ -51,16 +53,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #define TNC_SET_HARDWARE	0x06
 #define TNC_RETURN			0xFF
 
-static csp_kiss_putstr_f kiss_putstr;
+static csp_kiss_putc_f kiss_putc;
 static csp_kiss_discard_f kiss_discard;
+static csp_bin_sem_handle_t kiss_lock;
 
 /* Send a CSP packet over the KISS RS232 protocol */
 int csp_kiss_tx(csp_packet_t * packet, uint32_t timeout) {
-
-	int txbufin = 0;
-	char * txbuf = csp_malloc(packet->length + 30);
-	if (txbuf == NULL)
-		return CSP_ERR_NOMEM;
 
 	/* Add CRC32 checksum */
 #if defined(KISS_CRC32)
@@ -71,23 +69,29 @@ int csp_kiss_tx(csp_packet_t * packet, uint32_t timeout) {
 	packet->id.ext = csp_hton32(packet->id.ext);
 	packet->length += sizeof(packet->id.ext);
 
-	txbuf[txbufin++] = FEND;
-	txbuf[txbufin++] = TNC_DATA;
+	/* Lock */
+	csp_bin_sem_wait(&kiss_lock, 1000);
+
+	/* Transmit data */
+	kiss_putc(FEND);
+	kiss_putc(TNC_DATA);
 	for (unsigned int i = 0; i < packet->length; i++) {
 		if (((unsigned char *) &packet->id.ext)[i] == FEND) {
 			((unsigned char *) &packet->id.ext)[i] = TFEND;
-			txbuf[txbufin++] = FESC;
+			kiss_putc(FESC);
 		} else if (((unsigned char *) &packet->id.ext)[i] == FESC) {
 			((unsigned char *) &packet->id.ext)[i] = TFESC;
-			txbuf[txbufin++] = FESC;
+			kiss_putc(FESC);
 		}
-		txbuf[txbufin++] = ((unsigned char *) &packet->id.ext)[i];
-
+		kiss_putc(((unsigned char *) &packet->id.ext)[i]);
 	}
-	txbuf[txbufin++] = FEND;
+	kiss_putc(FEND);
+
+	/* Free data */
 	csp_buffer_free(packet);
-	kiss_putstr(txbuf, txbufin);
-	csp_free(txbuf);
+
+	/* Unlock */
+	csp_bin_sem_post(&kiss_lock);
 
 	return CSP_ERR_NONE;
 }
@@ -220,14 +224,17 @@ void csp_kiss_rx(uint8_t * buf, int len, void * pxTaskWoken) {
 
 }
 
-int csp_kiss_init(csp_kiss_putstr_f kiss_putstr_f, csp_kiss_discard_f kiss_discard_f) {
+int csp_kiss_init(csp_kiss_putc_f kiss_putc_f, csp_kiss_discard_f kiss_discard_f) {
 
 	/* Store function pointers */
-	kiss_putstr = kiss_putstr_f;
+	kiss_putc = kiss_putc_f;
 	kiss_discard = kiss_discard_f;
 
 	/* Regsiter interface */
 	csp_route_add_if(&csp_if_kiss);
+
+	/* Init lock */
+	csp_bin_sem_create(&kiss_lock);
 
 	return CSP_ERR_NONE;
 

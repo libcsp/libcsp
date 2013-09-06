@@ -50,14 +50,13 @@ extern csp_iface_t csp_if_kiss;
 void csp_kiss_rx(uint8_t *buf, int len, void *pxTaskWoken);
 
 /**
- * The putstr function is used by the kiss interface to send
+ * The putc function is used by the kiss interface to send
  * a string of data to the serial port. This function must
  * be implemented by the user, and passed to the kiss
  * interface through the kiss_init function.
- * @param buf pointer to data
- * @param len length of data
+ * @param buf byte to push
  */
-typedef void (*csp_kiss_putstr_f)(char *buf, int len);
+typedef void (*csp_kiss_putc_f)(char buf);
 
 /**
  * The characters not accepted by the kiss interface, are discarded
@@ -75,14 +74,14 @@ typedef void (*csp_kiss_discard_f)(char c, void *pxTaskWoken);
 
 /**
  * Initialise kiss interface.
- * This function stores the function pointers for the putstr and discard functions,
+ * This function stores the function pointers for the putc and discard functions,
  * which must adhere to the above function specifications. This ensures that the
  * kiss interface can use a multiple of different USART drivers.
- * @param kiss_putstr kiss uses this function to send KISS frames
+ * @param kiss_putc kiss uses this function to send KISS frames
  * @param kiss_discard non-kiss characters are sent to this function (set to NULL to discard)
  * @return CSP_ERR_NONE
  */
-int csp_kiss_init(csp_kiss_putstr_f kiss_putstr, csp_kiss_discard_f kiss_discard);
+int csp_kiss_init(csp_kiss_putc_f kiss_putc, csp_kiss_discard_f kiss_discard);
 
 #ifdef __cplusplus
 } /* extern "C" */
