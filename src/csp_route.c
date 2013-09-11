@@ -117,6 +117,8 @@ static int csp_route_security_check(uint32_t security_opts, csp_iface_t * interf
 	/* CRC32 verified packet */
 	if (packet->id.flags & CSP_FCRC32) {
 #ifdef CSP_USE_CRC32
+		if (packet->length < 4)
+			csp_log_error("Too short packet for CRC32, %u", packet->length);
 		/* Verify CRC32  */
 		if (csp_crc32_verify(packet) != 0) {
 			/* Checksum failed */
