@@ -80,6 +80,11 @@ typedef void (*csp_kiss_discard_f)(char c, void *pxTaskWoken);
 typedef struct csp_kiss_handle_s {
 	csp_kiss_putc_f kiss_putc;
 	csp_kiss_discard_f kiss_discard;
+	unsigned int rx_length;
+	unsigned int rx_mode;
+	unsigned int rx_first;
+	volatile unsigned char *rx_cbuf;
+	csp_packet_t * rx_packet;
 } csp_kiss_handle_t;
 
 void csp_kiss_init(csp_iface_t * csp_iface, csp_kiss_handle_t * csp_kiss_handle, csp_kiss_putc_f kiss_putc_f, csp_kiss_discard_f kiss_discard_f, const char * name);

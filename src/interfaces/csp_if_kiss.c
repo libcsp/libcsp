@@ -31,7 +31,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/arch/csp_semaphore.h>
 #include <csp/csp_crc32.h>
 
-#define KISS_CRC32 				1
 #define KISS_MTU				256
 
 #define KISS_MODE_NOT_STARTED 	0
@@ -58,9 +57,7 @@ static int csp_kiss_tx(csp_iface_t * interface, csp_packet_t * packet, uint32_t 
 		return CSP_ERR_DRIVER;
 
 	/* Add CRC32 checksum */
-#if defined(KISS_CRC32)
 	csp_crc32_append(packet);
-#endif
 
 	/* Save the outgoing id in the buffer */
 	packet->id.ext = csp_hton32(packet->id.ext);
@@ -100,124 +97,126 @@ static int csp_kiss_tx(csp_iface_t * interface, csp_packet_t * packet, uint32_t 
  */
 void csp_kiss_rx(csp_iface_t * interface, uint8_t * buf, int len, void * pxTaskWoken) {
 
-	static csp_packet_t * packet = NULL;
-	static int length = 0;
-	static volatile unsigned char *cbuf;
-	static int mode = KISS_MODE_NOT_STARTED;
-	static int first = 1;
-
+	/* Driver handle */
 	csp_kiss_handle_t * driver = interface->driver;
 
-	while (len) {
+	while (len--) {
 
-		switch (mode) {
-		case KISS_MODE_NOT_STARTED:
-			if (*buf == FEND) {
-				if (packet == NULL) {
-					if (pxTaskWoken == NULL) {
-						packet = csp_buffer_get(interface->mtu);
-					} else {
-						packet = csp_buffer_get_isr(interface->mtu);
-					}
-				}
+		/* Input */
+		char inputbyte = *buf++;
 
-				if (packet != NULL) {
-					cbuf = (unsigned char *) &packet->id.ext;
-				} else {
-					cbuf = NULL;
-				}
-
-				mode = KISS_MODE_STARTED;
-				first = 1;
-			} else {
-				/* If the char was not part of a kiss frame, send back to usart driver */
-				if (driver->kiss_discard != NULL)
-					driver->kiss_discard(*buf, pxTaskWoken);
-			}
-			break;
-		case KISS_MODE_STARTED:
-			if (*buf == FESC)
-				mode = KISS_MODE_ESCAPED;
-			else if (*buf == FEND) {
-				if (length > 0) {
-					mode = KISS_MODE_ENDED;
-				}
-			} else {
-				if (cbuf != NULL)
-					*cbuf = *buf;
-				if (first) {
-					first = 0;
-					break;
-				}
-				if (cbuf != NULL)
-					cbuf++;
-				length++;
-			}
-			break;
-		case KISS_MODE_ESCAPED:
-			if (*buf == TFESC) {
-				if (cbuf != NULL)
-					*cbuf++ = FESC;
-				length++;
-			} else if (*buf == TFEND) {
-				if (cbuf != NULL)
-					*cbuf++ = FEND;
-				length++;
-			}
-			mode = KISS_MODE_STARTED;
-			break;
-		}
-
-		len--;
-		buf++;
-
-		if (length >= 256) {
-			interface->rx_error++;
-			mode = KISS_MODE_NOT_STARTED;
-			length = 0;
+		/* If packet was too long */
+		if (driver->rx_length > interface->mtu) {
 			csp_log_warn("KISS RX overflow\r\n");
-			continue;
+			interface->rx_error++;
+			driver->rx_mode = KISS_MODE_NOT_STARTED;
 		}
 
-		if (mode == KISS_MODE_ENDED) {
+		switch (driver->rx_mode) {
 
-			if (packet == NULL) {
-				mode = KISS_MODE_NOT_STARTED;
-				length = 0;
-				continue;
+		case KISS_MODE_NOT_STARTED:
+
+			/* Send normal chars back to usart driver */
+			if (inputbyte != FEND) {
+				if (driver->kiss_discard != NULL)
+					driver->kiss_discard(inputbyte, pxTaskWoken);
+				break;
 			}
 
-			packet->length = length;
-
-			interface->frame++;
-
-			if (packet->length >= CSP_HEADER_LENGTH && packet->length <= interface->mtu + CSP_HEADER_LENGTH) {
-
-				/* Strip the CSP header off the length field before converting to CSP packet */
-				packet->length -= CSP_HEADER_LENGTH;
-
-				/* Convert the packet from network to host order */
-				packet->id.ext = csp_ntoh32(packet->id.ext);
-
-#if defined(KISS_CRC32)
-				if (csp_crc32_verify(packet) != CSP_ERR_NONE) {
-					csp_log_warn("KISS invalid CRC len %u\r\n", packet->length);
-					interface->rx_error++;
-					mode = KISS_MODE_NOT_STARTED;
-					length = 0;
-					continue;
+			/* Try to allocate new buffer */
+			if (driver->rx_packet == NULL) {
+				if (pxTaskWoken == NULL) {
+					driver->rx_packet = csp_buffer_get(interface->mtu);
+				} else {
+					driver->rx_packet = csp_buffer_get_isr(interface->mtu);
 				}
-#endif
-
-				/* Send back into CSP, notice calling from task so last argument must be NULL! */
-				csp_new_packet(packet, interface, pxTaskWoken);
-				packet = NULL;
-			} else {
-				csp_log_warn("Weird kiss frame received! Size %u\r\n", packet->length);
 			}
 
-			mode = KISS_MODE_NOT_STARTED;
-			length = 0;
+			/* Abort if no more memory */
+			if (driver->rx_packet == NULL)
+				break;
+
+			/* Start transfer */
+			driver->rx_length = 0;
+			driver->rx_mode = KISS_MODE_STARTED;
+			driver->rx_first = 1;
+			break;
+
+		case KISS_MODE_STARTED:
+
+			/* Escape char */
+			if (inputbyte == FESC) {
+				driver->rx_mode = KISS_MODE_ESCAPED;
+				break;
+			}
+
+			/* End Char */
+			if (inputbyte == FEND) {
+
+				/* Accept message */
+				if (driver->rx_length > 0) {
+
+					/* Check for valid length */
+					if (driver->rx_length < CSP_HEADER_LENGTH + sizeof(uint32_t)) {
+						csp_log_warn("KISS short frame skipped, len: %u\r\n", driver->rx_length);
+						interface->rx_error++;
+						driver->rx_mode = KISS_MODE_NOT_STARTED;
+						break;
+					}
+
+					/* Count received frame */
+					interface->frame++;
+
+					/* The CSP packet length is without the header */
+					driver->rx_packet->length = driver->rx_length - CSP_HEADER_LENGTH;
+
+					/* Convert the packet from network to host order */
+					driver->rx_packet->id.ext = csp_ntoh32(driver->rx_packet->id.ext);
+
+					/* Validate CRC */
+					if (csp_crc32_verify(driver->rx_packet) != CSP_ERR_NONE) {
+						csp_log_warn("KISS invalid crc frame skipped, len: %u\r\n", driver->rx_packet->length);
+						interface->rx_error++;
+						driver->rx_mode = KISS_MODE_NOT_STARTED;
+						break;
+					}
+
+					/* Send back into CSP, notice calling from task so last argument must be NULL! */
+					csp_new_packet(driver->rx_packet, interface, pxTaskWoken);
+					driver->rx_packet = NULL;
+					driver->rx_mode = KISS_MODE_NOT_STARTED;
+					break;
+
+				}
+
+				/* Break after the end char */
+				break;
+			}
+
+			/* Skip the first char after FEND which is TNC_DATA (0x00) */
+			if (driver->rx_first) {
+				driver->rx_first = 0;
+				break;
+			}
+
+			/* Valid data char */
+			((char *) &driver->rx_packet->id.ext)[driver->rx_length++] = inputbyte;
+
+			break;
+
+		case KISS_MODE_ESCAPED:
+
+			/* Escaped escape char */
+			if (inputbyte == TFESC)
+				((char *) &driver->rx_packet->id.ext)[driver->rx_length++] = FESC;
+
+			/* Escaped fend char */
+			if (inputbyte == TFEND)
+				((char *) &driver->rx_packet->id.ext)[driver->rx_length++] = FEND;
+
+			/* Go back to started mode */
+			driver->rx_mode = KISS_MODE_STARTED;
+			break;
 
 		}
 
@@ -237,6 +236,8 @@ void csp_kiss_init(csp_iface_t * csp_iface, csp_kiss_handle_t * csp_kiss_handle,
 	csp_iface->driver = csp_kiss_handle;
 	csp_kiss_handle->kiss_discard = kiss_discard_f;
 	csp_kiss_handle->kiss_putc = kiss_putc_f;
+	csp_kiss_handle->rx_packet = NULL;
+	csp_kiss_handle->rx_mode = KISS_MODE_NOT_STARTED;
 
 	/* Setop other mandatories */
 	csp_iface->mtu = KISS_MTU;
