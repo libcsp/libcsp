@@ -102,6 +102,7 @@ void csp_kiss_rx(csp_iface_t * interface, uint8_t * buf, int len, void * pxTaskW
 
 	while (len--) {
 
+
 		/* Input */
 		char inputbyte = *buf++;
 
@@ -110,6 +111,7 @@ void csp_kiss_rx(csp_iface_t * interface, uint8_t * buf, int len, void * pxTaskW
 			csp_log_warn("KISS RX overflow\r\n");
 			interface->rx_error++;
 			driver->rx_mode = KISS_MODE_NOT_STARTED;
+			driver->rx_length = 0;
 		}
 
 		switch (driver->rx_mode) {
