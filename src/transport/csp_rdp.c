@@ -948,7 +948,7 @@ int csp_rdp_send(csp_conn_t * conn, csp_packet_t * packet, uint32_t timeout) {
 	if (in_flight > conn->rdp.window_size) {
 		csp_log_protocol("RDP: Waiting for window update before sending seq %u\r\n", conn->rdp.snd_nxt);
 		csp_bin_sem_wait(&conn->rdp.tx_wait, 0);
-		if ((csp_bin_sem_wait(&conn->rdp.tx_wait, timeout)) != CSP_SEMAPHORE_OK) {
+		if ((csp_bin_sem_wait(&conn->rdp.tx_wait, conn->rdp.packet_timeout)) != CSP_SEMAPHORE_OK) {
 			csp_log_error("Timeout during send\r\n");
 			return CSP_ERR_TIMEDOUT;
 		}
