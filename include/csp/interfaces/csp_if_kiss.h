@@ -72,6 +72,13 @@ typedef void (*csp_kiss_putc_f)(char buf);
  */
 typedef void (*csp_kiss_discard_f)(char c, void *pxTaskWoken);
 
+typedef enum {
+	KISS_MODE_NOT_STARTED,
+	KISS_MODE_STARTED,
+	KISS_MODE_ESCAPED,
+	KISS_MODE_SKIP_FRAME,
+} kiss_mode_e;
+
 /**
  * This structure should be statically allocated by the user
  * and passed to the kiss interface during the init function
@@ -81,7 +88,7 @@ typedef struct csp_kiss_handle_s {
 	csp_kiss_putc_f kiss_putc;
 	csp_kiss_discard_f kiss_discard;
 	unsigned int rx_length;
-	unsigned int rx_mode;
+	kiss_mode_e rx_mode;
 	unsigned int rx_first;
 	volatile unsigned char *rx_cbuf;
 	csp_packet_t * rx_packet;

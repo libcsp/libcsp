@@ -33,11 +33,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #define KISS_MTU				256
 
-#define KISS_MODE_NOT_STARTED 	0
-#define KISS_MODE_STARTED 		1
-#define KISS_MODE_ESCAPED 		2
-#define KISS_MODE_ENDED 		3
-
 #define FEND  					0xC0
 #define FESC  					0xDB
 #define TFEND 					0xDC
@@ -134,9 +129,11 @@ void csp_kiss_rx(csp_iface_t * interface, uint8_t * buf, int len, void * pxTaskW
 				}
 			}
 
-			/* Abort if no more memory */
-			if (driver->rx_packet == NULL)
+			/* If no more memory, skip frame */
+			if (driver->rx_packet == NULL) {
+				driver->rx_mode = KISS_MODE_SKIP_FRAME;
 				break;
+			}
 
 			/* Start transfer */
 			driver->rx_length = 0;
@@ -218,6 +215,14 @@ void csp_kiss_rx(csp_iface_t * interface, uint8_t * buf, int len, void * pxTaskW
 
 			/* Go back to started mode */
 			driver->rx_mode = KISS_MODE_STARTED;
+			break;
+
+		case KISS_MODE_SKIP_FRAME:
+
+			/* Just wait for end char */
+			if (inputbyte == FEND)
+				driver->rx_mode = KISS_MODE_NOT_STARTED;
+
 			break;
 
 		}
