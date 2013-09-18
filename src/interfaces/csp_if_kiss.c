@@ -97,9 +97,8 @@ void csp_kiss_rx(csp_iface_t * interface, uint8_t * buf, int len, void * pxTaskW
 
 	while (len--) {
 
-
 		/* Input */
-		char inputbyte = *buf++;
+		unsigned char inputbyte = *buf++;
 
 		/* If packet was too long */
 		if (driver->rx_length > interface->mtu) {
