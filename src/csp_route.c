@@ -314,7 +314,7 @@ CSP_DEFINE_TASK(csp_task_router) {
 		/* Search for an existing connection */
 		conn = csp_conn_find(packet->id.ext, CSP_ID_CONN_MASK);
 
-		/* If no connection was found, try to create a new one */
+		/* If this is an incoming packet on a new connection */
 		if (conn == NULL) {
 
 			/* Reject packet if no matching socket is found */
@@ -323,10 +323,17 @@ CSP_DEFINE_TASK(csp_task_router) {
 				continue;
 			}
 
+			/* Run security check on incoming packet */
+			if (csp_route_security_check(socket->opts, input.interface, packet) < 0) {
+				csp_buffer_free(packet);
+				continue;
+			}
+
 			/* New incoming connection accepted */
 			csp_id_t idout;
 			idout.pri   = packet->id.pri;
 			idout.src   = my_address;
+
 			idout.dst   = packet->id.src;
 			idout.dport = packet->id.sport;
 			idout.sport = packet->id.dport;
@@ -345,12 +352,15 @@ CSP_DEFINE_TASK(csp_task_router) {
 			conn->socket = socket->socket;
 			conn->opts = socket->opts;
 
-		}
+		/* Packet to existing connection */
+		} else {
 
-		/* Run security check on incoming packet */
-		if (csp_route_security_check(conn->opts, input.interface, packet) < 0) {
-			csp_buffer_free(packet);
-			continue;
+			/* Run security check on incoming packet */
+			if (csp_route_security_check(conn->opts, input.interface, packet) < 0) {
+				csp_buffer_free(packet);
+				continue;
+			}
+
 		}
 
 		/* Pass packet to the right transport module */
