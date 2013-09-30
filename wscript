@@ -57,11 +57,11 @@ def options(ctx):
 	# Drivers
 	gr.add_option('--with-driver-can', default=None, metavar='CHIP', help='Build CAN driver. [socketcan, at91sam7a1, at91sam7a3 or at90can128]')
 	gr.add_option('--with-driver-usart', default=None, metavar='DRIVER', help='Build USART driver. [windows, linux, None]')
-	gr.add_option('--with-drivers', metavar='PATH', default='../../libgomspace/include', help='Set path to Driver header files')
+	gr.add_option('--with-drivers', metavar='PATH', default='../libgomspace/include', help='Set path to Driver header files')
 
 	# OS	
 	gr.add_option('--with-os', metavar='OS', default='posix', help='Set operating system. Must be either \'posix\', \'macosx\', \'windows\' or \'freertos\'')
-	gr.add_option('--with-freertos', metavar='PATH', default='../../libgomspace/include', help='Set path to FreeRTOS header files')
+	gr.add_option('--with-freertos', metavar='PATH', default='../libgomspace/include', help='Set path to FreeRTOS header files')
 
 	# Options
 	gr.add_option('--with-rdp-max-window', metavar='SIZE', type=int, default=20, help='Set maximum window size for RDP')
