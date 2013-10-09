@@ -186,7 +186,7 @@ class csp_l4data_t (ctypes.Structure):
 	pass
 
 # Load library
-libcsp = ctypes.CDLL("../../build/libpycsp.so", use_errno=True)
+libcsp = ctypes.CDLL("libpycsp.so", use_errno=True)
 
 my_address = libcsp.my_address
 
@@ -205,7 +205,6 @@ csp_socket.errcheck = null_pointer_err
 csp_accept = libcsp.csp_accept
 csp_accept.argtypes = [ctypes.POINTER(csp_socket_t), ctypes.c_uint]
 csp_accept.restype = ctypes.POINTER(csp_conn_t)
-csp_accept.errcheck = null_pointer_err
 
 csp_read = libcsp.csp_read
 csp_read.argtypes = [ctypes.POINTER(csp_conn_t), ctypes.c_uint]
@@ -295,7 +294,7 @@ csp_service_handler.restype = None
 
 csp_ping = libcsp.csp_ping
 csp_ping.argtypes = [ctypes.c_uint8, ctypes.c_uint]
-csp_ping.restype = None
+csp_ping.restype = ctypes.c_int 
 
 csp_ping_noreply = libcsp.csp_ping_noreply
 csp_ping_noreply.argtypes = [ctypes.c_uint8]
