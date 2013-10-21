@@ -102,7 +102,7 @@ def configure(ctx):
 	ctx.define('GIT_REV', git_rev)
 
 	# Setup CFLAGS
-	if (ctx.env.CFLAGS == ''):
+	if (len(ctx.env.CFLAGS) == 0):
 		ctx.env.prepend_value('CFLAGS', ['-Os','-Wall', '-g', '-std=gnu99'])
 	
 	# Setup extra includes
@@ -249,7 +249,7 @@ def build(ctx):
 	# Build shared library for Python bindings
 	if ctx.env.ENABLE_BINDINGS:
 		ctx.shlib(source=ctx.path.ant_glob(ctx.env.FILES_CSP),
-			target = 'pycsp',
+			target = 'csp',
 			includes= ctx.env.INCLUDES_CSP,
 			export_includes = 'include',
 			lib=libs)
