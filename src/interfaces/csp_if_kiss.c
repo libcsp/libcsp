@@ -28,132 +28,60 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/csp_platform.h>
 #include <csp/csp_interface.h>
 #include <csp/interfaces/csp_if_kiss.h>
-#include <csp/arch/csp_malloc.h>
+#include <csp/arch/csp_semaphore.h>
+#include <csp/csp_crc32.h>
 
-/**
- * Some day, stop using CRC on layer 2 and move to layer 3
- * Keeping now for backwards compatability with csp 1.0 devices
- **/
-#define KISS_CRC32 1
+#define KISS_MTU				256
 
-#define KISS_MODE_NOT_STARTED 0
-#define KISS_MODE_STARTED 1
-#define KISS_MODE_ESCAPED 2
-#define KISS_MODE_ENDED 3
+#define FEND  					0xC0
+#define FESC  					0xDB
+#define TFEND 					0xDC
+#define TFESC 					0xDD
 
-#define FEND  0xC0
-#define FESC  0xDB
-#define TFEND 0xDC
-#define TFESC 0xDD
+#define TNC_DATA				0x00
+#define TNC_SET_HARDWARE		0x06
+#define TNC_RETURN				0xFF
 
-#define TNC_DATA			0x00
-#define TNC_SET_HARDWARE	0x06
-#define TNC_RETURN			0xFF
-
-static csp_kiss_putstr_f kiss_putstr;
-static csp_kiss_discard_f kiss_discard;
-
-#ifdef KISS_CRC32
-
-#ifdef __AVR__
-#include <avr/pgmspace.h>
-static const uint32_t kiss_crc_tab[256] PROGMEM = {
-#else
-static const uint32_t kiss_crc_tab[256] = {
-#endif
-		0x00000000, 0x77073096, 0xEE0E612C, 0x990951BA, 0x076DC419, 0x706AF48F, 0xE963A535, 0x9E6495A3,
-		0x0EDB8832, 0x79DCB8A4, 0xE0D5E91E, 0x97D2D988, 0x09B64C2B, 0x7EB17CBD, 0xE7B82D07, 0x90BF1D91,
-		0x1DB71064, 0x6AB020F2, 0xF3B97148, 0x84BE41DE, 0x1ADAD47D, 0x6DDDE4EB, 0xF4D4B551, 0x83D385C7,
-		0x136C9856, 0x646BA8C0, 0xFD62F97A, 0x8A65C9EC, 0x14015C4F, 0x63066CD9, 0xFA0F3D63, 0x8D080DF5,
-		0x3B6E20C8, 0x4C69105E, 0xD56041E4, 0xA2677172, 0x3C03E4D1, 0x4B04D447, 0xD20D85FD, 0xA50AB56B,
-		0x35B5A8FA, 0x42B2986C, 0xDBBBC9D6, 0xACBCF940, 0x32D86CE3, 0x45DF5C75, 0xDCD60DCF, 0xABD13D59,
-		0x26D930AC, 0x51DE003A, 0xC8D75180, 0xBFD06116, 0x21B4F4B5, 0x56B3C423, 0xCFBA9599, 0xB8BDA50F,
-		0x2802B89E, 0x5F058808, 0xC60CD9B2, 0xB10BE924, 0x2F6F7C87, 0x58684C11, 0xC1611DAB, 0xB6662D3D,
-		0x76DC4190, 0x01DB7106, 0x98D220BC, 0xEFD5102A, 0x71B18589, 0x06B6B51F, 0x9FBFE4A5, 0xE8B8D433,
-		0x7807C9A2, 0x0F00F934, 0x9609A88E, 0xE10E9818, 0x7F6A0DBB, 0x086D3D2D, 0x91646C97, 0xE6635C01,
-		0x6B6B51F4, 0x1C6C6162, 0x856530D8, 0xF262004E, 0x6C0695ED, 0x1B01A57B, 0x8208F4C1, 0xF50FC457,
-		0x65B0D9C6, 0x12B7E950, 0x8BBEB8EA, 0xFCB9887C, 0x62DD1DDF, 0x15DA2D49, 0x8CD37CF3, 0xFBD44C65,
-		0x4DB26158, 0x3AB551CE, 0xA3BC0074, 0xD4BB30E2, 0x4ADFA541, 0x3DD895D7, 0xA4D1C46D, 0xD3D6F4FB,
-		0x4369E96A, 0x346ED9FC, 0xAD678846, 0xDA60B8D0, 0x44042D73, 0x33031DE5, 0xAA0A4C5F, 0xDD0D7CC9,
-		0x5005713C, 0x270241AA, 0xBE0B1010, 0xC90C2086, 0x5768B525, 0x206F85B3, 0xB966D409, 0xCE61E49F,
-		0x5EDEF90E, 0x29D9C998, 0xB0D09822, 0xC7D7A8B4, 0x59B33D17, 0x2EB40D81, 0xB7BD5C3B, 0xC0BA6CAD,
-		0xEDB88320, 0x9ABFB3B6, 0x03B6E20C, 0x74B1D29A, 0xEAD54739, 0x9DD277AF, 0x04DB2615, 0x73DC1683,
-		0xE3630B12, 0x94643B84, 0x0D6D6A3E, 0x7A6A5AA8, 0xE40ECF0B, 0x9309FF9D, 0x0A00AE27, 0x7D079EB1,
-		0xF00F9344, 0x8708A3D2, 0x1E01F268, 0x6906C2FE, 0xF762575D, 0x806567CB, 0x196C3671, 0x6E6B06E7,
-		0xFED41B76, 0x89D32BE0, 0x10DA7A5A, 0x67DD4ACC, 0xF9B9DF6F, 0x8EBEEFF9, 0x17B7BE43, 0x60B08ED5,
-		0xD6D6A3E8, 0xA1D1937E, 0x38D8C2C4, 0x4FDFF252, 0xD1BB67F1, 0xA6BC5767, 0x3FB506DD, 0x48B2364B,
-		0xD80D2BDA, 0xAF0A1B4C, 0x36034AF6, 0x41047A60, 0xDF60EFC3, 0xA867DF55, 0x316E8EEF, 0x4669BE79,
-		0xCB61B38C, 0xBC66831A, 0x256FD2A0, 0x5268E236, 0xCC0C7795, 0xBB0B4703, 0x220216B9, 0x5505262F,
-		0xC5BA3BBE, 0xB2BD0B28, 0x2BB45A92, 0x5CB36A04, 0xC2D7FFA7, 0xB5D0CF31, 0x2CD99E8B, 0x5BDEAE1D,
-		0x9B64C2B0, 0xEC63F226, 0x756AA39C, 0x026D930A, 0x9C0906A9, 0xEB0E363F, 0x72076785, 0x05005713,
-		0x95BF4A82, 0xE2B87A14, 0x7BB12BAE, 0x0CB61B38, 0x92D28E9B, 0xE5D5BE0D, 0x7CDCEFB7, 0x0BDBDF21,
-		0x86D3D2D4, 0xF1D4E242, 0x68DDB3F8, 0x1FDA836E, 0x81BE16CD, 0xF6B9265B, 0x6FB077E1, 0x18B74777,
-		0x88085AE6, 0xFF0F6A70, 0x66063BCA, 0x11010B5C, 0x8F659EFF, 0xF862AE69, 0x616BFFD3, 0x166CCF45,
-		0xA00AE278, 0xD70DD2EE, 0x4E048354, 0x3903B3C2, 0xA7672661, 0xD06016F7, 0x4969474D, 0x3E6E77DB,
-		0xAED16A4A, 0xD9D65ADC, 0x40DF0B66, 0x37D83BF0, 0xA9BCAE53, 0xDEBB9EC5, 0x47B2CF7F, 0x30B5FFE9,
-		0xBDBDF21C, 0xCABAC28A, 0x53B39330, 0x24B4A3A6, 0xBAD03605, 0xCDD70693, 0x54DE5729, 0x23D967BF,
-		0xB3667A2E, 0xC4614AB8, 0x5D681B02, 0x2A6F2B94, 0xB40BBE37, 0xC30C8EA1, 0x5A05DF1B, 0x2D02EF8D};
-
-/**
- * Generate CRC32
- * @param block pointer to data
- * @param length length of data
- * @return uint32_t crc32
- */
-static uint32_t kiss_crc(unsigned char *block, unsigned int length) {
-	uint32_t crc;
-	unsigned int i;
-
-	crc = 0xFFFFFFFF;
-	for (i = 0; i < length; i++) {
-#ifdef __AVR__
-		crc = ((crc >> 8) & 0x00FFFFFF) ^ pgm_read_dword(&kiss_crc_tab[(crc ^ (uint32_t) block[i]) & (uint32_t) 0xFF]);
-#else
-		crc = ((crc >> 8) & 0x00FFFFFF) ^ kiss_crc_tab[(crc ^ block[i]) & (uint32_t) 0xFF];
-#endif
-	}
-	crc = crc ^ 0xFFFFFFFF;
-	return crc;
-}
-#endif // KISS_CRC32
+static int kiss_lock_init = 0;
+static csp_bin_sem_handle_t kiss_lock;
 
 /* Send a CSP packet over the KISS RS232 protocol */
-int csp_kiss_tx(csp_packet_t * packet, uint32_t timeout) {
+static int csp_kiss_tx(csp_iface_t * interface, csp_packet_t * packet, uint32_t timeout) {
 
-	int txbufin = 0;
-	char * txbuf = csp_malloc(packet->length + 30);
-	if (txbuf == NULL)
-		return CSP_ERR_NOMEM;
+	if (interface == NULL || interface->driver == NULL)
+		return CSP_ERR_DRIVER;
+
+	/* Add CRC32 checksum */
+	csp_crc32_append(packet);
 
 	/* Save the outgoing id in the buffer */
 	packet->id.ext = csp_hton32(packet->id.ext);
 	packet->length += sizeof(packet->id.ext);
 
-	/* Add CRC32 checksum */
-#if defined(KISS_CRC32)
-	uint32_t crc = kiss_crc((unsigned char *)&packet->id.ext, packet->length);
-	crc = csp_hton32(crc);
-	memcpy(((char *)&packet->id.ext) + packet->length, &crc, sizeof(crc));
-	packet->length += sizeof(crc);
-#endif
+	/* Lock */
+	csp_bin_sem_wait(&kiss_lock, 1000);
 
-	txbuf[txbufin++] = FEND;
-	txbuf[txbufin++] = TNC_DATA;
+	/* Transmit data */
+	csp_kiss_handle_t * driver = interface->driver;
+	driver->kiss_putc(FEND);
+	driver->kiss_putc(TNC_DATA);
 	for (unsigned int i = 0; i < packet->length; i++) {
 		if (((unsigned char *) &packet->id.ext)[i] == FEND) {
 			((unsigned char *) &packet->id.ext)[i] = TFEND;
-			txbuf[txbufin++] = FESC;
+			driver->kiss_putc(FESC);
 		} else if (((unsigned char *) &packet->id.ext)[i] == FESC) {
 			((unsigned char *) &packet->id.ext)[i] = TFESC;
-			txbuf[txbufin++] = FESC;
+			driver->kiss_putc(FESC);
 		}
-		txbuf[txbufin++] = ((unsigned char *) &packet->id.ext)[i];
-
+		driver->kiss_putc(((unsigned char *) &packet->id.ext)[i]);
 	}
-	txbuf[txbufin++] = FEND;
+	driver->kiss_putc(FEND);
+
+	/* Free data */
 	csp_buffer_free(packet);
-	kiss_putstr(txbuf, txbufin);
-	csp_free(txbuf);
+
+	/* Unlock */
+	csp_bin_sem_post(&kiss_lock);
 
 	return CSP_ERR_NONE;
 }
@@ -162,130 +90,139 @@ int csp_kiss_tx(csp_packet_t * packet, uint32_t timeout) {
  * When a frame is received, decode the kiss-stuff
  * and eventually send it directly to the CSP new packet function.
  */
-void csp_kiss_rx(uint8_t * buf, int len, void * pxTaskWoken) {
+void csp_kiss_rx(csp_iface_t * interface, uint8_t * buf, int len, void * pxTaskWoken) {
 
-	static csp_packet_t * packet = NULL;
-	static int length = 0;
-	static volatile unsigned char *cbuf;
-	static int mode = KISS_MODE_NOT_STARTED;
-	static int first = 1;
+	/* Driver handle */
+	csp_kiss_handle_t * driver = interface->driver;
 
-	while (len) {
+	while (len--) {
 
-		switch (mode) {
-		case KISS_MODE_NOT_STARTED:
-			if (*buf == FEND) {
-				if (packet == NULL) {
-					if (pxTaskWoken == NULL) {
-						packet = csp_buffer_get(csp_if_kiss.mtu);
-					} else {
-						packet = csp_buffer_get_isr(csp_if_kiss.mtu);
-					}
-				}
+		/* Input */
+		unsigned char inputbyte = *buf++;
 
-				if (packet != NULL) {
-					cbuf = (unsigned char *) &packet->id.ext;
-				} else {
-					cbuf = NULL;
-				}
-
-				mode = KISS_MODE_STARTED;
-				first = 1;
-			} else {
-				/* If the char was not part of a kiss frame, send back to usart driver */
-				if (kiss_discard != NULL)
-					kiss_discard(*buf, pxTaskWoken);
-			}
-			break;
-		case KISS_MODE_STARTED:
-			if (*buf == FESC)
-				mode = KISS_MODE_ESCAPED;
-			else if (*buf == FEND) {
-				if (length > 0) {
-					mode = KISS_MODE_ENDED;
-				}
-			} else {
-				if (cbuf != NULL)
-					*cbuf = *buf;
-				if (first) {
-					first = 0;
-					break;
-				}
-				if (cbuf != NULL)
-					cbuf++;
-				length++;
-			}
-			break;
-		case KISS_MODE_ESCAPED:
-			if (*buf == TFESC) {
-				if (cbuf != NULL)
-					*cbuf++ = FESC;
-				length++;
-			} else if (*buf == TFEND) {
-				if (cbuf != NULL)
-					*cbuf++ = FEND;
-				length++;
-			}
-			mode = KISS_MODE_STARTED;
-			break;
-		}
-
-		len--;
-		buf++;
-
-		if (length >= 256) {
-			mode = KISS_MODE_NOT_STARTED;
-			length = 0;
+		/* If packet was too long */
+		if (driver->rx_length > interface->mtu) {
 			csp_log_warn("KISS RX overflow\r\n");
-			continue;
+			interface->rx_error++;
+			driver->rx_mode = KISS_MODE_NOT_STARTED;
+			driver->rx_length = 0;
 		}
 
-		if (mode == KISS_MODE_ENDED) {
+		switch (driver->rx_mode) {
 
-			if (packet == NULL) {
-				mode = KISS_MODE_NOT_STARTED;
-				length = 0;
-				continue;
+		case KISS_MODE_NOT_STARTED:
+
+			/* Send normal chars back to usart driver */
+			if (inputbyte != FEND) {
+				if (driver->kiss_discard != NULL)
+					driver->kiss_discard(inputbyte, pxTaskWoken);
+				break;
 			}
 
-			packet->length = length;
+			/* Try to allocate new buffer */
+			if (driver->rx_packet == NULL) {
+				if (pxTaskWoken == NULL) {
+					driver->rx_packet = csp_buffer_get(interface->mtu);
+				} else {
+					driver->rx_packet = csp_buffer_get_isr(interface->mtu);
+				}
+			}
 
-			csp_if_kiss.frame++;
+			/* If no more memory, skip frame */
+			if (driver->rx_packet == NULL) {
+				driver->rx_mode = KISS_MODE_SKIP_FRAME;
+				break;
+			}
 
-			if (packet->length >= CSP_HEADER_LENGTH && packet->length <= csp_if_kiss.mtu + CSP_HEADER_LENGTH) {
+			/* Start transfer */
+			driver->rx_length = 0;
+			driver->rx_mode = KISS_MODE_STARTED;
+			driver->rx_first = 1;
+			break;
 
-#if defined(KISS_CRC32)
-				uint32_t crc_remote;
-				memcpy(&crc_remote, ((unsigned char *) &packet->id.ext) + packet->length - sizeof(crc_remote), sizeof(crc_remote));
-				crc_remote = csp_ntoh32(crc_remote);
-				uint32_t crc_local = kiss_crc((unsigned char *) &packet->id.ext, packet->length - sizeof(crc_remote));
+		case KISS_MODE_STARTED:
 
-				if (crc_remote != crc_local) {
-					csp_log_warn("CRC remote 0x%08"PRIX32", local 0x%08"PRIX32", packlen %u\r\n", crc_remote, crc_local, packet->length);
-					csp_if_kiss.rx_error++;
-					mode = KISS_MODE_NOT_STARTED;
-					length = 0;
-					continue;
+			/* Escape char */
+			if (inputbyte == FESC) {
+				driver->rx_mode = KISS_MODE_ESCAPED;
+				break;
+			}
+
+			/* End Char */
+			if (inputbyte == FEND) {
+
+				/* Accept message */
+				if (driver->rx_length > 0) {
+
+					/* Check for valid length */
+					if (driver->rx_length < CSP_HEADER_LENGTH + sizeof(uint32_t)) {
+						csp_log_warn("KISS short frame skipped, len: %u\r\n", driver->rx_length);
+						interface->rx_error++;
+						driver->rx_mode = KISS_MODE_NOT_STARTED;
+						break;
+					}
+
+					/* Count received frame */
+					interface->frame++;
+
+					/* The CSP packet length is without the header */
+					driver->rx_packet->length = driver->rx_length - CSP_HEADER_LENGTH;
+
+					/* Convert the packet from network to host order */
+					driver->rx_packet->id.ext = csp_ntoh32(driver->rx_packet->id.ext);
+
+					/* Validate CRC */
+					if (csp_crc32_verify(driver->rx_packet) != CSP_ERR_NONE) {
+						csp_log_warn("KISS invalid crc frame skipped, len: %u\r\n", driver->rx_packet->length);
+						interface->rx_error++;
+						driver->rx_mode = KISS_MODE_NOT_STARTED;
+						break;
+					}
+
+					/* Send back into CSP, notice calling from task so last argument must be NULL! */
+					csp_new_packet(driver->rx_packet, interface, pxTaskWoken);
+					driver->rx_packet = NULL;
+					driver->rx_mode = KISS_MODE_NOT_STARTED;
+					break;
+
 				}
 
-				packet->length -= sizeof(crc_remote);
-#endif
-
-				/* Strip the CSP header off the length field before converting to CSP packet */
-				packet->length -= CSP_HEADER_LENGTH;
-
-				/* Convert the packet from network to host order */
-				packet->id.ext = csp_ntoh32(packet->id.ext);
-
-				/* Send back into CSP, notice calling from task so last argument must be NULL! */
-				csp_new_packet(packet, &csp_if_kiss, pxTaskWoken);
-				packet = NULL;
-			} else {
-				csp_log_warn("Weird kiss frame received! Size %u\r\n", packet->length);
+				/* Break after the end char */
+				break;
 			}
 
-			mode = KISS_MODE_NOT_STARTED;
-			length = 0;
+			/* Skip the first char after FEND which is TNC_DATA (0x00) */
+			if (driver->rx_first) {
+				driver->rx_first = 0;
+				break;
+			}
+
+			/* Valid data char */
+			((char *) &driver->rx_packet->id.ext)[driver->rx_length++] = inputbyte;
+
+			break;
+
+		case KISS_MODE_ESCAPED:
+
+			/* Escaped escape char */
+			if (inputbyte == TFESC)
+				((char *) &driver->rx_packet->id.ext)[driver->rx_length++] = FESC;
+
+			/* Escaped fend char */
+			if (inputbyte == TFEND)
+				((char *) &driver->rx_packet->id.ext)[driver->rx_length++] = FEND;
+
+			/* Go back to started mode */
+			driver->rx_mode = KISS_MODE_STARTED;
+			break;
+
+		case KISS_MODE_SKIP_FRAME:
+
+			/* Just wait for end char */
+			if (inputbyte == FEND)
+				driver->rx_mode = KISS_MODE_NOT_STARTED;
+
+			break;
 
 		}
 
@@ -293,22 +230,27 @@ void csp_kiss_rx(uint8_t * buf, int len, void * pxTaskWoken) {
 
 }
 
-int csp_kiss_init(csp_kiss_putstr_f kiss_putstr_f, csp_kiss_discard_f kiss_discard_f) {
+void csp_kiss_init(csp_iface_t * csp_iface, csp_kiss_handle_t * csp_kiss_handle, csp_kiss_putc_f kiss_putc_f, csp_kiss_discard_f kiss_discard_f, const char * name) {
 
-	/* Store function pointers */
-	kiss_putstr = kiss_putstr_f;
-	kiss_discard = kiss_discard_f;
+	/* Init lock only once */
+	if (kiss_lock_init == 0) {
+		csp_bin_sem_create(&kiss_lock);
+		kiss_lock_init = 1;
+	}
+
+	/* Register device handle as member of interface */
+	csp_iface->driver = csp_kiss_handle;
+	csp_kiss_handle->kiss_discard = kiss_discard_f;
+	csp_kiss_handle->kiss_putc = kiss_putc_f;
+	csp_kiss_handle->rx_packet = NULL;
+	csp_kiss_handle->rx_mode = KISS_MODE_NOT_STARTED;
+
+	/* Setop other mandatories */
+	csp_iface->mtu = KISS_MTU;
+	csp_iface->nexthop = csp_kiss_tx;
+	csp_iface->name = name;
 
 	/* Regsiter interface */
-	csp_route_add_if(&csp_if_kiss);
-
-	return CSP_ERR_NONE;
+	csp_route_add_if(csp_iface);
 
 }
-
-/** Interface definition */
-csp_iface_t csp_if_kiss = {
-	.name = "KISS",
-	.nexthop = csp_kiss_tx,
-	.mtu = 256,
-};

@@ -30,7 +30,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 static int csp_i2c_handle = 0;
 
-int csp_i2c_tx(csp_packet_t * packet, uint32_t timeout) {
+int csp_i2c_tx(csp_iface_t * interface, csp_packet_t * packet, uint32_t timeout) {
 
 	/* Cast the CSP packet buffer into an i2c frame */
 	i2c_frame_t * frame = (i2c_frame_t *) packet;

@@ -97,13 +97,17 @@ int csp_conn_enqueue_packet(csp_conn_t * conn, csp_packet_t * packet) {
 		rxq = CSP_RX_QUEUES - 1;
 	}
 
-	if (csp_queue_enqueue(conn->rx_queue[rxq], &packet, 0) != CSP_QUEUE_OK)
+	if (csp_queue_enqueue(conn->rx_queue[rxq], &packet, 0) != CSP_QUEUE_OK) {
+		csp_log_error("RX queue %p full with %u items\r\n", conn->rx_queue[rxq], csp_queue_size(conn->rx_queue[rxq]));
 		return CSP_ERR_NOMEM;
+	}
 
 #ifdef CSP_USE_QOS
 	int event = 0;
-	if (csp_queue_enqueue(conn->rx_event, &event, 0) != CSP_QUEUE_OK)
+	if (csp_queue_enqueue(conn->rx_event, &event, 0) != CSP_QUEUE_OK) {
+		csp_log_error("QOS event queue full\r\n");
 		return CSP_ERR_NOMEM;
+	}
 #endif
 
 	return CSP_ERR_NONE;
