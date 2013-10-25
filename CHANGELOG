@@ -1,8 +1,38 @@
-libcsp 1.x, xxxx-xx-xx
+libcsp 1.2, 25-10-2013
 ----------------------
+- Feature release
 - New: CMP service for peek and poke of memory
+- New: CMP interface statistics struct is now packed
+- New: Faster O(1) buffer system with reference counting and automatic alignment
+- New: Thread safe KISS driver with support for multiple interfaces
+- New: CSP interface struct now holds an opaque pointer to driver handle
+- New: removed TXBUF from KISS driver entirely to minimize stack usage, added TX lock instead
+- New: Pre-calculated CRC table .romem or PROGMEM on __avr__
+- New: Added buffer overflow protection to KISS interface
+- New: Allow posting null pointers on conn RX queues
+- New: Lower memory usage on AVR8
+- New: csp_route_save and csp_route_load functions
+- New: option --disable-verbose to disable filenames and linenumber on debug
+- Protocol: KISS uses csp_crc32 instead of it own embedded crc32
+- Improvement: Use buffer clone function to copy promisc packets
+- Bugfix: Fix pointer size (32/16bit) in cmp_peek/poke
+- Bugfix: Issue with double free in KISS fixed
+- Bugfix: Change rdp_send timeout from packet to connection timeout to make sending task block longer
+- Bugfix: Fix conn pool leak when using security check and discarding new packets
+- Bugfix: Add packet too short check for CRC32
+- Bugfix: Accept CRC32 responses from nodes without CRC support
+- Bugfix: Ensure csp_ping works for packets > 256 bytes
+- Bugfix: Cleanup printf inside ISR functions
+- Bugfix: Do not add forwarded packets to promisc queue twice
+- Bugfix: Fix return value bug of csp_buffer_get when out of buffers
+- Bugfix: Always post null pointer with lowest priority, not highest
+- Bugfix: Add check on debug level before calling do_csp_debug, fixes #35
+- Other: Export csp/arch include files
+- Other: Remove the use of bool type from csp_debug
+- Other: Moved csp debug functions to csp_debug.h instead of csp.h
+- Other: Ensure assignment of id happens using the uint32_t .ext value of the union, quenches warning
 
-libcsp 1.1, 2012-08-24
+libcsp 1.1, 24-08-2012
 ----------------------
 - Feature release
 - Defacto stable since Feb 2012
@@ -29,12 +59,12 @@ libcsp 1.1, 2012-08-24
 - Bugfix: Fixed problem in csp_if_kiss when out of buffers
 - Bigfix: Handle bus-off CAN IRQ for AT90CAN128
 
-libcsp 1.0.1, 2011-10-30
+libcsp 1.0.1, 30-10-2011
 ------------------------
 - Hotfix release
 - Bugfix: missing extern in csp_if_lo.h
 
-libcsp 1.0, 2011-10-24
+libcsp 1.0, 24-10-2011
 ----------------------
 - First official release
 - New: CSP 32-bit header 1.0
