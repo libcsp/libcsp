@@ -35,7 +35,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  * @param timeout Timout in ms
  * @return 1 if packet was successfully transmitted, 0 on error
  */
-int csp_lo_tx(csp_packet_t * packet, uint32_t timeout) {
+int csp_lo_tx(csp_iface_t * interface, csp_packet_t * packet, uint32_t timeout) {
 
 	/* Send back into CSP, notice calling from task so last argument must be NULL! */
 	csp_new_packet(packet, &csp_if_lo, NULL);

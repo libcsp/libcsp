@@ -89,4 +89,6 @@ void usart_putstr(char *buf, int len);
  */
 char usart_getc(void);
 
+int usart_messages_waiting(int handle);
+
 #endif /* USART_H_ */

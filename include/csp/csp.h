@@ -196,13 +196,15 @@ typedef struct __attribute__((__packed__)) {
 	};
 } csp_packet_t;
 
-/** Next hop function prototype */
-typedef int (*nexthop_t)(csp_packet_t *packet, uint32_t timeout);
+/** Interface TX function */
+typedef struct csp_iface_s csp_iface_t;
+typedef int (*nexthop_t)(struct csp_iface_s * interface, csp_packet_t *packet, uint32_t timeout);
 
 /** Interface struct */
 typedef struct csp_iface_s {
-	const char *name;			/**< Interface name (keep below 10 bytes)*/
-	nexthop_t nexthop; 			/**< Next hop function */
+	const char *name;			/**< Interface name (keep below 10 bytes) */
+	void * driver;				/**< Pointer to interface handler structure */
+	nexthop_t nexthop;			/**< Next hop function */
 	uint8_t promisc;			/**< Promiscuous mode enabled */
 	uint16_t mtu;				/**< Maximum Transmission Unit of interface */
 	uint8_t split_horizon_off;	/**< Disable the route-loop prevention on if */
@@ -218,6 +220,10 @@ typedef struct csp_iface_s {
 	uint32_t irq;				/**< Interrupts */
 	struct csp_iface_s *next;	/**< Next interface */
 } csp_iface_t;
+
+/* Nexthop typedef:
+ * Note this has to match the nexthop type in the iface structure */
+typedef int (*nexthop_t)(csp_iface_t * interface, csp_packet_t *packet, uint32_t timeout);
 
 /**
  * This define must be equal to the size of the packet overhead in csp_packet_t.
