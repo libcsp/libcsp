@@ -51,7 +51,7 @@ int csp_buffer_init(int buf_count, int buf_size) {
 	count = buf_count;
 	size = buf_size;
 	unsigned int skbfsize = (sizeof(csp_skbf_t) + size);
-	skbfsize = skbfsize + CSP_BUFFER_ALIGN - (skbfsize % CSP_BUFFER_ALIGN);
+	skbfsize = CSP_BUFFER_ALIGN * ((skbfsize + CSP_BUFFER_ALIGN - 1) / CSP_BUFFER_ALIGN);
 	unsigned int poolsize = count * skbfsize;
 
 	csp_buffer_pool = csp_malloc(poolsize);
