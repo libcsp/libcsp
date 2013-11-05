@@ -252,6 +252,7 @@ def build(ctx):
 			target = 'csp',
 			includes= ctx.env.INCLUDES_CSP,
 			export_includes = 'include',
+			use = 'include',
 			lib=libs)
 
 	if ctx.env.ENABLE_EXAMPLES:
