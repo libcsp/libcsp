@@ -99,7 +99,7 @@ int csp_i2c_init(uint8_t addr, int handle, int speed) {
 
 	/* Create i2c_handle */
 	csp_i2c_handle = handle;
-	if (i2c_init(csp_i2c_handle, I2C_MASTER, addr, speed, 10, 0, csp_i2c_rx) != E_NO_ERR)
+	if (i2c_init(csp_i2c_handle, I2C_MASTER, addr, speed, 10, 10, csp_i2c_rx) != E_NO_ERR)
 		return CSP_ERR_DRIVER;
 
 	/* Regsiter interface */
