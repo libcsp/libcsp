@@ -150,6 +150,11 @@ void csp_buffer_free_isr(void *packet) {
 
 	csp_skbf_t * buf = packet - sizeof(csp_skbf_t);
 
+	if (((uintptr_t) buf % CSP_BUFFER_ALIGN) > 0) {
+		//csp_log_error("FREE: Unaligned CSP buffer pointer %p\r\n", packet);
+		return;
+	}
+
 	if (buf->skbf_addr != buf) {
 		//csp_log_error("FREE ISR: Invalid CSP buffer pointer %p\r\n", packet);
 		return;
@@ -177,6 +182,11 @@ void csp_buffer_free(void *packet) {
 	}
 
 	csp_skbf_t * buf = packet - sizeof(csp_skbf_t);
+
+	if (((uintptr_t) buf % CSP_BUFFER_ALIGN) > 0) {
+		csp_log_error("FREE: Unaligned CSP buffer pointer %p\r\n", packet);
+		return;
+	}
 
 	if (buf->skbf_addr != buf) {
 		csp_log_error("FREE: Invalid CSP buffer pointer %p\r\n", packet);
