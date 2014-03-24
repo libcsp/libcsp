@@ -61,6 +61,7 @@ CSP_DEFINE_TASK(task_server) {
 				/* Process packet here */
 				printf("Packet received on MY_PORT: %s\r\n", (char *) packet->data);
 				csp_buffer_free(packet);
+				break;
 
 			default:
 				/* Let the service handler reply pings, buffer use, etc. */
@@ -150,7 +151,7 @@ int main(int argc, char * argv[]) {
 
 	/* Init buffer system with 10 packets of maximum 300 bytes each */
 	printf("Initialising CSP\r\n");
-	csp_buffer_init(2, 300);
+	csp_buffer_init(5, 300);
 
 	/* Init CSP with address MY_ADDRESS */
 	csp_init(MY_ADDRESS);
@@ -161,6 +162,7 @@ int main(int argc, char * argv[]) {
 	/* Enable debug output from CSP */
 	if ((argc > 1) && (strcmp(argv[1], "-v") == 0)) {
 		printf("Debug enabed\r\n");
+		csp_debug_toggle_level(3);
 		csp_debug_toggle_level(4);
 
 		printf("Conn table\r\n");
