@@ -1,3 +1,8 @@
+/**
+ * Build this example on linux with:
+ * ./waf configure --enable-examples --enable-if-kiss --with-driver-usart=linux --enable-crc32 clean build
+ */
+
 #include <stdio.h>
 #include <csp/csp.h>
 #include <csp/interfaces/csp_if_kiss.h>
