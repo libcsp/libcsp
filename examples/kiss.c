@@ -1,3 +1,8 @@
+/**
+ * Build this example on linux with:
+ * ./waf configure --enable-examples --enable-if-kiss --with-driver-usart=linux --enable-crc32 clean build
+ */
+
 #include <stdio.h>
 #include <csp/csp.h>
 #include <csp/interfaces/csp_if_kiss.h>
@@ -110,9 +115,19 @@ int main(int argc, char **argv) {
     conf.baudrate = 115200;
 #endif
 
+	/* Run USART init */
 	usart_init(&conf);
-	csp_kiss_init(usart_putstr, usart_insert);
-	usart_set_callback(csp_kiss_rx);
+
+    /* Setup CSP interface */
+	static csp_iface_t csp_if_kiss;
+	static csp_kiss_handle_t csp_kiss_driver;
+	csp_kiss_init(&csp_if_kiss, &csp_kiss_driver, usart_putc, usart_insert, "KISS");
+		
+	/* Setup callback from USART RX to KISS RS */
+	void my_usart_rx(uint8_t * buf, int len, void * pxTaskWoken) {
+		csp_kiss_rx(&csp_if_kiss, buf, len, pxTaskWoken);
+	}
+	usart_set_callback(my_usart_rx);
 
     csp_route_set(MY_ADDRESS, &csp_if_kiss, CSP_NODE_MAC);
     csp_route_start_task(0, 0);
