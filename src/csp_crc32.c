@@ -108,6 +108,9 @@ int csp_crc32_verify(csp_packet_t * packet) {
 	if (packet == NULL)
 		return CSP_ERR_INVAL;
 
+	if (packet->length < sizeof(uint32_t))
+		return CSP_ERR_INVAL;
+
 	/* Calculate CRC32, convert to network byte order */
 	crc = csp_crc32_memory(packet->data, packet->length - sizeof(uint32_t));
 	crc = csp_hton32(crc);
