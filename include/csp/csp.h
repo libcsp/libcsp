@@ -150,7 +150,7 @@ typedef union {
 #define CSP_FRES1			0x80 				// Reserved for future use
 #define CSP_FRES2			0x40 				// Reserved for future use
 #define CSP_FRES3			0x20 				// Reserved for future use
-#define CSP_FRES4			0x10 				// Reserved for future use
+#define CSP_FFRAG			0x10 				// Use fragmentation
 #define CSP_FHMAC 			0x08 				// Use HMAC verification
 #define CSP_FXTEA 			0x04 				// Use XTEA encryption
 #define CSP_FRDP			0x02 				// Use RDP protocol
@@ -521,6 +521,29 @@ void csp_promisc_disable(void);
  * @param timeout Timeout in ms to wait for a new packet
  */
 csp_packet_t *csp_promisc_read(uint32_t timeout);
+
+/**
+ * Send multiple packets using the simple fragmentation protocol
+ * CSP will add total size and offset to all packets
+ * This can be read by the client using the csp_sfp_recv, if the CSP_FFRAG flag is set
+ * @param conn pointer to connection
+ * @param data pointer to data to send
+ * @param totalsize size of data to send
+ * @param mtu maximum transfer unit
+ * @param timeout timeout in ms to wait for csp_send()
+ * @return 0 if OK, -1 if ERR
+ */
+int csp_sfp_send(csp_conn_t * conn, void * data, int totalsize, int mtu, uint32_t timeout);
+
+/**
+ * This is the counterpart to the csp_sfp_send function
+ * @param conn pointer to active conn, on which you expect to receive sfp packed data
+ * @param dataout pointer to NULL pointer, whill be overwritten with malloc pointer
+ * @param datasize actual size of received data
+ * @param timeout timeout in ms to wait for csp_recv()
+ * @return 0 if OK, -1 if ERR
+ */
+int csp_sfp_recv(csp_conn_t * conn, void ** dataout, int * datasize, uint32_t timeout);
 
 /**
  * If the given packet is a service-request (that is uses one of the csp service ports)
