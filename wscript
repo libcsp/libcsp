@@ -152,7 +152,7 @@ def configure(ctx):
 	# Store configuration options
 	ctx.env.ENABLE_BINDINGS = ctx.options.enable_bindings
 	ctx.env.ENABLE_EXAMPLES = ctx.options.enable_examples
-
+	
 	# Create config file
 	if not ctx.options.disable_output:
 		ctx.env.append_unique('FILES_CSP', 'src/csp_debug.c')
@@ -231,7 +231,7 @@ def build(ctx):
 		source=ctx.path.ant_glob(ctx.env.FILES_CSP, excl=ctx.env.EXCL_CSP),
 		target = 'csp',
 		includes= ctx.env.INCLUDES_CSP,
-		export_includes = 'include',
+		export_includes = ctx.env.INCLUDES_CSP,
 		use = 'include freertos_h',
 		install_path = install_path,
 	)
