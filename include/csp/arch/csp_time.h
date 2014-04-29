@@ -40,8 +40,8 @@ extern "C" {
 /* AVR/ARM on FreeRTOS */
 #if defined(CSP_FREERTOS)
 
-#include <freertos/FreeRTOS.h>
-#include <freertos/task.h>
+#include <FreeRTOS.h>
+#include <task.h>
 
 #endif // CSP_FREERTOS
 

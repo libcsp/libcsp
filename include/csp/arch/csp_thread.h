@@ -68,8 +68,8 @@ typedef unsigned int csp_thread_return_t;
 /* FreeRTOS interface */
 #if defined(CSP_FREERTOS)
 
-#include <freertos/FreeRTOS.h>
-#include <freertos/task.h>
+#include <FreeRTOS.h>
+#include <task.h>
 
 #if INCLUDE_vTaskDelete
 #define csp_thread_exit() vTaskDelete(NULL)
