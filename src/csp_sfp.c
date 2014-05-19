@@ -19,7 +19,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 #include <stdint.h>
-#include <malloc.h>
+#include <stdlib.h>
 #include <csp/csp.h>
 #include <csp/csp_endian.h>
 #include "csp_conn.h"
@@ -94,7 +94,7 @@ int csp_sfp_send(csp_conn_t * conn, void * data, int totalsize, int mtu, uint32_
 
 int csp_sfp_recv(csp_conn_t * conn, void ** dataout, int * datasize, uint32_t timeout) {
 
-	int last_byte = 0;
+	unsigned int last_byte = 0;
 
 	csp_packet_t * packet;
 	while((packet = csp_read(conn, timeout)) != NULL) {
