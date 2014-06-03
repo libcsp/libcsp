@@ -1,7 +1,8 @@
+# Maximum Transfer Unit
 There are two things limiting the MTU of CSP.
 
-1) The pre-allocated buffer pool’s allocation size
-2) The link layer protocol.
+  1. The pre-allocated buffer pool’s allocation size
+  2. The link layer protocol.
 
 So let’s assume that you have made a protocol called KISS with a MTU of 256. The 256 is the total amount of data that you can put into the CSP-packet. However, you need to take the overhead of the link layer into account. Typically this could consist of a length field and/or a start/stop flag. So the actual frame size on the link layer would for example be 256 bytes of data + 2 bytes sync flag + 2 bytes length field.
 
