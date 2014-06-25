@@ -122,7 +122,7 @@ int csp_sfp_recv(csp_conn_t * conn, void ** dataout, int * datasize, uint32_t ti
 
 		/* Allocate memory */
 		if (*dataout == NULL)
-			*dataout = malloc(sfp_header->totalsize);
+			*dataout = csp_malloc(sfp_header->totalsize);
 		*datasize = sfp_header->totalsize;
 
 		/* Copy data to output */
