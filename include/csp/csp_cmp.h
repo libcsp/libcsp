@@ -27,6 +27,7 @@ extern "C" {
 
 #include <stdint.h>
 #include <csp/csp.h>
+#include <csp/arch/csp_clock.h>
 
 #define CSP_CMP_REQUEST 0x00
 #define CSP_CMP_REPLY   0xff
@@ -42,6 +43,7 @@ extern "C" {
 #define CSP_CMP_PEEK_MAX_LEN 200
 #define CSP_CMP_POKE 5
 #define CSP_CMP_POKE_MAX_LEN 200
+#define CSP_CMP_CLOCK 6
 
 struct csp_cmp_message {
 	uint8_t type;
@@ -82,6 +84,7 @@ struct csp_cmp_message {
 			uint8_t len;
 			char data[CSP_CMP_POKE_MAX_LEN];
 		} poke;
+		timestamp_t clock;
 	};
 } __attribute__ ((packed));
 
@@ -99,6 +102,7 @@ CMP_MESSAGE(CSP_CMP_ROUTE_SET, route_set);
 CMP_MESSAGE(CSP_CMP_IF_STATS, if_stats);
 CMP_MESSAGE(CSP_CMP_PEEK, peek);
 CMP_MESSAGE(CSP_CMP_POKE, poke);
+CMP_MESSAGE(CSP_CMP_CLOCK, clock);
 
 #ifdef __cplusplus
 } /* extern "C" */

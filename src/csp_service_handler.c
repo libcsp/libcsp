@@ -29,6 +29,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/csp_platform.h>
 
 #include <csp/arch/csp_time.h>
+#include <csp/arch/csp_clock.h>
 #include <csp/arch/csp_malloc.h>
 #include <csp/arch/csp_system.h>
 #include "csp_route.h"
@@ -118,6 +119,22 @@ static int do_cmp_poke(struct csp_cmp_message *cmp) {
 
 }
 
+static int do_cmp_clock(struct csp_cmp_message *cmp) {
+
+	cmp->clock.tv_sec = csp_ntoh32(cmp->clock.tv_sec);
+	cmp->clock.tv_nsec = csp_ntoh32(cmp->clock.tv_nsec);
+
+	if (cmp->clock.tv_sec != 0) {
+		clock_set_time(&cmp->clock);
+	}
+
+	clock_get_time(&cmp->clock);
+	cmp->clock.tv_sec = csp_hton32(cmp->clock.tv_sec);
+	cmp->clock.tv_nsec = csp_hton32(cmp->clock.tv_nsec);
+	return CSP_ERR_NONE;
+
+}
+
 /* CSP Management Protocol handler */
 int csp_cmp_handler(csp_conn_t * conn, csp_packet_t * packet) {
 
@@ -150,6 +167,10 @@ int csp_cmp_handler(csp_conn_t * conn, csp_packet_t * packet) {
 
 		case CSP_CMP_POKE:
 			ret = do_cmp_poke(cmp);
+			break;
+
+		case CSP_CMP_CLOCK:
+			ret = do_cmp_clock(cmp);
 			break;
 
 		default:
