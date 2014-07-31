@@ -30,11 +30,11 @@ extern "C" {
 typedef struct {
 	uint32_t tv_sec;
 	uint32_t tv_nsec;
-} timestamp_t;
+} csp_timestamp_t;
 
 /* User functions required */
-extern void clock_get_time(timestamp_t * time);
-extern void clock_set_time(timestamp_t * time);
+extern void clock_get_time(csp_timestamp_t * time);
+extern void clock_set_time(csp_timestamp_t * time);
 
 #ifdef __cplusplus
 } /* extern "C" */

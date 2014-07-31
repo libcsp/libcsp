@@ -84,7 +84,7 @@ struct csp_cmp_message {
 			uint8_t len;
 			char data[CSP_CMP_POKE_MAX_LEN];
 		} poke;
-		timestamp_t clock;
+		csp_timestamp_t clock;
 	};
 } __attribute__ ((packed));
 
