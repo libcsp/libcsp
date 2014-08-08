@@ -22,10 +22,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <time.h>
 
-void clock_get_time(timestamp_t * timestamp) {
+void clock_get_time(csp_timestamp_t * timestamp) {
 	timestamp->tv_sec = time(0);
 }
 
-void clock_set_time(timestamp_t * timestamp) {
+void clock_set_time(csp_timestamp_t * timestamp) {
 	return;
 }
