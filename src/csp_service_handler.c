@@ -34,6 +34,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/arch/csp_system.h>
 #include "csp_route.h"
 
+#define CSP_RPS_MTU	196
+
 static int do_cmp_ident(struct csp_cmp_message *cmp) {
 
 	/* Copy revision */
@@ -201,10 +203,41 @@ void csp_service_handler(csp_conn_t * conn, csp_packet_t * packet) {
 		break;
 
 	case CSP_PS: {
-		csp_sys_tasklist((char *)packet->data);
-		packet->length = strlen((char *)packet->data);
-		packet->data[packet->length] = '\0';
-		packet->length++;
+
+		/* Start by allocating just the right amount of memory,
+		 * The number 40 here comes from the FreeRTOS documentation
+		 * if you are porting to another system, please consider sticking
+		 * to about 40 char's per task, otherwise you must increase this number */
+		portBASE_TYPE task_count = uxTaskGetNumberOfTasks();
+		char * pslist = csp_malloc(40 * task_count);
+
+		/* Retrieve the tasklist */
+		csp_sys_tasklist(pslist);
+		int pslen = strnlen(pslist, 40 * task_count);
+
+		/* Split the potentially very long string into packets */
+		int i = 0;
+		while(i < pslen) {
+
+			/* Allocate packet buffer, if need be */
+			if (packet == NULL)
+				packet = csp_buffer_get(CSP_RPS_MTU);
+			if (packet == NULL)
+				break;
+
+			/* Calculate length, either full MTU or the remainder */
+			packet->length = (pslen - i > CSP_RPS_MTU) ? CSP_RPS_MTU : (pslen - i);
+
+			/* Send out the data */
+			memcpy(packet->data, &pslist[i], packet->length);
+			i += packet->length;
+			if (!csp_send(conn, packet, 0))
+				csp_buffer_free(packet);
+
+			/* Clear the packet reference when sent */
+			packet = NULL;
+
+		}
 		break;
 	}
 
@@ -258,7 +291,9 @@ void csp_service_handler(csp_conn_t * conn, csp_packet_t * packet) {
 		return;
 	}
 
-	if (!csp_send(conn, packet, 0))
-		csp_buffer_free(packet);
+	if (packet != NULL) {
+		if (!csp_send(conn, packet, 0))
+			csp_buffer_free(packet);
+	}
 
 }
