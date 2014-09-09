@@ -48,8 +48,20 @@ typedef enum {
 	COLOR_BLINK		= 0x30,
 	COLOR_HIDE		= 0x40,
 } csp_color_t;
-	
+
+/**
+ * Writes out a task list into a pre-allocate buffer,
+ * use csp_sys_tasklist_size to get sizeof buffer to allocate
+ * @param out pointer to output buffer
+ * @return
+ */
 int csp_sys_tasklist(char * out);
+
+/**
+ * @return Size of tasklist buffer to allocate for the csp_sys_tasklist call
+ */
+int csp_sys_tasklist_size(void);
+
 uint32_t csp_sys_memfree(void);
 int csp_sys_reboot(void);
 void csp_sys_set_color(csp_color_t color);

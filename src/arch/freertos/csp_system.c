@@ -37,6 +37,10 @@ int csp_sys_tasklist(char * out) {
 	return CSP_ERR_NONE;
 }
 
+int csp_sys_tasklist_size(void) {
+	return 40 * uxTaskGetNumberOfTasks();
+}
+
 uint32_t csp_sys_memfree(void) {
 
 	uint32_t total = 0, max = UINT32_MAX, size;

@@ -204,16 +204,13 @@ void csp_service_handler(csp_conn_t * conn, csp_packet_t * packet) {
 
 	case CSP_PS: {
 
-		/* Start by allocating just the right amount of memory,
-		 * The number 40 here comes from the FreeRTOS documentation
-		 * if you are porting to another system, please consider sticking
-		 * to about 40 char's per task, otherwise you must increase this number */
-		portBASE_TYPE task_count = uxTaskGetNumberOfTasks();
-		char * pslist = csp_malloc(40 * task_count);
+		/* Start by allocating just the right amount of memory */
+		int task_list_size = csp_sys_tasklist_size();
+		char * pslist = csp_malloc(task_list_size);
 
 		/* Retrieve the tasklist */
 		csp_sys_tasklist(pslist);
-		int pslen = strnlen(pslist, 40 * task_count);
+		int pslen = strnlen(pslist, task_list_size);
 
 		/* Split the potentially very long string into packets */
 		int i = 0;
