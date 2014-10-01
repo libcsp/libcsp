@@ -71,6 +71,7 @@ def options(ctx):
 	gr.add_option('--with-router-queue-length', metavar='SIZE', type=int, default=10, help='Set maximum number of packets to be queued at the input of the router')
 	gr.add_option('--with-padding', metavar='BYTES', type=int, default=8, help='Set padding bytes before packet length field')
 	gr.add_option('--with-loglevel', metavar='LEVEL', default='debug', help='Set minimum compile time log level. Must be one of \'error\', \'warn\', \'info\' or \'debug\'')
+	gr.add_option('--with-transaction-so', metavar='CSP_SO', type=int, default='0x0000', help='Set outgoing csp_transaction socket options, see csp.h for valid values')
 
 def configure(ctx):
 	# Validate OS
@@ -189,6 +190,7 @@ def configure(ctx):
 	ctx.define('CSP_MAX_BIND_PORT', ctx.options.with_max_bind_port)
 	ctx.define('CSP_RDP_MAX_WINDOW', ctx.options.with_rdp_max_window)
 	ctx.define('CSP_PADDING_BYTES', ctx.options.with_padding)
+	ctx.define('CSP_TRANSACTION_SO', ctx.options.with_transaction_so)
 
 	# Set logging level
 	ctx.define_cond('CSP_LOG_LEVEL_DEBUG', ctx.options.with_loglevel in ('debug'))
