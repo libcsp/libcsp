@@ -98,6 +98,7 @@ int csp_rtable_save(char * buffer, int maxlen);
  * - Mac Address
  * - Ifname
  * The string must be \0 null terminated
+ * The string must NOT be const.
  * @param buffer Pointer to string
  * @param len length of string
  */
