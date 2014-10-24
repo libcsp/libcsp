@@ -97,10 +97,11 @@ int csp_rtable_save(char * buffer, int maxlen);
  * - Netmask
  * - Mac Address
  * - Ifname
+ * The string must be \0 null terminated
  * @param buffer Pointer to string
  * @param len length of string
  */
-void csp_rtable_load(char * buffer, int len);
+void csp_rtable_load(char * buffer);
 
 /**
  * Setup routing entry to single node

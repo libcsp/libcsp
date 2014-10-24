@@ -44,16 +44,17 @@ int csp_rtable_save(char * buffer, int maxlen) {
 	return len;
 }
 
-void csp_rtable_load(char * buffer, int len) {
+void csp_rtable_load(char * buffer) {
 	char * str = strtok(buffer, ",");
 	while ((str) && (strlen(str) > 1)) {
 		int address = 0, netmask = 0, mac = 0;
 		char name[100] = {};
 		sscanf(str, "%u/%u %u %s", &address, &netmask, &mac, name);
-		printf("Parsed %u/%u %u %s\r\n", address, netmask, mac, name);
+		//printf("Parsed %u/%u %u %s\r\n", address, netmask, mac, name);
 		csp_iface_t * ifc = csp_iflist_get_by_name(name);
-		if (ifc)
+		if (ifc) {
 			csp_rtable_set(address, netmask, ifc, mac);
+		}
 		str = strtok(NULL, ",");
 	}
 }
