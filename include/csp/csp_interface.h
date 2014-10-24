@@ -52,7 +52,7 @@ void csp_new_packet(csp_packet_t *packet, csp_iface_t *interface, CSP_BASE_TYPE 
  * @param node Next hop node
  * @return MAC layer address
  */
-uint8_t csp_route_get_nexthop_mac(uint8_t node);
+uint8_t csp_route_get_mac(uint8_t node);
 
 /**
  * Register your interface in the router core using this function.

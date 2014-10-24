@@ -456,10 +456,10 @@ void csp_new_packet(csp_packet_t * packet, csp_iface_t * interface, CSP_BASE_TYP
 
 }
 
-uint8_t csp_route_get_nexthop_mac(uint8_t node) {
+uint8_t csp_route_get_mac(uint8_t node) {
 
 	csp_route_t * route = csp_rtable_lookup(node);
-	return route->nexthop_mac_addr;
+	return route->mac;
 
 }
 

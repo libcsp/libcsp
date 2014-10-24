@@ -30,9 +30,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 /**
  * Routing Entry
  */
-typedef struct __attribute__((__packed__)) {
+typedef struct csp_route_s {
 	csp_iface_t * interface;
-	uint8_t nexthop_mac_addr;
+	uint8_t mac;
+	uint8_t netmask;
+	struct csp_route_s * next;
 } csp_route_t;
 
 /**
@@ -52,10 +54,10 @@ csp_route_t * csp_rtable_lookup(uint8_t id);
  * @param node Host
  * @param mask Number of bits in netmask
  * @param ifc Interface
- * @param nexthop_mac_addr MAC address
+ * @param mac MAC address
  * @return CSP error type
  */
-int csp_rtable_set(uint8_t node, uint8_t mask, csp_iface_t *ifc, uint8_t nexthop_mac_addr);
+int csp_rtable_set(uint8_t node, uint8_t mask, csp_iface_t *ifc, uint8_t mac);
 
 /**
  * Print routing table to stdout
@@ -93,7 +95,7 @@ void csp_route_table_save(uint8_t route_table_out[CSP_ROUTE_TABLE_SIZE]);
  *
  * @param node Host
  * @param ifc Interface
- * @param nexthop_mac_addr MAC address
+ * @param mac MAC address
  * @return CSP error type
  */
 #define csp_route_set(node, ifc, mac) csp_rtable_set(node, CSP_ID_HOST_SIZE, ifc, mac)

@@ -37,7 +37,7 @@ void csp_route_table_save(uint8_t route_table_out[CSP_ROUTE_TABLE_SIZE]) {
 	memcpy(route_table_out, routes, sizeof(csp_route_t) * CSP_ROUTE_COUNT);
 }
 
-int csp_rtable_set(uint8_t node, uint8_t mask, csp_iface_t *ifc, uint8_t nexthop_mac_addr) {
+int csp_rtable_set(uint8_t node, uint8_t mask, csp_iface_t *ifc, uint8_t mac) {
 
 	/* Don't add nothing */
 	if (ifc == NULL)
@@ -56,7 +56,7 @@ int csp_rtable_set(uint8_t node, uint8_t mask, csp_iface_t *ifc, uint8_t nexthop
 	/* Set route */
 	if (node <= CSP_DEFAULT_ROUTE) {
 		routes[node].interface = ifc;
-		routes[node].nexthop_mac_addr = nexthop_mac_addr;
+		routes[node].mac = mac;
 	} else {
 		csp_log_error("Failed to set route: invalid node id %u\r\n", node);
 		return CSP_ERR_INVAL;
@@ -85,9 +85,8 @@ void csp_rtable_print(void) {
 		if (routes[i].interface != NULL)
 			printf("%4u  %-9s  %u\r\n", i,
 				routes[i].interface->name,
-				routes[i].nexthop_mac_addr == CSP_NODE_MAC ? i : routes[i].nexthop_mac_addr);
-	printf("   *  %-9s  %u\r\n", routes[CSP_DEFAULT_ROUTE].interface->name,
-	routes[CSP_DEFAULT_ROUTE].nexthop_mac_addr);
+				routes[i].mac == CSP_NODE_MAC ? i : routes[i].mac);
+	printf("   *  %-9s  %u\r\n", routes[CSP_DEFAULT_ROUTE].interface->name, routes[CSP_DEFAULT_ROUTE].mac);
 
 }
 #endif
