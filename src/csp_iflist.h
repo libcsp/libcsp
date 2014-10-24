@@ -1,7 +1,7 @@
 /*
 Cubesat Space Protocol - A small network-layer protocol designed for Cubesats
 Copyright (C) 2012 GomSpace ApS (http://www.gomspace.com)
-Copyright (C) 2012 AAUSAT3 Project (http://aausat3.space.aau.dk) 
+Copyright (C) 2012 AAUSAT3 Project (http://aausat3.space.aau.dk)
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -18,40 +18,20 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef _CSP_ROUTE_H_
-#define _CSP_ROUTE_H_
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#include <stdint.h>
-
-#include <csp/csp.h>
-
-#include <csp/arch/csp_thread.h>
-#include <csp/arch/csp_queue.h>
+#ifndef CSP_IFLIST_H_
+#define CSP_IFLIST_H_
 
 /**
- * Interface lookup by name
- * @param name NUL terminated interface name
- * @return pointer to interface or NULL
+ * Add interface to list
+ * @param ifc Pointer to interface to add
+ */
+void csp_route_add_if(csp_iface_t *ifc);
+
+/**
+ * Lookup interface by name
+ * @param name String with interface name
+ * @return Pointer to interface or NULL if not found
  */
 csp_iface_t * csp_route_get_if_by_name(char *name);
 
-#ifdef CSP_USE_PROMISC
-/**
- * Add packet to promiscuous mode packet queue
- *
- * @param packet Packet to add to the queue
- * @param queue Promiscuous mode packet queue
- *
- */
-void csp_promisc_add(csp_packet_t * packet, csp_queue_handle_t queue);
-#endif
-
-#ifdef __cplusplus
-} /* extern "C" */
-#endif
-
-#endif // _CSP_ROUTE_H_
+#endif /* CSP_IFLIST_H_ */

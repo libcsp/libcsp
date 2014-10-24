@@ -46,11 +46,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "csp_route.h"
 #include "csp_conn.h"
 #include "csp_io.h"
+#include "rtable/rtable.h"
 #include "transport/csp_transport.h"
-
-/* Static allocation of routes */
-static csp_iface_t * interfaces;
-static csp_route_t routes[CSP_ROUTE_COUNT];
 
 static csp_thread_handle_t handle_router;
 
@@ -165,7 +162,9 @@ int csp_route_table_init(void) {
 	int prio;
 
 	/* Clear routing table */
-	memset(routes, 0, sizeof(csp_route_t) * CSP_ROUTE_COUNT);
+	//memset(routes, 0, sizeof(csp_route_t) * CSP_ROUTE_COUNT);
+	//csp_rtable_init(CSP_ROUTE_COUNT);
+	// Todo: call rtable_init
 
 	/* Create router fifos for each priority */
 	for (prio = 0; prio < CSP_ROUTE_FIFOS; prio++) {
@@ -191,14 +190,6 @@ int csp_route_table_init(void) {
 
 	return CSP_ERR_NONE;
 
-}
-
-void csp_route_table_load(uint8_t route_table_in[CSP_ROUTE_TABLE_SIZE]) {
-	memcpy(routes, route_table_in, sizeof(csp_route_t) * CSP_ROUTE_COUNT);
-}
-
-void csp_route_table_save(uint8_t route_table_out[CSP_ROUTE_TABLE_SIZE]) {
-	memcpy(route_table_out, routes, sizeof(csp_route_t) * CSP_ROUTE_COUNT);
 }
 
 int csp_route_next_packet(csp_route_queue_t * input) {
@@ -397,78 +388,6 @@ int csp_route_start_task(unsigned int task_stack_size, unsigned int priority) {
 
 }
 
-csp_iface_t * csp_route_get_if_by_name(char *name) {
-	csp_iface_t *ifc = interfaces;
-	while(ifc) {
-		if (strncmp(ifc->name, name, 10) == 0)
-			break;
-		ifc = ifc->next;
-	}
-	return ifc;
-}
-
-void csp_route_add_if(csp_iface_t *ifc) {
-
-	/* Add interface to pool */
-	if (interfaces == NULL) {
-		/* This is the first interface to be added */
-		interfaces = ifc;
-		ifc->next = NULL;
-	} else {
-		/* One or more interfaces were already added */
-		csp_iface_t * i = interfaces;
-		while (i != ifc && i->next)
-			i = i->next;
-
-		/* Insert interface last if not already in pool */
-		if (i != ifc && i->next == NULL) {
-			i->next = ifc;
-			ifc->next = NULL;
-		}
-	}
-
-}
-
-int csp_route_set(uint8_t node, csp_iface_t *ifc, uint8_t nexthop_mac_addr) {
-
-	/* Don't add nothing */
-	if (ifc == NULL)
-		return CSP_ERR_INVAL;
-
-	/**
-	 * Check if the interface has been added.
-	 *
-	 * NOTE: For future implementations, interfaces should call
-	 * csp_route_add_if in its csp_if_<name>_init function, instead
-	 * of registering at first route_set, in order to make the interface
-	 * available to network based (CMP) route configuration.
-	 */
-	csp_route_add_if(ifc);
-
-	/* Set route */
-	if (node <= CSP_DEFAULT_ROUTE) {
-		routes[node].interface = ifc;
-		routes[node].nexthop_mac_addr = nexthop_mac_addr;
-	} else {
-		csp_log_error("Failed to set route: invalid node id %u\r\n", node);
-		return CSP_ERR_INVAL;
-	}
-
-	return CSP_ERR_NONE;
-
-}
-
-csp_route_t * csp_route_if(uint8_t id) {
-
-	if (routes[id].interface != NULL) {
-		return &routes[id];
-	} else if (routes[CSP_DEFAULT_ROUTE].interface != NULL) {
-		return &routes[CSP_DEFAULT_ROUTE];
-	}
-	return NULL;
-
-}
-
 int csp_route_enqueue(csp_queue_handle_t handle, void * value, uint32_t timeout, CSP_BASE_TYPE * pxTaskWoken) {
 
 	int result;
@@ -546,59 +465,6 @@ uint8_t csp_route_get_nexthop_mac(uint8_t node) {
 	return route->nexthop_mac_addr;
 
 }
-
-#ifdef CSP_DEBUG
-static int csp_bytesize(char *buf, int len, unsigned long int n) {
-
-	char postfix;
-	double size;
-
-	if (n >= 1048576) {
-		size = n/1048576.0;
-		postfix = 'M';
-	} else if (n >= 1024) {
-		size = n/1024.;
-		postfix = 'K';
-	} else {
-		size = n;
-		postfix = 'B';
-	}
-
-	return snprintf(buf, len, "%.1f%c", size, postfix);
-}
-
-void csp_route_print_interfaces(void) {
-
-	csp_iface_t * i = interfaces;
-	char txbuf[25], rxbuf[25];
-
-	while (i) {
-		csp_bytesize(txbuf, 25, i->txbytes);
-		csp_bytesize(rxbuf, 25, i->rxbytes);
-		printf("%-5s   tx: %05"PRIu32" rx: %05"PRIu32" txe: %05"PRIu32" rxe: %05"PRIu32"\r\n"
-				"		drop: %05"PRIu32" autherr: %05"PRIu32 " frame: %05"PRIu32"\r\n"
-				"		txb: %"PRIu32" (%s) rxb: %"PRIu32" (%s)\r\n\r\n",
-				i->name, i->tx, i->rx, i->tx_error, i->rx_error, i->drop,
-				i->autherr, i->frame, i->txbytes, txbuf, i->rxbytes, rxbuf);
-		i = i->next;
-	}
-
-}
-
-void csp_route_print_table(void) {
-
-	int i;
-	printf("Node  Interface  Address\r\n");
-	for (i = 0; i < CSP_DEFAULT_ROUTE; i++)
-		if (routes[i].interface != NULL)
-			printf("%4u  %-9s  %u\r\n", i,
-				routes[i].interface->name,
-				routes[i].nexthop_mac_addr == CSP_NODE_MAC ? i : routes[i].nexthop_mac_addr);
-	printf("   *  %-9s  %u\r\n", routes[CSP_DEFAULT_ROUTE].interface->name,
-	routes[CSP_DEFAULT_ROUTE].nexthop_mac_addr);
-
-}
-#endif
 
 #ifdef CSP_USE_PROMISC
 int csp_promisc_enable(unsigned int buf_size) {

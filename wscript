@@ -71,6 +71,7 @@ def options(ctx):
 	gr.add_option('--with-router-queue-length', metavar='SIZE', type=int, default=10, help='Set maximum number of packets to be queued at the input of the router')
 	gr.add_option('--with-padding', metavar='BYTES', type=int, default=8, help='Set padding bytes before packet length field')
 	gr.add_option('--with-loglevel', metavar='LEVEL', default='debug', help='Set minimum compile time log level. Must be one of \'error\', \'warn\', \'info\' or \'debug\'')
+	gr.add_option('--with-rtable', metavar='TABLE', default='static', help='Set routing table type')
 	gr.add_option('--with-transaction-so', metavar='CSP_SO', type=int, default='0x0000', help='Set outgoing csp_transaction socket options, see csp.h for valid values')
 
 def configure(ctx):
@@ -175,6 +176,8 @@ def configure(ctx):
 	if ctx.options.enable_xtea:
 		ctx.env.append_unique('FILES_CSP', 'src/crypto/csp_xtea.c')
 		ctx.env.append_unique('FILES_CSP', 'src/crypto/csp_sha1.c')
+		
+	ctx.env.append_unique('FILES_CSP', 'src/rtable/csp_rtable_' + ctx.options.with_rtable  + '.c')
 
 	ctx.define_cond('CSP_DEBUG', not ctx.options.disable_output)
 	ctx.define_cond('CSP_VERBOSE', not ctx.options.disable_verbose);

@@ -1,7 +1,7 @@
 /*
 Cubesat Space Protocol - A small network-layer protocol designed for Cubesats
 Copyright (C) 2012 GomSpace ApS (http://www.gomspace.com)
-Copyright (C) 2012 AAUSAT3 Project (http://aausat3.space.aau.dk) 
+Copyright (C) 2012 AAUSAT3 Project (http://aausat3.space.aau.dk)
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -18,40 +18,38 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef _CSP_ROUTE_H_
-#define _CSP_ROUTE_H_
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#include <stdint.h>
-
-#include <csp/csp.h>
-
-#include <csp/arch/csp_thread.h>
-#include <csp/arch/csp_queue.h>
+#ifndef RTABLE_H_
+#define RTABLE_H_
 
 /**
- * Interface lookup by name
- * @param name NUL terminated interface name
- * @return pointer to interface or NULL
+ * Routing Entry
  */
-csp_iface_t * csp_route_get_if_by_name(char *name);
+typedef struct __attribute__((__packed__)) {
+	csp_iface_t * interface;
+	uint8_t nexthop_mac_addr;
+} csp_route_t;
 
-#ifdef CSP_USE_PROMISC
 /**
- * Add packet to promiscuous mode packet queue
- *
- * @param packet Packet to add to the queue
- * @param queue Promiscuous mode packet queue
- *
+ * Initialises the storage for the routing table
  */
-void csp_promisc_add(csp_packet_t * packet, csp_queue_handle_t queue);
-#endif
+void csp_rtable_init(void);
 
-#ifdef __cplusplus
-} /* extern "C" */
-#endif
+/**
+ * Routing table lookup
+ * @param id Host address
+ * @return Routing table entry
+ */
+csp_route_t * csp_route_if(uint8_t id);
 
-#endif // _CSP_ROUTE_H_
+/**
+ * Setup routing entry
+ * @param node Host
+ * @param ifc Interface
+ * @param nexthop_mac_addr MAC address
+ * @return CSP error type
+ */
+int csp_route_set(uint8_t node, csp_iface_t *ifc, uint8_t nexthop_mac_addr);
+
+void csp_route_print_table(void);
+
+#endif /* RTABLE_H_ */

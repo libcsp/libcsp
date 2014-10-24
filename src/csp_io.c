@@ -44,6 +44,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "csp_conn.h"
 #include "csp_route.h"
 #include "transport/csp_transport.h"
+#include "rtable/rtable.h"
 
 /** Static local variables */
 unsigned char my_address;
