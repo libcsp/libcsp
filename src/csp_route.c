@@ -31,6 +31,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/csp_platform.h>
 #include <csp/csp_error.h>
 #include <csp/csp_crc32.h>
+#include <csp/csp_rtable.h>
 #include <csp/interfaces/csp_if_lo.h>
 
 #include <csp/arch/csp_thread.h>
@@ -46,7 +47,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "csp_route.h"
 #include "csp_conn.h"
 #include "csp_io.h"
-#include "rtable/rtable.h"
 #include "transport/csp_transport.h"
 
 static csp_thread_handle_t handle_router;

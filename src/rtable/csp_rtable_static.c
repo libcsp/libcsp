@@ -20,8 +20,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <stdio.h>
 #include <csp/csp.h>
-#include "rtable.h"
-#include "../csp_iflist.h"
 #include <stdio.h>
 
 /* Static routing table */
@@ -39,7 +37,7 @@ void csp_route_table_save(uint8_t route_table_out[CSP_ROUTE_TABLE_SIZE]) {
 	memcpy(route_table_out, routes, sizeof(csp_route_t) * CSP_ROUTE_COUNT);
 }
 
-int csp_route_set(uint8_t node, csp_iface_t *ifc, uint8_t nexthop_mac_addr) {
+int csp_rtable_set(uint8_t node, uint8_t mask, csp_iface_t *ifc, uint8_t nexthop_mac_addr) {
 
 	/* Don't add nothing */
 	if (ifc == NULL)
