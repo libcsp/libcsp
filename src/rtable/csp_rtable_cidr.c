@@ -18,8 +18,142 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/* Routing entries are stored in a linked list*/
-static csp_route_t * rlist = NULL;
+#include <stdio.h>
+#include <csp/csp.h>
+#include <csp/arch/csp_malloc.h>
 
+/* Local typedef for routing table */
+typedef struct __attribute__((__packed__)) csp_rtable_s {
+	uint8_t address;
+	uint8_t netmask;
+	uint8_t mac;
+	csp_iface_t * interface;
+	struct csp_rtable_s * next;
+} csp_rtable_t;
+
+/* Routing entries are stored in a linked list*/
+static csp_rtable_t * rtable = NULL;
+
+#if 0
+static void csp_rtable_to_string(csp_rtable_t * entry, char * buf, int maxlen) {
+	snprintf(buf, maxlen, "%u/%u dev %s m:%u\r\n", entry->address, entry->netmask, entry->interface->name, entry->mac);
+}
+#endif
+
+static csp_rtable_t * csp_rtable_find(uint8_t addr, uint8_t netmask, uint8_t exact) {
+
+	/* Remember best result */
+	csp_rtable_t * best_result = NULL;
+	uint8_t best_result_mask = 0;
+
+	/* Start search */
+	csp_rtable_t * i = rtable;
+	while(i) {
+
+		/* Look for exact match */
+		if (i->address == addr && i->netmask == netmask) {
+			best_result = i;
+			break;
+		}
+
+		/* Try a CIDR netmask match */
+		if (!exact) {
+			uint8_t hostbits = (1 << (CSP_ID_HOST_SIZE - i->netmask)) - 1;
+			uint8_t netbits = ~hostbits;
+			//printf("Netbits %x Hostbits %x\r\n", netbits, hostbits);
+
+			/* Match network addresses */
+			uint8_t net_a = i->address & netbits;
+			uint8_t net_b = addr & netbits;
+			//printf("A: %hhx, B: %hhx\r\n", net_a, net_b);
+
+			/* We have a match */
+			if (net_a == net_b) {
+				if (i->netmask >= best_result_mask) {
+					//printf("Match best result %u %u\r\n", best_result_mask, i->netmask);
+					best_result = i;
+					best_result_mask = i->netmask;
+				}
+			}
+
+		}
+
+		i = i->next;
+
+	}
+
+	if (best_result)
+		csp_debug(CSP_PACKET, "Using routing entry: %u/%u dev %s m:%u\r\n", best_result->address, best_result->netmask, best_result->interface->name, best_result->mac);
+	return best_result;
+
+}
+
+csp_iface_t * csp_rtable_find_iface(uint8_t id) {
+	csp_rtable_t * entry = csp_rtable_find(id, CSP_ID_HOST_SIZE, 0);
+	if (entry == NULL)
+		return NULL;
+	return entry->interface;
+}
+
+uint8_t csp_rtable_find_mac(uint8_t id) {
+	csp_rtable_t * entry = csp_rtable_find(id, CSP_ID_HOST_SIZE, 0);
+	if (entry == NULL)
+		return 255;
+	return entry->mac;
+}
+
+int csp_rtable_set(uint8_t address, uint8_t netmask, csp_iface_t *ifc, uint8_t mac) {
+
+	if (ifc == NULL)
+		return CSP_ERR_INVAL;
+
+	/* Set default route in the old way */
+	if (address == CSP_DEFAULT_ROUTE) {
+		netmask = 0;
+		address = 0;
+	}
+
+	/* Fist see if the entry exists */
+	csp_rtable_t * entry = csp_rtable_find(address, netmask, 1);
+
+	/* If not, create a new one */
+	if (!entry) {
+		entry = csp_malloc(sizeof(csp_rtable_t));
+		if (entry == NULL)
+			return CSP_ERR_NOMEM;
+
+		entry->next = NULL;
+		/* Add entry to linked-list */
+		if (rtable == NULL) {
+			/* This is the first interface to be added */
+			rtable = entry;
+		} else {
+			/* One or more interfaces were already added */
+			csp_rtable_t * i = rtable;
+			while (i->next)
+				i = i->next;
+			i->next = entry;
+		}
+	}
+
+	/* Fill in the data */
+	entry->address = address;
+	entry->netmask = netmask;
+	entry->interface = ifc;
+	entry->mac = mac;
+
+	return CSP_ERR_NONE;
+}
+
+void csp_rtable_print(void) {
+
+	csp_rtable_t * i = rtable;
+
+	while (i) {
+		printf("%u/%u dev %s m:%u\r\n", i->address, i->netmask, i->interface->name, i->mac);
+		i = i->next;
+	}
+
+}
 
 
