@@ -37,7 +37,7 @@ extern "C" {
  * @param name NUL terminated interface name
  * @return pointer to interface or NULL
  */
-csp_iface_t * csp_route_get_if_by_name(char *name);
+csp_iface_t * csp_iflist_get_by_name(char *name);
 
 #ifdef CSP_USE_PROMISC
 /**

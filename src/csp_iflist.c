@@ -24,7 +24,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 /* Interfaces are stored in a linked list*/
 static csp_iface_t * interfaces = NULL;
 
-csp_iface_t * csp_route_get_if_by_name(char *name) {
+csp_iface_t * csp_iflist_get_by_name(char *name) {
 	csp_iface_t *ifc = interfaces;
 	while(ifc) {
 		if (strncmp(ifc->name, name, 10) == 0)
@@ -34,7 +34,7 @@ csp_iface_t * csp_route_get_if_by_name(char *name) {
 	return ifc;
 }
 
-void csp_route_add_if(csp_iface_t *ifc) {
+void csp_iflist_add(csp_iface_t *ifc) {
 
 	/* Add interface to pool */
 	if (interfaces == NULL) {
@@ -57,26 +57,26 @@ void csp_route_add_if(csp_iface_t *ifc) {
 }
 
 #ifdef CSP_DEBUG
-static int csp_bytesize(char *buf, int len, unsigned long int n) {
+void csp_iflist_print(void) {
 
-	char postfix;
-	double size;
+	int csp_bytesize(char *buf, int len, unsigned long int n) {
 
-	if (n >= 1048576) {
-		size = n/1048576.0;
-		postfix = 'M';
-	} else if (n >= 1024) {
-		size = n/1024.;
-		postfix = 'K';
-	} else {
-		size = n;
-		postfix = 'B';
+		char postfix;
+		double size;
+
+		if (n >= 1048576) {
+			size = n/1048576.0;
+			postfix = 'M';
+		} else if (n >= 1024) {
+			size = n/1024.;
+			postfix = 'K';
+		} else {
+			size = n;
+			postfix = 'B';
+		}
+
+		return snprintf(buf, len, "%.1f%c", size, postfix);
 	}
-
-	return snprintf(buf, len, "%.1f%c", size, postfix);
-}
-
-void csp_route_print_interfaces(void) {
 
 	csp_iface_t * i = interfaces;
 	char txbuf[25], rxbuf[25];

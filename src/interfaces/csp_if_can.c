@@ -706,7 +706,7 @@ int csp_can_init(uint8_t mode, struct csp_can_config *conf) {
 	}
 
 	/* Regsiter interface */
-	csp_route_add_if(&csp_if_can);
+	csp_iflist_add(&csp_if_can);
 
 	return CSP_ERR_NONE;
 

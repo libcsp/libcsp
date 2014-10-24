@@ -251,6 +251,6 @@ void csp_kiss_init(csp_iface_t * csp_iface, csp_kiss_handle_t * csp_kiss_handle,
 	csp_iface->name = name;
 
 	/* Regsiter interface */
-	csp_route_add_if(csp_iface);
+	csp_iflist_add(csp_iface);
 
 }

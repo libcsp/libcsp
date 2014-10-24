@@ -64,7 +64,7 @@ static int do_cmp_ident(struct csp_cmp_message *cmp) {
 
 static int do_cmp_route_set(struct csp_cmp_message *cmp) {
 
-	csp_iface_t *ifc = csp_route_get_if_by_name(cmp->route_set.interface);
+	csp_iface_t *ifc = csp_iflist_get_by_name(cmp->route_set.interface);
 	if (ifc == NULL)
 		return CSP_ERR_INVAL;
 
@@ -77,7 +77,7 @@ static int do_cmp_route_set(struct csp_cmp_message *cmp) {
 
 static int do_cmp_if_stats(struct csp_cmp_message *cmp) {
 
-	csp_iface_t *ifc = csp_route_get_if_by_name(cmp->if_stats.interface);
+	csp_iface_t *ifc = csp_iflist_get_by_name(cmp->if_stats.interface);
 	if (ifc == NULL)
 		return CSP_ERR_INVAL;
 

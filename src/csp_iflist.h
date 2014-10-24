@@ -25,13 +25,18 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  * Add interface to list
  * @param ifc Pointer to interface to add
  */
-void csp_route_add_if(csp_iface_t *ifc);
+void csp_iflist_add(csp_iface_t *ifc);
 
 /**
  * Lookup interface by name
  * @param name String with interface name
  * @return Pointer to interface or NULL if not found
  */
-csp_iface_t * csp_route_get_if_by_name(char *name);
+csp_iface_t * csp_iflist_get_by_name(char *name);
+
+/**
+ * Print list of interfaces to stdout
+ */
+void csp_iflist_print(void);
 
 #endif /* CSP_IFLIST_H_ */

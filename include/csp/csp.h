@@ -654,7 +654,7 @@ int csp_hmac_set_key(char *key, uint32_t keylen);
 /**
  * Print interface statistics
  */
-void csp_route_print_interfaces(void);
+void csp_iflist_print(void);
 
 /**
  * Print routing table

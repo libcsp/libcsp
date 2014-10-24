@@ -53,7 +53,7 @@ int csp_route_set(uint8_t node, csp_iface_t *ifc, uint8_t nexthop_mac_addr) {
 	 * of registering at first route_set, in order to make the interface
 	 * available to network based (CMP) route configuration.
 	 */
-	csp_route_add_if(ifc);
+	csp_iflist_add(ifc);
 
 	/* Set route */
 	if (node <= CSP_DEFAULT_ROUTE) {
