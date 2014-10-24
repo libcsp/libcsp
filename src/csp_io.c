@@ -88,7 +88,7 @@ int csp_init(unsigned char address) {
 	if (ret != CSP_ERR_NONE)
 		return ret;
 
-	ret = csp_route_table_init();
+	ret = csp_route_init();
 	if (ret != CSP_ERR_NONE)
 		return ret;
 
@@ -206,7 +206,7 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, uint32_t timeout) {
 		goto err;
 	}
 
-	csp_route_t * ifout = csp_route_if(idout.dst);
+	csp_route_t * ifout = csp_rtable_lookup(idout.dst);
 
 	if ((ifout == NULL) || (ifout->interface == NULL) || (ifout->interface->nexthop == NULL)) {
 		csp_log_error("No route to host: %#08x\r\n", idout.ext);
@@ -318,7 +318,7 @@ int csp_send(csp_conn_t * conn, csp_packet_t * packet, uint32_t timeout) {
 #ifdef CSP_USE_RDP
 	if (conn->idout.flags & CSP_FRDP) {
 		if (csp_rdp_send(conn, packet, timeout) != CSP_ERR_NONE) {
-			csp_route_t * ifout = csp_route_if(conn->idout.dst);
+			csp_route_t * ifout = csp_rtable_lookup(conn->idout.dst);
 			if (ifout != NULL && ifout->interface != NULL)
 				ifout->interface->tx_error++;
 			csp_log_warn("RDP send failed\r\n!");

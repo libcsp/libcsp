@@ -463,7 +463,7 @@ int csp_route_set(uint8_t node, csp_iface_t *ifc, uint8_t nexthop_mac_addr);
  * the table must be reset after initialization.
  * @return CSP_ERR
  */
-int csp_route_table_init(void);
+int csp_route_init(void);
 
 /**
  * Load the routing table from a buffer
@@ -659,7 +659,7 @@ void csp_iflist_print(void);
 /**
  * Print routing table
  */
-void csp_route_print_table(void);
+void csp_rtable_print(void);
 
 /**
  * Print connection table

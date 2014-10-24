@@ -157,14 +157,11 @@ static int csp_route_security_check(uint32_t security_opts, csp_iface_t * interf
 
 }
 
-int csp_route_table_init(void) {
+int csp_route_init(void) {
 
 	int prio;
 
-	/* Clear routing table */
-	//memset(routes, 0, sizeof(csp_route_t) * CSP_ROUTE_COUNT);
-	//csp_rtable_init(CSP_ROUTE_COUNT);
-	// Todo: call rtable_init
+	csp_rtable_init();
 
 	/* Create router fifos for each priority */
 	for (prio = 0; prio < CSP_ROUTE_FIFOS; prio++) {
@@ -266,7 +263,7 @@ CSP_DEFINE_TASK(csp_task_router) {
 		if ((packet->id.dst != my_address) && (packet->id.dst != CSP_BROADCAST_ADDR)) {
 
 			/* Find the destination interface */
-			dst = csp_route_if(packet->id.dst);
+			dst = csp_rtable_lookup(packet->id.dst);
 
 			/* If the message resolves to the input interface, don't loop it back out */
 			if ((dst == NULL) || ((dst->interface == input.interface) && (input.interface->split_horizon_off == 0))) {
@@ -461,7 +458,7 @@ void csp_new_packet(csp_packet_t * packet, csp_iface_t * interface, CSP_BASE_TYP
 
 uint8_t csp_route_get_nexthop_mac(uint8_t node) {
 
-	csp_route_t * route = csp_route_if(node);
+	csp_route_t * route = csp_rtable_lookup(node);
 	return route->nexthop_mac_addr;
 
 }

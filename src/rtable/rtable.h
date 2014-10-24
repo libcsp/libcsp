@@ -39,7 +39,7 @@ void csp_rtable_init(void);
  * @param id Host address
  * @return Routing table entry
  */
-csp_route_t * csp_route_if(uint8_t id);
+csp_route_t * csp_rtable_lookup(uint8_t id);
 
 /**
  * Setup routing entry
@@ -50,6 +50,9 @@ csp_route_t * csp_route_if(uint8_t id);
  */
 int csp_route_set(uint8_t node, csp_iface_t *ifc, uint8_t nexthop_mac_addr);
 
-void csp_route_print_table(void);
+/**
+ * Print routing table to stdout
+ */
+void csp_rtable_print(void);
 
 #endif /* RTABLE_H_ */

@@ -68,7 +68,7 @@ int csp_route_set(uint8_t node, csp_iface_t *ifc, uint8_t nexthop_mac_addr) {
 
 }
 
-csp_route_t * csp_route_if(uint8_t id) {
+csp_route_t * csp_rtable_lookup(uint8_t id) {
 
 	if (routes[id].interface != NULL) {
 		return &routes[id];
@@ -80,7 +80,7 @@ csp_route_t * csp_route_if(uint8_t id) {
 }
 
 #ifdef CSP_DEBUG
-void csp_route_print_table(void) {
+void csp_rtable_print(void) {
 	int i;
 	printf("Node  Interface  Address\r\n");
 	for (i = 0; i < CSP_DEFAULT_ROUTE; i++)
