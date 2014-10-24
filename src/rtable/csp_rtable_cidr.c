@@ -19,6 +19,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 #include <stdio.h>
+#include <string.h>
 #include <csp/csp.h>
 #include <csp/arch/csp_malloc.h>
 
@@ -34,11 +35,28 @@ typedef struct __attribute__((__packed__)) csp_rtable_s {
 /* Routing entries are stored in a linked list*/
 static csp_rtable_t * rtable = NULL;
 
-#if 0
-static void csp_rtable_to_string(csp_rtable_t * entry, char * buf, int maxlen) {
-	snprintf(buf, maxlen, "%u/%u dev %s m:%u\r\n", entry->address, entry->netmask, entry->interface->name, entry->mac);
+int csp_rtable_save(char * buffer, int maxlen) {
+	int len = 0;
+	for (csp_rtable_t * i = rtable; (i); i = i->next) {
+		printf("%p\r\n", i);
+		len += snprintf(buffer + len, maxlen - len, "%u/%u %u %s, ", i->address, i->netmask, i->mac, i->interface->name);
+	}
+	return len;
 }
-#endif
+
+void csp_rtable_load(char * buffer, int len) {
+	char * str = strtok(buffer, ",");
+	while ((str) && (strlen(str) > 1)) {
+		int address = 0, netmask = 0, mac = 0;
+		char name[100] = {};
+		sscanf(str, "%u/%u %u %s", &address, &netmask, &mac, name);
+		printf("Parsed %u/%u %u %s\r\n", address, netmask, mac, name);
+		csp_iface_t * ifc = csp_iflist_get_by_name(name);
+		if (ifc)
+			csp_rtable_set(address, netmask, ifc, mac);
+		str = strtok(NULL, ",");
+	}
+}
 
 static csp_rtable_t * csp_rtable_find(uint8_t addr, uint8_t netmask, uint8_t exact) {
 
@@ -147,12 +165,8 @@ int csp_rtable_set(uint8_t address, uint8_t netmask, csp_iface_t *ifc, uint8_t m
 
 void csp_rtable_print(void) {
 
-	csp_rtable_t * i = rtable;
-
-	while (i) {
-		printf("%u/%u dev %s m:%u\r\n", i->address, i->netmask, i->interface->name, i->mac);
-		i = i->next;
-	}
+	for (csp_rtable_t * i = rtable; (i); i = i->next)
+		printf("%u/%u %u %s\r\n", i->address, i->netmask, i->mac, i->interface->name);
 
 }
 

@@ -82,6 +82,27 @@ void csp_route_table_load(uint8_t route_table_in[CSP_ROUTE_TABLE_SIZE]);
 void csp_route_table_save(uint8_t route_table_out[CSP_ROUTE_TABLE_SIZE]);
 
 /**
+ * Save routing table as a string to a buffer, which can be parsed
+ * again by csp_rtable_load.
+ * @param buffer pointer to buffer
+ * @param maxlen length of buffer
+ * @return length of saved string
+ */
+int csp_rtable_save(char * buffer, int maxlen);
+
+/**
+ * Load routing table from a string in the format
+ * %u/%u %u %s
+ * - Address
+ * - Netmask
+ * - Mac Address
+ * - Ifname
+ * @param buffer Pointer to string
+ * @param len length of string
+ */
+void csp_rtable_load(char * buffer, int len);
+
+/**
  * Setup routing entry to single node
  * (deprecated, please use csp_rtable_set)
  *
