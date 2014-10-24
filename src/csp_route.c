@@ -161,8 +161,6 @@ int csp_route_init(void) {
 
 	int prio;
 
-	csp_rtable_init();
-
 	/* Create router fifos for each priority */
 	for (prio = 0; prio < CSP_ROUTE_FIFOS; prio++) {
 		if (router_input_fifo[prio] == NULL) {

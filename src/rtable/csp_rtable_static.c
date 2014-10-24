@@ -29,7 +29,7 @@ typedef struct __attribute__((__packed__)) csp_rtable_s {
 } csp_rtable_t;
 
 /* Static storage context for routing table */
-static csp_rtable_t routes[CSP_ROUTE_COUNT];
+static csp_rtable_t routes[CSP_ROUTE_COUNT] = {};
 
 /**
  * Find entry in static routing table
@@ -63,10 +63,6 @@ uint8_t csp_rtable_find_mac(uint8_t id) {
 	if (route == NULL)
 		return 255;
 	return route->mac;
-}
-
-void csp_rtable_init(void) {
-	memset(routes, 0, sizeof(routes[0]) * CSP_ROUTE_COUNT);
 }
 
 void csp_route_table_load(uint8_t route_table_in[CSP_ROUTE_TABLE_SIZE]) {

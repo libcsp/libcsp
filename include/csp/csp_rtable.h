@@ -28,11 +28,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #define CSP_ROUTE_TABLE_SIZE		5 * CSP_ROUTE_COUNT
 
 /**
- * Initialises the storage for the routing table
- */
-void csp_rtable_init(void);
-
-/**
  * Find outgoing interface in routing table
  * @param id Destination node
  * @return pointer to outgoing interface or NULL
