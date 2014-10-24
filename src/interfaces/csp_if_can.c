@@ -393,7 +393,7 @@ int csp_tx_callback(can_id_t canid, can_error_t error, CSP_BASE_TYPE *task_woken
 		bytes = (buf->packet->length - buf->tx_count >= 8) ? 8 : buf->packet->length - buf->tx_count;
 
 		/* Insert destination node mac address into the CFP destination field */
-		dest = csp_route_get_mac(buf->packet->id.dst);
+		dest = csp_rtable_find_mac(buf->packet->id.dst);
 		if (dest == CSP_NODE_MAC)
 			dest = buf->packet->id.dst;
 
@@ -598,7 +598,7 @@ int csp_can_tx(csp_iface_t * interface, csp_packet_t *packet, uint32_t timeout) 
 	overhead = sizeof(csp_id_t) + sizeof(uint16_t);
 
 	/* Insert destination node mac address into the CFP destination field */
-	dest = csp_route_get_mac(packet->id.dst);
+	dest = csp_rtable_find_mac(packet->id.dst);
 	if (dest == CSP_NODE_MAC)
 		dest = packet->id.dst;
 

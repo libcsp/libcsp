@@ -28,26 +28,23 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #define CSP_ROUTE_TABLE_SIZE		5 * CSP_ROUTE_COUNT
 
 /**
- * Routing Entry
- */
-typedef struct csp_route_s {
-	csp_iface_t * interface;
-	uint8_t mac;
-	uint8_t netmask;
-	struct csp_route_s * next;
-} csp_route_t;
-
-/**
  * Initialises the storage for the routing table
  */
 void csp_rtable_init(void);
 
 /**
- * Routing table lookup
- * @param id Host address
- * @return Routing table entry
+ * Find outgoing interface in routing table
+ * @param id Destination node
+ * @return pointer to outgoing interface or NULL
  */
-csp_route_t * csp_rtable_lookup(uint8_t id);
+csp_iface_t * csp_rtable_find_iface(uint8_t id);
+
+/**
+ * Find MAC address associated with node
+ * @param id Destination node
+ * @return MAC address
+ */
+uint8_t csp_rtable_find_mac(uint8_t id);
 
 /**
  * Setup routing entry

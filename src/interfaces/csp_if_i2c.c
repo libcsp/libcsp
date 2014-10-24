@@ -36,10 +36,10 @@ int csp_i2c_tx(csp_iface_t * interface, csp_packet_t * packet, uint32_t timeout)
 	i2c_frame_t * frame = (i2c_frame_t *) packet;
 
 	/* Insert destination node into the i2c destination field */
-	if (csp_route_get_mac(packet->id.dst) == CSP_NODE_MAC) {
+	if (csp_rtable_find_mac(packet->id.dst) == CSP_NODE_MAC) {
 		frame->dest = packet->id.dst;
 	} else {
-		frame->dest = csp_route_get_mac(packet->id.dst);
+		frame->dest = csp_rtable_find_mac(packet->id.dst);
 	}
 
 	/* Save the outgoing id in the buffer */

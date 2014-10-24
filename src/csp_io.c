@@ -206,15 +206,15 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, uint32_t timeout) {
 		goto err;
 	}
 
-	csp_route_t * ifout = csp_rtable_lookup(idout.dst);
+	csp_iface_t * ifout = csp_rtable_find_iface(idout.dst);
 
-	if ((ifout == NULL) || (ifout->interface == NULL) || (ifout->interface->nexthop == NULL)) {
+	if ((ifout == NULL) || (ifout->nexthop == NULL)) {
 		csp_log_error("No route to host: %#08x\r\n", idout.ext);
 		goto err;
 	}
 
 	csp_log_packet("Output: Src %u, Dst %u, Dport %u, Sport %u, Pri %u, Flags 0x%02X, Size %u VIA: %s\r\n",
-		idout.src, idout.dst, idout.dport, idout.sport, idout.pri, idout.flags, packet->length, ifout->interface->name);
+		idout.src, idout.dst, idout.dport, idout.sport, idout.pri, idout.flags, packet->length, ifout->name);
 
 #ifdef CSP_USE_PROMISC
 	/* Loopback traffic is added to promisc queue by the router */
@@ -287,20 +287,20 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, uint32_t timeout) {
 
 	/* Store length before passing to interface */
 	uint16_t bytes = packet->length;
-	uint16_t mtu = ifout->interface->mtu;
+	uint16_t mtu = ifout->mtu;
 
 	if (mtu > 0 && bytes > mtu)
 		goto tx_err;
 
-	if ((*ifout->interface->nexthop)(ifout->interface, packet, timeout) != CSP_ERR_NONE)
+	if ((*ifout->nexthop)(ifout, packet, timeout) != CSP_ERR_NONE)
 		goto tx_err;
 
-	ifout->interface->tx++;
-	ifout->interface->txbytes += bytes;
+	ifout->tx++;
+	ifout->txbytes += bytes;
 	return CSP_ERR_NONE;
 
 tx_err:
-	ifout->interface->tx_error++;
+	ifout->tx_error++;
 err:
 	return CSP_ERR_TX;
 
@@ -318,9 +318,9 @@ int csp_send(csp_conn_t * conn, csp_packet_t * packet, uint32_t timeout) {
 #ifdef CSP_USE_RDP
 	if (conn->idout.flags & CSP_FRDP) {
 		if (csp_rdp_send(conn, packet, timeout) != CSP_ERR_NONE) {
-			csp_route_t * ifout = csp_rtable_lookup(conn->idout.dst);
-			if (ifout != NULL && ifout->interface != NULL)
-				ifout->interface->tx_error++;
+			csp_iface_t * ifout = csp_rtable_find_iface(conn->idout.dst);
+			if (ifout != NULL)
+				ifout->tx_error++;
 			csp_log_warn("RDP send failed\r\n!");
 			return 0;
 		}

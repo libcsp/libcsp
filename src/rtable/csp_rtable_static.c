@@ -22,19 +22,59 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/csp.h>
 #include <stdio.h>
 
-/* Static routing table */
-static csp_route_t routes[CSP_ROUTE_COUNT];
+/* Local typedef for routing table */
+typedef struct __attribute__((__packed__)) csp_rtable_s {
+	csp_iface_t * interface;
+	uint8_t mac;
+} csp_rtable_t;
+
+/* Static storage context for routing table */
+static csp_rtable_t routes[CSP_ROUTE_COUNT];
+
+/**
+ * Find entry in static routing table
+ * This is done by table lookup with fallback to the default route
+ * The reason why the csp_rtable_t struct is not returned directly
+ * is that we wish to hide the storage format, mainly because of
+ * the alternative routing table storage (cidr).
+ * @param id Node
+ * @return pointer to found routing entry
+ */
+static csp_rtable_t * csp_rtable_find(uint8_t id) {
+
+	if (routes[id].interface != NULL) {
+		return &routes[id];
+	} else if (routes[CSP_DEFAULT_ROUTE].interface != NULL) {
+		return &routes[CSP_DEFAULT_ROUTE];
+	}
+	return NULL;
+
+}
+
+csp_iface_t * csp_rtable_find_iface(uint8_t id) {
+	csp_rtable_t * route = csp_rtable_find(id);
+	if (route == NULL)
+		return NULL;
+	return route->interface;
+}
+
+uint8_t csp_rtable_find_mac(uint8_t id) {
+	csp_rtable_t * route = csp_rtable_find(id);
+	if (route == NULL)
+		return 255;
+	return route->mac;
+}
 
 void csp_rtable_init(void) {
-	memset(routes, 0, sizeof(csp_route_t) * CSP_ROUTE_COUNT);
+	memset(routes, 0, sizeof(routes[0]) * CSP_ROUTE_COUNT);
 }
 
 void csp_route_table_load(uint8_t route_table_in[CSP_ROUTE_TABLE_SIZE]) {
-	memcpy(routes, route_table_in, sizeof(csp_route_t) * CSP_ROUTE_COUNT);
+	memcpy(routes, route_table_in, sizeof(routes[0]) * CSP_ROUTE_COUNT);
 }
 
 void csp_route_table_save(uint8_t route_table_out[CSP_ROUTE_TABLE_SIZE]) {
-	memcpy(route_table_out, routes, sizeof(csp_route_t) * CSP_ROUTE_COUNT);
+	memcpy(route_table_out, routes, sizeof(routes[0]) * CSP_ROUTE_COUNT);
 }
 
 int csp_rtable_set(uint8_t node, uint8_t mask, csp_iface_t *ifc, uint8_t mac) {
@@ -63,17 +103,6 @@ int csp_rtable_set(uint8_t node, uint8_t mask, csp_iface_t *ifc, uint8_t mac) {
 	}
 
 	return CSP_ERR_NONE;
-
-}
-
-csp_route_t * csp_rtable_lookup(uint8_t id) {
-
-	if (routes[id].interface != NULL) {
-		return &routes[id];
-	} else if (routes[CSP_DEFAULT_ROUTE].interface != NULL) {
-		return &routes[CSP_DEFAULT_ROUTE];
-	}
-	return NULL;
 
 }
 

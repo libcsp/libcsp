@@ -227,7 +227,6 @@ CSP_DEFINE_TASK(csp_task_router) {
 	csp_packet_t * packet;
 	csp_conn_t * conn;
 	csp_socket_t * socket;
-	csp_route_t * dst;
 
 	for (prio = 0; prio < CSP_ROUTE_FIFOS; prio++) {
 		if (!router_input_fifo[prio]) {
@@ -263,10 +262,10 @@ CSP_DEFINE_TASK(csp_task_router) {
 		if ((packet->id.dst != my_address) && (packet->id.dst != CSP_BROADCAST_ADDR)) {
 
 			/* Find the destination interface */
-			dst = csp_rtable_lookup(packet->id.dst);
+			csp_iface_t * dstif = csp_rtable_find_iface(packet->id.dst);
 
 			/* If the message resolves to the input interface, don't loop it back out */
-			if ((dst == NULL) || ((dst->interface == input.interface) && (input.interface->split_horizon_off == 0))) {
+			if ((dstif == NULL) || ((dstif == input.interface) && (input.interface->split_horizon_off == 0))) {
 				csp_buffer_free(packet);
 				continue;
 			}
@@ -453,13 +452,6 @@ void csp_new_packet(csp_packet_t * packet, csp_iface_t * interface, CSP_BASE_TYP
 		interface->rx++;
 		interface->rxbytes += packet->length;
 	}
-
-}
-
-uint8_t csp_route_get_mac(uint8_t node) {
-
-	csp_route_t * route = csp_rtable_lookup(node);
-	return route->mac;
 
 }
 
