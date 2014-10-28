@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <string.h>
 #include <csp/csp.h>
 #include <csp/arch/csp_malloc.h>
+#include <csp/interfaces/csp_if_lo.h>
 
 /* Local typedef for routing table */
 typedef struct __attribute__((__packed__)) csp_rtable_s {
@@ -90,6 +91,54 @@ void csp_rtable_clear(void) {
 		csp_free(freeme);
 	}
 	rtable = NULL;
+
+	/* Set loopback up again */
+	csp_rtable_set(my_address, CSP_ID_HOST_SIZE, &csp_if_lo, CSP_NODE_MAC);
+
+}
+
+static int csp_rtable_parse(char * buffer, int dry_run) {
+
+	int valid_entries = 0;
+
+	/* Copy string before running strtok */
+	char * str = alloca(strlen(buffer) + 1);
+	memcpy(str, buffer, strlen(buffer) + 1);
+
+	/* Get first token */
+	str = strtok(str, ",");
+
+	while ((str) && (strlen(str) > 1)) {
+		int address = 0, netmask = 0, mac = 255;
+		char name[100] = {};
+		if (sscanf(str, "%u/%u %s %u", &address, &netmask, name, &mac) != 4) {
+			if (sscanf(str, "%u/%u %s", &address, &netmask, name) != 3) {
+				csp_log_error("Parse error %s\r\n", str);
+				return -1;
+			}
+		}
+		printf("Parsed %u/%u %u %s\r\n", address, netmask, mac, name);
+		csp_iface_t * ifc = csp_iflist_get_by_name(name);
+		if (ifc) {
+			if (dry_run == 0)
+				csp_rtable_set(address, netmask, ifc, mac);
+		} else {
+			csp_log_error("Unknown interface %s\r\n", name);
+			return -1;
+		}
+		valid_entries++;
+		str = strtok(NULL, ",");
+	}
+
+	return valid_entries;
+}
+
+void csp_rtable_load(char * buffer) {
+	csp_rtable_parse(buffer, 0);
+}
+
+int csp_rtable_check(char * buffer) {
+	return csp_rtable_parse(buffer, 1);
 }
 
 int csp_rtable_save(char * buffer, int maxlen) {
@@ -99,21 +148,6 @@ int csp_rtable_save(char * buffer, int maxlen) {
 		len += snprintf(buffer + len, maxlen - len, "%u/%u %u %s, ", i->address, i->netmask, i->mac, i->interface->name);
 	}
 	return len;
-}
-
-void csp_rtable_load(char * buffer) {
-	char * str = strtok(buffer, ",");
-	while ((str) && (strlen(str) > 1)) {
-		int address = 0, netmask = 0, mac = 0;
-		char name[100] = {};
-		sscanf(str, "%u/%u %u %s", &address, &netmask, &mac, name);
-		//printf("Parsed %u/%u %u %s\r\n", address, netmask, mac, name);
-		csp_iface_t * ifc = csp_iflist_get_by_name(name);
-		if (ifc) {
-			csp_rtable_set(address, netmask, ifc, mac);
-		}
-		str = strtok(NULL, ",");
-	}
 }
 
 csp_iface_t * csp_rtable_find_iface(uint8_t id) {
@@ -179,9 +213,13 @@ int csp_rtable_set(uint8_t _address, uint8_t _netmask, csp_iface_t *ifc, uint8_t
 
 void csp_rtable_print(void) {
 
-	for (csp_rtable_t * i = rtable; (i); i = i->next)
-		printf("%u/%u %u %s\r\n", i->address, i->netmask, i->mac, i->interface->name);
+	for (csp_rtable_t * i = rtable; (i); i = i->next) {
+		if (i->mac == 255) {
+			printf("%u/%u %s\r\n", i->address, i->netmask, i->interface->name);
+		} else {
+			printf("%u/%u %s %u\r\n", i->address, i->netmask, i->interface->name, i->mac);
+		}
+	}
 
 }
-
 

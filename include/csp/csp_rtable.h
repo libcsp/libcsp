@@ -100,9 +100,15 @@ int csp_rtable_save(char * buffer, int maxlen);
  * The string must be \0 null terminated
  * The string must NOT be const.
  * @param buffer Pointer to string
- * @param len length of string
  */
 void csp_rtable_load(char * buffer);
+
+/**
+ * Check string for valid routing table
+ * @param buffer Pointer to string
+ * @return number of valid entries found
+ */
+int csp_rtable_check(char * buffer);
 
 /**
  * Setup routing entry to single node
