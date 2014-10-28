@@ -112,6 +112,12 @@ void csp_rtable_load(char * buffer);
 int csp_rtable_check(char * buffer);
 
 /**
+ * Clear routing table:
+ * This could be done before load to ensure an entire clean table is loaded.
+ */
+void csp_rtable_clear(void);
+
+/**
  * Setup routing entry to single node
  * (deprecated, please use csp_rtable_set)
  *
@@ -123,9 +129,15 @@ int csp_rtable_check(char * buffer);
 #define csp_route_set(node, ifc, mac) csp_rtable_set(node, CSP_ID_HOST_SIZE, ifc, mac)
 
 /**
- * Clear routing table:
- * This could be done before load to ensure an entire clean table is loaded.
+ * Print routing table
+ * (deprecated, please use csp_rtable_print)
  */
-void csp_rtable_clear(void);
+#define csp_route_print_table() csp_rtable_print();
+
+/**
+ * Print list of interfaces
+ * (deprecated, please use csp_iflist_print)
+ */
+#define csp_route_print_interfaces() csp_iflist_print();
 
 #endif /* CSP_RTABLE_H_ */
