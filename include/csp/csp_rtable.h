@@ -92,11 +92,12 @@ int csp_rtable_save(char * buffer, int maxlen);
 
 /**
  * Load routing table from a string in the format
- * %u/%u %u %s
+ * %u/%u %s %u
  * - Address
  * - Netmask
- * - Mac Address
  * - Ifname
+ * - Mac Address (this field is optional)
+ * An example routing string is "0/0 I2C, 8/2 KISS"
  * The string must be \0 null terminated
  * The string must NOT be const.
  * @param buffer Pointer to string
