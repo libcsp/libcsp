@@ -115,4 +115,10 @@ void csp_rtable_load(char * buffer);
  */
 #define csp_route_set(node, ifc, mac) csp_rtable_set(node, CSP_ID_HOST_SIZE, ifc, mac)
 
+/**
+ * Clear routing table:
+ * This could be done before load to ensure an entire clean table is loaded.
+ */
+void csp_rtable_clear(void);
+
 #endif /* CSP_RTABLE_H_ */
