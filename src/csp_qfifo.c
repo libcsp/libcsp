@@ -39,7 +39,7 @@ int csp_qfifo_init(void) {
 	/* Create router fifos for each priority */
 	for (prio = 0; prio < CSP_ROUTE_FIFOS; prio++) {
 		if (qfifo[prio] == NULL) {
-			qfifo[prio] = csp_queue_create(CSP_FIFO_INPUT, sizeof(csp_fifo_qos_t));
+			qfifo[prio] = csp_queue_create(CSP_FIFO_INPUT, sizeof(csp_qfifo_t));
 			if (!qfifo[prio])
 				return CSP_ERR_NOMEM;
 		}
@@ -56,7 +56,7 @@ int csp_qfifo_init(void) {
 
 }
 
-int csp_qfifo_read(csp_fifo_qos_t * input) {
+int csp_qfifo_read(csp_qfifo_t * input) {
 
 #ifdef CSP_USE_QOS
 	int prio, found, event;
@@ -103,7 +103,7 @@ void csp_qfifo_write(csp_packet_t * packet, csp_iface_t * interface, CSP_BASE_TY
 		return;
 	}
 
-	csp_fifo_qos_t queue_element;
+	csp_qfifo_t queue_element;
 	queue_element.interface = interface;
 	queue_element.packet = packet;
 

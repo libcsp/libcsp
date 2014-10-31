@@ -123,7 +123,7 @@ static int csp_route_security_check(uint32_t security_opts, csp_iface_t * interf
 
 CSP_DEFINE_TASK(csp_task_router) {
 
-	csp_fifo_qos_t input;
+	csp_qfifo_t input;
 	csp_packet_t * packet;
 	csp_conn_t * conn;
 	csp_socket_t * socket;
@@ -164,7 +164,7 @@ CSP_DEFINE_TASK(csp_task_router) {
 			}
 
 			/* Otherwise, actually send the message */
-			if (csp_send_direct(packet->id, packet, 0) != CSP_ERR_NONE) {
+			if (csp_send_direct(packet->id, packet, dstif, 0) != CSP_ERR_NONE) {
 				csp_log_warn("Router failed to send\r\n");
 				csp_buffer_free(packet);
 			}

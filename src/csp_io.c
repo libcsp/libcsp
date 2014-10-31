@@ -210,14 +210,12 @@ csp_packet_t * csp_read(csp_conn_t * conn, uint32_t timeout) {
 
 }
 
-int csp_send_direct(csp_id_t idout, csp_packet_t * packet, uint32_t timeout) {
+int csp_send_direct(csp_id_t idout, csp_packet_t * packet, csp_iface_t * ifout, uint32_t timeout) {
 
 	if (packet == NULL) {
 		csp_log_error("csp_send_direct called with NULL packet\r\n");
 		goto err;
 	}
-
-	csp_iface_t * ifout = csp_rtable_find_iface(idout.dst);
 
 	if ((ifout == NULL) || (ifout->nexthop == NULL)) {
 		csp_log_error("No route to host: %#08x\r\n", idout.ext);
@@ -338,7 +336,8 @@ int csp_send(csp_conn_t * conn, csp_packet_t * packet, uint32_t timeout) {
 	}
 #endif
 
-	ret = csp_send_direct(conn->idout, packet, timeout);
+	csp_iface_t * ifout = csp_rtable_find_iface(conn->idout.dst);
+	ret = csp_send_direct(conn->idout, packet, ifout, timeout);
 
 	return (ret == CSP_ERR_NONE) ? 1 : 0;
 
@@ -455,7 +454,8 @@ int csp_sendto(uint8_t prio, uint8_t dest, uint8_t dport, uint8_t src_port, uint
 	packet->id.sport = src_port;
 	packet->id.pri = prio;
 
-	if (csp_send_direct(packet->id, packet, timeout) != CSP_ERR_NONE)
+	csp_iface_t * ifout = csp_rtable_find_iface(dest);
+	if (csp_send_direct(packet->id, packet, ifout, timeout) != CSP_ERR_NONE)
 		return CSP_ERR_NOTSUP;
 	
 	return CSP_ERR_NONE;

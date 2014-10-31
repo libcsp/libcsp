@@ -261,6 +261,16 @@ int csp_bind(csp_socket_t *socket, uint8_t port);
 int csp_route_start_task(unsigned int task_stack_size, unsigned int priority);
 
 /**
+ * Start the bridge task.
+ * @param task_stack_size The number of portStackType to allocate. This only affects FreeRTOS systems.
+ * @param priority The OS task priority of the router
+ * @param _if_a pointer to first side
+ * @param _if_b pointer to second side
+ * @return CSP_ERR type
+ */
+int csp_bridge_start(unsigned int task_stack_size, unsigned int task_priority, csp_iface_t * _if_a, csp_iface_t * _if_b);
+
+/**
  * Enable promiscuous mode packet queue
  * This function is used to enable promiscuous mode for the router.
  * If enabled, a copy of all incoming packets are placed in a queue

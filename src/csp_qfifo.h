@@ -30,13 +30,13 @@ int csp_qfifo_init(void);
 typedef struct {
 	csp_iface_t * interface;
 	csp_packet_t * packet;
-} csp_fifo_qos_t;
+} csp_qfifo_t;
 
 /**
  * Read next packet from router input queue
  * @param input pointer to router queue item element
  * @return CSP_ERR type
  */
-int csp_qfifo_read(csp_fifo_qos_t * input);
+int csp_qfifo_read(csp_qfifo_t * input);
 
 #endif /* CSP_QFIFO_H_ */
