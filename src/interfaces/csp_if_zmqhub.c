@@ -44,7 +44,9 @@ int csp_zmqhub_tx(csp_iface_t * interface, csp_packet_t * packet, uint32_t timeo
 	assert(publisher);
 
 	/* Send envelope */
-	char satid = (char) packet->id.dst;
+	char satid = (char) csp_rtable_find_mac(packet->id.dst);
+	if (satid == (char) 255)
+		satid = packet->id.dst;
 	int result = zmq_send(publisher, &satid, 1, ZMQ_SNDMORE);
 	if (result < 0)
 		printf("ZMQ send error: %u %s\r\n", result, strerror(result));
