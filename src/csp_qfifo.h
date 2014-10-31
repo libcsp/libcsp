@@ -18,25 +18,25 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef CSP_FIFO_QOS_H_
-#define CSP_FIFO_QOS_H_
+#ifndef CSP_QFIFO_H_
+#define CSP_QFIFO_H_
 
 /**
  * Init FIFO/QOS queues
  * @return CSP_ERR type
  */
-int csp_fifo_qos_init(void);
+int csp_qfifo_init(void);
 
 typedef struct {
 	csp_iface_t * interface;
 	csp_packet_t * packet;
-} csp_route_queue_t;
+} csp_fifo_qos_t;
 
 /**
- * Get next packet from router input queue
+ * Read next packet from router input queue
  * @param input pointer to router queue item element
  * @return CSP_ERR type
  */
-int csp_route_next_packet(csp_route_queue_t * input);
+int csp_qfifo_read(csp_fifo_qos_t * input);
 
-#endif /* CSP_FIFO_QOS_H_ */
+#endif /* CSP_QFIFO_H_ */

@@ -33,7 +33,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "csp_conn.h"
 #include "csp_io.h"
 #include "csp_promisc.h"
-#include "csp_fifo_qos.h"
+#include "csp_qfifo.h"
 #include "transport/csp_transport.h"
 
 /**
@@ -123,7 +123,7 @@ static int csp_route_security_check(uint32_t security_opts, csp_iface_t * interf
 
 CSP_DEFINE_TASK(csp_task_router) {
 
-	csp_route_queue_t input;
+	csp_fifo_qos_t input;
 	csp_packet_t * packet;
 	csp_conn_t * conn;
 	csp_socket_t * socket;
@@ -137,7 +137,7 @@ CSP_DEFINE_TASK(csp_task_router) {
 #endif
 
 		/* Get next packet to route */
-		if (csp_route_next_packet(&input) != CSP_ERR_NONE)
+		if (csp_qfifo_read(&input) != CSP_ERR_NONE)
 			continue;
 
 		packet = input.packet;

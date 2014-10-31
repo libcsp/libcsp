@@ -180,7 +180,7 @@ void csp_kiss_rx(csp_iface_t * interface, uint8_t * buf, int len, void * pxTaskW
 					}
 
 					/* Send back into CSP, notice calling from task so last argument must be NULL! */
-					csp_new_packet(driver->rx_packet, interface, pxTaskWoken);
+					csp_qfifo_write(driver->rx_packet, interface, pxTaskWoken);
 					driver->rx_packet = NULL;
 					driver->rx_mode = KISS_MODE_NOT_STARTED;
 					break;

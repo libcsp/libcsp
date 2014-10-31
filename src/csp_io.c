@@ -45,7 +45,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "csp_conn.h"
 #include "csp_route.h"
 #include "csp_promisc.h"
-#include "csp_fifo_qos.h"
+#include "csp_qfifo.h"
 #include "transport/csp_transport.h"
 
 /** Static local variables */
@@ -90,7 +90,7 @@ int csp_init(unsigned char address) {
 	if (ret != CSP_ERR_NONE)
 		return ret;
 
-	ret = csp_fifo_qos_init();
+	ret = csp_qfifo_init();
 	if (ret != CSP_ERR_NONE)
 		return ret;
 
