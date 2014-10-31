@@ -44,6 +44,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "csp_port.h"
 #include "csp_conn.h"
 #include "csp_route.h"
+#include "csp_promisc.h"
 #include "transport/csp_transport.h"
 
 /** Static local variables */
@@ -220,7 +221,7 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, uint32_t timeout) {
 	/* Loopback traffic is added to promisc queue by the router */
 	if (idout.dst != my_address && idout.src == my_address) {
 		packet->id.ext = idout.ext;
-		csp_promisc_add(packet, csp_promisc_queue);
+		csp_promisc_add(packet);
 	}
 #endif
 

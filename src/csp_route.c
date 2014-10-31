@@ -47,6 +47,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "csp_route.h"
 #include "csp_conn.h"
 #include "csp_io.h"
+#include "csp_promisc.h"
 #include "transport/csp_transport.h"
 
 static csp_thread_handle_t handle_router;
@@ -56,21 +57,11 @@ static csp_queue_handle_t router_input_fifo[CSP_ROUTE_FIFOS];
 static csp_queue_handle_t router_input_event;
 #endif
 
-#ifdef CSP_USE_PROMISC
-csp_queue_handle_t csp_promisc_queue = NULL;
-int csp_promisc_enabled = 0;
-#endif
-
 #ifdef CSP_USE_RDP
 #define CSP_ROUTER_RX_TIMEOUT 100				//! If RDP is enabled, the router needs to awake some times to check timeouts
 #else
 #define CSP_ROUTER_RX_TIMEOUT CSP_MAX_DELAY		//! If no RDP, the router can sleep untill data arrives
 #endif
-
-typedef struct {
-	csp_iface_t * interface;
-	csp_packet_t * packet;
-} csp_route_queue_t;
 
 /**
  * Helper function to decrypt, check auth and CRC32
@@ -255,7 +246,7 @@ CSP_DEFINE_TASK(csp_task_router) {
 
 		/* Here there be promiscuous mode */
 #ifdef CSP_USE_PROMISC
-		csp_promisc_add(packet, csp_promisc_queue);
+		csp_promisc_add(packet);
 #endif
 
 		/* If the message is not to me, route the message to the correct interface */
@@ -454,59 +445,3 @@ void csp_new_packet(csp_packet_t * packet, csp_iface_t * interface, CSP_BASE_TYP
 	}
 
 }
-
-#ifdef CSP_USE_PROMISC
-int csp_promisc_enable(unsigned int buf_size) {
-
-	/* If queue already initialised */
-	if (csp_promisc_queue != NULL) {
-		csp_promisc_enabled = 1;
-		return CSP_ERR_NONE;
-	}
-	
-	/* Create packet queue */
-	csp_promisc_queue = csp_queue_create(buf_size, sizeof(csp_packet_t *));
-	
-	if (csp_promisc_queue == NULL)
-		return CSP_ERR_INVAL;
-
-	csp_promisc_enabled = 1;
-	return CSP_ERR_NONE;
-
-}
-
-void csp_promisc_disable(void) {
-	csp_promisc_enabled = 0;
-}
-
-csp_packet_t * csp_promisc_read(uint32_t timeout) {
-
-	if (csp_promisc_queue == NULL)
-		return NULL;
-
-	csp_packet_t * packet = NULL;
-	csp_queue_dequeue(csp_promisc_queue, &packet, timeout);
-
-	return packet;
-
-}
-
-
-void csp_promisc_add(csp_packet_t * packet, csp_queue_handle_t queue) {
-
-	if (csp_promisc_enabled == 0)
-		return;
-
-	if (queue != NULL) {
-		/* Make a copy of the message and queue it to the promiscuous task */
-		csp_packet_t *packet_copy = csp_buffer_clone(packet);
-		if (packet_copy != NULL) {
-			if (csp_queue_enqueue(queue, &packet_copy, 0) != CSP_QUEUE_OK) {
-				csp_log_error("Promiscuous mode input queue full\r\n");
-				csp_buffer_free(packet_copy);
-			}
-		}
-	}
-
-}
-#endif
