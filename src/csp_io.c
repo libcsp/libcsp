@@ -45,6 +45,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "csp_conn.h"
 #include "csp_route.h"
 #include "csp_promisc.h"
+#include "csp_fifo_qos.h"
 #include "transport/csp_transport.h"
 
 /** Static local variables */
@@ -89,9 +90,18 @@ int csp_init(unsigned char address) {
 	if (ret != CSP_ERR_NONE)
 		return ret;
 
-	ret = csp_route_init();
+	ret = csp_fifo_qos_init();
 	if (ret != CSP_ERR_NONE)
 		return ret;
+
+	/* Loopback */
+	csp_iflist_add(&csp_if_lo);
+
+	/* Register loopback route */
+	csp_route_set(my_address, &csp_if_lo, CSP_NODE_MAC);
+
+	/* Also register loopback as default, until user redefines default route */
+	csp_route_set(CSP_DEFAULT_ROUTE, &csp_if_lo, CSP_NODE_MAC);
 
 	return CSP_ERR_NONE;
 

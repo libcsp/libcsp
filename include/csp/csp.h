@@ -254,15 +254,6 @@ int csp_listen(csp_socket_t *socket, size_t conn_queue_length);
 int csp_bind(csp_socket_t *socket, uint8_t port);
 
 /**
- * Clear and init the routing table
- *
- * This function is called by csp_init and should only be needed in case
- * the table must be reset after initialization.
- * @return CSP_ERR
- */
-int csp_route_init(void);
-
-/**
  * Start the router task.
  * @param task_stack_size The number of portStackType to allocate. This only affects FreeRTOS systems.
  * @param priority The OS task priority of the router
