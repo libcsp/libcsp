@@ -24,6 +24,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "csp_route.h"
 #include "csp_qfifo.h"
 #include "csp_io.h"
+#include "csp_promisc.h"
 
 static csp_iface_t* if_a = NULL;
 static csp_iface_t* if_b = NULL;
