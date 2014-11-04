@@ -135,6 +135,34 @@ uint64_t csp_betoh64(uint64_t be64);
  */
 uint64_t csp_letoh64(uint64_t le64);
 
+/**
+ * Convert float from host to network byte order
+ * @param f Float in host order
+ * @return Float in network order
+ */
+float csp_htonflt(float f);
+
+/**
+ * Convert float from network to host byte order
+ * @param f Float in network order
+ * @return Float in host order
+ */
+float csp_ntohflt(float f);
+
+/**
+ * Convert double from host to network byte order
+ * @param d Double in host order
+ * @return Double in network order
+ */
+double csp_htondbl(double d);
+
+/**
+ * Convert double from network to host order
+ * @param d Double in network order
+ * @return Double in host order
+ */
+double csp_ntohdbl(double d);
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif

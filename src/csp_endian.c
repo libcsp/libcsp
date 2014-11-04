@@ -159,3 +159,46 @@ inline uint64_t __attribute__ ((__const__)) csp_betoh64(uint64_t be64) {
 inline uint64_t __attribute__ ((__const__)) csp_letoh64(uint64_t le64) {
 	return csp_htole64(le64);
 }
+
+
+/* Convert float from host byte order to network byte order */
+inline float __attribute__ ((__const__)) csp_htonflt(float f) {
+#ifdef CSP_BIG_ENDIAN
+	return f;
+#else
+	union v {
+		float       f;
+		uint32_t	i;
+	};
+	union v val;
+	val.f = f;
+	val.i = csp_hton32(val.i);
+	return val.f;
+#endif
+}
+
+/* Convert float from host byte order to network byte order */
+inline float __attribute__ ((__const__)) csp_ntohflt(float f) {
+	return csp_htonflt(f);
+}
+
+/* Convert double from host byte order to network byte order */
+inline double __attribute__ ((__const__)) csp_htondbl(double d) {
+#ifdef CSP_BIG_ENDIAN
+	return d;
+#else
+	union v {
+		double       d;
+		uint64_t     i;
+	};
+	union v val;
+	val.d = d;
+	val.i = csp_hton64(val.i);
+	return val.d;
+#endif
+}
+
+/* Convert float from host byte order to network byte order */
+inline double __attribute__ ((__const__)) csp_ntohdbl(double d) {
+	return csp_htondbl(d);
+}
