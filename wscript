@@ -48,6 +48,7 @@ def options(ctx):
 	gr.add_option('--enable-xtea', action='store_true', help='Enable XTEA support')
 	gr.add_option('--enable-bindings', action='store_true', help='Enable Python bindings')
 	gr.add_option('--enable-examples', action='store_true', help='Enable examples')
+	gr.add_option('--enable-dedup', action='store_true', help='Enable packet deduplicator')
 
 	# Interfaces	
 	gr.add_option('--enable-if-i2c', action='store_true', help='Enable I2C interface')
@@ -190,6 +191,7 @@ def configure(ctx):
 	ctx.define_cond('CSP_USE_XTEA', ctx.options.enable_xtea)
 	ctx.define_cond('CSP_USE_PROMISC', ctx.options.enable_promisc)
 	ctx.define_cond('CSP_USE_QOS', ctx.options.enable_qos)
+	ctx.define_cond('CSP_USE_DEDUP', ctx.options.enable_dedup)
 	ctx.define('CSP_CONN_MAX', ctx.options.with_max_connections)
 	ctx.define('CSP_CONN_QUEUE_LENGTH', ctx.options.with_conn_queue_length)
 	ctx.define('CSP_FIFO_INPUT', ctx.options.with_router_queue_length)

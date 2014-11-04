@@ -38,6 +38,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "csp_io.h"
 #include "csp_promisc.h"
 #include "csp_qfifo.h"
+#include "csp_dedup.h"
 #include "transport/csp_transport.h"
 
 /**
@@ -153,6 +154,16 @@ CSP_DEFINE_TASK(csp_task_router) {
 		/* Here there be promiscuous mode */
 #ifdef CSP_USE_PROMISC
 		csp_promisc_add(packet);
+#endif
+
+#ifdef CSP_USE_DEDUP
+		/* Check for duplicates */
+		if (csp_dedup_check(packet) == 1) {
+			/* Discard packet */
+			csp_log_packet("Duplicate packet discarded\r\n");
+			csp_buffer_free(packet);
+			continue;
+		}
 #endif
 
 		/* If the message is not to me, route the message to the correct interface */
