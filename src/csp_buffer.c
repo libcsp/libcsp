@@ -49,7 +49,7 @@ int csp_buffer_init(int buf_count, int buf_size) {
 	csp_skbf_t * buf;
 
 	count = buf_count;
-	size = buf_size;
+	size = buf_size + CSP_BUFFER_PACKET_OVERHEAD;
 	unsigned int skbfsize = (sizeof(csp_skbf_t) + size);
 	skbfsize = CSP_BUFFER_ALIGN * ((skbfsize + CSP_BUFFER_ALIGN - 1) / CSP_BUFFER_ALIGN);
 	unsigned int poolsize = count * skbfsize;

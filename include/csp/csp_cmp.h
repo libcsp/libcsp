@@ -97,12 +97,12 @@ static inline int csp_cmp_##_memb(uint8_t node, uint32_t timeout, struct csp_cmp
 	return csp_cmp(node, timeout, _code, CMP_SIZE(_memb), msg); \
 }
 
-CMP_MESSAGE(CSP_CMP_IDENT, ident);
-CMP_MESSAGE(CSP_CMP_ROUTE_SET, route_set);
-CMP_MESSAGE(CSP_CMP_IF_STATS, if_stats);
-CMP_MESSAGE(CSP_CMP_PEEK, peek);
-CMP_MESSAGE(CSP_CMP_POKE, poke);
-CMP_MESSAGE(CSP_CMP_CLOCK, clock);
+CMP_MESSAGE(CSP_CMP_IDENT, ident)
+CMP_MESSAGE(CSP_CMP_ROUTE_SET, route_set)
+CMP_MESSAGE(CSP_CMP_IF_STATS, if_stats)
+CMP_MESSAGE(CSP_CMP_PEEK, peek)
+CMP_MESSAGE(CSP_CMP_POKE, poke)
+CMP_MESSAGE(CSP_CMP_CLOCK, clock)
 
 #ifdef __cplusplus
 } /* extern "C" */
