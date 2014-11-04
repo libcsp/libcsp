@@ -6,4 +6,4 @@ ctypesgen.py \
 ../../include/csp/drivers/*.h \
 ../../include/csp/interfaces/*.h \
 -lcsp \
--o pycsp-ctypesgen.py
+-o pycspauto.py

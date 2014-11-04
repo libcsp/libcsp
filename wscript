@@ -114,6 +114,12 @@ def configure(ctx):
 
 	# Add default files
 	ctx.env.append_unique('FILES_CSP', ['src/*.c','src/interfaces/csp_if_lo.c','src/transport/csp_udp.c','src/arch/{0}/**/*.c'.format(ctx.options.with_os)])
+	
+	# Libs
+	if 'posix' in ctx.env.OS:
+		ctx.env.append_unique('LIBS', ['rt', 'pthread'])
+	elif 'macosx' in ctx.env.OS:
+		ctx.env.append_unique('LIBS', ['pthread'])
 
 	# Check for recursion
 	if ctx.path == ctx.srcnode:
@@ -154,6 +160,8 @@ def configure(ctx):
 		ctx.env.append_unique('FILES_CSP', 'src/interfaces/csp_if_kiss.c')
 	if ctx.options.enable_if_zmqhub:
 		ctx.env.append_unique('FILES_CSP', 'src/interfaces/csp_if_zmqhub.c')
+		ctx.check_cfg(package='libzmq', args='--cflags --libs')
+		ctx.env.append_unique('LIBS', ctx.env.LIB_LIBZMQ)
 
 	# Store configuration options
 	ctx.env.ENABLE_BINDINGS = ctx.options.enable_bindings
@@ -250,12 +258,6 @@ def build(ctx):
 	if ctx.options.verbose > 0:
 		ctx(rule='${SIZE}  ${SRC}', source='libcsp.a', name='csp_size', always=True)
 
-	libs = []
-	if 'posix' in ctx.env.OS:
-		libs = ['rt', 'pthread']
-	elif 'macosx' in ctx.env.OS:
-		libs = ['pthread']
-
 	# Build shared library for Python bindings
 	if ctx.env.ENABLE_BINDINGS:
 		ctx.shlib(source=ctx.path.ant_glob(ctx.env.FILES_CSP),
@@ -263,13 +265,13 @@ def build(ctx):
 			includes= ctx.env.INCLUDES_CSP,
 			export_includes = 'include',
 			use = 'include',
-			lib=libs)
+			lib=ctx.env.LIBS)
 
 	if ctx.env.ENABLE_EXAMPLES:
 		ctx.program(source = ctx.path.ant_glob('examples/simple.c'),
 			target = 'simple',
 			includes = ctx.env.INCLUDES_CSP,
-			lib = libs,
+			lib = ctx.env.LIBS,
 			use = 'csp')
 
 		if ctx.options.enable_if_kiss:

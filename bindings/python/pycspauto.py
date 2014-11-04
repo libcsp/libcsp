@@ -1,7 +1,7 @@
 '''Wrapper for csp.h
 
 Generated with:
-/usr/local/bin/ctypesgen.py -I../../build/include -I../../include ../../include/csp/csp.h ../../include/csp/csp_buffer.h ../../include/csp/csp_cmp.h ../../include/csp/csp_crc32.h ../../include/csp/csp_debug.h ../../include/csp/csp_endian.h ../../include/csp/csp_error.h ../../include/csp/csp_iflist.h ../../include/csp/csp_interface.h ../../include/csp/csp_platform.h ../../include/csp/csp_rtable.h ../../include/csp/csp_types.h ../../include/csp/drivers/i2c.h ../../include/csp/drivers/usart.h ../../include/csp/interfaces/csp_if_can.h ../../include/csp/interfaces/csp_if_i2c.h ../../include/csp/interfaces/csp_if_kiss.h ../../include/csp/interfaces/csp_if_lo.h ../../include/csp/interfaces/csp_if_zmqhub.h -lcsp -o pycsp-ctypesgen.py
+/usr/local/bin/ctypesgen.py -I../../build/include -I../../include ../../include/csp/csp.h ../../include/csp/csp_buffer.h ../../include/csp/csp_cmp.h ../../include/csp/csp_crc32.h ../../include/csp/csp_debug.h ../../include/csp/csp_endian.h ../../include/csp/csp_error.h ../../include/csp/csp_iflist.h ../../include/csp/csp_interface.h ../../include/csp/csp_platform.h ../../include/csp/csp_rtable.h ../../include/csp/csp_types.h ../../include/csp/drivers/i2c.h ../../include/csp/drivers/usart.h ../../include/csp/interfaces/csp_if_can.h ../../include/csp/interfaces/csp_if_i2c.h ../../include/csp/interfaces/csp_if_kiss.h ../../include/csp/interfaces/csp_if_lo.h ../../include/csp/interfaces/csp_if_zmqhub.h -lcsp -o pycspauto.py
 
 Do not modify this file.
 '''
@@ -730,12 +730,10 @@ CSP_LOCK = 6 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_debug.h: 40
 csp_debug_level_t = enum_anon_5 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_debug.h: 40
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_debug.h: 42
-for _lib in _libs.values():
-    try:
-        csp_debug_level_enabled = (POINTER(c_ubyte)).in_dll(_lib, 'csp_debug_level_enabled')
-        break
-    except:
-        pass
+try:
+    csp_debug_level_enabled = (POINTER(c_ubyte)).in_dll(_libs['csp'], 'csp_debug_level_enabled')
+except:
+    pass
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_debug.h: 48
 for _lib in _libs.itervalues():
@@ -747,165 +745,113 @@ for _lib in _libs.itervalues():
     break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_debug.h: 129
-for _lib in _libs.values():
-    if hasattr(_lib, 'do_csp_debug'):
-        _func = _lib.do_csp_debug
-        _restype = None
-        _argtypes = [csp_debug_level_t, String]
-        do_csp_debug = _variadic_function(_func,_restype,_argtypes)
+if hasattr(_libs['csp'], 'do_csp_debug'):
+    _func = _libs['csp'].do_csp_debug
+    _restype = None
+    _argtypes = [csp_debug_level_t, String]
+    do_csp_debug = _variadic_function(_func,_restype,_argtypes)
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_debug.h: 135
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_debug_toggle_level'):
-        continue
-    csp_debug_toggle_level = _lib.csp_debug_toggle_level
+if hasattr(_libs['csp'], 'csp_debug_toggle_level'):
+    csp_debug_toggle_level = _libs['csp'].csp_debug_toggle_level
     csp_debug_toggle_level.argtypes = [csp_debug_level_t]
     csp_debug_toggle_level.restype = None
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_debug.h: 142
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_debug_set_level'):
-        continue
-    csp_debug_set_level = _lib.csp_debug_set_level
+if hasattr(_libs['csp'], 'csp_debug_set_level'):
+    csp_debug_set_level = _libs['csp'].csp_debug_set_level
     csp_debug_set_level.argtypes = [csp_debug_level_t, c_uint8]
     csp_debug_set_level.restype = None
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_debug.h: 149
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_debug_get_level'):
-        continue
-    csp_debug_get_level = _lib.csp_debug_get_level
+if hasattr(_libs['csp'], 'csp_debug_get_level'):
+    csp_debug_get_level = _libs['csp'].csp_debug_get_level
     csp_debug_get_level.argtypes = [csp_debug_level_t]
     csp_debug_get_level.restype = c_int
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_buffer.h: 38
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_buffer_init'):
-        continue
-    csp_buffer_init = _lib.csp_buffer_init
+if hasattr(_libs['csp'], 'csp_buffer_init'):
+    csp_buffer_init = _libs['csp'].csp_buffer_init
     csp_buffer_init.argtypes = [c_int, c_int]
     csp_buffer_init.restype = c_int
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_buffer.h: 47
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_buffer_get'):
-        continue
-    csp_buffer_get = _lib.csp_buffer_get
+if hasattr(_libs['csp'], 'csp_buffer_get'):
+    csp_buffer_get = _libs['csp'].csp_buffer_get
     csp_buffer_get.argtypes = [c_size_t]
     csp_buffer_get.restype = POINTER(None)
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_buffer.h: 56
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_buffer_get_isr'):
-        continue
-    csp_buffer_get_isr = _lib.csp_buffer_get_isr
+if hasattr(_libs['csp'], 'csp_buffer_get_isr'):
+    csp_buffer_get_isr = _libs['csp'].csp_buffer_get_isr
     csp_buffer_get_isr.argtypes = [c_size_t]
     csp_buffer_get_isr.restype = POINTER(None)
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_buffer.h: 62
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_buffer_free'):
-        continue
-    csp_buffer_free = _lib.csp_buffer_free
+if hasattr(_libs['csp'], 'csp_buffer_free'):
+    csp_buffer_free = _libs['csp'].csp_buffer_free
     csp_buffer_free.argtypes = [POINTER(None)]
     csp_buffer_free.restype = None
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_buffer.h: 68
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_buffer_free_isr'):
-        continue
-    csp_buffer_free_isr = _lib.csp_buffer_free_isr
+if hasattr(_libs['csp'], 'csp_buffer_free_isr'):
+    csp_buffer_free_isr = _libs['csp'].csp_buffer_free_isr
     csp_buffer_free_isr.argtypes = [POINTER(None)]
     csp_buffer_free_isr.restype = None
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_buffer.h: 74
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_buffer_clone'):
-        continue
-    csp_buffer_clone = _lib.csp_buffer_clone
+if hasattr(_libs['csp'], 'csp_buffer_clone'):
+    csp_buffer_clone = _libs['csp'].csp_buffer_clone
     csp_buffer_clone.argtypes = [POINTER(None)]
     csp_buffer_clone.restype = POINTER(None)
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_buffer.h: 80
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_buffer_remaining'):
-        continue
-    csp_buffer_remaining = _lib.csp_buffer_remaining
+if hasattr(_libs['csp'], 'csp_buffer_remaining'):
+    csp_buffer_remaining = _libs['csp'].csp_buffer_remaining
     csp_buffer_remaining.argtypes = []
     csp_buffer_remaining.restype = c_int
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_buffer.h: 86
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_buffer_size'):
-        continue
-    csp_buffer_size = _lib.csp_buffer_size
+if hasattr(_libs['csp'], 'csp_buffer_size'):
+    csp_buffer_size = _libs['csp'].csp_buffer_size
     csp_buffer_size.argtypes = []
     csp_buffer_size.restype = c_int
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_rtable.h: 35
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_rtable_find_iface'):
-        continue
-    csp_rtable_find_iface = _lib.csp_rtable_find_iface
+if hasattr(_libs['csp'], 'csp_rtable_find_iface'):
+    csp_rtable_find_iface = _libs['csp'].csp_rtable_find_iface
     csp_rtable_find_iface.argtypes = [c_uint8]
     csp_rtable_find_iface.restype = POINTER(csp_iface_t)
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_rtable.h: 42
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_rtable_find_mac'):
-        continue
-    csp_rtable_find_mac = _lib.csp_rtable_find_mac
+if hasattr(_libs['csp'], 'csp_rtable_find_mac'):
+    csp_rtable_find_mac = _libs['csp'].csp_rtable_find_mac
     csp_rtable_find_mac.argtypes = [c_uint8]
     csp_rtable_find_mac.restype = c_uint8
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_rtable.h: 52
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_rtable_set'):
-        continue
-    csp_rtable_set = _lib.csp_rtable_set
+if hasattr(_libs['csp'], 'csp_rtable_set'):
+    csp_rtable_set = _libs['csp'].csp_rtable_set
     csp_rtable_set.argtypes = [c_uint8, c_uint8, POINTER(csp_iface_t), c_uint8]
     csp_rtable_set.restype = c_int
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_rtable.h: 57
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_rtable_print'):
-        continue
-    csp_rtable_print = _lib.csp_rtable_print
+if hasattr(_libs['csp'], 'csp_rtable_print'):
+    csp_rtable_print = _libs['csp'].csp_rtable_print
     csp_rtable_print.argtypes = []
     csp_rtable_print.restype = None
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_rtable.h: 70
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_route_table_load'):
-        continue
-    csp_route_table_load = _lib.csp_route_table_load
+if hasattr(_libs['csp'], 'csp_route_table_load'):
+    csp_route_table_load = _libs['csp'].csp_route_table_load
     csp_route_table_load.argtypes = [c_uint8 * (5 * (((1 << 5) - 1) + 2))]
     csp_route_table_load.restype = None
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_rtable.h: 82
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_route_table_save'):
-        continue
-    csp_route_table_save = _lib.csp_route_table_save
+if hasattr(_libs['csp'], 'csp_route_table_save'):
+    csp_route_table_save = _libs['csp'].csp_route_table_save
     csp_route_table_save.argtypes = [c_uint8 * (5 * (((1 << 5) - 1) + 2))]
     csp_route_table_save.restype = None
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_rtable.h: 91
 for _lib in _libs.itervalues():
@@ -944,443 +890,300 @@ for _lib in _libs.itervalues():
     break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_iflist.h: 28
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_iflist_add'):
-        continue
-    csp_iflist_add = _lib.csp_iflist_add
+if hasattr(_libs['csp'], 'csp_iflist_add'):
+    csp_iflist_add = _libs['csp'].csp_iflist_add
     csp_iflist_add.argtypes = [POINTER(csp_iface_t)]
     csp_iflist_add.restype = None
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_iflist.h: 35
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_iflist_get_by_name'):
-        continue
-    csp_iflist_get_by_name = _lib.csp_iflist_get_by_name
+if hasattr(_libs['csp'], 'csp_iflist_get_by_name'):
+    csp_iflist_get_by_name = _libs['csp'].csp_iflist_get_by_name
     csp_iflist_get_by_name.argtypes = [String]
     csp_iflist_get_by_name.restype = POINTER(csp_iface_t)
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_iflist.h: 40
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_iflist_print'):
-        continue
-    csp_iflist_print = _lib.csp_iflist_print
+if hasattr(_libs['csp'], 'csp_iflist_print'):
+    csp_iflist_print = _libs['csp'].csp_iflist_print
     csp_iflist_print.argtypes = []
     csp_iflist_print.restype = None
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp.h: 43
-for _lib in _libs.values():
-    try:
-        my_address = (c_uint8).in_dll(_lib, 'my_address')
-        break
-    except:
-        pass
+try:
+    my_address = (c_uint8).in_dll(_libs['csp'], 'my_address')
+except:
+    pass
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp.h: 49
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_init'):
-        continue
-    csp_init = _lib.csp_init
+if hasattr(_libs['csp'], 'csp_init'):
+    csp_init = _libs['csp'].csp_init
     csp_init.argtypes = [c_uint8]
     csp_init.restype = c_int
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp.h: 56
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_set_hostname'):
-        continue
-    csp_set_hostname = _lib.csp_set_hostname
+if hasattr(_libs['csp'], 'csp_set_hostname'):
+    csp_set_hostname = _libs['csp'].csp_set_hostname
     csp_set_hostname.argtypes = [String]
     csp_set_hostname.restype = None
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp.h: 62
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_get_hostname'):
-        continue
-    csp_get_hostname = _lib.csp_get_hostname
+if hasattr(_libs['csp'], 'csp_get_hostname'):
+    csp_get_hostname = _libs['csp'].csp_get_hostname
     csp_get_hostname.argtypes = []
     if sizeof(c_int) == sizeof(c_void_p):
         csp_get_hostname.restype = ReturnString
     else:
         csp_get_hostname.restype = String
         csp_get_hostname.errcheck = ReturnString
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp.h: 69
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_set_model'):
-        continue
-    csp_set_model = _lib.csp_set_model
+if hasattr(_libs['csp'], 'csp_set_model'):
+    csp_set_model = _libs['csp'].csp_set_model
     csp_set_model.argtypes = [String]
     csp_set_model.restype = None
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp.h: 75
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_get_model'):
-        continue
-    csp_get_model = _lib.csp_get_model
+if hasattr(_libs['csp'], 'csp_get_model'):
+    csp_get_model = _libs['csp'].csp_get_model
     csp_get_model.argtypes = []
     if sizeof(c_int) == sizeof(c_void_p):
         csp_get_model.restype = ReturnString
     else:
         csp_get_model.restype = String
         csp_get_model.errcheck = ReturnString
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp.h: 82
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_socket'):
-        continue
-    csp_socket = _lib.csp_socket
+if hasattr(_libs['csp'], 'csp_socket'):
+    csp_socket = _libs['csp'].csp_socket
     csp_socket.argtypes = [c_uint32]
     csp_socket.restype = POINTER(csp_socket_t)
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp.h: 90
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_accept'):
-        continue
-    csp_accept = _lib.csp_accept
+if hasattr(_libs['csp'], 'csp_accept'):
+    csp_accept = _libs['csp'].csp_accept
     csp_accept.argtypes = [POINTER(csp_socket_t), c_uint32]
     csp_accept.restype = POINTER(csp_conn_t)
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp.h: 102
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_read'):
-        continue
-    csp_read = _lib.csp_read
+if hasattr(_libs['csp'], 'csp_read'):
+    csp_read = _libs['csp'].csp_read
     csp_read.argtypes = [POINTER(csp_conn_t), c_uint32]
     csp_read.restype = POINTER(csp_packet_t)
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp.h: 111
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_send'):
-        continue
-    csp_send = _lib.csp_send
+if hasattr(_libs['csp'], 'csp_send'):
+    csp_send = _libs['csp'].csp_send
     csp_send.argtypes = [POINTER(csp_conn_t), POINTER(csp_packet_t), c_uint32]
     csp_send.restype = c_int
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp.h: 125
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_send_prio'):
-        continue
-    csp_send_prio = _lib.csp_send_prio
+if hasattr(_libs['csp'], 'csp_send_prio'):
+    csp_send_prio = _libs['csp'].csp_send_prio
     csp_send_prio.argtypes = [c_uint8, POINTER(csp_conn_t), POINTER(csp_packet_t), c_uint32]
     csp_send_prio.restype = c_int
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp.h: 141
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_transaction'):
-        continue
-    csp_transaction = _lib.csp_transaction
+if hasattr(_libs['csp'], 'csp_transaction'):
+    csp_transaction = _libs['csp'].csp_transaction
     csp_transaction.argtypes = [c_uint8, c_uint8, c_uint8, c_uint32, POINTER(None), c_int, POINTER(None), c_int]
     csp_transaction.restype = c_int
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp.h: 154
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_transaction_persistent'):
-        continue
-    csp_transaction_persistent = _lib.csp_transaction_persistent
+if hasattr(_libs['csp'], 'csp_transaction_persistent'):
+    csp_transaction_persistent = _libs['csp'].csp_transaction_persistent
     csp_transaction_persistent.argtypes = [POINTER(csp_conn_t), c_uint32, POINTER(None), c_int, POINTER(None), c_int]
     csp_transaction_persistent.restype = c_int
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp.h: 163
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_recvfrom'):
-        continue
-    csp_recvfrom = _lib.csp_recvfrom
+if hasattr(_libs['csp'], 'csp_recvfrom'):
+    csp_recvfrom = _libs['csp'].csp_recvfrom
     csp_recvfrom.argtypes = [POINTER(csp_socket_t), c_uint32]
     csp_recvfrom.restype = POINTER(csp_packet_t)
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp.h: 176
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_sendto'):
-        continue
-    csp_sendto = _lib.csp_sendto
+if hasattr(_libs['csp'], 'csp_sendto'):
+    csp_sendto = _libs['csp'].csp_sendto
     csp_sendto.argtypes = [c_uint8, c_uint8, c_uint8, c_uint8, c_uint32, POINTER(csp_packet_t), c_uint32]
     csp_sendto.restype = c_int
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp.h: 187
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_sendto_reply'):
-        continue
-    csp_sendto_reply = _lib.csp_sendto_reply
+if hasattr(_libs['csp'], 'csp_sendto_reply'):
+    csp_sendto_reply = _libs['csp'].csp_sendto_reply
     csp_sendto_reply.argtypes = [POINTER(csp_packet_t), POINTER(csp_packet_t), c_uint32, c_uint32]
     csp_sendto_reply.restype = c_int
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp.h: 201
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_connect'):
-        continue
-    csp_connect = _lib.csp_connect
+if hasattr(_libs['csp'], 'csp_connect'):
+    csp_connect = _libs['csp'].csp_connect
     csp_connect.argtypes = [c_uint8, c_uint8, c_uint8, c_uint32, c_uint32]
     csp_connect.restype = POINTER(csp_conn_t)
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp.h: 208
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_close'):
-        continue
-    csp_close = _lib.csp_close
+if hasattr(_libs['csp'], 'csp_close'):
+    csp_close = _libs['csp'].csp_close
     csp_close.argtypes = [POINTER(csp_conn_t)]
     csp_close.restype = c_int
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp.h: 214
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_conn_dport'):
-        continue
-    csp_conn_dport = _lib.csp_conn_dport
+if hasattr(_libs['csp'], 'csp_conn_dport'):
+    csp_conn_dport = _libs['csp'].csp_conn_dport
     csp_conn_dport.argtypes = [POINTER(csp_conn_t)]
     csp_conn_dport.restype = c_int
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp.h: 220
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_conn_sport'):
-        continue
-    csp_conn_sport = _lib.csp_conn_sport
+if hasattr(_libs['csp'], 'csp_conn_sport'):
+    csp_conn_sport = _libs['csp'].csp_conn_sport
     csp_conn_sport.argtypes = [POINTER(csp_conn_t)]
     csp_conn_sport.restype = c_int
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp.h: 226
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_conn_dst'):
-        continue
-    csp_conn_dst = _lib.csp_conn_dst
+if hasattr(_libs['csp'], 'csp_conn_dst'):
+    csp_conn_dst = _libs['csp'].csp_conn_dst
     csp_conn_dst.argtypes = [POINTER(csp_conn_t)]
     csp_conn_dst.restype = c_int
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp.h: 232
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_conn_src'):
-        continue
-    csp_conn_src = _lib.csp_conn_src
+if hasattr(_libs['csp'], 'csp_conn_src'):
+    csp_conn_src = _libs['csp'].csp_conn_src
     csp_conn_src.argtypes = [POINTER(csp_conn_t)]
     csp_conn_src.restype = c_int
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp.h: 238
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_conn_flags'):
-        continue
-    csp_conn_flags = _lib.csp_conn_flags
+if hasattr(_libs['csp'], 'csp_conn_flags'):
+    csp_conn_flags = _libs['csp'].csp_conn_flags
     csp_conn_flags.argtypes = [POINTER(csp_conn_t)]
     csp_conn_flags.restype = c_int
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp.h: 246
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_listen'):
-        continue
-    csp_listen = _lib.csp_listen
+if hasattr(_libs['csp'], 'csp_listen'):
+    csp_listen = _libs['csp'].csp_listen
     csp_listen.argtypes = [POINTER(csp_socket_t), c_size_t]
     csp_listen.restype = c_int
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp.h: 254
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_bind'):
-        continue
-    csp_bind = _lib.csp_bind
+if hasattr(_libs['csp'], 'csp_bind'):
+    csp_bind = _libs['csp'].csp_bind
     csp_bind.argtypes = [POINTER(csp_socket_t), c_uint8]
     csp_bind.restype = c_int
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp.h: 261
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_route_start_task'):
-        continue
-    csp_route_start_task = _lib.csp_route_start_task
+if hasattr(_libs['csp'], 'csp_route_start_task'):
+    csp_route_start_task = _libs['csp'].csp_route_start_task
     csp_route_start_task.argtypes = [c_uint, c_uint]
     csp_route_start_task.restype = c_int
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp.h: 271
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_bridge_start'):
-        continue
-    csp_bridge_start = _lib.csp_bridge_start
+if hasattr(_libs['csp'], 'csp_bridge_start'):
+    csp_bridge_start = _libs['csp'].csp_bridge_start
     csp_bridge_start.argtypes = [c_uint, c_uint, POINTER(csp_iface_t), POINTER(csp_iface_t)]
     csp_bridge_start.restype = c_int
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp.h: 282
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_promisc_enable'):
-        continue
-    csp_promisc_enable = _lib.csp_promisc_enable
+if hasattr(_libs['csp'], 'csp_promisc_enable'):
+    csp_promisc_enable = _libs['csp'].csp_promisc_enable
     csp_promisc_enable.argtypes = [c_uint]
     csp_promisc_enable.restype = c_int
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp.h: 289
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_promisc_disable'):
-        continue
-    csp_promisc_disable = _lib.csp_promisc_disable
+if hasattr(_libs['csp'], 'csp_promisc_disable'):
+    csp_promisc_disable = _libs['csp'].csp_promisc_disable
     csp_promisc_disable.argtypes = []
     csp_promisc_disable.restype = None
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp.h: 299
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_promisc_read'):
-        continue
-    csp_promisc_read = _lib.csp_promisc_read
+if hasattr(_libs['csp'], 'csp_promisc_read'):
+    csp_promisc_read = _libs['csp'].csp_promisc_read
     csp_promisc_read.argtypes = [c_uint32]
     csp_promisc_read.restype = POINTER(csp_packet_t)
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp.h: 312
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_sfp_send'):
-        continue
-    csp_sfp_send = _lib.csp_sfp_send
+if hasattr(_libs['csp'], 'csp_sfp_send'):
+    csp_sfp_send = _libs['csp'].csp_sfp_send
     csp_sfp_send.argtypes = [POINTER(csp_conn_t), POINTER(None), c_int, c_int, c_uint32]
     csp_sfp_send.restype = c_int
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp.h: 322
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_sfp_recv'):
-        continue
-    csp_sfp_recv = _lib.csp_sfp_recv
+if hasattr(_libs['csp'], 'csp_sfp_recv'):
+    csp_sfp_recv = _libs['csp'].csp_sfp_recv
     csp_sfp_recv.argtypes = [POINTER(csp_conn_t), POINTER(POINTER(None)), POINTER(c_int), c_uint32]
     csp_sfp_recv.restype = c_int
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp.h: 335
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_service_handler'):
-        continue
-    csp_service_handler = _lib.csp_service_handler
+if hasattr(_libs['csp'], 'csp_service_handler'):
+    csp_service_handler = _libs['csp'].csp_service_handler
     csp_service_handler.argtypes = [POINTER(csp_conn_t), POINTER(csp_packet_t)]
     csp_service_handler.restype = None
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp.h: 345
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_ping'):
-        continue
-    csp_ping = _lib.csp_ping
+if hasattr(_libs['csp'], 'csp_ping'):
+    csp_ping = _libs['csp'].csp_ping
     csp_ping.argtypes = [c_uint8, c_uint32, c_uint, c_uint8]
     csp_ping.restype = c_int
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp.h: 351
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_ping_noreply'):
-        continue
-    csp_ping_noreply = _lib.csp_ping_noreply
+if hasattr(_libs['csp'], 'csp_ping_noreply'):
+    csp_ping_noreply = _libs['csp'].csp_ping_noreply
     csp_ping_noreply.argtypes = [c_uint8]
     csp_ping_noreply.restype = None
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp.h: 359
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_ps'):
-        continue
-    csp_ps = _lib.csp_ps
+if hasattr(_libs['csp'], 'csp_ps'):
+    csp_ps = _libs['csp'].csp_ps
     csp_ps.argtypes = [c_uint8, c_uint32]
     csp_ps.restype = None
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp.h: 366
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_memfree'):
-        continue
-    csp_memfree = _lib.csp_memfree
+if hasattr(_libs['csp'], 'csp_memfree'):
+    csp_memfree = _libs['csp'].csp_memfree
     csp_memfree.argtypes = [c_uint8, c_uint32]
     csp_memfree.restype = None
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp.h: 373
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_buf_free'):
-        continue
-    csp_buf_free = _lib.csp_buf_free
+if hasattr(_libs['csp'], 'csp_buf_free'):
+    csp_buf_free = _libs['csp'].csp_buf_free
     csp_buf_free.argtypes = [c_uint8, c_uint32]
     csp_buf_free.restype = None
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp.h: 379
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_reboot'):
-        continue
-    csp_reboot = _lib.csp_reboot
+if hasattr(_libs['csp'], 'csp_reboot'):
+    csp_reboot = _libs['csp'].csp_reboot
     csp_reboot.argtypes = [c_uint8]
     csp_reboot.restype = None
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp.h: 386
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_uptime'):
-        continue
-    csp_uptime = _lib.csp_uptime
+if hasattr(_libs['csp'], 'csp_uptime'):
+    csp_uptime = _libs['csp'].csp_uptime
     csp_uptime.argtypes = [c_uint8, c_uint32]
     csp_uptime.restype = None
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp.h: 397
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_rdp_set_opt'):
-        continue
-    csp_rdp_set_opt = _lib.csp_rdp_set_opt
+if hasattr(_libs['csp'], 'csp_rdp_set_opt'):
+    csp_rdp_set_opt = _libs['csp'].csp_rdp_set_opt
     csp_rdp_set_opt.argtypes = [c_uint, c_uint, c_uint, c_uint, c_uint, c_uint]
     csp_rdp_set_opt.restype = None
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp.h: 410
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_rdp_get_opt'):
-        continue
-    csp_rdp_get_opt = _lib.csp_rdp_get_opt
+if hasattr(_libs['csp'], 'csp_rdp_get_opt'):
+    csp_rdp_get_opt = _libs['csp'].csp_rdp_get_opt
     csp_rdp_get_opt.argtypes = [POINTER(c_uint), POINTER(c_uint), POINTER(c_uint), POINTER(c_uint), POINTER(c_uint), POINTER(c_uint)]
     csp_rdp_get_opt.restype = None
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp.h: 420
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_xtea_set_key'):
-        continue
-    csp_xtea_set_key = _lib.csp_xtea_set_key
+if hasattr(_libs['csp'], 'csp_xtea_set_key'):
+    csp_xtea_set_key = _libs['csp'].csp_xtea_set_key
     csp_xtea_set_key.argtypes = [String, c_uint32]
     csp_xtea_set_key.restype = c_int
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp.h: 428
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_hmac_set_key'):
-        continue
-    csp_hmac_set_key = _lib.csp_hmac_set_key
+if hasattr(_libs['csp'], 'csp_hmac_set_key'):
+    csp_hmac_set_key = _libs['csp'].csp_hmac_set_key
     csp_hmac_set_key.argtypes = [String, c_uint32]
     csp_hmac_set_key.restype = c_int
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp.h: 433
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_conn_print_table'):
-        continue
-    csp_conn_print_table = _lib.csp_conn_print_table
+if hasattr(_libs['csp'], 'csp_conn_print_table'):
+    csp_conn_print_table = _libs['csp'].csp_conn_print_table
     csp_conn_print_table.argtypes = []
     csp_conn_print_table.restype = None
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp.h: 438
 for _lib in _libs.itervalues():
@@ -1394,13 +1197,10 @@ for _lib in _libs.itervalues():
 csp_debug_hook_func_t = CFUNCTYPE(UNCHECKED(None), csp_debug_level_t, String) # /home/johan/git/pygnd/lib/libcsp/include/csp/csp.h: 444
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp.h: 445
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_debug_hook_set'):
-        continue
-    csp_debug_hook_set = _lib.csp_debug_hook_set
+if hasattr(_libs['csp'], 'csp_debug_hook_set'):
+    csp_debug_hook_set = _libs['csp'].csp_debug_hook_set
     csp_debug_hook_set.argtypes = [csp_debug_hook_func_t]
     csp_debug_hook_set.restype = None
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_cmp.h: 48
 class struct_csp_cmp_message(Structure):
@@ -1416,13 +1216,10 @@ struct_csp_cmp_message._fields_ = [
 ]
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_cmp.h: 93
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_cmp'):
-        continue
-    csp_cmp = _lib.csp_cmp
+if hasattr(_libs['csp'], 'csp_cmp'):
+    csp_cmp = _libs['csp'].csp_cmp
     csp_cmp.argtypes = [c_uint8, c_uint32, c_uint8, c_int, POINTER(struct_csp_cmp_message)]
     csp_cmp.restype = c_int
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_crc32.h: 31
 for _lib in _libs.itervalues():
@@ -1434,238 +1231,160 @@ for _lib in _libs.itervalues():
     break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_crc32.h: 38
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_crc32_append'):
-        continue
-    csp_crc32_append = _lib.csp_crc32_append
+if hasattr(_libs['csp'], 'csp_crc32_append'):
+    csp_crc32_append = _libs['csp'].csp_crc32_append
     csp_crc32_append.argtypes = [POINTER(csp_packet_t)]
     csp_crc32_append.restype = c_int
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_crc32.h: 45
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_crc32_verify'):
-        continue
-    csp_crc32_verify = _lib.csp_crc32_verify
+if hasattr(_libs['csp'], 'csp_crc32_verify'):
+    csp_crc32_verify = _libs['csp'].csp_crc32_verify
     csp_crc32_verify.argtypes = [POINTER(csp_packet_t)]
     csp_crc32_verify.restype = c_int
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_crc32.h: 53
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_crc32_memory'):
-        continue
-    csp_crc32_memory = _lib.csp_crc32_memory
+if hasattr(_libs['csp'], 'csp_crc32_memory'):
+    csp_crc32_memory = _libs['csp'].csp_crc32_memory
     csp_crc32_memory.argtypes = [POINTER(c_uint8), c_uint32]
     csp_crc32_memory.restype = c_uint32
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_endian.h: 34
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_hton16'):
-        continue
-    csp_hton16 = _lib.csp_hton16
+if hasattr(_libs['csp'], 'csp_hton16'):
+    csp_hton16 = _libs['csp'].csp_hton16
     csp_hton16.argtypes = [c_uint16]
     csp_hton16.restype = c_uint16
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_endian.h: 40
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_ntoh16'):
-        continue
-    csp_ntoh16 = _lib.csp_ntoh16
+if hasattr(_libs['csp'], 'csp_ntoh16'):
+    csp_ntoh16 = _libs['csp'].csp_ntoh16
     csp_ntoh16.argtypes = [c_uint16]
     csp_ntoh16.restype = c_uint16
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_endian.h: 46
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_hton32'):
-        continue
-    csp_hton32 = _lib.csp_hton32
+if hasattr(_libs['csp'], 'csp_hton32'):
+    csp_hton32 = _libs['csp'].csp_hton32
     csp_hton32.argtypes = [c_uint32]
     csp_hton32.restype = c_uint32
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_endian.h: 52
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_ntoh32'):
-        continue
-    csp_ntoh32 = _lib.csp_ntoh32
+if hasattr(_libs['csp'], 'csp_ntoh32'):
+    csp_ntoh32 = _libs['csp'].csp_ntoh32
     csp_ntoh32.argtypes = [c_uint32]
     csp_ntoh32.restype = c_uint32
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_endian.h: 58
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_hton64'):
-        continue
-    csp_hton64 = _lib.csp_hton64
+if hasattr(_libs['csp'], 'csp_hton64'):
+    csp_hton64 = _libs['csp'].csp_hton64
     csp_hton64.argtypes = [c_uint64]
     csp_hton64.restype = c_uint64
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_endian.h: 64
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_ntoh64'):
-        continue
-    csp_ntoh64 = _lib.csp_ntoh64
+if hasattr(_libs['csp'], 'csp_ntoh64'):
+    csp_ntoh64 = _libs['csp'].csp_ntoh64
     csp_ntoh64.argtypes = [c_uint64]
     csp_ntoh64.restype = c_uint64
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_endian.h: 70
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_htobe16'):
-        continue
-    csp_htobe16 = _lib.csp_htobe16
+if hasattr(_libs['csp'], 'csp_htobe16'):
+    csp_htobe16 = _libs['csp'].csp_htobe16
     csp_htobe16.argtypes = [c_uint16]
     csp_htobe16.restype = c_uint16
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_endian.h: 76
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_htole16'):
-        continue
-    csp_htole16 = _lib.csp_htole16
+if hasattr(_libs['csp'], 'csp_htole16'):
+    csp_htole16 = _libs['csp'].csp_htole16
     csp_htole16.argtypes = [c_uint16]
     csp_htole16.restype = c_uint16
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_endian.h: 82
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_betoh16'):
-        continue
-    csp_betoh16 = _lib.csp_betoh16
+if hasattr(_libs['csp'], 'csp_betoh16'):
+    csp_betoh16 = _libs['csp'].csp_betoh16
     csp_betoh16.argtypes = [c_uint16]
     csp_betoh16.restype = c_uint16
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_endian.h: 88
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_letoh16'):
-        continue
-    csp_letoh16 = _lib.csp_letoh16
+if hasattr(_libs['csp'], 'csp_letoh16'):
+    csp_letoh16 = _libs['csp'].csp_letoh16
     csp_letoh16.argtypes = [c_uint16]
     csp_letoh16.restype = c_uint16
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_endian.h: 94
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_htobe32'):
-        continue
-    csp_htobe32 = _lib.csp_htobe32
+if hasattr(_libs['csp'], 'csp_htobe32'):
+    csp_htobe32 = _libs['csp'].csp_htobe32
     csp_htobe32.argtypes = [c_uint32]
     csp_htobe32.restype = c_uint32
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_endian.h: 100
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_htole32'):
-        continue
-    csp_htole32 = _lib.csp_htole32
+if hasattr(_libs['csp'], 'csp_htole32'):
+    csp_htole32 = _libs['csp'].csp_htole32
     csp_htole32.argtypes = [c_uint32]
     csp_htole32.restype = c_uint32
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_endian.h: 106
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_betoh32'):
-        continue
-    csp_betoh32 = _lib.csp_betoh32
+if hasattr(_libs['csp'], 'csp_betoh32'):
+    csp_betoh32 = _libs['csp'].csp_betoh32
     csp_betoh32.argtypes = [c_uint32]
     csp_betoh32.restype = c_uint32
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_endian.h: 112
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_letoh32'):
-        continue
-    csp_letoh32 = _lib.csp_letoh32
+if hasattr(_libs['csp'], 'csp_letoh32'):
+    csp_letoh32 = _libs['csp'].csp_letoh32
     csp_letoh32.argtypes = [c_uint32]
     csp_letoh32.restype = c_uint32
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_endian.h: 118
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_htobe64'):
-        continue
-    csp_htobe64 = _lib.csp_htobe64
+if hasattr(_libs['csp'], 'csp_htobe64'):
+    csp_htobe64 = _libs['csp'].csp_htobe64
     csp_htobe64.argtypes = [c_uint64]
     csp_htobe64.restype = c_uint64
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_endian.h: 124
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_htole64'):
-        continue
-    csp_htole64 = _lib.csp_htole64
+if hasattr(_libs['csp'], 'csp_htole64'):
+    csp_htole64 = _libs['csp'].csp_htole64
     csp_htole64.argtypes = [c_uint64]
     csp_htole64.restype = c_uint64
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_endian.h: 130
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_betoh64'):
-        continue
-    csp_betoh64 = _lib.csp_betoh64
+if hasattr(_libs['csp'], 'csp_betoh64'):
+    csp_betoh64 = _libs['csp'].csp_betoh64
     csp_betoh64.argtypes = [c_uint64]
     csp_betoh64.restype = c_uint64
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_endian.h: 136
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_letoh64'):
-        continue
-    csp_letoh64 = _lib.csp_letoh64
+if hasattr(_libs['csp'], 'csp_letoh64'):
+    csp_letoh64 = _libs['csp'].csp_letoh64
     csp_letoh64.argtypes = [c_uint64]
     csp_letoh64.restype = c_uint64
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_endian.h: 143
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_htonflt'):
-        continue
-    csp_htonflt = _lib.csp_htonflt
+if hasattr(_libs['csp'], 'csp_htonflt'):
+    csp_htonflt = _libs['csp'].csp_htonflt
     csp_htonflt.argtypes = [c_float]
     csp_htonflt.restype = c_float
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_endian.h: 150
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_ntohflt'):
-        continue
-    csp_ntohflt = _lib.csp_ntohflt
+if hasattr(_libs['csp'], 'csp_ntohflt'):
+    csp_ntohflt = _libs['csp'].csp_ntohflt
     csp_ntohflt.argtypes = [c_float]
     csp_ntohflt.restype = c_float
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_endian.h: 157
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_htondbl'):
-        continue
-    csp_htondbl = _lib.csp_htondbl
+if hasattr(_libs['csp'], 'csp_htondbl'):
+    csp_htondbl = _libs['csp'].csp_htondbl
     csp_htondbl.argtypes = [c_double]
     csp_htondbl.restype = c_double
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_endian.h: 164
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_ntohdbl'):
-        continue
-    csp_ntohdbl = _lib.csp_ntohdbl
+if hasattr(_libs['csp'], 'csp_ntohdbl'):
+    csp_ntohdbl = _libs['csp'].csp_ntohdbl
     csp_ntohdbl.argtypes = [c_double]
     csp_ntohdbl.restype = c_double
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_interface.h: 48
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_qfifo_write'):
-        continue
-    csp_qfifo_write = _lib.csp_qfifo_write
+if hasattr(_libs['csp'], 'csp_qfifo_write'):
+    csp_qfifo_write = _libs['csp'].csp_qfifo_write
     csp_qfifo_write.argtypes = [POINTER(csp_packet_t), POINTER(csp_iface_t), POINTER(c_int)]
     csp_qfifo_write.restype = None
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_interface.h: 60
 for _lib in _libs.itervalues():
@@ -1677,13 +1396,10 @@ for _lib in _libs.itervalues():
     break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_interface.h: 66
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_iflist_add'):
-        continue
-    csp_iflist_add = _lib.csp_iflist_add
+if hasattr(_libs['csp'], 'csp_iflist_add'):
+    csp_iflist_add = _libs['csp'].csp_iflist_add
     csp_iflist_add.argtypes = [POINTER(csp_iface_t)]
     csp_iflist_add.restype = None
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/drivers/i2c.h: 59
 class struct_i2c_frame_s(Structure):
@@ -1752,77 +1468,54 @@ struct_usart_conf._fields_ = [
 ]
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/drivers/usart.h: 49
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'usart_init'):
-        continue
-    usart_init = _lib.usart_init
+if hasattr(_libs['csp'], 'usart_init'):
+    usart_init = _libs['csp'].usart_init
     usart_init.argtypes = [POINTER(struct_usart_conf)]
     usart_init.restype = None
-    break
 
 usart_callback_t = CFUNCTYPE(UNCHECKED(None), POINTER(c_uint8), c_int, POINTER(None)) # /home/johan/git/pygnd/lib/libcsp/include/csp/drivers/usart.h: 57
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/drivers/usart.h: 58
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'usart_set_callback'):
-        continue
-    usart_set_callback = _lib.usart_set_callback
+if hasattr(_libs['csp'], 'usart_set_callback'):
+    usart_set_callback = _libs['csp'].usart_set_callback
     usart_set_callback.argtypes = [usart_callback_t]
     usart_set_callback.restype = None
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/drivers/usart.h: 65
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'usart_insert'):
-        continue
-    usart_insert = _lib.usart_insert
+if hasattr(_libs['csp'], 'usart_insert'):
+    usart_insert = _libs['csp'].usart_insert
     usart_insert.argtypes = [c_char, POINTER(None)]
     usart_insert.restype = None
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/drivers/usart.h: 73
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'usart_putc'):
-        continue
-    usart_putc = _lib.usart_putc
+if hasattr(_libs['csp'], 'usart_putc'):
+    usart_putc = _libs['csp'].usart_putc
     usart_putc.argtypes = [c_char]
     usart_putc.restype = None
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/drivers/usart.h: 82
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'usart_putstr'):
-        continue
-    usart_putstr = _lib.usart_putstr
+if hasattr(_libs['csp'], 'usart_putstr'):
+    usart_putstr = _libs['csp'].usart_putstr
     usart_putstr.argtypes = [String, c_int]
     usart_putstr.restype = None
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/drivers/usart.h: 90
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'usart_getc'):
-        continue
-    usart_getc = _lib.usart_getc
+if hasattr(_libs['csp'], 'usart_getc'):
+    usart_getc = _libs['csp'].usart_getc
     usart_getc.argtypes = []
     usart_getc.restype = c_char
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/drivers/usart.h: 92
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'usart_messages_waiting'):
-        continue
-    usart_messages_waiting = _lib.usart_messages_waiting
+if hasattr(_libs['csp'], 'usart_messages_waiting'):
+    usart_messages_waiting = _libs['csp'].usart_messages_waiting
     usart_messages_waiting.argtypes = [c_int]
     usart_messages_waiting.restype = c_int
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/interfaces/csp_if_can.h: 37
-for _lib in _libs.values():
-    try:
-        csp_if_can = (csp_iface_t).in_dll(_lib, 'csp_if_can')
-        break
-    except:
-        pass
+try:
+    csp_if_can = (csp_iface_t).in_dll(_libs['csp'], 'csp_if_can')
+except:
+    pass
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/interfaces/csp_if_can.h: 40
 class struct_csp_can_config(Structure):
@@ -1840,13 +1533,10 @@ struct_csp_can_config._fields_ = [
 ]
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/interfaces/csp_if_can.h: 52
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_can_init'):
-        continue
-    csp_can_init = _lib.csp_can_init
+if hasattr(_libs['csp'], 'csp_can_init'):
+    csp_can_init = _libs['csp'].csp_can_init
     csp_can_init.argtypes = [c_uint8, POINTER(struct_csp_can_config)]
     csp_can_init.restype = c_int
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/interfaces/csp_if_i2c.h: 33
 for _lib in _libs.values():
@@ -1866,13 +1556,10 @@ for _lib in _libs.itervalues():
     break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/interfaces/csp_if_kiss.h: 50
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_kiss_rx'):
-        continue
-    csp_kiss_rx = _lib.csp_kiss_rx
+if hasattr(_libs['csp'], 'csp_kiss_rx'):
+    csp_kiss_rx = _libs['csp'].csp_kiss_rx
     csp_kiss_rx.argtypes = [POINTER(csp_iface_t), POINTER(c_uint8), c_int, POINTER(None)]
     csp_kiss_rx.restype = None
-    break
 
 csp_kiss_putc_f = CFUNCTYPE(UNCHECKED(None), c_char) # /home/johan/git/pygnd/lib/libcsp/include/csp/interfaces/csp_if_kiss.h: 59
 
@@ -1916,38 +1603,28 @@ struct_csp_kiss_handle_s._fields_ = [
 csp_kiss_handle_t = struct_csp_kiss_handle_s # /home/johan/git/pygnd/lib/libcsp/include/csp/interfaces/csp_if_kiss.h: 95
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/interfaces/csp_if_kiss.h: 97
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_kiss_init'):
-        continue
-    csp_kiss_init = _lib.csp_kiss_init
+if hasattr(_libs['csp'], 'csp_kiss_init'):
+    csp_kiss_init = _libs['csp'].csp_kiss_init
     csp_kiss_init.argtypes = [POINTER(csp_iface_t), POINTER(csp_kiss_handle_t), csp_kiss_putc_f, csp_kiss_discard_f, String]
     csp_kiss_init.restype = None
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/interfaces/csp_if_lo.h: 32
-for _lib in _libs.values():
-    try:
-        csp_if_lo = (csp_iface_t).in_dll(_lib, 'csp_if_lo')
-        break
-    except:
-        pass
+try:
+    csp_if_lo = (csp_iface_t).in_dll(_libs['csp'], 'csp_if_lo')
+except:
+    pass
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/interfaces/csp_if_zmqhub.h: 6
-for _lib in _libs.values():
-    try:
-        csp_if_zmqhub = (csp_iface_t).in_dll(_lib, 'csp_if_zmqhub')
-        break
-    except:
-        pass
+try:
+    csp_if_zmqhub = (csp_iface_t).in_dll(_libs['csp'], 'csp_if_zmqhub')
+except:
+    pass
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/interfaces/csp_if_zmqhub.h: 14
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_zmqhub_init'):
-        continue
-    csp_zmqhub_init = _lib.csp_zmqhub_init
+if hasattr(_libs['csp'], 'csp_zmqhub_init'):
+    csp_zmqhub_init = _libs['csp'].csp_zmqhub_init
     csp_zmqhub_init.argtypes = [c_char, String]
     csp_zmqhub_init.restype = c_int
-    break
 
 # /usr/include/stdint.h: 168
 try:
