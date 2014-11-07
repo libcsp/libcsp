@@ -117,7 +117,7 @@ static int csp_rtable_parse(char * buffer, int dry_run) {
 				return -1;
 			}
 		}
-		printf("Parsed %u/%u %u %s\r\n", address, netmask, mac, name);
+		//printf("Parsed %u/%u %u %s\r\n", address, netmask, mac, name);
 		csp_iface_t * ifc = csp_iflist_get_by_name(name);
 		if (ifc) {
 			if (dry_run == 0)
@@ -144,7 +144,6 @@ int csp_rtable_check(char * buffer) {
 int csp_rtable_save(char * buffer, int maxlen) {
 	int len = 0;
 	for (csp_rtable_t * i = rtable; (i); i = i->next) {
-		printf("%p\r\n", i);
 		len += snprintf(buffer + len, maxlen - len, "%u/%u %u %s, ", i->address, i->netmask, i->mac, i->interface->name);
 	}
 	return len;
