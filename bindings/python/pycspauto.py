@@ -1,7 +1,7 @@
 '''Wrapper for csp.h
 
 Generated with:
-/usr/local/bin/ctypesgen.py -I../../build/include -I../../include ../../include/csp/csp.h ../../include/csp/csp_buffer.h ../../include/csp/csp_cmp.h ../../include/csp/csp_crc32.h ../../include/csp/csp_debug.h ../../include/csp/csp_endian.h ../../include/csp/csp_error.h ../../include/csp/csp_iflist.h ../../include/csp/csp_interface.h ../../include/csp/csp_platform.h ../../include/csp/csp_rtable.h ../../include/csp/csp_types.h ../../include/csp/drivers/i2c.h ../../include/csp/drivers/usart.h ../../include/csp/interfaces/csp_if_can.h ../../include/csp/interfaces/csp_if_i2c.h ../../include/csp/interfaces/csp_if_kiss.h ../../include/csp/interfaces/csp_if_lo.h ../../include/csp/interfaces/csp_if_zmqhub.h -lcsp -o pycspauto.py
+/usr/local/bin/ctypesgen.py --all-headers -I../../build/include -I../../include ../../include/csp/csp.h ../../include/csp/drivers/i2c.h ../../include/csp/drivers/usart.h ../../include/csp/interfaces/csp_if_can.h ../../include/csp/interfaces/csp_if_i2c.h ../../include/csp/interfaces/csp_if_kiss.h ../../include/csp/interfaces/csp_if_lo.h ../../include/csp/interfaces/csp_if_zmqhub.h -lcsp -o pycspauto.py
 
 Do not modify this file.
 '''
@@ -342,6 +342,7 @@ _libdirs = []
 # ----------------------------------------------------------------------------
 
 import os.path, re, sys, glob
+import platform
 import ctypes
 import ctypes.util
 
@@ -383,8 +384,8 @@ class LibraryLoader(object):
         """Return a list of paths where the library might be found."""
         if os.path.isabs(libname):
             yield libname
-
         else:
+            # FIXME / TODO return '.' and os.path.dirname(__file__)
             for path in self.getplatformpaths(libname):
                 yield path
 
@@ -436,6 +437,7 @@ class DarwinLibraryLoader(LibraryLoader):
 
         dirs.extend(self.other_dirs)
         dirs.append(".")
+        dirs.append(os.path.dirname(__file__))
 
         if hasattr(sys, 'frozen') and sys.frozen == 'macosx_app':
             dirs.append(os.path.join(
@@ -470,11 +472,26 @@ class PosixLibraryLoader(LibraryLoader):
                 directories.extend(os.environ[name].split(os.pathsep))
         directories.extend(self.other_dirs)
         directories.append(".")
+        directories.append(os.path.dirname(__file__))
 
         try: directories.extend([dir.strip() for dir in open('/etc/ld.so.conf')])
         except IOError: pass
 
-        directories.extend(['/lib', '/usr/lib', '/lib64', '/usr/lib64'])
+        unix_lib_dirs_list = ['/lib', '/usr/lib', '/lib64', '/usr/lib64']
+        if sys.platform.startswith('linux'):
+            # Try and support multiarch work in Ubuntu
+            # https://wiki.ubuntu.com/MultiarchSpec
+            bitage = platform.architecture()[0]
+            if bitage.startswith('32'):
+                # Assume Intel/AMD x86 compat
+                unix_lib_dirs_list += ['/lib/i386-linux-gnu', '/usr/lib/i386-linux-gnu']
+            elif bitage.startswith('64'):
+                # Assume Intel/AMD x86 compat
+                unix_lib_dirs_list += ['/lib/x86_64-linux-gnu', '/usr/lib/x86_64-linux-gnu']
+            else:
+                # guess...
+                unix_lib_dirs_list += glob.glob('/lib/*linux-gnu')
+        directories.extend(unix_lib_dirs_list)
 
         cache = {}
         lib_re = re.compile(r'lib(.*)\.s[ol]')
@@ -594,6 +611,62 @@ _libs["csp"] = load_library("csp")
 
 # No modules
 
+int8_t = c_char # /usr/include/stdint.h: 36
+
+int16_t = c_int # /usr/include/stdint.h: 37
+
+int32_t = c_int # /usr/include/stdint.h: 38
+
+int64_t = c_long # /usr/include/stdint.h: 40
+
+uint8_t = c_ubyte # /usr/include/stdint.h: 48
+
+uint16_t = c_uint # /usr/include/stdint.h: 49
+
+uint32_t = c_uint # /usr/include/stdint.h: 51
+
+uint64_t = c_ulong # /usr/include/stdint.h: 55
+
+int_least8_t = c_char # /usr/include/stdint.h: 65
+
+int_least16_t = c_int # /usr/include/stdint.h: 66
+
+int_least32_t = c_int # /usr/include/stdint.h: 67
+
+int_least64_t = c_long # /usr/include/stdint.h: 69
+
+uint_least8_t = c_ubyte # /usr/include/stdint.h: 76
+
+uint_least16_t = c_uint # /usr/include/stdint.h: 77
+
+uint_least32_t = c_uint # /usr/include/stdint.h: 78
+
+uint_least64_t = c_ulong # /usr/include/stdint.h: 80
+
+int_fast8_t = c_char # /usr/include/stdint.h: 90
+
+int_fast16_t = c_long # /usr/include/stdint.h: 92
+
+int_fast32_t = c_long # /usr/include/stdint.h: 93
+
+int_fast64_t = c_long # /usr/include/stdint.h: 94
+
+uint_fast8_t = c_ubyte # /usr/include/stdint.h: 103
+
+uint_fast16_t = c_ulong # /usr/include/stdint.h: 105
+
+uint_fast32_t = c_ulong # /usr/include/stdint.h: 106
+
+uint_fast64_t = c_ulong # /usr/include/stdint.h: 107
+
+intptr_t = c_long # /usr/include/stdint.h: 119
+
+uintptr_t = c_ulong # /usr/include/stdint.h: 122
+
+intmax_t = c_long # /usr/include/stdint.h: 134
+
+uintmax_t = c_ulong # /usr/include/stdint.h: 135
+
 enum_csp_reserved_ports_e = c_int # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_types.h: 39
 
 CSP_CMP = 0 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_types.h: 39
@@ -626,35 +699,83 @@ CSP_PRIO_LOW = 3 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_types.h: 56
 
 csp_prio_t = enum_anon_1 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_types.h: 56
 
-# /home/johan/git/pygnd/lib/libcsp/include/csp/csp_types.h: 121
-class union_anon_2(Union):
+# /home/johan/git/pygnd/lib/libcsp/include/csp/csp_types.h: 102
+class struct_anon_2(Structure):
+    _pack_ = 1
     pass
 
-union_anon_2.__slots__ = [
-    'ext',
+struct_anon_2.__slots__ = [
+    'flags',
+    'sport',
+    'dport',
+    'dst',
+    'src',
+    'pri',
 ]
-union_anon_2._fields_ = [
-    ('ext', c_uint32),
+struct_anon_2._fields_ = [
+    ('flags', c_uint, 8),
+    ('sport', c_uint, 6),
+    ('dport', c_uint, 6),
+    ('dst', c_uint, 5),
+    ('src', c_uint, 5),
+    ('pri', c_uint, 2),
 ]
 
-csp_id_t = union_anon_2 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_types.h: 121
+# /home/johan/git/pygnd/lib/libcsp/include/csp/csp_types.h: 121
+class union_anon_3(Union):
+    pass
+
+union_anon_3.__slots__ = [
+    'ext',
+    'unnamed_1',
+]
+union_anon_3._anonymous_ = [
+    'unnamed_1',
+]
+union_anon_3._fields_ = [
+    ('ext', c_uint32),
+    ('unnamed_1', struct_anon_2),
+]
+
+csp_id_t = union_anon_3 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_types.h: 121
+
+# /home/johan/git/pygnd/lib/libcsp/include/csp/csp_types.h: 172
+class union_anon_4(Union):
+    pass
+
+union_anon_4.__slots__ = [
+    'data',
+    'data16',
+    'data32',
+]
+union_anon_4._fields_ = [
+    ('data', c_uint8 * 1024),
+    ('data16', c_uint16 * 0),
+    ('data32', c_uint32 * 0),
+]
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_types.h: 177
-class struct_anon_3(Structure):
+class struct_anon_5(Structure):
+    _pack_ = 1
     pass
 
-struct_anon_3.__slots__ = [
+struct_anon_5.__slots__ = [
     'padding',
     'length',
     'id',
+    'unnamed_1',
 ]
-struct_anon_3._fields_ = [
+struct_anon_5._anonymous_ = [
+    'unnamed_1',
+]
+struct_anon_5._fields_ = [
     ('padding', c_uint8 * 8),
     ('length', c_uint16),
     ('id', csp_id_t),
+    ('unnamed_1', union_anon_4),
 ]
 
-csp_packet_t = struct_anon_3 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_types.h: 177
+csp_packet_t = struct_anon_5 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_types.h: 177
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_types.h: 184
 class struct_csp_iface_s(Structure):
@@ -711,7 +832,461 @@ csp_socket_t = struct_csp_conn_s # /home/johan/git/pygnd/lib/libcsp/include/csp/
 
 csp_conn_t = struct_csp_conn_s # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_types.h: 213
 
-enum_anon_5 = c_int # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_debug.h: 40
+__gwchar_t = c_int # /usr/include/inttypes.h: 34
+
+# /usr/include/inttypes.h: 275
+class struct_anon_6(Structure):
+    pass
+
+struct_anon_6.__slots__ = [
+    'quot',
+    'rem',
+]
+struct_anon_6._fields_ = [
+    ('quot', c_long),
+    ('rem', c_long),
+]
+
+imaxdiv_t = struct_anon_6 # /usr/include/inttypes.h: 275
+
+# /usr/include/inttypes.h: 290
+if hasattr(_libs['csp'], 'imaxabs'):
+    imaxabs = _libs['csp'].imaxabs
+    imaxabs.argtypes = [intmax_t]
+    imaxabs.restype = intmax_t
+
+# /usr/include/inttypes.h: 293
+if hasattr(_libs['csp'], 'imaxdiv'):
+    imaxdiv = _libs['csp'].imaxdiv
+    imaxdiv.argtypes = [intmax_t, intmax_t]
+    imaxdiv.restype = imaxdiv_t
+
+# /usr/include/inttypes.h: 297
+if hasattr(_libs['csp'], 'strtoimax'):
+    strtoimax = _libs['csp'].strtoimax
+    strtoimax.argtypes = [String, POINTER(POINTER(c_char)), c_int]
+    strtoimax.restype = intmax_t
+
+# /usr/include/inttypes.h: 301
+if hasattr(_libs['csp'], 'strtoumax'):
+    strtoumax = _libs['csp'].strtoumax
+    strtoumax.argtypes = [String, POINTER(POINTER(c_char)), c_int]
+    strtoumax.restype = uintmax_t
+
+# /usr/include/inttypes.h: 305
+if hasattr(_libs['csp'], 'wcstoimax'):
+    wcstoimax = _libs['csp'].wcstoimax
+    wcstoimax.argtypes = [POINTER(__gwchar_t), POINTER(POINTER(__gwchar_t)), c_int]
+    wcstoimax.restype = intmax_t
+
+# /usr/include/inttypes.h: 310
+if hasattr(_libs['csp'], 'wcstoumax'):
+    wcstoumax = _libs['csp'].wcstoumax
+    wcstoumax.argtypes = [POINTER(__gwchar_t), POINTER(POINTER(__gwchar_t)), c_int]
+    wcstoumax.restype = uintmax_t
+
+# /usr/include/string.h: 46
+if hasattr(_libs['csp'], 'memcpy'):
+    memcpy = _libs['csp'].memcpy
+    memcpy.argtypes = [POINTER(None), POINTER(None), c_size_t]
+    memcpy.restype = POINTER(None)
+
+# /usr/include/string.h: 50
+if hasattr(_libs['csp'], 'memmove'):
+    memmove = _libs['csp'].memmove
+    memmove.argtypes = [POINTER(None), POINTER(None), c_size_t]
+    memmove.restype = POINTER(None)
+
+# /usr/include/string.h: 58
+if hasattr(_libs['csp'], 'memccpy'):
+    memccpy = _libs['csp'].memccpy
+    memccpy.argtypes = [POINTER(None), POINTER(None), c_int, c_size_t]
+    memccpy.restype = POINTER(None)
+
+# /usr/include/string.h: 66
+if hasattr(_libs['csp'], 'memset'):
+    memset = _libs['csp'].memset
+    memset.argtypes = [POINTER(None), c_int, c_size_t]
+    memset.restype = POINTER(None)
+
+# /usr/include/string.h: 69
+if hasattr(_libs['csp'], 'memcmp'):
+    memcmp = _libs['csp'].memcmp
+    memcmp.argtypes = [POINTER(None), POINTER(None), c_size_t]
+    memcmp.restype = c_int
+
+# /usr/include/string.h: 96
+if hasattr(_libs['csp'], 'memchr'):
+    memchr = _libs['csp'].memchr
+    memchr.argtypes = [POINTER(None), c_int, c_size_t]
+    memchr.restype = POINTER(None)
+
+# /usr/include/string.h: 129
+if hasattr(_libs['csp'], 'strcpy'):
+    strcpy = _libs['csp'].strcpy
+    strcpy.argtypes = [String, String]
+    if sizeof(c_int) == sizeof(c_void_p):
+        strcpy.restype = ReturnString
+    else:
+        strcpy.restype = String
+        strcpy.errcheck = ReturnString
+
+# /usr/include/string.h: 132
+if hasattr(_libs['csp'], 'strncpy'):
+    strncpy = _libs['csp'].strncpy
+    strncpy.argtypes = [String, String, c_size_t]
+    if sizeof(c_int) == sizeof(c_void_p):
+        strncpy.restype = ReturnString
+    else:
+        strncpy.restype = String
+        strncpy.errcheck = ReturnString
+
+# /usr/include/string.h: 137
+if hasattr(_libs['csp'], 'strcat'):
+    strcat = _libs['csp'].strcat
+    strcat.argtypes = [String, String]
+    if sizeof(c_int) == sizeof(c_void_p):
+        strcat.restype = ReturnString
+    else:
+        strcat.restype = String
+        strcat.errcheck = ReturnString
+
+# /usr/include/string.h: 140
+if hasattr(_libs['csp'], 'strncat'):
+    strncat = _libs['csp'].strncat
+    strncat.argtypes = [String, String, c_size_t]
+    if sizeof(c_int) == sizeof(c_void_p):
+        strncat.restype = ReturnString
+    else:
+        strncat.restype = String
+        strncat.errcheck = ReturnString
+
+# /usr/include/string.h: 144
+if hasattr(_libs['csp'], 'strcmp'):
+    strcmp = _libs['csp'].strcmp
+    strcmp.argtypes = [String, String]
+    strcmp.restype = c_int
+
+# /usr/include/string.h: 147
+if hasattr(_libs['csp'], 'strncmp'):
+    strncmp = _libs['csp'].strncmp
+    strncmp.argtypes = [String, String, c_size_t]
+    strncmp.restype = c_int
+
+# /usr/include/string.h: 151
+if hasattr(_libs['csp'], 'strcoll'):
+    strcoll = _libs['csp'].strcoll
+    strcoll.argtypes = [String, String]
+    strcoll.restype = c_int
+
+# /usr/include/string.h: 154
+if hasattr(_libs['csp'], 'strxfrm'):
+    strxfrm = _libs['csp'].strxfrm
+    strxfrm.argtypes = [String, String, c_size_t]
+    strxfrm.restype = c_size_t
+
+# /usr/include/xlocale.h: 30
+class struct___locale_data(Structure):
+    pass
+
+# /usr/include/xlocale.h: 27
+class struct___locale_struct(Structure):
+    pass
+
+struct___locale_struct.__slots__ = [
+    '__locales',
+    '__ctype_b',
+    '__ctype_tolower',
+    '__ctype_toupper',
+    '__names',
+]
+struct___locale_struct._fields_ = [
+    ('__locales', POINTER(struct___locale_data) * 13),
+    ('__ctype_b', POINTER(c_uint)),
+    ('__ctype_tolower', POINTER(c_int)),
+    ('__ctype_toupper', POINTER(c_int)),
+    ('__names', POINTER(c_char) * 13),
+]
+
+__locale_t = POINTER(struct___locale_struct) # /usr/include/xlocale.h: 39
+
+locale_t = __locale_t # /usr/include/xlocale.h: 42
+
+# /usr/include/string.h: 166
+if hasattr(_libs['csp'], 'strcoll_l'):
+    strcoll_l = _libs['csp'].strcoll_l
+    strcoll_l.argtypes = [String, String, __locale_t]
+    strcoll_l.restype = c_int
+
+# /usr/include/string.h: 169
+if hasattr(_libs['csp'], 'strxfrm_l'):
+    strxfrm_l = _libs['csp'].strxfrm_l
+    strxfrm_l.argtypes = [String, String, c_size_t, __locale_t]
+    strxfrm_l.restype = c_size_t
+
+# /usr/include/string.h: 176
+if hasattr(_libs['csp'], 'strdup'):
+    strdup = _libs['csp'].strdup
+    strdup.argtypes = [String]
+    if sizeof(c_int) == sizeof(c_void_p):
+        strdup.restype = ReturnString
+    else:
+        strdup.restype = String
+        strdup.errcheck = ReturnString
+
+# /usr/include/string.h: 184
+if hasattr(_libs['csp'], 'strndup'):
+    strndup = _libs['csp'].strndup
+    strndup.argtypes = [String, c_size_t]
+    if sizeof(c_int) == sizeof(c_void_p):
+        strndup.restype = ReturnString
+    else:
+        strndup.restype = String
+        strndup.errcheck = ReturnString
+
+# /usr/include/string.h: 236
+if hasattr(_libs['csp'], 'strchr'):
+    strchr = _libs['csp'].strchr
+    strchr.argtypes = [String, c_int]
+    if sizeof(c_int) == sizeof(c_void_p):
+        strchr.restype = ReturnString
+    else:
+        strchr.restype = String
+        strchr.errcheck = ReturnString
+
+# /usr/include/string.h: 263
+if hasattr(_libs['csp'], 'strrchr'):
+    strrchr = _libs['csp'].strrchr
+    strrchr.argtypes = [String, c_int]
+    if sizeof(c_int) == sizeof(c_void_p):
+        strrchr.restype = ReturnString
+    else:
+        strrchr.restype = String
+        strrchr.errcheck = ReturnString
+
+# /usr/include/string.h: 285
+if hasattr(_libs['csp'], 'strcspn'):
+    strcspn = _libs['csp'].strcspn
+    strcspn.argtypes = [String, String]
+    strcspn.restype = c_size_t
+
+# /usr/include/string.h: 289
+if hasattr(_libs['csp'], 'strspn'):
+    strspn = _libs['csp'].strspn
+    strspn.argtypes = [String, String]
+    strspn.restype = c_size_t
+
+# /usr/include/string.h: 315
+if hasattr(_libs['csp'], 'strpbrk'):
+    strpbrk = _libs['csp'].strpbrk
+    strpbrk.argtypes = [String, String]
+    if sizeof(c_int) == sizeof(c_void_p):
+        strpbrk.restype = ReturnString
+    else:
+        strpbrk.restype = String
+        strpbrk.errcheck = ReturnString
+
+# /usr/include/string.h: 342
+if hasattr(_libs['csp'], 'strstr'):
+    strstr = _libs['csp'].strstr
+    strstr.argtypes = [String, String]
+    if sizeof(c_int) == sizeof(c_void_p):
+        strstr.restype = ReturnString
+    else:
+        strstr.restype = String
+        strstr.errcheck = ReturnString
+
+# /usr/include/string.h: 348
+if hasattr(_libs['csp'], 'strtok'):
+    strtok = _libs['csp'].strtok
+    strtok.argtypes = [String, String]
+    if sizeof(c_int) == sizeof(c_void_p):
+        strtok.restype = ReturnString
+    else:
+        strtok.restype = String
+        strtok.errcheck = ReturnString
+
+# /usr/include/string.h: 354
+if hasattr(_libs['csp'], '__strtok_r'):
+    __strtok_r = _libs['csp'].__strtok_r
+    __strtok_r.argtypes = [String, String, POINTER(POINTER(c_char))]
+    if sizeof(c_int) == sizeof(c_void_p):
+        __strtok_r.restype = ReturnString
+    else:
+        __strtok_r.restype = String
+        __strtok_r.errcheck = ReturnString
+
+# /usr/include/string.h: 359
+if hasattr(_libs['csp'], 'strtok_r'):
+    strtok_r = _libs['csp'].strtok_r
+    strtok_r.argtypes = [String, String, POINTER(POINTER(c_char))]
+    if sizeof(c_int) == sizeof(c_void_p):
+        strtok_r.restype = ReturnString
+    else:
+        strtok_r.restype = String
+        strtok_r.errcheck = ReturnString
+
+# /usr/include/string.h: 399
+if hasattr(_libs['csp'], 'strlen'):
+    strlen = _libs['csp'].strlen
+    strlen.argtypes = [String]
+    strlen.restype = c_size_t
+
+# /usr/include/string.h: 406
+if hasattr(_libs['csp'], 'strnlen'):
+    strnlen = _libs['csp'].strnlen
+    strnlen.argtypes = [String, c_size_t]
+    strnlen.restype = c_size_t
+
+# /usr/include/string.h: 413
+if hasattr(_libs['csp'], 'strerror'):
+    strerror = _libs['csp'].strerror
+    strerror.argtypes = [c_int]
+    if sizeof(c_int) == sizeof(c_void_p):
+        strerror.restype = ReturnString
+    else:
+        strerror.restype = String
+        strerror.errcheck = ReturnString
+
+# /usr/include/string.h: 431
+if hasattr(_libs['csp'], '__xpg_strerror_r'):
+    __xpg_strerror_r = _libs['csp'].__xpg_strerror_r
+    __xpg_strerror_r.argtypes = [c_int, String, c_size_t]
+    __xpg_strerror_r.restype = c_int
+
+# /usr/include/string.h: 445
+if hasattr(_libs['csp'], 'strerror_l'):
+    strerror_l = _libs['csp'].strerror_l
+    strerror_l.argtypes = [c_int, __locale_t]
+    if sizeof(c_int) == sizeof(c_void_p):
+        strerror_l.restype = ReturnString
+    else:
+        strerror_l.restype = String
+        strerror_l.errcheck = ReturnString
+
+# /usr/include/string.h: 451
+if hasattr(_libs['csp'], '__bzero'):
+    __bzero = _libs['csp'].__bzero
+    __bzero.argtypes = [POINTER(None), c_size_t]
+    __bzero.restype = None
+
+# /usr/include/string.h: 455
+if hasattr(_libs['csp'], 'bcopy'):
+    bcopy = _libs['csp'].bcopy
+    bcopy.argtypes = [POINTER(None), POINTER(None), c_size_t]
+    bcopy.restype = None
+
+# /usr/include/string.h: 459
+if hasattr(_libs['csp'], 'bzero'):
+    bzero = _libs['csp'].bzero
+    bzero.argtypes = [POINTER(None), c_size_t]
+    bzero.restype = None
+
+# /usr/include/string.h: 462
+if hasattr(_libs['csp'], 'bcmp'):
+    bcmp = _libs['csp'].bcmp
+    bcmp.argtypes = [POINTER(None), POINTER(None), c_size_t]
+    bcmp.restype = c_int
+
+# /usr/include/string.h: 489
+if hasattr(_libs['csp'], 'index'):
+    index = _libs['csp'].index
+    index.argtypes = [String, c_int]
+    if sizeof(c_int) == sizeof(c_void_p):
+        index.restype = ReturnString
+    else:
+        index.restype = String
+        index.errcheck = ReturnString
+
+# /usr/include/string.h: 517
+if hasattr(_libs['csp'], 'rindex'):
+    rindex = _libs['csp'].rindex
+    rindex.argtypes = [String, c_int]
+    if sizeof(c_int) == sizeof(c_void_p):
+        rindex.restype = ReturnString
+    else:
+        rindex.restype = String
+        rindex.errcheck = ReturnString
+
+# /usr/include/string.h: 523
+if hasattr(_libs['csp'], 'ffs'):
+    ffs = _libs['csp'].ffs
+    ffs.argtypes = [c_int]
+    ffs.restype = c_int
+
+# /usr/include/string.h: 534
+if hasattr(_libs['csp'], 'strcasecmp'):
+    strcasecmp = _libs['csp'].strcasecmp
+    strcasecmp.argtypes = [String, String]
+    strcasecmp.restype = c_int
+
+# /usr/include/string.h: 538
+if hasattr(_libs['csp'], 'strncasecmp'):
+    strncasecmp = _libs['csp'].strncasecmp
+    strncasecmp.argtypes = [String, String, c_size_t]
+    strncasecmp.restype = c_int
+
+# /usr/include/string.h: 557
+if hasattr(_libs['csp'], 'strsep'):
+    strsep = _libs['csp'].strsep
+    strsep.argtypes = [POINTER(POINTER(c_char)), String]
+    if sizeof(c_int) == sizeof(c_void_p):
+        strsep.restype = ReturnString
+    else:
+        strsep.restype = String
+        strsep.errcheck = ReturnString
+
+# /usr/include/string.h: 564
+if hasattr(_libs['csp'], 'strsignal'):
+    strsignal = _libs['csp'].strsignal
+    strsignal.argtypes = [c_int]
+    if sizeof(c_int) == sizeof(c_void_p):
+        strsignal.restype = ReturnString
+    else:
+        strsignal.restype = String
+        strsignal.errcheck = ReturnString
+
+# /usr/include/string.h: 567
+if hasattr(_libs['csp'], '__stpcpy'):
+    __stpcpy = _libs['csp'].__stpcpy
+    __stpcpy.argtypes = [String, String]
+    if sizeof(c_int) == sizeof(c_void_p):
+        __stpcpy.restype = ReturnString
+    else:
+        __stpcpy.restype = String
+        __stpcpy.errcheck = ReturnString
+
+# /usr/include/string.h: 569
+if hasattr(_libs['csp'], 'stpcpy'):
+    stpcpy = _libs['csp'].stpcpy
+    stpcpy.argtypes = [String, String]
+    if sizeof(c_int) == sizeof(c_void_p):
+        stpcpy.restype = ReturnString
+    else:
+        stpcpy.restype = String
+        stpcpy.errcheck = ReturnString
+
+# /usr/include/string.h: 574
+if hasattr(_libs['csp'], '__stpncpy'):
+    __stpncpy = _libs['csp'].__stpncpy
+    __stpncpy.argtypes = [String, String, c_size_t]
+    if sizeof(c_int) == sizeof(c_void_p):
+        __stpncpy.restype = ReturnString
+    else:
+        __stpncpy.restype = String
+        __stpncpy.errcheck = ReturnString
+
+# /usr/include/string.h: 577
+if hasattr(_libs['csp'], 'stpncpy'):
+    stpncpy = _libs['csp'].stpncpy
+    stpncpy.argtypes = [String, String, c_size_t]
+    if sizeof(c_int) == sizeof(c_void_p):
+        stpncpy.restype = ReturnString
+    else:
+        stpncpy.restype = String
+        stpncpy.errcheck = ReturnString
+
+enum_anon_7 = c_int # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_debug.h: 40
 
 CSP_ERROR = 0 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_debug.h: 40
 
@@ -727,7 +1302,7 @@ CSP_PROTOCOL = 5 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_debug.h: 40
 
 CSP_LOCK = 6 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_debug.h: 40
 
-csp_debug_level_t = enum_anon_5 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_debug.h: 40
+csp_debug_level_t = enum_anon_7 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_debug.h: 40
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_debug.h: 42
 try:
@@ -760,7 +1335,7 @@ if hasattr(_libs['csp'], 'csp_debug_toggle_level'):
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_debug.h: 142
 if hasattr(_libs['csp'], 'csp_debug_set_level'):
     csp_debug_set_level = _libs['csp'].csp_debug_set_level
-    csp_debug_set_level.argtypes = [csp_debug_level_t, c_uint8]
+    csp_debug_set_level.argtypes = [csp_debug_level_t, c_bool]
     csp_debug_set_level.restype = None
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_debug.h: 149
@@ -842,52 +1417,46 @@ if hasattr(_libs['csp'], 'csp_rtable_print'):
     csp_rtable_print.restype = None
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_rtable.h: 70
-if hasattr(_libs['csp'], 'csp_route_table_load'):
-    csp_route_table_load = _libs['csp'].csp_route_table_load
+for _lib in _libs.itervalues():
+    if not hasattr(_lib, 'csp_route_table_load'):
+        continue
+    csp_route_table_load = _lib.csp_route_table_load
     csp_route_table_load.argtypes = [c_uint8 * (5 * (((1 << 5) - 1) + 2))]
     csp_route_table_load.restype = None
+    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_rtable.h: 82
-if hasattr(_libs['csp'], 'csp_route_table_save'):
-    csp_route_table_save = _libs['csp'].csp_route_table_save
+for _lib in _libs.itervalues():
+    if not hasattr(_lib, 'csp_route_table_save'):
+        continue
+    csp_route_table_save = _lib.csp_route_table_save
     csp_route_table_save.argtypes = [c_uint8 * (5 * (((1 << 5) - 1) + 2))]
     csp_route_table_save.restype = None
+    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_rtable.h: 91
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_rtable_save'):
-        continue
-    csp_rtable_save = _lib.csp_rtable_save
+if hasattr(_libs['csp'], 'csp_rtable_save'):
+    csp_rtable_save = _libs['csp'].csp_rtable_save
     csp_rtable_save.argtypes = [String, c_int]
     csp_rtable_save.restype = c_int
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_rtable.h: 105
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_rtable_load'):
-        continue
-    csp_rtable_load = _lib.csp_rtable_load
+if hasattr(_libs['csp'], 'csp_rtable_load'):
+    csp_rtable_load = _libs['csp'].csp_rtable_load
     csp_rtable_load.argtypes = [String]
     csp_rtable_load.restype = None
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_rtable.h: 112
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_rtable_check'):
-        continue
-    csp_rtable_check = _lib.csp_rtable_check
+if hasattr(_libs['csp'], 'csp_rtable_check'):
+    csp_rtable_check = _libs['csp'].csp_rtable_check
     csp_rtable_check.argtypes = [String]
     csp_rtable_check.restype = c_int
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_rtable.h: 118
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_rtable_clear'):
-        continue
-    csp_rtable_clear = _lib.csp_rtable_clear
+if hasattr(_libs['csp'], 'csp_rtable_clear'):
+    csp_rtable_clear = _libs['csp'].csp_rtable_clear
     csp_rtable_clear.argtypes = []
     csp_rtable_clear.restype = None
-    break
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_iflist.h: 28
 if hasattr(_libs['csp'], 'csp_iflist_add'):
@@ -1202,205 +1771,6 @@ if hasattr(_libs['csp'], 'csp_debug_hook_set'):
     csp_debug_hook_set.argtypes = [csp_debug_hook_func_t]
     csp_debug_hook_set.restype = None
 
-# /home/johan/git/pygnd/lib/libcsp/include/csp/csp_cmp.h: 48
-class struct_csp_cmp_message(Structure):
-    pass
-
-struct_csp_cmp_message.__slots__ = [
-    'type',
-    'code',
-]
-struct_csp_cmp_message._fields_ = [
-    ('type', c_uint8),
-    ('code', c_uint8),
-]
-
-# /home/johan/git/pygnd/lib/libcsp/include/csp/csp_cmp.h: 93
-if hasattr(_libs['csp'], 'csp_cmp'):
-    csp_cmp = _libs['csp'].csp_cmp
-    csp_cmp.argtypes = [c_uint8, c_uint32, c_uint8, c_int, POINTER(struct_csp_cmp_message)]
-    csp_cmp.restype = c_int
-
-# /home/johan/git/pygnd/lib/libcsp/include/csp/csp_crc32.h: 31
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_crc32_gentab'):
-        continue
-    csp_crc32_gentab = _lib.csp_crc32_gentab
-    csp_crc32_gentab.argtypes = []
-    csp_crc32_gentab.restype = None
-    break
-
-# /home/johan/git/pygnd/lib/libcsp/include/csp/csp_crc32.h: 38
-if hasattr(_libs['csp'], 'csp_crc32_append'):
-    csp_crc32_append = _libs['csp'].csp_crc32_append
-    csp_crc32_append.argtypes = [POINTER(csp_packet_t)]
-    csp_crc32_append.restype = c_int
-
-# /home/johan/git/pygnd/lib/libcsp/include/csp/csp_crc32.h: 45
-if hasattr(_libs['csp'], 'csp_crc32_verify'):
-    csp_crc32_verify = _libs['csp'].csp_crc32_verify
-    csp_crc32_verify.argtypes = [POINTER(csp_packet_t)]
-    csp_crc32_verify.restype = c_int
-
-# /home/johan/git/pygnd/lib/libcsp/include/csp/csp_crc32.h: 53
-if hasattr(_libs['csp'], 'csp_crc32_memory'):
-    csp_crc32_memory = _libs['csp'].csp_crc32_memory
-    csp_crc32_memory.argtypes = [POINTER(c_uint8), c_uint32]
-    csp_crc32_memory.restype = c_uint32
-
-# /home/johan/git/pygnd/lib/libcsp/include/csp/csp_endian.h: 34
-if hasattr(_libs['csp'], 'csp_hton16'):
-    csp_hton16 = _libs['csp'].csp_hton16
-    csp_hton16.argtypes = [c_uint16]
-    csp_hton16.restype = c_uint16
-
-# /home/johan/git/pygnd/lib/libcsp/include/csp/csp_endian.h: 40
-if hasattr(_libs['csp'], 'csp_ntoh16'):
-    csp_ntoh16 = _libs['csp'].csp_ntoh16
-    csp_ntoh16.argtypes = [c_uint16]
-    csp_ntoh16.restype = c_uint16
-
-# /home/johan/git/pygnd/lib/libcsp/include/csp/csp_endian.h: 46
-if hasattr(_libs['csp'], 'csp_hton32'):
-    csp_hton32 = _libs['csp'].csp_hton32
-    csp_hton32.argtypes = [c_uint32]
-    csp_hton32.restype = c_uint32
-
-# /home/johan/git/pygnd/lib/libcsp/include/csp/csp_endian.h: 52
-if hasattr(_libs['csp'], 'csp_ntoh32'):
-    csp_ntoh32 = _libs['csp'].csp_ntoh32
-    csp_ntoh32.argtypes = [c_uint32]
-    csp_ntoh32.restype = c_uint32
-
-# /home/johan/git/pygnd/lib/libcsp/include/csp/csp_endian.h: 58
-if hasattr(_libs['csp'], 'csp_hton64'):
-    csp_hton64 = _libs['csp'].csp_hton64
-    csp_hton64.argtypes = [c_uint64]
-    csp_hton64.restype = c_uint64
-
-# /home/johan/git/pygnd/lib/libcsp/include/csp/csp_endian.h: 64
-if hasattr(_libs['csp'], 'csp_ntoh64'):
-    csp_ntoh64 = _libs['csp'].csp_ntoh64
-    csp_ntoh64.argtypes = [c_uint64]
-    csp_ntoh64.restype = c_uint64
-
-# /home/johan/git/pygnd/lib/libcsp/include/csp/csp_endian.h: 70
-if hasattr(_libs['csp'], 'csp_htobe16'):
-    csp_htobe16 = _libs['csp'].csp_htobe16
-    csp_htobe16.argtypes = [c_uint16]
-    csp_htobe16.restype = c_uint16
-
-# /home/johan/git/pygnd/lib/libcsp/include/csp/csp_endian.h: 76
-if hasattr(_libs['csp'], 'csp_htole16'):
-    csp_htole16 = _libs['csp'].csp_htole16
-    csp_htole16.argtypes = [c_uint16]
-    csp_htole16.restype = c_uint16
-
-# /home/johan/git/pygnd/lib/libcsp/include/csp/csp_endian.h: 82
-if hasattr(_libs['csp'], 'csp_betoh16'):
-    csp_betoh16 = _libs['csp'].csp_betoh16
-    csp_betoh16.argtypes = [c_uint16]
-    csp_betoh16.restype = c_uint16
-
-# /home/johan/git/pygnd/lib/libcsp/include/csp/csp_endian.h: 88
-if hasattr(_libs['csp'], 'csp_letoh16'):
-    csp_letoh16 = _libs['csp'].csp_letoh16
-    csp_letoh16.argtypes = [c_uint16]
-    csp_letoh16.restype = c_uint16
-
-# /home/johan/git/pygnd/lib/libcsp/include/csp/csp_endian.h: 94
-if hasattr(_libs['csp'], 'csp_htobe32'):
-    csp_htobe32 = _libs['csp'].csp_htobe32
-    csp_htobe32.argtypes = [c_uint32]
-    csp_htobe32.restype = c_uint32
-
-# /home/johan/git/pygnd/lib/libcsp/include/csp/csp_endian.h: 100
-if hasattr(_libs['csp'], 'csp_htole32'):
-    csp_htole32 = _libs['csp'].csp_htole32
-    csp_htole32.argtypes = [c_uint32]
-    csp_htole32.restype = c_uint32
-
-# /home/johan/git/pygnd/lib/libcsp/include/csp/csp_endian.h: 106
-if hasattr(_libs['csp'], 'csp_betoh32'):
-    csp_betoh32 = _libs['csp'].csp_betoh32
-    csp_betoh32.argtypes = [c_uint32]
-    csp_betoh32.restype = c_uint32
-
-# /home/johan/git/pygnd/lib/libcsp/include/csp/csp_endian.h: 112
-if hasattr(_libs['csp'], 'csp_letoh32'):
-    csp_letoh32 = _libs['csp'].csp_letoh32
-    csp_letoh32.argtypes = [c_uint32]
-    csp_letoh32.restype = c_uint32
-
-# /home/johan/git/pygnd/lib/libcsp/include/csp/csp_endian.h: 118
-if hasattr(_libs['csp'], 'csp_htobe64'):
-    csp_htobe64 = _libs['csp'].csp_htobe64
-    csp_htobe64.argtypes = [c_uint64]
-    csp_htobe64.restype = c_uint64
-
-# /home/johan/git/pygnd/lib/libcsp/include/csp/csp_endian.h: 124
-if hasattr(_libs['csp'], 'csp_htole64'):
-    csp_htole64 = _libs['csp'].csp_htole64
-    csp_htole64.argtypes = [c_uint64]
-    csp_htole64.restype = c_uint64
-
-# /home/johan/git/pygnd/lib/libcsp/include/csp/csp_endian.h: 130
-if hasattr(_libs['csp'], 'csp_betoh64'):
-    csp_betoh64 = _libs['csp'].csp_betoh64
-    csp_betoh64.argtypes = [c_uint64]
-    csp_betoh64.restype = c_uint64
-
-# /home/johan/git/pygnd/lib/libcsp/include/csp/csp_endian.h: 136
-if hasattr(_libs['csp'], 'csp_letoh64'):
-    csp_letoh64 = _libs['csp'].csp_letoh64
-    csp_letoh64.argtypes = [c_uint64]
-    csp_letoh64.restype = c_uint64
-
-# /home/johan/git/pygnd/lib/libcsp/include/csp/csp_endian.h: 143
-if hasattr(_libs['csp'], 'csp_htonflt'):
-    csp_htonflt = _libs['csp'].csp_htonflt
-    csp_htonflt.argtypes = [c_float]
-    csp_htonflt.restype = c_float
-
-# /home/johan/git/pygnd/lib/libcsp/include/csp/csp_endian.h: 150
-if hasattr(_libs['csp'], 'csp_ntohflt'):
-    csp_ntohflt = _libs['csp'].csp_ntohflt
-    csp_ntohflt.argtypes = [c_float]
-    csp_ntohflt.restype = c_float
-
-# /home/johan/git/pygnd/lib/libcsp/include/csp/csp_endian.h: 157
-if hasattr(_libs['csp'], 'csp_htondbl'):
-    csp_htondbl = _libs['csp'].csp_htondbl
-    csp_htondbl.argtypes = [c_double]
-    csp_htondbl.restype = c_double
-
-# /home/johan/git/pygnd/lib/libcsp/include/csp/csp_endian.h: 164
-if hasattr(_libs['csp'], 'csp_ntohdbl'):
-    csp_ntohdbl = _libs['csp'].csp_ntohdbl
-    csp_ntohdbl.argtypes = [c_double]
-    csp_ntohdbl.restype = c_double
-
-# /home/johan/git/pygnd/lib/libcsp/include/csp/csp_interface.h: 48
-if hasattr(_libs['csp'], 'csp_qfifo_write'):
-    csp_qfifo_write = _libs['csp'].csp_qfifo_write
-    csp_qfifo_write.argtypes = [POINTER(csp_packet_t), POINTER(csp_iface_t), POINTER(c_int)]
-    csp_qfifo_write.restype = None
-
-# /home/johan/git/pygnd/lib/libcsp/include/csp/csp_interface.h: 60
-for _lib in _libs.itervalues():
-    if not hasattr(_lib, 'csp_route_get_mac'):
-        continue
-    csp_route_get_mac = _lib.csp_route_get_mac
-    csp_route_get_mac.argtypes = [c_uint8]
-    csp_route_get_mac.restype = c_uint8
-    break
-
-# /home/johan/git/pygnd/lib/libcsp/include/csp/csp_interface.h: 66
-if hasattr(_libs['csp'], 'csp_iflist_add'):
-    csp_iflist_add = _libs['csp'].csp_iflist_add
-    csp_iflist_add.argtypes = [POINTER(csp_iface_t)]
-    csp_iflist_add.restype = None
-
 # /home/johan/git/pygnd/lib/libcsp/include/csp/drivers/i2c.h: 59
 class struct_i2c_frame_s(Structure):
     pass
@@ -1511,6 +1881,27 @@ if hasattr(_libs['csp'], 'usart_messages_waiting'):
     usart_messages_waiting.argtypes = [c_int]
     usart_messages_waiting.restype = c_int
 
+# ../../include/csp/csp_interface.h: 48
+if hasattr(_libs['csp'], 'csp_qfifo_write'):
+    csp_qfifo_write = _libs['csp'].csp_qfifo_write
+    csp_qfifo_write.argtypes = [POINTER(csp_packet_t), POINTER(csp_iface_t), POINTER(c_int)]
+    csp_qfifo_write.restype = None
+
+# ../../include/csp/csp_interface.h: 60
+for _lib in _libs.itervalues():
+    if not hasattr(_lib, 'csp_route_get_mac'):
+        continue
+    csp_route_get_mac = _lib.csp_route_get_mac
+    csp_route_get_mac.argtypes = [c_uint8]
+    csp_route_get_mac.restype = c_uint8
+    break
+
+# ../../include/csp/csp_interface.h: 66
+if hasattr(_libs['csp'], 'csp_iflist_add'):
+    csp_iflist_add = _libs['csp'].csp_iflist_add
+    csp_iflist_add.argtypes = [POINTER(csp_iface_t)]
+    csp_iflist_add.restype = None
+
 # /home/johan/git/pygnd/lib/libcsp/include/csp/interfaces/csp_if_can.h: 37
 try:
     csp_if_can = (csp_iface_t).in_dll(_libs['csp'], 'csp_if_can')
@@ -1565,7 +1956,7 @@ csp_kiss_putc_f = CFUNCTYPE(UNCHECKED(None), c_char) # /home/johan/git/pygnd/lib
 
 csp_kiss_discard_f = CFUNCTYPE(UNCHECKED(None), c_char, POINTER(None)) # /home/johan/git/pygnd/lib/libcsp/include/csp/interfaces/csp_if_kiss.h: 73
 
-enum_anon_7 = c_int # /home/johan/git/pygnd/lib/libcsp/include/csp/interfaces/csp_if_kiss.h: 80
+enum_anon_8 = c_int # /home/johan/git/pygnd/lib/libcsp/include/csp/interfaces/csp_if_kiss.h: 80
 
 KISS_MODE_NOT_STARTED = 0 # /home/johan/git/pygnd/lib/libcsp/include/csp/interfaces/csp_if_kiss.h: 80
 
@@ -1575,7 +1966,7 @@ KISS_MODE_ESCAPED = (KISS_MODE_STARTED + 1) # /home/johan/git/pygnd/lib/libcsp/i
 
 KISS_MODE_SKIP_FRAME = (KISS_MODE_ESCAPED + 1) # /home/johan/git/pygnd/lib/libcsp/include/csp/interfaces/csp_if_kiss.h: 80
 
-kiss_mode_e = enum_anon_7 # /home/johan/git/pygnd/lib/libcsp/include/csp/interfaces/csp_if_kiss.h: 80
+kiss_mode_e = enum_anon_8 # /home/johan/git/pygnd/lib/libcsp/include/csp/interfaces/csp_if_kiss.h: 80
 
 # /home/johan/git/pygnd/lib/libcsp/include/csp/interfaces/csp_if_kiss.h: 95
 class struct_csp_kiss_handle_s(Structure):
@@ -1626,15 +2017,1809 @@ if hasattr(_libs['csp'], 'csp_zmqhub_init'):
     csp_zmqhub_init.argtypes = [c_char, String]
     csp_zmqhub_init.restype = c_int
 
+# /tmp/tmpwAji6q.h: 1
+try:
+    __STDC__ = 1
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __STDC_HOSTED__ = 1
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __GNUC__ = 4
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __GNUC_MINOR__ = 8
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __GNUC_PATCHLEVEL__ = 2
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __VERSION__ = '4.8.2'
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __ATOMIC_RELAXED = 0
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __ATOMIC_SEQ_CST = 5
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __ATOMIC_ACQUIRE = 2
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __ATOMIC_RELEASE = 3
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __ATOMIC_ACQ_REL = 4
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __ATOMIC_CONSUME = 1
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __FINITE_MATH_ONLY__ = 0
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    _LP64 = 1
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __LP64__ = 1
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __SIZEOF_INT__ = 4
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __SIZEOF_LONG__ = 8
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __SIZEOF_LONG_LONG__ = 8
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __SIZEOF_SHORT__ = 2
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __SIZEOF_FLOAT__ = 4
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __SIZEOF_DOUBLE__ = 8
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __SIZEOF_LONG_DOUBLE__ = 16
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __SIZEOF_SIZE_T__ = 8
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __CHAR_BIT__ = 8
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __BIGGEST_ALIGNMENT__ = 16
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __ORDER_LITTLE_ENDIAN__ = 1234
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __ORDER_BIG_ENDIAN__ = 4321
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __ORDER_PDP_ENDIAN__ = 3412
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __BYTE_ORDER__ = __ORDER_LITTLE_ENDIAN__
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __FLOAT_WORD_ORDER__ = __ORDER_LITTLE_ENDIAN__
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __SIZEOF_POINTER__ = 8
+except:
+    pass
+
+__SIZE_TYPE__ = c_ulong # /tmp/tmpwAji6q.h: 1
+
+__PTRDIFF_TYPE__ = c_long # /tmp/tmpwAji6q.h: 1
+
+__WCHAR_TYPE__ = c_int # /tmp/tmpwAji6q.h: 1
+
+__WINT_TYPE__ = c_uint # /tmp/tmpwAji6q.h: 1
+
+__INTMAX_TYPE__ = c_long # /tmp/tmpwAji6q.h: 1
+
+__UINTMAX_TYPE__ = c_ulong # /tmp/tmpwAji6q.h: 1
+
+__CHAR16_TYPE__ = c_uint # /tmp/tmpwAji6q.h: 1
+
+__CHAR32_TYPE__ = c_uint # /tmp/tmpwAji6q.h: 1
+
+__SIG_ATOMIC_TYPE__ = c_int # /tmp/tmpwAji6q.h: 1
+
+__INT8_TYPE__ = c_char # /tmp/tmpwAji6q.h: 1
+
+__INT16_TYPE__ = c_int # /tmp/tmpwAji6q.h: 1
+
+__INT32_TYPE__ = c_int # /tmp/tmpwAji6q.h: 1
+
+__INT64_TYPE__ = c_long # /tmp/tmpwAji6q.h: 1
+
+__UINT8_TYPE__ = c_ubyte # /tmp/tmpwAji6q.h: 1
+
+__UINT16_TYPE__ = c_uint # /tmp/tmpwAji6q.h: 1
+
+__UINT32_TYPE__ = c_uint # /tmp/tmpwAji6q.h: 1
+
+__UINT64_TYPE__ = c_ulong # /tmp/tmpwAji6q.h: 1
+
+__INT_LEAST8_TYPE__ = c_char # /tmp/tmpwAji6q.h: 1
+
+__INT_LEAST16_TYPE__ = c_int # /tmp/tmpwAji6q.h: 1
+
+__INT_LEAST32_TYPE__ = c_int # /tmp/tmpwAji6q.h: 1
+
+__INT_LEAST64_TYPE__ = c_long # /tmp/tmpwAji6q.h: 1
+
+__UINT_LEAST8_TYPE__ = c_ubyte # /tmp/tmpwAji6q.h: 1
+
+__UINT_LEAST16_TYPE__ = c_uint # /tmp/tmpwAji6q.h: 1
+
+__UINT_LEAST32_TYPE__ = c_uint # /tmp/tmpwAji6q.h: 1
+
+__UINT_LEAST64_TYPE__ = c_ulong # /tmp/tmpwAji6q.h: 1
+
+__INT_FAST8_TYPE__ = c_char # /tmp/tmpwAji6q.h: 1
+
+__INT_FAST16_TYPE__ = c_long # /tmp/tmpwAji6q.h: 1
+
+__INT_FAST32_TYPE__ = c_long # /tmp/tmpwAji6q.h: 1
+
+__INT_FAST64_TYPE__ = c_long # /tmp/tmpwAji6q.h: 1
+
+__UINT_FAST8_TYPE__ = c_ubyte # /tmp/tmpwAji6q.h: 1
+
+__UINT_FAST16_TYPE__ = c_ulong # /tmp/tmpwAji6q.h: 1
+
+__UINT_FAST32_TYPE__ = c_ulong # /tmp/tmpwAji6q.h: 1
+
+__UINT_FAST64_TYPE__ = c_ulong # /tmp/tmpwAji6q.h: 1
+
+__INTPTR_TYPE__ = c_long # /tmp/tmpwAji6q.h: 1
+
+__UINTPTR_TYPE__ = c_ulong # /tmp/tmpwAji6q.h: 1
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __GXX_ABI_VERSION = 1002
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __SCHAR_MAX__ = 127
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __SHRT_MAX__ = 32767
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __INT_MAX__ = 2147483647
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __LONG_MAX__ = 9223372036854775807L
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __LONG_LONG_MAX__ = 9223372036854775807L
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __WCHAR_MAX__ = 2147483647
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __WCHAR_MIN__ = ((-__WCHAR_MAX__) - 1)
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __WINT_MAX__ = 4294967295
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __WINT_MIN__ = 0
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __PTRDIFF_MAX__ = 9223372036854775807L
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __SIZE_MAX__ = 18446744073709551615L
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __INTMAX_MAX__ = 9223372036854775807L
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __UINTMAX_MAX__ = 18446744073709551615L
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __SIG_ATOMIC_MAX__ = 2147483647
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __SIG_ATOMIC_MIN__ = ((-__SIG_ATOMIC_MAX__) - 1)
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __INT8_MAX__ = 127
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __INT16_MAX__ = 32767
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __INT32_MAX__ = 2147483647
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __INT64_MAX__ = 9223372036854775807L
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __UINT8_MAX__ = 255
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __UINT16_MAX__ = 65535
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __UINT32_MAX__ = 4294967295
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __UINT64_MAX__ = 18446744073709551615L
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __INT_LEAST8_MAX__ = 127
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+def __INT8_C(c):
+    return c
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __INT_LEAST16_MAX__ = 32767
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+def __INT16_C(c):
+    return c
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __INT_LEAST32_MAX__ = 2147483647
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+def __INT32_C(c):
+    return c
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __INT_LEAST64_MAX__ = 9223372036854775807L
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __UINT_LEAST8_MAX__ = 255
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+def __UINT8_C(c):
+    return c
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __UINT_LEAST16_MAX__ = 65535
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+def __UINT16_C(c):
+    return c
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __UINT_LEAST32_MAX__ = 4294967295
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __UINT_LEAST64_MAX__ = 18446744073709551615L
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __INT_FAST8_MAX__ = 127
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __INT_FAST16_MAX__ = 9223372036854775807L
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __INT_FAST32_MAX__ = 9223372036854775807L
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __INT_FAST64_MAX__ = 9223372036854775807L
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __UINT_FAST8_MAX__ = 255
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __UINT_FAST16_MAX__ = 18446744073709551615L
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __UINT_FAST32_MAX__ = 18446744073709551615L
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __UINT_FAST64_MAX__ = 18446744073709551615L
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __INTPTR_MAX__ = 9223372036854775807L
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __UINTPTR_MAX__ = 18446744073709551615L
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __FLT_EVAL_METHOD__ = 0
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __DEC_EVAL_METHOD__ = 2
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __FLT_RADIX__ = 2
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __FLT_MANT_DIG__ = 24
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __FLT_DIG__ = 6
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __FLT_MIN_EXP__ = (-125)
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __FLT_MIN_10_EXP__ = (-37)
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __FLT_MAX_EXP__ = 128
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __FLT_MAX_10_EXP__ = 38
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __FLT_DECIMAL_DIG__ = 9
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __FLT_MAX__ = 3.4028234663852886e+38
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __FLT_MIN__ = 1.1754943508222875e-38
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __FLT_EPSILON__ = 1.1920928955078125e-07
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __FLT_DENORM_MIN__ = 1.401298464324817e-45
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __FLT_HAS_DENORM__ = 1
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __FLT_HAS_INFINITY__ = 1
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __FLT_HAS_QUIET_NAN__ = 1
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __DBL_MANT_DIG__ = 53
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __DBL_DIG__ = 15
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __DBL_MIN_EXP__ = (-1021)
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __DBL_MIN_10_EXP__ = (-307)
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __DBL_MAX_EXP__ = 1024
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __DBL_MAX_10_EXP__ = 308
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __DBL_DECIMAL_DIG__ = 17
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __DBL_MAX__ = 1.7976931348623157e+308
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __DBL_MIN__ = 2.2250738585072014e-308
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __DBL_EPSILON__ = 2.220446049250313e-16
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __DBL_DENORM_MIN__ = 5e-324
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __DBL_HAS_DENORM__ = 1
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __DBL_HAS_INFINITY__ = 1
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __DBL_HAS_QUIET_NAN__ = 1
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __LDBL_MANT_DIG__ = 64
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __LDBL_DIG__ = 18
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __LDBL_MIN_EXP__ = (-16381)
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __LDBL_MIN_10_EXP__ = (-4931)
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __LDBL_MAX_EXP__ = 16384
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __LDBL_MAX_10_EXP__ = 4932
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __DECIMAL_DIG__ = 21
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __LDBL_MAX__ = float('inf')
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __LDBL_MIN__ = 0.0
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __LDBL_EPSILON__ = 1.0842021724855044e-19
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __LDBL_DENORM_MIN__ = 0.0
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __LDBL_HAS_DENORM__ = 1
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __LDBL_HAS_INFINITY__ = 1
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __LDBL_HAS_QUIET_NAN__ = 1
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __DEC32_MANT_DIG__ = 7
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __DEC32_MIN_EXP__ = (-94)
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __DEC32_MAX_EXP__ = 97
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __DEC64_MANT_DIG__ = 16
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __DEC64_MIN_EXP__ = (-382)
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __DEC64_MAX_EXP__ = 385
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __DEC128_MANT_DIG__ = 34
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __DEC128_MIN_EXP__ = (-6142)
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __DEC128_MAX_EXP__ = 6145
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __GNUC_GNU_INLINE__ = 1
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __NO_INLINE__ = 1
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __GCC_HAVE_SYNC_COMPARE_AND_SWAP_1 = 1
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __GCC_HAVE_SYNC_COMPARE_AND_SWAP_2 = 1
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __GCC_HAVE_SYNC_COMPARE_AND_SWAP_4 = 1
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __GCC_HAVE_SYNC_COMPARE_AND_SWAP_8 = 1
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __GCC_ATOMIC_BOOL_LOCK_FREE = 2
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __GCC_ATOMIC_CHAR_LOCK_FREE = 2
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __GCC_ATOMIC_CHAR16_T_LOCK_FREE = 2
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __GCC_ATOMIC_CHAR32_T_LOCK_FREE = 2
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __GCC_ATOMIC_WCHAR_T_LOCK_FREE = 2
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __GCC_ATOMIC_SHORT_LOCK_FREE = 2
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __GCC_ATOMIC_INT_LOCK_FREE = 2
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __GCC_ATOMIC_LONG_LOCK_FREE = 2
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __GCC_ATOMIC_LLONG_LOCK_FREE = 2
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __GCC_ATOMIC_TEST_AND_SET_TRUEVAL = 1
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __GCC_ATOMIC_POINTER_LOCK_FREE = 2
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __GCC_HAVE_DWARF2_CFI_ASM = 1
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __PRAGMA_REDEFINE_EXTNAME = 1
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __SSP__ = 1
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __SIZEOF_INT128__ = 16
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __SIZEOF_WCHAR_T__ = 4
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __SIZEOF_WINT_T__ = 4
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __SIZEOF_PTRDIFF_T__ = 8
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __amd64 = 1
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __amd64__ = 1
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __x86_64 = 1
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __x86_64__ = 1
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __ATOMIC_HLE_ACQUIRE = 65536
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __ATOMIC_HLE_RELEASE = 131072
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __k8 = 1
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __k8__ = 1
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __code_model_small__ = 1
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __MMX__ = 1
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __SSE__ = 1
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __SSE2__ = 1
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __FXSR__ = 1
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __SSE_MATH__ = 1
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __SSE2_MATH__ = 1
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __gnu_linux__ = 1
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __linux = 1
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __linux__ = 1
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    linux = 1
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __unix = 1
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __unix__ = 1
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    unix = 1
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __ELF__ = 1
+except:
+    pass
+
+# /tmp/tmpwAji6q.h: 1
+try:
+    __DECIMAL_BID_FORMAT__ = 1
+except:
+    pass
+
+__const = c_int # <command-line>: 4
+
+# <command-line>: 7
+try:
+    CTYPESGEN = 1
+except:
+    pass
+
+# /usr/include/stdc-predef.h: 19
+try:
+    _STDC_PREDEF_H = 1
+except:
+    pass
+
+# /usr/include/stdc-predef.h: 41
+try:
+    __STDC_IEC_559__ = 1
+except:
+    pass
+
+# /usr/include/stdc-predef.h: 49
+try:
+    __STDC_IEC_559_COMPLEX__ = 1
+except:
+    pass
+
+# /usr/include/stdc-predef.h: 54
+try:
+    __STDC_ISO_10646__ = 201103L
+except:
+    pass
+
+# /usr/include/stdc-predef.h: 57
+try:
+    __STDC_NO_THREADS__ = 1
+except:
+    pass
+
+# /usr/include/stdint.h: 23
+try:
+    _STDINT_H = 1
+except:
+    pass
+
+# /usr/include/features.h: 19
+try:
+    _FEATURES_H = 1
+except:
+    pass
+
+# /usr/include/features.h: 145
+def __GNUC_PREREQ(maj, min):
+    return 0
+
+# /usr/include/features.h: 186
+try:
+    _DEFAULT_SOURCE = 1
+except:
+    pass
+
+# /usr/include/features.h: 188
+try:
+    _BSD_SOURCE = 1
+except:
+    pass
+
+# /usr/include/features.h: 190
+try:
+    _SVID_SOURCE = 1
+except:
+    pass
+
+# /usr/include/features.h: 225
+try:
+    __USE_POSIX_IMPLICITLY = 1
+except:
+    pass
+
+# /usr/include/features.h: 228
+try:
+    _POSIX_SOURCE = 1
+except:
+    pass
+
+# /usr/include/features.h: 230
+try:
+    _POSIX_C_SOURCE = 200809L
+except:
+    pass
+
+# /usr/include/features.h: 248
+try:
+    __USE_POSIX = 1
+except:
+    pass
+
+# /usr/include/features.h: 252
+try:
+    __USE_POSIX2 = 1
+except:
+    pass
+
+# /usr/include/features.h: 256
+try:
+    __USE_POSIX199309 = 1
+except:
+    pass
+
+# /usr/include/features.h: 260
+try:
+    __USE_POSIX199506 = 1
+except:
+    pass
+
+# /usr/include/features.h: 264
+try:
+    __USE_XOPEN2K = 1
+except:
+    pass
+
+# /usr/include/features.h: 266
+try:
+    __USE_ISOC95 = 1
+except:
+    pass
+
+# /usr/include/features.h: 268
+try:
+    __USE_ISOC99 = 1
+except:
+    pass
+
+# /usr/include/features.h: 272
+try:
+    __USE_XOPEN2K8 = 1
+except:
+    pass
+
+# /usr/include/features.h: 274
+try:
+    _ATFILE_SOURCE = 1
+except:
+    pass
+
+# /usr/include/features.h: 316
+try:
+    __USE_MISC = 1
+except:
+    pass
+
+# /usr/include/features.h: 320
+try:
+    __USE_BSD = 1
+except:
+    pass
+
+# /usr/include/features.h: 324
+try:
+    __USE_SVID = 1
+except:
+    pass
+
+# /usr/include/features.h: 328
+try:
+    __USE_ATFILE = 1
+except:
+    pass
+
+# /usr/include/features.h: 347
+try:
+    __USE_FORTIFY_LEVEL = 0
+except:
+    pass
+
+# /usr/include/features.h: 361
+try:
+    __GNU_LIBRARY__ = 6
+except:
+    pass
+
+# /usr/include/features.h: 365
+try:
+    __GLIBC__ = 2
+except:
+    pass
+
+# /usr/include/features.h: 366
+try:
+    __GLIBC_MINOR__ = 19
+except:
+    pass
+
+# /usr/include/features.h: 368
+def __GLIBC_PREREQ(maj, min):
+    return (((__GLIBC__ << 16) + __GLIBC_MINOR__) >= ((maj << 16) + min))
+
+# /usr/include/x86_64-linux-gnu/sys/cdefs.h: 19
+try:
+    _SYS_CDEFS_H = 1
+except:
+    pass
+
+# /usr/include/x86_64-linux-gnu/sys/cdefs.h: 76
+def __NTH(fct):
+    return fct
+
+# /usr/include/x86_64-linux-gnu/sys/cdefs.h: 82
+def __P(args):
+    return args
+
+# /usr/include/x86_64-linux-gnu/sys/cdefs.h: 83
+def __PMT(args):
+    return args
+
+# /usr/include/x86_64-linux-gnu/sys/cdefs.h: 89
+def __STRING(x):
+    return x
+
+__ptr_t = POINTER(None) # /usr/include/x86_64-linux-gnu/sys/cdefs.h: 92
+
+# /usr/include/x86_64-linux-gnu/sys/cdefs.h: 381
+def __glibc_unlikely(cond):
+    return cond
+
+# /usr/include/x86_64-linux-gnu/sys/cdefs.h: 382
+def __glibc_likely(cond):
+    return cond
+
+# /usr/include/x86_64-linux-gnu/bits/wordsize.h: 4
+try:
+    __WORDSIZE = 64
+except:
+    pass
+
+# /usr/include/x86_64-linux-gnu/bits/wordsize.h: 10
+try:
+    __WORDSIZE_TIME64_COMPAT32 = 1
+except:
+    pass
+
+# /usr/include/x86_64-linux-gnu/bits/wordsize.h: 12
+try:
+    __SYSCALL_WORDSIZE = 64
+except:
+    pass
+
+# /usr/include/x86_64-linux-gnu/sys/cdefs.h: 407
+def __LDBL_REDIR1(name, proto, alias):
+    return (name + proto)
+
+# /usr/include/x86_64-linux-gnu/sys/cdefs.h: 408
+def __LDBL_REDIR(name, proto):
+    return (name + proto)
+
+# /usr/include/x86_64-linux-gnu/bits/wchar.h: 20
+try:
+    _BITS_WCHAR_H = 1
+except:
+    pass
+
+# /usr/include/x86_64-linux-gnu/bits/wchar.h: 34
+try:
+    __WCHAR_MAX = __WCHAR_MAX__
+except:
+    pass
+
+# /usr/include/x86_64-linux-gnu/bits/wchar.h: 42
+try:
+    __WCHAR_MIN = __WCHAR_MIN__
+except:
+    pass
+
+# /usr/include/x86_64-linux-gnu/bits/wordsize.h: 4
+try:
+    __WORDSIZE = 64
+except:
+    pass
+
+# /usr/include/x86_64-linux-gnu/bits/wordsize.h: 10
+try:
+    __WORDSIZE_TIME64_COMPAT32 = 1
+except:
+    pass
+
+# /usr/include/x86_64-linux-gnu/bits/wordsize.h: 12
+try:
+    __SYSCALL_WORDSIZE = 64
+except:
+    pass
+
+# /usr/include/stdint.h: 155
+try:
+    INT8_MIN = (-128)
+except:
+    pass
+
+# /usr/include/stdint.h: 156
+try:
+    INT16_MIN = ((-32767) - 1)
+except:
+    pass
+
+# /usr/include/stdint.h: 157
+try:
+    INT32_MIN = ((-2147483647) - 1)
+except:
+    pass
+
+# /usr/include/stdint.h: 160
+try:
+    INT8_MAX = 127
+except:
+    pass
+
+# /usr/include/stdint.h: 161
+try:
+    INT16_MAX = 32767
+except:
+    pass
+
+# /usr/include/stdint.h: 162
+try:
+    INT32_MAX = 2147483647
+except:
+    pass
+
+# /usr/include/stdint.h: 166
+try:
+    UINT8_MAX = 255
+except:
+    pass
+
+# /usr/include/stdint.h: 167
+try:
+    UINT16_MAX = 65535
+except:
+    pass
+
 # /usr/include/stdint.h: 168
 try:
     UINT32_MAX = 4294967295
 except:
     pass
 
+# /usr/include/stdint.h: 173
+try:
+    INT_LEAST8_MIN = (-128)
+except:
+    pass
+
+# /usr/include/stdint.h: 174
+try:
+    INT_LEAST16_MIN = ((-32767) - 1)
+except:
+    pass
+
+# /usr/include/stdint.h: 175
+try:
+    INT_LEAST32_MIN = ((-2147483647) - 1)
+except:
+    pass
+
+# /usr/include/stdint.h: 178
+try:
+    INT_LEAST8_MAX = 127
+except:
+    pass
+
+# /usr/include/stdint.h: 179
+try:
+    INT_LEAST16_MAX = 32767
+except:
+    pass
+
+# /usr/include/stdint.h: 180
+try:
+    INT_LEAST32_MAX = 2147483647
+except:
+    pass
+
+# /usr/include/stdint.h: 184
+try:
+    UINT_LEAST8_MAX = 255
+except:
+    pass
+
+# /usr/include/stdint.h: 185
+try:
+    UINT_LEAST16_MAX = 65535
+except:
+    pass
+
+# /usr/include/stdint.h: 186
+try:
+    UINT_LEAST32_MAX = 4294967295
+except:
+    pass
+
+# /usr/include/stdint.h: 191
+try:
+    INT_FAST8_MIN = (-128)
+except:
+    pass
+
+# /usr/include/stdint.h: 193
+try:
+    INT_FAST16_MIN = ((-9223372036854775807L) - 1)
+except:
+    pass
+
+# /usr/include/stdint.h: 194
+try:
+    INT_FAST32_MIN = ((-9223372036854775807L) - 1)
+except:
+    pass
+
+# /usr/include/stdint.h: 201
+try:
+    INT_FAST8_MAX = 127
+except:
+    pass
+
+# /usr/include/stdint.h: 203
+try:
+    INT_FAST16_MAX = 9223372036854775807L
+except:
+    pass
+
+# /usr/include/stdint.h: 204
+try:
+    INT_FAST32_MAX = 9223372036854775807L
+except:
+    pass
+
+# /usr/include/stdint.h: 212
+try:
+    UINT_FAST8_MAX = 255
+except:
+    pass
+
+# /usr/include/stdint.h: 214
+try:
+    UINT_FAST16_MAX = 18446744073709551615L
+except:
+    pass
+
+# /usr/include/stdint.h: 215
+try:
+    UINT_FAST32_MAX = 18446744073709551615L
+except:
+    pass
+
+# /usr/include/stdint.h: 225
+try:
+    INTPTR_MIN = ((-9223372036854775807L) - 1)
+except:
+    pass
+
+# /usr/include/stdint.h: 226
+try:
+    INTPTR_MAX = 9223372036854775807L
+except:
+    pass
+
+# /usr/include/stdint.h: 227
+try:
+    UINTPTR_MAX = 18446744073709551615L
+except:
+    pass
+
+# /usr/include/stdint.h: 248
+try:
+    PTRDIFF_MIN = ((-9223372036854775807L) - 1)
+except:
+    pass
+
+# /usr/include/stdint.h: 249
+try:
+    PTRDIFF_MAX = 9223372036854775807L
+except:
+    pass
+
+# /usr/include/stdint.h: 256
+try:
+    SIG_ATOMIC_MIN = ((-2147483647) - 1)
+except:
+    pass
+
+# /usr/include/stdint.h: 257
+try:
+    SIG_ATOMIC_MAX = 2147483647
+except:
+    pass
+
+# /usr/include/stdint.h: 261
+try:
+    SIZE_MAX = 18446744073709551615L
+except:
+    pass
+
+# /usr/include/stdint.h: 269
+try:
+    WCHAR_MIN = __WCHAR_MIN
+except:
+    pass
+
+# /usr/include/stdint.h: 270
+try:
+    WCHAR_MAX = __WCHAR_MAX
+except:
+    pass
+
+# /usr/include/stdint.h: 274
+try:
+    WINT_MIN = 0
+except:
+    pass
+
+# /usr/include/stdint.h: 275
+try:
+    WINT_MAX = 4294967295
+except:
+    pass
+
+# /usr/include/stdint.h: 278
+def INT8_C(c):
+    return c
+
+# /usr/include/stdint.h: 279
+def INT16_C(c):
+    return c
+
+# /usr/include/stdint.h: 280
+def INT32_C(c):
+    return c
+
+# /usr/include/stdint.h: 288
+def UINT8_C(c):
+    return c
+
+# /usr/include/stdint.h: 289
+def UINT16_C(c):
+    return c
+
+# ../../build/include/csp/csp_autoconfig.h: 6
+try:
+    GIT_REV = 'v1.2-57-geb1aee6'
+except:
+    pass
+
+# ../../build/include/csp/csp_autoconfig.h: 8
+try:
+    CSP_POSIX = 1
+except:
+    pass
+
+# ../../build/include/csp/csp_autoconfig.h: 11
+try:
+    CSP_DEBUG = 1
+except:
+    pass
+
+# ../../build/include/csp/csp_autoconfig.h: 12
+try:
+    CSP_VERBOSE = 1
+except:
+    pass
+
+# ../../build/include/csp/csp_autoconfig.h: 20
+try:
+    CSP_CONN_MAX = 10
+except:
+    pass
+
 # ../../build/include/csp/csp_autoconfig.h: 21
 try:
     CSP_CONN_QUEUE_LENGTH = 100
+except:
+    pass
+
+# ../../build/include/csp/csp_autoconfig.h: 22
+try:
+    CSP_FIFO_INPUT = 10
+except:
+    pass
+
+# ../../build/include/csp/csp_autoconfig.h: 23
+try:
+    CSP_MAX_BIND_PORT = 31
+except:
+    pass
+
+# ../../build/include/csp/csp_autoconfig.h: 24
+try:
+    CSP_RDP_MAX_WINDOW = 20
+except:
+    pass
+
+# ../../build/include/csp/csp_autoconfig.h: 25
+try:
+    CSP_PADDING_BYTES = 8
+except:
+    pass
+
+# ../../build/include/csp/csp_autoconfig.h: 26
+try:
+    CSP_TRANSACTION_SO = 0
+except:
+    pass
+
+# ../../build/include/csp/csp_autoconfig.h: 27
+try:
+    CSP_LOG_LEVEL_DEBUG = 1
+except:
+    pass
+
+# ../../build/include/csp/csp_autoconfig.h: 28
+try:
+    CSP_LOG_LEVEL_INFO = 1
+except:
+    pass
+
+# ../../build/include/csp/csp_autoconfig.h: 29
+try:
+    CSP_LOG_LEVEL_WARN = 1
+except:
+    pass
+
+# ../../build/include/csp/csp_autoconfig.h: 30
+try:
+    CSP_LOG_LEVEL_ERROR = 1
+except:
+    pass
+
+# ../../build/include/csp/csp_autoconfig.h: 31
+try:
+    CSP_LITTLE_ENDIAN = 1
+except:
+    pass
+
+# ../../build/include/csp/csp_autoconfig.h: 33
+try:
+    CSP_HAVE_STDBOOL_H = 1
+except:
+    pass
+
+bool = c_bool # /usr/lib/gcc/x86_64-linux-gnu/4.8/include/stdbool.h: 33
+
+# /usr/lib/gcc/x86_64-linux-gnu/4.8/include/stdbool.h: 34
+try:
+    true = 1
+except:
+    pass
+
+# /usr/lib/gcc/x86_64-linux-gnu/4.8/include/stdbool.h: 35
+try:
+    false = 0
+except:
+    pass
+
+# /usr/lib/gcc/x86_64-linux-gnu/4.8/include/stdbool.h: 48
+try:
+    __bool_true_false_are_defined = 1
 except:
     pass
 
@@ -2066,6 +4251,510 @@ try:
 except:
     pass
 
+# /usr/include/inttypes.h: 23
+try:
+    _INTTYPES_H = 1
+except:
+    pass
+
+# /usr/include/inttypes.h: 40
+try:
+    ____gwchar_t_defined = 1
+except:
+    pass
+
+# /usr/include/inttypes.h: 44
+try:
+    __PRI64_PREFIX = 'l'
+except:
+    pass
+
+# /usr/include/inttypes.h: 45
+try:
+    __PRIPTR_PREFIX = 'l'
+except:
+    pass
+
+# /usr/include/inttypes.h: 54
+try:
+    PRId8 = 'd'
+except:
+    pass
+
+# /usr/include/inttypes.h: 55
+try:
+    PRId16 = 'd'
+except:
+    pass
+
+# /usr/include/inttypes.h: 56
+try:
+    PRId32 = 'd'
+except:
+    pass
+
+# /usr/include/inttypes.h: 59
+try:
+    PRIdLEAST8 = 'd'
+except:
+    pass
+
+# /usr/include/inttypes.h: 60
+try:
+    PRIdLEAST16 = 'd'
+except:
+    pass
+
+# /usr/include/inttypes.h: 61
+try:
+    PRIdLEAST32 = 'd'
+except:
+    pass
+
+# /usr/include/inttypes.h: 64
+try:
+    PRIdFAST8 = 'd'
+except:
+    pass
+
+# /usr/include/inttypes.h: 70
+try:
+    PRIi8 = 'i'
+except:
+    pass
+
+# /usr/include/inttypes.h: 71
+try:
+    PRIi16 = 'i'
+except:
+    pass
+
+# /usr/include/inttypes.h: 72
+try:
+    PRIi32 = 'i'
+except:
+    pass
+
+# /usr/include/inttypes.h: 75
+try:
+    PRIiLEAST8 = 'i'
+except:
+    pass
+
+# /usr/include/inttypes.h: 76
+try:
+    PRIiLEAST16 = 'i'
+except:
+    pass
+
+# /usr/include/inttypes.h: 77
+try:
+    PRIiLEAST32 = 'i'
+except:
+    pass
+
+# /usr/include/inttypes.h: 80
+try:
+    PRIiFAST8 = 'i'
+except:
+    pass
+
+# /usr/include/inttypes.h: 86
+try:
+    PRIo8 = 'o'
+except:
+    pass
+
+# /usr/include/inttypes.h: 87
+try:
+    PRIo16 = 'o'
+except:
+    pass
+
+# /usr/include/inttypes.h: 88
+try:
+    PRIo32 = 'o'
+except:
+    pass
+
+# /usr/include/inttypes.h: 91
+try:
+    PRIoLEAST8 = 'o'
+except:
+    pass
+
+# /usr/include/inttypes.h: 92
+try:
+    PRIoLEAST16 = 'o'
+except:
+    pass
+
+# /usr/include/inttypes.h: 93
+try:
+    PRIoLEAST32 = 'o'
+except:
+    pass
+
+# /usr/include/inttypes.h: 96
+try:
+    PRIoFAST8 = 'o'
+except:
+    pass
+
+# /usr/include/inttypes.h: 102
+try:
+    PRIu8 = 'u'
+except:
+    pass
+
+# /usr/include/inttypes.h: 103
+try:
+    PRIu16 = 'u'
+except:
+    pass
+
+# /usr/include/inttypes.h: 104
+try:
+    PRIu32 = 'u'
+except:
+    pass
+
+# /usr/include/inttypes.h: 107
+try:
+    PRIuLEAST8 = 'u'
+except:
+    pass
+
+# /usr/include/inttypes.h: 108
+try:
+    PRIuLEAST16 = 'u'
+except:
+    pass
+
+# /usr/include/inttypes.h: 109
+try:
+    PRIuLEAST32 = 'u'
+except:
+    pass
+
+# /usr/include/inttypes.h: 112
+try:
+    PRIuFAST8 = 'u'
+except:
+    pass
+
+# /usr/include/inttypes.h: 118
+try:
+    PRIx8 = 'x'
+except:
+    pass
+
+# /usr/include/inttypes.h: 119
+try:
+    PRIx16 = 'x'
+except:
+    pass
+
+# /usr/include/inttypes.h: 120
+try:
+    PRIx32 = 'x'
+except:
+    pass
+
+# /usr/include/inttypes.h: 123
+try:
+    PRIxLEAST8 = 'x'
+except:
+    pass
+
+# /usr/include/inttypes.h: 124
+try:
+    PRIxLEAST16 = 'x'
+except:
+    pass
+
+# /usr/include/inttypes.h: 125
+try:
+    PRIxLEAST32 = 'x'
+except:
+    pass
+
+# /usr/include/inttypes.h: 128
+try:
+    PRIxFAST8 = 'x'
+except:
+    pass
+
+# /usr/include/inttypes.h: 134
+try:
+    PRIX8 = 'X'
+except:
+    pass
+
+# /usr/include/inttypes.h: 135
+try:
+    PRIX16 = 'X'
+except:
+    pass
+
+# /usr/include/inttypes.h: 136
+try:
+    PRIX32 = 'X'
+except:
+    pass
+
+# /usr/include/inttypes.h: 139
+try:
+    PRIXLEAST8 = 'X'
+except:
+    pass
+
+# /usr/include/inttypes.h: 140
+try:
+    PRIXLEAST16 = 'X'
+except:
+    pass
+
+# /usr/include/inttypes.h: 141
+try:
+    PRIXLEAST32 = 'X'
+except:
+    pass
+
+# /usr/include/inttypes.h: 144
+try:
+    PRIXFAST8 = 'X'
+except:
+    pass
+
+# /usr/include/inttypes.h: 171
+try:
+    SCNd8 = 'hhd'
+except:
+    pass
+
+# /usr/include/inttypes.h: 172
+try:
+    SCNd16 = 'hd'
+except:
+    pass
+
+# /usr/include/inttypes.h: 173
+try:
+    SCNd32 = 'd'
+except:
+    pass
+
+# /usr/include/inttypes.h: 176
+try:
+    SCNdLEAST8 = 'hhd'
+except:
+    pass
+
+# /usr/include/inttypes.h: 177
+try:
+    SCNdLEAST16 = 'hd'
+except:
+    pass
+
+# /usr/include/inttypes.h: 178
+try:
+    SCNdLEAST32 = 'd'
+except:
+    pass
+
+# /usr/include/inttypes.h: 181
+try:
+    SCNdFAST8 = 'hhd'
+except:
+    pass
+
+# /usr/include/inttypes.h: 187
+try:
+    SCNi8 = 'hhi'
+except:
+    pass
+
+# /usr/include/inttypes.h: 188
+try:
+    SCNi16 = 'hi'
+except:
+    pass
+
+# /usr/include/inttypes.h: 189
+try:
+    SCNi32 = 'i'
+except:
+    pass
+
+# /usr/include/inttypes.h: 192
+try:
+    SCNiLEAST8 = 'hhi'
+except:
+    pass
+
+# /usr/include/inttypes.h: 193
+try:
+    SCNiLEAST16 = 'hi'
+except:
+    pass
+
+# /usr/include/inttypes.h: 194
+try:
+    SCNiLEAST32 = 'i'
+except:
+    pass
+
+# /usr/include/inttypes.h: 197
+try:
+    SCNiFAST8 = 'hhi'
+except:
+    pass
+
+# /usr/include/inttypes.h: 203
+try:
+    SCNu8 = 'hhu'
+except:
+    pass
+
+# /usr/include/inttypes.h: 204
+try:
+    SCNu16 = 'hu'
+except:
+    pass
+
+# /usr/include/inttypes.h: 205
+try:
+    SCNu32 = 'u'
+except:
+    pass
+
+# /usr/include/inttypes.h: 208
+try:
+    SCNuLEAST8 = 'hhu'
+except:
+    pass
+
+# /usr/include/inttypes.h: 209
+try:
+    SCNuLEAST16 = 'hu'
+except:
+    pass
+
+# /usr/include/inttypes.h: 210
+try:
+    SCNuLEAST32 = 'u'
+except:
+    pass
+
+# /usr/include/inttypes.h: 213
+try:
+    SCNuFAST8 = 'hhu'
+except:
+    pass
+
+# /usr/include/inttypes.h: 219
+try:
+    SCNo8 = 'hho'
+except:
+    pass
+
+# /usr/include/inttypes.h: 220
+try:
+    SCNo16 = 'ho'
+except:
+    pass
+
+# /usr/include/inttypes.h: 221
+try:
+    SCNo32 = 'o'
+except:
+    pass
+
+# /usr/include/inttypes.h: 224
+try:
+    SCNoLEAST8 = 'hho'
+except:
+    pass
+
+# /usr/include/inttypes.h: 225
+try:
+    SCNoLEAST16 = 'ho'
+except:
+    pass
+
+# /usr/include/inttypes.h: 226
+try:
+    SCNoLEAST32 = 'o'
+except:
+    pass
+
+# /usr/include/inttypes.h: 229
+try:
+    SCNoFAST8 = 'hho'
+except:
+    pass
+
+# /usr/include/inttypes.h: 235
+try:
+    SCNx8 = 'hhx'
+except:
+    pass
+
+# /usr/include/inttypes.h: 236
+try:
+    SCNx16 = 'hx'
+except:
+    pass
+
+# /usr/include/inttypes.h: 237
+try:
+    SCNx32 = 'x'
+except:
+    pass
+
+# /usr/include/inttypes.h: 240
+try:
+    SCNxLEAST8 = 'hhx'
+except:
+    pass
+
+# /usr/include/inttypes.h: 241
+try:
+    SCNxLEAST16 = 'hx'
+except:
+    pass
+
+# /usr/include/inttypes.h: 242
+try:
+    SCNxLEAST32 = 'x'
+except:
+    pass
+
+# /usr/include/inttypes.h: 245
+try:
+    SCNxFAST8 = 'hhx'
+except:
+    pass
+
+# /usr/include/string.h: 23
+try:
+    _STRING_H = 1
+except:
+    pass
+
+# /usr/include/xlocale.h: 21
+try:
+    _XLOCALE_H = 1
+except:
+    pass
+
+# /usr/include/string.h: 433
+try:
+    strerror_r = __xpg_strerror_r
+except:
+    pass
+
 # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_debug.h: 81
 def CONSTSTR(data):
     return data
@@ -2092,96 +4781,6 @@ except:
 def csp_route_set(node, ifc, mac):
     return (csp_rtable_set (node, CSP_ID_HOST_SIZE, ifc, mac))
 
-# /home/johan/git/pygnd/lib/libcsp/include/csp/csp_cmp.h: 32
-try:
-    CSP_CMP_REQUEST = 0
-except:
-    pass
-
-# /home/johan/git/pygnd/lib/libcsp/include/csp/csp_cmp.h: 33
-try:
-    CSP_CMP_REPLY = 255
-except:
-    pass
-
-# /home/johan/git/pygnd/lib/libcsp/include/csp/csp_cmp.h: 35
-try:
-    CSP_CMP_IDENT = 1
-except:
-    pass
-
-# /home/johan/git/pygnd/lib/libcsp/include/csp/csp_cmp.h: 36
-try:
-    CSP_CMP_IDENT_REV_LEN = 20
-except:
-    pass
-
-# /home/johan/git/pygnd/lib/libcsp/include/csp/csp_cmp.h: 37
-try:
-    CSP_CMP_IDENT_DATE_LEN = 12
-except:
-    pass
-
-# /home/johan/git/pygnd/lib/libcsp/include/csp/csp_cmp.h: 38
-try:
-    CSP_CMP_IDENT_TIME_LEN = 9
-except:
-    pass
-
-# /home/johan/git/pygnd/lib/libcsp/include/csp/csp_cmp.h: 39
-try:
-    CSP_CMP_ROUTE_SET = 2
-except:
-    pass
-
-# /home/johan/git/pygnd/lib/libcsp/include/csp/csp_cmp.h: 40
-try:
-    CSP_CMP_ROUTE_IFACE_LEN = 11
-except:
-    pass
-
-# /home/johan/git/pygnd/lib/libcsp/include/csp/csp_cmp.h: 41
-try:
-    CSP_CMP_IF_STATS = 3
-except:
-    pass
-
-# /home/johan/git/pygnd/lib/libcsp/include/csp/csp_cmp.h: 42
-try:
-    CSP_CMP_PEEK = 4
-except:
-    pass
-
-# /home/johan/git/pygnd/lib/libcsp/include/csp/csp_cmp.h: 43
-try:
-    CSP_CMP_PEEK_MAX_LEN = 200
-except:
-    pass
-
-# /home/johan/git/pygnd/lib/libcsp/include/csp/csp_cmp.h: 44
-try:
-    CSP_CMP_POKE = 5
-except:
-    pass
-
-# /home/johan/git/pygnd/lib/libcsp/include/csp/csp_cmp.h: 45
-try:
-    CSP_CMP_POKE_MAX_LEN = 200
-except:
-    pass
-
-# /home/johan/git/pygnd/lib/libcsp/include/csp/csp_cmp.h: 46
-try:
-    CSP_CMP_CLOCK = 6
-except:
-    pass
-
-# /home/johan/git/pygnd/lib/libcsp/include/csp/csp_interface.h: 53
-try:
-    csp_new_packet = csp_qfifo_write
-except:
-    pass
-
 # /home/johan/git/pygnd/lib/libcsp/include/csp/drivers/i2c.h: 35
 try:
     E_NO_ERR = (-1)
@@ -2206,6 +4805,12 @@ try:
 except:
     pass
 
+# ../../include/csp/csp_interface.h: 53
+try:
+    csp_new_packet = csp_qfifo_write
+except:
+    pass
+
 # /home/johan/git/pygnd/lib/libcsp/include/csp/interfaces/csp_if_can.h: 34
 try:
     CSP_CAN_MASKED = 0
@@ -2222,7 +4827,9 @@ csp_iface_s = struct_csp_iface_s # /home/johan/git/pygnd/lib/libcsp/include/csp/
 
 csp_conn_s = struct_csp_conn_s # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_types.h: 212
 
-csp_cmp_message = struct_csp_cmp_message # /home/johan/git/pygnd/lib/libcsp/include/csp/csp_cmp.h: 48
+__locale_data = struct___locale_data # /usr/include/xlocale.h: 30
+
+__locale_struct = struct___locale_struct # /usr/include/xlocale.h: 27
 
 i2c_frame_s = struct_i2c_frame_s # /home/johan/git/pygnd/lib/libcsp/include/csp/drivers/i2c.h: 59
 
