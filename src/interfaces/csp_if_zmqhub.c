@@ -90,14 +90,15 @@ CSP_DEFINE_TASK(csp_zmqhub_task) {
 
 }
 
-int csp_zmqhub_init(char addr, char * host) {
-
-	printf("INIT ZMQ with addr %hhu to server %s\r\n", addr, host);
+int csp_zmqhub_init(char _addr, char * host) {
 
 	context = zmq_ctx_new();
 	assert(context);
 
 	char url[100];
+	char addr = _addr;
+
+	printf("INIT ZMQ with addr %hhu to server %s\r\n", addr, host);
 
 	/* Publisher (TX) */
     publisher = zmq_socket(context, ZMQ_PUB);
