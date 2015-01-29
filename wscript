@@ -40,6 +40,7 @@ def options(ctx):
 
 	gr.add_option('--disable-output', action='store_true', help='Disable CSP output')
 	gr.add_option('--disable-verbose', action='store_true', help='Disable filename and lineno on debug');
+	gr.add_option('--disable-stlib', action='store_true', help='Build objects only')
 	gr.add_option('--enable-rdp', action='store_true', help='Enable RDP support')
 	gr.add_option('--enable-qos', action='store_true', help='Enable Quality of Service support')
 	gr.add_option('--enable-promisc', action='store_true', help='Enable promiscuous mode support')
@@ -103,10 +104,15 @@ def configure(ctx):
 	# Setup DEFINES
 	ctx.define('GIT_REV', git_rev)
 
+	# Set build output format
+	ctx.env.FEATURES = ['c']
+	if not ctx.options.disable_stlib:
+		ctx.env.FEATURES += ['cstlib']
+
 	# Setup CFLAGS
 	if (len(ctx.env.CFLAGS) == 0):
 		ctx.env.prepend_value('CFLAGS', ['-Os','-Wall', '-g', '-std=gnu99'])
-	
+
 	# Setup extra includes
 	ctx.env.append_unique('INCLUDES_CSP', ['include'] + ctx.options.includes.split(','))
 
@@ -211,7 +217,7 @@ def configure(ctx):
 	ctx.check_cc(header_name='stdbool.h', mandatory=False, define_name='CSP_HAVE_STDBOOL_H', type='cstlib')
 
 	ctx.write_config_header('include/csp/csp_autoconfig.h', top=True, remove=True)
-
+	
 def build(ctx):
 
 	# Set install path for header files
@@ -232,8 +238,7 @@ def build(ctx):
 
 		ctx.install_files('${PREFIX}/include/csp', 'include/csp/csp_autoconfig.h', cwd=ctx.bldnode)
 
-	# Build static library
-	ctx.objects(
+	ctx(features=ctx.env.FEATURES,
 		source=ctx.path.ant_glob(ctx.env.FILES_CSP, excl=ctx.env.EXCL_CSP),
 		target = 'csp',
 		includes= ctx.env.INCLUDES_CSP,
