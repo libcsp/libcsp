@@ -65,6 +65,10 @@ uint8_t csp_rtable_find_mac(uint8_t id) {
 	return route->mac;
 }
 
+void csp_rtable_clear(void) {
+	memset(routes, 0, sizeof(routes[0]) * CSP_ROUTE_COUNT);
+}
+
 void csp_route_table_load(uint8_t route_table_in[CSP_ROUTE_TABLE_SIZE]) {
 	memcpy(routes, route_table_in, sizeof(routes[0]) * CSP_ROUTE_COUNT);
 }

@@ -27,12 +27,6 @@ static csp_queue_handle_t qfifo[CSP_ROUTE_FIFOS];
 static csp_queue_handle_t qfifo_events;
 #endif
 
-#ifdef CSP_USE_RDP
-#define FIFO_TIMEOUT 100				//! If RDP is enabled, the router needs to awake some times to check timeouts
-#else
-#define FIFO_TIMEOUT CSP_MAX_DELAY		//! If no RDP, the router can sleep untill data arrives
-#endif
-
 int csp_qfifo_init(void) {
 	int prio;
 

@@ -261,6 +261,15 @@ int csp_bind(csp_socket_t *socket, uint8_t port);
 int csp_route_start_task(unsigned int task_stack_size, unsigned int priority);
 
 /**
+ * Call the router worker function manually (without the router task)
+ * This must be run inside a loop or called periodically for the csp router to work.
+ * Use this function instead of calling and starting the router task.
+ * @param timeout max blocking time
+ * @return -1 if no packet was processed, 0 otherwise
+ */
+int csp_route_work(uint32_t timeout);
+
+/**
  * Start the bridge task.
  * @param task_stack_size The number of portStackType to allocate. This only affects FreeRTOS systems.
  * @param priority The OS task priority of the router

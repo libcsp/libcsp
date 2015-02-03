@@ -126,155 +126,159 @@ static int csp_route_security_check(uint32_t security_opts, csp_iface_t * interf
 
 }
 
-CSP_DEFINE_TASK(csp_task_router) {
+int csp_route_work(uint32_t timeout) {
 
 	csp_qfifo_t input;
 	csp_packet_t * packet;
 	csp_conn_t * conn;
 	csp_socket_t * socket;
 
-	/* Here there be routing */
-	while (1) {
-
 #ifdef CSP_USE_RDP
-		/* Check connection timeouts (currently only for RDP) */
-		csp_conn_check_timeouts();
+	/* Check connection timeouts (currently only for RDP) */
+	csp_conn_check_timeouts();
 #endif
 
-		/* Get next packet to route */
-		if (csp_qfifo_read(&input) != CSP_ERR_NONE)
-			continue;
+	/* Get next packet to route */
+	if (csp_qfifo_read(&input) != CSP_ERR_NONE)
+		return -1;
 
-		packet = input.packet;
+	packet = input.packet;
 
-		csp_log_packet("Input: Src %u, Dst %u, Dport %u, Sport %u, Pri %u, Flags 0x%02X, Size %"PRIu16"\r\n",
-				packet->id.src, packet->id.dst, packet->id.dport,
-				packet->id.sport, packet->id.pri, packet->id.flags, packet->length);
+	csp_log_packet("Input: Src %u, Dst %u, Dport %u, Sport %u, Pri %u, Flags 0x%02X, Size %"PRIu16"\r\n",
+			packet->id.src, packet->id.dst, packet->id.dport,
+			packet->id.sport, packet->id.pri, packet->id.flags, packet->length);
 
-		/* Here there be promiscuous mode */
+	/* Here there be promiscuous mode */
 #ifdef CSP_USE_PROMISC
-		csp_promisc_add(packet);
+	csp_promisc_add(packet);
 #endif
 
 #ifdef CSP_USE_DEDUP
-		/* Check for duplicates */
-		if (csp_dedup_check(packet) == 1) {
-			/* Discard packet */
-			csp_log_packet("Duplicate packet discarded\r\n");
-			csp_buffer_free(packet);
-			continue;
-		}
+	/* Check for duplicates */
+	if (csp_dedup_check(packet) == 1) {
+		/* Discard packet */
+		csp_log_packet("Duplicate packet discarded\r\n");
+		csp_buffer_free(packet);
+		return 0;
+	}
 #endif
 
-		/* If the message is not to me, route the message to the correct interface */
-		if ((packet->id.dst != my_address) && (packet->id.dst != CSP_BROADCAST_ADDR)) {
+	/* If the message is not to me, route the message to the correct interface */
+	if ((packet->id.dst != my_address) && (packet->id.dst != CSP_BROADCAST_ADDR)) {
 
-			/* Find the destination interface */
-			csp_iface_t * dstif = csp_rtable_find_iface(packet->id.dst);
+		/* Find the destination interface */
+		csp_iface_t * dstif = csp_rtable_find_iface(packet->id.dst);
 
-			/* If the message resolves to the input interface, don't loop it back out */
-			if ((dstif == NULL) || ((dstif == input.interface) && (input.interface->split_horizon_off == 0))) {
-				csp_buffer_free(packet);
-				continue;
-			}
-
-			/* Otherwise, actually send the message */
-			if (csp_send_direct(packet->id, packet, dstif, 0) != CSP_ERR_NONE) {
-				csp_log_warn("Router failed to send\r\n");
-				csp_buffer_free(packet);
-			}
-
-			/* Next message, please */
-			continue;
-
+		/* If the message resolves to the input interface, don't loop it back out */
+		if ((dstif == NULL) || ((dstif == input.interface) && (input.interface->split_horizon_off == 0))) {
+			csp_buffer_free(packet);
+			return 0;
 		}
 
-		/* The message is to me, search for incoming socket */
-		socket = csp_port_get_socket(packet->id.dport);
-
-		/* If the socket is connection-less, deliver now */
-		if (socket && (socket->opts & CSP_SO_CONN_LESS)) { 
-			if (csp_route_security_check(socket->opts, input.interface, packet) < 0) {
-				csp_buffer_free(packet);
-				continue;
-			}
-			if (csp_queue_enqueue(socket->socket, &packet, 0) != CSP_QUEUE_OK) {
-				csp_log_error("Conn-less socket queue full\r\n");
-				csp_buffer_free(packet);
-				continue;
-			}
-			continue;
+		/* Otherwise, actually send the message */
+		if (csp_send_direct(packet->id, packet, dstif, 0) != CSP_ERR_NONE) {
+			csp_log_warn("Router failed to send\r\n");
+			csp_buffer_free(packet);
 		}
 
-		/* Search for an existing connection */
-		conn = csp_conn_find(packet->id.ext, CSP_ID_CONN_MASK);
+		/* Next message, please */
+		return 0;
+	}
 
-		/* If this is an incoming packet on a new connection */
-		if (conn == NULL) {
+	/* The message is to me, search for incoming socket */
+	socket = csp_port_get_socket(packet->id.dport);
 
-			/* Reject packet if no matching socket is found */
-			if (!socket) {
-				csp_buffer_free(packet);
-				continue;
-			}
+	/* If the socket is connection-less, deliver now */
+	if (socket && (socket->opts & CSP_SO_CONN_LESS)) {
+		if (csp_route_security_check(socket->opts, input.interface, packet) < 0) {
+			csp_buffer_free(packet);
+			return 0;
+		}
+		if (csp_queue_enqueue(socket->socket, &packet, 0) != CSP_QUEUE_OK) {
+			csp_log_error("Conn-less socket queue full\r\n");
+			csp_buffer_free(packet);
+			return 0;
+		}
+		return 0;
+	}
 
-			/* Run security check on incoming packet */
-			if (csp_route_security_check(socket->opts, input.interface, packet) < 0) {
-				csp_buffer_free(packet);
-				continue;
-			}
+	/* Search for an existing connection */
+	conn = csp_conn_find(packet->id.ext, CSP_ID_CONN_MASK);
 
-			/* New incoming connection accepted */
-			csp_id_t idout;
-			idout.pri   = packet->id.pri;
-			idout.src   = my_address;
+	/* If this is an incoming packet on a new connection */
+	if (conn == NULL) {
 
-			idout.dst   = packet->id.src;
-			idout.dport = packet->id.sport;
-			idout.sport = packet->id.dport;
-			idout.flags = packet->id.flags;
-
-			/* Create connection */
-			conn = csp_conn_new(packet->id, idout);
-
-			if (!conn) {
-				csp_log_error("No more connections available\r\n");
-				csp_buffer_free(packet);
-				continue;
-			}
-
-			/* Store the socket queue and options */
-			conn->socket = socket->socket;
-			conn->opts = socket->opts;
-
-		/* Packet to existing connection */
-		} else {
-
-			/* Run security check on incoming packet */
-			if (csp_route_security_check(conn->opts, input.interface, packet) < 0) {
-				csp_buffer_free(packet);
-				continue;
-			}
-
+		/* Reject packet if no matching socket is found */
+		if (!socket) {
+			csp_buffer_free(packet);
+			return 0;
 		}
 
-		/* Pass packet to the right transport module */
-		if (packet->id.flags & CSP_FRDP) {
+		/* Run security check on incoming packet */
+		if (csp_route_security_check(socket->opts, input.interface, packet) < 0) {
+			csp_buffer_free(packet);
+			return 0;
+		}
+
+		/* New incoming connection accepted */
+		csp_id_t idout;
+		idout.pri   = packet->id.pri;
+		idout.src   = my_address;
+
+		idout.dst   = packet->id.src;
+		idout.dport = packet->id.sport;
+		idout.sport = packet->id.dport;
+		idout.flags = packet->id.flags;
+
+		/* Create connection */
+		conn = csp_conn_new(packet->id, idout);
+
+		if (!conn) {
+			csp_log_error("No more connections available\r\n");
+			csp_buffer_free(packet);
+			return 0;
+		}
+
+		/* Store the socket queue and options */
+		conn->socket = socket->socket;
+		conn->opts = socket->opts;
+
+	/* Packet to existing connection */
+	} else {
+
+		/* Run security check on incoming packet */
+		if (csp_route_security_check(conn->opts, input.interface, packet) < 0) {
+			csp_buffer_free(packet);
+			return 0;
+		}
+
+	}
+
+	/* Pass packet to the right transport module */
+	if (packet->id.flags & CSP_FRDP) {
 #ifdef CSP_USE_RDP
-			csp_rdp_new_packet(conn, packet);
-		} else if (conn->opts & CSP_SO_RDPREQ) {
-			csp_log_warn("Received packet without RDP header. Discarding packet\r\n");
-			input.interface->rx_error++;
-			csp_buffer_free(packet);
+		csp_rdp_new_packet(conn, packet);
+	} else if (conn->opts & CSP_SO_RDPREQ) {
+		csp_log_warn("Received packet without RDP header. Discarding packet\r\n");
+		input.interface->rx_error++;
+		csp_buffer_free(packet);
 #else
-			csp_log_error("Received RDP packet, but CSP was compiled without RDP support. Discarding packet\r\n");
-			input.interface->rx_error++;
-			csp_buffer_free(packet);
+		csp_log_error("Received RDP packet, but CSP was compiled without RDP support. Discarding packet\r\n");
+		input.interface->rx_error++;
+		csp_buffer_free(packet);
 #endif
-		} else {
-			/* Pass packet to UDP module */
-			csp_udp_new_packet(conn, packet);
-		}
+	} else {
+		/* Pass packet to UDP module */
+		csp_udp_new_packet(conn, packet);
+	}
+	return 0;
+}
+
+CSP_DEFINE_TASK(csp_task_router) {
+
+	/* Here there be routing */
+	while (1) {
+		csp_route_work(FIFO_TIMEOUT);
 	}
 
 }

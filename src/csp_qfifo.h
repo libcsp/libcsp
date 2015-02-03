@@ -21,6 +21,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef CSP_QFIFO_H_
 #define CSP_QFIFO_H_
 
+#ifdef CSP_USE_RDP
+#define FIFO_TIMEOUT 100				//! If RDP is enabled, the router needs to awake some times to check timeouts
+#else
+#define FIFO_TIMEOUT CSP_MAX_DELAY		//! If no RDP, the router can sleep untill data arrives
+#endif
+
 /**
  * Init FIFO/QOS queues
  * @return CSP_ERR type
