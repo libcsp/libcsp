@@ -145,7 +145,11 @@ int csp_rtable_check(char * buffer) {
 int csp_rtable_save(char * buffer, int maxlen) {
 	int len = 0;
 	for (csp_rtable_t * i = rtable; (i); i = i->next) {
-		len += snprintf(buffer + len, maxlen - len, "%u/%u %u %s, ", i->address, i->netmask, i->mac, i->interface->name);
+		if (i->mac != CSP_NODE_MAC) {
+			len += snprintf(buffer + len, maxlen - len, "%u/%u %s %u, ", i->address, i->netmask, i->interface->name, i->mac);
+		} else {
+			len += snprintf(buffer + len, maxlen - len, "%u/%u %s, ", i->address, i->netmask, i->interface->name);
+		}
 	}
 	return len;
 }
