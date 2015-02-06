@@ -321,6 +321,19 @@ csp_packet_t *csp_promisc_read(uint32_t timeout);
 int csp_sfp_send(csp_conn_t * conn, void * data, int totalsize, int mtu, uint32_t timeout);
 
 /**
+ * Same as csp_sfp_send but with option to supply your own memcpy function.
+ * This is usefull if you wish to send data stored in flash memory or another location
+ * @param conn pointer to connection
+ * @param data pointer to data to send
+ * @param totalsize size of data to send
+ * @param mtu maximum transfer unit
+ * @param timeout timeout in ms to wait for csp_send()
+ * @param memcpyfcn, pointer to memcpy function
+ * @return 0 if OK, -1 if ERR
+ */
+int csp_sfp_send_own_memcpy(csp_conn_t * conn, void * data, int totalsize, int mtu, uint32_t timeout, void * (*memcpyfcn)(void *, const void *, size_t));
+
+/**
  * This is the counterpart to the csp_sfp_send function
  * @param conn pointer to active conn, on which you expect to receive sfp packed data
  * @param dataout pointer to NULL pointer, whill be overwritten with malloc pointer
