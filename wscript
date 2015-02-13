@@ -40,6 +40,7 @@ def options(ctx):
 
 	gr.add_option('--disable-output', action='store_true', help='Disable CSP output')
 	gr.add_option('--disable-verbose', action='store_true', help='Disable filename and lineno on debug');
+	gr.add_option('--disable-stlib', action='store_true', help='Build objects only')
 	gr.add_option('--enable-rdp', action='store_true', help='Enable RDP support')
 	gr.add_option('--enable-qos', action='store_true', help='Enable Quality of Service support')
 	gr.add_option('--enable-promisc', action='store_true', help='Enable promiscuous mode support')
@@ -72,6 +73,7 @@ def options(ctx):
 	gr.add_option('--with-padding', metavar='BYTES', type=int, default=8, help='Set padding bytes before packet length field')
 	gr.add_option('--with-loglevel', metavar='LEVEL', default='debug', help='Set minimum compile time log level. Must be one of \'error\', \'warn\', \'info\' or \'debug\'')
 	gr.add_option('--with-transaction-so', metavar='CSP_SO', type=int, default='0x0000', help='Set outgoing csp_transaction socket options, see csp.h for valid values')
+	gr.add_option('--with-bufalign', metavar='BYTES', type=int, help='Set buffer alignment')
 
 def configure(ctx):
 	# Validate OS
@@ -102,10 +104,15 @@ def configure(ctx):
 	# Setup DEFINES
 	ctx.define('GIT_REV', git_rev)
 
+	# Set build output format
+	ctx.env.FEATURES = ['c']
+	if not ctx.options.disable_stlib:
+		ctx.env.FEATURES += ['cstlib']
+
 	# Setup CFLAGS
 	if (len(ctx.env.CFLAGS) == 0):
 		ctx.env.prepend_value('CFLAGS', ['-Os','-Wall', '-g', '-std=gnu99'])
-	
+
 	# Setup extra includes
 	ctx.env.append_unique('INCLUDES_CSP', ['include'] + ctx.options.includes.split(','))
 
@@ -191,6 +198,9 @@ def configure(ctx):
 	ctx.define('CSP_RDP_MAX_WINDOW', ctx.options.with_rdp_max_window)
 	ctx.define('CSP_PADDING_BYTES', ctx.options.with_padding)
 	ctx.define('CSP_TRANSACTION_SO', ctx.options.with_transaction_so)
+	
+	if ctx.options.with_bufalign != None:
+		ctx.define('CSP_BUFFER_ALIGN', ctx.options.with_bufalign)
 
 	# Set logging level
 	ctx.define_cond('CSP_LOG_LEVEL_DEBUG', ctx.options.with_loglevel in ('debug'))
@@ -207,7 +217,7 @@ def configure(ctx):
 	ctx.check_cc(header_name='stdbool.h', mandatory=False, define_name='CSP_HAVE_STDBOOL_H', type='cstlib')
 
 	ctx.write_config_header('include/csp/csp_autoconfig.h', top=True, remove=True)
-
+	
 def build(ctx):
 
 	# Set install path for header files
@@ -228,8 +238,7 @@ def build(ctx):
 
 		ctx.install_files('${PREFIX}/include/csp', 'include/csp/csp_autoconfig.h', cwd=ctx.bldnode)
 
-	# Build static library
-	ctx.stlib(
+	ctx(features=ctx.env.FEATURES,
 		source=ctx.path.ant_glob(ctx.env.FILES_CSP, excl=ctx.env.EXCL_CSP),
 		target = 'csp',
 		includes= ctx.env.INCLUDES_CSP,
@@ -239,8 +248,8 @@ def build(ctx):
 	)
 
 	# Print library size
-	if ctx.options.verbose > 0:
-		ctx(rule='${SIZE}  ${SRC}', source='libcsp.a', name='csp_size', always=True)
+	#if ctx.options.verbose > 0:
+	#	ctx(rule='${SIZE}  ${SRC}', source='libcsp.a', name='csp_size', always=True)
 
 	libs = []
 	if 'posix' in ctx.env.OS:

@@ -29,7 +29,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/arch/csp_malloc.h>
 #include <csp/arch/csp_semaphore.h>
 
+#ifndef CSP_BUFFER_ALIGN
 #define CSP_BUFFER_ALIGN	(sizeof(int *))
+#endif
 
 typedef struct csp_skbf_s {
 	unsigned int refcount;
