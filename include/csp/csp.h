@@ -459,6 +459,9 @@ void csp_conn_print_table(void);
  */
 void csp_buffer_print_table(void);
 
+typedef void * (*csp_memcpy_fnc_t)(void *, const void *, size_t);
+void csp_cmp_set_memcpy(csp_memcpy_fnc_t fnc);
+
 /**
  * Set csp_debug hook function
  * @param f Hook function
