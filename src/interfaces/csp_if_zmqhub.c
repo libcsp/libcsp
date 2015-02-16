@@ -84,6 +84,7 @@ CSP_DEFINE_TASK(csp_zmqhub_task) {
 
 		/* Queue up packet to router */
 		csp_qfifo_write(packet, &csp_if_zmqhub, NULL);
+		zmq_msg_close(&msg);
 	}
 
 	return CSP_TASK_RETURN;
