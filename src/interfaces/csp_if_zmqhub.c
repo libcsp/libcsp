@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 /* CSP includes */
 #include <csp/csp.h>
+#include <csp/csp_debug.h>
 #include <csp/csp_interface.h>
 #include <csp/arch/csp_thread.h>
 #include <csp/interfaces/csp_if_zmqhub.h>
@@ -47,11 +48,11 @@ int csp_zmqhub_tx(csp_iface_t * interface, csp_packet_t * packet, uint32_t timeo
 	char satid = (char) csp_rtable_find_mac(packet->id.dst);
 	if (satid == (char) 255)
 		satid = packet->id.dst;
-	int result = zmq_send(publisher, &satid, 1, ZMQ_SNDMORE);
-	if (result < 0)
-		printf("ZMQ send error: %u %s\r\n", result, strerror(result));
 
-	result = zmq_send(publisher, &packet->id, packet->length + sizeof(packet->id), 0);
+	uint16_t length = packet->length;
+	char * satidptr = ((char *) &packet->id) - 1;
+	memcpy(satidptr, &satid, 1);
+	int result = zmq_send(publisher, satidptr, length + sizeof(packet->id) + sizeof(char), 0);
 	if (result < 0)
 		printf("ZMQ send error: %u %s\r\n", result, strerror(result));
 
@@ -65,25 +66,38 @@ CSP_DEFINE_TASK(csp_zmqhub_task) {
 
 	while(1) {
 		zmq_msg_t msg;
-		zmq_msg_init_size(&msg, 1024);
-
-		/* Receive header */
-		zmq_msg_recv(&msg, subscriber, 0);
-		//char id = ((char *) zmq_msg_data(&msg))[0];
-		//printf("ZMQ received ID: %hhu ", id);
+		assert(zmq_msg_init_size(&msg, 1024) == 0);
 
 		/* Receive data */
-		zmq_msg_recv(&msg, subscriber, 0);
+		if (zmq_msg_recv(&msg, subscriber, 0) < 0) {
+			zmq_msg_close(&msg);
+			csp_log_error("ZMQ: %s\r\n", zmq_strerror(zmq_errno()));
+			continue;
+		}
+
 		int datalen = zmq_msg_size(&msg);
-		//printf("Datalen %u\r\n", datalen);
+		if (datalen < 5) {
+			csp_log_warn("ZMQ: Too short datalen: %u\r\n", datalen);
+			while(zmq_msg_recv(&msg, subscriber, ZMQ_NOBLOCK) > 0)
+			zmq_msg_close(&msg);
+			continue;
+		}
 
 		/* Create new csp packet */
 		csp_packet_t * packet = csp_buffer_get(256);
-		packet->length = datalen - 4;
-		memcpy(&packet->id, zmq_msg_data(&msg), datalen);
+		if (packet == NULL) {
+			zmq_msg_close(&msg);
+			continue;
+		}
+
+		/* Copy the data from zmq to csp */
+		char * satidptr = ((char *) &packet->id) - 1;
+		memcpy(satidptr, zmq_msg_data(&msg), datalen);
+		packet->length = datalen - 4 - 1;
 
 		/* Queue up packet to router */
 		csp_qfifo_write(packet, &csp_if_zmqhub, NULL);
+
 		zmq_msg_close(&msg);
 	}
 
