@@ -91,4 +91,8 @@ char usart_getc(void);
 
 int usart_messages_waiting(int handle);
 
+static inline int usart_stdio_msgwaiting(void) {
+	return usart_messages_waiting(0);
+}
+
 #endif /* USART_H_ */
