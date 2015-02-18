@@ -460,12 +460,12 @@ void csp_conn_print_table(void);
 void csp_buffer_print_table(void);
 
 #ifdef __AVR__
-typedef uint32_t vmemptr_t;
+typedef uint32_t csp_memptr_t;
 #else
-typedef (void *) vmemptr_t;
+typedef void * csp_memptr_t;
 #endif
 
-typedef vmemptr_t (*csp_memcpy_fnc_t)(vmemptr_t, const vmemptr_t, size_t);
+typedef csp_memptr_t (*csp_memcpy_fnc_t)(csp_memptr_t, const csp_memptr_t, size_t);
 void csp_cmp_set_memcpy(csp_memcpy_fnc_t fnc);
 
 /**
