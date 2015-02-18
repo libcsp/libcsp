@@ -41,7 +41,16 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  * The CSP CMP mempy function is used to, override the function used to
  * read/write memory by peek and poke.
  */
+#ifdef __AVR__
+static uint32_t wrap_32bit_memcpy(uint32_t to, const uint32_t from, size_t size) {
+	return (uint32_t) (uintptr_t) memcpy((void *) (uintptr_t) to, (const void *) (uintptr_t) from, size);
+}
+static csp_memcpy_fnc_t csp_cmp_memcpy_fnc = wrap_32bit_memcpy;
+#else
 static csp_memcpy_fnc_t csp_cmp_memcpy_fnc = memcpy;
+#endif
+
+
 void csp_cmp_set_memcpy(csp_memcpy_fnc_t fnc) {
 	csp_cmp_memcpy_fnc = fnc;
 }
@@ -112,7 +121,7 @@ static int do_cmp_peek(struct csp_cmp_message *cmp) {
 		return CSP_ERR_INVAL;
 
 	/* Dangerous, you better know what you are doing */
-	csp_cmp_memcpy_fnc(cmp->peek.data, (void *) (uintptr_t) cmp->peek.addr, cmp->peek.len);
+	csp_cmp_memcpy_fnc((vmemptr_t) (uintptr_t) cmp->peek.data, (vmemptr_t) cmp->peek.addr, cmp->peek.len);
 
 	return CSP_ERR_NONE;
 
@@ -125,7 +134,7 @@ static int do_cmp_poke(struct csp_cmp_message *cmp) {
 		return CSP_ERR_INVAL;
 
 	/* Extremely dangerous, you better know what you are doing */
-	csp_cmp_memcpy_fnc((void *) (uintptr_t) cmp->poke.addr, cmp->poke.data, cmp->poke.len);
+	csp_cmp_memcpy_fnc((vmemptr_t) cmp->poke.addr, (vmemptr_t) (uintptr_t) cmp->poke.data, cmp->poke.len);
 
 	return CSP_ERR_NONE;
 
