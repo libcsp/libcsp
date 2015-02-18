@@ -121,7 +121,7 @@ static int do_cmp_peek(struct csp_cmp_message *cmp) {
 		return CSP_ERR_INVAL;
 
 	/* Dangerous, you better know what you are doing */
-	csp_cmp_memcpy_fnc((csp_memptr_t) (uintptr_t) cmp->peek.data, (csp_memptr_t) cmp->peek.addr, cmp->peek.len);
+	csp_cmp_memcpy_fnc((csp_memptr_t) (uintptr_t) cmp->peek.data, (csp_memptr_t) (unsigned long) cmp->peek.addr, cmp->peek.len);
 
 	return CSP_ERR_NONE;
 
@@ -134,7 +134,7 @@ static int do_cmp_poke(struct csp_cmp_message *cmp) {
 		return CSP_ERR_INVAL;
 
 	/* Extremely dangerous, you better know what you are doing */
-	csp_cmp_memcpy_fnc((csp_memptr_t) cmp->poke.addr, (csp_memptr_t) (uintptr_t) cmp->poke.data, cmp->poke.len);
+	csp_cmp_memcpy_fnc((csp_memptr_t) (unsigned long) cmp->poke.addr, (csp_memptr_t) (uintptr_t) cmp->poke.data, cmp->poke.len);
 
 	return CSP_ERR_NONE;
 
