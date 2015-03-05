@@ -280,12 +280,14 @@ def build(ctx):
 				lib = libs,
 				use = 'csp')
 
-		if ctx.env.OS == 'posix':
-			ctx.objects(source = 'examples/csp_if_fifo.c',
-				target = 'csp_if_fifo.o',
+		if 'posix' in ctx.env.OS:
+			ctx.program(source = 'examples/csp_if_fifo.c',
+				target = 'fifo',
+				includes = ctx.env.INCLUDES_CSP,
+				lib = libs,
 				use = 'csp')
 
-		if ctx.env.OS == 'windows':
+		if 'windows' in ctx.env.OS:
 			ctx.program(source = ctx.path.ant_glob('examples/csp_if_fifo_windows.c'),
 				target = 'csp_if_fifo',
 				includes = ctx.env.INCLUDES_CSP,
