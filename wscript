@@ -188,6 +188,9 @@ def configure(ctx):
 	else:
 		ctx.env.append_unique('EXCL_CSP', 'src/csp_crc32.c')
 
+	if not ctx.options.enable_dedup:
+		ctx.env.append_unique('EXCL_CSP', 'src/csp_dedup.c')
+
 	if ctx.options.enable_hmac:
 		ctx.env.append_unique('FILES_CSP', 'src/crypto/csp_hmac.c')
 		ctx.env.append_unique('FILES_CSP', 'src/crypto/csp_sha1.c')
