@@ -31,7 +31,7 @@ def options(ctx):
 	# Load GCC options
 	ctx.load('gcc')
 	
-	ctx.add_option('--toolchain', default='', help='Set toolchain prefix')
+	ctx.add_option('--toolchain', default=None, help='Set toolchain prefix')
 
 	# Set libcsp options
 	gr = ctx.add_option_group('libcsp options')
@@ -93,13 +93,13 @@ def configure(ctx):
 
 	if not ctx.options.with_loglevel in ('error', 'warn', 'info', 'debug'):
 		ctx.fatal('--with-loglevel must be either \'error\', \'warn\', \'info\' or \'debug\'')
-	
+
 	# Setup and validate toolchain
-	ctx.env.CC = ctx.options.toolchain + 'gcc'
-	ctx.env.AR = ctx.options.toolchain + 'ar'
-	ctx.env.SIZE = ctx.options.toolchain + 'size'
+	if ctx.options.toolchain:
+		ctx.env.CC = ctx.options.toolchain + 'gcc'
+		ctx.env.AR = ctx.options.toolchain + 'ar'
+
 	ctx.load('gcc')
-	ctx.find_program('size', var='SIZE')
 
 	# Set git revision define
 	git_rev = os.popen('git describe --always 2> /dev/null || echo unknown').read().strip()
@@ -262,10 +262,6 @@ def build(ctx):
 		use = 'include freertos_h',
 		install_path = install_path,
 	)
-
-	# Print library size
-	#if ctx.options.verbose > 0:
-	#	ctx(rule='${SIZE}  ${SRC}', source='libcsp.a', name='csp_size', always=True)
 
 	# Build shared library for Python bindings
 	if ctx.env.ENABLE_BINDINGS:
