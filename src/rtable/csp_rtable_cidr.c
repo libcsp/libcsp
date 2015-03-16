@@ -79,8 +79,11 @@ static csp_rtable_t * csp_rtable_find(uint8_t addr, uint8_t netmask, uint8_t exa
 
 	}
 
+#if 0
 	if (best_result)
 		csp_debug(CSP_PACKET, "Using routing entry: %u/%u dev %s m:%u\r\n", best_result->address, best_result->netmask, best_result->interface->name, best_result->mac);
+#endif
+
 	return best_result;
 
 }
