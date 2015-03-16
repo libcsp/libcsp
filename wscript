@@ -134,7 +134,8 @@ def configure(ctx):
 	
 	# Add FreeRTOS 
 	if ctx.options.with_os == 'freertos':
-		ctx.env.append_unique('INCLUDES_CSP', ctx.options.with_freertos)
+		if ctx.options.with_freertos:
+			ctx.env.append_unique('INCLUDES_CSP', ctx.options.with_freertos)
 	elif ctx.options.with_os == 'windows':
 		ctx.env.append_unique('CFLAGS', ['-D_WIN32_WINNT=0x0600'])
 	
