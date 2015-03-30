@@ -39,7 +39,6 @@ def options(ctx):
 	gr.add_option('--install-csp', action='store_true', help='Installs CSP headers and lib')
 
 	gr.add_option('--disable-output', action='store_true', help='Disable CSP output')
-	gr.add_option('--disable-verbose', action='store_true', help='Disable filename and lineno on debug');
 	gr.add_option('--disable-stlib', action='store_true', help='Build objects only')
 	gr.add_option('--enable-rdp', action='store_true', help='Enable RDP support')
 	gr.add_option('--enable-qos', action='store_true', help='Enable Quality of Service support')
@@ -50,6 +49,7 @@ def options(ctx):
 	gr.add_option('--enable-bindings', action='store_true', help='Enable Python bindings')
 	gr.add_option('--enable-examples', action='store_true', help='Enable examples')
 	gr.add_option('--enable-dedup', action='store_true', help='Enable packet deduplicator')
+	gr.add_option('--enable-verbose', action='store_true', help='Enable filename and line numbers on debug');
 
 	# Interfaces	
 	gr.add_option('--enable-if-i2c', action='store_true', help='Enable I2C interface')
@@ -203,7 +203,7 @@ def configure(ctx):
 	ctx.env.append_unique('FILES_CSP', 'src/rtable/csp_rtable_' + ctx.options.with_rtable  + '.c')
 
 	ctx.define_cond('CSP_DEBUG', not ctx.options.disable_output)
-	ctx.define_cond('CSP_VERBOSE', not ctx.options.disable_verbose);
+	ctx.define_cond('CSP_VERBOSE', ctx.options.enable_verbose);
 	ctx.define_cond('CSP_USE_RDP', ctx.options.enable_rdp)
 	ctx.define_cond('CSP_USE_CRC32', ctx.options.enable_crc32)
 	ctx.define_cond('CSP_USE_HMAC', ctx.options.enable_hmac)
