@@ -124,7 +124,7 @@ def configure(ctx):
 	
 	# Libs
 	if 'posix' in ctx.env.OS:
-		ctx.env.append_unique('LIBS', ['rt', 'pthread'])
+		ctx.env.append_unique('LIBS', ['rt', 'pthread', 'util'])
 	elif 'macosx' in ctx.env.OS:
 		ctx.env.append_unique('LIBS', ['pthread'])
 
@@ -275,7 +275,7 @@ def build(ctx):
 			target = 'csp',
 			includes= ctx.env.INCLUDES_CSP,
 			export_includes = 'include',
-			use = 'include',
+			use = ['include', 'util'],
 			lib=ctx.env.LIBS)
 
 	if ctx.env.ENABLE_EXAMPLES:
