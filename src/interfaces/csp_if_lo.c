@@ -37,6 +37,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 int csp_lo_tx(csp_iface_t * interface, csp_packet_t * packet, uint32_t timeout) {
 
+	/* Drop packet silently if not destined for us. This allows
+	 * blackhole routing addresses by setting their nexthop to
+	 * the loopback interface.
+	 */
+	if (packet->id.dst != my_address)
+		return CSP_ERR_NONE;
+
 	/* Send back into CSP, notice calling from task so last argument must be NULL! */
 	csp_qfifo_write(packet, &csp_if_lo, NULL);
 
