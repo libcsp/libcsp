@@ -144,7 +144,7 @@ int csp_route_work(uint32_t timeout) {
 
 	packet = input.packet;
 
-	csp_log_packet("Input: Src %u, Dst %u, Dport %u, Sport %u, Pri %u, Flags 0x%02X, Size %"PRIu16" VIA: %s\r\n",
+	csp_log_packet("INP: S %u, D %u, Dp %u, Sp %u, Pr %u, Fl 0x%02X, Sz %"PRIu16" VIA: %s\r\n",
 			packet->id.src, packet->id.dst, packet->id.dport,
 			packet->id.sport, packet->id.pri, packet->id.flags, packet->length, input.interface->name);
 

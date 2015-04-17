@@ -222,7 +222,7 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, csp_iface_t * ifout, 
 		goto err;
 	}
 
-	csp_log_packet("Output: Src %u, Dst %u, Dport %u, Sport %u, Pri %u, Flags 0x%02X, Size %u VIA: %s\r\n",
+	csp_log_packet("OUT: S %u, D %u, Dp %u, Sp %u, Pr %u, Fl 0x%02X, Sz %u VIA: %s\r\n",
 		idout.src, idout.dst, idout.dport, idout.sport, idout.pri, idout.flags, packet->length, ifout->name);
 
 #ifdef CSP_USE_PROMISC
