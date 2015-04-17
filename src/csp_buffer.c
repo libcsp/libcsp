@@ -34,7 +34,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #endif
 
 typedef struct csp_skbf_s {
-	unsigned int refcount;
+	unsigned long refcount;
 	void * skbf_addr;
 	char skbf_data[];
 } csp_skbf_t;
