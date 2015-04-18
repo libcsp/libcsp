@@ -49,7 +49,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  * Data structure for I2C frames
  */
 typedef struct __attribute__((packed)) i2c_frame_s {
-	uint8_t padding[CSP_PADDING_BYTES-7];
+	uint8_t padding;
 	uint8_t retries;
 	uint32_t reserved;
 	uint8_t dest;
