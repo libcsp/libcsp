@@ -41,8 +41,11 @@ int csp_lo_tx(csp_iface_t * interface, csp_packet_t * packet, uint32_t timeout) 
 	 * blackhole routing addresses by setting their nexthop to
 	 * the loopback interface.
 	 */
-	if (packet->id.dst != my_address)
+	if (packet->id.dst != my_address) {
+		/* Consume and drop packet */
+		csp_buffer_free(packet);
 		return CSP_ERR_NONE;
+	}
 
 	/* Send back into CSP, notice calling from task so last argument must be NULL! */
 	csp_qfifo_write(packet, &csp_if_lo, NULL);
