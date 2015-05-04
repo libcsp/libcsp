@@ -43,7 +43,7 @@ CSP_DEFINE_TASK(csp_bridge) {
 
 		packet = input.packet;
 
-		csp_log_packet("Input: Src %u, Dst %u, Dport %u, Sport %u, Pri %u, Flags 0x%02X, Size %"PRIu16"\r\n",
+		csp_log_packet("Input: Src %u, Dst %u, Dport %u, Sport %u, Pri %u, Flags 0x%02X, Size %"PRIu16,
 				packet->id.src, packet->id.dst, packet->id.dport,
 				packet->id.sport, packet->id.pri, packet->id.flags, packet->length);
 
@@ -62,7 +62,7 @@ CSP_DEFINE_TASK(csp_bridge) {
 
 		/* Send to the interface directly, no hassle */
 		if (csp_send_direct(packet->id, packet, ifout, 0) != CSP_ERR_NONE) {
-			csp_log_warn("Router failed to send\r\n");
+			csp_log_warn("Router failed to send");
 			csp_buffer_free(packet);
 		}
 
@@ -83,7 +83,7 @@ int csp_bridge_start(unsigned int task_stack_size, unsigned int task_priority, c
 	int ret = csp_thread_create(csp_bridge, (signed char *) "BRIDGE", task_stack_size, NULL, task_priority, &handle);
 
 	if (ret != 0) {
-		csp_log_error("Failed to start task\n");
+		csp_log_error("Failed to start task");
 		return CSP_ERR_NOMEM;
 	}
 

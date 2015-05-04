@@ -472,7 +472,8 @@ void csp_cmp_set_memcpy(csp_memcpy_fnc_t fnc);
  * Set csp_debug hook function
  * @param f Hook function
  */
-typedef void (*csp_debug_hook_func_t)(csp_debug_level_t level, char *str);
+#include <stdarg.h>
+typedef void (*csp_debug_hook_func_t)(csp_debug_level_t level, char *format, va_list args);
 void csp_debug_hook_set(csp_debug_hook_func_t f);
 
 #ifdef __cplusplus

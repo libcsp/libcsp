@@ -117,7 +117,7 @@ static int csp_rtable_parse(char * buffer, int dry_run) {
 		char name[100] = {};
 		if (sscanf(str, "%u/%u %s %u", &address, &netmask, name, &mac) != 4) {
 			if (sscanf(str, "%u/%u %s", &address, &netmask, name) != 3) {
-				csp_log_error("Parse error %s\r\n", str);
+				csp_log_error("Parse error %s", str);
 				return -1;
 			}
 		}
@@ -127,7 +127,7 @@ static int csp_rtable_parse(char * buffer, int dry_run) {
 			if (dry_run == 0)
 				csp_rtable_set(address, netmask, ifc, mac);
 		} else {
-			csp_log_error("Unknown interface %s\r\n", name);
+			csp_log_error("Unknown interface %s", name);
 			return -1;
 		}
 		valid_entries++;

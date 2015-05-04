@@ -69,7 +69,7 @@ int csp_qfifo_read(csp_qfifo_t * input) {
 	}
 
 	if (!found) {
-		csp_log_warn("Spurious wakeup: No packet found\r\n");
+		csp_log_warn("Spurious wakeup: No packet found");
 		return CSP_ERR_TIMEDOUT;
 	}
 #else
@@ -86,10 +86,10 @@ void csp_qfifo_write(csp_packet_t * packet, csp_iface_t * interface, CSP_BASE_TY
 	int result;
 
 	if (packet == NULL) {
-		csp_log_warn("csp_new packet called with NULL packet\r\n");
+		csp_log_warn("csp_new packet called with NULL packet");
 		return;
 	} else if (interface == NULL) {
-		csp_log_warn("csp_new packet called with NULL interface\r\n");
+		csp_log_warn("csp_new packet called with NULL interface");
 		if (pxTaskWoken == NULL)
 			csp_buffer_free(packet);
 		else
@@ -124,7 +124,7 @@ void csp_qfifo_write(csp_packet_t * packet, csp_iface_t * interface, CSP_BASE_TY
 #endif
 
 	if (result != CSP_QUEUE_OK) {
-		csp_log_warn("ERROR: Routing input FIFO is FULL. Dropping packet.\r\n");
+		csp_log_warn("ERROR: Routing input FIFO is FULL. Dropping packet.");
 		interface->drop++;
 		if (pxTaskWoken == NULL)
 			csp_buffer_free(packet);

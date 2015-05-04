@@ -65,16 +65,16 @@ static int csp_route_security_check(uint32_t security_opts, csp_iface_t * interf
 		/* Decrypt data */
 		if (csp_xtea_decrypt(packet->data, packet->length, iv) != 0) {
 			/* Decryption failed */
-			csp_log_error("Decryption failed! Discarding packet\r\n");
+			csp_log_error("Decryption failed! Discarding packet");
 			interface->autherr++;
 			return CSP_ERR_XTEA;
 		}
 	} else if (security_opts & CSP_SO_XTEAREQ) {
-		csp_log_warn("Received packet without XTEA encryption. Discarding packet\r\n");
+		csp_log_warn("Received packet without XTEA encryption. Discarding packet");
 		interface->autherr++;
 		return CSP_ERR_XTEA;
 #else
-		csp_log_error("Received XTEA encrypted packet, but CSP was compiled without XTEA support. Discarding packet\r\n");
+		csp_log_error("Received XTEA encrypted packet, but CSP was compiled without XTEA support. Discarding packet");
 		interface->autherr++;
 		return CSP_ERR_NOTSUP;
 #endif
@@ -88,15 +88,15 @@ static int csp_route_security_check(uint32_t security_opts, csp_iface_t * interf
 		/* Verify CRC32  */
 		if (csp_crc32_verify(packet) != 0) {
 			/* Checksum failed */
-			csp_log_error("CRC32 verification error! Discarding packet\r\n");
+			csp_log_error("CRC32 verification error! Discarding packet");
 			interface->rx_error++;
 			return CSP_ERR_CRC32;
 		}
 	} else if (security_opts & CSP_SO_CRC32REQ) {
-		csp_log_warn("Received packet without CRC32. Accepting packet\r\n");
+		csp_log_warn("Received packet without CRC32. Accepting packet");
 #else
 		/* Strip CRC32 field and accept the packet */
-		csp_log_warn("Received packet with CRC32, but CSP was compiled without CRC32 support. Accepting packet\r\n");
+		csp_log_warn("Received packet with CRC32, but CSP was compiled without CRC32 support. Accepting packet");
 		packet->length -= sizeof(uint32_t);
 #endif
 	}
@@ -107,16 +107,16 @@ static int csp_route_security_check(uint32_t security_opts, csp_iface_t * interf
 		/* Verify HMAC */
 		if (csp_hmac_verify(packet) != 0) {
 			/* HMAC failed */
-			csp_log_error("HMAC verification error! Discarding packet\r\n");
+			csp_log_error("HMAC verification error! Discarding packet");
 			interface->autherr++;
 			return CSP_ERR_HMAC;
 		}
 	} else if (security_opts & CSP_SO_HMACREQ) {
-		csp_log_warn("Received packet without HMAC. Discarding packet\r\n");
+		csp_log_warn("Received packet without HMAC. Discarding packet");
 		interface->autherr++;
 		return CSP_ERR_HMAC;
 #else
-		csp_log_error("Received packet with HMAC, but CSP was compiled without HMAC support. Discarding packet\r\n");
+		csp_log_error("Received packet with HMAC, but CSP was compiled without HMAC support. Discarding packet");
 		interface->autherr++;
 		return CSP_ERR_NOTSUP;
 #endif
@@ -144,7 +144,7 @@ int csp_route_work(uint32_t timeout) {
 
 	packet = input.packet;
 
-	csp_log_packet("INP: S %u, D %u, Dp %u, Sp %u, Pr %u, Fl 0x%02X, Sz %"PRIu16" VIA: %s\r\n",
+	csp_log_packet("INP: S %u, D %u, Dp %u, Sp %u, Pr %u, Fl 0x%02X, Sz %"PRIu16" VIA: %s",
 			packet->id.src, packet->id.dst, packet->id.dport,
 			packet->id.sport, packet->id.pri, packet->id.flags, packet->length, input.interface->name);
 
@@ -157,7 +157,7 @@ int csp_route_work(uint32_t timeout) {
 	/* Check for duplicates */
 	if (csp_dedup_check(packet) == 1) {
 		/* Discard packet */
-		csp_log_packet("Duplicate packet discarded\r\n");
+		csp_log_packet("Duplicate packet discarded");
 		csp_buffer_free(packet);
 		return 0;
 	}
@@ -177,7 +177,7 @@ int csp_route_work(uint32_t timeout) {
 
 		/* Otherwise, actually send the message */
 		if (csp_send_direct(packet->id, packet, dstif, 0) != CSP_ERR_NONE) {
-			csp_log_warn("Router failed to send\r\n");
+			csp_log_warn("Router failed to send");
 			csp_buffer_free(packet);
 		}
 
@@ -195,7 +195,7 @@ int csp_route_work(uint32_t timeout) {
 			return 0;
 		}
 		if (csp_queue_enqueue(socket->socket, &packet, 0) != CSP_QUEUE_OK) {
-			csp_log_error("Conn-less socket queue full\r\n");
+			csp_log_error("Conn-less socket queue full");
 			csp_buffer_free(packet);
 			return 0;
 		}
@@ -234,7 +234,7 @@ int csp_route_work(uint32_t timeout) {
 		conn = csp_conn_new(packet->id, idout);
 
 		if (!conn) {
-			csp_log_error("No more connections available\r\n");
+			csp_log_error("No more connections available");
 			csp_buffer_free(packet);
 			return 0;
 		}
@@ -259,11 +259,11 @@ int csp_route_work(uint32_t timeout) {
 #ifdef CSP_USE_RDP
 		csp_rdp_new_packet(conn, packet);
 	} else if (conn->opts & CSP_SO_RDPREQ) {
-		csp_log_warn("Received packet without RDP header. Discarding packet\r\n");
+		csp_log_warn("Received packet without RDP header. Discarding packet");
 		input.interface->rx_error++;
 		csp_buffer_free(packet);
 #else
-		csp_log_error("Received RDP packet, but CSP was compiled without RDP support. Discarding packet\r\n");
+		csp_log_error("Received RDP packet, but CSP was compiled without RDP support. Discarding packet");
 		input.interface->rx_error++;
 		csp_buffer_free(packet);
 #endif

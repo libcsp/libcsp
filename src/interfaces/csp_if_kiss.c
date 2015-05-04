@@ -102,7 +102,7 @@ void csp_kiss_rx(csp_iface_t * interface, uint8_t * buf, int len, void * pxTaskW
 
 		/* If packet was too long */
 		if (driver->rx_length > interface->mtu) {
-			csp_log_warn("KISS RX overflow\r\n");
+			csp_log_warn("KISS RX overflow");
 			interface->rx_error++;
 			driver->rx_mode = KISS_MODE_NOT_STARTED;
 			driver->rx_length = 0;
@@ -156,7 +156,7 @@ void csp_kiss_rx(csp_iface_t * interface, uint8_t * buf, int len, void * pxTaskW
 
 					/* Check for valid length */
 					if (driver->rx_length < CSP_HEADER_LENGTH + sizeof(uint32_t)) {
-						csp_log_warn("KISS short frame skipped, len: %u\r\n", driver->rx_length);
+						csp_log_warn("KISS short frame skipped, len: %u", driver->rx_length);
 						interface->rx_error++;
 						driver->rx_mode = KISS_MODE_NOT_STARTED;
 						break;
@@ -173,7 +173,7 @@ void csp_kiss_rx(csp_iface_t * interface, uint8_t * buf, int len, void * pxTaskW
 
 					/* Validate CRC */
 					if (csp_crc32_verify(driver->rx_packet) != CSP_ERR_NONE) {
-						csp_log_warn("KISS invalid crc frame skipped, len: %u\r\n", driver->rx_packet->length);
+						csp_log_warn("KISS invalid crc frame skipped, len: %u", driver->rx_packet->length);
 						interface->rx_error++;
 						driver->rx_mode = KISS_MODE_NOT_STARTED;
 						break;
