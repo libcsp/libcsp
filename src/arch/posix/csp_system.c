@@ -57,7 +57,7 @@ int csp_sys_reboot(void) {
 	reboot(magic);
 	
 	/* If reboot(2) returns, it is an error */
-	csp_log_error("Failed to reboot: %s\r\n", strerror(errno));
+	csp_log_error("Failed to reboot: %s", strerror(errno));
 
 	return CSP_ERR_INVAL;
 }

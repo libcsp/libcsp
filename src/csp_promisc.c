@@ -71,7 +71,7 @@ void csp_promisc_add(csp_packet_t * packet) {
 		csp_packet_t *packet_copy = csp_buffer_clone(packet);
 		if (packet_copy != NULL) {
 			if (csp_queue_enqueue(csp_promisc_queue, &packet_copy, 0) != CSP_QUEUE_OK) {
-				csp_log_error("Promiscuous mode input queue full\r\n");
+				csp_log_error("Promiscuous mode input queue full");
 				csp_buffer_free(packet_copy);
 			}
 		}

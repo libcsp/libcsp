@@ -171,7 +171,7 @@ int can_send(can_id_t id, uint8_t data[], uint8_t dlc, CSP_BASE_TYPE * task_woke
 
 	/* Return if no available MOB was found */
 	if (m < 0) {
-		csp_log_error("TX overflow, no available MOB\r\n");
+		csp_log_error("TX overflow, no available MOB");
 		return -1;
 	}
 
@@ -277,7 +277,7 @@ static void __attribute__ ((noinline)) can_dsr(void) {
 
 			} else if (CAN_CTRL->CHANNEL[m].SR != 0) {
 				/* Error */
-				csp_log_error("mbox %d failed with SR=%#"PRIx32"\r\n",
+				csp_log_error("mbox %d failed with SR=%#"PRIx32,
 						m, CAN_CTRL->CHANNEL[m].SR);
 
 				/* Get identifier */

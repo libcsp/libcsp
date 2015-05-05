@@ -40,7 +40,7 @@ uint32_t csp_sys_memfree(void) {
 
 int csp_sys_reboot(void) {
 	/* TODO: Fix reboot on OSX */
-	csp_log_error("Failed to reboot\r\n");
+	csp_log_error("Failed to reboot");
 
 	return CSP_ERR_INVAL;
 }

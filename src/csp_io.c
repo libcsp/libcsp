@@ -260,7 +260,7 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, csp_iface_t * ifout, 
 				goto tx_err;
 			}
 #else
-			csp_log_warn("Attempt to send packet with CRC32, but CSP was compiled without CRC32 support. Sending without CRC32r\n");
+			csp_log_warn("Attempt to send packet with CRC32, but CSP was compiled without CRC32 support. Sending without CRC32r");
 			idout.flags &= ~(CSP_FCRC32);
 #endif
 		}

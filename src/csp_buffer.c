@@ -107,12 +107,8 @@ void *csp_buffer_get_isr(size_t buf_size) {
 	if (buffer == NULL)
 		return NULL;
 
-	//csp_log_buffer("GET ISR: %p %p\r\n", buffer, buffer->skbf_addr);
-
-	if (buffer != buffer->skbf_addr) {
-		//csp_log_error("Corrupt CSP buffer\r\n");
+	if (buffer != buffer->skbf_addr)
 		return NULL;
-	}
 
 	buffer->refcount++;
 	return buffer->skbf_data;
@@ -152,26 +148,19 @@ void csp_buffer_free_isr(void *packet) {
 
 	csp_skbf_t * buf = packet - sizeof(csp_skbf_t);
 
-	if (((uintptr_t) buf % CSP_BUFFER_ALIGN) > 0) {
-		//csp_log_error("FREE: Unaligned CSP buffer pointer %p\r\n", packet);
+	if (((uintptr_t) buf % CSP_BUFFER_ALIGN) > 0)
 		return;
-	}
 
-	if (buf->skbf_addr != buf) {
-		//csp_log_error("FREE ISR: Invalid CSP buffer pointer %p\r\n", packet);
+	if (buf->skbf_addr != buf)
 		return;
-	}
 
 	if (buf->refcount == 0) {
-		//csp_log_error("FREE ISR: Buffer already free %p\r\n", buf);
 		return;
 	} else if (buf->refcount > 1) {
 		buf->refcount--;
-		//csp_log_error("FREE ISR: Buffer %p in use by %u users\r\n", buf, buf->refcount);
 		return;
 	} else {
 		buf->refcount = 0;
-		//csp_log_buffer("FREE: %p\r\n", buf);
 		csp_queue_enqueue_isr(csp_buffers, &buf, &task_woken);
 	}
 

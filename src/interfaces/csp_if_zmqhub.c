@@ -71,13 +71,13 @@ CSP_DEFINE_TASK(csp_zmqhub_task) {
 		/* Receive data */
 		if (zmq_msg_recv(&msg, subscriber, 0) < 0) {
 			zmq_msg_close(&msg);
-			csp_log_error("ZMQ: %s\r\n", zmq_strerror(zmq_errno()));
+			csp_log_error("ZMQ: %s", zmq_strerror(zmq_errno()));
 			continue;
 		}
 
 		int datalen = zmq_msg_size(&msg);
 		if (datalen < 5) {
-			csp_log_warn("ZMQ: Too short datalen: %u\r\n", datalen);
+			csp_log_warn("ZMQ: Too short datalen: %u", datalen);
 			while(zmq_msg_recv(&msg, subscriber, ZMQ_NOBLOCK) > 0)
 			zmq_msg_close(&msg);
 			continue;

@@ -289,7 +289,7 @@ int csp_route_start_task(unsigned int task_stack_size, unsigned int priority) {
 	int ret = csp_thread_create(csp_task_router, (signed char *) "RTE", task_stack_size, NULL, priority, &handle_router);
 
 	if (ret != 0) {
-		csp_log_error("Failed to start router task\n");
+		csp_log_error("Failed to start router task");
 		return CSP_ERR_NOMEM;
 	}
 

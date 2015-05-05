@@ -98,7 +98,7 @@ int csp_rtable_set(uint8_t node, uint8_t mask, csp_iface_t *ifc, uint8_t mac) {
 		routes[node].interface = ifc;
 		routes[node].mac = mac;
 	} else {
-		csp_log_error("Failed to set route: invalid node id %u\r\n", node);
+		csp_log_error("Failed to set route: invalid node id %u", node);
 		return CSP_ERR_INVAL;
 	}
 
