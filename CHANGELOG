@@ -1,4 +1,4 @@
-libcsp 2.0, 07-05-2015
+libcsp 1.4, 07-05-2015
 ----------------------
 - new: General rtable interface with support for STATIC or CIDR format
 - new: CIDR (classless interdomain routing) route table format with netmasks
