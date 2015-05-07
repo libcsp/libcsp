@@ -1,3 +1,15 @@
+libcsp 1.3, 07-05-2015
+----------------------
+- new: Split long process lists into multiple packets
+- new: Added posix csp_clock.h
+- new: cmp clock functions (requires that you provide csp_clock.h implementation)
+- new: Added SFP (Small fragmentation protocol) for larger data chunks
+- fix: csp_if_fifo example
+- fix: NULL char at the end of rps
+- doc: Updated mtu documentation
+- other: Tested with FreeRTOS 8.0
+- other: Added disable-stlib option to build only object files
+
 libcsp 1.2, 25-10-2013
 ----------------------
 - Feature release
