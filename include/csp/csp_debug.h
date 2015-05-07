@@ -85,7 +85,7 @@ extern void __attribute__((weak)) csp_assert_fail_action(char *assertion, const 
 #ifdef CSP_VERBOSE
 	#define csp_debug(level, format, ...) do { if (csp_debug_level_enabled[level]) { do_csp_debug(level, CONSTSTR("[%02"PRIu8"] %s:%d " format), my_address, BASENAME(__FILE__), __LINE__, ##__VA_ARGS__);}} while(0)
 #else
-	#define csp_debug(level, format, ...) do { if (csp_debug_level_enabled[level]) { do_csp_debug(level, CONSTSTR("[%02"PRIu8"] " format), my_address, ##__VA_ARGS__);}} while(0)
+	#define csp_debug(level, format, ...) do { if (csp_debug_level_enabled[level]) { do_csp_debug(level, CONSTSTR(format), ##__VA_ARGS__);}} while(0)
 #endif
 #else
 	#define csp_debug(...) do {} while (0)

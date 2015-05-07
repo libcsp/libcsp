@@ -107,12 +107,8 @@ void *csp_buffer_get_isr(size_t buf_size) {
 	if (buffer == NULL)
 		return NULL;
 
-	//csp_log_buffer("GET ISR: %p %p\r\n", buffer, buffer->skbf_addr);
-
-	if (buffer != buffer->skbf_addr) {
-		//csp_log_error("Corrupt CSP buffer\r\n");
+	if (buffer != buffer->skbf_addr)
 		return NULL;
-	}
 
 	buffer->refcount++;
 	return buffer->skbf_data;
@@ -124,20 +120,20 @@ void *csp_buffer_get(size_t buf_size) {
 	csp_skbf_t * buffer = NULL;
 
 	if (buf_size + CSP_BUFFER_PACKET_OVERHEAD > size) {
-		csp_log_error("Attempt to allocate too large block %u\r\n", buf_size);
+		csp_log_error("Attempt to allocate too large block %u", buf_size);
 		return NULL;
 	}
 
 	csp_queue_dequeue(csp_buffers, &buffer, 0);
 	if (buffer == NULL) {
-		csp_log_error("Out of buffers\r\n");
+		csp_log_error("Out of buffers");
 		return NULL;
 	}
 
-	csp_log_buffer("GET: %p %p\r\n", buffer, buffer->skbf_addr);
+	csp_log_buffer("GET: %p %p", buffer, buffer->skbf_addr);
 
 	if (buffer != buffer->skbf_addr) {
-		csp_log_error("Corrupt CSP buffer\r\n");
+		csp_log_error("Corrupt CSP buffer");
 		return NULL;
 	}
 
@@ -152,26 +148,19 @@ void csp_buffer_free_isr(void *packet) {
 
 	csp_skbf_t * buf = packet - sizeof(csp_skbf_t);
 
-	if (((uintptr_t) buf % CSP_BUFFER_ALIGN) > 0) {
-		//csp_log_error("FREE: Unaligned CSP buffer pointer %p\r\n", packet);
+	if (((uintptr_t) buf % CSP_BUFFER_ALIGN) > 0)
 		return;
-	}
 
-	if (buf->skbf_addr != buf) {
-		//csp_log_error("FREE ISR: Invalid CSP buffer pointer %p\r\n", packet);
+	if (buf->skbf_addr != buf)
 		return;
-	}
 
 	if (buf->refcount == 0) {
-		//csp_log_error("FREE ISR: Buffer already free %p\r\n", buf);
 		return;
 	} else if (buf->refcount > 1) {
 		buf->refcount--;
-		//csp_log_error("FREE ISR: Buffer %p in use by %u users\r\n", buf, buf->refcount);
 		return;
 	} else {
 		buf->refcount = 0;
-		//csp_log_buffer("FREE: %p\r\n", buf);
 		csp_queue_enqueue_isr(csp_buffers, &buf, &task_woken);
 	}
 
@@ -179,32 +168,32 @@ void csp_buffer_free_isr(void *packet) {
 
 void csp_buffer_free(void *packet) {
 	if (!packet) {
-		csp_log_error("Attempt to free null pointer\r\n");
+		csp_log_error("Attempt to free null pointer");
 		return;
 	}
 
 	csp_skbf_t * buf = packet - sizeof(csp_skbf_t);
 
 	if (((uintptr_t) buf % CSP_BUFFER_ALIGN) > 0) {
-		csp_log_error("FREE: Unaligned CSP buffer pointer %p\r\n", packet);
+		csp_log_error("FREE: Unaligned CSP buffer pointer %p", packet);
 		return;
 	}
 
 	if (buf->skbf_addr != buf) {
-		csp_log_error("FREE: Invalid CSP buffer pointer %p\r\n", packet);
+		csp_log_error("FREE: Invalid CSP buffer pointer %p", packet);
 		return;
 	}
 
 	if (buf->refcount == 0) {
-		csp_log_error("FREE: Buffer already free %p\r\n", buf);
+		csp_log_error("FREE: Buffer already free %p", buf);
 		return;
 	} else if (buf->refcount > 1) {
 		buf->refcount--;
-		csp_log_error("FREE: Buffer %p in use by %u users\r\n", buf, buf->refcount);
+		csp_log_error("FREE: Buffer %p in use by %u users", buf, buf->refcount);
 		return;
 	} else {
 		buf->refcount = 0;
-		csp_log_buffer("FREE: %p\r\n", buf);
+		csp_log_buffer("FREE: %p", buf);
 		csp_queue_enqueue(csp_buffers, &buf, 0);
 	}
 

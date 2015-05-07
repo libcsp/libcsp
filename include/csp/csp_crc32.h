@@ -44,6 +44,14 @@ int csp_crc32_append(csp_packet_t * packet);
  */
 int csp_crc32_verify(csp_packet_t * packet);
 
+/**
+ * Calculate checksum for a given memory area
+ * @param data pointer to memory
+ * @param length length of memory to do checksum on
+ * @return return uint32_t checksum
+ */
+uint32_t csp_crc32_memory(const uint8_t * data, uint32_t length);
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif

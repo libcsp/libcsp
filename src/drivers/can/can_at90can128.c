@@ -89,7 +89,7 @@ int can_configure_bitrate(unsigned long int afcpu, uint32_t bps) {
 
 	/* Set baud rate (500 kbps) */
 	if (bps != 500000) {
-		csp_log_error("CAN bitrate must be 500000 (was %d)\r\n");
+		csp_log_error("CAN bitrate must be 500000 (was %d)");
 		return -1;
 	}
 
@@ -110,7 +110,7 @@ int can_configure_bitrate(unsigned long int afcpu, uint32_t bps) {
 		CANBT2 = 0x04;	   //!< Tsync = 1x Tscl, Tprs = 3x Tscl, Tsjw = 1x Tscl
 		CANBT3 = 0x13;	   //!< Tpsh1 = 2x Tscl, Tpsh2 = 2x Tscl, 3 sample points
 	} else {
-		csp_log_error("Error, missing CAN driver defines for that FCPU=%d\r\n", afcpu);
+		csp_log_error("Error, missing CAN driver defines for that FCPU=%d", afcpu);
 		return -1;
 	}
 
@@ -193,7 +193,7 @@ int can_send(can_id_t id, uint8_t data[], uint8_t dlc, CSP_BASE_TYPE * task_woke
 
 	/* Return if no available MOB was found */
 	if (m < 0) {
-		csp_log_warn("TX overflow, no available MOB\r\n");
+		csp_log_warn("TX overflow, no available MOB");
 		return -1;
 	}
 

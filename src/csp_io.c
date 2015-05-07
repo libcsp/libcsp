@@ -28,6 +28,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/csp_error.h>
 #include <csp/csp_endian.h>
 #include <csp/csp_crc32.h>
+#include <csp/csp_rtable.h>
 #include <csp/interfaces/csp_if_lo.h>
 
 #include <csp/arch/csp_thread.h>
@@ -43,6 +44,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "csp_port.h"
 #include "csp_conn.h"
 #include "csp_route.h"
+#include "csp_promisc.h"
+#include "csp_qfifo.h"
 #include "transport/csp_transport.h"
 
 /** Static local variables */
@@ -87,9 +90,18 @@ int csp_init(unsigned char address) {
 	if (ret != CSP_ERR_NONE)
 		return ret;
 
-	ret = csp_route_table_init();
+	ret = csp_qfifo_init();
 	if (ret != CSP_ERR_NONE)
 		return ret;
+
+	/* Loopback */
+	csp_iflist_add(&csp_if_lo);
+
+	/* Register loopback route */
+	csp_route_set(my_address, &csp_if_lo, CSP_NODE_MAC);
+
+	/* Also register loopback as default, until user redefines default route */
+	csp_route_set(CSP_DEFAULT_ROUTE, &csp_if_lo, CSP_NODE_MAC);
 
 	return CSP_ERR_NONE;
 
@@ -100,35 +112,35 @@ csp_socket_t * csp_socket(uint32_t opts) {
 	/* Validate socket options */
 #ifndef CSP_USE_RDP
 	if (opts & CSP_SO_RDPREQ) {
-		csp_log_error("Attempt to create socket that requires RDP, but CSP was compiled without RDP support\r\n");
+		csp_log_error("Attempt to create socket that requires RDP, but CSP was compiled without RDP support");
 		return NULL;
 	}
 #endif
 
 #ifndef CSP_USE_XTEA
 	if (opts & CSP_SO_XTEAREQ) {
-		csp_log_error("Attempt to create socket that requires XTEA, but CSP was compiled without XTEA support\r\n");
+		csp_log_error("Attempt to create socket that requires XTEA, but CSP was compiled without XTEA support");
 		return NULL;
 	}
 #endif
 
 #ifndef CSP_USE_HMAC
 	if (opts & CSP_SO_HMACREQ) {
-		csp_log_error("Attempt to create socket that requires HMAC, but CSP was compiled without HMAC support\r\n");
+		csp_log_error("Attempt to create socket that requires HMAC, but CSP was compiled without HMAC support");
 		return NULL;
 	} 
 #endif
 
 #ifndef CSP_USE_CRC32
 	if (opts & CSP_SO_CRC32REQ) {
-		csp_log_error("Attempt to create socket that requires CRC32, but CSP was compiled without CRC32 support\r\n");
+		csp_log_error("Attempt to create socket that requires CRC32, but CSP was compiled without CRC32 support");
 		return NULL;
 	} 
 #endif
 	
 	/* Drop packet if reserved flags are set */
 	if (opts & ~(CSP_SO_RDPREQ | CSP_SO_XTEAREQ | CSP_SO_HMACREQ | CSP_SO_CRC32REQ | CSP_SO_CONN_LESS)) {
-		csp_log_error("Invalid socket option\r\n");
+		csp_log_error("Invalid socket option");
 		return NULL;
 	}
 
@@ -198,28 +210,26 @@ csp_packet_t * csp_read(csp_conn_t * conn, uint32_t timeout) {
 
 }
 
-int csp_send_direct(csp_id_t idout, csp_packet_t * packet, uint32_t timeout) {
+int csp_send_direct(csp_id_t idout, csp_packet_t * packet, csp_iface_t * ifout, uint32_t timeout) {
 
 	if (packet == NULL) {
-		csp_log_error("csp_send_direct called with NULL packet\r\n");
+		csp_log_error("csp_send_direct called with NULL packet");
 		goto err;
 	}
 
-	csp_route_t * ifout = csp_route_if(idout.dst);
-
-	if ((ifout == NULL) || (ifout->interface == NULL) || (ifout->interface->nexthop == NULL)) {
-		csp_log_error("No route to host: %#08x\r\n", idout.ext);
+	if ((ifout == NULL) || (ifout->nexthop == NULL)) {
+		csp_log_error("No route to host: %#08x", idout.ext);
 		goto err;
 	}
 
-	csp_log_packet("Output: Src %u, Dst %u, Dport %u, Sport %u, Pri %u, Flags 0x%02X, Size %u VIA: %s\r\n",
-		idout.src, idout.dst, idout.dport, idout.sport, idout.pri, idout.flags, packet->length, ifout->interface->name);
+	csp_log_packet("OUT: S %u, D %u, Dp %u, Sp %u, Pr %u, Fl 0x%02X, Sz %u VIA: %s",
+		idout.src, idout.dst, idout.dport, idout.sport, idout.pri, idout.flags, packet->length, ifout->name);
 
 #ifdef CSP_USE_PROMISC
 	/* Loopback traffic is added to promisc queue by the router */
 	if (idout.dst != my_address && idout.src == my_address) {
 		packet->id.ext = idout.ext;
-		csp_promisc_add(packet, csp_promisc_queue);
+		csp_promisc_add(packet);
 	}
 #endif
 
@@ -231,11 +241,11 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, uint32_t timeout) {
 			/* Calculate and add HMAC */
 			if (csp_hmac_append(packet) != 0) {
 				/* HMAC append failed */
-				csp_log_warn("HMAC append failed!\r\n");
+				csp_log_warn("HMAC append failed!");
 				goto tx_err;
 			}
 #else
-			csp_log_warn("Attempt to send packet with HMAC, but CSP was compiled without HMAC support. Discarding packet\r\n");
+			csp_log_warn("Attempt to send packet with HMAC, but CSP was compiled without HMAC support. Discarding packet");
 			goto tx_err;
 #endif
 		}
@@ -246,11 +256,11 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, uint32_t timeout) {
 			/* Calculate and add CRC32 */
 			if (csp_crc32_append(packet) != 0) {
 				/* CRC32 append failed */
-				csp_log_warn("CRC32 append failed!\r\n");
+				csp_log_warn("CRC32 append failed!");
 				goto tx_err;
 			}
 #else
-			csp_log_warn("Attempt to send packet with CRC32, but CSP was compiled without CRC32 support. Sending without CRC32r\n");
+			csp_log_warn("Attempt to send packet with CRC32, but CSP was compiled without CRC32 support. Sending without CRC32r");
 			idout.flags &= ~(CSP_FCRC32);
 #endif
 		}
@@ -269,13 +279,13 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, uint32_t timeout) {
 			/* Encrypt data */
 			if (csp_xtea_encrypt(packet->data, packet->length, iv) != 0) {
 				/* Encryption failed */
-				csp_log_warn("Encryption failed! Discarding packet\r\n");
+				csp_log_warn("Encryption failed! Discarding packet");
 				goto tx_err;
 			}
 
 			packet->length += sizeof(nonce_n);
 #else
-			csp_log_warn("Attempt to send XTEA encrypted packet, but CSP was compiled without XTEA support. Discarding packet\r\n");
+			csp_log_warn("Attempt to send XTEA encrypted packet, but CSP was compiled without XTEA support. Discarding packet");
 			goto tx_err;
 #endif
 		}
@@ -286,20 +296,20 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, uint32_t timeout) {
 
 	/* Store length before passing to interface */
 	uint16_t bytes = packet->length;
-	uint16_t mtu = ifout->interface->mtu;
+	uint16_t mtu = ifout->mtu;
 
 	if (mtu > 0 && bytes > mtu)
 		goto tx_err;
 
-	if ((*ifout->interface->nexthop)(ifout->interface, packet, timeout) != CSP_ERR_NONE)
+	if ((*ifout->nexthop)(ifout, packet, timeout) != CSP_ERR_NONE)
 		goto tx_err;
 
-	ifout->interface->tx++;
-	ifout->interface->txbytes += bytes;
+	ifout->tx++;
+	ifout->txbytes += bytes;
 	return CSP_ERR_NONE;
 
 tx_err:
-	ifout->interface->tx_error++;
+	ifout->tx_error++;
 err:
 	return CSP_ERR_TX;
 
@@ -310,23 +320,24 @@ int csp_send(csp_conn_t * conn, csp_packet_t * packet, uint32_t timeout) {
 	int ret;
 
 	if ((conn == NULL) || (packet == NULL) || (conn->state != CONN_OPEN)) {
-		csp_log_error("Invalid call to csp_send\r\n");
+		csp_log_error("Invalid call to csp_send");
 		return 0;
 	}
 
 #ifdef CSP_USE_RDP
 	if (conn->idout.flags & CSP_FRDP) {
 		if (csp_rdp_send(conn, packet, timeout) != CSP_ERR_NONE) {
-			csp_route_t * ifout = csp_route_if(conn->idout.dst);
-			if (ifout != NULL && ifout->interface != NULL)
-				ifout->interface->tx_error++;
-			csp_log_warn("RDP send failed\r\n!");
+			csp_iface_t * ifout = csp_rtable_find_iface(conn->idout.dst);
+			if (ifout != NULL)
+				ifout->tx_error++;
+			csp_log_warn("RDP send failed!");
 			return 0;
 		}
 	}
 #endif
 
-	ret = csp_send_direct(conn->idout, packet, timeout);
+	csp_iface_t * ifout = csp_rtable_find_iface(conn->idout.dst);
+	ret = csp_send_direct(conn->idout, packet, ifout, timeout);
 
 	return (ret == CSP_ERR_NONE) ? 1 : 0;
 
@@ -363,7 +374,7 @@ int csp_transaction_persistent(csp_conn_t * conn, uint32_t timeout, void * outbu
 		return 0;
 
 	if ((inlen != -1) && ((int)packet->length != inlen)) {
-		csp_log_error("Reply length %u expected %u\r\n", packet->length, inlen);
+		csp_log_error("Reply length %u expected %u", packet->length, inlen);
 		csp_buffer_free(packet);
 		return 0;
 	}
@@ -406,7 +417,7 @@ int csp_sendto(uint8_t prio, uint8_t dest, uint8_t dport, uint8_t src_port, uint
 	packet->id.flags = 0;
 
 	if (opts & CSP_O_RDP) {
-		csp_log_error("Attempt to create RDP packet on connection-less socket\r\n");
+		csp_log_error("Attempt to create RDP packet on connection-less socket");
 		return CSP_ERR_INVAL;
 	}
 
@@ -414,7 +425,7 @@ int csp_sendto(uint8_t prio, uint8_t dest, uint8_t dport, uint8_t src_port, uint
 #ifdef CSP_USE_HMAC
 		packet->id.flags |= CSP_FHMAC;
 #else
-		csp_log_error("Attempt to create HMAC authenticated packet, but CSP was compiled without HMAC support\r\n");
+		csp_log_error("Attempt to create HMAC authenticated packet, but CSP was compiled without HMAC support");
 		return CSP_ERR_NOTSUP;
 #endif
 	}
@@ -423,7 +434,7 @@ int csp_sendto(uint8_t prio, uint8_t dest, uint8_t dport, uint8_t src_port, uint
 #ifdef CSP_USE_XTEA
 		packet->id.flags |= CSP_FXTEA;
 #else
-		csp_log_error("Attempt to create XTEA encrypted packet, but CSP was compiled without XTEA support\r\n");
+		csp_log_error("Attempt to create XTEA encrypted packet, but CSP was compiled without XTEA support");
 		return CSP_ERR_NOTSUP;
 #endif
 	}
@@ -432,7 +443,7 @@ int csp_sendto(uint8_t prio, uint8_t dest, uint8_t dport, uint8_t src_port, uint
 #ifdef CSP_USE_CRC32
 		packet->id.flags |= CSP_FCRC32;
 #else
-		csp_log_error("Attempt to create CRC32 validated packet, but CSP was compiled without CRC32 support\r\n");
+		csp_log_error("Attempt to create CRC32 validated packet, but CSP was compiled without CRC32 support");
 		return CSP_ERR_NOTSUP;
 #endif
 	}
@@ -443,7 +454,8 @@ int csp_sendto(uint8_t prio, uint8_t dest, uint8_t dport, uint8_t src_port, uint
 	packet->id.sport = src_port;
 	packet->id.pri = prio;
 
-	if (csp_send_direct(packet->id, packet, timeout) != CSP_ERR_NONE)
+	csp_iface_t * ifout = csp_rtable_find_iface(dest);
+	if (csp_send_direct(packet->id, packet, ifout, timeout) != CSP_ERR_NONE)
 		return CSP_ERR_NOTSUP;
 	
 	return CSP_ERR_NONE;

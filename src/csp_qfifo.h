@@ -1,6 +1,6 @@
 /*
 Cubesat Space Protocol - A small network-layer protocol designed for Cubesats
-Copyright (C) 2012 Gomspace ApS (http://www.gomspace.com)
+Copyright (C) 2012 GomSpace ApS (http://www.gomspace.com)
 Copyright (C) 2012 AAUSAT3 Project (http://aausat3.space.aau.dk)
 
 This library is free software; you can redistribute it and/or
@@ -18,14 +18,31 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <csp/arch/csp_clock.h>
+#ifndef CSP_QFIFO_H_
+#define CSP_QFIFO_H_
 
-#include <time.h>
+#ifdef CSP_USE_RDP
+#define FIFO_TIMEOUT 100				//! If RDP is enabled, the router needs to awake some times to check timeouts
+#else
+#define FIFO_TIMEOUT CSP_MAX_DELAY		//! If no RDP, the router can sleep untill data arrives
+#endif
 
-void clock_get_time(csp_timestamp_t * timestamp) {
-	timestamp->tv_sec = time(0);
-}
+/**
+ * Init FIFO/QOS queues
+ * @return CSP_ERR type
+ */
+int csp_qfifo_init(void);
 
-void clock_set_time(csp_timestamp_t * timestamp) {
-	return;
-}
+typedef struct {
+	csp_iface_t * interface;
+	csp_packet_t * packet;
+} csp_qfifo_t;
+
+/**
+ * Read next packet from router input queue
+ * @param input pointer to router queue item element
+ * @return CSP_ERR type
+ */
+int csp_qfifo_read(csp_qfifo_t * input);
+
+#endif /* CSP_QFIFO_H_ */

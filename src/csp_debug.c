@@ -92,9 +92,7 @@ void do_csp_debug(csp_debug_level_t level, const char * format, ...) {
 	/* If csp_debug_hook symbol is defined, pass on the message.
 	 * Otherwise, just print with pretty colors ... */
 	if (csp_debug_hook_func) {
-		char buf[250];
-		vsnprintf(buf, 250, format, args);
-		csp_debug_hook_func(level, buf);
+		csp_debug_hook_func(level, format, args);
 	} else {
 		csp_sys_set_color(color);
 #ifdef __AVR__
@@ -102,6 +100,7 @@ void do_csp_debug(csp_debug_level_t level, const char * format, ...) {
 #else
 		vprintf(format, args);
 #endif
+		printf("\r\n");
 		csp_sys_set_color(COLOR_RESET);
 	}
 

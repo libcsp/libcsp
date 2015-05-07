@@ -31,7 +31,7 @@ def options(ctx):
 	# Load GCC options
 	ctx.load('gcc')
 	
-	ctx.add_option('--toolchain', default='', help='Set toolchain prefix')
+	ctx.add_option('--toolchain', default=None, help='Set toolchain prefix')
 
 	# Set libcsp options
 	gr = ctx.add_option_group('libcsp options')
@@ -39,7 +39,6 @@ def options(ctx):
 	gr.add_option('--install-csp', action='store_true', help='Installs CSP headers and lib')
 
 	gr.add_option('--disable-output', action='store_true', help='Disable CSP output')
-	gr.add_option('--disable-verbose', action='store_true', help='Disable filename and lineno on debug');
 	gr.add_option('--disable-stlib', action='store_true', help='Build objects only')
 	gr.add_option('--enable-rdp', action='store_true', help='Enable RDP support')
 	gr.add_option('--enable-qos', action='store_true', help='Enable Quality of Service support')
@@ -49,20 +48,23 @@ def options(ctx):
 	gr.add_option('--enable-xtea', action='store_true', help='Enable XTEA support')
 	gr.add_option('--enable-bindings', action='store_true', help='Enable Python bindings')
 	gr.add_option('--enable-examples', action='store_true', help='Enable examples')
+	gr.add_option('--enable-dedup', action='store_true', help='Enable packet deduplicator')
+	gr.add_option('--enable-verbose', action='store_true', help='Enable filename and line numbers on debug');
 
 	# Interfaces	
 	gr.add_option('--enable-if-i2c', action='store_true', help='Enable I2C interface')
 	gr.add_option('--enable-if-kiss', action='store_true', help='Enable KISS/RS.232 interface')
 	gr.add_option('--enable-if-can', action='store_true', help='Enable CAN interface')
+	gr.add_option('--enable-if-zmqhub', action='store_true', help='Enable ZMQHUB interface')
 	
 	# Drivers
 	gr.add_option('--with-driver-can', default=None, metavar='CHIP', help='Build CAN driver. [socketcan, at91sam7a1, at91sam7a3 or at90can128]')
 	gr.add_option('--with-driver-usart', default=None, metavar='DRIVER', help='Build USART driver. [windows, linux, None]')
-	gr.add_option('--with-drivers', metavar='PATH', default='../libgomspace/include', help='Set path to Driver header files')
+	gr.add_option('--with-drivers', metavar='PATH', default=None, help='Set path to Driver header files')
 
 	# OS	
 	gr.add_option('--with-os', metavar='OS', default='posix', help='Set operating system. Must be either \'posix\', \'macosx\', \'windows\' or \'freertos\'')
-	gr.add_option('--with-freertos', metavar='PATH', default='../libgomspace/include', help='Set path to FreeRTOS header files')
+	gr.add_option('--with-freertos', metavar='PATH', default=None, help='Set path to FreeRTOS header files')
 
 	# Options
 	gr.add_option('--with-rdp-max-window', metavar='SIZE', type=int, default=20, help='Set maximum window size for RDP')
@@ -72,6 +74,7 @@ def options(ctx):
 	gr.add_option('--with-router-queue-length', metavar='SIZE', type=int, default=10, help='Set maximum number of packets to be queued at the input of the router')
 	gr.add_option('--with-padding', metavar='BYTES', type=int, default=8, help='Set padding bytes before packet length field')
 	gr.add_option('--with-loglevel', metavar='LEVEL', default='debug', help='Set minimum compile time log level. Must be one of \'error\', \'warn\', \'info\' or \'debug\'')
+	gr.add_option('--with-rtable', metavar='TABLE', default='static', help='Set routing table type')
 	gr.add_option('--with-transaction-so', metavar='CSP_SO', type=int, default='0x0000', help='Set outgoing csp_transaction socket options, see csp.h for valid values')
 	gr.add_option('--with-bufalign', metavar='BYTES', type=int, help='Set buffer alignment')
 
@@ -90,13 +93,13 @@ def configure(ctx):
 
 	if not ctx.options.with_loglevel in ('error', 'warn', 'info', 'debug'):
 		ctx.fatal('--with-loglevel must be either \'error\', \'warn\', \'info\' or \'debug\'')
-	
+
 	# Setup and validate toolchain
-	ctx.env.CC = ctx.options.toolchain + 'gcc'
-	ctx.env.AR = ctx.options.toolchain + 'ar'
-	ctx.env.SIZE = ctx.options.toolchain + 'size'
+	if ctx.options.toolchain:
+		ctx.env.CC = ctx.options.toolchain + 'gcc'
+		ctx.env.AR = ctx.options.toolchain + 'ar'
+
 	ctx.load('gcc')
-	ctx.find_program('size', var='SIZE')
 
 	# Set git revision define
 	git_rev = os.popen('git describe --always 2> /dev/null || echo unknown').read().strip()
@@ -118,6 +121,12 @@ def configure(ctx):
 
 	# Add default files
 	ctx.env.append_unique('FILES_CSP', ['src/*.c','src/interfaces/csp_if_lo.c','src/transport/csp_udp.c','src/arch/{0}/**/*.c'.format(ctx.options.with_os)])
+	
+	# Libs
+	if 'posix' in ctx.env.OS:
+		ctx.env.append_unique('LIBS', ['rt', 'pthread', 'util'])
+	elif 'macosx' in ctx.env.OS:
+		ctx.env.append_unique('LIBS', ['pthread'])
 
 	# Check for recursion
 	if ctx.path == ctx.srcnode:
@@ -125,7 +134,8 @@ def configure(ctx):
 	
 	# Add FreeRTOS 
 	if ctx.options.with_os == 'freertos':
-		ctx.env.append_unique('INCLUDES_CSP', ctx.options.with_freertos)
+		if ctx.options.with_freertos:
+			ctx.env.append_unique('INCLUDES_CSP', ctx.options.with_freertos)
 	elif ctx.options.with_os == 'windows':
 		ctx.env.append_unique('CFLAGS', ['-D_WIN32_WINNT=0x0600'])
 	
@@ -156,6 +166,10 @@ def configure(ctx):
 		ctx.env.append_unique('FILES_CSP', 'src/interfaces/csp_if_i2c.c')
 	if ctx.options.enable_if_kiss:
 		ctx.env.append_unique('FILES_CSP', 'src/interfaces/csp_if_kiss.c')
+	if ctx.options.enable_if_zmqhub:
+		ctx.env.append_unique('FILES_CSP', 'src/interfaces/csp_if_zmqhub.c')
+		ctx.check_cfg(package='libzmq', args='--cflags --libs')
+		ctx.env.append_unique('LIBS', ctx.env.LIB_LIBZMQ)
 
 	# Store configuration options
 	ctx.env.ENABLE_BINDINGS = ctx.options.enable_bindings
@@ -175,6 +189,9 @@ def configure(ctx):
 	else:
 		ctx.env.append_unique('EXCL_CSP', 'src/csp_crc32.c')
 
+	if not ctx.options.enable_dedup:
+		ctx.env.append_unique('EXCL_CSP', 'src/csp_dedup.c')
+
 	if ctx.options.enable_hmac:
 		ctx.env.append_unique('FILES_CSP', 'src/crypto/csp_hmac.c')
 		ctx.env.append_unique('FILES_CSP', 'src/crypto/csp_sha1.c')
@@ -182,15 +199,18 @@ def configure(ctx):
 	if ctx.options.enable_xtea:
 		ctx.env.append_unique('FILES_CSP', 'src/crypto/csp_xtea.c')
 		ctx.env.append_unique('FILES_CSP', 'src/crypto/csp_sha1.c')
+		
+	ctx.env.append_unique('FILES_CSP', 'src/rtable/csp_rtable_' + ctx.options.with_rtable  + '.c')
 
 	ctx.define_cond('CSP_DEBUG', not ctx.options.disable_output)
-	ctx.define_cond('CSP_VERBOSE', not ctx.options.disable_verbose);
+	ctx.define_cond('CSP_VERBOSE', ctx.options.enable_verbose);
 	ctx.define_cond('CSP_USE_RDP', ctx.options.enable_rdp)
 	ctx.define_cond('CSP_USE_CRC32', ctx.options.enable_crc32)
 	ctx.define_cond('CSP_USE_HMAC', ctx.options.enable_hmac)
 	ctx.define_cond('CSP_USE_XTEA', ctx.options.enable_xtea)
 	ctx.define_cond('CSP_USE_PROMISC', ctx.options.enable_promisc)
 	ctx.define_cond('CSP_USE_QOS', ctx.options.enable_qos)
+	ctx.define_cond('CSP_USE_DEDUP', ctx.options.enable_dedup)
 	ctx.define('CSP_CONN_MAX', ctx.options.with_max_connections)
 	ctx.define('CSP_CONN_QUEUE_LENGTH', ctx.options.with_conn_queue_length)
 	ctx.define('CSP_FIFO_INPUT', ctx.options.with_router_queue_length)
@@ -249,30 +269,20 @@ def build(ctx):
 		install_path = install_path,
 	)
 
-	# Print library size
-	#if ctx.options.verbose > 0:
-	#	ctx(rule='${SIZE}  ${SRC}', source='libcsp.a', name='csp_size', always=True)
-
-	libs = []
-	if 'posix' in ctx.env.OS:
-		libs = ['rt', 'pthread']
-	elif 'macosx' in ctx.env.OS:
-		libs = ['pthread']
-
 	# Build shared library for Python bindings
 	if ctx.env.ENABLE_BINDINGS:
 		ctx.shlib(source=ctx.path.ant_glob(ctx.env.FILES_CSP),
 			target = 'csp',
 			includes= ctx.env.INCLUDES_CSP,
 			export_includes = 'include',
-			use = 'include',
-			lib=libs)
+			use = ['include', 'util'],
+			lib=ctx.env.LIBS)
 
 	if ctx.env.ENABLE_EXAMPLES:
 		ctx.program(source = ctx.path.ant_glob('examples/simple.c'),
 			target = 'simple',
 			includes = ctx.env.INCLUDES_CSP,
-			lib = libs,
+			lib = ctx.env.LIBS,
 			use = 'csp')
 
 		if ctx.options.enable_if_kiss:

@@ -27,6 +27,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/csp_cmp.h>
 #include <csp/csp_endian.h>
 #include <csp/csp_platform.h>
+#include <csp/csp_rtable.h>
 
 #include <csp/arch/csp_time.h>
 #include <csp/arch/csp_clock.h>
@@ -40,7 +41,16 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  * The CSP CMP mempy function is used to, override the function used to
  * read/write memory by peek and poke.
  */
-static csp_memcpy_fnc_t csp_cmp_memcpy_fnc = memcpy;
+#ifdef __AVR__
+static uint32_t wrap_32bit_memcpy(uint32_t to, const uint32_t from, size_t size) {
+	return (uint32_t) (uintptr_t) memcpy((void *) (uintptr_t) to, (const void *) (uintptr_t) from, size);
+}
+static csp_memcpy_fnc_t csp_cmp_memcpy_fnc = wrap_32bit_memcpy;
+#else
+static csp_memcpy_fnc_t csp_cmp_memcpy_fnc = (csp_memcpy_fnc_t) memcpy;
+#endif
+
+
 void csp_cmp_set_memcpy(csp_memcpy_fnc_t fnc) {
 	csp_cmp_memcpy_fnc = fnc;
 }
@@ -73,7 +83,7 @@ static int do_cmp_ident(struct csp_cmp_message *cmp) {
 
 static int do_cmp_route_set(struct csp_cmp_message *cmp) {
 
-	csp_iface_t *ifc = csp_route_get_if_by_name(cmp->route_set.interface);
+	csp_iface_t *ifc = csp_iflist_get_by_name(cmp->route_set.interface);
 	if (ifc == NULL)
 		return CSP_ERR_INVAL;
 
@@ -86,7 +96,7 @@ static int do_cmp_route_set(struct csp_cmp_message *cmp) {
 
 static int do_cmp_if_stats(struct csp_cmp_message *cmp) {
 
-	csp_iface_t *ifc = csp_route_get_if_by_name(cmp->if_stats.interface);
+	csp_iface_t *ifc = csp_iflist_get_by_name(cmp->if_stats.interface);
 	if (ifc == NULL)
 		return CSP_ERR_INVAL;
 
@@ -111,7 +121,7 @@ static int do_cmp_peek(struct csp_cmp_message *cmp) {
 		return CSP_ERR_INVAL;
 
 	/* Dangerous, you better know what you are doing */
-	csp_cmp_memcpy_fnc(cmp->peek.data, (void *) (uintptr_t) cmp->peek.addr, cmp->peek.len);
+	csp_cmp_memcpy_fnc((csp_memptr_t) (uintptr_t) cmp->peek.data, (csp_memptr_t) (unsigned long) cmp->peek.addr, cmp->peek.len);
 
 	return CSP_ERR_NONE;
 
@@ -124,7 +134,7 @@ static int do_cmp_poke(struct csp_cmp_message *cmp) {
 		return CSP_ERR_INVAL;
 
 	/* Extremely dangerous, you better know what you are doing */
-	csp_cmp_memcpy_fnc((void *) (uintptr_t) cmp->poke.addr, cmp->poke.data, cmp->poke.len);
+	csp_cmp_memcpy_fnc((csp_memptr_t) (unsigned long) cmp->poke.addr, (csp_memptr_t) (uintptr_t) cmp->poke.data, cmp->poke.len);
 
 	return CSP_ERR_NONE;
 
@@ -208,7 +218,7 @@ void csp_service_handler(csp_conn_t * conn, csp_packet_t * packet) {
 
 	case CSP_PING:
 		/* A ping means, just echo the packet, so no changes */
-		csp_log_info("SERVICE: Ping received\r\n");
+		csp_log_info("SERVICE: Ping received");
 		break;
 
 	case CSP_PS: {

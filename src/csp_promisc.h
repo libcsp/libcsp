@@ -1,7 +1,7 @@
 /*
 Cubesat Space Protocol - A small network-layer protocol designed for Cubesats
-Copyright (C) 2012 GomSpace ApS (http://www.gomspace.com)
-Copyright (C) 2012 AAUSAT3 Project (http://aausat3.space.aau.dk) 
+Copyright (C) 2012 Gomspace ApS (http://www.gomspace.com)
+Copyright (C) 2012 AAUSAT3 Project (http://aausat3.space.aau.dk)
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -18,7 +18,13 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef _CSP_ROUTE_H_
-#define _CSP_ROUTE_H_
+#ifndef CSP_PROMISC_H_
+#define CSP_PROMISC_H_
 
-#endif // _CSP_ROUTE_H_
+/**
+ * Add packet to promiscuous mode packet queue
+ * @param packet Packet to add to the queue
+ */
+void csp_promisc_add(csp_packet_t * packet);
+
+#endif /* CSP_PROMISC_H_ */

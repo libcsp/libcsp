@@ -36,7 +36,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/arch/csp_semaphore.h>
 
 int csp_mutex_create(csp_mutex_t * mutex) {
-	csp_log_lock("Mutex init: %p\r\n", mutex);
+	csp_log_lock("Mutex init: %p", mutex);
 	*mutex = pthread_queue_create(1, sizeof(int));
 	if (mutex) {
 		int dummy = 0;
@@ -55,7 +55,7 @@ int csp_mutex_remove(csp_mutex_t * mutex) {
 int csp_mutex_lock(csp_mutex_t * mutex, uint32_t timeout) {
 
 	int ret;
-	csp_log_lock("Wait: %p timeout %"PRIu32"\r\n", mutex, timeout);
+	csp_log_lock("Wait: %p timeout %"PRIu32, mutex, timeout);
 
 	if (timeout == CSP_INFINITY) {
 		/* TODO: fix this to be infinite */

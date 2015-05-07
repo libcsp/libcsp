@@ -83,7 +83,7 @@ typedef void csp_thread_return_t;
 #define CSP_DEFINE_TASK(task_name) csp_thread_return_t task_name(void * param)
 #define CSP_TASK_RETURN
 
-#define csp_sleep_ms(time_ms) vTaskDelay(time_ms * 1000 / portTICK_RATE_MS);
+#define csp_sleep_ms(time_ms) vTaskDelay(time_ms / portTICK_RATE_MS);
 
 #endif // CSP_FREERTOS
 

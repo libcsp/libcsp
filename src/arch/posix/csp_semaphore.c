@@ -36,7 +36,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/arch/csp_semaphore.h>
 
 int csp_mutex_create(csp_mutex_t * mutex) {
-	csp_log_lock("Mutex init: %p\r\n", mutex);
+	csp_log_lock("Mutex init: %p", mutex);
 	if (pthread_mutex_init(mutex, NULL) == 0) {
 		return CSP_SEMAPHORE_OK;
 	} else {
@@ -58,7 +58,7 @@ int csp_mutex_lock(csp_mutex_t * mutex, uint32_t timeout) {
 	struct timespec ts;
 	uint32_t sec, nsec;
 
-	csp_log_lock("Wait: %p timeout %"PRIu32"\r\n", mutex, timeout);
+	csp_log_lock("Wait: %p timeout %"PRIu32, mutex, timeout);
 
 	if (timeout == CSP_INFINITY) {
 		ret = pthread_mutex_lock(mutex);
@@ -94,7 +94,7 @@ int csp_mutex_unlock(csp_mutex_t * mutex) {
 }
 
 int csp_bin_sem_create(csp_bin_sem_handle_t * sem) {
-	csp_log_lock("Semaphore init: %p\r\n", sem);
+	csp_log_lock("Semaphore init: %p", sem);
 	if (sem_init(sem, 0, 1) == 0) {
 		return CSP_SEMAPHORE_OK;
 	} else {
@@ -115,7 +115,7 @@ int csp_bin_sem_wait(csp_bin_sem_handle_t * sem, uint32_t timeout) {
 	struct timespec ts;
 	uint32_t sec, nsec;
 
-	csp_log_lock("Wait: %p timeout %"PRIu32"\r\n", sem, timeout);
+	csp_log_lock("Wait: %p timeout %"PRIu32, sem, timeout);
 
 	if (timeout == CSP_INFINITY) {
 		ret = sem_wait(sem);
@@ -148,7 +148,7 @@ int csp_bin_sem_post(csp_bin_sem_handle_t * sem) {
 }
 
 int csp_bin_sem_post_isr(csp_bin_sem_handle_t * sem, CSP_BASE_TYPE * task_woken) {
-	csp_log_lock("Post: %p\r\n", sem);
+	csp_log_lock("Post: %p", sem);
 	*task_woken = 0;
 
 	int value;

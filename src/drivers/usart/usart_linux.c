@@ -33,6 +33,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/csp.h>
 #include <sys/time.h>
 
+int usart_stdio_id = 0;
 int fd;
 usart_callback_t usart_callback = NULL;
 
