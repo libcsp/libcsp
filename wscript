@@ -22,7 +22,7 @@
 import os
 
 APPNAME = 'libcsp'
-VERSION = '1.0.1'
+VERSION = '1.4'
 
 top	= '.'
 out	= 'build'
@@ -235,6 +235,8 @@ def configure(ctx):
 
 	# Check for stdbool.h
 	ctx.check_cc(header_name='stdbool.h', mandatory=False, define_name='CSP_HAVE_STDBOOL_H', type='cstlib')
+	
+	ctx.define('LIBCSP_VERSION', VERSION)
 
 	ctx.write_config_header('include/csp/csp_autoconfig.h', top=True, remove=True)
 	
