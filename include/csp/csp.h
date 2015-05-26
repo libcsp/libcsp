@@ -344,6 +344,17 @@ int csp_sfp_send_own_memcpy(csp_conn_t * conn, void * data, int totalsize, int m
 int csp_sfp_recv(csp_conn_t * conn, void ** dataout, int * datasize, uint32_t timeout);
 
 /**
+ * This is the counterpart to the csp_sfp_send function
+ * @param conn pointer to active conn, on which you expect to receive sfp packed data
+ * @param dataout pointer to NULL pointer, whill be overwritten with malloc pointer
+ * @param datasize actual size of received data
+ * @param timeout timeout in ms to wait for csp_recv()
+ * @param first_packet This is a pointer to the first SFP packet (previously received with csp_read)
+ * @return 0 if OK, -1 if ERR
+ */
+int csp_sfp_recv_fp(csp_conn_t * conn, void ** dataout, int * datasize, uint32_t timeout, csp_packet_t * first_packet);
+
+/**
  * If the given packet is a service-request (that is uses one of the csp service ports)
  * it will be handled according to the CSP service handler.
  * This function will either use the packet buffer or delete it,

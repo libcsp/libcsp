@@ -97,12 +97,21 @@ int csp_sfp_send(csp_conn_t * conn, void * data, int totalsize, int mtu, uint32_
 	return csp_sfp_send_own_memcpy(conn, data, totalsize, mtu, timeout, &memcpy);
 }
 
-int csp_sfp_recv(csp_conn_t * conn, void ** dataout, int * datasize, uint32_t timeout) {
+int csp_sfp_recv_fp(csp_conn_t * conn, void ** dataout, int * datasize, uint32_t timeout, csp_packet_t * first_packet) {
 
 	unsigned int last_byte = 0;
 
-	csp_packet_t * packet;
-	while((packet = csp_read(conn, timeout)) != NULL) {
+	/* Get first packet from user, or from connection */
+	csp_packet_t * packet = NULL;
+	if (first_packet == NULL) {
+		packet = csp_read(conn, timeout);
+		if (packet == NULL)
+			return -1;
+	} else {
+		packet = first_packet;
+	}
+
+	do {
 
 		/* Check that SFP header is present */
 		if ((packet->id.flags & CSP_FFRAG) == 0) {
@@ -146,9 +155,13 @@ int csp_sfp_recv(csp_conn_t * conn, void ** dataout, int * datasize, uint32_t ti
 			csp_buffer_free(packet);
 		}
 
-	}
+	} while((packet = csp_read(conn, timeout)) != NULL);
 
 	return -1;
 
+}
+
+int csp_sfp_recv(csp_conn_t * conn, void ** dataout, int * datasize, uint32_t timeout) {
+	return csp_sfp_recv_fp(conn, dataout, datasize, timeout, NULL);
 }
 
