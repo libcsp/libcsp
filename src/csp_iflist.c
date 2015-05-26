@@ -57,27 +57,25 @@ void csp_iflist_add(csp_iface_t *ifc) {
 }
 
 #ifdef CSP_DEBUG
+int csp_bytesize(char *buf, int len, unsigned long int n) {
+	char postfix;
+	double size;
+
+	if (n >= 1048576) {
+		size = n/1048576.0;
+		postfix = 'M';
+	} else if (n >= 1024) {
+		size = n/1024.;
+		postfix = 'K';
+	} else {
+		size = n;
+		postfix = 'B';
+ 	}
+ 
+	return snprintf(buf, len, "%.1f%c", size, postfix);
+}
+
 void csp_iflist_print(void) {
-
-	int csp_bytesize(char *buf, int len, unsigned long int n) {
-
-		char postfix;
-		double size;
-
-		if (n >= 1048576) {
-			size = n/1048576.0;
-			postfix = 'M';
-		} else if (n >= 1024) {
-			size = n/1024.;
-			postfix = 'K';
-		} else {
-			size = n;
-			postfix = 'B';
-		}
-
-		return snprintf(buf, len, "%.1f%c", size, postfix);
-	}
-
 	csp_iface_t * i = interfaces;
 	char txbuf[25], rxbuf[25];
 
@@ -85,10 +83,10 @@ void csp_iflist_print(void) {
 		csp_bytesize(txbuf, 25, i->txbytes);
 		csp_bytesize(rxbuf, 25, i->rxbytes);
 		printf("%-5s   tx: %05"PRIu32" rx: %05"PRIu32" txe: %05"PRIu32" rxe: %05"PRIu32"\r\n"
-				"		drop: %05"PRIu32" autherr: %05"PRIu32 " frame: %05"PRIu32"\r\n"
-				"		txb: %"PRIu32" (%s) rxb: %"PRIu32" (%s)\r\n\r\n",
-				i->name, i->tx, i->rx, i->tx_error, i->rx_error, i->drop,
-				i->autherr, i->frame, i->txbytes, txbuf, i->rxbytes, rxbuf);
+		       "        drop: %05"PRIu32" autherr: %05"PRIu32 " frame: %05"PRIu32"\r\n"
+		       "        txb: %"PRIu32" (%s) rxb: %"PRIu32" (%s)\r\n\r\n",
+		       i->name, i->tx, i->rx, i->tx_error, i->rx_error, i->drop,
+		       i->autherr, i->frame, i->txbytes, txbuf, i->rxbytes, rxbuf);
 		i = i->next;
 	}
 
