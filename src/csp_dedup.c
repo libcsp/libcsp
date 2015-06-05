@@ -26,10 +26,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/csp.h>
 #include <csp/csp_crc32.h>
 
-#define CSP_DEDUP_BITMASK	0x7 //! Defines how many packet CRC that csp_dedup should use
+#define CSP_DEDUP_COUNT	16
 
 /* Store packet CRC's in a ringbuffer */
-static uint32_t csp_dedup_array[CSP_DEDUP_BITMASK] = {};
+static uint32_t csp_dedup_array[CSP_DEDUP_COUNT] = {};
 static int csp_dedup_in = 0;
 
 int csp_dedup_check(csp_packet_t * packet) {
@@ -37,16 +37,18 @@ int csp_dedup_check(csp_packet_t * packet) {
 	/* Calculate CRC32 for packet */
 	uint32_t crc = csp_crc32_memory((const uint8_t *) &packet->id, packet->length + sizeof(packet->id));
 
+	//csp_log_packet("CRC %x", crc);
+
 	/* Check if we have received this packet before,
 	 * Use a bit obscure but fast method of looping backwards in the array with overflow using two's compliment method */
-	for (int i = (csp_dedup_in - 1) & CSP_DEDUP_BITMASK; i != csp_dedup_in; i = (i - 1) & CSP_DEDUP_BITMASK) {
+	for (int i = 0; i < CSP_DEDUP_COUNT; i++) {
 		if (crc == csp_dedup_array[i])
 			return 1;
 	}
 
 	/* If not, insert CRC into memory */
 	csp_dedup_array[csp_dedup_in] = crc;
-	csp_dedup_in = (csp_dedup_in + 1) & CSP_DEDUP_BITMASK;
+	csp_dedup_in = (csp_dedup_in + 1) % CSP_DEDUP_COUNT;
 
 	return 0;
 }
