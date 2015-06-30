@@ -48,7 +48,8 @@ typedef pthread_mutex_t csp_mutex_t;
 /* MAC OS X interface */
 #if defined(CSP_MACOSX)
 
-#include "macosx/pthread_queue.h"
+#include <pthread.h>
+#include "posix/pthread_queue.h"
 
 #define CSP_SEMAPHORE_OK 	PTHREAD_QUEUE_OK
 #define CSP_SEMAPHORE_ERROR 	PTHREAD_QUEUE_EMPTY
@@ -58,7 +59,7 @@ typedef pthread_mutex_t csp_mutex_t;
 typedef pthread_queue_t * csp_bin_sem_handle_t;
 typedef pthread_queue_t * csp_mutex_t;
 
-#endif // CSP_POSIX
+#endif // CSP_MACOSX
 
 #if defined(CSP_WINDOWS)
 

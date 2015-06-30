@@ -24,7 +24,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 /* CSP includes */
 #include <csp/csp.h>
 
-#include "pthread_queue.h"
+#include <csp/arch/posix/pthread_queue.h>
 #include <csp/arch/csp_queue.h>
 
 

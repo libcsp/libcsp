@@ -32,7 +32,7 @@ http://code.google.com/p/c-pthread-queue/
 #include <sys/time.h>
 
 /* CSP includes */
-#include "pthread_queue.h"
+#include <csp/arch/posix/pthread_queue.h>
 
 pthread_queue_t * pthread_queue_create(int length, size_t item_size) {
 	
