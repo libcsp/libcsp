@@ -40,7 +40,7 @@ csp_socket_t * csp_port_get_socket(unsigned int port) {
 
 	csp_socket_t * ret = NULL;
 
-	if (port > CSP_ANY)
+	if (port >= CSP_ANY)
 		return NULL;
 
 	/* Match dport to socket or local "catch all" port number */
