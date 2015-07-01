@@ -217,17 +217,13 @@ int pbuf_timestamp(pbuf_element_t *buf, CSP_BASE_TYPE *task_woken) {
 
 }
 
-/** pbuf_free
- * Free buffer element and associated CSP packet buffer element.
+/** pbuf_free_locked
+ * Free buffer element and associated CSP packet buffer element with pbuf list locked.
  * @param buf Buffer element to free
  * @param free_packet true if the associated packet should be freed as well
  * @return 0 on success, -1 on error.
  */
-static int pbuf_free(pbuf_element_t *buf, CSP_BASE_TYPE *task_woken, bool free_packet) {
-
-	/* Lock packet buffer */
-	if (task_woken == NULL)
-		CSP_ENTER_CRITICAL(pbuf_sem);
+static int pbuf_free_locked(pbuf_element_t *buf, CSP_BASE_TYPE *task_woken, bool free_packet) {
 
 	/* Free CSP packet */
 	if (buf->packet != NULL && free_packet) {
@@ -247,11 +243,31 @@ static int pbuf_free(pbuf_element_t *buf, CSP_BASE_TYPE *task_woken, bool free_p
 	buf->last_used = 0;
 	buf->remain = 0;
 
+	return CSP_ERR_NONE;
+
+}
+
+/** pbuf_free
+ * Free buffer element and associated CSP packet buffer element.
+ * @param buf Buffer element to free
+ * @param free_packet true if the associated packet should be freed as well
+ * @return 0 on success, -1 on error.
+ */
+static int pbuf_free(pbuf_element_t *buf, CSP_BASE_TYPE *task_woken, bool free_packet) {
+
+	int ret;
+
+	/* Lock packet buffer */
+	if (task_woken == NULL)
+		CSP_ENTER_CRITICAL(pbuf_sem);
+
+	ret = pbuf_free_locked(buf, task_woken, free_packet);
+
 	/* Unlock packet buffer */
 	if (task_woken == NULL)
 		CSP_EXIT_CRITICAL(pbuf_sem);
 
-	return CSP_ERR_NONE;
+	return ret;
 
 }
 
@@ -348,8 +364,8 @@ static void pbuf_cleanup(void) {
 			uint32_t now = csp_get_ms();
 			if (now - buf->last_used > PBUF_TIMEOUT_MS) {
 				csp_log_warn("CAN Buffer element timed out");
-				/* Reuse packet buffer */
-				pbuf_free(buf, NULL, true);
+				/* Recycle packet buffer */
+				pbuf_free_locked(buf, NULL, true);
 			}
 		}
 	}
@@ -417,15 +433,15 @@ int csp_tx_callback(can_id_t canid, can_error_t error, CSP_BASE_TYPE *task_woken
 			return CSP_ERR_DRIVER;
 		}
 	} else {
-		/* Free packet buffer */
-		pbuf_free(buf, task_woken, true);
-
 		/* Post semaphore if blocking mode is enabled */
 		if (task_woken != NULL) {
 			csp_bin_sem_post_isr(&buf->tx_sem, task_woken);
 		} else {
 			csp_bin_sem_post(&buf->tx_sem);
 		}
+
+		/* Free packet buffer */
+		pbuf_free(buf, task_woken, true);
 	}
 
 	return CSP_ERR_NONE;
@@ -638,11 +654,18 @@ int csp_can_tx(csp_iface_t * interface, csp_packet_t *packet, uint32_t timeout) 
 	buf->tx_count += bytes;
 
 	/* Take semaphore so driver can post it later */
-	csp_bin_sem_wait(&buf->tx_sem, 0);
+	if (csp_bin_sem_wait(&buf->tx_sem, 0) != CSP_SEMAPHORE_OK) {
+		csp_log_error("Failed to take CAN pbuf TX sem!");
+		pbuf_free(buf, NULL, false);
+		return CSP_ERR_DRIVER;
+	}
 
-	/* Send frame */
+	/* Send frame. We must free packet buffer is this fails,
+	 * but the packet itself should be freed by the caller */
 	if (can_send(id, frame_buf, overhead + bytes, NULL) != 0) {
 		csp_log_warn("Failed to send CAN frame in csp_tx_can");
+		pbuf_free(buf, NULL, false);
+		csp_bin_sem_post(&buf->tx_sem);
 		return CSP_ERR_DRIVER;
 	}
 
@@ -652,7 +675,7 @@ int csp_can_tx(csp_iface_t * interface, csp_packet_t *packet, uint32_t timeout) 
 
 	/* Blocking mode */
 	if (csp_bin_sem_wait(&buf->tx_sem, timeout) != CSP_SEMAPHORE_OK) {
-		csp_bin_sem_post(&buf->tx_sem);
+		/* tx_sem is posted by transmission callback */
 		return CSP_ERR_TIMEDOUT;
 	} else {
 		csp_bin_sem_post(&buf->tx_sem);
