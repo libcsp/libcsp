@@ -400,7 +400,7 @@ int csp_tx_callback(can_id_t canid, can_error_t error, CSP_BASE_TYPE *task_woken
 	if (error != CAN_NO_ERROR) {
 		csp_log_warn("Error in transmit callback");
 		csp_if_can.tx_error++;
-		pbuf_free(buf, task_woken, false);
+		pbuf_free(buf, task_woken, true);
 		return CSP_ERR_DRIVER;
 	}
 
@@ -429,11 +429,20 @@ int csp_tx_callback(can_id_t canid, can_error_t error, CSP_BASE_TYPE *task_woken
 		if (can_send(id, buf->packet->data + buf->tx_count - bytes, bytes, task_woken) != 0) {
 			csp_log_warn("Failed to send CAN frame in Tx callback");
 			csp_if_can.tx_error++;
-			pbuf_free(buf, task_woken, false);
+
+			/* Post semaphore to wake up sender */
+			if (task_woken != NULL) {
+				csp_bin_sem_post_isr(&buf->tx_sem, task_woken);
+			} else {
+				csp_bin_sem_post(&buf->tx_sem);
+			}
+
+			pbuf_free(buf, task_woken, true);
+
 			return CSP_ERR_DRIVER;
 		}
 	} else {
-		/* Post semaphore if blocking mode is enabled */
+		/* Post semaphore to wake up sender */
 		if (task_woken != NULL) {
 			csp_bin_sem_post_isr(&buf->tx_sem, task_woken);
 		} else {
@@ -664,10 +673,13 @@ int csp_can_tx(csp_iface_t * interface, csp_packet_t *packet, uint32_t timeout) 
 	 * but the packet itself should be freed by the caller */
 	if (can_send(id, frame_buf, overhead + bytes, NULL) != 0) {
 		csp_log_warn("Failed to send CAN frame in csp_tx_can");
-		pbuf_free(buf, NULL, false);
 		csp_bin_sem_post(&buf->tx_sem);
+		pbuf_free(buf, NULL, false);
 		return CSP_ERR_DRIVER;
 	}
+
+	/* NOTE: The transmit packet is now owned by the transmission MOB and
+	 * must NOT be freed by the calling thread. */
 
 	/* Non blocking mode */
 	if (timeout == 0)
@@ -675,8 +687,11 @@ int csp_can_tx(csp_iface_t * interface, csp_packet_t *packet, uint32_t timeout) 
 
 	/* Blocking mode */
 	if (csp_bin_sem_wait(&buf->tx_sem, timeout) != CSP_SEMAPHORE_OK) {
-		/* tx_sem is posted by transmission callback */
-		return CSP_ERR_TIMEDOUT;
+		/* tx_sem is posted by transmission callback. The packet
+		 * could still be in use by the transmission MOB, so
+		 * we can not return CSP_ERR_TIMEOUT and risk that the
+		 * calling thread frees the packet. */
+		return CSP_ERR_NONE;
 	} else {
 		csp_bin_sem_post(&buf->tx_sem);
 		return CSP_ERR_NONE;
