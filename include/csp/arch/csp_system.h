@@ -64,6 +64,7 @@ int csp_sys_tasklist_size(void);
 
 uint32_t csp_sys_memfree(void);
 int csp_sys_reboot(void);
+int csp_sys_shutdown(void);
 void csp_sys_set_color(csp_color_t color);
 
 #ifdef __cplusplus

@@ -48,6 +48,13 @@ int csp_sys_reboot(void) {
 	return CSP_ERR_INVAL;
 }
 
+int csp_sys_shutdown(void) {
+	/* TODO: Fix shutdown on Windows */
+	csp_log_error("Failed to shutdown");
+
+	return CSP_ERR_INVAL;
+}
+
 void csp_sys_set_color(csp_color_t color) {
 	/* TODO: Add Windows color output here */
 }

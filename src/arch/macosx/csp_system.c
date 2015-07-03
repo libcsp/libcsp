@@ -49,6 +49,13 @@ int csp_sys_reboot(void) {
 	return CSP_ERR_INVAL;
 }
 
+int csp_sys_shutdown(void) {
+	/* TODO: Fix shutdown on OSX */
+	csp_log_error("Failed to shutdown");
+
+	return CSP_ERR_INVAL;
+}
+
 void csp_sys_set_color(csp_color_t color) {
 
 	unsigned int color_code, modifier_code;

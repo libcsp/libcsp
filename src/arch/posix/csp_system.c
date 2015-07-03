@@ -55,9 +55,22 @@ int csp_sys_reboot(void) {
 	/* Sync filesystem before reboot */
 	sync();
 	reboot(magic);
-	
+
 	/* If reboot(2) returns, it is an error */
 	csp_log_error("Failed to reboot: %s", strerror(errno));
+
+	return CSP_ERR_INVAL;
+}
+
+int csp_sys_shutdown(void) {
+	int magic = LINUX_REBOOT_CMD_HALT;
+
+	/* Sync filesystem before reboot */
+	sync();
+	reboot(magic);
+
+	/* If reboot(2) returns, it is an error */
+	csp_log_error("Failed to shutdown: %s", strerror(errno));
 
 	return CSP_ERR_INVAL;
 }

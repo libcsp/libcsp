@@ -273,14 +273,14 @@ void csp_service_handler(csp_conn_t * conn, csp_packet_t * packet) {
 
 		magic_word = csp_ntoh32(magic_word);
 
-		/* If the magic word is invalid, return */
-		if (magic_word != 0x80078007) {
-			csp_buffer_free(packet);
-			return;
+		/* If the magic word is valid, reboot */
+		if (magic_word == CSP_REBOOT_MAGIC) {
+			csp_sys_reboot();
+		} else if (magic_word == CSP_REBOOT_SHUTDOWN_MAGIC) {
+			csp_sys_shutdown();
 		}
 
-		/* Otherwise Reboot */
-		csp_sys_reboot();
+
 		
 		csp_buffer_free(packet);
 		return;

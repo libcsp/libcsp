@@ -412,6 +412,12 @@ void csp_buf_free(uint8_t node, uint32_t timeout);
 void csp_reboot(uint8_t node);
 
 /**
+ * Shutdown subsystem
+ * @param node node id
+ */
+void csp_shutdown(uint8_t node);
+
+/**
  * Request subsystem uptime
  * @param node node id
  * @param timeout timeout in ms

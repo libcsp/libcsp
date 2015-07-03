@@ -118,7 +118,12 @@ void csp_ping_noreply(uint8_t node) {
 }
 
 void csp_reboot(uint8_t node) {
-	uint32_t magic_word = csp_hton32(0x80078007);
+	uint32_t magic_word = csp_hton32(CSP_REBOOT_MAGIC);
+	csp_transaction(CSP_PRIO_NORM, node, CSP_REBOOT, 0, &magic_word, sizeof(magic_word), NULL, 0);
+}
+
+void csp_shutdown(uint8_t node) {
+	uint32_t magic_word = csp_hton32(CSP_REBOOT_SHUTDOWN_MAGIC);
 	csp_transaction(CSP_PRIO_NORM, node, CSP_REBOOT, 0, &magic_word, sizeof(magic_word), NULL, 0);
 }
 

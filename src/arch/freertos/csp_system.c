@@ -83,6 +83,19 @@ int csp_sys_reboot(void) {
 	return CSP_ERR_INVAL;
 }
 
+int csp_sys_shutdown(void) {
+
+	extern void __attribute__((weak)) cpu_shutdown(void);
+	if (cpu_shutdown) {
+		cpu_shutdown();
+		while (1);
+	}
+
+	csp_log_error("Failed to shutdown");
+
+	return CSP_ERR_INVAL;
+}
+
 void csp_sys_set_color(csp_color_t color) {
 
 	unsigned int color_code, modifier_code;

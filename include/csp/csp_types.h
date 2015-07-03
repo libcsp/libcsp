@@ -215,4 +215,8 @@ typedef struct csp_conn_s csp_conn_t;
 #define CSP_HOSTNAME_LEN	20
 #define CSP_MODEL_LEN		30
 
+/* CSP_REBOOT magic values */
+#define CSP_REBOOT_MAGIC		0x80078007
+#define CSP_REBOOT_SHUTDOWN_MAGIC	0xD1E5529A
+
 #endif /* CSP_TYPES_H_ */
