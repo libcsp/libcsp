@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <errno.h>
 #include <sys/sysinfo.h>
@@ -50,11 +51,16 @@ uint32_t csp_sys_memfree(void) {
 }
 
 int csp_sys_reboot(void) {
+#ifdef CSP_USE_INIT_SHUTDOWN
+	/* Let init(1) handle the reboot */
+	system("reboot");
+#else
 	int magic = LINUX_REBOOT_CMD_RESTART;
 
 	/* Sync filesystem before reboot */
 	sync();
 	reboot(magic);
+#endif
 
 	/* If reboot(2) returns, it is an error */
 	csp_log_error("Failed to reboot: %s", strerror(errno));
@@ -63,11 +69,16 @@ int csp_sys_reboot(void) {
 }
 
 int csp_sys_shutdown(void) {
+#ifdef CSP_USE_INIT_SHUTDOWN
+	/* Let init(1) handle the shutdown */
+	system("halt");
+#else
 	int magic = LINUX_REBOOT_CMD_HALT;
 
 	/* Sync filesystem before reboot */
 	sync();
 	reboot(magic);
+#endif
 
 	/* If reboot(2) returns, it is an error */
 	csp_log_error("Failed to shutdown: %s", strerror(errno));

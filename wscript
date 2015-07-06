@@ -65,6 +65,7 @@ def options(ctx):
 	# OS	
 	gr.add_option('--with-os', metavar='OS', default='posix', help='Set operating system. Must be either \'posix\', \'macosx\', \'windows\' or \'freertos\'')
 	gr.add_option('--with-freertos', metavar='PATH', default=None, help='Set path to FreeRTOS header files')
+	gr.add_option('--enable-init-shutdown', action='store_true', help='Use init system commands for shutdown/reboot')
 
 	# Options
 	gr.add_option('--with-rdp-max-window', metavar='SIZE', type=int, default=20, help='Set maximum window size for RDP')
@@ -211,6 +212,7 @@ def configure(ctx):
 	ctx.define_cond('CSP_USE_PROMISC', ctx.options.enable_promisc)
 	ctx.define_cond('CSP_USE_QOS', ctx.options.enable_qos)
 	ctx.define_cond('CSP_USE_DEDUP', ctx.options.enable_dedup)
+	ctx.define_cond('CSP_USE_INIT_SHUTDOWN', ctx.options.enable_init_shutdown)
 	ctx.define('CSP_CONN_MAX', ctx.options.with_max_connections)
 	ctx.define('CSP_CONN_QUEUE_LENGTH', ctx.options.with_conn_queue_length)
 	ctx.define('CSP_FIFO_INPUT', ctx.options.with_router_queue_length)
