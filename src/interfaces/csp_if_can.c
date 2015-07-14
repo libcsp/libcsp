@@ -391,13 +391,13 @@ int csp_tx_callback(csp_iface_t *csp_iface, can_id_t canid, can_error_t error, C
 
 	if (buf == NULL) {
 		csp_log_warn("Failed to match buffer element in tx callback");
-		csp_if_can.tx_error++;
+		interface->tx_error++;
 		return CSP_ERR_INVAL;
 	}
 
 	if (buf->packet == NULL) {
 		csp_log_warn("Buffer packet was NULL");
-		csp_if_can.tx_error++;
+		interface->tx_error++;
 		pbuf_free(buf, task_woken, false);
 		return CSP_ERR_INVAL;
 	}
@@ -405,7 +405,7 @@ int csp_tx_callback(csp_iface_t *csp_iface, can_id_t canid, can_error_t error, C
 	/* Free packet buffer if send failed */
 	if (error != CAN_NO_ERROR) {
 		csp_log_warn("Error in transmit callback");
-		csp_if_can.tx_error++;
+		interface->tx_error++;
 		pbuf_free(buf, task_woken, true);
 		return CSP_ERR_DRIVER;
 	}
@@ -432,9 +432,9 @@ int csp_tx_callback(csp_iface_t *csp_iface, can_id_t canid, can_error_t error, C
 		buf->tx_count += bytes;
 
 		/* Send frame */
-		if (can_send(id, buf->packet->data + buf->tx_count - bytes, bytes, task_woken) != 0) {
+		if (can_send(interface, id, buf->packet->data + buf->tx_count - bytes, bytes, task_woken) != 0) {
 			csp_log_warn("Failed to send CAN frame in Tx callback");
-			csp_if_can.tx_error++;
+			interface->tx_error++;
 
 			/* Post semaphore to wake up sender */
 			if (task_woken != NULL) {
@@ -493,12 +493,12 @@ static int csp_can_process_frame(csp_iface_t * csp_iface, can_frame_t *frame) {
 			buf = pbuf_new(id, NULL);
 			if (buf == NULL) {
 				csp_log_warn("No available packet buffer for CAN");
-				csp_if_can.rx_error++;
+				interface->rx_error++;
 				return CSP_ERR_NOMEM;
 			}
 		} else {
 			csp_log_warn("Out of order MORE frame received");
-			csp_if_can.frame++;
+			interface->frame++;
 			return CSP_ERR_INVAL;
 		}
 	}
@@ -513,7 +513,7 @@ static int csp_can_process_frame(csp_iface_t * csp_iface, can_frame_t *frame) {
 			/* Discard packet if DLC is less than CSP id + CSP length fields */
 			if (frame->dlc < sizeof(csp_id_t) + sizeof(uint16_t)) {
 				csp_log_warn("Short BEGIN frame received");
-				csp_if_can.frame++;
+				interface->frame++;
 				pbuf_free(buf, NULL, true);
 				break;
 			}
@@ -522,13 +522,13 @@ static int csp_can_process_frame(csp_iface_t * csp_iface, can_frame_t *frame) {
 			if (buf->packet != NULL) {
 				/* Reuse the buffer */
 				csp_log_warn("Incomplete frame");
-				csp_if_can.frame++;
+				interface->frame++;
 			} else {
 				/* Allocate memory for frame */
 				buf->packet = csp_buffer_get(csp_buffer_size() - CSP_BUFFER_PACKET_OVERHEAD);
 				if (buf->packet == NULL) {
 					csp_log_error("Failed to get buffer for CSP_BEGIN packet");
-					csp_if_can.frame++;
+					interface->frame++;
 					pbuf_free(buf, NULL, true);
 					break;
 				}
@@ -557,7 +557,7 @@ static int csp_can_process_frame(csp_iface_t * csp_iface, can_frame_t *frame) {
 			if (CFP_REMAIN(id) != buf->remain - 1) {
 				csp_log_error("CAN frame lost in CSP packet");
 				pbuf_free(buf, NULL, true);
-				csp_if_can.frame++;
+				interface->frame++;
 				break;
 			}
 
@@ -567,7 +567,7 @@ static int csp_can_process_frame(csp_iface_t * csp_iface, can_frame_t *frame) {
 			/* Check for overflow */
 			if ((buf->rx_count + frame->dlc - offset) > buf->packet->length) {
 				csp_log_error("RX buffer overflow");
-				csp_if_can.frame++;
+				interface->frame++;
 				pbuf_free(buf, NULL, true);
 				break;
 			}
@@ -581,7 +581,7 @@ static int csp_can_process_frame(csp_iface_t * csp_iface, can_frame_t *frame) {
 				break;
 
 			/* Data is available */
-			csp_new_packet(buf->packet, &csp_if_can, NULL);
+			csp_new_packet(buf->packet, interface, NULL);
 
 			/* Drop packet buffer reference */
 			buf->packet = NULL;
@@ -684,7 +684,7 @@ int csp_can_tx(csp_iface_t * interface, csp_packet_t *packet, uint32_t timeout) 
 
 	/* Send frame. We must free packet buffer is this fails,
 	 * but the packet itself should be freed by the caller */
-	if (can_send(id, frame_buf, overhead + bytes, NULL) != 0) {
+	if (can_send(interface, id, frame_buf, overhead + bytes, NULL) != 0) {
 		csp_log_warn("Failed to send CAN frame in csp_tx_can");
 		csp_bin_sem_post(&buf->tx_sem);
 		pbuf_free(buf, NULL, false);
