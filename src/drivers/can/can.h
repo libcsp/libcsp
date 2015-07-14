@@ -51,6 +51,12 @@ typedef struct {
 	};
 } can_frame_t;
 
+/** To support multiple interfaces, rx must know the interface where message arrived */
+typedef struct {
+    csp_iface_t *interface;
+    can_frame_t frame;
+} rx_queue_element_t;
+
 typedef enum {
 	CAN_ERROR = 0,
 	CAN_NO_ERROR = 1,
@@ -60,7 +66,7 @@ typedef enum {
 typedef int (*can_tx_callback_t)(csp_iface_t *csp_iface, can_id_t id, can_error_t error, CSP_BASE_TYPE * task_woken);
 
 /** RX Callback function prototype */
-typedef int (*can_rx_callback_t)(can_frame_t * frame, CSP_BASE_TYPE * task_woken);
+typedef int (*can_rx_callback_t)(rx_queue_element_t *e, CSP_BASE_TYPE * task_woken);
 
 int can_init(csp_iface_t *csp_if_can, uint32_t id, uint32_t mask, can_tx_callback_t txcb, can_rx_callback_t rxcb, struct csp_can_config *conf);
 int can_send(csp_iface_t *csp_if_can, can_id_t id, uint8_t * data, uint8_t dlc, CSP_BASE_TYPE * task_woken);
