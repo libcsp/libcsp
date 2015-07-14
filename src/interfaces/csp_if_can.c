@@ -375,10 +375,16 @@ static void pbuf_cleanup(void) {
 
 }
 
-int csp_tx_callback(can_id_t canid, can_error_t error, CSP_BASE_TYPE *task_woken) {
+int csp_tx_callback(csp_iface_t *csp_iface, can_id_t canid, can_error_t error, CSP_BASE_TYPE *task_woken) {
 
 	int bytes;
 	uint8_t dest;
+        csp_iface_t *interface;
+
+        interface = csp_iface;
+        if (NULL == csp_iface) {
+            interface = &csp_if_can;
+        }
 
 	/* Match buffer element */
 	pbuf_element_t *buf = pbuf_find(canid, CFP_ID_CONN_MASK, task_woken);
@@ -464,10 +470,17 @@ int csp_rx_callback(can_frame_t *frame, CSP_BASE_TYPE *task_woken) {
 
 }
 
-static int csp_can_process_frame(can_frame_t *frame) {
+static int csp_can_process_frame(csp_iface_t * csp_iface, can_frame_t *frame) {
 
 	pbuf_element_t *buf;
 	uint8_t offset;
+
+        csp_iface_t *interface;
+
+        interface = csp_iface;
+        if (NULL == csp_iface) {
+            interface = &csp_if_can;
+        }
 	
 	can_id_t id = frame->id;
 
