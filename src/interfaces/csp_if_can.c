@@ -710,10 +710,39 @@ int csp_can_tx(csp_iface_t * interface, csp_packet_t *packet, uint32_t timeout) 
 
 }
 
-int csp_can_init(uint8_t mode, struct csp_can_config *conf) {
+
+int csp_can_init_ifc(csp_iface_t *csp_iface, uint8_t mode, struct csp_can_config *conf) {
+    uint32_t mask;
+
+    /* Initialize CAN driver */
+    csp_iface->name = conf->ifc;
+    csp_iface->nexthop = csp_can_tx;
+    csp_iface->mtu = CSP_CAN_MTU;
+
+    if (mode == CSP_CAN_MASKED) {
+        mask = CFP_MAKE_DST((1 << CFP_HOST_SIZE) - 1);
+    } else if (mode == CSP_CAN_PROMISC) {
+        mask = 0;
+        csp_iface->promisc = 1;
+    } else {
+        csp_log_error("Unknown CAN mode");
+        return CSP_ERR_INVAL;
+    }
+
+
+    if (can_init(csp_iface, CFP_MAKE_DST(my_address), mask, csp_tx_callback, csp_rx_callback, conf) != 0) {
+        csp_log_error("Failed to initialize CAN driver");
+        return CSP_ERR_DRIVER;
+    }
+
+    /* Regsiter interface */
+    csp_iflist_add(csp_iface);
+    return CSP_ERR_NONE;
+}
+
+int csp_can_init(bool single_interface, uint8_t mode, struct csp_can_config *conf) {
 
 	int ret;
-	uint32_t mask;
 
 	/* Initialize packet buffer */
 	if (pbuf_init() != 0) {
@@ -727,17 +756,7 @@ int csp_can_init(uint8_t mode, struct csp_can_config *conf) {
 		return CSP_ERR_NOMEM;
 	}
 	
-	if (mode == CSP_CAN_MASKED) {
-		mask = CFP_MAKE_DST((1 << CFP_HOST_SIZE) - 1);
-	} else if (mode == CSP_CAN_PROMISC) {
-		mask = 0;
-		csp_if_can.promisc = 1;
-	} else {
-		csp_log_error("Unknown CAN mode");
-		return CSP_ERR_INVAL;
-	}
-
-	can_rx_queue = csp_queue_create(CSP_CAN_RX_QUEUE_SIZE, sizeof(can_frame_t));
+	can_rx_queue = csp_queue_create(CSP_CAN_RX_QUEUE_SIZE, sizeof(rx_queue_element_t));
 	if (can_rx_queue == NULL) {
 		csp_log_error("Failed to create CAN RX queue");
 		return CSP_ERR_NOMEM;
@@ -749,18 +768,13 @@ int csp_can_init(uint8_t mode, struct csp_can_config *conf) {
 		return CSP_ERR_NOMEM;
 	}
 
-	/* Initialize CAN driver */
-	if (can_init(CFP_MAKE_DST(my_address), mask, csp_tx_callback, csp_rx_callback, conf) != 0) {
-		csp_log_error("Failed to initialize CAN driver");
-		return CSP_ERR_DRIVER;
-	}
-
-	/* Regsiter interface */
-	csp_iflist_add(&csp_if_can);
+        if (single_interface) {
+            csp_can_init_ifc(&csp_if_can, mode, conf);
+        }
 
 	return CSP_ERR_NONE;
-
 }
+
 
 /** Interface definition */
 csp_iface_t csp_if_can = {
