@@ -119,7 +119,7 @@ static void * mbox_tx_thread(void * parameters) {
 		sem_post(&mbox_sem);
 		
 		/* Call tx callback */
-		if (txcb) txcb(id, error, NULL);
+		if (txcb) txcb(NULL, id, error, NULL);
 
 	}
 
@@ -130,34 +130,39 @@ static void * mbox_tx_thread(void * parameters) {
 
 static void * mbox_rx_thread(void * parameters) {
 
-	struct can_frame frame;
-	int nbytes;
+    struct can_frame *frame;
+    int nbytes;
+    rx_queue_element_t e = {
+        .interface = NULL,
+        /*.frame = *frame,*/
+    };
+    frame = (struct can_frame*) &e.frame;
 
 	while (1) {
 		/* Read CAN frame */
-		nbytes = read(can_socket, &frame, sizeof(frame));
+		nbytes = read(can_socket, frame, sizeof(*frame));
 
 	if (nbytes < 0) {
 		csp_log_error("read: %s", strerror(errno));
 		break;
 	}
 
-		if (nbytes != sizeof(frame)) {
+		if (nbytes != sizeof(*frame)) {
 			csp_log_warn("Read incomplete CAN frame");
 			continue;
 		}
 
 		/* Frame type */
-		if (frame.can_id & (CAN_ERR_FLAG | CAN_RTR_FLAG) || !(frame.can_id & CAN_EFF_FLAG)) {
+		if (frame->can_id & (CAN_ERR_FLAG | CAN_RTR_FLAG) || !(frame->can_id & CAN_EFF_FLAG)) {
 			/* Drop error and remote frames */
 			csp_log_warn("Discarding ERR/RTR/SFF frame");
 		} else {
 			/* Strip flags */
-			frame.can_id &= CAN_EFF_MASK;
+			frame->can_id &= CAN_EFF_MASK;
 		}
 
 		/* Call RX callback */
-		if (rxcb) rxcb((can_frame_t *)&frame, NULL);
+		if (rxcb) rxcb(&e, NULL);
 	}
 
 	/* We should never reach this point */
@@ -197,7 +202,7 @@ int can_mbox_init(void) {
 
 }
 
-int can_send(can_id_t id, uint8_t data[], uint8_t dlc, CSP_BASE_TYPE * task_woken) {
+int can_send(csp_iface_t *csp_if_can, can_id_t id, uint8_t data[], uint8_t dlc, CSP_BASE_TYPE * task_woken) {
 
 	int i, found = 0;
 	mbox_t * m;
@@ -237,7 +242,7 @@ int can_send(can_id_t id, uint8_t data[], uint8_t dlc, CSP_BASE_TYPE * task_woke
 
 }
 
-int can_init(uint32_t id, uint32_t mask, can_tx_callback_t atxcb, can_rx_callback_t arxcb, struct csp_can_config *conf) {
+int can_init(csp_iface_t *csp_if_can, uint32_t id, uint32_t mask, can_tx_callback_t atxcb, can_rx_callback_t arxcb, struct csp_can_config *conf) {
 
 	struct ifreq ifr;
 	struct sockaddr_can addr;
