@@ -463,11 +463,9 @@ int csp_tx_callback(csp_iface_t *csp_iface, can_id_t canid, can_error_t error, C
 
 }
 
-int csp_rx_callback(can_frame_t *frame, CSP_BASE_TYPE *task_woken) {
-
-	int ret = csp_queue_enqueue_isr(can_rx_queue, frame, task_woken);
-	return ret == CSP_QUEUE_OK ? CSP_ERR_NONE : CSP_ERR_NOMEM;
-
+int csp_rx_callback(rx_queue_element_t *e, CSP_BASE_TYPE *task_woken) {
+    int ret = csp_queue_enqueue_isr(can_rx_queue, e, task_woken);
+    return ret == CSP_QUEUE_OK ? CSP_ERR_NONE : CSP_ERR_NOMEM;
 }
 
 static int csp_can_process_frame(csp_iface_t * csp_iface, can_frame_t *frame) {
@@ -605,16 +603,16 @@ static int csp_can_process_frame(csp_iface_t * csp_iface, can_frame_t *frame) {
 CSP_DEFINE_TASK(csp_can_rx_task) {
 
 	int ret;
-	can_frame_t frame;
+        rx_queue_element_t e;
 
 	while (1) {
-		ret = csp_queue_dequeue(can_rx_queue, &frame, 1000);
+		ret = csp_queue_dequeue(can_rx_queue, &e, 1000);
 		if (ret != CSP_QUEUE_OK) {
 			pbuf_cleanup();
 			continue;
 		}
 
-		csp_can_process_frame(&frame);
+		csp_can_process_frame(e.interface, &e.frame);
 	}
 
 	csp_thread_exit();
