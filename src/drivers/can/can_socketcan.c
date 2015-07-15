@@ -298,14 +298,14 @@ int can_init(csp_iface_t *csp_if_can, uint32_t id, uint32_t mask, can_tx_callbac
 	rxcb = arxcb;
 
 	/* Create socket */
-	if ((can_socket = socket(PF_CAN, SOCK_RAW, CAN_RAW)) < 0) {
+	if ((*can_socket = socket(PF_CAN, SOCK_RAW, CAN_RAW)) < 0) {
 		csp_log_error("socket: %s", strerror(errno));
 		return -1;
 	}
 
 	/* Locate interface */
 	strncpy(ifr.ifr_name, conf->ifc, IFNAMSIZ - 1);
-	if (ioctl(can_socket, SIOCGIFINDEX, &ifr) < 0) {
+	if (ioctl(*can_socket, SIOCGIFINDEX, &ifr) < 0) {
 		csp_log_error("ioctl: %s", strerror(errno));
 		return -1;
 	}
@@ -313,7 +313,7 @@ int can_init(csp_iface_t *csp_if_can, uint32_t id, uint32_t mask, can_tx_callbac
 	/* Bind the socket to CAN interface */
 	addr.can_family = AF_CAN;
 	addr.can_ifindex = ifr.ifr_ifindex;
-	if (bind(can_socket, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
+	if (bind(*can_socket, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
 		csp_log_error("bind: %s", strerror(errno));
 		return -1;
 	}
@@ -323,7 +323,7 @@ int can_init(csp_iface_t *csp_if_can, uint32_t id, uint32_t mask, can_tx_callbac
 		struct can_filter filter;
 		filter.can_id   = id;
 		filter.can_mask = mask;
-		if (setsockopt(can_socket, SOL_CAN_RAW, CAN_RAW_FILTER, &filter, sizeof(filter)) < 0) {
+		if (setsockopt(*can_socket, SOL_CAN_RAW, CAN_RAW_FILTER, &filter, sizeof(filter)) < 0) {
 			csp_log_error("setsockopt: %s", strerror(errno));
 			return -1;
 		}
