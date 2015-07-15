@@ -62,8 +62,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 	#define AF_CAN PF_CAN
 #endif
 
-int can_socket; /** SocketCAN socket handle */
-sem_t mbox_sem;	/** Mailbox pool semaphore */
+#define MAX_SUPPORTED_CAN_INSTANCES 3
+
+
 
 /** Callback functions */
 can_tx_callback_t txcb;
@@ -82,8 +83,15 @@ typedef struct {
 	struct can_frame frame;	/** CAN Frame */
 } mbox_t;
 
-/* List of mailboxes */
-static mbox_t mbox[MBOX_NUM];
+typedef struct {
+    int can_socket;         /** SocketCAN socket handle */
+    mbox_t mbox[MBOX_NUM];  /* List of mailboxes */
+    sem_t mbox_sem;         /** Mailbox pool semaphore */
+    csp_iface_t *csp_if_can;
+    bool in_use;
+} can_socket_info_t;
+
+can_socket_info_t can_socket_info[MAX_SUPPORTED_CAN_INSTANCES];
 
 /* Mailbox thread */
 static void * mbox_tx_thread(void * parameters) {
