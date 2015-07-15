@@ -142,7 +142,7 @@ int can_reset(unsigned long int afcpu, uint32_t bps) {
 
 }
 
-int can_init(uint32_t id, uint32_t mask, can_tx_callback_t atxcb, can_rx_callback_t arxcb, struct csp_can_config *conf) {
+int can_init(csp_iface_t *csp_if_can, uint32_t id, uint32_t mask, can_tx_callback_t atxcb, can_rx_callback_t arxcb, struct csp_can_config *conf) {
 
 	csp_assert(conf && conf->bitrate && conf->clock_speed);
 
@@ -162,7 +162,7 @@ int can_init(uint32_t id, uint32_t mask, can_tx_callback_t atxcb, can_rx_callbac
 
 }
 
-int can_send(can_id_t id, uint8_t data[], uint8_t dlc, CSP_BASE_TYPE * task_woken) {
+int can_send(csp_iface_t *csp_if_can, can_id_t id, uint8_t data[], uint8_t dlc, CSP_BASE_TYPE * task_woken) {
 
 	int i, m = -1;
 
@@ -275,7 +275,7 @@ ISR(CANIT_vect) {
 			if (mbox[mob] == MBOX_USED && txcb != NULL) {
 				CAN_SET_MOB(mob);
 				CAN_GET_EXT_ID(id);
-				txcb(id, CAN_ERROR, &xTaskWoken);
+				txcb(NULL, id, CAN_ERROR, &xTaskWoken);
 				mbox[mob] = MBOX_FREE;
 			}
 		}
@@ -299,7 +299,7 @@ ISR(CANIT_vect) {
 
 			/* Do TX-Callback */
 			if (txcb != NULL)
-				txcb(id, CAN_ERROR, &xTaskWoken);
+				txcb(NULL, id, CAN_ERROR, &xTaskWoken);
 
 			/* Remember to re-enable RX */
 			if (mob >= CAN_TX_MOBS)
@@ -314,7 +314,12 @@ ISR(CANIT_vect) {
 		} else if (CANSTMOB & MOB_RX_COMPLETED) {
 			/* RX Complete */
 			int i;
-			can_frame_t frame;
+                        struct can_frame *frame;
+                        rx_queue_element_t e = {
+                            .interface = NULL,
+                        };
+                        frame = (struct can_frame*) &e.frame;
+			/*can_frame_t frame;*/
 
 			/* Clear status */
 			CAN_CLEAR_STATUS_MOB();
@@ -327,17 +332,17 @@ ISR(CANIT_vect) {
 			}
 
 			/* Read DLC */
-			frame.dlc = CAN_GET_DLC();
+			frame->dlc = CAN_GET_DLC();
 
 			/* Read data */
-			for (i = 0; i < frame.dlc; i++)
-				frame.data[i] = CANMSG;
+			for (i = 0; i < frame->dlc; i++)
+				frame->data[i] = CANMSG;
 
 			/* Read identifier */
-			CAN_GET_EXT_ID(frame.id);
+			CAN_GET_EXT_ID(frame->id);
 
 			/* Do RX-Callback */
-			if (rxcb != NULL) rxcb(&frame, &xTaskWoken);
+			if (rxcb != NULL) rxcb(&e, &xTaskWoken);
 
 			/* The callback handler might have changed active mob */
 			CAN_SET_MOB(mob);

@@ -107,7 +107,7 @@ static void can_init_interrupt(uint32_t id, uint32_t mask) {
 
 }
 
-int can_init(uint32_t id, uint32_t mask, can_tx_callback_t atxcb, can_rx_callback_t arxcb, struct csp_can_config *conf) {
+int can_init(csp_iface_t *csp_if_can, uint32_t id, uint32_t mask, can_tx_callback_t atxcb, can_rx_callback_t arxcb, struct csp_can_config *conf) {
 
 	int i;
 
@@ -145,7 +145,7 @@ int can_init(uint32_t id, uint32_t mask, can_tx_callback_t atxcb, can_rx_callbac
 
 }
 
-int can_send(can_id_t id, uint8_t data[], uint8_t dlc, CSP_BASE_TYPE * task_woken) {
+int can_send(csp_iface_t *csp_if_can, can_id_t id, uint8_t data[], uint8_t dlc, CSP_BASE_TYPE * task_woken) {
 
 	int i, m = -1;
 	uint32_t temp[2];
@@ -226,22 +226,26 @@ static void __attribute__ ((noinline)) can_dsr(void) {
 		if (CAN_CTRL->ISSR & (1 << m)) {
 			if (CAN_CTRL->CHANNEL[m].SR & RXOK) {
 				/* RX Complete */
-				can_frame_t frame;
+                        struct can_frame *frame;
+                        rx_queue_element_t e = {
+                            .interface = NULL,
+                        };
+                        frame = (struct can_frame*) &e.frame;
 
 				/* Read DLC */
-				frame.dlc = (uint8_t)CAN_CTRL->CHANNEL[m].CR & 0x0F;
+				frame->dlc = (uint8_t)CAN_CTRL->CHANNEL[m].CR & 0x0F;
 
 				/* Read data */
-				frame.data32[0] = CAN_CTRL->CHANNEL[m].DRA;
-				frame.data32[1] = CAN_CTRL->CHANNEL[m].DRB;
+				frame->data32[0] = CAN_CTRL->CHANNEL[m].DRA;
+				frame->data32[1] = CAN_CTRL->CHANNEL[m].DRB;
 
 				/* Read identifier */
-				frame.id = ((CAN_CTRL->CHANNEL[m].IR & 0x7FF) << 18)
+				frame->id = ((CAN_CTRL->CHANNEL[m].IR & 0x7FF) << 18)
 						| ((CAN_CTRL->CHANNEL[m].IR & 0x1FFFF800) >> 11);
 
 				/* Call RX callback */
 				if (rxcb != NULL)
-					rxcb(&frame, &task_woken);
+					rxcb(&e, &task_woken);
 
 				/* Clear status register before enabling */
 				CAN_CTRL->CHANNEL[m].CSR = 0xFFF;
@@ -264,7 +268,7 @@ static void __attribute__ ((noinline)) can_dsr(void) {
 
 				/* Call TX callback with no error */
 				if (txcb != NULL)
-					txcb(id, CAN_NO_ERROR, &task_woken);
+					txcb(NULL, id, CAN_NO_ERROR, &task_woken);
 
 				/* Disable mailbox */
 				CAN_CTRL->CHANNEL[m].CR &= ~(CHANEN);
@@ -292,7 +296,7 @@ static void __attribute__ ((noinline)) can_dsr(void) {
 
 				/* Call TX callback with error flag set */
 				if (txcb != NULL)
-					txcb(id, CAN_ERROR, &task_woken);
+					txcb(NULL, id, CAN_ERROR, &task_woken);
 
 				/* Disable mailbox */
 				CAN_CTRL->CHANNEL[m].CR &= ~(CHANEN);
