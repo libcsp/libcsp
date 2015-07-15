@@ -140,15 +140,16 @@ static void * mbox_rx_thread(void * parameters) {
 
     struct can_frame *frame;
     int nbytes;
+    can_socket_info_t *csi;
+    csi = (can_socket_info_t *) parameters;
     rx_queue_element_t e = {
-        .interface = NULL,
-        /*.frame = *frame,*/
+        .interface = csi->csp_if_can,
     };
     frame = (struct can_frame*) &e.frame;
 
 	while (1) {
 		/* Read CAN frame */
-		nbytes = read(can_socket, frame, sizeof(*frame));
+		nbytes = read(csi->can_socket, frame, sizeof(*frame));
 
 	if (nbytes < 0) {
 		csp_log_error("read: %s", strerror(errno));
@@ -330,7 +331,7 @@ int can_init(csp_iface_t *csp_if_can, uint32_t id, uint32_t mask, can_tx_callbac
 	}
 
 	/* Create receive thread */
-	if (pthread_create(&rx_thread, NULL, mbox_rx_thread, NULL) != 0) {
+	if (pthread_create(&rx_thread, NULL, mbox_rx_thread, (void *)socket_info) != 0) {
 		csp_log_error("pthread_create: %s", strerror(errno));
 		return -1;
 	}
