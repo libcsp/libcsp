@@ -200,10 +200,12 @@ static void * mbox_rx_thread(void * parameters) {
 
 }
 
-int can_mbox_init(void) {
+int can_mbox_init(can_socket_info_t *csi) {
 
 	int i;
-	mbox_t * m;
+	mbox_t *m, *mbox;
+
+        mbox = csi->mbox;
 
 	for (i = 0; i < MBOX_NUM; i++) {
 		m = &mbox[i];
@@ -358,7 +360,7 @@ int can_init(csp_iface_t *csp_if_can, uint32_t id, uint32_t mask, can_tx_callbac
 	}
 
 	/* Create mailbox pool */
-	if (can_mbox_init() != 0) {
+	if (can_mbox_init(socket_info) != 0) {
 		csp_log_error("Failed to create tx thread pool");
 		return -1;
 	}
