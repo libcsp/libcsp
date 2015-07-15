@@ -93,13 +93,34 @@ typedef struct {
 
 can_socket_info_t can_socket_info[MAX_SUPPORTED_CAN_INSTANCES];
 
+can_socket_info_t * find_can_socket_info_by_mailbox(mbox_t *m)
+{
+    for (int i=0; i < MAX_SUPPORTED_CAN_INSTANCES; i++) {
+        for (int j=0; j < MBOX_NUM; j++) {
+            if (&can_socket_info[i].mbox[j] == m) {
+                return &can_socket_info[i];
+            }
+        }
+    }
+    return NULL;
+}
+
 /* Mailbox thread */
 static void * mbox_tx_thread(void * parameters) {
 
 	/* Set thread parameters */
 	mbox_t * m = (mbox_t *)parameters;
+        can_socket_info_t *csi;
+        int *can_socket;
 
 	uint32_t id;
+
+        csi = find_can_socket_info_by_mailbox(m);
+        if (csi == NULL) {
+            /* can this happen?? */
+        }
+
+        can_socket = &csi->can_socket;
 
 	while (1) {
 
@@ -108,7 +129,7 @@ static void * mbox_tx_thread(void * parameters) {
 
 		/* Send frame */
 		int tries = 0, error = CAN_NO_ERROR;
-		while (write(can_socket, &m->frame, sizeof(m->frame)) != sizeof(m->frame)) {
+		while (write(*can_socket, &m->frame, sizeof(m->frame)) != sizeof(m->frame)) {
 			if (++tries < 1000 && errno == ENOBUFS) {
 				/* Wait 10 ms and try again */
 				usleep(10000);
@@ -122,12 +143,12 @@ static void * mbox_tx_thread(void * parameters) {
 		id = m->frame.can_id;
 
 		/* Free mailbox */
-		sem_wait(&mbox_sem);
+		sem_wait(&csi->mbox_sem);
 		m->state = MBOX_FREE;
-		sem_post(&mbox_sem);
+		sem_post(&csi->mbox_sem);
 		
 		/* Call tx callback */
-		if (txcb) txcb(NULL, id, error, NULL);
+		if (txcb) txcb(csi->csp_if_can, id, error, NULL);
 
 	}
 
