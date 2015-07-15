@@ -228,31 +228,53 @@ int can_mbox_init(can_socket_info_t *csi) {
 	}
 
 	/* Init mailbox pool semaphore */
-	sem_init(&mbox_sem, 0, 1);
-
+	sem_init(&csi->mbox_sem, 0, 1);
 	return 0;
 
+}
+
+can_socket_info_t * find_can_socket_info(csp_iface_t *ifc)
+{
+    for (int i = 0; i < MAX_SUPPORTED_CAN_INSTANCES; i++)
+    {
+        /* first unused means no more sockets in use remains */
+        if (!can_socket_info[i].in_use) {
+            return NULL;
+        }
+        if (can_socket_info[i].csp_if_can == ifc) {
+            return &can_socket_info[i];
+        }
+    }
+    return NULL;
 }
 
 int can_send(csp_iface_t *csp_if_can, can_id_t id, uint8_t data[], uint8_t dlc, CSP_BASE_TYPE * task_woken) {
 
 	int i, found = 0;
 	mbox_t * m;
+        can_socket_info_t *csi;
+        sem_t *mbox_sem;
 
 	if (dlc > 8)
 		return -1;
 
+        csi = find_can_socket_info(csp_if_can);
+        if (NULL == csi) {
+            return -1;
+        }
+        mbox_sem = &csi->mbox_sem;
+
 	/* Find free mailbox */
-	sem_wait(&mbox_sem);
+	sem_wait(mbox_sem);
 	for (i = 0; i < MBOX_NUM; i++) {
-		m = &mbox[i];
+		m = &(csi->mbox[i]);
 		if(m->state == MBOX_FREE) {
 			m->state = MBOX_USED;
 			found = 1;
 			break;
 		}
 	}
-	sem_post(&mbox_sem);
+	sem_post(mbox_sem);
 	
 	if (!found)
 		return -1;
