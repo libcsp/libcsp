@@ -293,14 +293,14 @@ def build(ctx):
 			ctx.program(source = 'examples/kiss.c',
 				target = 'kiss',
 				includes = ctx.env.INCLUDES_CSP,
-				lib = libs,
+				lib = ctx.env.LIBS,
 				use = 'csp')
 
 		if 'posix' in ctx.env.OS:
 			ctx.program(source = 'examples/csp_if_fifo.c',
 				target = 'fifo',
 				includes = ctx.env.INCLUDES_CSP,
-				lib = libs,
+				lib = ctx.env.LIBS,
 				use = 'csp')
 
 		if 'windows' in ctx.env.OS:
