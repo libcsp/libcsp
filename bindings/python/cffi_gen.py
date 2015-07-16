@@ -3,9 +3,8 @@ import fnmatch
 from cffi import FFI
 
 
-MODULE_DIR = os.path.dirname(__file__)
-CSP_ROOT_DIR = os.path.abspath(os.path.join(MODULE_DIR, os.path.pardir,
-                                            os.path.pardir))
+MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
+CSP_ROOT_DIR = os.path.join(MODULE_DIR, os.path.pardir, os.path.pardir)
 CSP_INCLUDE_DIR = os.path.join(CSP_ROOT_DIR, 'include')
 INCLUDE_DIRS = [CSP_INCLUDE_DIR]
 INCLUDE_DIRS += [os.path.join(CSP_ROOT_DIR, 'build', 'include')]
