@@ -121,7 +121,7 @@ def configure(ctx):
 	ctx.env.append_unique('INCLUDES_CSP', ['include'] + ctx.options.includes.split(','))
 
 	# Add default files
-	ctx.env.append_unique('FILES_CSP', ['src/*.c','src/interfaces/csp_if_lo.c','src/transport/csp_udp.c','src/arch/{0}/**/*.c'.format(ctx.options.with_os)])
+	ctx.env.append_unique('FILES_CSP', ['src/*.c','src/interfaces/csp_if_lo.c','src/transport/csp_udp.c','src/arch/{0}/*.c'.format(ctx.options.with_os)])
 	
 	# Libs
 	if 'posix' in ctx.env.OS:
