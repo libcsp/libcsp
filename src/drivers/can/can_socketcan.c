@@ -1,22 +1,22 @@
 /*
-Cubesat Space Protocol - A small network-layer protocol designed for Cubesats
-Copyright (C) 2012 GomSpace ApS (http://www.gomspace.com)
-Copyright (C) 2012 AAUSAT3 Project (http://aausat3.space.aau.dk)
+   Cubesat Space Protocol - A small network-layer protocol designed for Cubesats
+   Copyright (C) 2012 GomSpace ApS (http://www.gomspace.com)
+   Copyright (C) 2012 AAUSAT3 Project (http://aausat3.space.aau.dk)
 
-This library is free software; you can redistribute it and/or
-modify it under the terms of the GNU Lesser General Public
-License as published by the Free Software Foundation; either
-version 2.1 of the License, or (at your option) any later version.
+   This library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Lesser General Public
+   License as published by the Free Software Foundation; either
+   version 2.1 of the License, or (at your option) any later version.
 
-This library is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-Lesser General Public License for more details.
+   This library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Lesser General Public License for more details.
 
-You should have received a copy of the GNU Lesser General Public
-License along with this library; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
-*/
+   You should have received a copy of the GNU Lesser General Public
+   License along with this library; if not, write to the Free Software
+   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+   */
 
 /* SocketCAN driver */
 
@@ -58,8 +58,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 /* These constants are not defined for Blackfin */
 #if !defined(PF_CAN) && !defined(AF_CAN)
-	#define PF_CAN 29
-	#define AF_CAN PF_CAN
+#define PF_CAN 29
+#define AF_CAN PF_CAN
 #endif
 
 #define MAX_SUPPORTED_CAN_INSTANCES 3
@@ -84,25 +84,25 @@ typedef struct {
 } mbox_t;
 
 typedef struct {
-    int can_socket;         /** SocketCAN socket handle */
-    mbox_t mbox[MBOX_NUM];  /* List of mailboxes */
-    sem_t mbox_sem;         /** Mailbox pool semaphore */
-    csp_iface_t *csp_if_can;
-    bool in_use;
+	int can_socket;         /** SocketCAN socket handle */
+	mbox_t mbox[MBOX_NUM];  /* List of mailboxes */
+	sem_t mbox_sem;         /** Mailbox pool semaphore */
+	csp_iface_t *csp_if_can;
+	bool in_use;
 } can_socket_info_t;
 
 can_socket_info_t can_socket_info[MAX_SUPPORTED_CAN_INSTANCES];
 
 can_socket_info_t * find_can_socket_info_by_mailbox(mbox_t *m)
 {
-    for (int i=0; i < MAX_SUPPORTED_CAN_INSTANCES; i++) {
-        for (int j=0; j < MBOX_NUM; j++) {
-            if (&can_socket_info[i].mbox[j] == m) {
-                return &can_socket_info[i];
-            }
-        }
-    }
-    return NULL;
+	for (int i=0; i < MAX_SUPPORTED_CAN_INSTANCES; i++) {
+		for (int j=0; j < MBOX_NUM; j++) {
+			if (&can_socket_info[i].mbox[j] == m) {
+				return &can_socket_info[i];
+			}
+		}
+	}
+	return NULL;
 }
 
 /* Mailbox thread */
@@ -110,17 +110,17 @@ static void * mbox_tx_thread(void * parameters) {
 
 	/* Set thread parameters */
 	mbox_t * m = (mbox_t *)parameters;
-        can_socket_info_t *csi;
-        int *can_socket;
+	can_socket_info_t *csi;
+	int *can_socket;
 
 	uint32_t id;
 
-        csi = find_can_socket_info_by_mailbox(m);
-        if (csi == NULL) {
-            /* can this happen?? */
-        }
+	csi = find_can_socket_info_by_mailbox(m);
+	if (csi == NULL) {
+		/* can this happen?? */
+	}
 
-        can_socket = &csi->can_socket;
+	can_socket = &csi->can_socket;
 
 	while (1) {
 
@@ -146,7 +146,7 @@ static void * mbox_tx_thread(void * parameters) {
 		sem_wait(&csi->mbox_sem);
 		m->state = MBOX_FREE;
 		sem_post(&csi->mbox_sem);
-		
+
 		/* Call tx callback */
 		if (txcb) txcb(csi->csp_if_can, id, error, NULL);
 
@@ -159,23 +159,23 @@ static void * mbox_tx_thread(void * parameters) {
 
 static void * mbox_rx_thread(void * parameters) {
 
-    struct can_frame *frame;
-    int nbytes;
-    can_socket_info_t *csi;
-    csi = (can_socket_info_t *) parameters;
-    rx_queue_element_t e = {
-        .interface = csi->csp_if_can,
-    };
-    frame = (struct can_frame*) &e.frame;
+	struct can_frame *frame;
+	int nbytes;
+	can_socket_info_t *csi;
+	csi = (can_socket_info_t *) parameters;
+	rx_queue_element_t e = {
+		.interface = csi->csp_if_can,
+	};
+	frame = (struct can_frame*) &e.frame;
 
 	while (1) {
 		/* Read CAN frame */
 		nbytes = read(csi->can_socket, frame, sizeof(*frame));
 
-	if (nbytes < 0) {
-		csp_log_error("read: %s", strerror(errno));
-		break;
-	}
+		if (nbytes < 0) {
+			csp_log_error("read: %s", strerror(errno));
+			break;
+		}
 
 		if (nbytes != sizeof(*frame)) {
 			csp_log_warn("Read incomplete CAN frame");
@@ -205,7 +205,7 @@ int can_mbox_init(can_socket_info_t *csi) {
 	int i;
 	mbox_t *m, *mbox;
 
-        mbox = csi->mbox;
+	mbox = csi->mbox;
 
 	for (i = 0; i < MBOX_NUM; i++) {
 		m = &mbox[i];
@@ -235,34 +235,34 @@ int can_mbox_init(can_socket_info_t *csi) {
 
 can_socket_info_t * find_can_socket_info(csp_iface_t *ifc)
 {
-    for (int i = 0; i < MAX_SUPPORTED_CAN_INSTANCES; i++)
-    {
-        /* first unused means no more sockets in use remains */
-        if (!can_socket_info[i].in_use) {
-            return NULL;
-        }
-        if (can_socket_info[i].csp_if_can == ifc) {
-            return &can_socket_info[i];
-        }
-    }
-    return NULL;
+	for (int i = 0; i < MAX_SUPPORTED_CAN_INSTANCES; i++)
+	{
+		/* first unused means no more sockets in use remains */
+		if (!can_socket_info[i].in_use) {
+			return NULL;
+		}
+		if (can_socket_info[i].csp_if_can == ifc) {
+			return &can_socket_info[i];
+		}
+	}
+	return NULL;
 }
 
 int can_send(csp_iface_t *csp_if_can, can_id_t id, uint8_t data[], uint8_t dlc, CSP_BASE_TYPE * task_woken) {
 
 	int i, found = 0;
 	mbox_t * m;
-        can_socket_info_t *csi;
-        sem_t *mbox_sem;
+	can_socket_info_t *csi;
+	sem_t *mbox_sem;
 
 	if (dlc > 8)
 		return -1;
 
-        csi = find_can_socket_info(csp_if_can);
-        if (NULL == csi) {
-            return -1;
-        }
-        mbox_sem = &csi->mbox_sem;
+	csi = find_can_socket_info(csp_if_can);
+	if (NULL == csi) {
+		return -1;
+	}
+	mbox_sem = &csi->mbox_sem;
 
 	/* Find free mailbox */
 	sem_wait(mbox_sem);
@@ -275,7 +275,7 @@ int can_send(csp_iface_t *csp_if_can, can_id_t id, uint8_t data[], uint8_t dlc, 
 		}
 	}
 	sem_post(mbox_sem);
-	
+
 	if (!found)
 		return -1;
 
@@ -299,25 +299,25 @@ static unsigned char total_interfaces = 0;
 
 can_socket_info_t * get_available_can_socket_info(void)
 {
-    can_socket_info_t *csi;
-    if(total_interfaces < MAX_SUPPORTED_CAN_INSTANCES) {
-        csi = &can_socket_info[total_interfaces];
-        total_interfaces++;
-        csi->in_use = true;
-        return csi;
-    }
-    return NULL;
+	can_socket_info_t *csi;
+	if(total_interfaces < MAX_SUPPORTED_CAN_INSTANCES) {
+		csi = &can_socket_info[total_interfaces];
+		total_interfaces++;
+		csi->in_use = true;
+		return csi;
+	}
+	return NULL;
 }
 
 static void init_socket_info_in_use(void)
 {
-    static bool first_call = true;
-    if (first_call) {
-        for (int i=0; i < MAX_SUPPORTED_CAN_INSTANCES; i++){
-            can_socket_info[i].in_use = false;
-        }
-        first_call = false;
-    }
+	static bool first_call = true;
+	if (first_call) {
+		for (int i=0; i < MAX_SUPPORTED_CAN_INSTANCES; i++){
+			can_socket_info[i].in_use = false;
+		}
+		first_call = false;
+	}
 }
 
 int can_init(csp_iface_t *csp_if_can, uint32_t id, uint32_t mask, can_tx_callback_t atxcb, can_rx_callback_t arxcb, struct csp_can_config *conf) {
@@ -325,18 +325,18 @@ int can_init(csp_iface_t *csp_if_can, uint32_t id, uint32_t mask, can_tx_callbac
 	struct ifreq ifr;
 	struct sockaddr_can addr;
 	pthread_t rx_thread;
-        int *can_socket;
-        can_socket_info_t *socket_info;
+	int *can_socket;
+	can_socket_info_t *socket_info;
 
-        init_socket_info_in_use();
+	init_socket_info_in_use();
 
-        socket_info = get_available_can_socket_info();
-        if (socket_info == NULL) {
-            return -1;
-        }
+	socket_info = get_available_can_socket_info();
+	if (socket_info == NULL) {
+		return -1;
+	}
 
-        socket_info->csp_if_can = csp_if_can;
-        can_socket = &socket_info->can_socket;
+	socket_info->csp_if_can = csp_if_can;
+	can_socket = &socket_info->can_socket;
 
 	csp_assert(conf && conf->ifc);
 

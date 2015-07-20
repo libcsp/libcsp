@@ -1,23 +1,23 @@
 /*
-Cubesat Space Protocol - A small network-layer protocol designed for Cubesats
-Copyright (C) 2012 GomSpace ApS (http://www.gomspace.com)
-Copyright (C) 2012 AAUSAT3 Project (http://aausat3.space.aau.dk) 
+   Cubesat Space Protocol - A small network-layer protocol designed for Cubesats
+   Copyright (C) 2012 GomSpace ApS (http://www.gomspace.com)
+   Copyright (C) 2012 AAUSAT3 Project (http://aausat3.space.aau.dk) 
 
-This library is free software; you can redistribute it and/or
-modify it under the terms of the GNU Lesser General Public
-License as published by the Free Software Foundation; either
-version 2.1 of the License, or (at your option) any later version.
+   This library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Lesser General Public
+   License as published by the Free Software Foundation; either
+   version 2.1 of the License, or (at your option) any later version.
 
-This library is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-Lesser General Public License for more details.
+   This library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Lesser General Public License for more details.
 
-You should have received a copy of the GNU Lesser General Public
-License along with this library; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
-*/
- 
+   You should have received a copy of the GNU Lesser General Public
+   License along with this library; if not, write to the Free Software
+   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+   */
+
 /* CAN frames contains at most 8 bytes of data, so in order to transmit CSP
  * packets larger than this, a fragmentation protocol is required. The CAN
  * Fragmentation Protocol (CFP) header is designed to match the 29 bit CAN
@@ -81,8 +81,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 /** Mask to uniquely separate connections */
 #define CFP_ID_CONN_MASK 	(CFP_MAKE_SRC((uint32_t)(1 << CFP_HOST_SIZE) - 1) \
-							| CFP_MAKE_DST((uint32_t)(1 << CFP_HOST_SIZE) - 1) \
-							| CFP_MAKE_ID((uint32_t)(1 << CFP_ID_SIZE) - 1))
+		| CFP_MAKE_DST((uint32_t)(1 << CFP_HOST_SIZE) - 1) \
+		| CFP_MAKE_ID((uint32_t)(1 << CFP_ID_SIZE) - 1))
 
 /** Maximum Transmission Unit for CSP over CAN */
 #define CSP_CAN_MTU 256
@@ -123,7 +123,7 @@ static int id_init(void) {
 	/* Init ID field to random number */
 	srand((int)csp_get_ms());
 	cfp_id = rand() & ((1 << CFP_ID_SIZE) - 1);
-	
+
 	if (csp_bin_sem_create(&id_sem) == CSP_SEMAPHORE_OK) {
 		return CSP_ERR_NONE;
 	} else {
@@ -190,14 +190,14 @@ static int pbuf_init(void) {
 		}
 	}
 
-    /* Initialize global lock */
+	/* Initialize global lock */
 	if (CSP_INIT_CRITICAL(pbuf_sem) != CSP_ERR_NONE) {
 		csp_log_error("No more memory for packet buffer semaphore");
 		return CSP_ERR_NOMEM;
 	}
 
 	return CSP_ERR_NONE;
-	
+
 }
 
 /** pbuf_timestamp
@@ -305,7 +305,7 @@ static pbuf_element_t *pbuf_new(uint32_t id, CSP_BASE_TYPE *task_woken) {
 
 	/* No free buffer was found */
 	return ret;
-  
+
 }
 
 
@@ -316,7 +316,7 @@ static pbuf_element_t *pbuf_new(uint32_t id, CSP_BASE_TYPE *task_woken) {
  * @return Pointer to matching or new packet buffer element on success, NULL on error.
  */
 static pbuf_element_t *pbuf_find(uint32_t id, uint32_t mask, CSP_BASE_TYPE *task_woken) {
-	
+
 	/* Search for matching buffer */
 	int i;
 	pbuf_element_t *buf, *ret = NULL;
@@ -379,12 +379,12 @@ int csp_tx_callback(csp_iface_t *csp_iface, can_id_t canid, can_error_t error, C
 
 	int bytes;
 	uint8_t dest;
-        csp_iface_t *interface;
+	csp_iface_t *interface;
 
-        interface = csp_iface;
-        if (NULL == csp_iface) {
-            interface = &csp_if_can;
-        }
+	interface = csp_iface;
+	if (NULL == csp_iface) {
+		interface = &csp_if_can;
+	}
 
 	/* Match buffer element */
 	pbuf_element_t *buf = pbuf_find(canid, CFP_ID_CONN_MASK, task_woken);
@@ -464,8 +464,8 @@ int csp_tx_callback(csp_iface_t *csp_iface, can_id_t canid, can_error_t error, C
 }
 
 int csp_rx_callback(rx_queue_element_t *e, CSP_BASE_TYPE *task_woken) {
-    int ret = csp_queue_enqueue_isr(can_rx_queue, e, task_woken);
-    return ret == CSP_QUEUE_OK ? CSP_ERR_NONE : CSP_ERR_NOMEM;
+	int ret = csp_queue_enqueue_isr(can_rx_queue, e, task_woken);
+	return ret == CSP_QUEUE_OK ? CSP_ERR_NONE : CSP_ERR_NOMEM;
 }
 
 static int csp_can_process_frame(csp_iface_t * csp_iface, can_frame_t *frame) {
@@ -473,13 +473,13 @@ static int csp_can_process_frame(csp_iface_t * csp_iface, can_frame_t *frame) {
 	pbuf_element_t *buf;
 	uint8_t offset;
 
-        csp_iface_t *interface;
+	csp_iface_t *interface;
 
-        interface = csp_iface;
-        if (NULL == csp_iface) {
-            interface = &csp_if_can;
-        }
-	
+	interface = csp_iface;
+	if (NULL == csp_iface) {
+		interface = &csp_if_can;
+	}
+
 	can_id_t id = frame->id;
 
 	/* Bind incoming frame to a packet buffer */
@@ -507,7 +507,7 @@ static int csp_can_process_frame(csp_iface_t * csp_iface, can_frame_t *frame) {
 	switch (CFP_TYPE(id)) {
 
 		case CFP_BEGIN:
-		
+
 			/* Discard packet if DLC is less than CSP id + CSP length fields */
 			if (frame->dlc < sizeof(csp_id_t) + sizeof(uint16_t)) {
 				csp_log_warn("Short BEGIN frame received");
@@ -515,7 +515,7 @@ static int csp_can_process_frame(csp_iface_t * csp_iface, can_frame_t *frame) {
 				pbuf_free(buf, NULL, true);
 				break;
 			}
-						
+
 			/* Check for incomplete frame */
 			if (buf->packet != NULL) {
 				/* Reuse the buffer */
@@ -537,10 +537,10 @@ static int csp_can_process_frame(csp_iface_t * csp_iface, can_frame_t *frame) {
 			buf->packet->id.ext = csp_ntoh32(buf->packet->id.ext);
 			memcpy(&(buf->packet->length), frame->data + sizeof(csp_id_t), sizeof(uint16_t));
 			buf->packet->length = csp_ntoh16(buf->packet->length);
-			
+
 			/* Reset RX count */
 			buf->rx_count = 0;
-			
+
 			/* Set offset to prevent CSP header from being copied to CSP data */
 			offset = sizeof(csp_id_t) + sizeof(uint16_t);
 
@@ -548,7 +548,7 @@ static int csp_can_process_frame(csp_iface_t * csp_iface, can_frame_t *frame) {
 			buf->remain = CFP_REMAIN(id) + 1;
 
 			/* Note fall through! */
-			
+
 		case CFP_MORE:
 
 			/* Check 'remain' field match */
@@ -603,7 +603,7 @@ static int csp_can_process_frame(csp_iface_t * csp_iface, can_frame_t *frame) {
 CSP_DEFINE_TASK(csp_can_rx_task) {
 
 	int ret;
-        rx_queue_element_t e;
+	rx_queue_element_t e;
 
 	while (1) {
 		ret = csp_queue_dequeue(can_rx_queue, &e, 1000);
@@ -630,7 +630,7 @@ int csp_can_tx(csp_iface_t * interface, csp_packet_t *packet, uint32_t timeout) 
 		csp_log_warn("Failed to get CFP identification number");
 		return CSP_ERR_INVAL;
 	}
-	
+
 	/* Calculate overhead */
 	overhead = sizeof(csp_id_t) + sizeof(uint16_t);
 
@@ -744,50 +744,50 @@ static int csp_can_init_common_resources(void) {
 static bool common_resources_already_initialized = false;
 
 int csp_can_init_ifc(csp_iface_t *csp_iface, uint8_t mode, struct csp_can_config *conf) {
-    uint32_t mask;
-    int rv;
+	uint32_t mask;
+	int rv;
 
-    if (!common_resources_already_initialized) {
-        rv = csp_can_init_common_resources();
-        if (rv != CSP_ERR_NONE) {
-            return rv;
-        }
-        common_resources_already_initialized = true;
-    }
-    /* Initialize CAN driver */
-    csp_iface->name = conf->ifc;
-    csp_iface->nexthop = csp_can_tx;
-    csp_iface->mtu = CSP_CAN_MTU;
+	if (!common_resources_already_initialized) {
+		rv = csp_can_init_common_resources();
+		if (rv != CSP_ERR_NONE) {
+			return rv;
+		}
+		common_resources_already_initialized = true;
+	}
+	/* Initialize CAN driver */
+	csp_iface->name = conf->ifc;
+	csp_iface->nexthop = csp_can_tx;
+	csp_iface->mtu = CSP_CAN_MTU;
 
-    if (mode == CSP_CAN_MASKED) {
-        mask = CFP_MAKE_DST((1 << CFP_HOST_SIZE) - 1);
-    } else if (mode == CSP_CAN_PROMISC) {
-        mask = 0;
-        csp_iface->promisc = 1;
-    } else {
-        csp_log_error("Unknown CAN mode");
-        return CSP_ERR_INVAL;
-    }
+	if (mode == CSP_CAN_MASKED) {
+		mask = CFP_MAKE_DST((1 << CFP_HOST_SIZE) - 1);
+	} else if (mode == CSP_CAN_PROMISC) {
+		mask = 0;
+		csp_iface->promisc = 1;
+	} else {
+		csp_log_error("Unknown CAN mode");
+		return CSP_ERR_INVAL;
+	}
 
-    if (can_init(csp_iface, CFP_MAKE_DST(my_address), mask, csp_tx_callback, csp_rx_callback, conf) != 0) {
-        csp_log_error("Failed to initialize CAN driver");
-        return CSP_ERR_DRIVER;
-    }
+	if (can_init(csp_iface, CFP_MAKE_DST(my_address), mask, csp_tx_callback, csp_rx_callback, conf) != 0) {
+		csp_log_error("Failed to initialize CAN driver");
+		return CSP_ERR_DRIVER;
+	}
 
-    /* Regsiter interface */
-    csp_iflist_add(csp_iface);
-    return CSP_ERR_NONE;
+	/* Regsiter interface */
+	csp_iflist_add(csp_iface);
+	return CSP_ERR_NONE;
 }
 
 int csp_can_init(uint8_t mode, struct csp_can_config *conf) {
-    int rv;
+	int rv;
 
-    rv = csp_can_init_common_resources();
-    if (rv != CSP_ERR_NONE) {
-        return rv;
-    }
+	rv = csp_can_init_common_resources();
+	if (rv != CSP_ERR_NONE) {
+		return rv;
+	}
 
-    return csp_can_init_ifc(&csp_if_can, mode, conf);
+	return csp_can_init_ifc(&csp_if_can, mode, conf);
 }
 
 

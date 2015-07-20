@@ -20,81 +20,81 @@ static csp_iface_t csp_if_can1;
 
 void _send(csp_packet_t *packet, csp_iface_t *ifc, char * message)
 {
-    printf("Sending: %s, with %s\r\n", message, ifc->name);
-    strcpy((char *) packet->data, message);
-    packet->length = strlen(message);
-    csp_route_set(other, ifc, CSP_NODE_MAC);
-    csp_sendto(CSP_PRIO_NORM, other, PORT, PORT, CSP_SO_NONE, packet, 1000);
+	printf("Sending: %s, with %s\r\n", message, ifc->name);
+	strcpy((char *) packet->data, message);
+	packet->length = strlen(message);
+	csp_route_set(other, ifc, CSP_NODE_MAC);
+	csp_sendto(CSP_PRIO_NORM, other, PORT, PORT, CSP_SO_NONE, packet, 1000);
 }
 
 void client_server_pseudo_task(void)
 {
-    csp_socket_t *sock;
-    csp_packet_t *packet;
+	csp_socket_t *sock;
+	csp_packet_t *packet;
 
 
-    if (type == TYPE_SERVER) {
-        sock = csp_socket(CSP_SO_CONN_LESS);
-        csp_bind(sock, PORT);
-    }
+	if (type == TYPE_SERVER) {
+		sock = csp_socket(CSP_SO_CONN_LESS);
+		csp_bind(sock, PORT);
+	}
 
 
-    for (;;) {
-        if (type == TYPE_CLIENT) {
-                packet = csp_buffer_get(strlen(message0));
-                if (packet) {
-                    _send(packet, &csp_if_can0, message0);
-                }
-                packet = csp_buffer_get(strlen(message1));
-                if (packet) {
-                    _send(packet, &csp_if_can1, message1);
-                }
-                sleep(1);
-        } else {
-            packet = csp_recvfrom(sock, 1000);
-            if (packet) {
-                printf("Received: %s\r\n", packet->data);
-                csp_buffer_free(packet);
-            }
-        }
-    }
+	for (;;) {
+		if (type == TYPE_CLIENT) {
+			packet = csp_buffer_get(strlen(message0));
+			if (packet) {
+				_send(packet, &csp_if_can0, message0);
+			}
+			packet = csp_buffer_get(strlen(message1));
+			if (packet) {
+				_send(packet, &csp_if_can1, message1);
+			}
+			sleep(1);
+		} else {
+			packet = csp_recvfrom(sock, 1000);
+			if (packet) {
+				printf("Received: %s\r\n", packet->data);
+				csp_buffer_free(packet);
+			}
+		}
+	}
 }
 
 int main(int argc, char **argv)
 {
-    static unsigned char ucParameterToPass;
-    struct csp_can_config can_conf0 = {.ifc = "can0"};
-    struct csp_can_config can_conf1 = {.ifc = "can1"};
+	static unsigned char ucParameterToPass;
+	struct csp_can_config can_conf0 = {.ifc = "can0"};
+	struct csp_can_config can_conf1 = {.ifc = "can1"};
 
-    if (argc != 2) {
-        printf("usage: %s <server/client>\r\n", argv[0]);
-        return -1;
-    }
+	if (argc != 2) {
+		printf("usage: %s <server/client>\r\n", argv[0]);
+		return -1;
+	}
 
-    /* Set type */
-    if (strcmp(argv[1], "server") == 0) {
-        me = 1;
-        other = 2;
-        type = TYPE_SERVER;
-    } else if (strcmp(argv[1], "client") == 0) {
-        me = 2;
-        other = 1;
-        type = TYPE_CLIENT;
-    } else {
-        printf("Invalid type. Must be either 'server' or 'client'\r\n");
-        return -1;
-    }
+	/* Set type */
+	if (strcmp(argv[1], "server") == 0) {
+		me = 1;
+		other = 2;
+		type = TYPE_SERVER;
+	} else if (strcmp(argv[1], "client") == 0) {
+		me = 2;
+		other = 1;
+		type = TYPE_CLIENT;
+	} else {
+		printf("Invalid type. Must be either 'server' or 'client'\r\n");
+		return -1;
+	}
 
-    /* Init CSP and CSP buffer system */
-    if (csp_init(me) != CSP_ERR_NONE || csp_buffer_init(10, 300) != CSP_ERR_NONE) {
-        return;
-    }
+	/* Init CSP and CSP buffer system */
+	if (csp_init(me) != CSP_ERR_NONE || csp_buffer_init(10, 300) != CSP_ERR_NONE) {
+		return;
+	}
 
-    csp_can_init_ifc(&csp_if_can0, CSP_CAN_MASKED, &can_conf0);
-    csp_can_init_ifc(&csp_if_can1, CSP_CAN_MASKED, &can_conf1);
+	csp_can_init_ifc(&csp_if_can0, CSP_CAN_MASKED, &can_conf0);
+	csp_can_init_ifc(&csp_if_can1, CSP_CAN_MASKED, &can_conf1);
 
-    csp_route_start_task(0, 0);
+	csp_route_start_task(0, 0);
 
-    client_server_pseudo_task();
-    return 0;
+	client_server_pseudo_task();
+	return 0;
 }
