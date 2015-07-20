@@ -40,7 +40,6 @@ void client_server_pseudo_task(void)
 
 
     for (;;) {
-
         if (type == TYPE_CLIENT) {
                 packet = csp_buffer_get(strlen(message0));
                 if (packet) {
@@ -90,10 +89,6 @@ int main(int argc, char **argv)
     if (csp_init(me) != CSP_ERR_NONE || csp_buffer_init(10, 300) != CSP_ERR_NONE) {
         return;
     }
-
-
-    /* last two arguments only matters if first argument is true (single_interface) */
-    csp_can_init(false, 0, NULL);
 
     csp_can_init_ifc(&csp_if_can0, CSP_CAN_MASKED, &can_conf0);
     csp_can_init_ifc(&csp_if_can1, CSP_CAN_MASKED, &can_conf1);

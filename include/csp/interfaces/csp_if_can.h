@@ -49,7 +49,7 @@ struct csp_can_config {
  * @param conf Pointer to configuration struct. 
  * @return 0 if CAN interface was successfully initialized, -1 otherwise
  */
-int csp_can_init(bool single_interface, uint8_t mode, struct csp_can_config *conf);
+int csp_can_init(uint8_t mode, struct csp_can_config *conf);
 int csp_can_init_ifc(csp_iface_t *csp_iface, uint8_t mode, struct csp_can_config *conf);
 
 #ifdef __cplusplus
