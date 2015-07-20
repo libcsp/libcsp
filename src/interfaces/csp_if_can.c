@@ -710,10 +710,50 @@ int csp_can_tx(csp_iface_t * interface, csp_packet_t *packet, uint32_t timeout) 
 
 }
 
+static int csp_can_init_common_resources(void) {
+
+	int ret;
+
+	/* Initialize packet buffer */
+	if (pbuf_init() != 0) {
+		csp_log_error("Failed to initialize CAN packet buffers");
+		return CSP_ERR_NOMEM;
+	}
+
+	/* Initialize CFP identifier */
+	if (id_init() != 0) {
+		csp_log_error("Failed to initialize CAN identification number");
+		return CSP_ERR_NOMEM;
+	}
+
+	can_rx_queue = csp_queue_create(CSP_CAN_RX_QUEUE_SIZE, sizeof(rx_queue_element_t));
+	if (can_rx_queue == NULL) {
+		csp_log_error("Failed to create CAN RX queue");
+		return CSP_ERR_NOMEM;
+	}
+
+	ret = csp_thread_create(csp_can_rx_task, (signed char *) "CAN", 6000/sizeof(int), NULL, 3, &can_rx_task);
+	if (ret != 0) {
+		csp_log_error("Failed to init CAN RX task");
+		return CSP_ERR_NOMEM;
+	}
+
+	return CSP_ERR_NONE;
+}
+
+static bool common_resources_already_initialized = false;
 
 int csp_can_init_ifc(csp_iface_t *csp_iface, uint8_t mode, struct csp_can_config *conf) {
     uint32_t mask;
+    int rv;
 
+    if (!common_resources_already_initialized) {
+        rv = csp_can_init_common_resources();
+        if (rv != CSP_ERR_NONE) {
+            return rv;
+        }
+        common_resources_already_initialized = true;
+    }
     /* Initialize CAN driver */
     csp_iface->name = conf->ifc;
     csp_iface->nexthop = csp_can_tx;
@@ -729,7 +769,6 @@ int csp_can_init_ifc(csp_iface_t *csp_iface, uint8_t mode, struct csp_can_config
         return CSP_ERR_INVAL;
     }
 
-
     if (can_init(csp_iface, CFP_MAKE_DST(my_address), mask, csp_tx_callback, csp_rx_callback, conf) != 0) {
         csp_log_error("Failed to initialize CAN driver");
         return CSP_ERR_DRIVER;
@@ -740,39 +779,15 @@ int csp_can_init_ifc(csp_iface_t *csp_iface, uint8_t mode, struct csp_can_config
     return CSP_ERR_NONE;
 }
 
-int csp_can_init(bool single_interface, uint8_t mode, struct csp_can_config *conf) {
+int csp_can_init(uint8_t mode, struct csp_can_config *conf) {
+    int rv;
 
-	int ret;
+    rv = csp_can_init_common_resources();
+    if (rv != CSP_ERR_NONE) {
+        return rv;
+    }
 
-	/* Initialize packet buffer */
-	if (pbuf_init() != 0) {
-		csp_log_error("Failed to initialize CAN packet buffers");
-		return CSP_ERR_NOMEM;
-	}
-
-	/* Initialize CFP identifier */
-	if (id_init() != 0) {
-		csp_log_error("Failed to initialize CAN identification number");
-		return CSP_ERR_NOMEM;
-	}
-	
-	can_rx_queue = csp_queue_create(CSP_CAN_RX_QUEUE_SIZE, sizeof(rx_queue_element_t));
-	if (can_rx_queue == NULL) {
-		csp_log_error("Failed to create CAN RX queue");
-		return CSP_ERR_NOMEM;
-	}
-	
-	ret = csp_thread_create(csp_can_rx_task, (signed char *) "CAN", 6000/sizeof(int), NULL, 3, &can_rx_task);
-	if (ret != 0) {
-		csp_log_error("Failed to init CAN RX task");
-		return CSP_ERR_NOMEM;
-	}
-
-        if (single_interface) {
-            csp_can_init_ifc(&csp_if_can, mode, conf);
-        }
-
-	return CSP_ERR_NONE;
+    return csp_can_init_ifc(&csp_if_can, mode, conf);
 }
 
 
