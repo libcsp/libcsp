@@ -30,10 +30,7 @@ void _send(csp_packet_t *packet, csp_iface_t *ifc, char * message)
 void client_server_pseudo_task(void)
 {
     csp_socket_t *sock;
-    csp_packet_t *packet0;
-    csp_packet_t *packet1;
     csp_packet_t *packet;
-    bool toggle_interface = true;
 
 
     if (type == TYPE_SERVER) {
@@ -45,17 +42,15 @@ void client_server_pseudo_task(void)
     for (;;) {
 
         if (type == TYPE_CLIENT) {
-                toggle_interface = false;
-                packet0 = csp_buffer_get(strlen(message0));
-                if (packet0) {
-                    _send(packet0, &csp_if_can0, message0);
+                packet = csp_buffer_get(strlen(message0));
+                if (packet) {
+                    _send(packet, &csp_if_can0, message0);
                 }
-                toggle_interface = true;
-                packet1 = csp_buffer_get(strlen(message1));
-                if (packet1) {
-                    _send(packet1, &csp_if_can1, message1);
+                packet = csp_buffer_get(strlen(message1));
+                if (packet) {
+                    _send(packet, &csp_if_can1, message1);
                 }
-            sleep(1);
+                sleep(1);
         } else {
             packet = csp_recvfrom(sock, 1000);
             if (packet) {
