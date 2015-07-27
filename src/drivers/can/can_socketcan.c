@@ -146,7 +146,7 @@ static void * mbox_tx_thread(void * parameters) {
 		sem_wait(&csi->mbox_sem);
 		m->state = MBOX_FREE;
 		sem_post(&csi->mbox_sem);
-
+		
 		/* Call tx callback */
 		if (txcb) txcb(csi->csp_if_can, id, error, NULL);
 

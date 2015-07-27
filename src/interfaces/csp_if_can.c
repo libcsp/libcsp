@@ -17,7 +17,7 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
-
+ 
 /* CAN frames contains at most 8 bytes of data, so in order to transmit CSP
  * packets larger than this, a fragmentation protocol is required. The CAN
  * Fragmentation Protocol (CFP) header is designed to match the 29 bit CAN
@@ -548,7 +548,7 @@ static int csp_can_process_frame(csp_iface_t * csp_iface, can_frame_t *frame) {
 			buf->remain = CFP_REMAIN(id) + 1;
 
 			/* Note fall through! */
-
+			
 		case CFP_MORE:
 
 			/* Check 'remain' field match */
