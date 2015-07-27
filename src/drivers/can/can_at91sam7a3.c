@@ -229,11 +229,11 @@ void __attribute__ ((__interrupt__)) can_isr(void) {
 			if (CAN_CTRL->CHANNEL[m].MSR & MRDY) {
 				if (is_rx_mailbox(m)) {
 					
-                                    struct can_frame *frame;
-                                    rx_queue_element_t e = {
-                                        .interface = NULL,
-                                    };
-                                    frame = (struct can_frame*) &e.frame;
+					struct can_frame *frame;
+					rx_queue_element_t e = {
+						.interface = NULL,
+					};
+					frame = (struct can_frame*) &e.frame;
 
 					if (m == CAN_MBOXES - 1) {
 						/* RX overflow */

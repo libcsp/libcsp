@@ -226,11 +226,11 @@ static void __attribute__ ((noinline)) can_dsr(void) {
 		if (CAN_CTRL->ISSR & (1 << m)) {
 			if (CAN_CTRL->CHANNEL[m].SR & RXOK) {
 				/* RX Complete */
-                        struct can_frame *frame;
-                        rx_queue_element_t e = {
-                            .interface = NULL,
-                        };
-                        frame = (struct can_frame*) &e.frame;
+				struct can_frame *frame;
+				rx_queue_element_t e = {
+					.interface = NULL,
+				};
+				frame = (struct can_frame*) &e.frame;
 
 				/* Read DLC */
 				frame->dlc = (uint8_t)CAN_CTRL->CHANNEL[m].CR & 0x0F;

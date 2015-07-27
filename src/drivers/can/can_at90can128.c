@@ -314,11 +314,11 @@ ISR(CANIT_vect) {
 		} else if (CANSTMOB & MOB_RX_COMPLETED) {
 			/* RX Complete */
 			int i;
-                        struct can_frame *frame;
-                        rx_queue_element_t e = {
-                            .interface = NULL,
-                        };
-                        frame = (struct can_frame*) &e.frame;
+			struct can_frame *frame;
+			rx_queue_element_t e = {
+				.interface = NULL,
+			};
+			frame = (struct can_frame*) &e.frame;
 			/*can_frame_t frame;*/
 
 			/* Clear status */
