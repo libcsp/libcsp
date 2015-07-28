@@ -12,20 +12,9 @@
 #define PORT        10
 #define BUF_SIZE    250
 
-char *message0 = "Testing CSP0";
-char *message1 = "Testing CSP1";
+char *message = "Testing CSP";
 int me, other, type;
-static csp_iface_t csp_if_can0;
-static csp_iface_t csp_if_can1;
-
-void _send(csp_packet_t *packet, csp_iface_t *ifc, char * message)
-{
-	printf("Sending: %s, with %s\r\n", message, ifc->name);
-	strcpy((char *) packet->data, message);
-	packet->length = strlen(message);
-	csp_route_set(other, ifc, CSP_NODE_MAC);
-	csp_sendto(CSP_PRIO_NORM, other, PORT, PORT, CSP_SO_NONE, packet, 1000);
-}
+static csp_iface_t csp_interface;
 
 void client_server_pseudo_task(void)
 {
@@ -41,19 +30,18 @@ void client_server_pseudo_task(void)
 
 	for (;;) {
 		if (type == TYPE_CLIENT) {
-			packet = csp_buffer_get(strlen(message0));
+			packet = csp_buffer_get(strlen(message));
 			if (packet) {
-				_send(packet, &csp_if_can0, message0);
-			}
-			packet = csp_buffer_get(strlen(message1));
-			if (packet) {
-				_send(packet, &csp_if_can1, message1);
+				printf("Sending: %s, with %s\r\n", message, csp_interface.name);
+				strcpy((char *) packet->data, message);
+				packet->length = strlen(message);
+				csp_sendto(CSP_PRIO_NORM, other, PORT, PORT, CSP_SO_NONE, packet, 1000);
 			}
 			sleep(1);
 		} else {
 			packet = csp_recvfrom(sock, 1000);
 			if (packet) {
-				printf("Received: %s\r\n", packet->data);
+				printf("Received: %s, with %s\r\n", packet->data, csp_interface.name);
 				csp_buffer_free(packet);
 			}
 		}
@@ -90,9 +78,13 @@ int main(int argc, char **argv)
 		return;
 	}
 
-	csp_can_init_ifc(&csp_if_can0, CSP_CAN_MASKED, &can_conf0);
-	csp_can_init_ifc(&csp_if_can1, CSP_CAN_MASKED, &can_conf1);
+	if (type == TYPE_CLIENT) {
+		csp_can_init_ifc(&csp_interface, CSP_CAN_MASKED, &can_conf0);
+	} else {
+		csp_can_init_ifc(&csp_interface, CSP_CAN_MASKED, &can_conf1);
+	}
 
+	csp_route_set(other, &csp_interface, CSP_NODE_MAC);
 	csp_route_start_task(0, 0);
 
 	client_server_pseudo_task();
