@@ -88,7 +88,6 @@ typedef struct {
 	mbox_t mbox[MBOX_NUM];  /* List of mailboxes */
 	sem_t mbox_sem;         /** Mailbox pool semaphore */
 	csp_iface_t *csp_if_can;
-	bool in_use;
 } can_socket_info_t;
 
 can_socket_info_t can_socket_info[MAX_SUPPORTED_CAN_INSTANCES];
@@ -288,21 +287,9 @@ can_socket_info_t * get_available_can_socket_info(void)
 	if(total_interfaces < MAX_SUPPORTED_CAN_INSTANCES) {
 		csi = &can_socket_info[total_interfaces];
 		total_interfaces++;
-		csi->in_use = true;
 		return csi;
 	}
 	return NULL;
-}
-
-static void init_socket_info_in_use(void)
-{
-	static bool first_call = true;
-	if (first_call) {
-		for (int i=0; i < MAX_SUPPORTED_CAN_INSTANCES; i++){
-			can_socket_info[i].in_use = false;
-		}
-		first_call = false;
-	}
 }
 
 int can_init(csp_iface_t *csp_if_can, uint32_t id, uint32_t mask, can_tx_callback_t atxcb, can_rx_callback_t arxcb, struct csp_can_config *conf) {
@@ -312,8 +299,6 @@ int can_init(csp_iface_t *csp_if_can, uint32_t id, uint32_t mask, can_tx_callbac
 	pthread_t rx_thread;
 	int *can_socket;
 	can_socket_info_t *socket_info;
-
-	init_socket_info_in_use();
 
 	socket_info = get_available_can_socket_info();
 	if (socket_info == NULL) {
