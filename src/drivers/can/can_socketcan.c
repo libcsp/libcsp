@@ -346,17 +346,6 @@ int can_init(csp_iface_t *csp_if_can, uint32_t id, uint32_t mask, can_tx_callbac
 		}
 	}
 
-	/* Disable "local loopback of sent frames". See
-	 * "https://www.kernel.org/doc/Documentation/networking/can.txt"
-	 * in case of running multiple csp instances in a single host operating
-	 * system, when one instance "sends" the other instance receives the
-	 * sended frame because of this feature, we don't want this to happen.*/
-	int loopback = 0; /* 0 = disabled, 1 = enabled (default) */
-	if (setsockopt(*can_socket, SOL_CAN_RAW, CAN_RAW_LOOPBACK, &loopback, sizeof(loopback)) < 0) {
-		csp_log_error("setsockopt: %s", strerror(errno));
-		return -1;
-	}
-
 	/* Create receive thread */
 	if (pthread_create(&rx_thread, NULL, mbox_rx_thread, (void *)socket_info) != 0) {
 		csp_log_error("pthread_create: %s", strerror(errno));
