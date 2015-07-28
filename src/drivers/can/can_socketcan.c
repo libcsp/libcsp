@@ -233,21 +233,6 @@ int can_mbox_init(can_socket_info_t *csi) {
 
 }
 
-can_socket_info_t * find_can_socket_info(csp_iface_t *ifc)
-{
-	for (int i = 0; i < MAX_SUPPORTED_CAN_INSTANCES; i++)
-	{
-		/* first unused means no more sockets in use remains */
-		if (!can_socket_info[i].in_use) {
-			return NULL;
-		}
-		if (can_socket_info[i].csp_if_can == ifc) {
-			return &can_socket_info[i];
-		}
-	}
-	return NULL;
-}
-
 int can_send(csp_iface_t *csp_if_can, can_id_t id, uint8_t data[], uint8_t dlc, CSP_BASE_TYPE * task_woken) {
 
 	int i, found = 0;
@@ -258,7 +243,7 @@ int can_send(csp_iface_t *csp_if_can, can_id_t id, uint8_t data[], uint8_t dlc, 
 	if (dlc > 8)
 		return -1;
 
-	csi = find_can_socket_info(csp_if_can);
+	csi = (can_socket_info_t *)csp_if_can->driver;
 	if (NULL == csi) {
 		return -1;
 	}
@@ -335,6 +320,7 @@ int can_init(csp_iface_t *csp_if_can, uint32_t id, uint32_t mask, can_tx_callbac
 		return -1;
 	}
 
+	csp_if_can->driver = (void *)socket_info;
 	socket_info->csp_if_can = csp_if_can;
 	can_socket = &socket_info->can_socket;
 
