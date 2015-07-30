@@ -42,8 +42,6 @@ static void * subscriber;
  */
 int csp_zmqhub_tx(csp_iface_t * interface, csp_packet_t * packet, uint32_t timeout) {
 
-	assert(publisher);
-
 	/* Send envelope */
 	char satid = (char) csp_rtable_find_mac(packet->id.dst);
 	if (satid == (char) 255)
@@ -119,12 +117,11 @@ int csp_zmqhub_init(char _addr, char * host) {
     publisher = zmq_socket(context, ZMQ_PUB);
     assert(publisher);
     sprintf(url, "tcp://%s:6000", host);
-    int result = zmq_connect(publisher, url);
-    if (result < 0)
-    	csp_log_error("ZMQ bind error %s\r\n", strerror(result));
+    assert(zmq_connect(publisher, url) == 0);
 
     /* Subscriber (RX) */
     subscriber = zmq_socket(context, ZMQ_SUB);
+    assert(subscriber);
     sprintf(url, "tcp://%s:7000", host);
 	assert(zmq_connect(subscriber, url) == 0);
 
