@@ -54,7 +54,7 @@ int csp_zmqhub_tx(csp_iface_t * interface, csp_packet_t * packet, uint32_t timeo
 	memcpy(satidptr, &satid, 1);
 	int result = zmq_send(publisher, satidptr, length + sizeof(packet->id) + sizeof(char), 0);
 	if (result < 0)
-		printf("ZMQ send error: %u %s\r\n", result, strerror(result));
+		csp_log_error("ZMQ send error: %u %s\r\n", result, strerror(result));
 
 	csp_buffer_free(packet);
 
@@ -113,7 +113,7 @@ int csp_zmqhub_init(char _addr, char * host) {
 	char url[100];
 	char addr = _addr;
 
-	printf("INIT ZMQ with addr %hhu to server %s\r\n", addr, host);
+	csp_log_info("INIT ZMQ with addr %hhu to server %s\r\n", addr, host);
 
 	/* Publisher (TX) */
     publisher = zmq_socket(context, ZMQ_PUB);
@@ -121,7 +121,7 @@ int csp_zmqhub_init(char _addr, char * host) {
     sprintf(url, "tcp://%s:6000", host);
     int result = zmq_connect(publisher, url);
     if (result < 0)
-    	printf("ZMQ bind error %s\r\n", strerror(result));
+    	csp_log_error("ZMQ bind error %s\r\n", strerror(result));
 
     /* Subscriber (RX) */
     subscriber = zmq_socket(context, ZMQ_SUB);
@@ -137,7 +137,7 @@ int csp_zmqhub_init(char _addr, char * host) {
 	/* Start RX thread */
 	static csp_thread_handle_t handle_subscriber;
 	int ret = csp_thread_create(csp_zmqhub_task, (signed char *) "ZMQ", 10000, NULL, 0, &handle_subscriber);
-	printf("Task start %d\r\n", ret);
+	csp_log_info("Task start %d\r\n", ret);
 
 	/* Regsiter interface */
 	csp_iflist_add(&csp_if_zmqhub);
