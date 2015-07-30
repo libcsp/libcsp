@@ -104,26 +104,35 @@ CSP_DEFINE_TASK(csp_zmqhub_task) {
 }
 
 int csp_zmqhub_init(char _addr, char * host) {
+	char url_pub[100];
+	char url_sub[100];
+
+	sprintf(url_pub, "tcp://%s:6000", host);
+	sprintf(url_sub, "tcp://%s:7000", host);
+
+	return csp_zmqhub_init_w_endpoints(_addr, url_pub, url_sub);
+}
+
+int csp_zmqhub_init_w_endpoints(char _addr, char * publisher_endpoint,
+		char * subscriber_endpoint) {
 
 	context = zmq_ctx_new();
 	assert(context);
 
-	char url[100];
 	char addr = _addr;
 
-	csp_log_info("INIT ZMQ with addr %hhu to server %s\r\n", addr, host);
+	csp_log_info("INIT ZMQ with addr %hhu to servers %s / %s\r\n", addr,
+		publisher_endpoint, subscriber_endpoint);
 
 	/* Publisher (TX) */
     publisher = zmq_socket(context, ZMQ_PUB);
     assert(publisher);
-    sprintf(url, "tcp://%s:6000", host);
-    assert(zmq_connect(publisher, url) == 0);
+    assert(zmq_connect(publisher, publisher_endpoint) == 0);
 
     /* Subscriber (RX) */
     subscriber = zmq_socket(context, ZMQ_SUB);
     assert(subscriber);
-    sprintf(url, "tcp://%s:7000", host);
-	assert(zmq_connect(subscriber, url) == 0);
+	assert(zmq_connect(subscriber, subscriber_endpoint) == 0);
 
 	if (addr == (char) 255) {
 		assert(zmq_setsockopt(subscriber, ZMQ_SUBSCRIBE, "", 0) == 0);
