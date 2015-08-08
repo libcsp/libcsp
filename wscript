@@ -121,7 +121,7 @@ def configure(ctx):
 	ctx.env.append_unique('INCLUDES_CSP', ['include'] + ctx.options.includes.split(','))
 
 	# Add default files
-	ctx.env.append_unique('FILES_CSP', ['src/*.c','src/interfaces/csp_if_lo.c','src/transport/csp_udp.c','src/arch/{0}/**/*.c'.format(ctx.options.with_os)])
+	ctx.env.append_unique('FILES_CSP', ['src/*.c','src/interfaces/csp_if_lo.c','src/transport/csp_udp.c','src/arch/{0}/*.c'.format(ctx.options.with_os)])
 	
 	# Libs
 	if 'posix' in ctx.env.OS:
@@ -273,15 +273,6 @@ def build(ctx):
 		install_path = install_path,
 	)
 
-	# Build shared library for Python bindings
-	if ctx.env.ENABLE_BINDINGS:
-		ctx.shlib(source=ctx.path.ant_glob(ctx.env.FILES_CSP),
-			target = 'csp',
-			includes= ctx.env.INCLUDES_CSP,
-			export_includes = 'include',
-			use = ['include', 'util'],
-			lib=ctx.env.LIBS)
-
 	if ctx.env.ENABLE_EXAMPLES:
 		ctx.program(source = ctx.path.ant_glob('examples/simple.c'),
 			target = 'simple',
@@ -293,14 +284,14 @@ def build(ctx):
 			ctx.program(source = 'examples/kiss.c',
 				target = 'kiss',
 				includes = ctx.env.INCLUDES_CSP,
-				lib = libs,
+				lib = ctx.env.LIBS,
 				use = 'csp')
 
 		if 'posix' in ctx.env.OS:
 			ctx.program(source = 'examples/csp_if_fifo.c',
 				target = 'fifo',
 				includes = ctx.env.INCLUDES_CSP,
-				lib = libs,
+				lib = ctx.env.LIBS,
 				use = 'csp')
 
 		if 'windows' in ctx.env.OS:
@@ -308,6 +299,32 @@ def build(ctx):
 				target = 'csp_if_fifo',
 				includes = ctx.env.INCLUDES_CSP,
 				use = 'csp')
+
+	# Build shared library for Python bindings
+	if ctx.env.ENABLE_BINDINGS:
+		ctx.shlib(source=ctx.path.ant_glob(ctx.env.FILES_CSP, excl=ctx.env.EXCL_CSP),
+			target = 'csp',
+			includes= ctx.env.INCLUDES_CSP,
+			export_includes = 'include',
+			use = ['include', 'util'],
+			lib=ctx.env.LIBS)
+		ctx.execute_build()
+		output_dir = os.path.abspath(out)
+		import sys
+		sys.path.insert(0, os.path.join('bindings', 'python'))
+		import cffi_gen
+		ldflags = os.environ.get('LDFLAGS', '')
+		ldflags += ' -Wl,-rpath,{}'.format(output_dir)
+		os.environ['LDFLAGS'] = ldflags
+		# workaround for an empty entry into INCLUDES_CSP
+		if '' in ctx.env.INCLUDES_CSP:
+			ctx.env.INCLUDES_CSP.remove('')
+		cffi_gen.ffi_compile(
+			files=ctx.path.ant_glob(ctx.env.FILES_CSP, excl=ctx.env.EXCL_CSP, flat=True),
+			include_dirs=ctx.env.INCLUDES_CSP,
+			compile_args=ctx.env.CFLAGS,
+			output_dir=os.path.join(output_dir, 'python'),
+		)
 
 def dist(ctx):
 	ctx.excl = 'build/* **/.* **/*.pyc **/*.o **/*~ *.tar.gz'

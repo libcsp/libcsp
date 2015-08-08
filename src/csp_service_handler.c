@@ -140,6 +140,14 @@ static int do_cmp_poke(struct csp_cmp_message *cmp) {
 
 }
 
+void __attribute__((weak)) clock_set_time(csp_timestamp_t * time) {
+	(void) time;
+}
+
+void __attribute__((weak)) clock_get_time(csp_timestamp_t * time) {
+	(void) time;
+}
+
 static int do_cmp_clock(struct csp_cmp_message *cmp) {
 
 	cmp->clock.tv_sec = csp_ntoh32(cmp->clock.tv_sec);
