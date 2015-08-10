@@ -70,7 +70,6 @@ void client_server_pseudo_task(void)
 
 int main(int argc, char **argv)
 {
-	static unsigned char ucParameterToPass;
 	struct csp_can_config can_conf0 = {.ifc = "can0"};
 	struct csp_can_config can_conf1 = {.ifc = "can1"};
 
