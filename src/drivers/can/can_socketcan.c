@@ -158,14 +158,13 @@ static void * mbox_tx_thread(void * parameters) {
 
 static void * mbox_rx_thread(void * parameters) {
 
+	csp_can_frame_t csp_can_frame;
 	struct can_frame *frame;
 	int nbytes;
 	can_socket_info_t *csi;
 	csi = (can_socket_info_t *) parameters;
-	rx_queue_element_t e = {
-		.interface = csi->csp_if_can,
-	};
-	frame = (struct can_frame*) &e.frame;
+	csp_can_frame.interface = csi->csp_if_can;
+	frame = (struct can_frame*) &csp_can_frame;
 
 	while (1) {
 		/* Read CAN frame */
@@ -191,7 +190,7 @@ static void * mbox_rx_thread(void * parameters) {
 		}
 
 		/* Call RX callback */
-		if (rxcb) rxcb(&e, NULL);
+		if (rxcb) rxcb(&csp_can_frame, NULL);
 	}
 
 	/* We should never reach this point */

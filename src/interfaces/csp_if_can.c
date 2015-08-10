@@ -463,21 +463,18 @@ int csp_tx_callback(csp_iface_t *csp_iface, can_id_t canid, can_error_t error, C
 
 }
 
-int csp_rx_callback(rx_queue_element_t *e, CSP_BASE_TYPE *task_woken) {
-	int ret = csp_queue_enqueue_isr(can_rx_queue, e, task_woken);
+int csp_rx_callback(csp_can_frame_t *frame, CSP_BASE_TYPE *task_woken) {
+	int ret = csp_queue_enqueue_isr(can_rx_queue, frame, task_woken);
 	return ret == CSP_QUEUE_OK ? CSP_ERR_NONE : CSP_ERR_NOMEM;
 }
 
-static int csp_can_process_frame(csp_iface_t * csp_iface, can_frame_t *frame) {
+static int csp_can_process_frame(csp_can_frame_t *frame) {
 
 	pbuf_element_t *buf;
 	uint8_t offset;
 
-	csp_iface_t *interface;
-
-	interface = csp_iface;
-	if (NULL == csp_iface) {
-		interface = &csp_if_can;
+	if (frame->interface == NULL) {
+		frame->interface = &csp_if_can;
 	}
 
 	can_id_t id = frame->id;
@@ -491,12 +488,12 @@ static int csp_can_process_frame(csp_iface_t * csp_iface, can_frame_t *frame) {
 			buf = pbuf_new(id, NULL);
 			if (buf == NULL) {
 				csp_log_warn("No available packet buffer for CAN");
-				interface->rx_error++;
+				frame->interface->rx_error++;
 				return CSP_ERR_NOMEM;
 			}
 		} else {
 			csp_log_warn("Out of order MORE frame received");
-			interface->frame++;
+			frame->interface->frame++;
 			return CSP_ERR_INVAL;
 		}
 	}
@@ -511,7 +508,7 @@ static int csp_can_process_frame(csp_iface_t * csp_iface, can_frame_t *frame) {
 			/* Discard packet if DLC is less than CSP id + CSP length fields */
 			if (frame->dlc < sizeof(csp_id_t) + sizeof(uint16_t)) {
 				csp_log_warn("Short BEGIN frame received");
-				interface->frame++;
+				frame->interface->frame++;
 				pbuf_free(buf, NULL, true);
 				break;
 			}
@@ -520,13 +517,13 @@ static int csp_can_process_frame(csp_iface_t * csp_iface, can_frame_t *frame) {
 			if (buf->packet != NULL) {
 				/* Reuse the buffer */
 				csp_log_warn("Incomplete frame");
-				interface->frame++;
+				frame->interface->frame++;
 			} else {
 				/* Allocate memory for frame */
 				buf->packet = csp_buffer_get(csp_buffer_size() - CSP_BUFFER_PACKET_OVERHEAD);
 				if (buf->packet == NULL) {
 					csp_log_error("Failed to get buffer for CSP_BEGIN packet");
-					interface->frame++;
+					frame->interface->frame++;
 					pbuf_free(buf, NULL, true);
 					break;
 				}
@@ -555,7 +552,7 @@ static int csp_can_process_frame(csp_iface_t * csp_iface, can_frame_t *frame) {
 			if (CFP_REMAIN(id) != buf->remain - 1) {
 				csp_log_error("CAN frame lost in CSP packet");
 				pbuf_free(buf, NULL, true);
-				interface->frame++;
+				frame->interface->frame++;
 				break;
 			}
 
@@ -565,7 +562,7 @@ static int csp_can_process_frame(csp_iface_t * csp_iface, can_frame_t *frame) {
 			/* Check for overflow */
 			if ((buf->rx_count + frame->dlc - offset) > buf->packet->length) {
 				csp_log_error("RX buffer overflow");
-				interface->frame++;
+				frame->interface->frame++;
 				pbuf_free(buf, NULL, true);
 				break;
 			}
@@ -579,7 +576,7 @@ static int csp_can_process_frame(csp_iface_t * csp_iface, can_frame_t *frame) {
 				break;
 
 			/* Data is available */
-			csp_new_packet(buf->packet, interface, NULL);
+			csp_new_packet(buf->packet, frame->interface, NULL);
 
 			/* Drop packet buffer reference */
 			buf->packet = NULL;
@@ -597,22 +594,21 @@ static int csp_can_process_frame(csp_iface_t * csp_iface, can_frame_t *frame) {
 	}
 
 	return CSP_ERR_NONE;
-
 }
 
 CSP_DEFINE_TASK(csp_can_rx_task) {
 
 	int ret;
-	rx_queue_element_t e;
+	csp_can_frame_t frame;
 
 	while (1) {
-		ret = csp_queue_dequeue(can_rx_queue, &e, 1000);
+		ret = csp_queue_dequeue(can_rx_queue, &frame, 1000);
 		if (ret != CSP_QUEUE_OK) {
 			pbuf_cleanup();
 			continue;
 		}
 
-		csp_can_process_frame(e.interface, &e.frame);
+		csp_can_process_frame(&frame);
 	}
 
 	csp_thread_exit();
@@ -726,7 +722,7 @@ static int csp_can_init_common_resources(void) {
 		return CSP_ERR_NOMEM;
 	}
 
-	can_rx_queue = csp_queue_create(CSP_CAN_RX_QUEUE_SIZE, sizeof(rx_queue_element_t));
+	can_rx_queue = csp_queue_create(CSP_CAN_RX_QUEUE_SIZE, sizeof(csp_can_frame_t));
 	if (can_rx_queue == NULL) {
 		csp_log_error("Failed to create CAN RX queue");
 		return CSP_ERR_NOMEM;
