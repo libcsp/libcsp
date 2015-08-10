@@ -279,8 +279,8 @@ def build(ctx):
 			target = 'csp',
 			includes= ctx.env.INCLUDES_CSP,
 			export_includes = 'include',
-			use = ['include', 'util'],
-			lib=ctx.env.LIBS)
+			use = ['include'],
+			lib = ctx.env.LIBS)
 
 	if ctx.env.ENABLE_EXAMPLES:
 		ctx.program(source = ctx.path.ant_glob('examples/simple.c'),

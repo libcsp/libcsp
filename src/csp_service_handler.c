@@ -145,11 +145,14 @@ static int do_cmp_clock(struct csp_cmp_message *cmp) {
 	cmp->clock.tv_sec = csp_ntoh32(cmp->clock.tv_sec);
 	cmp->clock.tv_nsec = csp_ntoh32(cmp->clock.tv_nsec);
 
-	if (cmp->clock.tv_sec != 0) {
+	if ((cmp->clock.tv_sec != 0) && (clock_set_time != NULL)) {
 		clock_set_time(&cmp->clock);
 	}
 
-	clock_get_time(&cmp->clock);
+	if (clock_get_time != NULL) {
+		clock_get_time(&cmp->clock);
+	}
+
 	cmp->clock.tv_sec = csp_hton32(cmp->clock.tv_sec);
 	cmp->clock.tv_nsec = csp_hton32(cmp->clock.tv_nsec);
 	return CSP_ERR_NONE;

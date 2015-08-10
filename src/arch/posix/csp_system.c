@@ -53,7 +53,8 @@ uint32_t csp_sys_memfree(void) {
 int csp_sys_reboot(void) {
 #ifdef CSP_USE_INIT_SHUTDOWN
 	/* Let init(1) handle the reboot */
-	system("reboot");
+	int ret = system("reboot");
+	(void) ret; /* Silence warning */
 #else
 	int magic = LINUX_REBOOT_CMD_RESTART;
 
@@ -71,7 +72,8 @@ int csp_sys_reboot(void) {
 int csp_sys_shutdown(void) {
 #ifdef CSP_USE_INIT_SHUTDOWN
 	/* Let init(1) handle the shutdown */
-	system("halt");
+	int ret = system("halt");
+	(void) ret; /* Silence warning */
 #else
 	int magic = LINUX_REBOOT_CMD_HALT;
 
