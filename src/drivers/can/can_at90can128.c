@@ -334,7 +334,7 @@ ISR(CANIT_vect) {
 				frame.data[i] = CANMSG;
 
 			/* Read identifier */
-			CAN_GET_EXT_ID(&frame.id);
+			CAN_GET_EXT_ID(frame.id);
 
 			/* Do RX-Callback */
 			if (rxcb != NULL) rxcb(&e, &xTaskWoken);
