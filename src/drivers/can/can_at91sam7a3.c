@@ -229,45 +229,41 @@ void __attribute__ ((__interrupt__)) can_isr(void) {
 			if (CAN_CTRL->CHANNEL[m].MSR & MRDY) {
 				if (is_rx_mailbox(m)) {
 					
-					struct can_frame *frame;
-					rx_queue_element_t e = {
-						.interface = NULL,
-					};
-					frame = (struct can_frame*) &e.frame;
+					csp_can_frame_t frame = {.interface = NULL};
 
 					if (m == CAN_MBOXES - 1) {
 						/* RX overflow */
 						csp_log_error("RX Overflow!");
 					} else {
 						/* Read DLC */
-						frame->dlc = (uint8_t)((CAN_CTRL->CHANNEL[m].MSR >> 16) & 0x0F);
+						frame.dlc = (uint8_t)((CAN_CTRL->CHANNEL[m].MSR >> 16) & 0x0F);
 
 						/* Read data */
 						uint32_t temp[] = {CAN_CTRL->CHANNEL[m].MDH, CAN_CTRL->CHANNEL[m].MDL};
 
-						switch (frame->dlc) {
+						switch (frame.dlc) {
 							case 8:
-								frame->data[7] = *(((uint8_t *) &(temp[0])) + 3);
+								frame.data[7] = *(((uint8_t *) &(temp[0])) + 3);
 							case 7:
-								frame->data[6] = *(((uint8_t *) &(temp[0])) + 2);
+								frame.data[6] = *(((uint8_t *) &(temp[0])) + 2);
 							case 6:
-								frame->data[5] = *(((uint8_t *) &(temp[0])) + 1);
+								frame.data[5] = *(((uint8_t *) &(temp[0])) + 1);
 							case 5:
-								frame->data[4] = *(((uint8_t *) &(temp[0])) + 0);
+								frame.data[4] = *(((uint8_t *) &(temp[0])) + 0);
 							case 4:
-								frame->data[3] = *(((uint8_t *) &(temp[1])) + 3);
+								frame.data[3] = *(((uint8_t *) &(temp[1])) + 3);
 							case 3:
-								frame->data[2] = *(((uint8_t *) &(temp[1])) + 2);
+								frame.data[2] = *(((uint8_t *) &(temp[1])) + 2);
 							case 2:
-								frame->data[1] = *(((uint8_t *) &(temp[1])) + 1);
+								frame.data[1] = *(((uint8_t *) &(temp[1])) + 1);
 							case 1:
-								frame->data[0] = *(((uint8_t *) &(temp[1])) + 0);
+								frame.data[0] = *(((uint8_t *) &(temp[1])) + 0);
 							default:
 								break;
 						}
 
 						/* Read identifier */
-						frame->id = (CAN_CTRL->CHANNEL[m].MID & 0x1FFFFFFF);
+						frame.id = (CAN_CTRL->CHANNEL[m].MID & 0x1FFFFFFF);
 
 						/* Call RX Callback */
 						if (rxcb != NULL)

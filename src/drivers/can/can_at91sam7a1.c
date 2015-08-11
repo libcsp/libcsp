@@ -226,21 +226,17 @@ static void __attribute__ ((noinline)) can_dsr(void) {
 		if (CAN_CTRL->ISSR & (1 << m)) {
 			if (CAN_CTRL->CHANNEL[m].SR & RXOK) {
 				/* RX Complete */
-				struct can_frame *frame;
-				rx_queue_element_t e = {
-					.interface = NULL,
-				};
-				frame = (struct can_frame*) &e.frame;
+				csp_can_frame_t frame = {.interface = NULL};
 
 				/* Read DLC */
-				frame->dlc = (uint8_t)CAN_CTRL->CHANNEL[m].CR & 0x0F;
+				frame.dlc = (uint8_t)CAN_CTRL->CHANNEL[m].CR & 0x0F;
 
 				/* Read data */
-				frame->data32[0] = CAN_CTRL->CHANNEL[m].DRA;
-				frame->data32[1] = CAN_CTRL->CHANNEL[m].DRB;
+				frame.data32[0] = CAN_CTRL->CHANNEL[m].DRA;
+				frame.data32[1] = CAN_CTRL->CHANNEL[m].DRB;
 
 				/* Read identifier */
-				frame->id = ((CAN_CTRL->CHANNEL[m].IR & 0x7FF) << 18)
+				frame.id = ((CAN_CTRL->CHANNEL[m].IR & 0x7FF) << 18)
 						| ((CAN_CTRL->CHANNEL[m].IR & 0x1FFFF800) >> 11);
 
 				/* Call RX callback */

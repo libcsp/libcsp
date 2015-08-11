@@ -314,12 +314,7 @@ ISR(CANIT_vect) {
 		} else if (CANSTMOB & MOB_RX_COMPLETED) {
 			/* RX Complete */
 			int i;
-			struct can_frame *frame;
-			rx_queue_element_t e = {
-				.interface = NULL,
-			};
-			frame = (struct can_frame*) &e.frame;
-			/*can_frame_t frame;*/
+			csp_can_frame_t frame = {.interface = NULL};
 
 			/* Clear status */
 			CAN_CLEAR_STATUS_MOB();
@@ -332,14 +327,14 @@ ISR(CANIT_vect) {
 			}
 
 			/* Read DLC */
-			frame->dlc = CAN_GET_DLC();
+			frame.dlc = CAN_GET_DLC();
 
 			/* Read data */
-			for (i = 0; i < frame->dlc; i++)
-				frame->data[i] = CANMSG;
+			for (i = 0; i < frame.dlc; i++)
+				frame.data[i] = CANMSG;
 
 			/* Read identifier */
-			CAN_GET_EXT_ID(frame->id);
+			CAN_GET_EXT_ID(&frame.id);
 
 			/* Do RX-Callback */
 			if (rxcb != NULL) rxcb(&e, &xTaskWoken);
