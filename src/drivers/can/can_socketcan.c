@@ -90,13 +90,13 @@ typedef struct {
 	sem_t *mbox_pool_sem;         /** Mailbox pool semaphore */
 } mbox_t;
 
-typedef struct can_socket_info_t {
+typedef struct can_iface_ctx_t {
 	csp_can_socket_t csp_can_socket;
 	mbox_t mbox[MBOX_NUM];			/** List of mailboxes */
 	sem_t mbox_pool_sem;			/** Mailbox pool semaphore */
-} can_socket_info_t;
+} can_iface_ctx_t;
 
-can_socket_info_t can_socket_info[MAX_SUPPORTED_CAN_INSTANCES];
+can_iface_ctx_t can_iface_ctx[MAX_SUPPORTED_CAN_INSTANCES];
 
 /* Mailbox thread */
 static void * mbox_tx_thread(void * parameters) {
@@ -182,18 +182,18 @@ static void * mbox_rx_thread(void * parameters) {
 
 }
 
-int can_mbox_init(can_socket_info_t *csi) {
+int can_mbox_init(can_iface_ctx_t *iface_ctx) {
 
 	int i;
 	mbox_t *m, *mbox;
 
-	mbox = csi->mbox;
+	mbox = iface_ctx->mbox;
 
 	for (i = 0; i < MBOX_NUM; i++) {
 		m = &mbox[i];
 		m->state = MBOX_FREE;
-		m->csp_can_socket = &csi->csp_can_socket;
-		m->mbox_pool_sem = &csi->mbox_pool_sem;
+		m->csp_can_socket = &iface_ctx->csp_can_socket;
+		m->mbox_pool_sem = &iface_ctx->mbox_pool_sem;
 
 		/* Init signal semaphore */
 		if (sem_init(&(m->signal_sem), 0, 1) != 0) {
@@ -212,7 +212,7 @@ int can_mbox_init(can_socket_info_t *csi) {
 	}
 
 	/* Init mailbox pool semaphore */
-	sem_init(&csi->mbox_pool_sem, 0, 1);
+	sem_init(&iface_ctx->mbox_pool_sem, 0, 1);
 	return 0;
 
 }
@@ -221,22 +221,22 @@ int can_send(csp_iface_t *csp_if_can, can_id_t id, uint8_t data[], uint8_t dlc, 
 
 	int i, found = 0;
 	mbox_t * m;
-	can_socket_info_t *csi;
+	can_iface_ctx_t *iface_ctx;
 	sem_t *mbox_pool_sem;
 
 	if (dlc > 8)
 		return -1;
 
-	csi = (can_socket_info_t *)csp_if_can->driver;
-	if (NULL == csi) {
+	iface_ctx = (can_iface_ctx_t *)csp_if_can->driver;
+	if (NULL == iface_ctx) {
 		return -1;
 	}
-	mbox_pool_sem = &csi->mbox_pool_sem;
+	mbox_pool_sem = &iface_ctx->mbox_pool_sem;
 
 	/* Find free mailbox */
 	sem_wait(mbox_pool_sem);
 	for (i = 0; i < MBOX_NUM; i++) {
-		m = &(csi->mbox[i]);
+		m = &(iface_ctx->mbox[i]);
 		if(m->state == MBOX_FREE) {
 			m->state = MBOX_USED;
 			found = 1;
@@ -266,13 +266,13 @@ int can_send(csp_iface_t *csp_if_can, can_id_t id, uint8_t data[], uint8_t dlc, 
 }
 static unsigned char total_interfaces = 0;
 
-can_socket_info_t * get_available_can_socket_info(void)
+can_iface_ctx_t * get_available_interface_ctx(void)
 {
-	can_socket_info_t *csi;
+	can_iface_ctx_t *iface_ctx;
 	if(total_interfaces < MAX_SUPPORTED_CAN_INSTANCES) {
-		csi = &can_socket_info[total_interfaces];
+		iface_ctx = &can_iface_ctx[total_interfaces];
 		total_interfaces++;
-		return csi;
+		return iface_ctx;
 	}
 	return NULL;
 }
@@ -283,16 +283,16 @@ int can_init(csp_iface_t *csp_if_can, uint32_t id, uint32_t mask, can_tx_callbac
 	struct sockaddr_can addr;
 	pthread_t rx_thread;
 	int *can_socket;
-	can_socket_info_t *socket_info;
+	can_iface_ctx_t *iface_ctx;
 
-	socket_info = get_available_can_socket_info();
-	if (socket_info == NULL) {
+	iface_ctx = get_available_interface_ctx();
+	if (iface_ctx == NULL) {
 		return -1;
 	}
 
-	csp_if_can->driver = (void *)socket_info;
-	socket_info->csp_can_socket.csp_if_can = csp_if_can;
-	can_socket = &socket_info->csp_can_socket.can_socket;
+	csp_if_can->driver = (void *)iface_ctx;
+	iface_ctx->csp_can_socket.csp_if_can = csp_if_can;
+	can_socket = &iface_ctx->csp_can_socket.can_socket;
 
 	csp_assert(conf && conf->ifc);
 
@@ -332,13 +332,13 @@ int can_init(csp_iface_t *csp_if_can, uint32_t id, uint32_t mask, can_tx_callbac
 	}
 
 	/* Create receive thread */
-	if (pthread_create(&rx_thread, NULL, mbox_rx_thread, (void *)&socket_info->csp_can_socket) != 0) {
+	if (pthread_create(&rx_thread, NULL, mbox_rx_thread, (void *)&iface_ctx->csp_can_socket) != 0) {
 		csp_log_error("pthread_create: %s", strerror(errno));
 		return -1;
 	}
 
 	/* Create mailbox pool */
-	if (can_mbox_init(socket_info) != 0) {
+	if (can_mbox_init(iface_ctx) != 0) {
 		csp_log_error("Failed to create tx thread pool");
 		return -1;
 	}
