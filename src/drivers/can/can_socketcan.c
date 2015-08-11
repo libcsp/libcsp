@@ -76,21 +76,24 @@ typedef enum {
 	MBOX_USED = 1,
 } mbox_state_t;
 
-struct can_socket_info_t;
+typedef struct csp_can_socket_t {
+	int can_socket;         /** SocketCAN socket handle */
+	csp_iface_t *csp_if_can;
+} csp_can_socket_t;
 
 typedef struct {
 	pthread_t thread;  		/** Thread handle */
 	sem_t signal_sem;   	/** Signalling semaphore */
 	mbox_state_t state;		/** Thread state */
 	struct can_frame frame;	/** CAN Frame */
-	struct can_socket_info_t * csi;
+	csp_can_socket_t * csp_can_socket;
+	sem_t *mbox_pool_sem;         /** Mailbox pool semaphore */
 } mbox_t;
 
 typedef struct can_socket_info_t {
-	int can_socket;         /** SocketCAN socket handle */
-	mbox_t mbox[MBOX_NUM];  /* List of mailboxes */
-	sem_t mbox_sem;         /** Mailbox pool semaphore */
-	csp_iface_t *csp_if_can;
+	csp_can_socket_t csp_can_socket;
+	mbox_t mbox[MBOX_NUM];			/** List of mailboxes */
+	sem_t mbox_pool_sem;			/** Mailbox pool semaphore */
 } can_socket_info_t;
 
 can_socket_info_t can_socket_info[MAX_SUPPORTED_CAN_INSTANCES];
