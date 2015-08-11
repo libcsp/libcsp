@@ -103,10 +103,8 @@ static void * mbox_tx_thread(void * parameters) {
 
 	/* Set thread parameters */
 	mbox_t * m = (mbox_t *)parameters;
-	can_socket_info_t *csi;
+	csp_can_socket_t *csp_can_socket = m->csp_can_socket;
 	uint32_t id;
-
-	csi = m->csi;
 
 	while (1) {
 
@@ -115,7 +113,7 @@ static void * mbox_tx_thread(void * parameters) {
 
 		/* Send frame */
 		int tries = 0, error = CAN_NO_ERROR;
-		while (write(csi->can_socket, &m->frame, sizeof(m->frame)) != sizeof(m->frame)) {
+		while (write(csp_can_socket->can_socket, &m->frame, sizeof(m->frame)) != sizeof(m->frame)) {
 			if (++tries < 1000 && errno == ENOBUFS) {
 				/* Wait 10 ms and try again */
 				usleep(10000);
@@ -129,12 +127,12 @@ static void * mbox_tx_thread(void * parameters) {
 		id = m->frame.can_id;
 
 		/* Free mailbox */
-		sem_wait(&csi->mbox_sem);
+		sem_wait(m->mbox_pool_sem);
 		m->state = MBOX_FREE;
-		sem_post(&csi->mbox_sem);
+		sem_post(m->mbox_pool_sem);
 		
 		/* Call tx callback */
-		if (txcb) txcb(csi->csp_if_can, id, error, NULL);
+		if (txcb) txcb(csp_can_socket->csp_if_can, id, error, NULL);
 
 	}
 
@@ -148,14 +146,13 @@ static void * mbox_rx_thread(void * parameters) {
 	csp_can_frame_t csp_can_frame;
 	struct can_frame *frame;
 	int nbytes;
-	can_socket_info_t *csi;
-	csi = (can_socket_info_t *) parameters;
-	csp_can_frame.interface = csi->csp_if_can;
+	csp_can_socket_t *csp_can_socket = (csp_can_socket_t *) parameters;
+	csp_can_frame.interface = csp_can_socket->csp_if_can;
 	frame = (struct can_frame*) &csp_can_frame;
 
 	while (1) {
 		/* Read CAN frame */
-		nbytes = read(csi->can_socket, frame, sizeof(*frame));
+		nbytes = read(csp_can_socket->can_socket, frame, sizeof(*frame));
 
 		if (nbytes < 0) {
 			csp_log_error("read: %s", strerror(errno));
@@ -195,7 +192,8 @@ int can_mbox_init(can_socket_info_t *csi) {
 	for (i = 0; i < MBOX_NUM; i++) {
 		m = &mbox[i];
 		m->state = MBOX_FREE;
-		m->csi = csi;
+		m->csp_can_socket = &csi->csp_can_socket;
+		m->mbox_pool_sem = &csi->mbox_pool_sem;
 
 		/* Init signal semaphore */
 		if (sem_init(&(m->signal_sem), 0, 1) != 0) {
@@ -214,7 +212,7 @@ int can_mbox_init(can_socket_info_t *csi) {
 	}
 
 	/* Init mailbox pool semaphore */
-	sem_init(&csi->mbox_sem, 0, 1);
+	sem_init(&csi->mbox_pool_sem, 0, 1);
 	return 0;
 
 }
@@ -224,7 +222,7 @@ int can_send(csp_iface_t *csp_if_can, can_id_t id, uint8_t data[], uint8_t dlc, 
 	int i, found = 0;
 	mbox_t * m;
 	can_socket_info_t *csi;
-	sem_t *mbox_sem;
+	sem_t *mbox_pool_sem;
 
 	if (dlc > 8)
 		return -1;
@@ -233,10 +231,10 @@ int can_send(csp_iface_t *csp_if_can, can_id_t id, uint8_t data[], uint8_t dlc, 
 	if (NULL == csi) {
 		return -1;
 	}
-	mbox_sem = &csi->mbox_sem;
+	mbox_pool_sem = &csi->mbox_pool_sem;
 
 	/* Find free mailbox */
-	sem_wait(mbox_sem);
+	sem_wait(mbox_pool_sem);
 	for (i = 0; i < MBOX_NUM; i++) {
 		m = &(csi->mbox[i]);
 		if(m->state == MBOX_FREE) {
@@ -245,7 +243,7 @@ int can_send(csp_iface_t *csp_if_can, can_id_t id, uint8_t data[], uint8_t dlc, 
 			break;
 		}
 	}
-	sem_post(mbox_sem);
+	sem_post(mbox_pool_sem);
 
 	if (!found)
 		return -1;
@@ -293,8 +291,8 @@ int can_init(csp_iface_t *csp_if_can, uint32_t id, uint32_t mask, can_tx_callbac
 	}
 
 	csp_if_can->driver = (void *)socket_info;
-	socket_info->csp_if_can = csp_if_can;
-	can_socket = &socket_info->can_socket;
+	socket_info->csp_can_socket.csp_if_can = csp_if_can;
+	can_socket = &socket_info->csp_can_socket.can_socket;
 
 	csp_assert(conf && conf->ifc);
 
@@ -334,7 +332,7 @@ int can_init(csp_iface_t *csp_if_can, uint32_t id, uint32_t mask, can_tx_callbac
 	}
 
 	/* Create receive thread */
-	if (pthread_create(&rx_thread, NULL, mbox_rx_thread, (void *)socket_info) != 0) {
+	if (pthread_create(&rx_thread, NULL, mbox_rx_thread, (void *)&socket_info->csp_can_socket) != 0) {
 		csp_log_error("pthread_create: %s", strerror(errno));
 		return -1;
 	}
