@@ -76,14 +76,17 @@ typedef enum {
 	MBOX_USED = 1,
 } mbox_state_t;
 
+struct can_socket_info_t;
+
 typedef struct {
 	pthread_t thread;  		/** Thread handle */
 	sem_t signal_sem;   	/** Signalling semaphore */
 	mbox_state_t state;		/** Thread state */
 	struct can_frame frame;	/** CAN Frame */
+	struct can_socket_info_t * csi;
 } mbox_t;
 
-typedef struct {
+typedef struct can_socket_info_t {
 	int can_socket;         /** SocketCAN socket handle */
 	mbox_t mbox[MBOX_NUM];  /* List of mailboxes */
 	sem_t mbox_sem;         /** Mailbox pool semaphore */
@@ -92,34 +95,15 @@ typedef struct {
 
 can_socket_info_t can_socket_info[MAX_SUPPORTED_CAN_INSTANCES];
 
-can_socket_info_t * find_can_socket_info_by_mailbox(mbox_t *m)
-{
-	for (int i=0; i < MAX_SUPPORTED_CAN_INSTANCES; i++) {
-		for (int j=0; j < MBOX_NUM; j++) {
-			if (&can_socket_info[i].mbox[j] == m) {
-				return &can_socket_info[i];
-			}
-		}
-	}
-	return NULL;
-}
-
 /* Mailbox thread */
 static void * mbox_tx_thread(void * parameters) {
 
 	/* Set thread parameters */
 	mbox_t * m = (mbox_t *)parameters;
 	can_socket_info_t *csi;
-	int *can_socket;
-
 	uint32_t id;
 
-	csi = find_can_socket_info_by_mailbox(m);
-	if (csi == NULL) {
-		/* can this happen?? */
-	}
-
-	can_socket = &csi->can_socket;
+	csi = m->csi;
 
 	while (1) {
 
@@ -128,7 +112,7 @@ static void * mbox_tx_thread(void * parameters) {
 
 		/* Send frame */
 		int tries = 0, error = CAN_NO_ERROR;
-		while (write(*can_socket, &m->frame, sizeof(m->frame)) != sizeof(m->frame)) {
+		while (write(csi->can_socket, &m->frame, sizeof(m->frame)) != sizeof(m->frame)) {
 			if (++tries < 1000 && errno == ENOBUFS) {
 				/* Wait 10 ms and try again */
 				usleep(10000);
@@ -208,6 +192,7 @@ int can_mbox_init(can_socket_info_t *csi) {
 	for (i = 0; i < MBOX_NUM; i++) {
 		m = &mbox[i];
 		m->state = MBOX_FREE;
+		m->csi = csi;
 
 		/* Init signal semaphore */
 		if (sem_init(&(m->signal_sem), 0, 1) != 0) {
