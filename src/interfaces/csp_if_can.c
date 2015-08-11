@@ -96,6 +96,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 /** Buffer element timeout in ms */
 #define PBUF_TIMEOUT_MS 10000
 
+static bool csp_can_common_initialized = false;
+
 /** CFP Frame Types */
 enum cfp_frame_t {
 	CFP_BEGIN = 0,
@@ -737,18 +739,16 @@ static int csp_can_init_common_resources(void) {
 	return CSP_ERR_NONE;
 }
 
-static bool common_resources_already_initialized = false;
-
 int csp_can_init_ifc(csp_iface_t *csp_iface, uint8_t mode, struct csp_can_config *conf) {
 	uint32_t mask;
 	int rv;
 
-	if (!common_resources_already_initialized) {
+	if (!csp_can_common_initialized) {
 		rv = csp_can_init_common_resources();
 		if (rv != CSP_ERR_NONE) {
 			return rv;
 		}
-		common_resources_already_initialized = true;
+		csp_can_common_initialized = true;
 	}
 	/* Initialize CAN driver */
 	csp_iface->name = conf->ifc;
