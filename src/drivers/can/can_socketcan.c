@@ -51,6 +51,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/csp.h>
 #include <csp/interfaces/csp_if_can.h>
 
+#ifdef CSP_HAVE_LIBSOCKETCAN
+#include <libsocketcan.h>
+#endif
+
 #include "can.h"
 
 /* Number of mailboxes */
@@ -247,6 +251,15 @@ int can_init(uint32_t id, uint32_t mask, can_tx_callback_t atxcb, can_rx_callbac
 
 	txcb = atxcb;
 	rxcb = arxcb;
+
+#ifdef CSP_HAVE_LIBSOCKETCAN
+	/* Set interface up */
+	if (conf->bitrate > 0) {
+		can_do_stop(conf->ifc);
+		can_set_bitrate(conf->ifc, conf->bitrate);
+		can_do_start(conf->ifc);
+	}
+#endif
 
 	/* Create socket */
 	if ((can_socket = socket(PF_CAN, SOCK_RAW, CAN_RAW)) < 0) {
