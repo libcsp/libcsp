@@ -24,12 +24,15 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <inttypes.h>
 
 #include <csp/csp.h>
+#include <csp/arch/csp_time.h>
 #include <csp/csp_crc32.h>
 
 #define CSP_DEDUP_COUNT	16
+#define CSP_DEDUP_WINDOW_MS 1000
 
 /* Store packet CRC's in a ringbuffer */
 static uint32_t csp_dedup_array[CSP_DEDUP_COUNT] = {};
+static uint32_t csp_dedup_timestamp[CSP_DEDUP_COUNT] = {};
 static int csp_dedup_in = 0;
 
 int csp_dedup_check(csp_packet_t * packet) {
@@ -42,12 +45,19 @@ int csp_dedup_check(csp_packet_t * packet) {
 	/* Check if we have received this packet before,
 	 * Use a bit obscure but fast method of looping backwards in the array with overflow using two's compliment method */
 	for (int i = 0; i < CSP_DEDUP_COUNT; i++) {
-		if (crc == csp_dedup_array[i])
-			return 1;
+
+		/* Check for match */
+		if (crc == csp_dedup_array[i]) {
+
+			/* Check the timestamp */
+			if (csp_get_ms() < csp_dedup_timestamp[csp_dedup_in] + CSP_DEDUP_WINDOW_MS)
+				return 1;
+		}
 	}
 
 	/* If not, insert CRC into memory */
 	csp_dedup_array[csp_dedup_in] = crc;
+	csp_dedup_timestamp[csp_dedup_in] = csp_get_ms();
 	csp_dedup_in = (csp_dedup_in + 1) % CSP_DEDUP_COUNT;
 
 	return 0;
