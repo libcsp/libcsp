@@ -237,7 +237,13 @@ def configure(ctx):
 
 	# Check for stdbool.h
 	ctx.check_cc(header_name='stdbool.h', mandatory=False, define_name='CSP_HAVE_STDBOOL_H', type='cstlib')
-	
+
+	# Check for libsocketcan.h
+	if ctx.options.enable_if_can and ctx.options.with_driver_can == 'socketcan':
+		have_socketcan = ctx.check_cc(lib='socketcan', mandatory=False, define_name='CSP_HAVE_LIBSOCKETCAN')
+		if have_socketcan:
+			ctx.env.append_unique('LIBS', ['socketcan'])
+
 	ctx.define('LIBCSP_VERSION', VERSION)
 
 	ctx.write_config_header('include/csp/csp_autoconfig.h', top=True, remove=True)
