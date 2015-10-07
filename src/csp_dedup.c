@@ -50,7 +50,7 @@ int csp_dedup_check(csp_packet_t * packet) {
 		if (crc == csp_dedup_array[i]) {
 
 			/* Check the timestamp */
-			if (csp_get_ms() < csp_dedup_timestamp[csp_dedup_in] + CSP_DEDUP_WINDOW_MS)
+			if (csp_get_ms() < csp_dedup_timestamp[i] + CSP_DEDUP_WINDOW_MS)
 				return 1;
 		}
 	}
