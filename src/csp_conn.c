@@ -298,6 +298,9 @@ int csp_close(csp_conn_t * conn) {
 
 csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport, uint32_t timeout, uint32_t opts) {
 
+	/* Force options on all connections */
+	opts |= CSP_CONNECTION_SO;
+
 	/* Generate identifier */
 	csp_id_t incoming_id, outgoing_id;
 	incoming_id.pri = prio;

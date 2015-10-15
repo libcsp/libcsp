@@ -3763,7 +3763,7 @@ except:
 
 # ../../build/include/csp/csp_autoconfig.h: 26
 try:
-    CSP_TRANSACTION_SO = 0
+    CSP_CONNECTION_SO = 0
 except:
     pass
 
