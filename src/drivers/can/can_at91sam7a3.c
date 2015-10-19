@@ -121,7 +121,7 @@ static void can_init_interrupt(uint32_t id, uint32_t mask) {
 	}
 }
 
-int can_init(uint32_t id, uint32_t mask, can_tx_callback_t atxcb, can_rx_callback_t arxcb, struct csp_can_config *conf) {
+int can_init(csp_iface_t *csp_if_can, uint32_t id, uint32_t mask, can_tx_callback_t atxcb, can_rx_callback_t arxcb, struct csp_can_config *conf) {
 
 	csp_assert(conf && conf->bitrate && conf->clock_speed);
 
@@ -146,7 +146,7 @@ int can_init(uint32_t id, uint32_t mask, can_tx_callback_t atxcb, can_rx_callbac
 
 }
 
-int can_send(can_id_t id, uint8_t data[], uint8_t dlc, CSP_BASE_TYPE * task_woken) {
+int can_send(csp_iface_t *csp_if_can, can_id_t id, uint8_t data[], uint8_t dlc, CSP_BASE_TYPE * task_woken) {
 
 	int i, m = -1;
 	uint32_t temp[2];
@@ -229,7 +229,7 @@ void __attribute__ ((__interrupt__)) can_isr(void) {
 			if (CAN_CTRL->CHANNEL[m].MSR & MRDY) {
 				if (is_rx_mailbox(m)) {
 					
-					can_frame_t frame;
+					csp_can_frame_t frame = {.interface = NULL};
 
 					if (m == CAN_MBOXES - 1) {
 						/* RX overflow */
@@ -267,7 +267,7 @@ void __attribute__ ((__interrupt__)) can_isr(void) {
 
 						/* Call RX Callback */
 						if (rxcb != NULL)
-							rxcb(&frame, &task_woken);
+							rxcb(&e, &task_woken);
 					}
 
 					/* Get ready to receive new mail */
@@ -282,7 +282,7 @@ void __attribute__ ((__interrupt__)) can_isr(void) {
 
 					/* Call TX Callback with no error */
 					if (txcb != NULL)
-						txcb(id, CAN_NO_ERROR, &task_woken);
+						txcb(NULL, id, CAN_NO_ERROR, &task_woken);
 
 					/* Release mailbox */
 					mbox[m] = MBOX_FREE;

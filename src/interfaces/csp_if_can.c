@@ -96,6 +96,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 /** Buffer element timeout in ms */
 #define PBUF_TIMEOUT_MS 10000
 
+static bool csp_can_common_initialized = false;
+
 /** CFP Frame Types */
 enum cfp_frame_t {
 	CFP_BEGIN = 0,
@@ -375,23 +377,29 @@ static void pbuf_cleanup(void) {
 
 }
 
-int csp_tx_callback(can_id_t canid, can_error_t error, CSP_BASE_TYPE *task_woken) {
+int csp_tx_callback(csp_iface_t *csp_iface, can_id_t canid, can_error_t error, CSP_BASE_TYPE *task_woken) {
 
 	int bytes;
 	uint8_t dest;
+	csp_iface_t *interface;
+
+	interface = csp_iface;
+	if (NULL == csp_iface) {
+		interface = &csp_if_can;
+	}
 
 	/* Match buffer element */
 	pbuf_element_t *buf = pbuf_find(canid, CFP_ID_CONN_MASK, task_woken);
 
 	if (buf == NULL) {
 		csp_log_warn("Failed to match buffer element in tx callback");
-		csp_if_can.tx_error++;
+		interface->tx_error++;
 		return CSP_ERR_INVAL;
 	}
 
 	if (buf->packet == NULL) {
 		csp_log_warn("Buffer packet was NULL");
-		csp_if_can.tx_error++;
+		interface->tx_error++;
 		pbuf_free(buf, task_woken, false);
 		return CSP_ERR_INVAL;
 	}
@@ -399,7 +407,7 @@ int csp_tx_callback(can_id_t canid, can_error_t error, CSP_BASE_TYPE *task_woken
 	/* Free packet buffer if send failed */
 	if (error != CAN_NO_ERROR) {
 		csp_log_warn("Error in transmit callback");
-		csp_if_can.tx_error++;
+		interface->tx_error++;
 		pbuf_free(buf, task_woken, true);
 		return CSP_ERR_DRIVER;
 	}
@@ -426,9 +434,9 @@ int csp_tx_callback(can_id_t canid, can_error_t error, CSP_BASE_TYPE *task_woken
 		buf->tx_count += bytes;
 
 		/* Send frame */
-		if (can_send(id, buf->packet->data + buf->tx_count - bytes, bytes, task_woken) != 0) {
+		if (can_send(interface, id, buf->packet->data + buf->tx_count - bytes, bytes, task_woken) != 0) {
 			csp_log_warn("Failed to send CAN frame in Tx callback");
-			csp_if_can.tx_error++;
+			interface->tx_error++;
 
 			/* Post semaphore to wake up sender */
 			if (task_woken != NULL) {
@@ -457,18 +465,20 @@ int csp_tx_callback(can_id_t canid, can_error_t error, CSP_BASE_TYPE *task_woken
 
 }
 
-int csp_rx_callback(can_frame_t *frame, CSP_BASE_TYPE *task_woken) {
-
+int csp_rx_callback(csp_can_frame_t *frame, CSP_BASE_TYPE *task_woken) {
 	int ret = csp_queue_enqueue_isr(can_rx_queue, frame, task_woken);
 	return ret == CSP_QUEUE_OK ? CSP_ERR_NONE : CSP_ERR_NOMEM;
-
 }
 
-static int csp_can_process_frame(can_frame_t *frame) {
+static int csp_can_process_frame(csp_can_frame_t *frame) {
 
 	pbuf_element_t *buf;
 	uint8_t offset;
-	
+
+	if (frame->interface == NULL) {
+		frame->interface = &csp_if_can;
+	}
+
 	can_id_t id = frame->id;
 
 	/* Bind incoming frame to a packet buffer */
@@ -480,12 +490,12 @@ static int csp_can_process_frame(can_frame_t *frame) {
 			buf = pbuf_new(id, NULL);
 			if (buf == NULL) {
 				csp_log_warn("No available packet buffer for CAN");
-				csp_if_can.rx_error++;
+				frame->interface->rx_error++;
 				return CSP_ERR_NOMEM;
 			}
 		} else {
 			csp_log_warn("Out of order MORE frame received");
-			csp_if_can.frame++;
+			frame->interface->frame++;
 			return CSP_ERR_INVAL;
 		}
 	}
@@ -500,7 +510,7 @@ static int csp_can_process_frame(can_frame_t *frame) {
 			/* Discard packet if DLC is less than CSP id + CSP length fields */
 			if (frame->dlc < sizeof(csp_id_t) + sizeof(uint16_t)) {
 				csp_log_warn("Short BEGIN frame received");
-				csp_if_can.frame++;
+				frame->interface->frame++;
 				pbuf_free(buf, NULL, true);
 				break;
 			}
@@ -509,13 +519,13 @@ static int csp_can_process_frame(can_frame_t *frame) {
 			if (buf->packet != NULL) {
 				/* Reuse the buffer */
 				csp_log_warn("Incomplete frame");
-				csp_if_can.frame++;
+				frame->interface->frame++;
 			} else {
 				/* Allocate memory for frame */
 				buf->packet = csp_buffer_get(csp_buffer_size() - CSP_BUFFER_PACKET_OVERHEAD);
 				if (buf->packet == NULL) {
 					csp_log_error("Failed to get buffer for CSP_BEGIN packet");
-					csp_if_can.frame++;
+					frame->interface->frame++;
 					pbuf_free(buf, NULL, true);
 					break;
 				}
@@ -544,7 +554,7 @@ static int csp_can_process_frame(can_frame_t *frame) {
 			if (CFP_REMAIN(id) != buf->remain - 1) {
 				csp_log_error("CAN frame lost in CSP packet");
 				pbuf_free(buf, NULL, true);
-				csp_if_can.frame++;
+				frame->interface->frame++;
 				break;
 			}
 
@@ -554,7 +564,7 @@ static int csp_can_process_frame(can_frame_t *frame) {
 			/* Check for overflow */
 			if ((buf->rx_count + frame->dlc - offset) > buf->packet->length) {
 				csp_log_error("RX buffer overflow");
-				csp_if_can.frame++;
+				frame->interface->frame++;
 				pbuf_free(buf, NULL, true);
 				break;
 			}
@@ -568,7 +578,7 @@ static int csp_can_process_frame(can_frame_t *frame) {
 				break;
 
 			/* Data is available */
-			csp_new_packet(buf->packet, &csp_if_can, NULL);
+			csp_new_packet(buf->packet, frame->interface, NULL);
 
 			/* Drop packet buffer reference */
 			buf->packet = NULL;
@@ -586,13 +596,12 @@ static int csp_can_process_frame(can_frame_t *frame) {
 	}
 
 	return CSP_ERR_NONE;
-
 }
 
 CSP_DEFINE_TASK(csp_can_rx_task) {
 
 	int ret;
-	can_frame_t frame;
+	csp_can_frame_t frame;
 
 	while (1) {
 		ret = csp_queue_dequeue(can_rx_queue, &frame, 1000);
@@ -671,7 +680,7 @@ int csp_can_tx(csp_iface_t * interface, csp_packet_t *packet, uint32_t timeout) 
 
 	/* Send frame. We must free packet buffer is this fails,
 	 * but the packet itself should be freed by the caller */
-	if (can_send(id, frame_buf, overhead + bytes, NULL) != 0) {
+	if (can_send(interface, id, frame_buf, overhead + bytes, NULL) != 0) {
 		csp_log_warn("Failed to send CAN frame in csp_tx_can");
 		csp_bin_sem_post(&buf->tx_sem);
 		pbuf_free(buf, NULL, false);
@@ -699,10 +708,9 @@ int csp_can_tx(csp_iface_t * interface, csp_packet_t *packet, uint32_t timeout) 
 
 }
 
-int csp_can_init(uint8_t mode, struct csp_can_config *conf) {
+static int csp_can_init_common_resources(void) {
 
 	int ret;
-	uint32_t mask;
 
 	/* Initialize packet buffer */
 	if (pbuf_init() != 0) {
@@ -715,18 +723,8 @@ int csp_can_init(uint8_t mode, struct csp_can_config *conf) {
 		csp_log_error("Failed to initialize CAN identification number");
 		return CSP_ERR_NOMEM;
 	}
-	
-	if (mode == CSP_CAN_MASKED) {
-		mask = CFP_MAKE_DST((1 << CFP_HOST_SIZE) - 1);
-	} else if (mode == CSP_CAN_PROMISC) {
-		mask = 0;
-		csp_if_can.promisc = 1;
-	} else {
-		csp_log_error("Unknown CAN mode");
-		return CSP_ERR_INVAL;
-	}
 
-	can_rx_queue = csp_queue_create(CSP_CAN_RX_QUEUE_SIZE, sizeof(can_frame_t));
+	can_rx_queue = csp_queue_create(CSP_CAN_RX_QUEUE_SIZE, sizeof(csp_can_frame_t));
 	if (can_rx_queue == NULL) {
 		csp_log_error("Failed to create CAN RX queue");
 		return CSP_ERR_NOMEM;
@@ -738,18 +736,56 @@ int csp_can_init(uint8_t mode, struct csp_can_config *conf) {
 		return CSP_ERR_NOMEM;
 	}
 
+	return CSP_ERR_NONE;
+}
+
+int csp_can_init_ifc(csp_iface_t *csp_iface, uint8_t mode, struct csp_can_config *conf) {
+	uint32_t mask;
+	int rv;
+
+	if (!csp_can_common_initialized) {
+		rv = csp_can_init_common_resources();
+		if (rv != CSP_ERR_NONE) {
+			return rv;
+		}
+		csp_can_common_initialized = true;
+	}
 	/* Initialize CAN driver */
-	if (can_init(CFP_MAKE_DST(my_address), mask, csp_tx_callback, csp_rx_callback, conf) != 0) {
+	csp_iface->name = conf->ifc;
+	csp_iface->nexthop = csp_can_tx;
+	csp_iface->mtu = CSP_CAN_MTU;
+
+	if (mode == CSP_CAN_MASKED) {
+		mask = CFP_MAKE_DST((1 << CFP_HOST_SIZE) - 1);
+	} else if (mode == CSP_CAN_PROMISC) {
+		mask = 0;
+		csp_iface->promisc = 1;
+	} else {
+		csp_log_error("Unknown CAN mode");
+		return CSP_ERR_INVAL;
+	}
+
+	if (can_init(csp_iface, CFP_MAKE_DST(my_address), mask, csp_tx_callback, csp_rx_callback, conf) != 0) {
 		csp_log_error("Failed to initialize CAN driver");
 		return CSP_ERR_DRIVER;
 	}
 
 	/* Regsiter interface */
-	csp_iflist_add(&csp_if_can);
-
+	csp_iflist_add(csp_iface);
 	return CSP_ERR_NONE;
-
 }
+
+int csp_can_init(uint8_t mode, struct csp_can_config *conf) {
+	int rv;
+
+	rv = csp_can_init_common_resources();
+	if (rv != CSP_ERR_NONE) {
+		return rv;
+	}
+
+	return csp_can_init_ifc(&csp_if_can, mode, conf);
+}
+
 
 /** Interface definition */
 csp_iface_t csp_if_can = {
