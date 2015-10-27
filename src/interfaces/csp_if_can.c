@@ -400,6 +400,14 @@ int csp_tx_callback(can_id_t canid, can_error_t error, CSP_BASE_TYPE *task_woken
 	if (error != CAN_NO_ERROR) {
 		csp_log_warn("Error in transmit callback");
 		csp_if_can.tx_error++;
+
+		/* Post semaphore to wake up sender */
+		if (task_woken != NULL) {
+			csp_bin_sem_post_isr(&buf->tx_sem, task_woken);
+		} else {
+			csp_bin_sem_post(&buf->tx_sem);
+		}
+
 		pbuf_free(buf, task_woken, true);
 		return CSP_ERR_DRIVER;
 	}
