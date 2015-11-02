@@ -22,17 +22,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <stdint.h>
 #include <stdio.h>
-
-#include <stdint.h>
 #include <stdlib.h>
-#include <stdio.h>
 #include <unistd.h>
-#include <time.h>
-#include <string.h>
 #include <errno.h>
-
-#include <pthread.h>
-#include <semaphore.h>
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -49,6 +41,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <bits/socket.h>
 
 #include <csp/csp.h>
+#include <csp/arch/csp_semaphore.h>
+#include <csp/arch/csp_thread.h>
 #include <csp/interfaces/csp_if_can.h>
 
 #include "can.h"
@@ -63,6 +57,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #endif
 
 #define MAX_SUPPORTED_CAN_INSTANCES 3
+
+#define POLL_CAN_INTERVAL_MS 10
 
 
 
@@ -82,41 +78,41 @@ typedef struct csp_can_socket_t {
 } csp_can_socket_t;
 
 typedef struct {
-	pthread_t thread;  		/** Thread handle */
-	sem_t signal_sem;   	/** Signalling semaphore */
+	csp_thread_handle_t thread;  		/** Thread handle */
+	csp_bin_sem_handle_t signal_sem;   	/** Signalling semaphore */
 	mbox_state_t state;		/** Thread state */
 	struct can_frame frame;	/** CAN Frame */
 	csp_can_socket_t * csp_can_socket;
-	sem_t *mbox_pool_sem;         /** Mailbox pool semaphore */
+	csp_bin_sem_handle_t *mbox_pool_sem;         /** Mailbox pool semaphore */
 } mbox_t;
 
 typedef struct can_iface_ctx_t {
 	csp_can_socket_t csp_can_socket;
 	mbox_t mbox[MBOX_NUM];			/** List of mailboxes */
-	sem_t mbox_pool_sem;			/** Mailbox pool semaphore */
+	csp_bin_sem_handle_t mbox_pool_sem;			/** Mailbox pool semaphore */
 } can_iface_ctx_t;
 
 can_iface_ctx_t can_iface_ctx[MAX_SUPPORTED_CAN_INSTANCES];
 
 /* Mailbox thread */
-static void * mbox_tx_thread(void * parameters) {
+CSP_DEFINE_TASK(mbox_tx_thread) {
 
 	/* Set thread parameters */
-	mbox_t * m = (mbox_t *)parameters;
+	mbox_t * m = (mbox_t *)param;
 	csp_can_socket_t *csp_can_socket = m->csp_can_socket;
 	uint32_t id;
 
 	while (1) {
 
 		/* Wait for a new packet to process */
-		sem_wait(&(m->signal_sem));
+		csp_bin_sem_wait(&(m->signal_sem), CSP_MAX_DELAY);
 
 		/* Send frame */
 		int tries = 0, error = CAN_NO_ERROR;
 		while (write(csp_can_socket->can_socket, &m->frame, sizeof(m->frame)) != sizeof(m->frame)) {
 			if (++tries < 1000 && errno == ENOBUFS) {
 				/* Wait 10 ms and try again */
-				usleep(10000);
+				csp_sleep_ms(10);
 			} else {
 				csp_log_error("write: %s", strerror(errno));
 				error = CAN_ERROR;
@@ -127,26 +123,26 @@ static void * mbox_tx_thread(void * parameters) {
 		id = m->frame.can_id;
 
 		/* Free mailbox */
-		sem_wait(m->mbox_pool_sem);
+		csp_bin_sem_wait(m->mbox_pool_sem, CSP_MAX_DELAY);
 		m->state = MBOX_FREE;
-		sem_post(m->mbox_pool_sem);
-		
+		csp_bin_sem_post(m->mbox_pool_sem);
+
 		/* Call tx callback */
 		if (txcb) txcb(csp_can_socket->csp_if_can, id, error, NULL);
 
 	}
 
 	/* We should never reach this point */
-	pthread_exit(NULL);
+	abort();
 
 }
 
-static void * mbox_rx_thread(void * parameters) {
+CSP_DEFINE_TASK(mbox_rx_thread) {
 
 	csp_can_frame_t csp_can_frame;
 	struct can_frame *frame;
 	int nbytes;
-	csp_can_socket_t *csp_can_socket = (csp_can_socket_t *) parameters;
+	csp_can_socket_t *csp_can_socket = (csp_can_socket_t *) param;
 	csp_can_frame.interface = csp_can_socket->csp_if_can;
 	frame = (struct can_frame*) &csp_can_frame;
 
@@ -155,6 +151,13 @@ static void * mbox_rx_thread(void * parameters) {
 		nbytes = read(csp_can_socket->can_socket, frame, sizeof(*frame));
 
 		if (nbytes < 0) {
+
+			if (EWOULDBLOCK == errno || EINTR == errno) {
+				/* Nothing to read so far, wait a little */
+				csp_sleep_ms(POLL_CAN_INTERVAL_MS);
+				continue;
+			}
+
 			csp_log_error("read: %s", strerror(errno));
 			break;
 		}
@@ -178,7 +181,7 @@ static void * mbox_rx_thread(void * parameters) {
 	}
 
 	/* We should never reach this point */
-	pthread_exit(NULL);
+	abort();
 
 }
 
@@ -196,23 +199,24 @@ int can_mbox_init(can_iface_ctx_t *iface_ctx) {
 		m->mbox_pool_sem = &iface_ctx->mbox_pool_sem;
 
 		/* Init signal semaphore */
-		if (sem_init(&(m->signal_sem), 0, 1) != 0) {
-			csp_log_error("sem_init: %s", strerror(errno));
+		if (csp_bin_sem_create(&(m->signal_sem)) != CSP_SEMAPHORE_OK) {
+			csp_log_error("sem create");
 			return -1;
 		} else {
 			/* Take signal semaphore so the thread waits for tx data */
-			sem_wait(&(m->signal_sem));
+			csp_bin_sem_wait(&(m->signal_sem), CSP_MAX_DELAY);
 		}
 
 		/* Create mailbox */
-		if (pthread_create(&m->thread, NULL, mbox_tx_thread, (void *)m) != 0) {
-			csp_log_error("pthread_create: %s", strerror(errno));
+		if(csp_thread_create(mbox_tx_thread, (signed char *)"mbox_tx", 1024, (void *)m, 3,  &m->thread) != CSP_ERR_NONE) { //TODO: Adjust priority
+			csp_log_error("thread creation");
 			return -1;
 		}
 	}
 
 	/* Init mailbox pool semaphore */
-	sem_init(&iface_ctx->mbox_pool_sem, 0, 1);
+	csp_bin_sem_create(&iface_ctx->mbox_pool_sem);
+	csp_bin_sem_post(&iface_ctx->mbox_pool_sem);
 	return 0;
 
 }
@@ -222,7 +226,7 @@ int can_send(csp_iface_t *csp_if_can, can_id_t id, uint8_t data[], uint8_t dlc, 
 	int i, found = 0;
 	mbox_t * m;
 	can_iface_ctx_t *iface_ctx;
-	sem_t *mbox_pool_sem;
+	csp_bin_sem_handle_t *mbox_pool_sem;
 
 	if (dlc > 8)
 		return -1;
@@ -234,7 +238,7 @@ int can_send(csp_iface_t *csp_if_can, can_id_t id, uint8_t data[], uint8_t dlc, 
 	mbox_pool_sem = &iface_ctx->mbox_pool_sem;
 
 	/* Find free mailbox */
-	sem_wait(mbox_pool_sem);
+	csp_bin_sem_wait(mbox_pool_sem, CSP_MAX_DELAY);
 	for (i = 0; i < MBOX_NUM; i++) {
 		m = &(iface_ctx->mbox[i]);
 		if(m->state == MBOX_FREE) {
@@ -243,7 +247,7 @@ int can_send(csp_iface_t *csp_if_can, can_id_t id, uint8_t data[], uint8_t dlc, 
 			break;
 		}
 	}
-	sem_post(mbox_pool_sem);
+	csp_bin_sem_post(mbox_pool_sem);
 
 	if (!found)
 		return -1;
@@ -259,7 +263,7 @@ int can_send(csp_iface_t *csp_if_can, can_id_t id, uint8_t data[], uint8_t dlc, 
 	m->frame.can_dlc = dlc;
 
 	/* Signal thread to start */
-	sem_post(&(m->signal_sem));
+	csp_bin_sem_post(&(m->signal_sem));
 
 	return 0;
 
@@ -281,7 +285,7 @@ int can_init(csp_iface_t *csp_if_can, uint32_t id, uint32_t mask, can_tx_callbac
 
 	struct ifreq ifr;
 	struct sockaddr_can addr;
-	pthread_t rx_thread;
+	csp_thread_handle_t rx_thread;
 	int *can_socket;
 	can_iface_ctx_t *iface_ctx;
 
@@ -331,9 +335,21 @@ int can_init(csp_iface_t *csp_if_can, uint32_t id, uint32_t mask, can_tx_callbac
 		}
 	}
 
+	/* Set read timeout */
+	{
+		struct timeval tv = {
+			.tv_sec = 0,
+			.tv_usec = 1000,
+		};
+		if (setsockopt(*can_socket, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0) {
+			csp_log_error("setsockopt: %s", strerror(errno));
+			return -1;
+		}
+	}
+
 	/* Create receive thread */
-	if (pthread_create(&rx_thread, NULL, mbox_rx_thread, (void *)&iface_ctx->csp_can_socket) != 0) {
-		csp_log_error("pthread_create: %s", strerror(errno));
+	if(csp_thread_create(mbox_rx_thread, (signed char *)"mbox_rx", 1024, (void *)&iface_ctx->csp_can_socket, 3,  &rx_thread) != CSP_ERR_NONE) { //TODO: Adjust priority
+		csp_log_error("thread creation");
 		return -1;
 	}
 
