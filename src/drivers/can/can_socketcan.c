@@ -58,6 +58,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #define MAX_SUPPORTED_CAN_INSTANCES 3
 
+#define POLL_CAN_INTERVAL_MS 10
+
 
 
 /** Callback functions */
@@ -149,6 +151,13 @@ CSP_DEFINE_TASK(mbox_rx_thread) {
 		nbytes = read(csp_can_socket->can_socket, frame, sizeof(*frame));
 
 		if (nbytes < 0) {
+
+			if (EWOULDBLOCK == errno || EINTR == errno) {
+				/* Nothing to read so far, wait a little */
+				csp_sleep_ms(POLL_CAN_INTERVAL_MS);
+				continue;
+			}
+
 			csp_log_error("read: %s", strerror(errno));
 			break;
 		}
@@ -321,6 +330,18 @@ int can_init(csp_iface_t *csp_if_can, uint32_t id, uint32_t mask, can_tx_callbac
 		filter.can_id   = id;
 		filter.can_mask = mask;
 		if (setsockopt(*can_socket, SOL_CAN_RAW, CAN_RAW_FILTER, &filter, sizeof(filter)) < 0) {
+			csp_log_error("setsockopt: %s", strerror(errno));
+			return -1;
+		}
+	}
+
+	/* Set read timeout */
+	{
+		struct timeval tv = {
+			.tv_sec = 0,
+			.tv_usec = 1000,
+		};
+		if (setsockopt(*can_socket, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0) {
 			csp_log_error("setsockopt: %s", strerror(errno));
 			return -1;
 		}
