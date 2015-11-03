@@ -216,7 +216,6 @@ int can_mbox_init(can_iface_ctx_t *iface_ctx) {
 
 	/* Init mailbox pool semaphore */
 	csp_bin_sem_create(&iface_ctx->mbox_pool_sem);
-	csp_bin_sem_post(&iface_ctx->mbox_pool_sem);
 	return 0;
 
 }
