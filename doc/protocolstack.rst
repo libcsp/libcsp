@@ -29,14 +29,17 @@ LibCSP implements two different Transport Layer protocols, they are called UDP (
 
 The most important thing to notice is that CSP is entirely a datagram service. There is no stream based service like TCP. A datagram is defined a block of data with a specified size and structure. This block enters the transport layer as a single datagram and exits the transport layer in the other end as a sigle datagram. CSP preserves this structure all the way to the physical layer for I2C, KISS and Loopback interfaces are used. The CAN-bus interface has to fragment the datagram into CAN-frames of 8 bytes, however only a fully completed datagram will arrive at the receiver.
 
-### UDP ###
+UDP
+^^^
+
 UDP uses a simple transmission model without implicit hand-shaking dialogues for guaranteeing reliability, ordering, or data integrity. Thus, UDP provides an unreliable service and datagrams may arrive out of order, appear duplicated, or go missing without notice. UDP assumes that error checking and correction is either not necessary or performed in the application, avoiding the overhead of such processing at the network interface level. Time-sensitive applications often use UDP because dropping packets is preferable to waiting for delayed packets, which may not be an option in a real-time system.
 
 UDP is very practical to implement request/reply based communication where a single packet forms the request and a single packet forms the reply. In this case a typical request and wait protocol is used between the client and server, which will simply return an error if a reply is not received within a specified time limit. An error would normally lead to a retransmission of the request from the user or operator which sent the request.
 
 While UDP is very simple, it also has some limitations. Normally a human in the loop is a good thing when operating the satellite over UDP. But when it comes to larger file transfers, the human becomes the bottleneck. When a high-speed file transfer is initiated data acknowledgement should be done automatically in order to speed up the transfer. This is where the RDP protocol can help.
 
-### RDP ###
+RDP
+^^^
 CSP provides a transport layer extension called RDP (reliable datagram protocol) which is an implementation of RFC908 and RFC1151. RDP provides a few additional features:
 
  * Three-way handshake

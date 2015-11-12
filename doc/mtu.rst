@@ -1,4 +1,6 @@
-# Maximum Transfer Unit
+Maximum Transfer Unit
+=====================
+
 There are two things limiting the MTU of CSP.
 
   1. The pre-allocated buffer pool’s allocation size
