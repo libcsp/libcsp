@@ -123,6 +123,14 @@ def configure(ctx):
 	# Add default files
 	ctx.env.append_unique('FILES_CSP', ['src/*.c','src/interfaces/csp_if_lo.c','src/transport/csp_udp.c','src/arch/{0}/**/*.c'.format(ctx.options.with_os)])
 	
+	# Store OS as env variable
+	ctx.env.append_unique('OS', ctx.options.with_os)
+
+	ctx.define_cond('CSP_FREERTOS', ctx.options.with_os == 'freertos')
+	ctx.define_cond('CSP_POSIX', ctx.options.with_os == 'posix')
+	ctx.define_cond('CSP_WINDOWS', ctx.options.with_os == 'windows')
+	ctx.define_cond('CSP_MACOSX', ctx.options.with_os == 'macosx')
+
 	# Libs
 	if 'posix' in ctx.env.OS:
 		ctx.env.append_unique('LIBS', ['rt', 'pthread', 'util'])
@@ -139,14 +147,6 @@ def configure(ctx):
 			ctx.env.append_unique('INCLUDES_CSP', ctx.options.with_freertos)
 	elif ctx.options.with_os == 'windows':
 		ctx.env.append_unique('CFLAGS', ['-D_WIN32_WINNT=0x0600'])
-	
-	# Store OS as env variable
-	ctx.env.append_unique('OS', ctx.options.with_os)
-
-	ctx.define_cond('CSP_FREERTOS', ctx.options.with_os == 'freertos')
-	ctx.define_cond('CSP_POSIX', ctx.options.with_os == 'posix')
-	ctx.define_cond('CSP_WINDOWS', ctx.options.with_os == 'windows')
-	ctx.define_cond('CSP_MACOSX', ctx.options.with_os == 'macosx')
 		
 	# Add Eternal Drivers
 	if ctx.options.with_drivers:
@@ -299,14 +299,14 @@ def build(ctx):
 			ctx.program(source = 'examples/kiss.c',
 				target = 'kiss',
 				includes = ctx.env.INCLUDES_CSP,
-				lib = libs,
+				lib = ctx.env.LIBS,
 				use = 'csp')
 
 		if 'posix' in ctx.env.OS:
 			ctx.program(source = 'examples/csp_if_fifo.c',
 				target = 'fifo',
 				includes = ctx.env.INCLUDES_CSP,
-				lib = libs,
+				lib = ctx.env.LIBS,
 				use = 'csp')
 
 		if 'windows' in ctx.env.OS:
