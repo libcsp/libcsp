@@ -225,6 +225,9 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, csp_iface_t * ifout, 
 	csp_log_packet("OUT: S %u, D %u, Dp %u, Sp %u, Pr %u, Fl 0x%02X, Sz %u VIA: %s",
 		idout.src, idout.dst, idout.dport, idout.sport, idout.pri, idout.flags, packet->length, ifout->name);
 
+	/* Copy identifier to packet (before crc, xtea and hmac) */
+	packet->id.ext = idout.ext;
+
 #ifdef CSP_USE_PROMISC
 	/* Loopback traffic is added to promisc queue by the router */
 	if (idout.dst != my_address && idout.src == my_address) {
@@ -238,8 +241,8 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, csp_iface_t * ifout, 
 		/* Append HMAC */
 		if (idout.flags & CSP_FHMAC) {
 #ifdef CSP_USE_HMAC
-			/* Calculate and add HMAC */
-			if (csp_hmac_append(packet) != 0) {
+			/* Calculate and add HMAC (does not include header for backwards compatability with csp1.x) */
+			if (csp_hmac_append(packet, false) != 0) {
 				/* HMAC append failed */
 				csp_log_warn("HMAC append failed!");
 				goto tx_err;
@@ -253,8 +256,8 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, csp_iface_t * ifout, 
 		/* Append CRC32 */
 		if (idout.flags & CSP_FCRC32) {
 #ifdef CSP_USE_CRC32
-			/* Calculate and add CRC32 */
-			if (csp_crc32_append(packet) != 0) {
+			/* Calculate and add CRC32 (does not include header for backwards compatability with csp1.x) */
+			if (csp_crc32_append(packet, false) != 0) {
 				/* CRC32 append failed */
 				csp_log_warn("CRC32 append failed!");
 				goto tx_err;
@@ -290,9 +293,6 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, csp_iface_t * ifout, 
 #endif
 		}
 	}
-
-	/* Copy identifier to packet */
-	packet->id.ext = idout.ext;
 
 	/* Store length before passing to interface */
 	uint16_t bytes = packet->length;

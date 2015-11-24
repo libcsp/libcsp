@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <stdint.h>
 #include <string.h>
+#include <stdbool.h>
 
 /* CSP includes */
 #include <csp/csp.h>
@@ -148,7 +149,7 @@ int csp_hmac_set_key(char * key, uint32_t keylen) {
 
 }
 
-int csp_hmac_append(csp_packet_t * packet) {
+int csp_hmac_append(csp_packet_t * packet, bool include_header) {
 
 	/* NULL pointer check */
 	if (packet == NULL)
@@ -157,7 +158,11 @@ int csp_hmac_append(csp_packet_t * packet) {
 	uint8_t hmac[SHA1_DIGESTSIZE];
 
 	/* Calculate HMAC */
-	csp_hmac_memory(csp_hmac_key, HMAC_KEY_LENGTH, packet->data, packet->length, hmac);
+	if (include_header) {
+		csp_hmac_memory(csp_hmac_key, HMAC_KEY_LENGTH, (uint8_t *) &packet->id, packet->length + sizeof(packet->id), hmac);
+	} else {
+		csp_hmac_memory(csp_hmac_key, HMAC_KEY_LENGTH, packet->data, packet->length, hmac);
+	}
 
 	/* Truncate hash and copy to packet */
 	memcpy(&packet->data[packet->length], hmac, CSP_HMAC_LENGTH);
@@ -167,7 +172,7 @@ int csp_hmac_append(csp_packet_t * packet) {
 
 }
 
-int csp_hmac_verify(csp_packet_t * packet) {
+int csp_hmac_verify(csp_packet_t * packet, bool include_header) {
 
 	/* NULL pointer check */
 	if (packet == NULL)
@@ -176,7 +181,11 @@ int csp_hmac_verify(csp_packet_t * packet) {
 	uint8_t hmac[SHA1_DIGESTSIZE];
 
 	/* Calculate HMAC */
-	csp_hmac_memory(csp_hmac_key, HMAC_KEY_LENGTH, packet->data, packet->length - CSP_HMAC_LENGTH, hmac);
+	if (include_header) {
+		csp_hmac_memory(csp_hmac_key, HMAC_KEY_LENGTH, (uint8_t *) &packet->id, packet->length + sizeof(packet->id) - CSP_HMAC_LENGTH, hmac);
+	} else {
+		csp_hmac_memory(csp_hmac_key, HMAC_KEY_LENGTH, packet->data, packet->length - CSP_HMAC_LENGTH, hmac);
+	}
 
 	/* Compare calculated HMAC with packet header */
 	if (memcmp(&packet->data[packet->length] - CSP_HMAC_LENGTH, hmac, CSP_HMAC_LENGTH) != 0) {
