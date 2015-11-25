@@ -56,14 +56,10 @@ typedef enum {
 	CAN_NO_ERROR = 1,
 } can_error_t;
 
-/** TX Callback function prototype */
-typedef int (*can_tx_callback_t)(can_id_t id, can_error_t error, CSP_BASE_TYPE * task_woken);
+int can_init(uint32_t id, uint32_t mask, struct csp_can_config *conf);
+int can_send(can_id_t id, uint8_t * data, uint8_t dlc);
 
-/** RX Callback function prototype */
-typedef int (*can_rx_callback_t)(can_frame_t * frame, CSP_BASE_TYPE * task_woken);
-
-int can_init(uint32_t id, uint32_t mask, can_tx_callback_t txcb, can_rx_callback_t rxcb, struct csp_can_config *conf);
-int can_send(can_id_t id, uint8_t * data, uint8_t dlc, CSP_BASE_TYPE * task_woken);
+int csp_can_rx_frame(can_frame_t *frame, CSP_BASE_TYPE *task_woken);
 
 #ifdef __cplusplus
 } /* extern "C" */
