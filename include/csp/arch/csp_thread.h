@@ -88,9 +88,9 @@ typedef void csp_thread_return_t;
 #endif // CSP_FREERTOS
 
 #ifndef CSP_WINDOWS
-int csp_thread_create(csp_thread_return_t (* routine)(void *), const signed char * const thread_name, unsigned short stack_depth, void * parameters, unsigned int priority, csp_thread_handle_t * handle);
+int csp_thread_create(csp_thread_return_t (* routine)(void *), const char * const thread_name, unsigned short stack_depth, void * parameters, unsigned int priority, csp_thread_handle_t * handle);
 #else
-int csp_thread_create(csp_thread_return_t (* routine)(void *)__attribute__((stdcall)), const signed char * const thread_name, unsigned short stack_depth, void * parameters, unsigned int priority, csp_thread_handle_t * handle);
+int csp_thread_create(csp_thread_return_t (* routine)(void *)__attribute__((stdcall)), const char * const thread_name, unsigned short stack_depth, void * parameters, unsigned int priority, csp_thread_handle_t * handle);
 #endif
 
 #ifdef __cplusplus

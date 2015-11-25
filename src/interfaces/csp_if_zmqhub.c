@@ -142,7 +142,7 @@ int csp_zmqhub_init_w_endpoints(char _addr, char * publisher_endpoint,
 
 	/* Start RX thread */
 	static csp_thread_handle_t handle_subscriber;
-	int ret = csp_thread_create(csp_zmqhub_task, (signed char *) "ZMQ", 10000, NULL, 0, &handle_subscriber);
+	int ret = csp_thread_create(csp_zmqhub_task, "ZMQ", 10000, NULL, 0, &handle_subscriber);
 	csp_log_info("Task start %d\r\n", ret);
 
 	/* Regsiter interface */

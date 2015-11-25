@@ -740,7 +740,7 @@ int csp_can_init(uint8_t mode, struct csp_can_config *conf) {
 		return CSP_ERR_NOMEM;
 	}
 	
-	ret = csp_thread_create(csp_can_rx_task, (signed char *) "CAN", 6000/sizeof(int), NULL, 3, &can_rx_task);
+	ret = csp_thread_create(csp_can_rx_task, "CAN", 6000/sizeof(int), NULL, 3, &can_rx_task);
 	if (ret != 0) {
 		csp_log_error("Failed to init CAN RX task");
 		return CSP_ERR_NOMEM;

@@ -183,12 +183,12 @@ int main(int argc, char * argv[]) {
 	/* Server */
 	printf("Starting Server task\r\n");
 	csp_thread_handle_t handle_server;
-	csp_thread_create(task_server, (signed char *) "SERVER", 1000, NULL, 0, &handle_server);
+	csp_thread_create(task_server, "SERVER", 1000, NULL, 0, &handle_server);
 
 	/* Client */
 	printf("Starting Client task\r\n");
 	csp_thread_handle_t handle_client;
-	csp_thread_create(task_client, (signed char *) "SERVER", 1000, NULL, 0, &handle_client);
+	csp_thread_create(task_client, "SERVER", 1000, NULL, 0, &handle_client);
 
 	/* Wait for execution to end (ctrl+c) */
 	while(1) {

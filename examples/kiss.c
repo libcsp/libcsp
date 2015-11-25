@@ -137,9 +137,9 @@ int main(int argc, char **argv) {
     csp_route_print_interfaces();
 
     csp_thread_handle_t handle_server;
-    csp_thread_create(task_server, (signed char *) "SERVER", 1000, NULL, 0, &handle_server);
+    csp_thread_create(task_server, "SERVER", 1000, NULL, 0, &handle_server);
     csp_thread_handle_t handle_client;
-    csp_thread_create(task_client, (signed char *) "CLIENT", 1000, NULL, 0, &handle_client);
+    csp_thread_create(task_client, "CLIENT", 1000, NULL, 0, &handle_client);
 
     /* Wait for program to terminate (ctrl + c) */
     while(1) {

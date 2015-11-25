@@ -80,7 +80,7 @@ int csp_bridge_start(unsigned int task_stack_size, unsigned int task_priority, c
 	if_b = _if_b;
 
 	static csp_thread_handle_t handle;
-	int ret = csp_thread_create(csp_bridge, (signed char *) "BRIDGE", task_stack_size, NULL, task_priority, &handle);
+	int ret = csp_thread_create(csp_bridge, "BRIDGE", task_stack_size, NULL, task_priority, &handle);
 
 	if (ret != 0) {
 		csp_log_error("Failed to start task");
