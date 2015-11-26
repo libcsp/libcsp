@@ -185,7 +185,6 @@ typedef struct csp_iface_s {
 	const char *name;			/**< Interface name (keep below 10 bytes) */
 	void * driver;				/**< Pointer to interface handler structure */
 	nexthop_t nexthop;			/**< Next hop function */
-	uint8_t promisc;			/**< Promiscuous mode enabled */
 	uint16_t mtu;				/**< Maximum Transmission Unit of interface */
 	uint8_t split_horizon_off;	/**< Disable the route-loop prevention on if */
 	uint32_t tx;				/**< Successfully transmitted packets */

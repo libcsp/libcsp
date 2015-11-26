@@ -728,7 +728,6 @@ int csp_can_init(uint8_t mode, struct csp_can_config *conf) {
 		mask = CFP_MAKE_DST((1 << CFP_HOST_SIZE) - 1);
 	} else if (mode == CSP_CAN_PROMISC) {
 		mask = 0;
-		csp_if_can.promisc = 1;
 	} else {
 		csp_log_error("Unknown CAN mode");
 		return CSP_ERR_INVAL;
