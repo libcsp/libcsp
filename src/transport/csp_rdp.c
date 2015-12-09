@@ -419,8 +419,13 @@ static void csp_rdp_flush_eack(csp_conn_t * conn, csp_packet_t * eack_packet) {
 static inline bool csp_rdp_should_ack(csp_conn_t * conn) {
 
 	/* If delayed ACKs are not used, always ACK */
-	if (!conn->rdp.delayed_acks)
-		return true;
+	if (!conn->rdp.delayed_acks) {
+		if (conn->rdp.rcv_lsa != conn->rdp.rcv_cur) {
+			return true;
+		} else {
+			return false;
+		}
+	}
 
 	/* ACK if time since last ACK is greater than ACK timeout */
 	uint32_t time_now = csp_get_ms();
@@ -464,20 +469,18 @@ void csp_rdp_flush_all(csp_conn_t * conn) {
 
 int csp_rdp_check_ack(csp_conn_t * conn) {
 
-	if (conn->rdp.rcv_lsa != conn->rdp.rcv_cur) {
-		/* Check all RX queues for spare capacity */
-		int prio, avail = 1;
-		for (prio = 0; prio < CSP_RX_QUEUES; prio++) {
-			if (CSP_RX_QUEUE_LENGTH - csp_queue_size(conn->rx_queue[prio]) <= (int32_t)conn->rdp.window_size) {
-				avail = 0;
-				break;
-			}
+	/* Check all RX queues for spare capacity */
+	int prio, avail = 1;
+	for (prio = 0; prio < CSP_RX_QUEUES; prio++) {
+		if (CSP_RX_QUEUE_LENGTH - csp_queue_size(conn->rx_queue[prio]) <= (int32_t)conn->rdp.window_size) {
+			avail = 0;
+			break;
 		}
-
-		/* If more space available, only send after ack timeout or immediately if delay_acks is zero */
-		if (avail && csp_rdp_should_ack(conn))
-			csp_rdp_send_cmp(conn, NULL, RDP_ACK, conn->rdp.snd_nxt, conn->rdp.rcv_cur);
 	}
+
+	/* If more space available, only send after ack timeout or immediately if delay_acks is zero */
+	if (avail && csp_rdp_should_ack(conn))
+		csp_rdp_send_cmp(conn, NULL, RDP_ACK, conn->rdp.snd_nxt, conn->rdp.rcv_cur);
 
 	return CSP_ERR_NONE;
 
