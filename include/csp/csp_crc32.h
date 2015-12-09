@@ -21,6 +21,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef _CSP_CRC32_H_
 #define _CSP_CRC32_H_
 
+#include <csp/csp.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -33,16 +35,18 @@ void csp_crc32_gentab(void);
 /**
  * Append CRC32 checksum to packet
  * @param packet Packet to append checksum
+ * @param include_header use header in calculation (this will not modify the flags field)
  * @return 0 on success, -1 on error
  */
-int csp_crc32_append(csp_packet_t * packet);
+int csp_crc32_append(csp_packet_t * packet, bool include_header);
 
 /**
  * Verify CRC32 checksum on packet
  * @param packet Packet to verify
+ * @param include_header use header in calculation (this will not modify the flags field)
  * @return 0 if checksum is valid, -1 otherwise
  */
-int csp_crc32_verify(csp_packet_t * packet);
+int csp_crc32_verify(csp_packet_t * packet, bool include_header);
 
 /**
  * Calculate checksum for a given memory area

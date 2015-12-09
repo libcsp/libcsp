@@ -26,22 +26,25 @@ extern "C" {
 #endif
 
 #include <stdint.h>
+#include <stdbool.h>
 
 #define CSP_HMAC_LENGTH	4
 
 /**
  * Append HMAC to packet
  * @param packet Pointer to packet
+ * @param include_header use header in hmac calculation (this will not modify the flags field)
  * @return 0 on success, -1 on failure
  */
-int csp_hmac_append(csp_packet_t * packet);
+int csp_hmac_append(csp_packet_t * packet, bool include_header);
 
 /**
  * Verify HMAC of packet
  * @param packet Pointer to packet
+ * @param include_header use header in hmac calculation (this will not modify the flags field)
  * @return 0 on correct HMAC, -1 if verification failed
  */
-int csp_hmac_verify(csp_packet_t * packet);
+int csp_hmac_verify(csp_packet_t * packet, bool include_header);
 
 #ifdef __cplusplus
 } /* extern "C" */

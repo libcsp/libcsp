@@ -52,7 +52,7 @@ static int csp_kiss_tx(csp_iface_t * interface, csp_packet_t * packet, uint32_t 
 		return CSP_ERR_DRIVER;
 
 	/* Add CRC32 checksum */
-	csp_crc32_append(packet);
+	csp_crc32_append(packet, false);
 
 	/* Save the outgoing id in the buffer */
 	packet->id.ext = csp_hton32(packet->id.ext);
@@ -172,7 +172,7 @@ void csp_kiss_rx(csp_iface_t * interface, uint8_t * buf, int len, void * pxTaskW
 					driver->rx_packet->id.ext = csp_ntoh32(driver->rx_packet->id.ext);
 
 					/* Validate CRC */
-					if (csp_crc32_verify(driver->rx_packet) != CSP_ERR_NONE) {
+					if (csp_crc32_verify(driver->rx_packet, false) != CSP_ERR_NONE) {
 						csp_log_warn("KISS invalid crc frame skipped, len: %u", driver->rx_packet->length);
 						interface->rx_error++;
 						driver->rx_mode = KISS_MODE_NOT_STARTED;

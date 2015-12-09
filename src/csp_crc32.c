@@ -80,7 +80,7 @@ uint32_t csp_crc32_memory(const uint8_t * data, uint32_t length) {
    return (crc ^ 0xFFFFFFFF);
 }
 
-int csp_crc32_append(csp_packet_t * packet) {
+int csp_crc32_append(csp_packet_t * packet, bool include_header) {
 
 	uint32_t crc;
 
@@ -89,7 +89,11 @@ int csp_crc32_append(csp_packet_t * packet) {
 		return CSP_ERR_INVAL;
 
 	/* Calculate CRC32, convert to network byte order */
-	crc = csp_crc32_memory(packet->data, packet->length);
+	if (include_header) {
+		crc = csp_crc32_memory((uint8_t *) &packet->id, packet->length + sizeof(packet->id));
+	} else {
+		crc = csp_crc32_memory(packet->data, packet->length);
+	}
 	crc = csp_hton32(crc);
 
 	/* Copy checksum to packet */
@@ -100,7 +104,7 @@ int csp_crc32_append(csp_packet_t * packet) {
 
 }
 
-int csp_crc32_verify(csp_packet_t * packet) {
+int csp_crc32_verify(csp_packet_t * packet, bool include_header) {
 
 	uint32_t crc;
 
@@ -112,7 +116,11 @@ int csp_crc32_verify(csp_packet_t * packet) {
 		return CSP_ERR_INVAL;
 
 	/* Calculate CRC32, convert to network byte order */
-	crc = csp_crc32_memory(packet->data, packet->length - sizeof(uint32_t));
+	if (include_header) {
+		crc = csp_crc32_memory((uint8_t *) &packet->id, packet->length + sizeof(packet->id) - sizeof(uint32_t));
+	} else {
+		crc = csp_crc32_memory(packet->data, packet->length - sizeof(uint32_t));
+	}
 	crc = csp_hton32(crc);
 
 	/* Compare calculated checksum with packet header */

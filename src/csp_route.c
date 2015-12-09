@@ -85,8 +85,8 @@ static int csp_route_security_check(uint32_t security_opts, csp_iface_t * interf
 #ifdef CSP_USE_CRC32
 		if (packet->length < 4)
 			csp_log_error("Too short packet for CRC32, %u", packet->length);
-		/* Verify CRC32  */
-		if (csp_crc32_verify(packet) != 0) {
+		/* Verify CRC32 (does not include header for backwards compatability with csp1.x) */
+		if (csp_crc32_verify(packet, false) != 0) {
 			/* Checksum failed */
 			csp_log_error("CRC32 verification error! Discarding packet");
 			interface->rx_error++;
@@ -104,8 +104,8 @@ static int csp_route_security_check(uint32_t security_opts, csp_iface_t * interf
 	/* HMAC authenticated packet */
 	if (packet->id.flags & CSP_FHMAC) {
 #ifdef CSP_USE_HMAC
-		/* Verify HMAC */
-		if (csp_hmac_verify(packet) != 0) {
+		/* Verify HMAC (does not include header for backwards compatability with csp1.x) */
+		if (csp_hmac_verify(packet, false) != 0) {
 			/* HMAC failed */
 			csp_log_error("HMAC verification error! Discarding packet");
 			interface->autherr++;
@@ -286,7 +286,7 @@ CSP_DEFINE_TASK(csp_task_router) {
 int csp_route_start_task(unsigned int task_stack_size, unsigned int priority) {
 
 	static csp_thread_handle_t handle_router;
-	int ret = csp_thread_create(csp_task_router, (signed char *) "RTE", task_stack_size, NULL, priority, &handle_router);
+	int ret = csp_thread_create(csp_task_router, "RTE", task_stack_size, NULL, priority, &handle_router);
 
 	if (ret != 0) {
 		csp_log_error("Failed to start router task");

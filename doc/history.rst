@@ -14,4 +14,4 @@ This is the known list of satellites or organisations that uses CSP.
  * EuroLuna
  * NUTS
  * Hawaiian Space Flight Laboratory
-
+ * GomSpace GOMX-3
