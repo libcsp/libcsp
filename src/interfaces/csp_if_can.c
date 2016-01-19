@@ -410,7 +410,8 @@ int csp_can_rx_frame(can_frame_t *frame, CSP_BASE_TYPE *task_woken)
 
 int csp_can_tx(csp_iface_t *interface, csp_packet_t *packet, uint32_t timeout)
 {
-	uint8_t bytes, overhead, avail, tx_count, dest;
+	uint16_t tx_count;
+	uint8_t bytes, overhead, avail, dest;
 	uint8_t frame_buf[8];
 
 	/* Get CFP identification number */
