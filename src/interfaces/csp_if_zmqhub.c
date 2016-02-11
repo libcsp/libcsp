@@ -127,7 +127,7 @@ int csp_zmqhub_init_w_endpoints(char _addr, char * publisher_endpoint,
 	/* Publisher (TX) */
     publisher = zmq_socket(context, ZMQ_PUB);
     assert(publisher);
-    assert(zmq_connect(publisher, publisher_endpoint) == 0);
+    assert(zmq_bind(publisher, publisher_endpoint) == 0);
 
     /* Subscriber (RX) */
     subscriber = zmq_socket(context, ZMQ_SUB);
