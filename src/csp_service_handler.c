@@ -58,7 +58,7 @@ void csp_cmp_set_memcpy(csp_memcpy_fnc_t fnc) {
 static int do_cmp_ident(struct csp_cmp_message *cmp) {
 
 	/* Copy revision */
-	strncpy(cmp->ident.revision, GIT_REV, CSP_CMP_IDENT_REV_LEN);
+	strncpy(cmp->ident.revision, csp_get_revision(), CSP_CMP_IDENT_REV_LEN);
 	cmp->ident.revision[CSP_CMP_IDENT_REV_LEN - 1] = '\0';
 
 	/* Copy compilation date */

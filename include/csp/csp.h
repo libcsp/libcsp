@@ -74,6 +74,19 @@ void csp_set_model(char *model);
  */
 char *csp_get_model(void);
 
+/** csp_set_revision
+ * Set subsystem revision. This can be used to override the CMP revision field.
+ * This function takes a pointer to a string, which should remain static
+ * @param revision Revision name to set
+ */
+void csp_set_revision(char *revision);
+
+/** csp_get_revision
+ * Get subsystem revision.
+ * @return Pointer to char array with software revision.
+ */
+char *csp_get_revision(void);
+
 /** csp_socket
  * Create CSP socket endpoint
  * @param opts Socket options

@@ -51,28 +51,43 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 /** Static local variables */
 unsigned char my_address;
 
-/* Hostname and model */ 
-static char * csp_hostname = NULL;
-static char * csp_model = NULL;
+/* Hostname, model and build revision */
+static char *csp_hostname = NULL;
+static char *csp_model = NULL;
+static char *csp_revision = GIT_REV;
 
 #ifdef CSP_USE_PROMISC
 extern csp_queue_handle_t csp_promisc_queue;
 #endif
 
-void csp_set_hostname(char * hostname) {
+void csp_set_hostname(char *hostname)
+{
 	csp_hostname = hostname;
 }
 
-char * csp_get_hostname(void) {
+char *csp_get_hostname(void)
+{
 	return csp_hostname;
 }
 
-void csp_set_model(char * model) {
+void csp_set_model(char *model)
+{
 	csp_model = model;
 }
 
-char * csp_get_model(void) {
+char *csp_get_model(void)
+{
 	return csp_model;
+}
+
+void csp_set_revision(char *revision)
+{
+	csp_revision = revision;
+}
+
+char *csp_get_revision(void)
+{
+	return csp_revision;
 }
 
 int csp_init(unsigned char address) {
