@@ -183,6 +183,9 @@ static void csp_can_pbuf_timestamp(csp_can_pbuf_element_t *buf)
 
 static int csp_can_pbuf_free(csp_can_pbuf_element_t *buf)
 {
+	if (buf == NULL)
+		return CSP_ERR_INVAL;
+
 	/* Free CSP packet */
 	if (buf->packet != NULL)
 		csp_buffer_free(buf->packet);
@@ -279,8 +282,7 @@ static int csp_can_process_frame(can_frame_t *frame)
 			}
 		} else {
 			csp_log_warn("Out of order MORE frame received");
-			csp_if_can.frame++;
-			return CSP_ERR_INVAL;
+			goto framing_error;
 		}
 	}
 
@@ -294,9 +296,7 @@ static int csp_can_process_frame(can_frame_t *frame)
 		/* Discard packet if DLC is less than CSP id + CSP length fields */
 		if (frame->dlc < sizeof(csp_id_t) + sizeof(uint16_t)) {
 			csp_log_warn("Short BEGIN frame received");
-			csp_if_can.frame++;
-			csp_can_pbuf_free(buf);
-			break;
+			goto framing_error;
 		}
 
 		/* Check for incomplete frame */
@@ -309,9 +309,7 @@ static int csp_can_process_frame(can_frame_t *frame)
 			buf->packet = csp_buffer_get(CSP_CAN_MTU);
 			if (buf->packet == NULL) {
 				csp_log_error("Failed to get buffer for CSP_BEGIN packet");
-				csp_if_can.frame++;
-				csp_can_pbuf_free(buf);
-				break;
+				goto framing_error;
 			}
 		}
 
@@ -337,9 +335,7 @@ static int csp_can_process_frame(can_frame_t *frame)
 		/* Check 'remain' field match */
 		if (CFP_REMAIN(id) != buf->remain - 1) {
 			csp_log_error("CAN frame lost in CSP packet");
-			csp_can_pbuf_free(buf);
-			csp_if_can.frame++;
-			break;
+			goto framing_error;
 		}
 
 		/* Decrement remaining frames */
@@ -348,9 +344,7 @@ static int csp_can_process_frame(can_frame_t *frame)
 		/* Check for overflow */
 		if ((buf->rx_count + frame->dlc - offset) > buf->packet->length) {
 			csp_log_error("RX buffer overflow");
-			csp_if_can.frame++;
-			csp_can_pbuf_free(buf);
-			break;
+			goto framing_error;
 		}
 
 		/* Copy dlc bytes into buffer */
@@ -380,6 +374,11 @@ static int csp_can_process_frame(can_frame_t *frame)
 	}
 
 	return CSP_ERR_NONE;
+
+framing_error:
+	csp_if_can.frame++;
+	csp_can_pbuf_free(buf);
+	return CSP_ERR_INVAL;
 }
 
 static CSP_DEFINE_TASK(csp_can_rx_task)
