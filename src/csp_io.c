@@ -48,8 +48,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "csp_qfifo.h"
 #include "transport/csp_transport.h"
 
-/** Static local variables */
-unsigned char my_address;
+/** CSP address of this node */
+static uint8_t csp_my_address;
 
 /* Hostname, model and build revision */
 static char *csp_hostname = NULL;
@@ -59,6 +59,16 @@ static char *csp_revision = GIT_REV;
 #ifdef CSP_USE_PROMISC
 extern csp_queue_handle_t csp_promisc_queue;
 #endif
+
+void csp_set_address(uint8_t addr)
+{
+	csp_my_address = addr;
+}
+
+uint8_t csp_get_address(void)
+{
+	return csp_my_address;
+}
 
 void csp_set_hostname(char *hostname)
 {
@@ -95,7 +105,7 @@ int csp_init(unsigned char address) {
 	int ret;
 
 	/* Initialize CSP */
-	my_address = address;
+	csp_set_address(address);
 
 	ret = csp_conn_init();
 	if (ret != CSP_ERR_NONE)
@@ -113,7 +123,7 @@ int csp_init(unsigned char address) {
 	csp_iflist_add(&csp_if_lo);
 
 	/* Register loopback route */
-	csp_route_set(my_address, &csp_if_lo, CSP_NODE_MAC);
+	csp_route_set(csp_get_address(), &csp_if_lo, CSP_NODE_MAC);
 
 	/* Also register loopback as default, until user redefines default route */
 	csp_route_set(CSP_DEFAULT_ROUTE, &csp_if_lo, CSP_NODE_MAC);
@@ -245,14 +255,14 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, csp_iface_t * ifout, 
 
 #ifdef CSP_USE_PROMISC
 	/* Loopback traffic is added to promisc queue by the router */
-	if (idout.dst != my_address && idout.src == my_address) {
+	if (idout.dst != csp_get_address() && idout.src == csp_get_address()) {
 		packet->id.ext = idout.ext;
 		csp_promisc_add(packet);
 	}
 #endif
 
 	/* Only encrypt packets from the current node */
-	if (idout.src == my_address) {
+	if (idout.src == csp_get_address()) {
 		/* Append HMAC */
 		if (idout.flags & CSP_FHMAC) {
 #ifdef CSP_USE_HMAC
@@ -465,7 +475,7 @@ int csp_sendto(uint8_t prio, uint8_t dest, uint8_t dport, uint8_t src_port, uint
 
 	packet->id.dst = dest;
 	packet->id.dport = dport;
-	packet->id.src = my_address;
+	packet->id.src = csp_get_address();
 	packet->id.sport = src_port;
 	packet->id.pri = prio;
 

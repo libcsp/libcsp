@@ -55,7 +55,7 @@ extern void __attribute__((weak)) csp_assert_fail_action(char *assertion, const 
 			const char *file = BASENAME(__FILE__);										\
 			int line = __LINE__;														\
 			printf("\E[1;31m[%02"PRIu8"] Assertion \'%s\' failed in %s:%d\E[0m\r\n",	\
-													my_address, assertion, file, line); \
+													csp_get_address(), assertion, file, line); \
 			if (csp_assert_fail_action)													\
 				csp_assert_fail_action(assertion, file, line);							\
 		} 																				\
@@ -83,7 +83,7 @@ extern void __attribute__((weak)) csp_assert_fail_action(char *assertion, const 
 
 #ifdef CSP_DEBUG
 #ifdef CSP_VERBOSE
-	#define csp_debug(level, format, ...) do { if (csp_debug_level_enabled[level]) { do_csp_debug(level, CONSTSTR("[%02"PRIu8"] %s:%d " format), my_address, BASENAME(__FILE__), __LINE__, ##__VA_ARGS__);}} while(0)
+	#define csp_debug(level, format, ...) do { if (csp_debug_level_enabled[level]) { do_csp_debug(level, CONSTSTR("[%02"PRIu8"] %s:%d " format), csp_get_address(), BASENAME(__FILE__), __LINE__, ##__VA_ARGS__);}} while(0)
 #else
 	#define csp_debug(level, format, ...) do { if (csp_debug_level_enabled[level]) { do_csp_debug(level, CONSTSTR(format), ##__VA_ARGS__);}} while(0)
 #endif

@@ -39,14 +39,23 @@ extern "C" {
 #include "csp_rtable.h"
 #include "csp_iflist.h"
 
-/** The address of the node */
-extern uint8_t my_address;
-
 /** csp_init
  * Start up the can-space protocol
  * @param my_node_address The CSP node address
  */
 int csp_init(uint8_t my_node_address);
+
+/** csp_set_address
+ * Set the systems own address
+ * @param addr The new address of the system
+ */
+void csp_set_address(uint8_t addr);
+
+/** csp_get_address
+ * Get the systems own address
+ * @return The current address of the system
+ */
+uint8_t csp_get_address(void);
 
 /** csp_set_hostname
  * Set subsystem hostname.

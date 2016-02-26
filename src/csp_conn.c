@@ -304,13 +304,13 @@ csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport, uint32_t tim
 	/* Generate identifier */
 	csp_id_t incoming_id, outgoing_id;
 	incoming_id.pri = prio;
-	incoming_id.dst = my_address;
+	incoming_id.dst = csp_get_address();
 	incoming_id.src = dest;
 	incoming_id.sport = dport;
 	incoming_id.flags = 0;
 	outgoing_id.pri = prio;
 	outgoing_id.dst = dest;
-	outgoing_id.src = my_address;
+	outgoing_id.src = csp_get_address();
 	outgoing_id.dport = dport;
 	outgoing_id.flags = 0;
 

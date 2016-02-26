@@ -164,7 +164,7 @@ int csp_route_work(uint32_t timeout) {
 #endif
 
 	/* If the message is not to me, route the message to the correct interface */
-	if ((packet->id.dst != my_address) && (packet->id.dst != CSP_BROADCAST_ADDR)) {
+	if ((packet->id.dst != csp_get_address()) && (packet->id.dst != CSP_BROADCAST_ADDR)) {
 
 		/* Find the destination interface */
 		csp_iface_t * dstif = csp_rtable_find_iface(packet->id.dst);
@@ -223,7 +223,7 @@ int csp_route_work(uint32_t timeout) {
 		/* New incoming connection accepted */
 		csp_id_t idout;
 		idout.pri   = packet->id.pri;
-		idout.src   = my_address;
+		idout.src   = csp_get_address();
 
 		idout.dst   = packet->id.src;
 		idout.dport = packet->id.sport;

@@ -97,7 +97,7 @@ void csp_rtable_clear(void) {
 	rtable = NULL;
 
 	/* Set loopback up again */
-	csp_rtable_set(my_address, CSP_ID_HOST_SIZE, &csp_if_lo, CSP_NODE_MAC);
+	csp_rtable_set(csp_get_address(), CSP_ID_HOST_SIZE, &csp_if_lo, CSP_NODE_MAC);
 
 }
 

@@ -526,7 +526,7 @@ int csp_can_init(uint8_t mode, struct csp_can_config *conf)
 	}
 
 	/* Initialize CAN driver */
-	if (can_init(CFP_MAKE_DST(my_address), mask, conf) != 0) {
+	if (can_init(CFP_MAKE_DST(csp_get_address()), mask, conf) != 0) {
 		csp_log_error("Failed to initialize CAN driver");
 		return CSP_ERR_DRIVER;
 	}
