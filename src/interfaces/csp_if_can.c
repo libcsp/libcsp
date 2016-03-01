@@ -156,6 +156,7 @@ typedef struct {
 } csp_can_pbuf_element_t;
 
 static csp_can_pbuf_element_t csp_can_pbuf[PBUF_ELEMENTS];
+static size_t csp_can_pbuf_availables;
 
 static int csp_can_pbuf_init(void)
 {
@@ -172,6 +173,8 @@ static int csp_can_pbuf_init(void)
 		buf->last_used = 0;
 		buf->remain = 0;
 	}
+
+	csp_can_pbuf_availables = PBUF_ELEMENTS;
 
 	return CSP_ERR_NONE;
 }
@@ -198,6 +201,8 @@ static int csp_can_pbuf_free(csp_can_pbuf_element_t *buf)
 	buf->last_used = 0;
 	buf->remain = 0;
 
+	csp_can_pbuf_availables++;
+
 	return CSP_ERR_NONE;
 }
 
@@ -216,6 +221,10 @@ static csp_can_pbuf_element_t *csp_can_pbuf_new(uint32_t id)
 			ret = buf;
 			break;
 		}
+	}
+
+	if (ret != NULL) {
+		csp_can_pbuf_availables--;
 	}
 
 	return ret;
