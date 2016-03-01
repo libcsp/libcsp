@@ -99,6 +99,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 /* Buffer element timeout in ms */
 #define PBUF_TIMEOUT_MS		10000
 
+/* Enable freeing a random packet buffer when no one is free */
+//#define ENABLE_CAN_OOM_RANDOM_FREE
+
 /* CFP Frame Types */
 enum cfp_frame_t {
 	CFP_BEGIN = 0,
@@ -160,6 +163,10 @@ typedef struct {
 
 static csp_can_pbuf_element_t csp_can_pbuf[PBUF_ELEMENTS];
 static size_t csp_can_pbuf_availables;
+
+#ifdef ENABLE_CAN_OOM_RANDOM_FREE
+static size_t csp_can_pbuf_oom_counter;
+#endif
 
 static int csp_can_pbuf_init(void)
 {
@@ -247,6 +254,14 @@ static csp_can_pbuf_element_t *csp_can_pbuf_new(uint32_t id)
 		/* Cleanup now */
 		csp_can_pbuf_cleanup(0);
 	}
+
+#ifdef ENABLE_CAN_OOM_RANDOM_FREE
+	if (csp_can_pbuf_availables == 0) {
+		csp_log_warn("No available packet buffer for CAN; freeing random one");
+		csp_can_pbuf_free(&csp_can_pbuf[rand() % PBUF_ELEMENTS]);
+		csp_can_pbuf_oom_counter++;
+	}
+#endif
 
 	for (i = 0; i < PBUF_ELEMENTS; i++) {
 		buf = &csp_can_pbuf[i];
