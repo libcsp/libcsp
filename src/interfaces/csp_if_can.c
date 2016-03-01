@@ -85,19 +85,29 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 				 CFP_MAKE_ID((uint32_t)(1 << CFP_ID_SIZE) - 1))
 
 /* Maximum Transmission Unit for CSP over CAN */
+#ifndef CSP_CAN_MTU
 #define CSP_CAN_MTU		256
+#endif
 
 /* Maximum number of frames in RX queue */
+#ifndef CSP_CAN_RX_QUEUE_SIZE
 #define CSP_CAN_RX_QUEUE_SIZE	100
+#endif
 
 /* Wait for fragments timeout in ms */
+#ifndef CSP_CAN_RX_QUEUE_TIMEOUT_MS
 #define CSP_CAN_RX_QUEUE_TIMEOUT_MS	1000
+#endif
 
 /* Number of packet buffer elements */
+#ifndef PBUF_ELEMENTS
 #define PBUF_ELEMENTS		CSP_CONN_MAX
+#endif
 
 /* Buffer element timeout in ms */
+#ifndef PBUF_TIMEOUT_MS
 #define PBUF_TIMEOUT_MS		10000
+#endif
 
 /* Enable freeing a random packet buffer when no one is free */
 //#define ENABLE_CAN_OOM_RANDOM_FREE
