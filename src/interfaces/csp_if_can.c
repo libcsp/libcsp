@@ -90,6 +90,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 /* Maximum number of frames in RX queue */
 #define CSP_CAN_RX_QUEUE_SIZE	100
 
+/* Wait for fragments timeout in ms */
+#define CSP_CAN_RX_QUEUE_TIMEOUT_MS	1000
+
 /* Number of packet buffer elements */
 #define PBUF_ELEMENTS		CSP_CONN_MAX
 
@@ -248,10 +251,17 @@ static csp_can_pbuf_element_t *csp_can_pbuf_find(uint32_t id, uint32_t mask)
 	return ret;
 }
 
-static void csp_can_pbuf_cleanup(void)
+static void csp_can_pbuf_cleanup(uint32_t check_period_ms)
 {
+	static uint32_t last_cleanup = 0;
 	int i;
 	csp_can_pbuf_element_t *buf;
+
+	uint32_t now = csp_get_ms();
+
+	if ((now - last_cleanup) < check_period_ms) {
+		return;
+	}
 
 	for (i = 0; i < PBUF_ELEMENTS; i++) {
 		buf = &csp_can_pbuf[i];
@@ -261,13 +271,13 @@ static void csp_can_pbuf_cleanup(void)
 			continue;
 
 		/* Check timeout */
-		uint32_t now = csp_get_ms();
 		if (now - buf->last_used > PBUF_TIMEOUT_MS) {
 			csp_log_warn("CAN Buffer element timed out");
 			/* Recycle packet buffer */
 			csp_can_pbuf_free(buf);
 		}
 	}
+	last_cleanup = now;
 }
 
 static int csp_can_process_frame(can_frame_t *frame)
@@ -396,9 +406,10 @@ static CSP_DEFINE_TASK(csp_can_rx_task)
 	can_frame_t frame;
 
 	while (1) {
-		ret = csp_queue_dequeue(csp_can_rx_queue, &frame, 1000);
+		csp_can_pbuf_cleanup(CSP_CAN_RX_QUEUE_TIMEOUT_MS);
+
+		ret = csp_queue_dequeue(csp_can_rx_queue, &frame, CSP_CAN_RX_QUEUE_TIMEOUT_MS);
 		if (ret != CSP_QUEUE_OK) {
-			csp_can_pbuf_cleanup();
 			continue;
 		}
 
