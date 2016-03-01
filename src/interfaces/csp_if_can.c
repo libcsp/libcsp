@@ -175,7 +175,7 @@ static csp_can_pbuf_element_t csp_can_pbuf[PBUF_ELEMENTS];
 static size_t csp_can_pbuf_availables;
 
 #ifdef ENABLE_CAN_OOM_RANDOM_FREE
-static size_t csp_can_pbuf_oom_counter;
+static size_t csp_can_pbuf_oom_counter = 0;
 #endif
 
 static int csp_can_pbuf_init(void)
