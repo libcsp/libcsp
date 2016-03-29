@@ -162,6 +162,8 @@ void csp_ps(uint8_t node, uint32_t timeout) {
 		packet->data[packet->length] = 0;
 		printf("%s", packet->data);
 
+		/* Each packet from csp_read must to be freed by user */
+		csp_buffer_free(packet);
 	}
 
 	printf("\r\n");

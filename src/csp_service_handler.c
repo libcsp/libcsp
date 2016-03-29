@@ -225,10 +225,25 @@ void csp_service_handler(csp_conn_t * conn, csp_packet_t * packet) {
 		break;
 
 	case CSP_PS: {
-
+		/* Sanity check on request */
+		if ((packet->length != 1) || (packet->data[0] != 0x55)) {
+			/* Sanity check failed */
+			csp_buffer_free(packet);
+			/* Clear the packet, it has been freed */
+			packet = NULL;
+			break;
+		}
 		/* Start by allocating just the right amount of memory */
 		int task_list_size = csp_sys_tasklist_size();
 		char * pslist = csp_malloc(task_list_size);
+		/* Check for malloc fail */
+		if (pslist == NULL) {
+			/* Send out the data */
+			strcpy((char *)packet->data, "Not enough memory");
+			packet->length = strlen((char *)packet->data);
+			/* Break and let the default handling send packet */
+			break;
+		}
 
 		/* Retrieve the tasklist */
 		csp_sys_tasklist(pslist);
@@ -257,6 +272,7 @@ void csp_service_handler(csp_conn_t * conn, csp_packet_t * packet) {
 			packet = NULL;
 
 		}
+		csp_free(pslist);
 		break;
 	}
 
