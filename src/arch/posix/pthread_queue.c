@@ -102,7 +102,11 @@ static inline int wait_slot_available(pthread_queue_t * queue, struct timespec *
 
 	while (queue->items == queue->size) {
 
-		ret = pthread_cond_timedwait(&(queue->cond_full), &(queue->mutex), ts);
+		if (NULL != ts) {
+			ret = pthread_cond_timedwait(&(queue->cond_full), &(queue->mutex), ts);
+		} else {
+			ret = pthread_cond_wait(&(queue->cond_full), &(queue->mutex));
+		}
 
 		if (0 != ret && errno != EINTR) {
 			return PTHREAD_QUEUE_FULL; //Timeout
@@ -120,10 +124,14 @@ int pthread_queue_enqueue(pthread_queue_t * queue, void * value, uint32_t timeou
 	struct timespec *pts = NULL;
 
 	/* Calculate timeout */
-	if (0 != get_deadline(&ts, timeout)) {
-		return PTHREAD_QUEUE_ERROR;
+	if (CSP_MAX_DELAY != timeout) {
+		if (0 != get_deadline(&ts, timeout)) {
+			return PTHREAD_QUEUE_ERROR;
+		}
+		pts = &ts;
+	} else {
+		pts = NULL;
 	}
-	pts = &ts;
 
 	/* Get queue lock */
 	pthread_mutex_lock(&(queue->mutex));
@@ -153,7 +161,11 @@ static inline int wait_item_available(pthread_queue_t * queue, struct timespec *
 
 	while (queue->items == 0) {
 
-		ret = pthread_cond_timedwait(&(queue->cond_empty), &(queue->mutex), ts);
+		if (NULL != ts) {
+			ret = pthread_cond_timedwait(&(queue->cond_empty), &(queue->mutex), ts);
+		} else {
+			ret = pthread_cond_wait(&(queue->cond_empty), &(queue->mutex));
+		}
 
 		if (0 != ret && errno != EINTR) {
 			return PTHREAD_QUEUE_EMPTY; //Timeout
@@ -171,10 +183,14 @@ int pthread_queue_dequeue(pthread_queue_t * queue, void * buf, uint32_t timeout)
 	struct timespec *pts;
 
 	/* Calculate timeout */
-	if (0 != get_deadline(&ts, timeout)) {
-		return PTHREAD_QUEUE_ERROR;
+	if (CSP_MAX_DELAY != timeout) {
+		if (0 != get_deadline(&ts, timeout)) {
+			return PTHREAD_QUEUE_ERROR;
+		}
+		pts = &ts;
+	} else {
+		pts = NULL;
 	}
-	pts = &ts;
 
 	/* Get queue lock */
 	pthread_mutex_lock(&(queue->mutex));
