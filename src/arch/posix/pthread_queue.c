@@ -36,7 +36,7 @@ http://code.google.com/p/c-pthread-queue/
 
 static inline int get_deadline(struct timespec *ts, uint32_t timeout_ms)
 {
-	int ret = clock_gettime(CLOCK_REALTIME, ts);
+	int ret = clock_gettime(CLOCK_MONOTONIC, ts);
 
 	if (ret < 0) {
 		return ret;
@@ -56,6 +56,24 @@ static inline int get_deadline(struct timespec *ts, uint32_t timeout_ms)
 	return ret;
 }
 
+static inline int init_cond_clock_monotonic(pthread_cond_t * cond)
+{
+
+	int ret;
+	pthread_condattr_t attr;
+
+	pthread_condattr_init(&attr);
+	ret = pthread_condattr_setclock(&attr, CLOCK_MONOTONIC);
+
+	if (0 == ret) {
+		ret = pthread_cond_init(cond, &attr);
+	}
+
+	pthread_condattr_destroy(&attr);
+	return ret;
+
+}
+
 pthread_queue_t * pthread_queue_create(int length, size_t item_size) {
 	
 	pthread_queue_t * q = malloc(sizeof(pthread_queue_t));
@@ -68,7 +86,7 @@ pthread_queue_t * pthread_queue_create(int length, size_t item_size) {
 			q->items = 0;
 			q->in = 0;
 			q->out = 0;
-			if (pthread_mutex_init(&(q->mutex), NULL) || pthread_cond_init(&(q->cond_full), NULL) || pthread_cond_init(&(q->cond_empty), NULL)) {
+			if (pthread_mutex_init(&(q->mutex), NULL) || init_cond_clock_monotonic(&(q->cond_full)) || init_cond_clock_monotonic(&(q->cond_empty))) {
 				free(q->buffer);
 				free(q);
 				q = NULL;
