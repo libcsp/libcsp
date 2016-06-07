@@ -195,7 +195,7 @@ int csp_route_work(uint32_t timeout) {
 
 #ifdef CSP_USE_DEDUP
 	/* Check for duplicates */
-	if (csp_dedup_check(packet) == 1) {
+	if (csp_dedup_is_duplicate(packet)) {
 		/* Discard packet */
 		csp_log_packet("Duplicate packet discarded");
 		csp_buffer_free(packet);

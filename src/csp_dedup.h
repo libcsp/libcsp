@@ -1,9 +1,22 @@
 /*
- * csp_dedup.h
- *
- *  Created on: 04/11/2014
- *      Author: johan
- */
+Cubesat Space Protocol - A small network-layer protocol designed for Cubesats
+Copyright (C) 2012 GomSpace ApS (http://www.gomspace.com)
+Copyright (C) 2012 AAUSAT3 Project (http://aausat3.space.aau.dk)
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+*/
 
 #ifndef CSP_DEDUP_H_
 #define CSP_DEDUP_H_
@@ -11,8 +24,8 @@
 /**
  * Check for a duplicate packet
  * @param packet pointer to packet
- * @return 0 if not a duplicate, 1 if it IS a duplicate
+ * @return false if not a duplicate, true if duplicate
  */
-int csp_dedup_check(csp_packet_t * packet);
+bool csp_dedup_is_duplicate(csp_packet_t *packet);
 
 #endif /* CSP_DEDUP_H_ */
