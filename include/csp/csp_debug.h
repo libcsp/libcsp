@@ -1,7 +1,7 @@
 /*
 Cubesat Space Protocol - A small network-layer protocol designed for Cubesats
 Copyright (C) 2012 Gomspace ApS (http://www.gomspace.com)
-Copyright (C) 2012 AAUSAT3 Project (http://aausat3.space.aau.dk) 
+Copyright (C) 2012 AAUSAT3 Project (http://aausat3.space.aau.dk)
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -30,35 +30,33 @@ extern "C" {
 
 /** Debug levels */
 typedef enum {
-	CSP_ERROR	 	= 0,
-	CSP_WARN	 	= 1,
-	CSP_INFO		= 2,
-	CSP_BUFFER   	= 3,
-	CSP_PACKET   	= 4,
+	CSP_ERROR	= 0,
+	CSP_WARN	= 1,
+	CSP_INFO	= 2,
+	CSP_BUFFER	= 3,
+	CSP_PACKET	= 4,
 	CSP_PROTOCOL	= 5,
-	CSP_LOCK	 	= 6,
+	CSP_LOCK	= 6,
 } csp_debug_level_t;
 
-extern unsigned char csp_debug_level_enabled[];
-
 /* Extract filename component from path */
-#define BASENAME(_file) ((strrchr(_file, '/') ? : (strrchr(_file, '\\') ? : _file))+1)
+#define BASENAME(_file) ((strrchr(_file, '/') ? : (strrchr(_file, '\\') ? : _file)) + 1)
 
 /* Implement csp_assert_fail_action to override default failure action */
 extern void __attribute__((weak)) csp_assert_fail_action(char *assertion, const char *file, int line);
 
 #ifndef NDEBUG
-	#define csp_assert(exp) 															\
-	do { 																				\
-		if (!(exp)) {																	\
-			char *assertion = #exp;														\
-			const char *file = BASENAME(__FILE__);										\
-			int line = __LINE__;														\
+	#define csp_assert(exp)										\
+	do {												\
+		if (!(exp)) {										\
+			char *assertion = #exp;								\
+			const char *file = BASENAME(__FILE__);						\
+			int line = __LINE__;								\
 			printf("\E[1;31m[%02"PRIu8"] Assertion \'%s\' failed in %s:%d\E[0m\r\n",	\
-													csp_get_address(), assertion, file, line); \
-			if (csp_assert_fail_action)													\
-				csp_assert_fail_action(assertion, file, line);							\
-		} 																				\
+			       csp_get_address(), assertion, file, line);				\
+			if (csp_assert_fail_action)							\
+				csp_assert_fail_action(assertion, file, line);				\
+		}											\
 	} while (0)
 #else
 	#define csp_assert(...) do {} while (0)
@@ -82,11 +80,7 @@ extern void __attribute__((weak)) csp_assert_fail_action(char *assertion, const 
 #endif
 
 #ifdef CSP_DEBUG
-#ifdef CSP_VERBOSE
-	#define csp_debug(level, format, ...) do { if (csp_debug_level_enabled[level]) { do_csp_debug(level, CONSTSTR("[%02"PRIu8"] %s:%d " format), csp_get_address(), BASENAME(__FILE__), __LINE__, ##__VA_ARGS__);}} while(0)
-#else
-	#define csp_debug(level, format, ...) do { if (csp_debug_level_enabled[level]) { do_csp_debug(level, CONSTSTR(format), ##__VA_ARGS__);}} while(0)
-#endif
+	#define csp_debug(level, format, ...) do { do_csp_debug(level, CONSTSTR(format), ##__VA_ARGS__); } while(0)
 #else
 	#define csp_debug(...) do {} while (0)
 #endif
@@ -102,7 +96,7 @@ extern void __attribute__((weak)) csp_assert_fail_action(char *assertion, const 
 #else
 	#define csp_log_warn(...) do {} while (0)
 #endif
-	
+
 #ifdef CSP_LOG_LEVEL_INFO
 	#define csp_log_info(format, ...) csp_debug(CSP_INFO, format, ##__VA_ARGS__)
 #else

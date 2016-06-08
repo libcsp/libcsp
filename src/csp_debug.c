@@ -1,7 +1,7 @@
 /*
 Cubesat Space Protocol - A small network-layer protocol designed for Cubesats
 Copyright (C) 2012 Gomspace ApS (http://www.gomspace.com)
-Copyright (C) 2012 AAUSAT3 Project (http://aausat3.space.aau.dk) 
+Copyright (C) 2012 AAUSAT3 Project (http://aausat3.space.aau.dk)
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -36,24 +36,25 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 csp_debug_hook_func_t csp_debug_hook_func = NULL;
 
 /* Debug levels */
-unsigned char csp_debug_level_enabled[] = {
-	[CSP_ERROR]		= true,
-	[CSP_WARN]		= true,
-	[CSP_INFO]		= false,
+static bool csp_debug_level_enabled[] = {
+	[CSP_ERROR]	= true,
+	[CSP_WARN]	= true,
+	[CSP_INFO]	= false,
 	[CSP_BUFFER]	= false,
 	[CSP_PACKET]	= false,
 	[CSP_PROTOCOL]	= false,
-	[CSP_LOCK]		= false,
+	[CSP_LOCK]	= false,
 };
 
 /* Some compilers do not support weak symbols, so this function
  * can be used instead to set a custom debug hook */
-void csp_debug_hook_set(csp_debug_hook_func_t f) {
+void csp_debug_hook_set(csp_debug_hook_func_t f)
+{
 	csp_debug_hook_func = f;
 }
 
-void do_csp_debug(csp_debug_level_t level, const char * format, ...) {
-
+void do_csp_debug(csp_debug_level_t level, const char *format, ...)
+{
 	int color = COLOR_RESET;
 	va_list args;
 
@@ -86,7 +87,7 @@ void do_csp_debug(csp_debug_level_t level, const char * format, ...) {
 	default:
 		return;
 	}
-	
+
 	va_start(args, format);
 
 	/* If csp_debug_hook symbol is defined, pass on the message.
@@ -105,22 +106,24 @@ void do_csp_debug(csp_debug_level_t level, const char * format, ...) {
 	}
 
 	va_end(args);
-
 }
 
-void csp_debug_set_level(csp_debug_level_t level, bool value) {
+void csp_debug_set_level(csp_debug_level_t level, bool value)
+{
 	if (level > CSP_LOCK)
 		return;
 	csp_debug_level_enabled[level] = value;
 }
 
-int csp_debug_get_level(csp_debug_level_t level) {
+int csp_debug_get_level(csp_debug_level_t level)
+{
 	if (level > CSP_LOCK)
 		return 0;
 	return csp_debug_level_enabled[level];
 }
 
-void csp_debug_toggle_level(csp_debug_level_t level) {
+void csp_debug_toggle_level(csp_debug_level_t level)
+{
 	if (level > CSP_LOCK) {
 		printf("Max level is 6\r\n");
 		return;

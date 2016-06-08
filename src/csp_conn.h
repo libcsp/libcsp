@@ -55,13 +55,13 @@ typedef enum {
 /** @brief RDP Connection header
  *  @note Do not try to pack this struct, the posix sem handle will stop working */
 typedef struct {
-	csp_rdp_state_t state;				/**< Connection state */
-	uint16_t snd_nxt; 					/**< The sequence number of the next segment that is to be sent */
-	uint16_t snd_una; 					/**< The sequence number of the oldest unacknowledged segment */
-	uint16_t snd_iss; 					/**< The initial send sequence number */
-	uint16_t rcv_cur; 					/**< The sequence number of the last segment received correctly and in sequence */
-	uint16_t rcv_irs; 					/**< The initial receive sequence number */
-	uint16_t rcv_lsa; 					/**< The last sequence number acknowledged by the receiver */
+	csp_rdp_state_t state;		/**< Connection state */
+	uint16_t snd_nxt;		/**< The sequence number of the next segment that is to be sent */
+	uint16_t snd_una;		/**< The sequence number of the oldest unacknowledged segment */
+	uint16_t snd_iss;		/**< The initial send sequence number */
+	uint16_t rcv_cur;		/**< The sequence number of the last segment received correctly and in sequence */
+	uint16_t rcv_irs;		/**< The initial receive sequence number */
+	uint16_t rcv_lsa;		/**< The last sequence number acknowledged by the receiver */
 	uint32_t window_size;
 	uint32_t conn_timeout;
 	uint32_t packet_timeout;
@@ -76,20 +76,20 @@ typedef struct {
 
 /** @brief Connection struct */
 struct csp_conn_s {
-	csp_conn_type_t type;			/* Connection type (CONN_CLIENT or CONN_SERVER) */
-	csp_conn_state_t state;		 	/* Connection state (SOCKET_OPEN or SOCKET_CLOSED) */
-	csp_mutex_t lock;				/* Connection structure lock */
-	csp_id_t idin;				  	/* Identifier received */
-	csp_id_t idout;				 	/* Identifier transmitted */
+	csp_conn_type_t type;		/* Connection type (CONN_CLIENT or CONN_SERVER) */
+	csp_conn_state_t state;		/* Connection state (SOCKET_OPEN or SOCKET_CLOSED) */
+	csp_mutex_t lock;		/* Connection structure lock */
+	csp_id_t idin;			/* Identifier received */
+	csp_id_t idout;			/* Identifier transmitted */
 #ifdef CSP_USE_QOS
 	csp_queue_handle_t rx_event;	/* Event queue for RX packets */
 #endif
 	csp_queue_handle_t rx_queue[CSP_RX_QUEUES]; /* Queue for RX packets */
-	csp_queue_handle_t socket;		/* Socket to be "woken" when first packet is ready */
-	uint32_t timestamp;				/* Time the connection was opened */
-	uint32_t opts;					/* Connection or socket options */
+	csp_queue_handle_t socket;	/* Socket to be "woken" when first packet is ready */
+	uint32_t timestamp;		/* Time the connection was opened */
+	uint32_t opts;			/* Connection or socket options */
 #ifdef CSP_USE_RDP
-	csp_rdp_t rdp;					/* RDP state */
+	csp_rdp_t rdp;			/* RDP state */
 #endif
 };
 

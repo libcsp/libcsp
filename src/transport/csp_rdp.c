@@ -62,11 +62,11 @@ static CSP_BASE_TYPE pdTrue = 1;
 typedef struct __attribute__((__packed__)) {
 	/* The timestamp is placed in the padding bytes */
 	uint8_t padding[CSP_PADDING_BYTES - 2 * sizeof(uint32_t)];
-	uint32_t quarantine; 		// EACK quarantine period
-	uint32_t timestamp;			// Time the message was sent
-	uint16_t length;			// Length field must be just before CSP ID
-	csp_id_t id;				// CSP id must be just before data
-	uint8_t data[];				// This just points to the rest of the buffer, without a size indication.
+	uint32_t quarantine;	// EACK quarantine period
+	uint32_t timestamp;	// Time the message was sent
+	uint16_t length;	// Length field must be just before CSP ID
+	csp_id_t id;		// CSP id must be just before data
+	uint8_t data[];		// This just points to the rest of the buffer, without a size indication.
 } rdp_packet_t;
 
 typedef struct __attribute__((__packed__)) {
