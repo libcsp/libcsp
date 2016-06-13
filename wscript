@@ -49,6 +49,7 @@ def options(ctx):
     gr.add_option('--enable-bindings', action='store_true', help='Enable Python bindings')
     gr.add_option('--enable-examples', action='store_true', help='Enable examples')
     gr.add_option('--enable-dedup', action='store_true', help='Enable packet deduplicator')
+    gr.add_option('--enable-csperf', action='store_true', help='Build CSP performance test tool')
 
     # Interfaces    
     gr.add_option('--enable-if-i2c', action='store_true', help='Enable I2C interface')
@@ -57,7 +58,7 @@ def options(ctx):
     gr.add_option('--enable-if-zmqhub', action='store_true', help='Enable ZMQHUB interface')
     
     # Drivers
-    gr.add_option('--enable-can-socketcan', default=None, metavar='CHIP', help='Enable Linux socketcan driver')
+    gr.add_option('--enable-can-socketcan', action='store_true', help='Enable Linux socketcan driver')
     gr.add_option('--with-driver-usart', default=None, metavar='DRIVER', help='Build USART driver. [linux, None]')
 
     # OS    
@@ -153,6 +154,7 @@ def configure(ctx):
     # Store configuration options
     ctx.env.ENABLE_BINDINGS = ctx.options.enable_bindings
     ctx.env.ENABLE_EXAMPLES = ctx.options.enable_examples
+    ctx.env.ENABLE_CSPERF = ctx.options.enable_csperf
     
     # Create config file
     if not ctx.options.disable_output:
@@ -263,6 +265,12 @@ def build(ctx):
             includes= ctx.env.INCLUDES_CSP,
             export_includes = 'include',
             use = ['include'],
+            lib = ctx.env.LIBS)
+
+    if ctx.env.ENABLE_CSPERF:
+        ctx.program(source=ctx.path.ant_glob('utils/csperf.c'),
+            target = 'csperf',
+            use = ['csp'],
             lib = ctx.env.LIBS)
 
     if ctx.env.ENABLE_EXAMPLES:
