@@ -24,19 +24,205 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <unistd.h>
+#include <errno.h>
+#include <time.h>
+#include <assert.h>
+#include <signal.h>
 #include <getopt.h>
 
 #include <csp/csp.h>
+#include <csp/csp_endian.h>
 #include <csp/interfaces/csp_if_can.h>
 
-#define CSPERF_TYPE_BEGIN	0x01
-#define CSPERF_TYPE_DATA	0x02
-#define CSPERF_TYPE_END		0x03
+unsigned int timeout_ms = 1000;
+unsigned int data_size = 100;
+bool should_stop = false;
+unsigned int runtime = 10;
+unsigned int max_frames = 0;
+unsigned int bandwidth = 1000000; /* bits/s */
+
+#define CSPERF_TYPE_DATA 1
+#define CSPERF_TYPE_DONE 2
 
 struct csperf_packet {
+	uint32_t seq;
 	uint8_t type;
+	uint8_t data[0];
 } __attribute__ ((packed));
+
+uint64_t get_nanosecs(void)
+{
+	struct timespec now;
+
+	clock_gettime(CLOCK_MONOTONIC, &now);
+
+	return now.tv_sec * 1000000000UL + now.tv_nsec;
+}
+
+void fill_pattern(uint8_t *dst, size_t len)
+{
+	int i;
+	uint8_t b = 0x01;
+
+	for (i = 0; i < len; i++)
+		*dst++ = b++;
+}
+
+bool check_pattern(uint8_t *dst, size_t len)
+{
+	int i;
+	uint8_t b = 0x01;
+
+	for (i = 0; i < len; i++) {
+		if (*dst++ != b++)
+			return false;
+	}
+
+	return true;
+}
+
+void handle_connection(csp_conn_t *conn)
+{
+	csp_packet_t *packet;
+	struct csperf_packet *pp;
+
+	uint32_t seq;
+	uint32_t last_seq = 0;
+	bool valid;
+
+	uint32_t received = 0;
+	uint32_t lost = 0;
+	uint32_t corrupt = 0;
+
+	uint32_t last_update_seq = 0;
+	uint64_t last_update_time = 0;
+
+	printf("Connection from %hhu:%hhu\n",
+	       csp_conn_src(conn), csp_conn_sport(conn));
+
+	while (1) {
+		packet = csp_read(conn, timeout_ms);
+		if (!packet) {
+			printf("Timeout\n");
+			break;
+		}
+
+		if (packet->length != sizeof(*pp) + data_size)
+			break;
+
+		pp = (struct csperf_packet *) packet->data;
+		seq = csp_ntoh32(pp->seq);
+		valid = check_pattern(pp->data, data_size);
+
+		received++;
+
+		if (last_seq > 0 && seq != last_seq + 1)
+			lost += seq - last_seq - 1;
+
+		if (!valid) {
+			printf("corrupted packet received!\n");
+			corrupt++;
+		}
+
+		csp_buffer_free(packet);
+	}
+
+	printf("Received %u packets\n", received);
+}
+
+int run_server(uint8_t port)
+{
+	csp_socket_t *socket;
+	csp_conn_t *conn;
+
+	socket = csp_socket(CSP_SO_NONE);
+	assert(socket);
+	csp_bind(socket, port);
+	csp_listen(socket, 10);
+
+	printf("Server listening on port %hhu\n", port);
+
+	while (1) {
+		if ((conn = csp_accept(socket, 250)) == NULL) {
+			if (should_stop)
+				break;
+			continue;
+		}
+
+		handle_connection(conn);
+
+		csp_close(conn);
+	}
+
+	return 0;
+}
+
+int run_client(uint8_t server, uint8_t port)
+{
+	csp_conn_t *conn;
+	csp_packet_t *packet;
+	struct csperf_packet *pp;
+
+	uint32_t seq = 0;
+	uint64_t start_time, now;
+	unsigned int sleep_time;
+
+	printf("Client connecting to %hhu port %hhu\n", server, port);
+
+	conn = csp_connect(CSP_PRIO_NORM, server, port, timeout_ms, CSP_O_NONE);
+	if (!conn) {
+		printf("Failed to connect to server\n");
+		return -ENOTCONN;
+	}
+
+	/* Calculate time between packets in us for target speed */
+	sleep_time = (sizeof(*pp) + data_size) * 8 * 1000000 / bandwidth;
+	printf("Sleeping %u us between packets\n", sleep_time);
+
+	start_time = get_nanosecs();
+
+	while (1) {
+		if (should_stop)
+			break;
+
+		now = get_nanosecs();
+		if (now >= start_time + runtime * 1000000000UL) {
+			printf("done\n");
+			break;
+		}
+
+		packet = csp_buffer_get(sizeof(*pp) + data_size);
+		if (!packet) {
+			printf("Failed to allocate packet\n");
+			return -ENOMEM;
+		}
+
+		pp = (struct csperf_packet *) packet->data;
+
+		pp->seq = csp_hton32(seq++);
+		fill_pattern(pp->data, data_size);
+
+		packet->length = sizeof(*pp) + data_size;
+		if (!csp_send(conn, packet, timeout_ms)) {
+			csp_buffer_free(packet);
+			break;
+		}
+
+		usleep(sleep_time);
+	}
+
+	printf("Sent %u packets\n", seq);
+
+	return 0;
+}
+
+void sighandler(int signo)
+{
+	if (signo == SIGINT)
+		should_stop = true;
+}
 
 void usage(const char *argv0)
 {
@@ -51,26 +237,9 @@ void help(const char *argv0)
 	printf("  -h, --help               Print help and exit\r\n");
 }
 
-int run_server(uint8_t port)
-{
-	csp_socket_t *socket;
-	csp_conn_t *conn;
-
-	printf("Server listening on port %hhu\n", port);
-
-	return 0;
-}
-
-int run_client(uint8_t server, uint8_t port)
-{
-	printf("Client connecting to %hhu port %hhu\n", server, port);
-
-	return 0;
-}
-
 int main(int argc, char **argv)
 {
-	int c;
+	int ret, c;
 	int option_index = 0;
 	struct csp_can_config conf = {.ifc = "vcan0"};
 
@@ -81,18 +250,24 @@ int main(int argc, char **argv)
 	int client_mode = 0;
 
 	struct option long_options[] = {
-		{"address", required_argument, NULL,        'a'},
-		{"client",  required_argument, NULL,        'a'},
-		{"port",    required_argument, NULL,        'a'},
-		{"help",    no_argument,       NULL,        'h'},
-		{"server",  no_argument,       &server_mode, 1},
+		{"address",   required_argument, NULL,        'a'},
+		{"bandwidth", required_argument, NULL,        'b'},
+		{"client",    required_argument, NULL,        'c'},
+		{"port",      required_argument, NULL,        'p'},
+		{"timeout",   required_argument, NULL,        'T'},
+		{"time",      required_argument, NULL,        't'},
+		{"help",      no_argument,       NULL,        'h'},
+		{"server",    no_argument,       &server_mode, 1},
 	};
 
-	while ((c = getopt_long(argc, argv, "a:c:p:sh",
+	while ((c = getopt_long(argc, argv, "a:b:c:p:st:T:h",
 				long_options, &option_index)) != -1) {
 		switch (c) {
 		case 'a':
 			addr = atoi(optarg);
+			break;
+		case 'b':
+			bandwidth = atoi(optarg);
 			break;
 		case 'c':
 			client_mode = 1;
@@ -104,6 +279,12 @@ int main(int argc, char **argv)
 		case 's':
 			server_mode = 1;
 			break;
+		case 't':
+			runtime = atoi(optarg);
+			break;
+		case 'T':
+			timeout_ms = atoi(optarg);
+			break;
 		case 'h':
 			help(argv[0]);
 			exit(EXIT_SUCCESS);
@@ -113,7 +294,7 @@ int main(int argc, char **argv)
 		}
 	}
 
-	/* Server OR client must be selected */
+	/* Server XOR client must be selected */
 	if (!(server_mode ^ client_mode)) {
 		usage(argv[0]);
 		exit(EXIT_FAILURE);
@@ -127,11 +308,14 @@ int main(int argc, char **argv)
 
 	csp_route_start_task(0, 0);
 
+	/* Install SIGINT handler */
+	signal(SIGINT, sighandler);
+
 	if (server_mode) {
-		run_server(port);
+		ret = run_server(port);
 	} else {
-		run_client(server, port);
+		ret = run_client(server, port);
 	}
 
-	return 0;
+	return ret ? EXIT_FAILURE : EXIT_SUCCESS;
 }
