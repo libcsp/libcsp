@@ -143,17 +143,14 @@ static void handle_connection(csp_conn_t *conn)
 	uint32_t last_start_time = 0;
 	uint32_t start_time;
 
-	printf("[ ] connected with %hhu port %hhu\n",
-	       csp_conn_src(conn), csp_conn_sport(conn));
+	printf("[ ] connected with %hhu port %hhu, flags %02x\n",
+	       csp_conn_src(conn), csp_conn_sport(conn), csp_conn_flags(conn));
 
 	start_time = csp_get_ms();
 	last_start_time = start_time;
 	while (1) {
 		packet = csp_read(conn, timeout_ms);
 		if (!packet)
-			break;
-
-		if (packet->length != sizeof(*pp) + data_size)
 			break;
 
 		pp = (struct csperf_packet *) packet->data;
@@ -166,7 +163,7 @@ static void handle_connection(csp_conn_t *conn)
 		if (last_seq > 0 && seq != last_seq + 1)
 			last.lost += seq - last_seq - 1;
 
-		if (!check_pattern(pp->data, data_size))
+		if (!check_pattern(pp->data, packet->length - sizeof(*pp)))
 			last.corrupt++;
 
 		last_seq = seq;
@@ -225,7 +222,7 @@ static int run_server(uint8_t port)
 	return 0;
 }
 
-static int run_client(uint8_t server, uint8_t port)
+static int run_client(uint8_t server, uint8_t port, uint8_t flags)
 {
 	csp_conn_t *conn;
 	csp_packet_t *packet;
@@ -241,14 +238,17 @@ static int run_client(uint8_t server, uint8_t port)
 	printf("Client connecting to %hhu, port %hhu\n", server, port);
 	printf("------------------------------------------------------------\n");
 
-	conn = csp_connect(CSP_PRIO_NORM, server, port, timeout_ms, CSP_O_NONE);
+	conn = csp_connect(CSP_PRIO_NORM, server, port, timeout_ms, flags);
 	if (!conn) {
 		printf("Failed to connect to server\n");
 		return -ENOTCONN;
 	}
 
 	/* Calculate target time between packets in us for target speed */
-	interval_target = (sizeof(*pp) + data_size) * 8 * 1000000 / bandwidth;
+	if (bandwidth > 0)
+		interval_target = (sizeof(*pp) + data_size) * 8 * 1000000 / bandwidth;
+	else
+		interval_target = 0;
 	printf("%lu us between packets\n", interval_target);
 
 	start_time = get_us();
@@ -320,6 +320,22 @@ static void help(const char *argv0)
 	printf("  -h, --help               Print help and exit\r\n");
 }
 
+static uint8_t parse_flags(const char *flagstr)
+{
+	uint8_t flags = CSP_O_NONE;
+
+	if (strchr(flagstr, 'r'))
+		flags |= CSP_O_RDP;
+	if (strchr(flagstr, 'c'))
+		flags |= CSP_O_CRC32;
+	if (strchr(flagstr, 'h'))
+		flags |= CSP_O_HMAC;
+	if (strchr(flagstr, 'x'))
+		flags |= CSP_O_XTEA;
+
+	return flags;
+}
+
 int main(int argc, char **argv)
 {
 	int ret, c;
@@ -329,6 +345,7 @@ int main(int argc, char **argv)
 	uint8_t addr = 8;
 	uint8_t port = 21;
 	uint8_t server = 9;
+	uint8_t flags = CSP_O_NONE;
 	int server_mode = 0;
 	int client_mode = 0;
 
@@ -340,10 +357,12 @@ int main(int argc, char **argv)
 		{"timeout",   required_argument, NULL,        'T'},
 		{"time",      required_argument, NULL,        't'},
 		{"help",      no_argument,       NULL,        'h'},
+		{"option",    required_argument, NULL,        'o'},
+		{"size",      required_argument, NULL,        'z'},
 		{"server",    no_argument,       &server_mode, 1},
 	};
 
-	while ((c = getopt_long(argc, argv, "a:b:c:p:st:T:h",
+	while ((c = getopt_long(argc, argv, "a:b:c:o:p:st:T:hz:",
 				long_options, &option_index)) != -1) {
 		switch (c) {
 		case 'a':
@@ -368,9 +387,15 @@ int main(int argc, char **argv)
 		case 'T':
 			timeout_ms = atoi(optarg);
 			break;
+		case 'o':
+			flags = parse_flags(optarg);
+			break;
 		case 'h':
 			help(argv[0]);
 			exit(EXIT_SUCCESS);
+		case 'z':
+			data_size = atoi(optarg);
+			break;
 		case '?':
 		default:
 			exit(EXIT_FAILURE);
@@ -397,7 +422,7 @@ int main(int argc, char **argv)
 	if (server_mode) {
 		ret = run_server(port);
 	} else {
-		ret = run_client(server, port);
+		ret = run_client(server, port, flags);
 	}
 
 	return ret ? EXIT_FAILURE : EXIT_SUCCESS;
