@@ -14,9 +14,7 @@ libcsp/src/interfaces          Interface modules for CAN, I2C, KISS, LOOP and ZM
 libcsp/src/drivers/can         Driver for CAN                                      
 libcsp/src/drivers/usart       Driver for USART                                      
 libcsp/src/arch/freertos       FreeRTOS architecture module
-libcsp/src/arch/macosx         Mac OS X architecture module
 libcsp/src/arch/posix          Posix architecture module
-libcsp/src/arch/windows        Windows architecture module
 libcsp/src/rtable              Routing table module
 libcsp/transport               Transport module, UDP and RDP
 libcsp/crypto                  Crypto module

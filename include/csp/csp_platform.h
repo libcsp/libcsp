@@ -28,7 +28,7 @@ extern "C" {
 #include <stdint.h>
 
 /* Set OS */
-#if defined(CSP_POSIX) || defined(CSP_WINDOWS) || defined(CSP_MACOSX)
+#if defined(CSP_POSIX)
 	#define CSP_BASE_TYPE int
 	#define CSP_MAX_DELAY (UINT32_MAX)
 	#define CSP_INFINITY (UINT32_MAX)
@@ -46,7 +46,7 @@ extern "C" {
 	#define CSP_ENTER_CRITICAL(lock) do { portENTER_CRITICAL(); } while (0)
 	#define CSP_EXIT_CRITICAL(lock) do { portEXIT_CRITICAL(); } while (0)
 #else
-	#error "OS must be either CSP_POSIX, CSP_MACOSX, CSP_FREERTOS OR CSP_WINDOWS"
+	#error "OS must be either CSP_POSIX or CSP_FREERTOS"
 #endif
 
 #ifdef __cplusplus

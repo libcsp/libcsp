@@ -58,10 +58,10 @@ def options(ctx):
     
     # Drivers
     gr.add_option('--enable-can-socketcan', default=None, metavar='CHIP', help='Enable Linux socketcan driver')
-    gr.add_option('--with-driver-usart', default=None, metavar='DRIVER', help='Build USART driver. [windows, linux, None]')
+    gr.add_option('--with-driver-usart', default=None, metavar='DRIVER', help='Build USART driver. [linux, None]')
 
     # OS    
-    gr.add_option('--with-os', metavar='OS', default='posix', help='Set operating system. Must be either \'posix\', \'macosx\', \'windows\' or \'freertos\'')
+    gr.add_option('--with-os', metavar='OS', default='posix', help='Set operating system. Must be either \'posix\' or \'freertos\'')
     gr.add_option('--enable-init-shutdown', action='store_true', help='Use init system commands for shutdown/reboot')
 
     # Options
@@ -78,12 +78,12 @@ def options(ctx):
 
 def configure(ctx):
     # Validate OS
-    if not ctx.options.with_os in ('posix', 'windows', 'freertos', 'macosx'):
-        ctx.fatal('--with-os must be either \'posix\', \'windows\', \'macosx\' or \'freertos\'')
+    if not ctx.options.with_os in ('posix', 'freertos'):
+        ctx.fatal('--with-os must be either \'posix\' or \'freertos\'')
 
     # Validate USART drivers
-    if not ctx.options.with_driver_usart in (None, 'windows', 'linux'):
-        ctx.fatal('--with-driver-usart must be either \'windows\' or \'linux\'')
+    if not ctx.options.with_driver_usart in (None, 'linux'):
+        ctx.fatal('--with-driver-usart must be either None or \'linux\'')
 
     if not ctx.options.with_loglevel in ('error', 'warn', 'info', 'debug'):
         ctx.fatal('--with-loglevel must be either \'error\', \'warn\', \'info\' or \'debug\'')
@@ -122,22 +122,14 @@ def configure(ctx):
     # Libs
     if 'posix' in ctx.env.OS:
         ctx.env.append_unique('LIBS', ['rt', 'pthread', 'util'])
-    elif 'macosx' in ctx.env.OS:
-        ctx.env.append_unique('LIBS', ['pthread'])
 
     # Check for recursion
     if ctx.path == ctx.srcnode:
         ctx.options.install_csp = True
     
-    # Windows build flags
-    if ctx.options.with_os == 'windows':
-        ctx.env.append_unique('CFLAGS', ['-D_WIN32_WINNT=0x0600'])
-
     ctx.define_cond('CSP_FREERTOS', ctx.options.with_os == 'freertos')
     ctx.define_cond('CSP_POSIX', ctx.options.with_os == 'posix')
-    ctx.define_cond('CSP_WINDOWS', ctx.options.with_os == 'windows')
-    ctx.define_cond('CSP_MACOSX', ctx.options.with_os == 'macosx')
-        
+
     # Add CAN driver
     if ctx.options.enable_can_socketcan:
         ctx.env.append_unique('FILES_CSP', 'src/drivers/can/can_socketcan.c')
@@ -292,12 +284,6 @@ def build(ctx):
                 target = 'fifo',
                 includes = ctx.env.INCLUDES_CSP,
                 lib = ctx.env.LIBS,
-                use = 'csp')
-
-        if 'windows' in ctx.env.OS:
-            ctx.program(source = ctx.path.ant_glob('examples/csp_if_fifo_windows.c'),
-                target = 'csp_if_fifo',
-                includes = ctx.env.INCLUDES_CSP,
                 use = 'csp')
 
 def dist(ctx):

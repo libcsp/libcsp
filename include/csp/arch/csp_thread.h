@@ -29,7 +29,7 @@ extern "C" {
 #include <csp/csp.h>
 
 /* POSIX interface */
-#if defined(CSP_POSIX) || defined(CSP_MACOSX)
+#if defined(CSP_POSIX)
 
 #include <pthread.h>
 #include <unistd.h>
@@ -45,25 +45,6 @@ typedef void * csp_thread_return_t;
 #define csp_sleep_ms(time_ms) usleep(time_ms * 1000);
 
 #endif // CSP_POSIX
-
-/* Windows interface */
-#if defined(CSP_WINDOWS)
-
-#include <Windows.h>
-#undef interface
-#include <process.h>
-
-#define csp_thread_exit() _endthreadex(0)
-
-typedef HANDLE csp_thread_handle_t;
-typedef unsigned int csp_thread_return_t;
-
-#define CSP_DEFINE_TASK(task_name) csp_thread_return_t __attribute__((stdcall)) task_name(void * param) 
-#define CSP_TASK_RETURN 0
-
-#define csp_sleep_ms(time_ms) Sleep(time_ms);
-
-#endif // CSP_WINDOWS
 
 /* FreeRTOS interface */
 #if defined(CSP_FREERTOS)
@@ -87,11 +68,7 @@ typedef void csp_thread_return_t;
 
 #endif // CSP_FREERTOS
 
-#ifndef CSP_WINDOWS
 int csp_thread_create(csp_thread_return_t (* routine)(void *), const char * const thread_name, unsigned short stack_depth, void * parameters, unsigned int priority, csp_thread_handle_t * handle);
-#else
-int csp_thread_create(csp_thread_return_t (* routine)(void *)__attribute__((stdcall)), const char * const thread_name, unsigned short stack_depth, void * parameters, unsigned int priority, csp_thread_handle_t * handle);
-#endif
 
 #ifdef __cplusplus
 } /* extern "C" */
