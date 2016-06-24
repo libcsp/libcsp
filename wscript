@@ -151,6 +151,10 @@ def configure(ctx):
         ctx.check_cfg(package='libzmq', args='--cflags --libs')
         ctx.env.append_unique('LIBS', ctx.env.LIB_LIBZMQ)
 
+    # Performance testing
+    if ctx.options.enable_csperf:
+        ctx.env.append_unique('FILES_CSP', 'src/perf/*.c')
+
     # Store configuration options
     ctx.env.ENABLE_BINDINGS = ctx.options.enable_bindings
     ctx.env.ENABLE_EXAMPLES = ctx.options.enable_examples
