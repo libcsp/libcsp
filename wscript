@@ -62,7 +62,6 @@ def options(ctx):
 
     # OS    
     gr.add_option('--with-os', metavar='OS', default='posix', help='Set operating system. Must be either \'posix\', \'macosx\', \'windows\' or \'freertos\'')
-    gr.add_option('--with-freertos', metavar='PATH', default=None, help='Set path to FreeRTOS header files')
     gr.add_option('--enable-init-shutdown', action='store_true', help='Use init system commands for shutdown/reboot')
 
     # Options
@@ -130,11 +129,8 @@ def configure(ctx):
     if ctx.path == ctx.srcnode:
         ctx.options.install_csp = True
     
-    # Add FreeRTOS 
-    if ctx.options.with_os == 'freertos':
-        if ctx.options.with_freertos:
-            ctx.env.append_unique('INCLUDES_CSP', ctx.options.with_freertos)
-    elif ctx.options.with_os == 'windows':
+    # Windows build flags
+    if ctx.options.with_os == 'windows':
         ctx.env.append_unique('CFLAGS', ['-D_WIN32_WINNT=0x0600'])
 
     ctx.define_cond('CSP_FREERTOS', ctx.options.with_os == 'freertos')
