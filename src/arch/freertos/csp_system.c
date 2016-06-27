@@ -28,7 +28,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <csp/arch/csp_system.h>
 
-int csp_sys_tasklist(char * out) {
+extern void __attribute__((weak)) cpu_reset(void);
+extern void __attribute__((weak)) cpu_shutdown(void);
+
+int csp_sys_tasklist(char *out)
+{
 #if FREERTOS_VERSION < 8
 	vTaskList((signed portCHAR *) out);
 #else
@@ -37,14 +41,15 @@ int csp_sys_tasklist(char * out) {
 	return CSP_ERR_NONE;
 }
 
-int csp_sys_tasklist_size(void) {
+int csp_sys_tasklist_size(void)
+{
 	return 40 * uxTaskGetNumberOfTasks();
 }
 
-uint32_t csp_sys_memfree(void) {
-
+uint32_t csp_sys_memfree(void)
+{
 	uint32_t total = 0, max = UINT32_MAX, size;
-	void * pmem;
+	void *pmem;
 
 	/* If size_t is less than 32 bits, start with 10 KiB */
 	size = sizeof(uint32_t) > sizeof(size_t) ? 10000 : 1000000;
@@ -66,26 +71,20 @@ uint32_t csp_sys_memfree(void) {
 	return total;
 }
 
-int csp_sys_reboot(void) {
-
-	extern void __attribute__((weak)) cpu_set_reset_cause(unsigned int);
-	if (cpu_set_reset_cause)
-		cpu_set_reset_cause(1);
-	
-	extern void __attribute__((weak)) cpu_reset(void);
+int csp_sys_reboot(void)
+{
 	if (cpu_reset) {
 		cpu_reset();
 		while (1);
 	}
-	
+
 	csp_log_error("Failed to reboot");
 
 	return CSP_ERR_INVAL;
 }
 
-int csp_sys_shutdown(void) {
-
-	extern void __attribute__((weak)) cpu_shutdown(void);
+int csp_sys_shutdown(void)
+{
 	if (cpu_shutdown) {
 		cpu_shutdown();
 		while (1);
@@ -96,8 +95,8 @@ int csp_sys_shutdown(void) {
 	return CSP_ERR_INVAL;
 }
 
-void csp_sys_set_color(csp_color_t color) {
-
+void csp_sys_set_color(csp_color_t color)
+{
 	unsigned int color_code, modifier_code;
 	switch (color & COLOR_MASK_COLOR) {
 		case COLOR_BLACK:
@@ -120,7 +119,7 @@ void csp_sys_set_color(csp_color_t color) {
 		default:
 			color_code = 0; break;
 	}
-	
+
 	switch (color & COLOR_MASK_MODIFIER) {
 		case COLOR_BOLD:
 			modifier_code = 1; break;
