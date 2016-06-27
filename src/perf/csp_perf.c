@@ -25,6 +25,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <inttypes.h>
 #include <unistd.h>
 #include <errno.h>
 #include <time.h>
@@ -44,6 +45,7 @@ struct csperf_packet {
 	uint8_t data[0];
 } __attribute__ ((packed));
 
+#if 0
 static uint64_t get_us(void)
 {
        struct timespec now;
@@ -52,10 +54,17 @@ static uint64_t get_us(void)
 
        return now.tv_sec * 1000000UL + now.tv_nsec / 1000;
 }
+#else
+static uint64_t get_us(void)
+{
+	return 0;
+}
+#endif
+
 
 static void fill_pattern(uint8_t *dst, size_t len)
 {
-	int i;
+	size_t i;
 	uint8_t b = 0x01;
 
 	for (i = 0; i < len; i++)
@@ -64,7 +73,7 @@ static void fill_pattern(uint8_t *dst, size_t len)
 
 static bool check_pattern(uint8_t *dst, size_t len)
 {
-	int i;
+	size_t i;
 	uint8_t b = 0x01;
 
 	for (i = 0; i < len; i++) {
@@ -192,7 +201,7 @@ int csp_perf_server(struct csp_perf_config *conf)
 	unsigned int id = 1;
 
 	socket = csp_socket(CSP_SO_NONE);
-	if (socket < 0)
+	if (!socket)
 		return CSP_ERR_NOBUFS;
 
 	csp_bind(socket, conf->port);
@@ -244,7 +253,7 @@ int csp_perf_client(struct csp_perf_config *conf)
 		interval_target = (sizeof(*pp) + conf->data_size) * 8 * 1000000 / conf->bandwidth;
 	else
 		interval_target = 0;
-	printf("%lu us between packets\n", interval_target);
+	printf("%"PRIi64" us between packets\n", interval_target);
 
 	start_time = get_us();
 
@@ -291,7 +300,7 @@ int csp_perf_client(struct csp_perf_config *conf)
 
 	}
 
-	printf("Sent %u packets\n", seq);
+	printf("Sent %"PRIu32" packets\n", seq);
 
 	return 0;
 }

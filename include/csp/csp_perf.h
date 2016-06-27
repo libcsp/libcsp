@@ -52,6 +52,7 @@ static inline void csp_perf_set_defaults(struct csp_perf_config *conf)
 	conf->max_frames = 0;
 	conf->bandwidth = 1000000; /* bits/s */
 	conf->update_interval = 1;
+	conf->port = 11;
 }
 
 static inline void csp_perf_stop(struct csp_perf_config *conf)

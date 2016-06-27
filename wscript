@@ -49,7 +49,8 @@ def options(ctx):
     gr.add_option('--enable-bindings', action='store_true', help='Enable Python bindings')
     gr.add_option('--enable-examples', action='store_true', help='Enable examples')
     gr.add_option('--enable-dedup', action='store_true', help='Enable packet deduplicator')
-    gr.add_option('--enable-csperf', action='store_true', help='Build CSP performance test tool')
+    gr.add_option('--enable-csperf', action='store_true', help='Enable CSP performance test functions')
+    gr.add_option('--enable-csperf-tool', action='store_true', help='Build CSP performance test tool')
 
     # Interfaces    
     gr.add_option('--enable-if-i2c', action='store_true', help='Enable I2C interface')
@@ -159,6 +160,7 @@ def configure(ctx):
     ctx.env.ENABLE_BINDINGS = ctx.options.enable_bindings
     ctx.env.ENABLE_EXAMPLES = ctx.options.enable_examples
     ctx.env.ENABLE_CSPERF = ctx.options.enable_csperf
+    ctx.env.ENABLE_CSPERF_TOOL = ctx.options.enable_csperf_tool
     
     # Create config file
     if not ctx.options.disable_output:
@@ -196,6 +198,7 @@ def configure(ctx):
     ctx.define_cond('CSP_USE_QOS', ctx.options.enable_qos)
     ctx.define_cond('CSP_USE_DEDUP', ctx.options.enable_dedup)
     ctx.define_cond('CSP_USE_INIT_SHUTDOWN', ctx.options.enable_init_shutdown)
+    ctx.define_cond('CSP_USE_CSPERF', ctx.options.enable_csperf)
     ctx.define('CSP_CONN_MAX', ctx.options.with_max_connections)
     ctx.define('CSP_CONN_QUEUE_LENGTH', ctx.options.with_conn_queue_length)
     ctx.define('CSP_FIFO_INPUT', ctx.options.with_router_queue_length)
@@ -271,7 +274,7 @@ def build(ctx):
             use = ['include'],
             lib = ctx.env.LIBS)
 
-    if ctx.env.ENABLE_CSPERF:
+    if ctx.env.ENABLE_CSPERF_TOOL:
         ctx.program(source=ctx.path.ant_glob('utils/csperf.c'),
             target = 'csperf',
             use = ['csp'],
