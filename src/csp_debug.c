@@ -30,7 +30,27 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 /* CSP includes */
 #include <csp/csp.h>
 
-#include <csp/arch/csp_system.h>
+#define COLOR_MASK_COLOR	0x0F
+#define COLOR_MASK_MODIFIER	0xF0
+
+typedef enum {
+	/* Colors */
+	COLOR_RESET	= 0xF0,
+	COLOR_BLACK	= 0x01,
+	COLOR_RED	= 0x02,
+	COLOR_GREEN	= 0x03,
+	COLOR_YELLOW	= 0x04,
+	COLOR_BLUE	= 0x05,
+	COLOR_MAGENTA	= 0x06,
+	COLOR_CYAN	= 0x07,
+	COLOR_WHITE	= 0x08,
+	/* Modifiers */
+	COLOR_NORMAL	= 0x0F,
+	COLOR_BOLD	= 0x10,
+	COLOR_UNDERLINE	= 0x20,
+	COLOR_BLINK	= 0x30,
+	COLOR_HIDE	= 0x40,
+} csp_color_t;
 
 /* Custom debug function */
 csp_debug_hook_func_t csp_debug_hook_func = NULL;
@@ -51,6 +71,48 @@ static bool csp_debug_level_enabled[] = {
 void csp_debug_hook_set(csp_debug_hook_func_t f)
 {
 	csp_debug_hook_func = f;
+}
+
+void csp_debug_set_color(csp_color_t color)
+{
+	unsigned int color_code, modifier_code;
+	switch (color & COLOR_MASK_COLOR) {
+		case COLOR_BLACK:
+			color_code = 30; break;
+		case COLOR_RED:
+			color_code = 31; break;
+		case COLOR_GREEN:
+			color_code = 32; break;
+		case COLOR_YELLOW:
+			color_code = 33; break;
+		case COLOR_BLUE:
+			color_code = 34; break;
+		case COLOR_MAGENTA:
+			color_code = 35; break;
+		case COLOR_CYAN:
+			color_code = 36; break;
+		case COLOR_WHITE:
+			color_code = 37; break;
+		case COLOR_RESET:
+		default:
+			color_code = 0; break;
+	}
+
+	switch (color & COLOR_MASK_MODIFIER) {
+		case COLOR_BOLD:
+			modifier_code = 1; break;
+		case COLOR_UNDERLINE:
+			modifier_code = 2; break;
+		case COLOR_BLINK:
+			modifier_code = 3; break;
+		case COLOR_HIDE:
+			modifier_code = 4; break;
+		case COLOR_NORMAL:
+		default:
+			modifier_code = 0; break;
+	}
+
+	printf("\033[%u;%um", modifier_code, color_code);
 }
 
 void do_csp_debug(csp_debug_level_t level, const char *format, ...)
@@ -95,14 +157,14 @@ void do_csp_debug(csp_debug_level_t level, const char *format, ...)
 	if (csp_debug_hook_func) {
 		csp_debug_hook_func(level, format, args);
 	} else {
-		csp_sys_set_color(color);
+		csp_debug_set_color(color);
 #ifdef __AVR__
 		vfprintf_P(stdout, format, args);
 #else
 		vprintf(format, args);
 #endif
 		printf("\r\n");
-		csp_sys_set_color(COLOR_RESET);
+		csp_debug_set_color(COLOR_RESET);
 	}
 
 	va_end(args);

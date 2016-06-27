@@ -33,16 +33,19 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <csp/arch/csp_system.h>
 
-int csp_sys_tasklist(char * out) {
+int csp_sys_tasklist(char * out)
+{
 	strcpy(out, "Tasklist not available on POSIX");
 	return CSP_ERR_NONE;
 }
 
-int csp_sys_tasklist_size(void) {
+int csp_sys_tasklist_size(void)
+{
 	return 100;
 }
 
-uint32_t csp_sys_memfree(void) {
+uint32_t csp_sys_memfree(void)
+{
 	uint32_t total = 0;
 	struct sysinfo info;
 	sysinfo(&info);
@@ -50,7 +53,8 @@ uint32_t csp_sys_memfree(void) {
 	return total;
 }
 
-int csp_sys_reboot(void) {
+int csp_sys_reboot(void)
+{
 #ifdef CSP_USE_INIT_SHUTDOWN
 	/* Let init(1) handle the reboot */
 	int ret = system("reboot");
@@ -69,7 +73,8 @@ int csp_sys_reboot(void) {
 	return CSP_ERR_INVAL;
 }
 
-int csp_sys_shutdown(void) {
+int csp_sys_shutdown(void)
+{
 #ifdef CSP_USE_INIT_SHUTDOWN
 	/* Let init(1) handle the shutdown */
 	int ret = system("halt");
@@ -86,46 +91,4 @@ int csp_sys_shutdown(void) {
 	csp_log_error("Failed to shutdown: %s", strerror(errno));
 
 	return CSP_ERR_INVAL;
-}
-
-void csp_sys_set_color(csp_color_t color) {
-
-	unsigned int color_code, modifier_code;
-	switch (color & COLOR_MASK_COLOR) {
-		case COLOR_BLACK:
-			color_code = 30; break;
-		case COLOR_RED:
-			color_code = 31; break;
-		case COLOR_GREEN:
-			color_code = 32; break;
-		case COLOR_YELLOW:
-			color_code = 33; break;
-		case COLOR_BLUE:
-			color_code = 34; break;
-		case COLOR_MAGENTA:
-			color_code = 35; break;
-		case COLOR_CYAN:
-			color_code = 36; break;
-		case COLOR_WHITE:
-			color_code = 37; break;
-		case COLOR_RESET:
-		default:
-			color_code = 0; break;
-	}
-	
-	switch (color & COLOR_MASK_MODIFIER) {
-		case COLOR_BOLD:
-			modifier_code = 1; break;
-		case COLOR_UNDERLINE:
-			modifier_code = 2; break;
-		case COLOR_BLINK:
-			modifier_code = 3; break;
-		case COLOR_HIDE:
-			modifier_code = 4; break;
-		case COLOR_NORMAL:
-		default:
-			modifier_code = 0; break;
-	}
-
-	printf("\033[%u;%um", modifier_code, color_code);
 }
