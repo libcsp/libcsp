@@ -949,8 +949,7 @@ int csp_rdp_send(csp_conn_t * conn, csp_packet_t * packet, uint32_t timeout) {
 	}
 
 	/* If TX window is full, wait here */
-	uint16_t in_flight = conn->rdp.snd_nxt - conn->rdp.snd_una + 1;
-	if (in_flight > conn->rdp.window_size) {
+	while (csp_rdp_seq_after(conn->rdp.snd_nxt, conn->rdp.snd_una + (uint16_t)conn->rdp.window_size)) {
 		csp_log_protocol("RDP: Waiting for window update before sending seq %u", conn->rdp.snd_nxt);
 		csp_bin_sem_wait(&conn->rdp.tx_wait, 0);
 		if ((csp_bin_sem_wait(&conn->rdp.tx_wait, conn->rdp.conn_timeout)) != CSP_SEMAPHORE_OK) {
