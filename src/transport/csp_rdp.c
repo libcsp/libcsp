@@ -472,7 +472,7 @@ int csp_rdp_check_ack(csp_conn_t * conn) {
 	/* Check all RX queues for spare capacity */
 	int prio, avail = 1;
 	for (prio = 0; prio < CSP_RX_QUEUES; prio++) {
-		if (CSP_RX_QUEUE_LENGTH - csp_queue_size(conn->rx_queue[prio]) <= (int32_t)conn->rdp.window_size) {
+		if (CSP_RX_QUEUE_LENGTH - csp_queue_size(conn->rx_queue[prio]) <= 2 * (int32_t)conn->rdp.window_size) {
 			avail = 0;
 			break;
 		}
@@ -807,19 +807,10 @@ void csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 		/* Update last received packet */
 		conn->rdp.rcv_cur = seq_nr;
 
-		/* The message is in sequence and contains data */
-		int rxq = csp_conn_get_rxq(packet->id.pri);
-		int rx_queue_size = csp_queue_size(conn->rx_queue[rxq]);
-
 		/* Only ACK the message if there is room for a full window in the RX buffer.
 		 * Unacknowledged segments are ACKed by csp_rdp_check_timeouts when the buffer is
 		 * no longer full. */
-		if (rx_queue_size + conn->rdp.window_size <= CSP_RX_QUEUE_LENGTH) {
-			if (csp_rdp_should_ack(conn))
-				csp_rdp_send_cmp(conn, NULL, RDP_ACK, conn->rdp.snd_nxt, conn->rdp.rcv_cur);
-		} else {
-			csp_log_protocol("Less than one window free in RX_queue, deferring acknowledgment for %"PRIu16, conn->rdp.rcv_cur);
-		}
+		csp_rdp_check_ack(conn);
 
 		/* Flush RX queue */
 		csp_rdp_rx_queue_flush(conn);
