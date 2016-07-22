@@ -100,20 +100,8 @@ int main(int argc, char **argv) {
 
     struct usart_conf conf;
 
-#if defined(CSP_WINDOWS)
-    conf.device = argc != 2 ? "COM4" : argv[1];
-    conf.baudrate = CBR_9600;
-    conf.databits = 8;
-    conf.paritysetting = NOPARITY;
-    conf.stopbits = ONESTOPBIT;
-    conf.checkparity = FALSE;
-#elif defined(CSP_POSIX)
     conf.device = argc != 2 ? "/dev/ttyUSB0" : argv[1];
     conf.baudrate = 500000;
-#elif defined(CSP_MACOSX)
-    conf.device = argc != 2 ? "/dev/tty.usbserial-FTSM9EGE" : argv[1];
-    conf.baudrate = 115200;
-#endif
 
 	/* Run USART init */
 	usart_init(&conf);

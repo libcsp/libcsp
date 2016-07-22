@@ -29,7 +29,7 @@ Features
  * Very Small Footprint 48 kB code and less that 1kB ram required on ARM 
  * Zero-copy buffer and queue system
  * Modular network interface system
- * Modular OS interface, ported to FreeRTOS, windows (cygwin) and Linux
+ * Modular OS interface, ported to FreeRTOS and Linux
  * Broadcast traffic
  * Promiscuous mode
  * Encrypted packets with XTEA in CTR mode

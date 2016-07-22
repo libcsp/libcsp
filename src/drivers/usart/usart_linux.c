@@ -98,7 +98,6 @@ int getbaud(int fd) {
 	case B115200:
 		inputSpeed = 115200;
 		break;
-#ifndef CSP_MACOSX
 	case B460800:
 		inputSpeed = 460800;
 		break;
@@ -123,7 +122,6 @@ int getbaud(int fd) {
 	case B3000000:
 		inputSpeed = 3000000;
 		break;
-#endif
 	}
 
 	return inputSpeed;
@@ -150,7 +148,6 @@ void usart_init(struct usart_conf * conf) {
     case 38400:   brate=B38400;   break;
     case 57600:   brate=B57600;   break;
     case 115200:  brate=B115200;  break;
-#ifndef CSP_MACOSX
     case 460800:  brate=B460800;  break;
     case 500000:  brate=B500000;  break;
     case 921600:  brate=B921600;  break;
@@ -159,7 +156,6 @@ void usart_init(struct usart_conf * conf) {
     case 2000000: brate=B2000000; break;
     case 2500000: brate=B2500000; break;
     case 3000000: brate=B3000000; break;
-#endif
     }
 
 	tcgetattr(fd, &options);
