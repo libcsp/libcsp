@@ -97,7 +97,6 @@ static void * socketcan_rx_thread(void * parameters)
 int can_send(can_id_t id, uint8_t data[], uint8_t dlc)
 {
 	struct can_frame frame;
-	int i, tries = 0;
 
 	if (dlc > 8)
 		return -1;
@@ -106,21 +105,15 @@ int can_send(can_id_t id, uint8_t data[], uint8_t dlc)
 	frame.can_id = id | CAN_EFF_FLAG;
 
 	/* Copy data to frame */
-	for (i = 0; i < dlc; i++)
-		frame.data[i] = data[i];
+	memcpy(frame.data, data, dlc);
 
 	/* Set DLC */
 	frame.can_dlc = dlc;
 
 	/* Send frame */
-	while (write(can_socket, &frame, sizeof(frame)) != sizeof(frame)) {
-		if (++tries < 1000 && errno == ENOBUFS) {
-			/* Wait 10 ms and try again */
-			usleep(10000);
-		} else {
-			csp_log_error("write: %s", strerror(errno));
-			break;
-		}
+	if (write(can_socket, &frame, sizeof(frame)) != sizeof(frame)) {
+		csp_log_error("write: %s", strerror(errno));
+		return -1;
 	}
 
 	return 0;
@@ -170,10 +163,19 @@ int can_init(uint32_t id, uint32_t mask, struct csp_can_config *conf)
 		filter.can_id   = id;
 		filter.can_mask = mask;
 		if (setsockopt(can_socket, SOL_CAN_RAW, CAN_RAW_FILTER, &filter, sizeof(filter)) < 0) {
-			csp_log_error("setsockopt: %s", strerror(errno));
+			csp_log_error("setsockopt CAN_RAW_FILTER: %s", strerror(errno));
 			return -1;
 		}
 	}
+
+	/*
+	 * Set socket send buffer to minimum allowed value. This ensures that
+	 * writes to the socket blocks instead of returning ENOBUFS when the
+	 * SocketCAN interface runs out of buffer elements.
+	 */
+	int sndbuf = 2048;
+	if (setsockopt(can_socket, SOL_SOCKET, SO_SNDBUF, &sndbuf, sizeof(sndbuf)) < 0)
+		csp_log_warn("setsockopt SO_SNDBUF: %s", strerror(errno));
 
 	/* Create receive thread */
 	if (pthread_create(&rx_thread, NULL, socketcan_rx_thread, NULL) != 0) {
