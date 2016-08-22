@@ -243,6 +243,11 @@ static csp_can_pbuf_element_t *csp_can_pbuf_new(uint32_t id)
 	int i;
 	csp_can_pbuf_element_t *buf, *ret = NULL;
 
+	if (csp_can_pbuf_availables == 0) {
+		/* Cleanup now */
+		csp_can_pbuf_cleanup(0);
+	}
+
 	for (i = 0; i < PBUF_ELEMENTS; i++) {
 		buf = &csp_can_pbuf[i];
 		if (buf->state == BUF_FREE) {
