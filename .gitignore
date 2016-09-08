@@ -5,6 +5,7 @@ build
 .waf3*
 waf-*/
 *.o
+*.d
 *.pyc
 .project
 .cproject
