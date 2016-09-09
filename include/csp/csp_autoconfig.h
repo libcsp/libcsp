@@ -10,9 +10,8 @@
 
 #include <csp/csp.h>
 
-#define GIT_REV "1234"
+#define GIT_REV (char *) "1234"
 #define CSP_FREERTOS 1
-#define CSP_DEBUG 1
 #define CSP_USE_RDP
 #define CSP_USE_CRC32
 #undef CSP_USE_HMAC
