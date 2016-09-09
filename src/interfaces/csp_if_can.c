@@ -453,7 +453,7 @@ static int csp_can_tx(csp_iface_t *interface, csp_packet_t *packet, uint32_t tim
 	tx_count = bytes;
 
 	/* Send first frame */
-	if (can_send(id, frame_buf, overhead + bytes)) {
+	if (csp_driver_can_send(id, frame_buf, overhead + bytes)) {
 		csp_log_warn("Failed to send CAN frame in csp_tx_can");
 		return CSP_ERR_DRIVER;
 	}
@@ -475,7 +475,7 @@ static int csp_can_tx(csp_iface_t *interface, csp_packet_t *packet, uint32_t tim
 		tx_count += bytes;
 
 		/* Send frame */
-		if (can_send(id, packet->data + tx_count - bytes, bytes)) {
+		if (csp_driver_can_send(id, packet->data + tx_count - bytes, bytes)) {
 			csp_log_warn("Failed to send CAN frame in Tx callback");
 			csp_if_can.tx_error++;
 			return CSP_ERR_DRIVER;
@@ -526,7 +526,7 @@ int csp_can_init(uint8_t mode, struct csp_can_config *conf)
 	}
 
 	/* Initialize CAN driver */
-	if (can_init(CFP_MAKE_DST(csp_get_address()), mask, conf) != 0) {
+	if (csp_driver_can_init(CFP_MAKE_DST(csp_get_address()), mask, conf) != 0) {
 		csp_log_error("Failed to initialize CAN driver");
 		return CSP_ERR_DRIVER;
 	}
