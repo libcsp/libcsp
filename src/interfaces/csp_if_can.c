@@ -408,7 +408,7 @@ int csp_can_rx_frame(can_frame_t *frame, CSP_BASE_TYPE *task_woken)
 	return CSP_ERR_NONE;
 }
 
-int csp_can_tx(csp_iface_t *interface, csp_packet_t *packet, uint32_t timeout)
+static int csp_can_tx(csp_iface_t *interface, csp_packet_t *packet, uint32_t timeout)
 {
 	uint16_t tx_count;
 	uint8_t bytes, overhead, avail, dest;
