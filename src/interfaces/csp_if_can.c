@@ -88,7 +88,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #define CSP_CAN_MTU		256
 
 /* Maximum number of frames in RX queue */
-#define CSP_CAN_RX_QUEUE_SIZE	100
+#define CSP_CAN_RX_QUEUE_SIZE	10
 
 /* Number of packet buffer elements */
 #define PBUF_ELEMENTS		CSP_CONN_MAX
@@ -519,7 +519,7 @@ int csp_can_init(uint8_t mode, struct csp_can_config *conf)
 		return CSP_ERR_NOMEM;
 	}
 
-	ret = csp_thread_create(csp_can_rx_task, "CAN", 6000/sizeof(int), NULL, 3, &csp_can_rx_task_h);
+	ret = csp_thread_create(csp_can_rx_task, "CAN", 300, NULL, 3, &csp_can_rx_task_h);
 	if (ret != 0) {
 		csp_log_error("Failed to init CAN RX task");
 		return CSP_ERR_NOMEM;
