@@ -448,7 +448,7 @@ void csp_conn_print_table(void) {
 
 	for (i = 0; i < CSP_CONN_MAX; i++) {
 		conn = &arr_conn[i];
-		printf("[%02u %p] S:%u, %u -> %u, %u -> %u, sock: %p\n",
+		printf("[%02u %p] S:%u, %u -> %u, %u -> %u, sock: %p\r\n",
 				i, conn, conn->state, conn->idin.src, conn->idin.dst,
 				conn->idin.dport, conn->idin.sport, conn->socket);
 #ifdef CSP_USE_RDP
