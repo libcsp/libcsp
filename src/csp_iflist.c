@@ -57,7 +57,7 @@ void csp_iflist_add(csp_iface_t *ifc) {
 }
 
 #ifdef CSP_DEBUG
-int csp_bytesize(char *buf, int len, unsigned long int n) {
+static int csp_bytesize(char *buf, int len, unsigned long int n) {
 	char postfix;
 	double size;
 

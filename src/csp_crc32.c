@@ -25,6 +25,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/csp.h>
 #include <csp/csp_endian.h>
 
+#include <csp/csp_crc32.h>
+
 #ifdef CSP_USE_CRC32
 
 #ifdef __AVR__
