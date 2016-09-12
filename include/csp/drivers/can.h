@@ -34,23 +34,6 @@ extern "C" {
  * can_frame struct and can_id types in include/linux/can.h
  */
 
-/** CAN Identifier */
-typedef uint32_t can_id_t;
-
-/** CAN Frame */
-typedef struct {
-	/** 32 bit CAN identifier */
-	can_id_t id;
-	/** Data Length Code */
-	uint8_t dlc;
-	/**< Frame Data - 0 to 8 bytes */
-	union __attribute__((aligned(8))) {
-		uint8_t data[8];
-		uint16_t data16[4];
-		uint32_t data32[2];
-	};
-} can_frame_t;
-
 typedef enum {
 	CAN_ERROR = 0,
 	CAN_NO_ERROR = 1,
@@ -60,9 +43,7 @@ typedef enum {
  * These functions needs to be implemented by the driver
  */
 int csp_driver_can_init(uint32_t id, uint32_t mask, struct csp_can_config *conf);
-int csp_driver_can_send(can_id_t id, uint8_t * data, uint8_t dlc);
-
-int csp_can_rx_frame(can_frame_t *frame, CSP_BASE_TYPE *task_woken);
+int csp_driver_can_send(uint32_t id, uint8_t * data, uint8_t dlc);
 
 #ifdef __cplusplus
 } /* extern "C" */
