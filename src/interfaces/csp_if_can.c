@@ -496,7 +496,6 @@ static int csp_can_tx(csp_iface_t *interface, csp_packet_t *packet, uint32_t tim
 
 int csp_can_init(uint8_t mode, struct csp_can_config *conf)
 {
-	int ret;
 	uint32_t mask;
 
 	/* Initialize packet buffer */
@@ -526,14 +525,6 @@ int csp_can_init(uint8_t mode, struct csp_can_config *conf)
 		return CSP_ERR_NOMEM;
 	}
 
-#if CSP_DEFERRED_CAN_TASK
-	ret = csp_thread_create(csp_can_rx_task, "CAN", 300, NULL, 3, &csp_can_rx_task_h);
-	if (ret != 0) {
-		csp_log_error("Failed to init CAN RX task");
-		return CSP_ERR_NOMEM;
-	}
-#endif
-
 	/* Initialize CAN driver */
 	if (csp_driver_can_init(CFP_MAKE_DST(csp_get_address()), mask, conf) != 0) {
 		csp_log_error("Failed to initialize CAN driver");
@@ -542,6 +533,17 @@ int csp_can_init(uint8_t mode, struct csp_can_config *conf)
 
 	/* Regsiter interface */
 	csp_iflist_add(&csp_if_can);
+
+	return CSP_ERR_NONE;
+}
+
+int csp_can_start_deferred_task(int stack_size)
+{
+	int ret = csp_thread_create(csp_can_rx_task, "CAN", stack_size, NULL, 3, &csp_can_rx_task_h);
+	if (ret != 0) {
+		csp_log_error("Failed to init CAN RX task");
+		return CSP_ERR_NOMEM;
+	}
 
 	return CSP_ERR_NONE;
 }
