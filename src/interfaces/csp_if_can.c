@@ -317,7 +317,11 @@ int csp_can_process_frame(uint32_t id, uint8_t * data, uint8_t dlc, CSP_BASE_TYP
 			csp_if_can.frame++;
 		} else {
 			/* Allocate memory for frame */
-			buf->packet = csp_buffer_get(CSP_CAN_MTU);
+			if (task_woken == NULL) {
+				buf->packet = csp_buffer_get(CSP_CAN_MTU);
+			} else {
+				buf->packet = csp_buffer_get_isr(CSP_CAN_MTU);
+			}
 			if (buf->packet == NULL) {
 				csp_log_error("Failed to get buffer for CSP_BEGIN packet");
 				csp_if_can.frame++;
