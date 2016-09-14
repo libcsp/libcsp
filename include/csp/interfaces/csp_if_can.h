@@ -51,8 +51,12 @@ struct csp_can_config {
  */
 int csp_can_init(uint8_t mode, struct csp_can_config *conf);
 
+
 int csp_can_process_frame(uint32_t id, uint8_t * data, uint8_t dlc, CSP_BASE_TYPE *task_woken);
+
+
 int csp_can_process_frame_deferred(uint32_t id, uint8_t * data, uint8_t dlc, CSP_BASE_TYPE *task_woken);
+int csp_can_start_deferred_task(int stack_size);
 
 void csp_can_pbuf_cleanup(void);
 
