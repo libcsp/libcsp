@@ -58,8 +58,6 @@ int csp_can_process_frame(uint32_t id, uint8_t * data, uint8_t dlc, CSP_BASE_TYP
 int csp_can_process_frame_deferred(uint32_t id, uint8_t * data, uint8_t dlc, CSP_BASE_TYPE *task_woken);
 int csp_can_start_deferred_task(int stack_size);
 
-void csp_can_pbuf_cleanup(void);
-
 #ifdef __cplusplus
 } /* extern "C" */
 #endif

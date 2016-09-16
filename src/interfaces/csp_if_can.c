@@ -188,11 +188,16 @@ static void csp_can_pbuf_timestamp(csp_can_pbuf_element_t *buf)
 	buf->last_used = csp_get_ms();
 }
 
-static int csp_can_pbuf_free(csp_can_pbuf_element_t *buf)
+static int csp_can_pbuf_free(csp_can_pbuf_element_t *buf, CSP_BASE_TYPE *task_woken)
 {
 	/* Free CSP packet */
-	if (buf->packet != NULL)
-		csp_buffer_free(buf->packet);
+	if (buf->packet != NULL) {
+		if (task_woken == NULL) {
+			csp_buffer_free(buf->packet);
+		} else {
+			csp_buffer_free_isr(buf->packet);
+		}
+	}
 
 	/* Mark buffer element free */
 	buf->packet = NULL;
@@ -243,7 +248,7 @@ static csp_can_pbuf_element_t *csp_can_pbuf_find(uint32_t id, uint32_t mask)
 	return ret;
 }
 
-void csp_can_pbuf_cleanup(void)
+static void csp_can_pbuf_cleanup(CSP_BASE_TYPE *task_woken)
 {
 	int i;
 	csp_can_pbuf_element_t *buf;
@@ -261,7 +266,7 @@ void csp_can_pbuf_cleanup(void)
 		if (now - buf->last_used > PBUF_TIMEOUT_MS) {
 			csp_log_warn("CAN Buffer element timed out");
 			/* Recycle packet buffer */
-			csp_can_pbuf_free(buf);
+			csp_can_pbuf_free(buf, task_woken);
 		}
 	}
 }
@@ -274,7 +279,7 @@ int csp_can_process_frame(uint32_t id, uint8_t * data, uint8_t dlc, CSP_BASE_TYP
 	/* Cleanup before accepting new data:
 	 * TODO: don't do this every time
 	 */
-	csp_can_pbuf_cleanup();
+	csp_can_pbuf_cleanup(task_woken);
 
 	/* Bind incoming frame to a packet buffer */
 	buf = csp_can_pbuf_find(id, CFP_ID_CONN_MASK);
@@ -306,7 +311,7 @@ int csp_can_process_frame(uint32_t id, uint8_t * data, uint8_t dlc, CSP_BASE_TYP
 		if (dlc < sizeof(csp_id_t) + sizeof(uint16_t)) {
 			csp_log_warn("Short BEGIN frame received");
 			csp_if_can.frame++;
-			csp_can_pbuf_free(buf);
+			csp_can_pbuf_free(buf, task_woken);
 			break;
 		}
 
@@ -325,7 +330,7 @@ int csp_can_process_frame(uint32_t id, uint8_t * data, uint8_t dlc, CSP_BASE_TYP
 			if (buf->packet == NULL) {
 				csp_log_error("Failed to get buffer for CSP_BEGIN packet");
 				csp_if_can.frame++;
-				csp_can_pbuf_free(buf);
+				csp_can_pbuf_free(buf, task_woken);
 				break;
 			}
 		}
@@ -352,7 +357,7 @@ int csp_can_process_frame(uint32_t id, uint8_t * data, uint8_t dlc, CSP_BASE_TYP
 		/* Check 'remain' field match */
 		if (CFP_REMAIN(id) != buf->remain - 1) {
 			csp_log_error("CAN frame lost in CSP packet");
-			csp_can_pbuf_free(buf);
+			csp_can_pbuf_free(buf, task_woken);
 			csp_if_can.frame++;
 			break;
 		}
@@ -364,7 +369,7 @@ int csp_can_process_frame(uint32_t id, uint8_t * data, uint8_t dlc, CSP_BASE_TYP
 		if ((buf->rx_count + dlc - offset) > buf->packet->length) {
 			csp_log_error("RX buffer overflow");
 			csp_if_can.frame++;
-			csp_can_pbuf_free(buf);
+			csp_can_pbuf_free(buf, task_woken);
 			break;
 		}
 
@@ -383,13 +388,13 @@ int csp_can_process_frame(uint32_t id, uint8_t * data, uint8_t dlc, CSP_BASE_TYP
 		buf->packet = NULL;
 
 		/* Free packet buffer */
-		csp_can_pbuf_free(buf);
+		csp_can_pbuf_free(buf, task_woken);
 
 		break;
 
 	default:
 		csp_log_warn("Received unknown CFP message type");
-		csp_can_pbuf_free(buf);
+		csp_can_pbuf_free(buf, task_woken);
 		break;
 
 	}
