@@ -58,18 +58,18 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/drivers/can.h>
 
 /* CAN header macros */
-#define CFP_HOST_SIZE		5
-#define CFP_TYPE_SIZE		1
-#define CFP_REMAIN_SIZE		8
-#define CFP_ID_SIZE		10
+#define CFP_HOST_SIZE       5
+#define CFP_TYPE_SIZE       1
+#define CFP_REMAIN_SIZE     8
+#define CFP_ID_SIZE         10
 
 /* Macros for extracting header fields */
 #define CFP_FIELD(id,rsiz,fsiz) ((uint32_t)((uint32_t)((id) >> (rsiz)) & (uint32_t)((1 << (fsiz)) - 1)))
-#define CFP_SRC(id)		CFP_FIELD(id, CFP_HOST_SIZE + CFP_TYPE_SIZE + CFP_REMAIN_SIZE + CFP_ID_SIZE, CFP_HOST_SIZE)
-#define CFP_DST(id)		CFP_FIELD(id, CFP_TYPE_SIZE + CFP_REMAIN_SIZE + CFP_ID_SIZE, CFP_HOST_SIZE)
+#define CFP_SRC(id)			CFP_FIELD(id, CFP_HOST_SIZE + CFP_TYPE_SIZE + CFP_REMAIN_SIZE + CFP_ID_SIZE, CFP_HOST_SIZE)
+#define CFP_DST(id)			CFP_FIELD(id, CFP_TYPE_SIZE + CFP_REMAIN_SIZE + CFP_ID_SIZE, CFP_HOST_SIZE)
 #define CFP_TYPE(id)		CFP_FIELD(id, CFP_REMAIN_SIZE + CFP_ID_SIZE, CFP_TYPE_SIZE)
 #define CFP_REMAIN(id)		CFP_FIELD(id, CFP_ID_SIZE, CFP_REMAIN_SIZE)
-#define CFP_ID(id)		CFP_FIELD(id, 0, CFP_ID_SIZE)
+#define CFP_ID(id)			CFP_FIELD(id, 0, CFP_ID_SIZE)
 
 /* Macros for building CFP headers */
 #define CFP_MAKE_FIELD(id,fsiz,rsiz) ((uint32_t)(((id) & (uint32_t)((uint32_t)(1 << (fsiz)) - 1)) << (rsiz)))
@@ -85,7 +85,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 				 CFP_MAKE_ID((uint32_t)(1 << CFP_ID_SIZE) - 1))
 
 /* Maximum Transmission Unit for CSP over CAN */
-#define CSP_CAN_MTU		256
+#define CSP_CAN_MTU			256
 
 /* Maximum number of frames in RX queue */
 #define CSP_CAN_RX_QUEUE_SIZE	10
@@ -210,6 +210,15 @@ int csp_can_process_frame(uint32_t id, uint8_t * data, uint8_t dlc, CSP_BASE_TYP
 {
 	csp_can_pbuf_element_t *buf;
 	uint8_t offset;
+
+	/* Random packet loss */
+#if 0
+	int random = rand();
+	if (random < RAND_MAX * 0.00005) {
+		csp_log_warn("Dropping frame");
+		return;
+	}
+#endif
 
 	/* Cleanup before accepting new data:
 	 * TODO: don't do this every time
