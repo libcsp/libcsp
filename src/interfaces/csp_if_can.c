@@ -234,9 +234,6 @@ int csp_can_process_frame(uint32_t id, uint8_t * data, uint8_t dlc, CSP_BASE_TYP
 	}
 #endif
 
-	/* Cleanup before accepting new data:
-	 * TODO: don't do this every time
-	 */
 	csp_can_pbuf_cleanup(task_woken);
 
 	/* Bind incoming frame to a packet buffer */
@@ -376,8 +373,9 @@ int csp_can_process_frame_deferred(uint32_t id, uint8_t * data, uint8_t dlc, CSP
 {
 	can_frame_t frame = { .id = id, .dlc = dlc } ;
 	memcpy(frame.data, data, (dlc > 8) ? 8 : dlc);
-	if (csp_queue_enqueue_isr(csp_can_rx_queue, &frame, task_woken) != CSP_QUEUE_OK)
+	if (csp_queue_enqueue_isr(csp_can_rx_queue, &frame, task_woken) != CSP_QUEUE_OK) {
 		return CSP_ERR_NOMEM;
+	}
 
 	return CSP_ERR_NONE;
 }
@@ -386,10 +384,10 @@ static int csp_can_tx(csp_iface_t *interface, csp_packet_t *packet, uint32_t tim
 {
 
 	/* CFP Identification number */
-	static int csp_can_frame_id = 0;
+	static volatile int csp_can_frame_id = 0;
 
-	/* Increment ID */
-	csp_can_frame_id++;
+	/* Get local copy of the static frameid */
+	int ident = csp_can_frame_id++;
 
 	uint16_t tx_count;
 	uint8_t bytes, overhead, avail, dest;
@@ -407,7 +405,7 @@ static int csp_can_tx(csp_iface_t *interface, csp_packet_t *packet, uint32_t tim
 	uint32_t id = 0;
 	id |= CFP_MAKE_SRC(packet->id.src);
 	id |= CFP_MAKE_DST(dest);
-	id |= CFP_MAKE_ID(csp_can_frame_id);
+	id |= CFP_MAKE_ID(ident);
 	id |= CFP_MAKE_TYPE(CFP_BEGIN);
 	id |= CFP_MAKE_REMAIN((packet->length + overhead - 1) / 8);
 
@@ -441,7 +439,7 @@ static int csp_can_tx(csp_iface_t *interface, csp_packet_t *packet, uint32_t tim
 		uint32_t id = 0;
 		id |= CFP_MAKE_SRC(packet->id.src);
 		id |= CFP_MAKE_DST(dest);
-		id |= CFP_MAKE_ID(csp_can_frame_id);
+		id |= CFP_MAKE_ID(ident);
 		id |= CFP_MAKE_TYPE(CFP_MORE);
 		id |= CFP_MAKE_REMAIN((packet->length - tx_count - bytes + 7) / 8);
 
