@@ -167,16 +167,30 @@ static int csp_can_pbuf_free(csp_can_pbuf_element_t *buf, CSP_BASE_TYPE *task_wo
 
 static csp_can_pbuf_element_t *csp_can_pbuf_new(uint32_t id)
 {
+
+	/* Create a mutex type semaphore. */
+	static SemaphoreHandle_t pbuf_lock = NULL;
+	if (pbuf_lock == NULL)
+		pbuf_lock = xSemaphoreCreateMutex();
+
+	/* Task locking */
+	while(xSemaphoreTake(pbuf_lock, CSP_MAX_DELAY) == pdFALSE);
+
 	for (int i = 0; i < PBUF_ELEMENTS; i++) {
 		if (csp_can_pbuf[i].state == BUF_FREE) {
 			csp_can_pbuf[i].state = BUF_USED;
 			csp_can_pbuf[i].cfpid = id;
 			csp_can_pbuf[i].remain = 0;
 			csp_can_pbuf[i].last_used = csp_get_ms();
+
+			xSemaphoreGive(pbuf_lock);
 			return &csp_can_pbuf[i];
 		}
 	}
+
+	xSemaphoreGive(pbuf_lock);
 	return NULL;
+
 }
 
 static csp_can_pbuf_element_t *csp_can_pbuf_find(uint32_t id, uint32_t mask)
