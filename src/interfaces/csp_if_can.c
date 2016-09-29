@@ -156,25 +156,17 @@ static int csp_can_pbuf_free(csp_can_pbuf_element_t *buf, CSP_BASE_TYPE *task_wo
 
 	/* Mark buffer element free */
 	buf->packet = NULL;
-	buf->state = BUF_FREE;
 	buf->rx_count = 0;
 	buf->cfpid = 0;
 	buf->last_used = 0;
 	buf->remain = 0;
+	buf->state = BUF_FREE;
 
 	return CSP_ERR_NONE;
 }
 
-static csp_can_pbuf_element_t *csp_can_pbuf_new(uint32_t id)
+static csp_can_pbuf_element_t *csp_can_pbuf_new(uint32_t id, CSP_BASE_TYPE *task_woken)
 {
-
-	/* Create a mutex type semaphore. */
-	static SemaphoreHandle_t pbuf_lock = NULL;
-	if (pbuf_lock == NULL)
-		pbuf_lock = xSemaphoreCreateMutex();
-
-	/* Task locking */
-	while(xSemaphoreTake(pbuf_lock, CSP_MAX_DELAY) == pdFALSE);
 
 	for (int i = 0; i < PBUF_ELEMENTS; i++) {
 		if (csp_can_pbuf[i].state == BUF_FREE) {
@@ -183,12 +175,9 @@ static csp_can_pbuf_element_t *csp_can_pbuf_new(uint32_t id)
 			csp_can_pbuf[i].remain = 0;
 			csp_can_pbuf[i].last_used = csp_get_ms();
 
-			xSemaphoreGive(pbuf_lock);
 			return &csp_can_pbuf[i];
 		}
 	}
-
-	xSemaphoreGive(pbuf_lock);
 	return NULL;
 
 }
@@ -242,7 +231,7 @@ int csp_can_process_frame(uint32_t id, uint8_t * data, uint8_t dlc, CSP_BASE_TYP
 	/* Check returned buffer */
 	if (buf == NULL) {
 		if (CFP_TYPE(id) == CFP_BEGIN) {
-			buf = csp_can_pbuf_new(id);
+			buf = csp_can_pbuf_new(id, task_woken);
 			if (buf == NULL) {
 				csp_log_warn("No available packet buffer for CAN");
 				csp_if_can.rx_error++;
