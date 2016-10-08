@@ -86,15 +86,15 @@ static void * socketcan_rx_thread(void * parameters)
 		/* Strip flags */
 		frame.can_id &= CAN_EFF_MASK;
 
-		/* Call RX callback */
-		csp_can_rx_frame((can_frame_t *)&frame, NULL);
+		/* Call RX callbacsp_can_rx_frameck */
+		csp_can_process_frame(frame.can_id, frame.data, frame.can_dlc, NULL);
 	}
 
 	/* We should never reach this point */
 	pthread_exit(NULL);
 }
 
-int can_send(can_id_t id, uint8_t data[], uint8_t dlc)
+int csp_driver_can_send(uint32_t id, uint8_t data[], uint8_t dlc)
 {
 	struct can_frame frame;
 	int i, tries = 0;
@@ -126,7 +126,7 @@ int can_send(can_id_t id, uint8_t data[], uint8_t dlc)
 	return 0;
 }
 
-int can_init(uint32_t id, uint32_t mask, struct csp_can_config *conf)
+int csp_driver_can_init(uint32_t id, uint32_t mask, struct csp_can_config *conf)
 {
 	struct ifreq ifr;
 	struct sockaddr_can addr;

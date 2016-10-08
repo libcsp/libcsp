@@ -231,7 +231,7 @@ def configure(ctx):
 
     ctx.define('LIBCSP_VERSION', VERSION)
 
-    ctx.write_config_header('include/csp/csp_autoconfig.h', top=True, remove=True)
+    ctx.write_config_header('include/csp/csp_autoconfig.h')
     
 def build(ctx):
 
