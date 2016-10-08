@@ -499,6 +499,11 @@ int csp_conn_print_table_str(char * str_buf, int str_size);
  */
 void csp_buffer_print_table(void);
 
+/**
+ * Hex dump to stdout
+ */
+void csp_hex_dump(const char *desc, void *addr, int len);
+
 #ifdef __AVR__
 typedef uint32_t csp_memptr_t;
 #else
