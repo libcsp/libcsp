@@ -320,6 +320,8 @@ static CSP_DEFINE_TASK(csp_task_router) {
 		csp_route_work(FIFO_TIMEOUT);
 	}
 
+	return CSP_TASK_RETURN;
+
 }
 
 int csp_route_start_task(unsigned int task_stack_size, unsigned int priority) {
