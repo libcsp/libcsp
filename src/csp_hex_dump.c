@@ -30,7 +30,7 @@ void csp_hex_dump (const char *desc, void *addr, int len)
 				printf ("  %s\r\n", buff);
 
 			// Output the offset.
-			printf ("  %04x ", (int) addr + i);
+			printf ("  %p ", addr + i);
 		}
 
 		// Now the hex code for the specific character.
