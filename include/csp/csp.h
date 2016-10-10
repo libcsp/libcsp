@@ -94,7 +94,7 @@ void csp_set_revision(char *revision);
  * Get subsystem revision.
  * @return Pointer to char array with software revision.
  */
-char *csp_get_revision(void);
+const char *csp_get_revision(void);
 
 /** csp_socket
  * Create CSP socket endpoint
