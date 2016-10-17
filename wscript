@@ -260,7 +260,7 @@ def build(ctx):
         target = 'csp',
         includes= ctx.env.INCLUDES_CSP,
         export_includes = ctx.env.INCLUDES_CSP,
-        use = 'include freertos_h',
+        use = 'include freertos',
         install_path = install_path,
     )
 
