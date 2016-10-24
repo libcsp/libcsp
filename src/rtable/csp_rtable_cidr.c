@@ -218,6 +218,7 @@ int csp_rtable_set(uint8_t _address, uint8_t _netmask, csp_iface_t *ifc, uint8_t
 	return CSP_ERR_NONE;
 }
 
+#ifdef CSP_DEBUG
 void csp_rtable_print(void) {
 
 	for (csp_rtable_t * i = rtable; (i); i = i->next) {
@@ -229,4 +230,4 @@ void csp_rtable_print(void) {
 	}
 
 }
-
+#endif
