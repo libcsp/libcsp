@@ -588,9 +588,7 @@ void csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 
 		if (conn->rdp.state == RDP_CLOSE_WAIT || conn->rdp.state == RDP_CLOSED) {
 			csp_log_protocol("RST received in CLOSE_WAIT or CLOSED. Now closing connection");
-			csp_buffer_free(packet);
-			csp_close(conn);
-			return;
+			goto discard_close;
 		} else {
 			csp_log_protocol("Got RESET in state %u", conn->rdp.state);
 
