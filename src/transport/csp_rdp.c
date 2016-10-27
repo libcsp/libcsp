@@ -673,8 +673,7 @@ void csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 			csp_log_protocol("RDP: NP: Connection OPEN");
 
 			/* Send ACK */
-			if (conn->rdp.delayed_acks == 0)
-				csp_rdp_send_cmp(conn, NULL, RDP_ACK, conn->rdp.snd_nxt, conn->rdp.rcv_cur);
+			csp_rdp_send_cmp(conn, NULL, RDP_ACK, conn->rdp.snd_nxt, conn->rdp.rcv_cur);
 
 			/* Wake TX task */
 			csp_bin_sem_post(&conn->rdp.tx_wait);
