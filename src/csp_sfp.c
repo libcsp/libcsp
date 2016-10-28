@@ -119,12 +119,29 @@ int csp_sfp_recv_fp(csp_conn_t * conn, void ** dataout, int * datasize, uint32_t
 			return -1;
 		}
 
+		/* validate the read enough bytes for the header */
+		if (packet->length < sizeof(sfp_header_t)) {
+			csp_debug(CSP_ERROR, "Not enough bytes for the SFP header");
+			return -1;
+		}
+
 		/* Read SFP header */
 		sfp_header_t * sfp_header = csp_sfp_header_remove(packet);
 		sfp_header->offset = csp_ntoh32(sfp_header->offset);
 		sfp_header->totalsize = csp_ntoh32(sfp_header->totalsize);
 
 		csp_debug(CSP_PROTOCOL, "SFP fragment %u/%u", sfp_header->offset + packet->length, sfp_header->totalsize);
+
+		/* make some sanity checks first:
+		 * 1. offset is sane (no overflow)
+		 * 2. Integer-Overflow safe check: 'length' isn't overflowing
+		 */
+		if (sfp_header->offset >= sfp_header->totalsize ||
+			sfp_header->totalsize - sfp_header->offset < packet->length) {
+			csp_debug(CSP_ERROR, "SFP RX overflow: %u, %u, %u", sfp_header->offset, sfp_header->totalsize, packet->length);
+			csp_buffer_free(packet);
+			return -1;		
+		}
 
 		if (sfp_header->offset > last_byte + 1) {
 			csp_debug(CSP_ERROR, "SFP missing %u bytes", sfp_header->offset - last_byte);
@@ -134,20 +151,26 @@ int csp_sfp_recv_fp(csp_conn_t * conn, void ** dataout, int * datasize, uint32_t
 			last_byte = sfp_header->offset + packet->length;
 		}
 
-		/* Allocate memory */
-		if (*dataout == NULL)
+		/* Allocate memory and Copy data to output */
+		if (*dataout == NULL) {
 			*dataout = csp_malloc(sfp_header->totalsize);
+			*datasize = sfp_header->totalsize;
+		}	
 		if (*dataout == NULL) {
 			csp_debug(CSP_ERROR, "No dyn-memory for SFP fragment");
 			csp_buffer_free(packet);
 			return -1;
 		}
+		/* Comapre the data output to be consistent */
+		else if ( *datasize != sfp_header->totalsize) {
+			csp_debug(CSP_ERROR, "SFP totalsize has changed: %u, %u", *datasize, sfp_header->totalsize);
+			csp_buffer_free(packet);
+			return -1;			
+		}
 
-		/* Copy data to output */
-		*datasize = sfp_header->totalsize;
 		memcpy(*dataout + sfp_header->offset, packet->data, packet->length);
 
-		if (sfp_header->offset + packet->length >= sfp_header->totalsize) {
+		if (sfp_header->offset + packet->length == sfp_header->totalsize) {
 			csp_debug(CSP_PROTOCOL, "SFP complete");
 			csp_buffer_free(packet);
 			return 0;
