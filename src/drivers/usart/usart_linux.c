@@ -39,11 +39,11 @@ usart_callback_t usart_callback = NULL;
 
 static void *serial_rx_thread(void *vptr_args);
 
-int getbaud(int fd) {
+int getbaud(int ifd) {
 	struct termios termAttr;
 	int inputSpeed = -1;
 	speed_t baudRate;
-	tcgetattr(fd, &termAttr);
+	tcgetattr(ifd, &termAttr);
 	/* Get the input speed. */
 	baudRate = cfgetispeed(&termAttr);
 	switch (baudRate) {
