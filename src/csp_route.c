@@ -198,10 +198,15 @@ int csp_route_work(uint32_t timeout) {
 	if (csp_dedup_is_duplicate(packet)) {
 		/* Discard packet */
 		csp_log_packet("Duplicate packet discarded");
+		input.interface->drop++;
 		csp_buffer_free(packet);
 		return 0;
 	}
 #endif
+
+	/* Now we count the message (since its deduplicated) */
+	input.interface->rx++;
+	input.interface->rxbytes += packet->length;
 
 	/* If the message is not to me, route the message to the correct interface */
 	if ((packet->id.dst != csp_get_address()) && (packet->id.dst != CSP_BROADCAST_ADDR)) {
