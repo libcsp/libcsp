@@ -44,6 +44,7 @@ int getbaud(int fd) {
 	int inputSpeed = -1;
 	speed_t baudRate;
 	tcgetattr(fd, &termAttr);
+
 	/* Get the input speed. */
 	baudRate = cfgetispeed(&termAttr);
 	switch (baudRate) {
@@ -123,27 +124,30 @@ int getbaud(int fd) {
 	case B3000000:
 		inputSpeed = 3000000;
 		break;
+	case B3500000:
+		inputSpeed = 3500000;
+		break;
+	case B4000000:
+		inputSpeed = 4000000;
+		break;
 #endif
-	}
-
+        }
 	return inputSpeed;
-
 }
 
 void usart_init(struct usart_conf * conf) {
 
-	struct termios options;
-	pthread_t rx_thread;
+  struct termios options;
+  pthread_t rx_thread;
 
-	fd = open(conf->device, O_RDWR | O_NOCTTY | O_NONBLOCK);
+  fd = open(conf->device, O_RDWR | O_NOCTTY | O_NONBLOCK);
+  if (fd < 0) {
+    printf("Failed to open %s: %s\r\n", conf->device, strerror(errno));
+    return;
+  }
 
-	if (fd < 0) {
-		printf("Failed to open %s: %s\r\n", conf->device, strerror(errno));
-		return;
-	}
-
-	int brate = 0;
-    switch(conf->baudrate) {
+  int brate = 0;
+  switch(conf->baudrate) {
     case 4800:    brate=B4800;    break;
     case 9600:    brate=B9600;    break;
     case 19200:   brate=B19200;   break;
@@ -159,33 +163,39 @@ void usart_init(struct usart_conf * conf) {
     case 2000000: brate=B2000000; break;
     case 2500000: brate=B2500000; break;
     case 3000000: brate=B3000000; break;
+    case 3500000: brate=B3500000; break;
+    case 4000000: brate=B4000000; break;
 #endif
-    }
+    default:
+      brate=B500000;
+      printf("Unsupported baudrate requested, defaulting to 500000, requested baudrate=%u\n", conf->baudrate);
+      break;
+  }
 
-	tcgetattr(fd, &options);
-	cfsetispeed(&options, brate);
-	cfsetospeed(&options, brate);
-	options.c_cflag |= (CLOCAL | CREAD);
-	options.c_cflag &= ~PARENB;
-	options.c_cflag &= ~CSTOPB;
-	options.c_cflag &= ~CSIZE;
-	options.c_cflag |= CS8;
-	options.c_lflag &= ~(ECHO | ECHONL | ICANON | IEXTEN | ISIG);
-	options.c_iflag &= ~(IGNBRK | BRKINT | ICRNL | INLCR | PARMRK | INPCK | ISTRIP | IXON);
-	options.c_oflag &= ~(OCRNL | ONLCR | ONLRET | ONOCR | OFILL | OPOST);
-	options.c_cc[VTIME] = 0;
-	options.c_cc[VMIN] = 1;
-	tcsetattr(fd, TCSANOW, &options);
-	if (tcgetattr(fd, &options) == -1)
-		perror("error setting options");
-	fcntl(fd, F_SETFL, 0);
+  tcgetattr(fd, &options);
+  cfsetispeed(&options, brate);
+  cfsetospeed(&options, brate);
+  options.c_cflag |= (CLOCAL | CREAD);
+  options.c_cflag &= ~PARENB;
+  options.c_cflag &= ~CSTOPB;
+  options.c_cflag &= ~CSIZE;
+  options.c_cflag |= CS8;
+  options.c_lflag &= ~(ECHO | ECHONL | ICANON | IEXTEN | ISIG);
+  options.c_iflag &= ~(IGNBRK | BRKINT | ICRNL | INLCR | PARMRK | INPCK | ISTRIP | IXON);
+  options.c_oflag &= ~(OCRNL | ONLCR | ONLRET | ONOCR | OFILL | OPOST);
+  options.c_cc[VTIME] = 0;
+  options.c_cc[VMIN] = 1;
+  tcsetattr(fd, TCSANOW, &options);
+  if (tcgetattr(fd, &options) == -1)
+    perror("error setting options");
+  fcntl(fd, F_SETFL, 0);
 
-	/* Flush old transmissions */
-	if (tcflush(fd, TCIOFLUSH) == -1)
-		printf("Error flushing serial port - %s(%d).\n", strerror(errno), errno);
+  /* Flush old transmissions */
+  if (tcflush(fd, TCIOFLUSH) == -1)
+    printf("Error flushing serial port - %s(%d).\n", strerror(errno), errno);
 
-	if (pthread_create(&rx_thread, NULL, serial_rx_thread, NULL) != 0)
-		return;
+  if (pthread_create(&rx_thread, NULL, serial_rx_thread, NULL) != 0)
+    return;
 
 }
 
