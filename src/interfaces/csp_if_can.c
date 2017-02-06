@@ -57,19 +57,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "csp_if_can_pbuf.h"
 
-/* Can frame type (used for deferred processing) */
-typedef struct {
-	uint32_t id;
-	uint8_t dlc;
-	uint8_t data[8];
-} can_frame_t;
-
 /* CFP Frame Types */
 enum cfp_frame_t {
 	CFP_BEGIN = 0,
 	CFP_MORE = 1
 };
-
 
 int csp_can_rx(csp_iface_t *interface, uint32_t id, uint8_t *data, uint8_t dlc, CSP_BASE_TYPE *task_woken)
 {
