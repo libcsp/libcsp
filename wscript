@@ -149,6 +149,7 @@ def configure(ctx):
     # Interfaces
     if ctx.options.enable_if_can:
         ctx.env.append_unique('FILES_CSP', 'src/interfaces/csp_if_can.c')
+        ctx.env.append_unique('FILES_CSP', 'src/interfaces/csp_if_can_pbuf.c')
     if ctx.options.enable_if_i2c:
         ctx.env.append_unique('FILES_CSP', 'src/interfaces/csp_if_i2c.c')
     if ctx.options.enable_if_kiss:
