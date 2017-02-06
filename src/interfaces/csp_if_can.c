@@ -85,8 +85,6 @@ int csp_can_rx(csp_iface_t *interface, uint32_t id, uint8_t *data, uint8_t dlc, 
 	}
 #endif
 
-	csp_can_pbuf_cleanup(task_woken);
-
 	/* Bind incoming frame to a packet buffer */
 	buf = csp_can_pbuf_find(id, CFP_ID_CONN_MASK);
 
