@@ -40,17 +40,26 @@ int csp_can_pbuf_free(csp_can_pbuf_element_t *buf, CSP_BASE_TYPE *task_woken)
 
 csp_can_pbuf_element_t *csp_can_pbuf_new(uint32_t id, CSP_BASE_TYPE *task_woken)
 {
+	uint32_t now = csp_get_ms();
 
 	for (int i = 0; i < PBUF_ELEMENTS; i++) {
+
+		/* Perform cleanup in used pbufs */
+		if (csp_can_pbuf[i].state == BUF_USED) {
+			if (now - csp_can_pbuf[i].last_used > PBUF_TIMEOUT_MS)
+				csp_can_pbuf_free(&csp_can_pbuf[i], task_woken);
+		}
+
 		if (csp_can_pbuf[i].state == BUF_FREE) {
 			csp_can_pbuf[i].state = BUF_USED;
 			csp_can_pbuf[i].cfpid = id;
 			csp_can_pbuf[i].remain = 0;
-			csp_can_pbuf[i].last_used = csp_get_ms();
-
+			csp_can_pbuf[i].last_used = now;
 			return &csp_can_pbuf[i];
 		}
+
 	}
+
 	return NULL;
 
 }
@@ -65,23 +74,4 @@ csp_can_pbuf_element_t *csp_can_pbuf_find(uint32_t id, uint32_t mask)
 	}
 	return NULL;
 }
-
-void csp_can_pbuf_cleanup(CSP_BASE_TYPE *task_woken)
-{
-	for (int i = 0; i < PBUF_ELEMENTS; i++) {
-		/* Skip if not used */
-		if (csp_can_pbuf[i].state != BUF_USED)
-			continue;
-
-		uint32_t time = csp_get_ms();
-
-		/* Check timeout */
-		if (time - csp_can_pbuf[i].last_used > PBUF_TIMEOUT_MS) {
-			//csp_log_warn("CAN Buffer element timed out");
-			/* Recycle packet buffer */
-			csp_can_pbuf_free(&csp_can_pbuf[i], task_woken);
-		}
-	}
-}
-
 
