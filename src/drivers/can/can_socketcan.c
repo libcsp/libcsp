@@ -197,5 +197,7 @@ csp_iface_t * csp_can_socketcan_init(char * ifc, int bitrate, int promisc)
 		return NULL;
 	}
 
+	csp_iflist_add(&socketcan[0].interface);
+
 	return &socketcan[0].interface;
 }
