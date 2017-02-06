@@ -55,46 +55,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/arch/csp_queue.h>
 #include <csp/arch/csp_thread.h>
 
-#include <csp/drivers/can.h>
-
-/* CAN header macros */
-#define CFP_HOST_SIZE       5
-#define CFP_TYPE_SIZE       1
-#define CFP_REMAIN_SIZE     8
-#define CFP_ID_SIZE         10
-
-/* Macros for extracting header fields */
-#define CFP_FIELD(id,rsiz,fsiz) ((uint32_t)((uint32_t)((id) >> (rsiz)) & (uint32_t)((1 << (fsiz)) - 1)))
-#define CFP_SRC(id)			CFP_FIELD(id, CFP_HOST_SIZE + CFP_TYPE_SIZE + CFP_REMAIN_SIZE + CFP_ID_SIZE, CFP_HOST_SIZE)
-#define CFP_DST(id)			CFP_FIELD(id, CFP_TYPE_SIZE + CFP_REMAIN_SIZE + CFP_ID_SIZE, CFP_HOST_SIZE)
-#define CFP_TYPE(id)		CFP_FIELD(id, CFP_REMAIN_SIZE + CFP_ID_SIZE, CFP_TYPE_SIZE)
-#define CFP_REMAIN(id)		CFP_FIELD(id, CFP_ID_SIZE, CFP_REMAIN_SIZE)
-#define CFP_ID(id)			CFP_FIELD(id, 0, CFP_ID_SIZE)
-
-/* Macros for building CFP headers */
-#define CFP_MAKE_FIELD(id,fsiz,rsiz) ((uint32_t)(((id) & (uint32_t)((uint32_t)(1 << (fsiz)) - 1)) << (rsiz)))
-#define CFP_MAKE_SRC(id)	CFP_MAKE_FIELD(id, CFP_HOST_SIZE, CFP_HOST_SIZE + CFP_TYPE_SIZE + CFP_REMAIN_SIZE + CFP_ID_SIZE)
-#define CFP_MAKE_DST(id)	CFP_MAKE_FIELD(id, CFP_HOST_SIZE, CFP_TYPE_SIZE + CFP_REMAIN_SIZE + CFP_ID_SIZE)
-#define CFP_MAKE_TYPE(id)	CFP_MAKE_FIELD(id, CFP_TYPE_SIZE, CFP_REMAIN_SIZE + CFP_ID_SIZE)
-#define CFP_MAKE_REMAIN(id)	CFP_MAKE_FIELD(id, CFP_REMAIN_SIZE, CFP_ID_SIZE)
-#define CFP_MAKE_ID(id)		CFP_MAKE_FIELD(id, CFP_ID_SIZE, 0)
-
-/* Mask to uniquely separate connections */
-#define CFP_ID_CONN_MASK	(CFP_MAKE_SRC((uint32_t)(1 << CFP_HOST_SIZE) - 1) | \
-				 CFP_MAKE_DST((uint32_t)(1 << CFP_HOST_SIZE) - 1) | \
-				 CFP_MAKE_ID((uint32_t)(1 << CFP_ID_SIZE) - 1))
-
-/* Maximum Transmission Unit for CSP over CAN */
-#define CSP_CAN_MTU			256
-
-/* Maximum number of frames in RX queue */
-#define CSP_CAN_RX_QUEUE_SIZE	10
-
-/* Number of packet buffer elements */
-#define PBUF_ELEMENTS		CSP_CONN_MAX
-
-/* Buffer element timeout in ms */
-#define PBUF_TIMEOUT_MS		1000
+#include "csp_if_can_pbuf.h"
 
 /* Can frame type (used for deferred processing) */
 typedef struct {
@@ -109,109 +70,8 @@ enum cfp_frame_t {
 	CFP_MORE = 1
 };
 
-/* RX frame queue */
-static csp_queue_handle_t csp_can_rx_queue;
 
-/* Packet buffers */
-typedef enum {
-	BUF_FREE = 0,			/* Buffer element free */
-	BUF_USED = 1,			/* Buffer element used */
-} csp_can_pbuf_state_t;
-
-typedef struct {
-	uint16_t rx_count;		/* Received bytes */
-	uint32_t remain;		/* Remaining packets */
-	uint32_t cfpid;			/* Connection CFP identification number */
-	csp_packet_t *packet;		/* Pointer to packet buffer */
-	csp_can_pbuf_state_t state;	/* Element state */
-	uint32_t last_used;		/* Timestamp in ms for last use of buffer */
-} csp_can_pbuf_element_t;
-
-static csp_can_pbuf_element_t csp_can_pbuf[PBUF_ELEMENTS];
-
-static int csp_can_pbuf_init(void)
-{
-	int i;
-	for (i = 0; i < PBUF_ELEMENTS; i++) {
-		csp_can_pbuf[i].rx_count = 0;
-		csp_can_pbuf[i].cfpid = 0;
-		csp_can_pbuf[i].packet = NULL;
-		csp_can_pbuf[i].state = BUF_FREE;
-		csp_can_pbuf[i].last_used = 0;
-		csp_can_pbuf[i].remain = 0;
-	}
-	return CSP_ERR_NONE;
-}
-
-static int csp_can_pbuf_free(csp_can_pbuf_element_t *buf, CSP_BASE_TYPE *task_woken)
-{
-	/* Free CSP packet */
-	if (buf->packet != NULL) {
-		if (task_woken == NULL) {
-			csp_buffer_free(buf->packet);
-		} else {
-			csp_buffer_free_isr(buf->packet);
-		}
-	}
-
-	/* Mark buffer element free */
-	buf->packet = NULL;
-	buf->rx_count = 0;
-	buf->cfpid = 0;
-	buf->last_used = 0;
-	buf->remain = 0;
-	buf->state = BUF_FREE;
-
-	return CSP_ERR_NONE;
-}
-
-static csp_can_pbuf_element_t *csp_can_pbuf_new(uint32_t id, CSP_BASE_TYPE *task_woken)
-{
-
-	for (int i = 0; i < PBUF_ELEMENTS; i++) {
-		if (csp_can_pbuf[i].state == BUF_FREE) {
-			csp_can_pbuf[i].state = BUF_USED;
-			csp_can_pbuf[i].cfpid = id;
-			csp_can_pbuf[i].remain = 0;
-			csp_can_pbuf[i].last_used = csp_get_ms();
-
-			return &csp_can_pbuf[i];
-		}
-	}
-	return NULL;
-
-}
-
-static csp_can_pbuf_element_t *csp_can_pbuf_find(uint32_t id, uint32_t mask)
-{
-	for (int i = 0; i < PBUF_ELEMENTS; i++) {
-		if ((csp_can_pbuf[i].state == BUF_USED) && ((csp_can_pbuf[i].cfpid & mask) == (id & mask))) {
-			csp_can_pbuf[i].last_used = csp_get_ms();
-			return &csp_can_pbuf[i];
-		}
-	}
-	return NULL;
-}
-
-static void csp_can_pbuf_cleanup(CSP_BASE_TYPE *task_woken)
-{
-	for (int i = 0; i < PBUF_ELEMENTS; i++) {
-		/* Skip if not used */
-		if (csp_can_pbuf[i].state != BUF_USED)
-			continue;
-
-		uint32_t time = csp_get_ms();
-
-		/* Check timeout */
-		if (time - csp_can_pbuf[i].last_used > PBUF_TIMEOUT_MS) {
-			//csp_log_warn("CAN Buffer element timed out");
-			/* Recycle packet buffer */
-			csp_can_pbuf_free(&csp_can_pbuf[i], task_woken);
-		}
-	}
-}
-
-int csp_can_process_frame(uint32_t id, uint8_t * data, uint8_t dlc, CSP_BASE_TYPE *task_woken)
+int csp_can_rx(csp_iface_t *interface, uint32_t id, uint8_t *data, uint8_t dlc, CSP_BASE_TYPE *task_woken)
 {
 	csp_can_pbuf_element_t *buf;
 	uint8_t offset;
@@ -236,12 +96,12 @@ int csp_can_process_frame(uint32_t id, uint8_t * data, uint8_t dlc, CSP_BASE_TYP
 			buf = csp_can_pbuf_new(id, task_woken);
 			if (buf == NULL) {
 				//csp_log_warn("No available packet buffer for CAN");
-				csp_if_can.rx_error++;
+				interface->rx_error++;
 				return CSP_ERR_NOMEM;
 			}
 		} else {
 			//csp_log_warn("Out of order id 0x%X remain %u", CFP_ID(id), CFP_REMAIN(id));
-			csp_if_can.frame++;
+			interface->frame++;
 			return CSP_ERR_INVAL;
 		}
 	}
@@ -256,7 +116,7 @@ int csp_can_process_frame(uint32_t id, uint8_t * data, uint8_t dlc, CSP_BASE_TYP
 		/* Discard packet if DLC is less than CSP id + CSP length fields */
 		if (dlc < sizeof(csp_id_t) + sizeof(uint16_t)) {
 			//csp_log_warn("Short BEGIN frame received");
-			csp_if_can.frame++;
+			interface->frame++;
 			csp_can_pbuf_free(buf, task_woken);
 			break;
 		}
@@ -265,7 +125,7 @@ int csp_can_process_frame(uint32_t id, uint8_t * data, uint8_t dlc, CSP_BASE_TYP
 		if (buf->packet != NULL) {
 			/* Reuse the buffer */
 			//csp_log_warn("Incomplete frame");
-			csp_if_can.frame++;
+			interface->frame++;
 		} else {
 			/* Allocate memory for frame */
 			if (task_woken == NULL) {
@@ -275,7 +135,7 @@ int csp_can_process_frame(uint32_t id, uint8_t * data, uint8_t dlc, CSP_BASE_TYP
 			}
 			if (buf->packet == NULL) {
 				//csp_log_error("Failed to get buffer for CSP_BEGIN packet");
-				csp_if_can.frame++;
+				interface->frame++;
 				csp_can_pbuf_free(buf, task_woken);
 				break;
 			}
@@ -304,7 +164,7 @@ int csp_can_process_frame(uint32_t id, uint8_t * data, uint8_t dlc, CSP_BASE_TYP
 		if (CFP_REMAIN(id) != buf->remain - 1) {
 			//csp_log_error("CAN frame lost in CSP packet");
 			csp_can_pbuf_free(buf, task_woken);
-			csp_if_can.frame++;
+			interface->frame++;
 			break;
 		}
 
@@ -314,7 +174,7 @@ int csp_can_process_frame(uint32_t id, uint8_t * data, uint8_t dlc, CSP_BASE_TYP
 		/* Check for overflow */
 		if ((buf->rx_count + dlc - offset) > buf->packet->length) {
 			//csp_log_error("RX buffer overflow");
-			csp_if_can.frame++;
+			interface->frame++;
 			csp_can_pbuf_free(buf, task_woken);
 			break;
 		}
@@ -328,7 +188,7 @@ int csp_can_process_frame(uint32_t id, uint8_t * data, uint8_t dlc, CSP_BASE_TYP
 			break;
 
 		/* Data is available */
-		csp_new_packet(buf->packet, &csp_if_can, task_woken);
+		csp_new_packet(buf->packet, interface, task_woken);
 
 		/* Drop packet buffer reference */
 		buf->packet = NULL;
@@ -348,30 +208,7 @@ int csp_can_process_frame(uint32_t id, uint8_t * data, uint8_t dlc, CSP_BASE_TYP
 	return CSP_ERR_NONE;
 }
 
-static CSP_DEFINE_TASK(csp_can_rx_task)
-{
-	can_frame_t frame;
-
-	while (1) {
-		csp_queue_dequeue(csp_can_rx_queue, &frame, CSP_MAX_DELAY);
-		csp_can_process_frame(frame.id, frame.data, frame.dlc, NULL);
-	}
-
-	csp_thread_exit();
-}
-
-int csp_can_process_frame_deferred(uint32_t id, uint8_t * data, uint8_t dlc, CSP_BASE_TYPE *task_woken)
-{
-	can_frame_t frame = { .id = id, .dlc = dlc } ;
-	memcpy(frame.data, data, (dlc > 8) ? 8 : dlc);
-	if (csp_queue_enqueue_isr(csp_can_rx_queue, &frame, task_woken) != CSP_QUEUE_OK) {
-		return CSP_ERR_NOMEM;
-	}
-
-	return CSP_ERR_NONE;
-}
-
-static int csp_can_tx(csp_iface_t *interface, csp_packet_t *packet, uint32_t timeout)
+int csp_can_tx(csp_iface_t *interface, csp_packet_t *packet, uint32_t timeout)
 {
 
 	/* CFP Identification number */
@@ -416,7 +253,7 @@ static int csp_can_tx(csp_iface_t *interface, csp_packet_t *packet, uint32_t tim
 	tx_count = bytes;
 
 	/* Send first frame */
-	if (csp_driver_can_send(id, frame_buf, overhead + bytes)) {
+	if (csp_can_tx_frame(interface, id, frame_buf, overhead + bytes)) {
 		//csp_log_warn("Failed to send CAN frame in csp_tx_can");
 		interface->tx_error++;
 		return CSP_ERR_DRIVER;
@@ -439,9 +276,9 @@ static int csp_can_tx(csp_iface_t *interface, csp_packet_t *packet, uint32_t tim
 		tx_count += bytes;
 
 		/* Send frame */
-		if (csp_driver_can_send(id, packet->data + tx_count - bytes, bytes)) {
+		if (csp_can_tx_frame(interface, id, packet->data + tx_count - bytes, bytes)) {
 			//csp_log_warn("Failed to send CAN frame in Tx callback");
-			csp_if_can.tx_error++;
+			interface->tx_error++;
 			return CSP_ERR_DRIVER;
 		}
 	}
@@ -450,61 +287,3 @@ static int csp_can_tx(csp_iface_t *interface, csp_packet_t *packet, uint32_t tim
 
 	return CSP_ERR_NONE;
 }
-
-int csp_can_init(uint8_t mode, struct csp_can_config *conf)
-{
-	uint32_t mask;
-
-	/* Initialize packet buffer */
-	if (csp_can_pbuf_init() != 0) {
-		//csp_log_error("Failed to initialize CAN packet buffers");
-		return CSP_ERR_NOMEM;
-	}
-
-	if (mode == CSP_CAN_MASKED) {
-		mask = CFP_MAKE_DST((1 << CFP_HOST_SIZE) - 1);
-	} else if (mode == CSP_CAN_PROMISC) {
-		mask = 0;
-	} else {
-		//csp_log_error("Unknown CAN mode");
-		return CSP_ERR_INVAL;
-	}
-
-	csp_can_rx_queue = csp_queue_create(CSP_CAN_RX_QUEUE_SIZE, sizeof(can_frame_t));
-	if (!csp_can_rx_queue) {
-		//csp_log_error("Failed to create CAN RX queue");
-		return CSP_ERR_NOMEM;
-	}
-
-	/* Initialize CAN driver */
-	if (csp_driver_can_init(CFP_MAKE_DST(csp_get_address()), mask, conf) != 0) {
-		//csp_log_error("Failed to initialize CAN driver");
-		return CSP_ERR_DRIVER;
-	}
-
-	/* Regsiter interface */
-	csp_iflist_add(&csp_if_can);
-
-	return CSP_ERR_NONE;
-}
-
-int csp_can_start_deferred_task(int stack_size)
-{
-	/* RX task handle */
-	static csp_thread_handle_t csp_can_rx_task_h;
-
-	int ret = csp_thread_create(csp_can_rx_task, "CAN", stack_size, NULL, 3, &csp_can_rx_task_h);
-	if (ret != 0) {
-		//csp_log_error("Failed to init CAN RX task");
-		return CSP_ERR_NOMEM;
-	}
-
-	return CSP_ERR_NONE;
-}
-
-/** Interface definition */
-csp_iface_t csp_if_can = {
-	.name = "CAN",
-	.nexthop = csp_can_tx,
-	.mtu = CSP_CAN_MTU,
-};
