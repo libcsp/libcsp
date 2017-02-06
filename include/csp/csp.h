@@ -492,6 +492,7 @@ int csp_hmac_set_key(char *key, uint32_t keylen);
  * Print connection table
  */
 void csp_conn_print_table(void);
+int csp_conn_print_table_str(char * str_buf, int str_size);
 
 /**
  * Print buffer usage table

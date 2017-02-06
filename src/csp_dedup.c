@@ -27,6 +27,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/arch/csp_time.h>
 #include <csp/csp_crc32.h>
 
+#include "csp_dedup.h"
+
 /* Check the last CSP_DEDUP_COUNT packets for duplicates */
 #define CSP_DEDUP_COUNT		16
 

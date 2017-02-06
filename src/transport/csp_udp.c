@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/arch/csp_queue.h>
 #include "../csp_port.h"
 #include "../csp_conn.h"
+#include "csp_transport.h"
 
 void csp_udp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 

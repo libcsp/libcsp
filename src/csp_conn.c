@@ -172,7 +172,7 @@ csp_conn_t * csp_conn_find(uint32_t id, uint32_t mask) {
 
 }
 
-int csp_conn_flush_rx_queue(csp_conn_t * conn) {
+static int csp_conn_flush_rx_queue(csp_conn_t * conn) {
 
 	csp_packet_t * packet;
 
