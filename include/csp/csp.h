@@ -62,39 +62,39 @@ uint8_t csp_get_address(void);
  * This function takes a pointer to a string, which should remain static
  * @param hostname Hostname to set
  */
-void csp_set_hostname(char *hostname);
+void csp_set_hostname(const char *hostname);
 
 /** csp_get_hostname
  * Get current subsystem hostname.
  * @return Pointer to char array with current hostname.
  */
-char *csp_get_hostname(void);
+const char *csp_get_hostname(void);
 
 /** csp_set_model
  * Set subsystem model name.
  * This function takes a pointer to a string, which should remain static
  * @param model Model name to set
  */
-void csp_set_model(char *model);
+void csp_set_model(const char *model);
 
 /** csp_get_model
  * Get current model name.
  * @return Pointer to char array with current model name.
  */
-char *csp_get_model(void);
+const char *csp_get_model(void);
 
 /** csp_set_revision
  * Set subsystem revision. This can be used to override the CMP revision field.
  * This function takes a pointer to a string, which should remain static
  * @param revision Revision name to set
  */
-void csp_set_revision(char *revision);
+void csp_set_revision(const char *revision);
 
 /** csp_get_revision
  * Get subsystem revision.
  * @return Pointer to char array with software revision.
  */
-char *csp_get_revision(void);
+const char *csp_get_revision(void);
 
 /** csp_socket
  * Create CSP socket endpoint
