@@ -52,7 +52,7 @@ extern void __attribute__((weak)) csp_assert_fail_action(char *assertion, const 
 			char *assertion = #exp;								\
 			const char *file = BASENAME(__FILE__);						\
 			int line = __LINE__;								\
-			printf("\E[1;31m[%02"PRIu8"] Assertion \'%s\' failed in %s:%d\E[0m\r\n",	\
+			printf("\E[1;31m[%02" PRIu8 "] Assertion \'%s\' failed in %s:%d\E[0m\r\n",	\
 			       csp_get_address(), assertion, file, line);				\
 			if (csp_assert_fail_action)							\
 				csp_assert_fail_action(assertion, file, line);				\

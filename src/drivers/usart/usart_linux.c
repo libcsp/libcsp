@@ -39,11 +39,11 @@ usart_callback_t usart_callback = NULL;
 
 static void *serial_rx_thread(void *vptr_args);
 
-int getbaud(int fd) {
+int getbaud(int ifd) {
 	struct termios termAttr;
 	int inputSpeed = -1;
 	speed_t baudRate;
-	tcgetattr(fd, &termAttr);
+	tcgetattr(ifd, &termAttr);
 	/* Get the input speed. */
 	baudRate = cfgetispeed(&termAttr);
 	switch (baudRate) {
@@ -98,6 +98,9 @@ int getbaud(int fd) {
 	case B115200:
 		inputSpeed = 115200;
 		break;
+	case B230400:
+		inputSpeed = 230400;
+		break;
 #ifndef CSP_MACOSX
 	case B460800:
 		inputSpeed = 460800;
@@ -105,11 +108,17 @@ int getbaud(int fd) {
 	case B500000:
 		inputSpeed = 500000;
 		break;
+	case B576000:
+		inputSpeed = 576000;
+		break;
 	case B921600:
 		inputSpeed = 921600;
 		break;
 	case B1000000:
 		inputSpeed = 1000000;
+		break;
+	case B1152000:
+		inputSpeed = 1152000;
 		break;
 	case B1500000:
 		inputSpeed = 1500000;
@@ -122,6 +131,12 @@ int getbaud(int fd) {
 		break;
 	case B3000000:
 		inputSpeed = 3000000;
+		break;
+	case B3500000:
+		inputSpeed = 3500000;
+		break;
+	case B4000000:
+		inputSpeed = 4000000;
 		break;
 #endif
 	}
@@ -150,16 +165,25 @@ void usart_init(struct usart_conf * conf) {
     case 38400:   brate=B38400;   break;
     case 57600:   brate=B57600;   break;
     case 115200:  brate=B115200;  break;
+    case 230400:  brate=B230400;  break;
 #ifndef CSP_MACOSX
     case 460800:  brate=B460800;  break;
     case 500000:  brate=B500000;  break;
+    case 576000:  brate=B576000;  break;
     case 921600:  brate=B921600;  break;
     case 1000000: brate=B1000000; break;
+    case 1152000: brate=B1152000; break;
     case 1500000: brate=B1500000; break;
     case 2000000: brate=B2000000; break;
     case 2500000: brate=B2500000; break;
     case 3000000: brate=B3000000; break;
+    case 3500000: brate=B3500000; break;
+    case 4000000: brate=B4000000; break;
 #endif
+    default:
+      printf("Unsupported baudrate requested, defaulting to 500000, requested baudrate=%u\n", conf->baudrate);
+      brate=B500000;
+      break;
     }
 
 	tcgetattr(fd, &options);
