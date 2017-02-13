@@ -46,7 +46,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <linux/can.h>
 #include <linux/can/raw.h>
 #include <linux/socket.h>
-#include <bits/socket.h>
 
 #include <csp/csp.h>
 #include <csp/interfaces/csp_if_can.h>
