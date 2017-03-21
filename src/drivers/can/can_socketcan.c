@@ -144,8 +144,6 @@ csp_iface_t * csp_can_socketcan_init(char * ifc, int bitrate, int promisc)
 	struct sockaddr_can addr;
 	pthread_t rx_thread;
 
-	printf("Init can interface %s\n", ifc);
-
 #ifdef CSP_HAVE_LIBSOCKETCAN
 	/* Set interface up */
 	if (bitrate > 0) {
