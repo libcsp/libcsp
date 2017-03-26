@@ -269,22 +269,6 @@ static int csp_rdp_send_syn(csp_conn_t * conn) {
 
 static inline int csp_rdp_receive_data(csp_conn_t * conn, csp_packet_t * packet) {
 
-	/* If a socket is set, this message is the first in a new connection
-	 * so the connection must be queued to the socket. */
-	if (conn->socket != NULL) {
-
-		/* Try queueing */
-		if (csp_queue_enqueue(conn->socket, &conn, 0) == CSP_QUEUE_FULL) {
-			csp_log_error("ERROR socket cannot accept more connections");
-			return CSP_ERR_NOBUFS;
-		}
-
-		/* Ensure that this connection will not be posted to this socket again
-		 * and remember that the connection handle has been passed to userspace
-		 * by setting the socket = NULL */
-		conn->socket = NULL;
-	}
-
 	/* Remove RDP header before passing to userspace */
 	csp_rdp_header_remove(packet);
 
@@ -604,9 +588,7 @@ void csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 
 		if (conn->rdp.state == RDP_CLOSE_WAIT || conn->rdp.state == RDP_CLOSED) {
 			csp_log_protocol("RST received in CLOSE_WAIT or CLOSED. Now closing connection");
-			csp_buffer_free(packet);
-			csp_close(conn);
-			return;
+			goto discard_close;
 		} else {
 			csp_log_protocol("Got RESET in state %u", conn->rdp.state);
 
@@ -641,7 +623,6 @@ void csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 		csp_log_protocol("RDP: SYN-Received");
 
 		/* Setup TX seq. */
-		srand(csp_get_ms());
 		conn->rdp.snd_iss = (uint16_t)rand();
 		conn->rdp.snd_nxt = conn->rdp.snd_iss + 1;
 		conn->rdp.snd_una = conn->rdp.snd_iss;
@@ -692,8 +673,7 @@ void csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 			csp_log_protocol("RDP: NP: Connection OPEN");
 
 			/* Send ACK */
-			if (conn->rdp.delayed_acks == 0)
-				csp_rdp_send_cmp(conn, NULL, RDP_ACK, conn->rdp.snd_nxt, conn->rdp.rcv_cur);
+			csp_rdp_send_cmp(conn, NULL, RDP_ACK, conn->rdp.snd_nxt, conn->rdp.rcv_cur);
 
 			/* Wake TX task */
 			csp_bin_sem_post(&conn->rdp.tx_wait);
@@ -771,6 +751,23 @@ void csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 			}
 			csp_log_protocol("RDP: NC: Connection OPEN");
 			conn->rdp.state = RDP_OPEN;
+
+			/* If a socket is set, this message is the first in a new connection
+			 * so the connection must be queued to the socket. */
+			if (conn->socket != NULL) {
+
+				/* Try queueing */
+				if (csp_queue_enqueue(conn->socket, &conn, 0) == CSP_QUEUE_FULL) {
+					csp_log_error("ERROR socket cannot accept more connections");
+					goto discard_close;
+				}
+
+				/* Ensure that this connection will not be posted to this socket again
+				 * and remember that the connection handle has been passed to userspace
+				 * by setting the socket = NULL */
+				conn->socket = NULL;
+			}
+
 		}
 
 		/* Store current ack'ed sequence number */
@@ -886,7 +883,6 @@ retry:
 	}
 
 	/* Randomize ISS */
-	srand(csp_get_ms());
 	conn->rdp.snd_iss = (uint16_t)rand();
 
 	conn->rdp.snd_nxt = conn->rdp.snd_iss + 1;
