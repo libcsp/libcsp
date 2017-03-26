@@ -158,6 +158,9 @@ def configure(ctx):
         ctx.check_cfg(package='libzmq', args='--cflags --libs')
         ctx.env.append_unique('LIBS', ctx.env.LIB_LIBZMQ)
 
+    if ctx.options.enable_bindings:
+        ctx.check_cfg(package='python', args='--cflags --libs')
+
     # Store configuration options
     ctx.env.ENABLE_BINDINGS = ctx.options.enable_bindings
     ctx.env.ENABLE_EXAMPLES = ctx.options.enable_examples
@@ -266,9 +269,9 @@ def build(ctx):
 
     # Build shared library for Python bindings
     if ctx.env.ENABLE_BINDINGS:
-        ctx.shlib(source=ctx.path.ant_glob(ctx.env.FILES_CSP),
+        ctx.shlib(source=ctx.path.ant_glob(ctx.env.FILES_CSP) + ['src/bindings/python/pycsp.c'],
             target = 'csp',
-            includes= ctx.env.INCLUDES_CSP,
+            includes= ctx.env.INCLUDES_CSP + ctx.env.INCLUDES_PYTHON,
             export_includes = 'include',
             use = ['include'],
             lib = ctx.env.LIBS)
