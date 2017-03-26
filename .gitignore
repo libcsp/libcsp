@@ -1,3 +1,5 @@
+.pydevproject
+.settings
 build
 *.swp
 .lock*

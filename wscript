@@ -30,6 +30,10 @@ out = 'build'
 def options(ctx):
     # Load GCC options
     ctx.load('gcc')
+
+
+    if os.path.exists('eclipse.py'):
+        ctx.load('eclipse')
     
     ctx.add_option('--toolchain', default=None, help='Set toolchain prefix')
 
