@@ -28,6 +28,9 @@ top = '.'
 out = 'build'
 
 def options(ctx):
+        
+    
+        
     # Load GCC options
     ctx.load('gcc')
     
@@ -77,6 +80,8 @@ def options(ctx):
     gr.add_option('--with-bufalign', metavar='BYTES', type=int, help='Set buffer alignment')
 
 def configure(ctx):
+        
+    
     # Validate OS
     if not ctx.options.with_os in ('posix', 'windows', 'freertos', 'macosx'):
         ctx.fatal('--with-os must be either \'posix\', \'windows\', \'macosx\' or \'freertos\'')
@@ -93,7 +98,7 @@ def configure(ctx):
         ctx.env.CC = ctx.options.toolchain + 'gcc'
         ctx.env.AR = ctx.options.toolchain + 'ar'
 
-    ctx.load('gcc')
+    ctx.load('gcc')    
 
     # Set git revision define
     git_rev = os.popen('git describe --always 2> /dev/null || echo unknown').read().strip()
@@ -114,7 +119,7 @@ def configure(ctx):
     ctx.env.append_unique('INCLUDES_CSP', ['include'] + ctx.options.includes.split(','))
 
     # Add default files
-    ctx.env.append_unique('FILES_CSP', ['src/*.c','src/interfaces/csp_if_lo.c','src/transport/csp_udp.c','src/arch/{0}/**/*.c'.format(ctx.options.with_os)])
+    ctx.env.append_unique('FILES_CSP', ['src/*.c','src/interfaces/csp_if_lo.c','src/transport/csp_udp.c','src/arch/{0}/*.c'.format(ctx.options.with_os)])
     
     # Store OS as env variable
     ctx.env.append_unique('OS', ctx.options.with_os)
@@ -230,11 +235,17 @@ def configure(ctx):
             ctx.env.append_unique('LIBS', ['socketcan'])
 
     ctx.define('LIBCSP_VERSION', VERSION)
+    
+    if ctx.env.ENABLE_BINDINGS:               
+        ctx.env.bindings_modulename = 'csp'    
+        ctx.env.bindings_libraries = [ctx.env.bindings_modulename]        
+        ctx.env.bindings_c_header_sources = ['csp/csp.h', 'csp/csp_endian.h', 'csp/csp_cmp.h', 'csp/interfaces/csp_if_can.h', 'csp/interfaces/csp_if_zmqhub.h'] 
+        ctx.load('bindings', tooldir='bindings/python')
 
     ctx.write_config_header('include/csp/csp_autoconfig.h', top=True, remove=True)
     
 def build(ctx):
-
+        
     # Set install path for header files
     install_path = False
     if ctx.options.install_csp:
@@ -265,14 +276,17 @@ def build(ctx):
     )
 
     # Build shared library for Python bindings
-    if ctx.env.ENABLE_BINDINGS:
-        ctx.shlib(source=ctx.path.ant_glob(ctx.env.FILES_CSP),
-            target = 'csp',
-            includes= ctx.env.INCLUDES_CSP,
-            export_includes = 'include',
-            use = ['include'],
-            lib = ctx.env.LIBS)
-
+    if ctx.env.ENABLE_BINDINGS:        
+        ctx.shlib(source=ctx.path.ant_glob(ctx.env.FILES_CSP, excl=ctx.env.EXCL_CSP),
+ 			target = 'csp',
+ 			includes= ctx.env.INCLUDES_CSP,
+ 			export_includes = 'include',
+ 			use = ['include', 'util'],
+ 			lib=ctx.env.LIBS)
+        ctx.execute_build()  
+        ctx.load('bindings', tooldir='bindings/python')      
+         	
+ 
     if ctx.env.ENABLE_EXAMPLES:
         ctx.program(source = ctx.path.ant_glob('examples/simple.c'),
             target = 'simple',
