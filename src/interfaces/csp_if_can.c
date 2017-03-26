@@ -85,16 +85,32 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 				 CFP_MAKE_ID((uint32_t)(1 << CFP_ID_SIZE) - 1))
 
 /* Maximum Transmission Unit for CSP over CAN */
+#ifndef CSP_CAN_MTU
 #define CSP_CAN_MTU		256
+#endif
 
 /* Maximum number of frames in RX queue */
+#ifndef CSP_CAN_RX_QUEUE_SIZE
 #define CSP_CAN_RX_QUEUE_SIZE	100
+#endif
+
+/* Wait for fragments timeout in ms */
+#ifndef CSP_CAN_RX_QUEUE_TIMEOUT_MS
+#define CSP_CAN_RX_QUEUE_TIMEOUT_MS	1000
+#endif
 
 /* Number of packet buffer elements */
+#ifndef PBUF_ELEMENTS
 #define PBUF_ELEMENTS		CSP_CONN_MAX
+#endif
 
 /* Buffer element timeout in ms */
+#ifndef PBUF_TIMEOUT_MS
 #define PBUF_TIMEOUT_MS		10000
+#endif
+
+/* Enable freeing a random packet buffer when no one is free */
+//#define ENABLE_CAN_OOM_RANDOM_FREE
 
 /* CFP Frame Types */
 enum cfp_frame_t {
@@ -156,6 +172,11 @@ typedef struct {
 } csp_can_pbuf_element_t;
 
 static csp_can_pbuf_element_t csp_can_pbuf[PBUF_ELEMENTS];
+static size_t csp_can_pbuf_availables;
+
+#ifdef ENABLE_CAN_OOM_RANDOM_FREE
+static size_t csp_can_pbuf_oom_counter = 0;
+#endif
 
 static int csp_can_pbuf_init(void)
 {
@@ -173,6 +194,8 @@ static int csp_can_pbuf_init(void)
 		buf->remain = 0;
 	}
 
+	csp_can_pbuf_availables = PBUF_ELEMENTS;
+
 	return CSP_ERR_NONE;
 }
 
@@ -183,6 +206,9 @@ static void csp_can_pbuf_timestamp(csp_can_pbuf_element_t *buf)
 
 static int csp_can_pbuf_free(csp_can_pbuf_element_t *buf)
 {
+	if (buf == NULL)
+		return CSP_ERR_INVAL;
+
 	/* Free CSP packet */
 	if (buf->packet != NULL)
 		csp_buffer_free(buf->packet);
@@ -195,13 +221,57 @@ static int csp_can_pbuf_free(csp_can_pbuf_element_t *buf)
 	buf->last_used = 0;
 	buf->remain = 0;
 
+	csp_can_pbuf_availables++;
+
 	return CSP_ERR_NONE;
+}
+
+static void csp_can_pbuf_cleanup(uint32_t check_period_ms)
+{
+	static uint32_t last_cleanup = 0;
+	int i;
+	csp_can_pbuf_element_t *buf;
+
+	uint32_t now = csp_get_ms();
+
+	if ((now - last_cleanup) < check_period_ms) {
+		return;
+	}
+
+	for (i = 0; i < PBUF_ELEMENTS; i++) {
+		buf = &csp_can_pbuf[i];
+
+		/* Skip if not used */
+		if (buf->state != BUF_USED)
+			continue;
+
+		/* Check timeout */
+		if (now - buf->last_used > PBUF_TIMEOUT_MS) {
+			csp_log_warn("CAN Buffer element timed out");
+			/* Recycle packet buffer */
+			csp_can_pbuf_free(buf);
+		}
+	}
+	last_cleanup = now;
 }
 
 static csp_can_pbuf_element_t *csp_can_pbuf_new(uint32_t id)
 {
 	int i;
 	csp_can_pbuf_element_t *buf, *ret = NULL;
+
+	if (csp_can_pbuf_availables == 0) {
+		/* Cleanup now */
+		csp_can_pbuf_cleanup(0);
+	}
+
+#ifdef ENABLE_CAN_OOM_RANDOM_FREE
+	if (csp_can_pbuf_availables == 0) {
+		csp_log_warn("No available packet buffer for CAN; freeing random one");
+		csp_can_pbuf_free(&csp_can_pbuf[rand() % PBUF_ELEMENTS]);
+		csp_can_pbuf_oom_counter++;
+	}
+#endif
 
 	for (i = 0; i < PBUF_ELEMENTS; i++) {
 		buf = &csp_can_pbuf[i];
@@ -213,6 +283,10 @@ static csp_can_pbuf_element_t *csp_can_pbuf_new(uint32_t id)
 			ret = buf;
 			break;
 		}
+	}
+
+	if (ret != NULL) {
+		csp_can_pbuf_availables--;
 	}
 
 	return ret;
@@ -236,28 +310,6 @@ static csp_can_pbuf_element_t *csp_can_pbuf_find(uint32_t id, uint32_t mask)
 	return ret;
 }
 
-static void csp_can_pbuf_cleanup(void)
-{
-	int i;
-	csp_can_pbuf_element_t *buf;
-
-	for (i = 0; i < PBUF_ELEMENTS; i++) {
-		buf = &csp_can_pbuf[i];
-
-		/* Skip if not used */
-		if (buf->state != BUF_USED)
-			continue;
-
-		/* Check timeout */
-		uint32_t now = csp_get_ms();
-		if (now - buf->last_used > PBUF_TIMEOUT_MS) {
-			csp_log_warn("CAN Buffer element timed out");
-			/* Recycle packet buffer */
-			csp_can_pbuf_free(buf);
-		}
-	}
-}
-
 static int csp_can_process_frame(can_frame_t *frame)
 {
 	csp_can_pbuf_element_t *buf;
@@ -279,8 +331,7 @@ static int csp_can_process_frame(can_frame_t *frame)
 			}
 		} else {
 			csp_log_warn("Out of order MORE frame received");
-			csp_if_can.frame++;
-			return CSP_ERR_INVAL;
+			goto framing_error;
 		}
 	}
 
@@ -294,9 +345,7 @@ static int csp_can_process_frame(can_frame_t *frame)
 		/* Discard packet if DLC is less than CSP id + CSP length fields */
 		if (frame->dlc < sizeof(csp_id_t) + sizeof(uint16_t)) {
 			csp_log_warn("Short BEGIN frame received");
-			csp_if_can.frame++;
-			csp_can_pbuf_free(buf);
-			break;
+			goto framing_error;
 		}
 
 		/* Check for incomplete frame */
@@ -309,9 +358,7 @@ static int csp_can_process_frame(can_frame_t *frame)
 			buf->packet = csp_buffer_get(CSP_CAN_MTU);
 			if (buf->packet == NULL) {
 				csp_log_error("Failed to get buffer for CSP_BEGIN packet");
-				csp_if_can.frame++;
-				csp_can_pbuf_free(buf);
-				break;
+				goto framing_error;
 			}
 		}
 
@@ -337,9 +384,7 @@ static int csp_can_process_frame(can_frame_t *frame)
 		/* Check 'remain' field match */
 		if (CFP_REMAIN(id) != buf->remain - 1) {
 			csp_log_error("CAN frame lost in CSP packet");
-			csp_can_pbuf_free(buf);
-			csp_if_can.frame++;
-			break;
+			goto framing_error;
 		}
 
 		/* Decrement remaining frames */
@@ -348,9 +393,7 @@ static int csp_can_process_frame(can_frame_t *frame)
 		/* Check for overflow */
 		if ((buf->rx_count + frame->dlc - offset) > buf->packet->length) {
 			csp_log_error("RX buffer overflow");
-			csp_if_can.frame++;
-			csp_can_pbuf_free(buf);
-			break;
+			goto framing_error;
 		}
 
 		/* Copy dlc bytes into buffer */
@@ -380,6 +423,11 @@ static int csp_can_process_frame(can_frame_t *frame)
 	}
 
 	return CSP_ERR_NONE;
+
+framing_error:
+	csp_if_can.frame++;
+	csp_can_pbuf_free(buf);
+	return CSP_ERR_INVAL;
 }
 
 static CSP_DEFINE_TASK(csp_can_rx_task)
@@ -388,9 +436,10 @@ static CSP_DEFINE_TASK(csp_can_rx_task)
 	can_frame_t frame;
 
 	while (1) {
-		ret = csp_queue_dequeue(csp_can_rx_queue, &frame, 1000);
+		csp_can_pbuf_cleanup(CSP_CAN_RX_QUEUE_TIMEOUT_MS);
+
+		ret = csp_queue_dequeue(csp_can_rx_queue, &frame, CSP_CAN_RX_QUEUE_TIMEOUT_MS);
 		if (ret != CSP_QUEUE_OK) {
-			csp_can_pbuf_cleanup();
 			continue;
 		}
 
