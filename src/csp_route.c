@@ -90,6 +90,9 @@ static int csp_route_security_check(uint32_t security_opts, csp_iface_t * interf
 #ifdef CSP_USE_XTEA
 	/* XTEA encrypted packet */
 	if (packet->id.flags & CSP_FXTEA) {
+		/* Make sure that has a nonce */
+		if (packet->length < sizeof(nonce))
+			csp_log_error("Too short packet for XTEA, %u", packet->length);
 		/* Read nonce */
 		uint32_t nonce;
 		memcpy(&nonce, &packet->data[packet->length - sizeof(nonce)], sizeof(nonce));
@@ -115,9 +118,9 @@ static int csp_route_security_check(uint32_t security_opts, csp_iface_t * interf
 
 	/* CRC32 verified packet */
 	if (packet->id.flags & CSP_FCRC32) {
-#ifdef CSP_USE_CRC32
 		if (packet->length < 4)
 			csp_log_error("Too short packet for CRC32, %u", packet->length);
+#ifdef CSP_USE_CRC32
 		/* Verify CRC32 (does not include header for backwards compatability with csp1.x) */
 		if (csp_crc32_verify(packet, false) != 0) {
 			/* Checksum failed */

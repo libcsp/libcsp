@@ -158,8 +158,8 @@ void csp_ps(uint8_t node, uint32_t timeout) {
 		if (packet == NULL)
 			break;
 
-		/* We have a reply, add our own NULL char */
-		packet->data[packet->length] = 0;
+		/* We have a reply, enforce that there is a NULL char in it */
+		packet->data[(packet->length - 1) ? packet->length >= 1 : 0] = 0;
 		printf("%s", packet->data);
 
 		/* Each packet from csp_read must to be freed by user */

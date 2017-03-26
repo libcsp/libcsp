@@ -88,6 +88,14 @@ CSP_DEFINE_TASK(csp_zmqhub_task) {
 			continue;
 		}
 
+		/* makre sure there is no overflow */
+		if (datalen > 256) {
+			csp_log_warn("ZMQ: Too long datalen: %u", datalen);
+			while(zmq_msg_recv(&msg, subscriber, ZMQ_NOBLOCK) > 0)
+			zmq_msg_close(&msg);			
+			continue;
+		}
+
 		/* Copy the data from zmq to csp */
 		char * satidptr = ((char *) &packet->id) - 1;
 		memcpy(satidptr, zmq_msg_data(&msg), datalen);

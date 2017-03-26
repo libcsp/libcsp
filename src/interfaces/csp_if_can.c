@@ -320,6 +320,13 @@ static int csp_can_process_frame(can_frame_t *frame)
 		buf->packet->id.ext = csp_ntoh32(buf->packet->id.ext);
 		memcpy(&(buf->packet->length), frame->data + sizeof(csp_id_t), sizeof(uint16_t));
 		buf->packet->length = csp_ntoh16(buf->packet->length);
+		/* Check 'length' field doesn't overflow the RX buffer */
+		if (buf->packet->length > CSP_CAN_MTU) {
+			csp_log_error("CAN packet is too big for MTU");
+			csp_can_pbuf_free(buf);
+			csp_if_can.frame++;
+			break;
+		}
 
 		/* Reset RX count */
 		buf->rx_count = 0;
