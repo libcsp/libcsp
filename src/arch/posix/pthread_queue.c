@@ -65,7 +65,7 @@ static inline int init_cond_clock_monotonic(pthread_cond_t * cond)
 	pthread_condattr_init(&attr);
 	ret = pthread_condattr_setclock(&attr, CLOCK_MONOTONIC);
 
-	if (0 == ret) {
+	if (ret == 0) {
 		ret = pthread_cond_init(cond, &attr);
 	}
 
@@ -120,13 +120,13 @@ static inline int wait_slot_available(pthread_queue_t * queue, struct timespec *
 
 	while (queue->items == queue->size) {
 
-		if (NULL != ts) {
+		if (ts != NULL) {
 			ret = pthread_cond_timedwait(&(queue->cond_full), &(queue->mutex), ts);
 		} else {
 			ret = pthread_cond_wait(&(queue->cond_full), &(queue->mutex));
 		}
 
-		if (0 != ret && errno != EINTR) {
+		if (ret != 0 && errno != EINTR) {
 			return PTHREAD_QUEUE_FULL; //Timeout
 		}
 	}
@@ -142,8 +142,8 @@ int pthread_queue_enqueue(pthread_queue_t * queue, void * value, uint32_t timeou
 	struct timespec *pts = NULL;
 
 	/* Calculate timeout */
-	if (CSP_MAX_DELAY != timeout) {
-		if (0 != get_deadline(&ts, timeout)) {
+	if (timeout != CSP_MAX_DELAY) {
+		if (get_deadline(&ts, timeout) != 0) {
 			return PTHREAD_QUEUE_ERROR;
 		}
 		pts = &ts;
@@ -155,7 +155,7 @@ int pthread_queue_enqueue(pthread_queue_t * queue, void * value, uint32_t timeou
 	pthread_mutex_lock(&(queue->mutex));
 
 	ret = wait_slot_available(queue, pts);
-	if (PTHREAD_QUEUE_OK == ret) {
+	if (ret == PTHREAD_QUEUE_OK) {
 		/* Copy object from input buffer */
 		memcpy(queue->buffer+(queue->in * queue->item_size), value, queue->item_size);
 		queue->items++;
@@ -164,7 +164,7 @@ int pthread_queue_enqueue(pthread_queue_t * queue, void * value, uint32_t timeou
 
 	pthread_mutex_unlock(&(queue->mutex));
 
-	if (PTHREAD_QUEUE_OK == ret) {
+	if (ret == PTHREAD_QUEUE_OK) {
 		/* Nofify blocked threads */
 		pthread_cond_broadcast(&(queue->cond_empty));
 	}
@@ -179,13 +179,13 @@ static inline int wait_item_available(pthread_queue_t * queue, struct timespec *
 
 	while (queue->items == 0) {
 
-		if (NULL != ts) {
+		if (ts != NULL) {
 			ret = pthread_cond_timedwait(&(queue->cond_empty), &(queue->mutex), ts);
 		} else {
 			ret = pthread_cond_wait(&(queue->cond_empty), &(queue->mutex));
 		}
 
-		if (0 != ret && errno != EINTR) {
+		if (ret != 0 && errno != EINTR) {
 			return PTHREAD_QUEUE_EMPTY; //Timeout
 		}
 	}
@@ -201,8 +201,8 @@ int pthread_queue_dequeue(pthread_queue_t * queue, void * buf, uint32_t timeout)
 	struct timespec *pts;
 
 	/* Calculate timeout */
-	if (CSP_MAX_DELAY != timeout) {
-		if (0 != get_deadline(&ts, timeout)) {
+	if (timeout != CSP_MAX_DELAY) {
+		if (get_deadline(&ts, timeout) != 0) {
 			return PTHREAD_QUEUE_ERROR;
 		}
 		pts = &ts;
@@ -214,7 +214,7 @@ int pthread_queue_dequeue(pthread_queue_t * queue, void * buf, uint32_t timeout)
 	pthread_mutex_lock(&(queue->mutex));
 
 	ret = wait_item_available(queue, pts);
-	if (PTHREAD_QUEUE_OK == ret) {
+	if (ret == PTHREAD_QUEUE_OK) {
 		/* Coby object to output buffer */
 		memcpy(buf, queue->buffer+(queue->out * queue->item_size), queue->item_size);
 		queue->items--;
@@ -223,7 +223,7 @@ int pthread_queue_dequeue(pthread_queue_t * queue, void * buf, uint32_t timeout)
 
 	pthread_mutex_unlock(&(queue->mutex));
 
-	if (PTHREAD_QUEUE_OK == ret) {
+	if (ret == PTHREAD_QUEUE_OK) {
 		/* Nofify blocked threads */
 		pthread_cond_broadcast(&(queue->cond_full));
 	}
