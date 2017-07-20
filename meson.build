@@ -1,4 +1,4 @@
-project('libcsp', 'c', version: '1.5.0', license: 'MIT')
+project('libcsp', 'c', version: '1.5.0', license: 'LGPL')
 
 cc = meson.get_compiler('c')
 
