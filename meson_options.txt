@@ -1,0 +1,1 @@
+option('with_rtable', type: 'string', value: 'cidr', description: 'Select routing table, "cidr" or "static"')
