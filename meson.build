@@ -35,10 +35,6 @@ csp_sources = [
 	'src/crypto/csp_hmac.c',
 	'src/crypto/csp_sha1.c',
 	'src/crypto/csp_xtea.c',
-	'src/drivers/can/can_socketcan.c',
-	'src/interfaces/csp_if_can.c',
-	'src/interfaces/csp_if_can_pbuf.c',
-	'src/interfaces/csp_if_lo.c',
 	'src/transport/csp_rdp.c',
 	'src/transport/csp_udp.c',
 	'src/csp_buffer.c',
@@ -62,6 +58,8 @@ csp_sources = [
 csp_deps = []
 subdir('src/rtable')
 subdir('src/arch')
+subdir('src/drivers')
+subdir('src/interfaces')
 
 configure_file(output: 'csp_config.h', configuration: conf)
 
