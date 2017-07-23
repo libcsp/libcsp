@@ -4,8 +4,6 @@ cc = meson.get_compiler('c')
 
 conf = configuration_data()
 
-conf.set('GIT_REV', '"gittehest"')
-conf.set('CSP_DEBUG', 1)
 conf.set('CSP_CONN_MAX', 8)
 conf.set('CSP_CONN_QUEUE_LENGTH', 5)
 conf.set('CSP_FIFO_INPUT', 10)
@@ -13,21 +11,25 @@ conf.set('CSP_MAX_BIND_PORT', 16)
 conf.set('CSP_RDP_MAX_WINDOW', 20)
 conf.set('CSP_PADDING_BYTES', 8)
 conf.set('CSP_CONNECTION_SO', 0)
+
+conf.set('CSP_DEBUG', 1)
 conf.set('CSP_LOG_LEVEL_DEBUG', 1)
 conf.set('CSP_LOG_LEVEL_INFO', 1)
 conf.set('CSP_LOG_LEVEL_WARN', 1)
 conf.set('CSP_LOG_LEVEL_ERROR', 1)
+
 conf.set('CSP_LITTLE_ENDIAN', 1)
-conf.set('CSP_VERSION', '"1.5"')
+
 conf.set('CSP_HAVE_STDBOOL_H', cc.has_header('stdbool.h'))
-conf.set('CSP_USE_RDP', 1)
-conf.set('CSP_USE_CRC32', 1)
-conf.set('CSP_USE_HMAC', 1)
-conf.set('CSP_USE_XTEA', 1)
-conf.set('CSP_USE_PROMISC', 0)
-conf.set('CSP_USE_QOS', 0)
-conf.set('CSP_USE_DEDUP', 0)
-conf.set('CSP_USE_INIT_SHUTDOWN', 0)
+
+conf.set('CSP_USE_RDP', true)
+conf.set('CSP_USE_CRC32', true)
+conf.set('CSP_USE_HMAC', true)
+conf.set('CSP_USE_XTEA', true)
+conf.set('CSP_USE_PROMISC', false)
+conf.set('CSP_USE_QOS', false)
+conf.set('CSP_USE_DEDUP', false)
+conf.set('CSP_USE_INIT_SHUTDOWN', false)
 
 inc = include_directories('include')
 

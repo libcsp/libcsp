@@ -95,12 +95,6 @@ def configure(ctx):
 
     ctx.load('gcc')
 
-    # Set git revision define
-    git_rev = os.popen('git describe --always 2> /dev/null || echo unknown').read().strip()
-
-    # Setup DEFINES
-    ctx.define('GIT_REV', git_rev)
-
     # Set build output format
     ctx.env.FEATURES = ['c']
     if not ctx.options.disable_stlib:

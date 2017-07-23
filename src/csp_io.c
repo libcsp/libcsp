@@ -54,7 +54,7 @@ static uint8_t csp_my_address;
 /* Hostname, model and build revision */
 static const char *csp_hostname = NULL;
 static const char *csp_model = NULL;
-static const char *csp_revision = GIT_REV;
+static const char *csp_revision = "";
 
 #ifdef CSP_USE_PROMISC
 extern csp_queue_handle_t csp_promisc_queue;
