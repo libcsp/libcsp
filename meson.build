@@ -31,8 +31,6 @@ conf.set('CSP_USE_QOS', false)
 conf.set('CSP_USE_DEDUP', false)
 conf.set('CSP_USE_INIT_SHUTDOWN', false)
 
-inc = include_directories('include')
-
 csp_sources = [
 	'src/crypto/csp_hmac.c',
 	'src/crypto/csp_sha1.c',
@@ -54,6 +52,7 @@ csp_sources = [
 	'src/csp_qfifo.c',
 	'src/csp_route.c',
 	'src/csp_service_handler.c',
+	'src/csp_services.c',
 	'src/csp_sfp.c',
 ]
 
@@ -63,12 +62,21 @@ subdir('src/arch')
 subdir('src/drivers')
 subdir('src/interfaces')
 
-configure_file(output: 'csp_config.h', configuration: conf)
+csp_config_h = configure_file(output: 'csp_config.h', configuration: conf)
+csp_sources += csp_config_h
 
-libcsp = shared_library('csp',
+libcsp_inc = include_directories(['.', 'include'])
+
+libcsp = static_library('csp',
 	csp_sources,
-	include_directories : inc,
+	include_directories : libcsp_inc,
 	dependencies : csp_deps,
 	install: true
 	)
 	
+libcsp_dep = declare_dependency(
+	sources: csp_config_h,
+	include_directories : libcsp_inc,
+	dependencies : csp_deps,
+	link_with: libcsp
+	)
