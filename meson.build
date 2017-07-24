@@ -31,7 +31,7 @@ conf.set('CSP_USE_QOS', false)
 conf.set('CSP_USE_DEDUP', false)
 conf.set('CSP_USE_INIT_SHUTDOWN', false)
 
-csp_sources = [
+csp_sources = files([
 	'src/crypto/csp_hmac.c',
 	'src/crypto/csp_sha1.c',
 	'src/crypto/csp_xtea.c',
@@ -54,7 +54,7 @@ csp_sources = [
 	'src/csp_service_handler.c',
 	'src/csp_services.c',
 	'src/csp_sfp.c',
-]
+])
 
 csp_deps = []
 subdir('src/rtable')
@@ -63,7 +63,6 @@ subdir('src/drivers')
 subdir('src/interfaces')
 
 csp_config_h = configure_file(output: 'csp_config.h', configuration: conf)
-csp_sources += csp_config_h
 
 libcsp_inc = include_directories(['.', 'include'])
 
