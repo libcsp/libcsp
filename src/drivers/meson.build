@@ -1,4 +1,4 @@
-cc = meson.get_compiler('c', native : false)
+cc = meson.get_compiler('c')
 
 socketcan_dep = dependency('libsocketcan', required: false)
 if socketcan_dep.found()

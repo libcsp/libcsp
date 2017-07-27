@@ -77,6 +77,7 @@ subdir('src/interfaces')
 csp_config_h = configure_file(output: 'csp_config.h', configuration: conf)
 
 libcsp_inc = include_directories(['.', 'include'])
+install_subdir('include', install_dir : '.')
 
 libcsp = static_library('csp',
 	csp_sources,
