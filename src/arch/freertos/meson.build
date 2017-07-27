@@ -9,6 +9,6 @@ sources = [
 
 csp_deps += declare_dependency(
 	sources: sources,
-	dependencies: freertos_dep
+	#dependencies: freertos_dep
 
 )

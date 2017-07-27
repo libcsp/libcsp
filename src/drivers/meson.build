@@ -1,4 +1,4 @@
-cc = meson.get_compiler('c')
+cc = meson.get_compiler('c', native : false)
 
 socketcan_dep = dependency('libsocketcan', required: false)
 if socketcan_dep.found()
@@ -6,12 +6,9 @@ if socketcan_dep.found()
 	csp_deps += socketcan_dep
 endif
 
-if cc.has_header('linux/socket.h')
+if host_machine.system() == 'linux'
 	csp_sources += files(['can/can_socketcan.c'])
+	csp_sources += files(['usart/usart_linux.c'])
+elif host_machine.system() == 'windows'
+	csp_sources += files(['usart/usart_windows.c'])
 endif
-
-if cc.has_header('termios.h') and cc.has_header('pthread.h')
-	csp_sources += files(['usart/usart_@0@.c'.format(host_machine.system())])
-endif
-
-
