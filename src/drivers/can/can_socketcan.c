@@ -87,7 +87,7 @@ static void * socketcan_rx_thread(void * parameters)
 		}
 
 		/* Frame type */
-		if (frame.can_id & (CAN_ERR_FLAG | CAN_RTR_FLAG) || !(frame.can_id & CAN_EFF_FLAG)) {
+		if ((frame.can_id & (CAN_ERR_FLAG | CAN_RTR_FLAG)) || !(frame.can_id & CAN_EFF_FLAG)) {
 			/* Drop error and remote frames */
 			csp_log_warn("Discarding ERR/RTR/SFF frame");
 			continue;
