@@ -165,6 +165,7 @@ typedef union {
  * with all interface frame types in order to
  * have buffer reuse
  */
+#define CSP_PADDING_BYTES		8
 typedef struct __attribute__((__packed__)) {
 	uint8_t padding[CSP_PADDING_BYTES];	/**< Interface dependent padding */
 	uint16_t length;			/**< Length field must be just before CSP ID */

@@ -1,9 +1,1 @@
 option('with_rtable', type: 'string', value: 'cidr', description: 'Select routing table, "cidr" or "static"')
-
-option('enable_if_can', type: 'boolean', value: false)
-option('enable_if_i2c', type: 'boolean', value: false)
-option('enable_if_kiss', type: 'boolean', value: false)
-option('enable_if_zmqhub', type: 'boolean', value: false)
-
-option('enable_driver_socketcan', type: 'boolean', value: false)
-option('enable_driver_serial', type: 'boolean', value: false)
