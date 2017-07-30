@@ -1,4 +1,4 @@
-project('libcsp', 'c', version: '1.5.0', license: 'LGPL')
+project('csp', 'c', version: '1.5.0', license: 'LGPL')
 
 cc = meson.get_compiler('c')
 
@@ -76,19 +76,19 @@ subdir('src/interfaces')
 
 csp_config_h = configure_file(output: 'csp_config.h', configuration: conf)
 
-libcsp_inc = include_directories(['.', 'include'])
+csp_inc = include_directories(['.', 'include'])
 install_subdir('include', install_dir : '.')
 
-libcsp = static_library('csp',
+csp = static_library('csp',
 	csp_sources,
-	include_directories : libcsp_inc,
+	include_directories : csp_inc,
 	dependencies : csp_deps,
 	install: true
 	)
 	
-libcsp_dep = declare_dependency(
+csp_dep = declare_dependency(
 	sources: csp_config_h,
-	include_directories : libcsp_inc,
+	include_directories : csp_inc,
 	dependencies : csp_deps,
-	link_with: libcsp
+	link_with: csp
 	)
