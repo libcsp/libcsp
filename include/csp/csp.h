@@ -39,62 +39,43 @@ extern "C" {
 #include "csp_rtable.h"
 #include "csp_iflist.h"
 
+typedef struct csp_conf_s {
+
+	uint8_t address;
+
+	const char *hostname;
+	const char *model;
+	const char *revision;
+
+	uint8_t conn_max;
+	uint8_t conn_queue_length;
+	uint8_t conn_dfl_so;
+	uint8_t fifo_length;
+	uint8_t port_max_bind;
+	uint8_t rdp_max_window;
+
+} csp_conf_t;
+
+inline void csp_conf_get_defaults(csp_conf_t * conf) {
+	conf->conn_max = 10;
+	conf->conn_queue_length = 10;
+	conf->conn_dfl_so = CSP_O_CRC32;
+	conf->fifo_length = 25;
+	conf->port_max_bind = CSP_ID_PORT_MAX - 1;
+	conf->rdp_max_window = 20;
+}
+
 /** csp_init
  * Start up the can-space protocol
  * @param my_node_address The CSP node address
  */
-int csp_init(uint8_t my_node_address);
-
-/** csp_set_address
- * Set the systems own address
- * @param addr The new address of the system
- */
-void csp_set_address(uint8_t addr);
+int csp_init(csp_conf_t * conf);
 
 /** csp_get_address
  * Get the systems own address
  * @return The current address of the system
  */
 uint8_t csp_get_address(void);
-
-/** csp_set_hostname
- * Set subsystem hostname.
- * This function takes a pointer to a string, which should remain static
- * @param hostname Hostname to set
- */
-void csp_set_hostname(const char *hostname);
-
-/** csp_get_hostname
- * Get current subsystem hostname.
- * @return Pointer to char array with current hostname.
- */
-const char *csp_get_hostname(void);
-
-/** csp_set_model
- * Set subsystem model name.
- * This function takes a pointer to a string, which should remain static
- * @param model Model name to set
- */
-void csp_set_model(const char *model);
-
-/** csp_get_model
- * Get current model name.
- * @return Pointer to char array with current model name.
- */
-const char *csp_get_model(void);
-
-/** csp_set_revision
- * Set subsystem revision. This can be used to override the CMP revision field.
- * This function takes a pointer to a string, which should remain static
- * @param revision Revision name to set
- */
-void csp_set_revision(const char *revision);
-
-/** csp_get_revision
- * Get subsystem revision.
- * @return Pointer to char array with software revision.
- */
-const char *csp_get_revision(void);
 
 /** csp_socket
  * Create CSP socket endpoint
