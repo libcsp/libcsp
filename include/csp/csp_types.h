@@ -42,10 +42,10 @@ enum csp_reserved_ports_e {
 	CSP_PS				= 2,
 	CSP_MEMFREE			= 3,
 	CSP_REBOOT			= 4,
-	CSP_BUF_FREE			= 5,
+	CSP_BUF_FREE		= 5,
 	CSP_UPTIME			= 6,
-	CSP_ANY				= (CSP_MAX_BIND_PORT + 1),
-	CSP_PROMISC			= (CSP_MAX_BIND_PORT + 2)
+	CSP_ANY				= 254,
+	CSP_PROMISC			= 255,
 };
 
 typedef enum {

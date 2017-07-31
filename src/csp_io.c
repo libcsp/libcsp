@@ -40,13 +40,15 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/crypto/csp_hmac.h>
 #include <csp/crypto/csp_xtea.h>
 
-#include "csp_io.h"
+#include "csp_init.h"
 #include "csp_port.h"
 #include "csp_conn.h"
 #include "csp_route.h"
 #include "csp_promisc.h"
 #include "csp_qfifo.h"
 #include "transport/csp_transport.h"
+
+#include "csp_io.h"
 
 #ifdef CSP_USE_PROMISC
 extern csp_queue_handle_t csp_promisc_queue;
@@ -182,7 +184,7 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, csp_iface_t * ifout, 
 #endif
 
 	/* Only encrypt packets from the current node */
-	if (idout.src == csp_get_address()) {
+	if (idout.src == csp_conf.address) {
 		/* Append HMAC */
 		if (idout.flags & CSP_FHMAC) {
 #ifdef CSP_USE_HMAC
@@ -395,7 +397,7 @@ int csp_sendto(uint8_t prio, uint8_t dest, uint8_t dport, uint8_t src_port, uint
 
 	packet->id.dst = dest;
 	packet->id.dport = dport;
-	packet->id.src = csp_get_address();
+	packet->id.src = csp_conf.address;
 	packet->id.sport = src_port;
 	packet->id.pri = prio;
 

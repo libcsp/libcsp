@@ -33,8 +33,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/arch/csp_malloc.h>
 #include <csp/arch/csp_time.h>
 
-#include "csp_conn.h"
+#include "csp_init.h"
 #include "transport/csp_transport.h"
+
+#include "csp_conn.h"
 
 /* Static connection pool */
 static csp_conn_t arr_conn[CSP_CONN_MAX];
@@ -117,7 +119,7 @@ int csp_conn_init(void) {
 
 	/* Initialize source port */
 	srand(csp_get_ms());
-	sport = (rand() % (CSP_ID_PORT_MAX - CSP_MAX_BIND_PORT)) + (CSP_MAX_BIND_PORT + 1);
+	sport = (rand() % (CSP_ID_PORT_MAX - csp_conf.port_max_bind)) + (csp_conf.port_max_bind + 1);
 
 	if (csp_bin_sem_create(&sport_lock) != CSP_SEMAPHORE_OK) {
 		csp_log_error("No more memory for sport semaphore");
@@ -304,13 +306,13 @@ csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport, uint32_t tim
 	/* Generate identifier */
 	csp_id_t incoming_id, outgoing_id;
 	incoming_id.pri = prio;
-	incoming_id.dst = csp_get_address();
+	incoming_id.dst = csp_conf.address;
 	incoming_id.src = dest;
 	incoming_id.sport = dport;
 	incoming_id.flags = 0;
 	outgoing_id.pri = prio;
 	outgoing_id.dst = dest;
-	outgoing_id.src = csp_get_address();
+	outgoing_id.src = csp_conf.address;
 	outgoing_id.dport = dport;
 	outgoing_id.flags = 0;
 
@@ -365,7 +367,7 @@ csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport, uint32_t tim
 	uint8_t start = sport;
 	while (++sport != start) {
 		if (sport > CSP_ID_PORT_MAX)
-			sport = CSP_MAX_BIND_PORT + 1;
+			sport = csp_conf.port_max_bind + 1;
 
 		outgoing_id.sport = sport;
 		incoming_id.dport = sport;

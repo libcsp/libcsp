@@ -12,9 +12,6 @@ conf.set('CSP_CONNECTION_SO', 0)
 # qfifo init
 conf.set('CSP_FIFO_INPUT', 10)
 
-# port
-conf.set('CSP_MAX_BIND_PORT', 16)
-
 # rdp
 conf.set('CSP_RDP_MAX_WINDOW', 20)
 
