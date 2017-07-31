@@ -33,6 +33,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/crypto/csp_hmac.h>
 #include <csp/crypto/csp_xtea.h>
 
+#include "csp_init.h"
 #include "csp_port.h"
 #include "csp_conn.h"
 #include "csp_io.h"
@@ -40,6 +41,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "csp_qfifo.h"
 #include "csp_dedup.h"
 #include "transport/csp_transport.h"
+
+#include "csp_route.h"
 
 /**
  * Check supported packet options
@@ -209,7 +212,7 @@ int csp_route_work(uint32_t timeout) {
 	input.interface->rxbytes += packet->length;
 
 	/* If the message is not to me, route the message to the correct interface */
-	if ((packet->id.dst != csp_get_address()) && (packet->id.dst != CSP_BROADCAST_ADDR)) {
+	if ((packet->id.dst != csp_conf.address) && (packet->id.dst != CSP_BROADCAST_ADDR)) {
 
 		/* Find the destination interface */
 		csp_iface_t * dstif = csp_rtable_find_iface(packet->id.dst);
@@ -274,7 +277,7 @@ int csp_route_work(uint32_t timeout) {
 		/* New incoming connection accepted */
 		csp_id_t idout;
 		idout.pri   = packet->id.pri;
-		idout.src   = csp_get_address();
+		idout.src   = csp_conf.address;
 
 		idout.dst   = packet->id.src;
 		idout.dport = packet->id.sport;

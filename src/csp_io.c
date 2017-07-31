@@ -40,7 +40,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/crypto/csp_hmac.h>
 #include <csp/crypto/csp_xtea.h>
 
-#include "csp_io.h"
+#include "csp_init.h"
 #include "csp_port.h"
 #include "csp_conn.h"
 #include "csp_route.h"
@@ -48,89 +48,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "csp_qfifo.h"
 #include "transport/csp_transport.h"
 
-/** CSP address of this node */
-static uint8_t csp_my_address;
-
-/* Hostname, model and build revision */
-static const char *csp_hostname = NULL;
-static const char *csp_model = NULL;
-static const char *csp_revision = GIT_REV;
+#include "csp_io.h"
 
 #ifdef CSP_USE_PROMISC
 extern csp_queue_handle_t csp_promisc_queue;
 #endif
-
-void csp_set_address(uint8_t addr)
-{
-	csp_my_address = addr;
-}
-
-uint8_t csp_get_address(void)
-{
-	return csp_my_address;
-}
-
-void csp_set_hostname(const char *hostname)
-{
-	csp_hostname = hostname;
-}
-
-const char *csp_get_hostname(void)
-{
-	return csp_hostname;
-}
-
-void csp_set_model(const char *model)
-{
-	csp_model = model;
-}
-
-const char *csp_get_model(void)
-{
-	return csp_model;
-}
-
-void csp_set_revision(const char *revision)
-{
-	csp_revision = revision;
-}
-
-const char *csp_get_revision(void)
-{
-	return csp_revision;
-}
-
-int csp_init(unsigned char address) {
-
-	int ret;
-
-	/* Initialize CSP */
-	csp_set_address(address);
-
-	ret = csp_conn_init();
-	if (ret != CSP_ERR_NONE)
-		return ret;
-
-	ret = csp_port_init();
-	if (ret != CSP_ERR_NONE)
-		return ret;
-
-	ret = csp_qfifo_init();
-	if (ret != CSP_ERR_NONE)
-		return ret;
-
-	/* Loopback */
-	csp_iflist_add(&csp_if_lo);
-
-	/* Register loopback route */
-	csp_route_set(csp_get_address(), &csp_if_lo, CSP_NODE_MAC);
-
-	/* Also register loopback as default, until user redefines default route */
-	csp_route_set(CSP_DEFAULT_ROUTE, &csp_if_lo, CSP_NODE_MAC);
-
-	return CSP_ERR_NONE;
-
-}
 
 csp_socket_t * csp_socket(uint32_t opts) {
 	
@@ -262,7 +184,7 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, csp_iface_t * ifout, 
 #endif
 
 	/* Only encrypt packets from the current node */
-	if (idout.src == csp_get_address()) {
+	if (idout.src == csp_conf.address) {
 		/* Append HMAC */
 		if (idout.flags & CSP_FHMAC) {
 #ifdef CSP_USE_HMAC
@@ -475,7 +397,7 @@ int csp_sendto(uint8_t prio, uint8_t dest, uint8_t dport, uint8_t src_port, uint
 
 	packet->id.dst = dest;
 	packet->id.dport = dport;
-	packet->id.src = csp_get_address();
+	packet->id.src = csp_conf.address;
 	packet->id.sport = src_port;
 	packet->id.pri = prio;
 
