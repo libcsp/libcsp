@@ -48,89 +48,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "csp_qfifo.h"
 #include "transport/csp_transport.h"
 
-/** CSP address of this node */
-static uint8_t csp_my_address;
-
-/* Hostname, model and build revision */
-static const char *csp_hostname = NULL;
-static const char *csp_model = NULL;
-static const char *csp_revision = "";
-
 #ifdef CSP_USE_PROMISC
 extern csp_queue_handle_t csp_promisc_queue;
 #endif
-
-void csp_set_address(uint8_t addr)
-{
-	csp_my_address = addr;
-}
-
-uint8_t csp_get_address(void)
-{
-	return csp_my_address;
-}
-
-void csp_set_hostname(const char *hostname)
-{
-	csp_hostname = hostname;
-}
-
-const char *csp_get_hostname(void)
-{
-	return csp_hostname;
-}
-
-void csp_set_model(const char *model)
-{
-	csp_model = model;
-}
-
-const char *csp_get_model(void)
-{
-	return csp_model;
-}
-
-void csp_set_revision(const char *revision)
-{
-	csp_revision = revision;
-}
-
-const char *csp_get_revision(void)
-{
-	return csp_revision;
-}
-
-int csp_init(unsigned char address) {
-
-	int ret;
-
-	/* Initialize CSP */
-	csp_set_address(address);
-
-	ret = csp_conn_init();
-	if (ret != CSP_ERR_NONE)
-		return ret;
-
-	ret = csp_port_init();
-	if (ret != CSP_ERR_NONE)
-		return ret;
-
-	ret = csp_qfifo_init();
-	if (ret != CSP_ERR_NONE)
-		return ret;
-
-	/* Loopback */
-	csp_iflist_add(&csp_if_lo);
-
-	/* Register loopback route */
-	csp_route_set(csp_get_address(), &csp_if_lo, CSP_NODE_MAC);
-
-	/* Also register loopback as default, until user redefines default route */
-	csp_route_set(CSP_DEFAULT_ROUTE, &csp_if_lo, CSP_NODE_MAC);
-
-	return CSP_ERR_NONE;
-
-}
 
 csp_socket_t * csp_socket(uint32_t opts) {
 	

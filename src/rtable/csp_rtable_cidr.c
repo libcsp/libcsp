@@ -25,6 +25,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/arch/csp_malloc.h>
 #include <csp/interfaces/csp_if_lo.h>
 
+#include "../csp_init.h"
+
 /* Local typedef for routing table */
 typedef struct __attribute__((__packed__)) csp_rtable_s {
 	uint8_t address;
@@ -97,7 +99,7 @@ void csp_rtable_clear(void) {
 	rtable = NULL;
 
 	/* Set loopback up again */
-	csp_rtable_set(csp_get_address(), CSP_ID_HOST_SIZE, &csp_if_lo, CSP_NODE_MAC);
+	csp_rtable_set(csp_conf.address, CSP_ID_HOST_SIZE, &csp_if_lo, CSP_NODE_MAC);
 
 }
 

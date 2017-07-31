@@ -58,6 +58,7 @@ csp_sources = files([
 	'src/csp_endian.c',
 	'src/csp_hex_dump.c',
 	'src/csp_iflist.c',
+	'src/csp_init.c',
 	'src/csp_io.c',
 	'src/csp_port.c',
 	'src/csp_promisc.c',
