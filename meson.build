@@ -4,10 +4,6 @@ cc = meson.get_compiler('c')
 
 conf = configuration_data()
 
-# rdp
-#conf.set('CSP_RDP_MAX_WINDOW', 20)
-
-# debug init
 conf.set('CSP_DEBUG', 1)
 conf.set('CSP_LOG_LEVEL_DEBUG', 1)
 conf.set('CSP_LOG_LEVEL_INFO', 1)
@@ -18,11 +14,9 @@ conf.set('CSP_USE_RDP', true)
 conf.set('CSP_USE_CRC32', true)
 conf.set('CSP_USE_HMAC', true)
 conf.set('CSP_USE_XTEA', true)
-conf.set('CSP_USE_PROMISC', false)
-conf.set('CSP_USE_QOS', false)
-conf.set('CSP_USE_DEDUP', false)
-conf.set('CSP_USE_INIT_SHUTDOWN', false)
-
+conf.set('CSP_USE_PROMISC', true)
+conf.set('CSP_USE_QOS', true)
+conf.set('CSP_USE_DEDUP', true)
 
 conf.set('CSP_HAVE_STDBOOL_H', cc.has_header('stdbool.h'))
 
