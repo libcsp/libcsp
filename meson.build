@@ -4,9 +4,6 @@ cc = meson.get_compiler('c')
 
 conf = configuration_data()
 
-# qfifo init
-conf.set('CSP_FIFO_INPUT', 10)
-
 # rdp
 conf.set('CSP_RDP_MAX_WINDOW', 20)
 
