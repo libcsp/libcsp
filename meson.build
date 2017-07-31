@@ -5,7 +5,7 @@ cc = meson.get_compiler('c')
 conf = configuration_data()
 
 # rdp
-conf.set('CSP_RDP_MAX_WINDOW', 20)
+#conf.set('CSP_RDP_MAX_WINDOW', 20)
 
 # debug init
 conf.set('CSP_DEBUG', 1)
