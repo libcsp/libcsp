@@ -33,7 +33,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/arch/csp_clock.h>
 #include <csp/arch/csp_malloc.h>
 #include <csp/arch/csp_system.h>
+
 #include "csp_route.h"
+#include "csp_init.h"
 
 #define CSP_RPS_MTU	196
 
@@ -58,7 +60,7 @@ void csp_cmp_set_memcpy(csp_memcpy_fnc_t fnc) {
 static int do_cmp_ident(struct csp_cmp_message *cmp) {
 
 	/* Copy revision */
-	strncpy(cmp->ident.revision, csp_get_revision(), CSP_CMP_IDENT_REV_LEN);
+	strncpy(cmp->ident.revision, csp_conf.revision, CSP_CMP_IDENT_REV_LEN);
 	cmp->ident.revision[CSP_CMP_IDENT_REV_LEN - 1] = '\0';
 
 	/* Copy compilation date */
@@ -70,11 +72,11 @@ static int do_cmp_ident(struct csp_cmp_message *cmp) {
 	cmp->ident.time[CSP_CMP_IDENT_TIME_LEN - 1] = '\0';
 
 	/* Copy hostname */
-	strncpy(cmp->ident.hostname, csp_get_hostname(), CSP_HOSTNAME_LEN);
+	strncpy(cmp->ident.hostname, csp_conf.hostname, CSP_HOSTNAME_LEN);
 	cmp->ident.hostname[CSP_HOSTNAME_LEN - 1] = '\0';
 
 	/* Copy model name */
-	strncpy(cmp->ident.model, csp_get_model(), CSP_MODEL_LEN);
+	strncpy(cmp->ident.model, csp_conf.model, CSP_MODEL_LEN);
 	cmp->ident.model[CSP_MODEL_LEN - 1] = '\0';
 
 	return CSP_ERR_NONE;
