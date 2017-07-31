@@ -42,19 +42,14 @@ csp_socket_t * csp_port_get_socket(unsigned int port) {
 
 	csp_socket_t * ret = NULL;
 
-	if (port == CSP_ANY)
-		port = csp_conf.port_max_bind + 1;
-	if (port == CSP_PROMISC)
-		port = csp_conf.port_max_bind + 2;
-
-	if (port > csp_conf.port_max_bind + 2)
+	if (port > csp_conf.port_max_bind)
 		return NULL;
 
 	/* Match dport to socket or local "catch all" port number */
 	if (ports[port].state == PORT_OPEN)
 		ret = ports[port].socket;
-	else if (ports[CSP_ANY].state == PORT_OPEN)
-		ret = ports[CSP_ANY].socket;
+	else if (ports[csp_conf.port_max_bind + 1].state == PORT_OPEN)
+		ret = ports[csp_conf.port_max_bind + 1].socket;
 
 	return ret;
 

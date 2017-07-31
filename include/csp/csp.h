@@ -59,9 +59,9 @@ typedef struct csp_conf_s {
 inline void csp_conf_get_defaults(csp_conf_t * conf) {
 	conf->conn_max = 10;
 	conf->conn_queue_length = 10;
-	conf->conn_dfl_so = CSP_O_CRC32;
+	conf->conn_dfl_so = CSP_O_NONE;
 	conf->fifo_length = 25;
-	conf->port_max_bind = CSP_ID_PORT_MAX - 1;
+	conf->port_max_bind = 24;
 	conf->rdp_max_window = 20;
 }
 
