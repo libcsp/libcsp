@@ -129,10 +129,10 @@ int csp_conn_init(void) {
 	int i, prio;
 	for (i = 0; i < CSP_CONN_MAX; i++) {
 		for (prio = 0; prio < CSP_RX_QUEUES; prio++)
-			arr_conn[i].rx_queue[prio] = csp_queue_create(CSP_RX_QUEUE_LENGTH, sizeof(csp_packet_t *));
+			arr_conn[i].rx_queue[prio] = csp_queue_create(csp_conf.conn_queue_length, sizeof(csp_packet_t *));
 
 #ifdef CSP_USE_QOS
-		arr_conn[i].rx_event = csp_queue_create(CSP_CONN_QUEUE_LENGTH, sizeof(int));
+		arr_conn[i].rx_event = csp_queue_create(csp_conf.conn_queue_length, sizeof(int));
 #endif
 		arr_conn[i].state = CONN_CLOSED;
 
