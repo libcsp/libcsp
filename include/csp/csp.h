@@ -49,7 +49,7 @@ typedef struct csp_conf_s {
 
 	uint8_t conn_max;
 	uint8_t conn_queue_length;
-	uint8_t conn_dfl_so;
+	uint32_t conn_dfl_so;
 	uint8_t fifo_length;
 	uint8_t port_max_bind;
 	uint8_t rdp_max_window;

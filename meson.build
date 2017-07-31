@@ -7,7 +7,6 @@ conf = configuration_data()
 # conn_init
 conf.set('CSP_CONN_MAX', 8)
 conf.set('CSP_CONN_QUEUE_LENGTH', 5)
-conf.set('CSP_CONNECTION_SO', 0)
 
 # qfifo init
 conf.set('CSP_FIFO_INPUT', 10)
