@@ -4,9 +4,6 @@ cc = meson.get_compiler('c')
 
 conf = configuration_data()
 
-# conn_init
-conf.set('CSP_CONN_MAX', 8)
-
 # qfifo init
 conf.set('CSP_FIFO_INPUT', 10)
 
