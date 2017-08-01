@@ -7,4 +7,4 @@ csp_sources += files([
 	'csp_time.c',
 ])
 
-csp_deps += dependency('freertos', fallback : ['c21', 'freertos_headers_dep'], required: true)
+csp_deps += dependency('freertos', fallback : ['asf', 'freertos_dep'], required: true)
