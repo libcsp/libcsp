@@ -203,7 +203,7 @@ csp_conn_t * csp_conn_allocate(csp_conn_type_t type) {
 
 	int i, j;
 	static uint8_t csp_conn_last_given = 0;
-	csp_conn_t * conn;
+	csp_conn_t * conn = NULL;
 
 	if (csp_bin_sem_wait(&conn_lock, 100) != CSP_SEMAPHORE_OK) {
 		csp_log_error("Failed to lock conn array");
