@@ -49,13 +49,24 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <csp/csp.h>
 #include <csp/interfaces/csp_if_can.h>
-#include <csp/drivers/can.h>
 
 #ifdef CSP_HAVE_LIBSOCKETCAN
 #include <libsocketcan.h>
 #endif
 
-static int can_socket; /** SocketCAN socket handle */
+static struct can_socketcan_s {
+	int socket;
+	csp_iface_t interface;
+} socketcan[1] = {
+	{
+		.interface = {
+			.name = "CAN",
+			.nexthop = csp_can_tx,
+			.mtu = CSP_CAN_MTU,
+			.driver = &socketcan[0],
+		},
+	},
+};
 
 static void * socketcan_rx_thread(void * parameters)
 {
@@ -64,7 +75,7 @@ static void * socketcan_rx_thread(void * parameters)
 
 	while (1) {
 		/* Read CAN frame */
-		nbytes = read(can_socket, &frame, sizeof(frame));
+		nbytes = read(socketcan[0].socket, &frame, sizeof(frame));
 		if (nbytes < 0) {
 			csp_log_error("read: %s", strerror(errno));
 			continue;
@@ -85,15 +96,16 @@ static void * socketcan_rx_thread(void * parameters)
 		/* Strip flags */
 		frame.can_id &= CAN_EFF_MASK;
 
-		/* Call RX callback */
-		csp_can_rx_frame((can_frame_t *)&frame, NULL);
+		/* Call RX callbacsp_can_rx_frameck */
+		csp_can_rx(&socketcan[0].interface, frame.can_id, frame.data, frame.can_dlc, NULL);
 	}
 
 	/* We should never reach this point */
 	pthread_exit(NULL);
 }
 
-int can_send(can_id_t id, uint8_t data[], uint8_t dlc)
+
+int csp_can_tx_frame(csp_iface_t *interface, uint32_t id, uint8_t * data, uint8_t dlc)
 {
 	struct can_frame frame;
 	int i, tries = 0;
@@ -112,7 +124,7 @@ int can_send(can_id_t id, uint8_t data[], uint8_t dlc)
 	frame.can_dlc = dlc;
 
 	/* Send frame */
-	while (write(can_socket, &frame, sizeof(frame)) != sizeof(frame)) {
+	while (write(socketcan[0].socket, &frame, sizeof(frame)) != sizeof(frame)) {
 		if (++tries < 1000 && errno == ENOBUFS) {
 			/* Wait 10 ms and try again */
 			usleep(10000);
@@ -125,60 +137,66 @@ int can_send(can_id_t id, uint8_t data[], uint8_t dlc)
 	return 0;
 }
 
-int can_init(uint32_t id, uint32_t mask, struct csp_can_config *conf)
+csp_iface_t * csp_can_socketcan_init(char * ifc, int bitrate, int promisc)
 {
 	struct ifreq ifr;
 	struct sockaddr_can addr;
 	pthread_t rx_thread;
 
-	csp_assert(conf && conf->ifc);
+	printf("Init can interface %s\n", ifc);
 
 #ifdef CSP_HAVE_LIBSOCKETCAN
 	/* Set interface up */
-	if (conf->bitrate > 0) {
-		can_do_stop(conf->ifc);
-		can_set_bitrate(conf->ifc, conf->bitrate);
-		can_do_start(conf->ifc);
+	if (bitrate > 0) {
+		can_do_stop(ifc);
+		can_set_bitrate(ifc, bitrate);
+		can_set_restart_ms(ifc, 100);
+		can_do_start(ifc);
 	}
 #endif
 
 	/* Create socket */
-	if ((can_socket = socket(PF_CAN, SOCK_RAW, CAN_RAW)) < 0) {
+	if ((socketcan[0].socket = socket(PF_CAN, SOCK_RAW, CAN_RAW)) < 0) {
 		csp_log_error("socket: %s", strerror(errno));
-		return -1;
+		return NULL;
 	}
 
 	/* Locate interface */
-	strncpy(ifr.ifr_name, conf->ifc, IFNAMSIZ - 1);
-	if (ioctl(can_socket, SIOCGIFINDEX, &ifr) < 0) {
+	strncpy(ifr.ifr_name, ifc, IFNAMSIZ - 1);
+	if (ioctl(socketcan[0].socket, SIOCGIFINDEX, &ifr) < 0) {
 		csp_log_error("ioctl: %s", strerror(errno));
-		return -1;
+		return NULL;
 	}
 
 	/* Bind the socket to CAN interface */
 	addr.can_family = AF_CAN;
 	addr.can_ifindex = ifr.ifr_ifindex;
-	if (bind(can_socket, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
+	if (bind(socketcan[0].socket, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
 		csp_log_error("bind: %s", strerror(errno));
-		return -1;
+		return NULL;
 	}
 
-	/* Set promiscuous mode */
-	if (mask) {
+	/* Set filter mode */
+	if (promisc == 0) {
+
 		struct can_filter filter;
-		filter.can_id   = id;
-		filter.can_mask = mask;
-		if (setsockopt(can_socket, SOL_CAN_RAW, CAN_RAW_FILTER, &filter, sizeof(filter)) < 0) {
+		filter.can_id = CFP_MAKE_DST(csp_get_address());
+		filter.can_mask = CFP_MAKE_DST((1 << CFP_HOST_SIZE) - 1);
+
+		if (setsockopt(socketcan[0].socket, SOL_CAN_RAW, CAN_RAW_FILTER, &filter, sizeof(filter)) < 0) {
 			csp_log_error("setsockopt: %s", strerror(errno));
-			return -1;
+			return NULL;
 		}
+
 	}
 
 	/* Create receive thread */
 	if (pthread_create(&rx_thread, NULL, socketcan_rx_thread, NULL) != 0) {
 		csp_log_error("pthread_create: %s", strerror(errno));
-		return -1;
+		return NULL;
 	}
 
-	return 0;
+	csp_iflist_add(&socketcan[0].interface);
+
+	return &socketcan[0].interface;
 }

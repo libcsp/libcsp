@@ -71,6 +71,8 @@ static CSP_DEFINE_TASK(csp_bridge) {
 
 	}
 
+	return CSP_TASK_RETURN;
+
 }
 
 int csp_bridge_start(unsigned int task_stack_size, unsigned int task_priority, csp_iface_t * _if_a, csp_iface_t * _if_b) {
