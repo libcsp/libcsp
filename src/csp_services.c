@@ -107,7 +107,7 @@ void csp_ping_noreply(uint8_t node) {
 	packet->data[0] = 0x55;
 	packet->length = 1;
 
-	printf("Ping ignore reply node %"PRIu8".\r\n", node);
+	printf("Ping ignore reply node %u.\r\n", (unsigned int) node);
 
 	/* Try to send frame */
 	if (!csp_send(conn, packet, 0))
@@ -145,7 +145,7 @@ void csp_ps(uint8_t node, uint32_t timeout) {
 	packet->data[0] = 0x55;
 	packet->length = 1;
 
-	printf("PS node %"PRIu8": \r\n", node);
+	printf("PS node %u: \r\n", (unsigned int) node);
 
 	/* Try to send frame */
 	if (!csp_send(conn, packet, 0))
@@ -189,7 +189,7 @@ void csp_memfree(uint8_t node, uint32_t timeout) {
 	/* Convert from network to host order */
 	memfree = csp_ntoh32(memfree);
 
-	printf("Free Memory at node %"PRIu8" is %"PRIu32" bytes\r\n", node, memfree);
+	printf("Free Memory at node %u is %"PRIu32" bytes\r\n", (unsigned int) node, memfree);
 
 }
 
@@ -203,7 +203,7 @@ void csp_buf_free(uint8_t node, uint32_t timeout) {
 		return;
 	}
 	size = csp_ntoh32(size);
-	printf("Free buffers at node %"PRIu8" is %"PRIu32"\r\n", node, size);
+	printf("Free buffers at node %u is %"PRIu32"\r\n", (unsigned int) node, size);
 
 }
 
@@ -217,7 +217,7 @@ void csp_uptime(uint8_t node, uint32_t timeout) {
 		return;
 	}
 	uptime = csp_ntoh32(uptime);
-	printf("Uptime of node %"PRIu8" is %"PRIu32" s\r\n", node, uptime);
+	printf("Uptime of node %u is %"PRIu32" s\r\n", (unsigned int) node, uptime);
 
 }
 

@@ -33,10 +33,8 @@ typedef struct {
 } csp_timestamp_t;
 
 /* User functions required */
-__attribute__((weak))
-extern void clock_get_time(csp_timestamp_t * time);
-__attribute__((weak))
-extern void clock_set_time(csp_timestamp_t * time);
+__attribute__((weak)) extern void clock_get_time(csp_timestamp_t * time);
+__attribute__((weak)) extern void clock_set_time(csp_timestamp_t * time);
 
 #ifdef __cplusplus
 } /* extern "C" */

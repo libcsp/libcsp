@@ -27,8 +27,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 /* CSP includes */
 #include <csp/csp.h>
 
-#include "csp_hmac.h"
-#include "csp_sha1.h"
+#include <csp/crypto/csp_hmac.h>
+#include <csp/crypto/csp_sha1.h>
 
 #ifdef CSP_USE_HMAC
 
@@ -43,7 +43,7 @@ typedef struct {
 	uint8_t		key[SHA1_BLOCKSIZE];
 } hmac_state;
 
-int csp_hmac_init(hmac_state * hmac, const uint8_t * key, uint32_t keylen) {
+static int csp_hmac_init(hmac_state * hmac, const uint8_t * key, uint32_t keylen) {
 	uint32_t i;
 	uint8_t buf[SHA1_BLOCKSIZE];
 
@@ -73,7 +73,7 @@ int csp_hmac_init(hmac_state * hmac, const uint8_t * key, uint32_t keylen) {
 	return CSP_ERR_NONE;
 }
 
-int csp_hmac_process(hmac_state * hmac, const uint8_t * in, uint32_t inlen) {
+static int csp_hmac_process(hmac_state * hmac, const uint8_t * in, uint32_t inlen) {
 
 	/* NULL pointer check */
 	if (!hmac || !in)
@@ -85,7 +85,7 @@ int csp_hmac_process(hmac_state * hmac, const uint8_t * in, uint32_t inlen) {
 	return CSP_ERR_NONE;
 }
 
-int csp_hmac_done(hmac_state * hmac, uint8_t * out) {
+static int csp_hmac_done(hmac_state * hmac, uint8_t * out) {
 
 	uint32_t i;
 	uint8_t buf[SHA1_BLOCKSIZE];
