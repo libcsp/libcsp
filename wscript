@@ -199,13 +199,6 @@ def configure(ctx):
     ctx.define_cond('CSP_USE_QOS', ctx.options.enable_qos)
     ctx.define_cond('CSP_USE_DEDUP', ctx.options.enable_dedup)
     ctx.define_cond('CSP_USE_INIT_SHUTDOWN', ctx.options.enable_init_shutdown)
-    ctx.define('CSP_CONN_MAX', ctx.options.with_max_connections)
-    ctx.define('CSP_CONN_QUEUE_LENGTH', ctx.options.with_conn_queue_length)
-    ctx.define('CSP_FIFO_INPUT', ctx.options.with_router_queue_length)
-    ctx.define('CSP_MAX_BIND_PORT', ctx.options.with_max_bind_port)
-    ctx.define('CSP_RDP_MAX_WINDOW', ctx.options.with_rdp_max_window)
-    ctx.define('CSP_PADDING_BYTES', ctx.options.with_padding)
-    ctx.define('CSP_CONNECTION_SO', ctx.options.with_connection_so)
     
     if ctx.options.with_bufalign != None:
         ctx.define('CSP_BUFFER_ALIGN', ctx.options.with_bufalign)
