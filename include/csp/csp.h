@@ -340,7 +340,7 @@ csp_packet_t *csp_promisc_read(uint32_t timeout);
  * @param timeout timeout in ms to wait for csp_send()
  * @return 0 if OK, -1 if ERR
  */
-int csp_sfp_send(csp_conn_t * conn, void * data, int totalsize, int mtu, uint32_t timeout);
+int csp_sfp_send(csp_conn_t * conn, const void * data, int totalsize, int mtu, uint32_t timeout);
 
 /**
  * Same as csp_sfp_send but with option to supply your own memcpy function.
@@ -353,7 +353,7 @@ int csp_sfp_send(csp_conn_t * conn, void * data, int totalsize, int mtu, uint32_
  * @param memcpyfcn, pointer to memcpy function
  * @return 0 if OK, -1 if ERR
  */
-int csp_sfp_send_own_memcpy(csp_conn_t * conn, void * data, int totalsize, int mtu, uint32_t timeout, void * (*memcpyfcn)(void *, const void *, size_t));
+int csp_sfp_send_own_memcpy(csp_conn_t * conn, const void * data, int totalsize, int mtu, uint32_t timeout, void * (*memcpyfcn)(void *, const void *, size_t));
 
 /**
  * This is the counterpart to the csp_sfp_send function

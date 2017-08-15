@@ -66,7 +66,9 @@ void * fifo_rx(void * parameters) {
 int main(int argc, char **argv) {
 
     int me, other, type;
-    char *message = "Testing CSP", *rx_channel_name, *tx_channel_name;
+    const char *message = "Testing CSP";
+    const char *rx_channel_name;
+    const char *tx_channel_name;
     csp_socket_t *sock;
     csp_conn_t *conn;
     csp_packet_t *packet;

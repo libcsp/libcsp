@@ -22,7 +22,7 @@
 import os
 
 APPNAME = 'libcsp'
-VERSION = '1.4'
+VERSION = '1.5'
 
 top = '.'
 out = 'build'
@@ -89,7 +89,7 @@ def configure(ctx):
         ctx.fatal('--with-loglevel must be either \'error\', \'warn\', \'info\' or \'debug\'')
 
     # Setup and validate toolchain
-    if ctx.options.toolchain:
+    if (len(ctx.stack_path) <= 1) and ctx.options.toolchain:
         ctx.env.CC = ctx.options.toolchain + 'gcc'
         ctx.env.AR = ctx.options.toolchain + 'ar'
 
@@ -107,8 +107,8 @@ def configure(ctx):
         ctx.env.FEATURES += ['cstlib']
 
     # Setup CFLAGS
-    if (len(ctx.env.CFLAGS) == 0):
-        ctx.env.prepend_value('CFLAGS', ['-Os','-Wall', '-g', '-std=gnu99'])
+    if (len(ctx.stack_path) <= 1) and (len(ctx.env.CFLAGS) == 0):
+        ctx.env.prepend_value('CFLAGS', ["-std=gnu99", "-g", "-Os", "-Wall", "-Wextra", "-Wshadow", "-Wcast-align", "-Wwrite-strings", "-Wno-unused-parameter"])
 
     # Setup extra includes
     ctx.env.append_unique('INCLUDES_CSP', ['include'] + ctx.options.includes.split(','))
