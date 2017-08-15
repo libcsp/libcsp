@@ -56,7 +56,7 @@ typedef struct csp_conf_s {
 
 } csp_conf_t;
 
-inline void csp_conf_get_defaults(csp_conf_t * conf) {
+static inline void csp_conf_get_defaults(csp_conf_t * conf) {
 	conf->conn_max = 10;
 	conf->conn_queue_length = 10;
 	conf->conn_dfl_so = CSP_O_NONE;
