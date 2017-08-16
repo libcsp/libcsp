@@ -87,8 +87,8 @@ typedef HANDLE csp_mutex_t;
 #define CSP_MUTEX_OK		CSP_SEMAPHORE_OK
 #define CSP_MUTEX_ERROR		CSP_SEMAPHORE_ERROR
 
-typedef xSemaphoreHandle csp_bin_sem_handle_t;
-typedef xSemaphoreHandle csp_mutex_t;
+typedef SemaphoreHandle_t csp_bin_sem_handle_t;
+typedef SemaphoreHandle_t csp_mutex_t;
 
 #endif // CSP_FREERTOS
 

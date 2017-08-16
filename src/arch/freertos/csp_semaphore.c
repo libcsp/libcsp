@@ -68,7 +68,7 @@ int csp_bin_sem_remove(csp_bin_sem_handle_t * sem) {
 int csp_bin_sem_wait(csp_bin_sem_handle_t * sem, uint32_t timeout) {
 	csp_log_lock("Wait: %p", sem);
 	if (timeout != CSP_MAX_DELAY)
-		timeout = timeout / portTICK_RATE_MS;
+		timeout = timeout / portTICK_PERIOD_MS;
 	if (xSemaphoreTake(*sem, timeout) == pdPASS) {
 		return CSP_SEMAPHORE_OK;
 	} else {
