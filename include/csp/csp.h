@@ -67,9 +67,15 @@ inline void csp_conf_get_defaults(csp_conf_t * conf) {
 
 /** csp_init
  * Start up the can-space protocol
- * @param my_node_address The CSP node address
+ * @param conf Pointer to a configuration
  */
-int csp_init(csp_conf_t * conf);
+int csp_init(const csp_conf_t * conf);
+
+/**
+ * Get a reference to the active csp_conf
+ * @return Pointer to csp_conf (read-only)
+ */
+const csp_conf_t * csp_get_conf(void);
 
 /** csp_get_address
  * Get the systems own address

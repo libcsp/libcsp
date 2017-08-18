@@ -34,7 +34,7 @@ uint8_t csp_get_address(void)
 	return csp_conf.address;
 }
 
-int csp_init(csp_conf_t * conf) {
+int csp_init(const csp_conf_t * conf) {
 
 	/* Make a copy of the configuration
 	 * The copy is kept hidden for the user in csp_init.h
@@ -67,4 +67,8 @@ int csp_init(csp_conf_t * conf) {
 
 	return CSP_ERR_NONE;
 
+}
+
+const csp_conf_t * csp_get_conf(void) {
+	return &csp_conf;
 }
