@@ -199,9 +199,6 @@ def configure(ctx):
     ctx.define_cond('CSP_USE_QOS', ctx.options.enable_qos)
     ctx.define_cond('CSP_USE_DEDUP', ctx.options.enable_dedup)
     ctx.define_cond('CSP_USE_INIT_SHUTDOWN', ctx.options.enable_init_shutdown)
-    
-    if ctx.options.with_bufalign != None:
-        ctx.define('CSP_BUFFER_ALIGN', ctx.options.with_bufalign)
 
     # Set logging level
     ctx.define_cond('CSP_LOG_LEVEL_DEBUG', ctx.options.with_loglevel in ('debug'))
