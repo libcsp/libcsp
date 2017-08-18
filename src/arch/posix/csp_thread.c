@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <stdint.h>
 #include <pthread.h>
+#include <limits.h>
 
 /* CSP includes */
 #include <csp/csp.h>
@@ -48,7 +49,7 @@ int csp_thread_create(csp_thread_return_t (* routine)(void *), const char * cons
 		attr_ref = NULL;
 	}
 	return_code = pthread_create(handle, attr_ref, routine, parameters);
-	if( attr_ref != NULL ) pthread_attr_destroy(&attr_ref);
+	if( attr_ref != NULL ) pthread_attr_destroy(attr_ref);
 	
 	return return_code;
 }
