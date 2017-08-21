@@ -62,7 +62,7 @@ csp_config_h = configure_file(output: 'csp_config.h', configuration: conf)
 
 csp_inc = include_directories(['.', 'include'])
 install_subdir('include', install_dir : '.')
-install_headers(csp_config_h, install_dir : 'include')
+install_headers(csp_config_h, install_dir : 'include/csp')
 
 csp = static_library('csp',
 	csp_sources,
