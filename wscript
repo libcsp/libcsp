@@ -101,8 +101,8 @@ def configure(ctx):
         ctx.env.FEATURES += ['cstlib']
 
     # Setup CFLAGS
-    #if (len(ctx.env.CFLAGS) == 0):
-    #    ctx.env.prepend_value('CFLAGS', ['-Os','-Wall', '-g', '-std=gnu99'])
+    if (len(ctx.env.CFLAGS) == 0):
+        ctx.env.prepend_value('CFLAGS', ['-Os','-Wall', '-g', '-std=gnu99'])
 
     # Setup extra includes
     ctx.env.append_unique('INCLUDES_CSP', ['include'] + ctx.options.includes.split(','))
@@ -226,7 +226,7 @@ def configure(ctx):
 
     ctx.define('LIBCSP_VERSION', VERSION)
 
-    ctx.write_config_header('include/csp_config.h')
+    ctx.write_config_header('include/csp/csp_autoconfig.h')
     
 def build(ctx):
 
@@ -255,7 +255,7 @@ def build(ctx):
         target = 'csp',
         includes= ctx.env.INCLUDES_CSP,
         export_includes = ctx.env.INCLUDES_CSP,
-        use = 'include freertos',
+        use = 'include freertos_h',
         install_path = install_path,
     )
 
