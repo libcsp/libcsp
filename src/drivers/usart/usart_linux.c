@@ -33,7 +33,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/csp.h>
 #include <sys/time.h>
 
-int usart_stdio_id = 0;
 int fd;
 usart_callback_t usart_callback = NULL;
 
@@ -235,17 +234,6 @@ char usart_getc(void) {
 	char c;
 	if (read(fd, &c, 1) != 1) return 0;
 	return c;
-}
-
-int usart_messages_waiting(int handle) {
-  struct timeval tv;
-  fd_set fds;
-  tv.tv_sec = 0;
-  tv.tv_usec = 0;
-  FD_ZERO(&fds);
-  FD_SET(STDIN_FILENO, &fds);
-  select(STDIN_FILENO+1, &fds, NULL, NULL, &tv);
-  return (FD_ISSET(0, &fds));
 }
 
 static void *serial_rx_thread(void *vptr_args) {
