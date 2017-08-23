@@ -284,7 +284,7 @@ int csp_close(csp_conn_t * conn) {
 	/* Ensure connection queue is empty */
 	csp_conn_flush_rx_queue(conn);
 
-        if (conn->socket) {
+        if (conn->socket && (conn->type == CONN_SERVER) && (conn->opts & CSP_SO_CONN_LESS)) {
 		csp_queue_remove(conn->socket);
 		conn->socket = NULL;
         }
