@@ -178,7 +178,7 @@ int csp_can_rx(csp_iface_t *interface, uint32_t id, uint8_t *data, uint8_t dlc, 
 			break;
 
 		/* Data is available */
-		csp_new_packet(buf->packet, interface, task_woken);
+		csp_qfifo_write(buf->packet, interface, task_woken);
 
 		/* Drop packet buffer reference */
 		buf->packet = NULL;
