@@ -81,8 +81,10 @@ int csp_sfp_send_own_memcpy(csp_conn_t * conn, void * data, int totalsize, int m
 		/* Send data */
 		if (!csp_send(conn, packet, timeout)) {
 			csp_buffer_free(packet);
+			conn->idout.flags &= ~CSP_FFRAG; /* Clear fragment flag */
 			return -1;
 		}
+		conn->idout.flags &= ~CSP_FFRAG; /* Clear fragment flag */
 
 		/* Increment count */
 		count += size;
@@ -101,6 +103,8 @@ int csp_sfp_recv_fp(csp_conn_t * conn, void ** dataout, int * datasize, uint32_t
 
 	unsigned int last_byte = 0;
 
+	*dataout = NULL; /* Allow caller to assume csp_free() can always be called when dataout is non-NULL */
+
 	/* Get first packet from user, or from connection */
 	csp_packet_t * packet = NULL;
 	if (first_packet == NULL) {
@@ -116,6 +120,7 @@ int csp_sfp_recv_fp(csp_conn_t * conn, void ** dataout, int * datasize, uint32_t
 		/* Check that SFP header is present */
 		if ((packet->id.flags & CSP_FFRAG) == 0) {
 			csp_debug(CSP_ERROR, "Missing SFP header");
+			csp_buffer_free(packet); /* Always free the packet */
 			return -1;
 		}
 
