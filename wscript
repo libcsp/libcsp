@@ -47,6 +47,7 @@ def options(ctx):
     gr.add_option('--enable-hmac', action='store_true', help='Enable HMAC-SHA1 support')
     gr.add_option('--enable-xtea', action='store_true', help='Enable XTEA support')
     gr.add_option('--enable-bindings', action='store_true', help='Enable Python bindings')
+    gr.add_option('--enable-python3-bindings', action='store_true', help='Enable Python3 bindings')
     gr.add_option('--enable-examples', action='store_true', help='Enable examples')
     gr.add_option('--enable-dedup', action='store_true', help='Enable packet deduplicator')
 
@@ -162,7 +163,13 @@ def configure(ctx):
     # Store configuration options
     ctx.env.ENABLE_BINDINGS = ctx.options.enable_bindings
     ctx.env.ENABLE_EXAMPLES = ctx.options.enable_examples
-    
+
+    # Check for python development
+    if ctx.options.enable_bindings:
+        ctx.check_cfg(package='python2', args='--cflags --libs', atleast_version='2.7')
+        if ctx.options.enable_python3_bindings:
+            ctx.check_cfg(package='python3', args='--cflags --libs', atleast_version='3.5')
+
     # Create config file
     if not ctx.options.disable_output:
         ctx.env.append_unique('FILES_CSP', 'src/csp_debug.c')
@@ -275,6 +282,24 @@ def build(ctx):
             use = ['include'],
             lib = ctx.env.LIBS)
 
+        # python3 bindings
+        if ctx.env.INCLUDES_PYTHON3:
+            ctx.shlib(source = ['src/bindings/python/pycsp.c'],
+                      target = 'csp_py3',
+                      includes = ctx.env.INCLUDES_CSP + ctx.env.INCLUDES_PYTHON3,
+                      export_includes = 'include',
+                      use = ['csp_shlib', 'include'],
+                      lib = ctx.env.LIBS)
+
+        # python2 bindings
+        if ctx.env.INCLUDES_PYTHON2:
+            ctx.shlib(source = ['src/bindings/python/pycsp.c'],
+                      target = 'csp_py2',
+                      includes = ctx.env.INCLUDES_CSP + ctx.env.INCLUDES_PYTHON2,
+                      export_includes = 'include',
+                      use = ['csp_shlib', 'include'],
+                      lib = ctx.env.LIBS)
+
     if ctx.env.ENABLE_EXAMPLES:
         ctx.program(source = ctx.path.ant_glob('examples/simple.c'),
             target = 'simple',
@@ -289,6 +314,13 @@ def build(ctx):
                 lib = ctx.env.LIBS,
                 use = 'csp')
 
+        if ctx.options.enable_if_zmqhub:
+            ctx.program(source = 'examples/zmqproxy.c',
+                        target = 'zmqproxy',
+                        includes = ctx.env.INCLUDES_CSP,
+                        lib = ctx.env.LIBS,
+                        use = 'csp')
+            
         if 'posix' in ctx.env.OS:
             ctx.program(source = 'examples/csp_if_fifo.c',
                 target = 'fifo',
