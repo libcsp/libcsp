@@ -64,25 +64,10 @@ csp_inc = include_directories(['.', 'include'])
 install_subdir('include', install_dir : '.')
 install_headers(csp_config_h, install_dir : 'include/csp')
 
-csp = static_library('csp',
-	csp_sources,
-	include_directories : csp_inc,
-	dependencies : csp_deps,
-	install: true
-	)
-	
 csp_dep = declare_dependency(
-	sources: csp_config_h,
+	sources: [csp_sources, csp_config_h],
 	include_directories : csp_inc,
 	dependencies : csp_deps,
-	link_with: csp
 	)
 
-pkg = import('pkgconfig')
-pkg.generate(libraries : csp,
-             version : '1.5',
-             name : 'libcsp',
-             filebase : 'csp',
-             requires : 'freertos',
-             description : 'Cubesat Space Protocl')
 	
