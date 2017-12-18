@@ -115,7 +115,7 @@ static int csp_rtable_parse(char * buffer, int dry_run) {
 	str = strtok(str, ",");
 
 	while ((str) && (strlen(str) > 1)) {
-		int address = 0, netmask = 0, mac = 255;
+		unsigned int address = 0, netmask = 0, mac = 255;
 		char name[10] = {};
 		if (sscanf(str, "%u/%u %s %u", &address, &netmask, name, &mac) != 4) {
 			if (sscanf(str, "%u/%u %s", &address, &netmask, name) != 3) {
