@@ -113,6 +113,11 @@ csp_socket_t * csp_socket(uint32_t opts) {
 
 }
 
+void csp_socket_set_callback(csp_socket_t * socket, void (*callback)(csp_packet_t * packet)) {
+	socket->opts |= (CSP_SO_CONN_LESS | CSP_SO_CONN_LESS_CALLBACK);
+	socket->socket = callback;
+}
+
 csp_conn_t * csp_accept(csp_socket_t * sock, uint32_t timeout) {
 
 	if (sock == NULL)
@@ -364,7 +369,8 @@ csp_packet_t * csp_recvfrom(csp_socket_t * socket, uint32_t timeout) {
 
 int csp_sendto(uint8_t prio, uint8_t dest, uint8_t dport, uint8_t src_port, uint32_t opts, csp_packet_t * packet, uint32_t timeout) {
 
-	packet->id.flags = 0;
+	if (!(opts & CSP_O_SAME))
+		packet->id.flags = 0;
 
 	if (opts & CSP_O_RDP) {
 		csp_log_error("RDP packet on connection-less socket");
@@ -415,6 +421,10 @@ int csp_sendto(uint8_t prio, uint8_t dest, uint8_t dport, uint8_t src_port, uint
 int csp_sendto_reply(csp_packet_t * request_packet, csp_packet_t * reply_packet, uint32_t opts, uint32_t timeout) {
 	if (request_packet == NULL)
 		return CSP_ERR_INVAL;
+
+	if (opts & CSP_O_SAME) {
+		reply_packet->id.flags = request_packet->id.flags;
+	}
 
 	return csp_sendto(request_packet->id.pri, request_packet->id.src, request_packet->id.sport, request_packet->id.dport, opts, reply_packet, timeout);
 }
