@@ -135,27 +135,30 @@ typedef union {
 #define CSP_FCRC32			0x01 // Use CRC32 checksum
 
 /** CSP Socket options */
-#define CSP_SO_NONE			0x0000 // No socket options
-#define CSP_SO_RDPREQ			0x0001 // Require RDP
-#define CSP_SO_RDPPROHIB		0x0002 // Prohibit RDP
-#define CSP_SO_HMACREQ			0x0004 // Require HMAC
-#define CSP_SO_HMACPROHIB		0x0008 // Prohibit HMAC
-#define CSP_SO_XTEAREQ			0x0010 // Require XTEA
-#define CSP_SO_XTEAPROHIB		0x0020 // Prohibit HMAC
-#define CSP_SO_CRC32REQ			0x0040 // Require CRC32
-#define CSP_SO_CRC32PROHIB		0x0080 // Prohibit CRC32
-#define CSP_SO_CONN_LESS		0x0100 // Enable Connection Less mode
+#define CSP_SO_NONE					0x0000 // No socket options
+#define CSP_SO_RDPREQ				0x0001 // Require RDP
+#define CSP_SO_RDPPROHIB			0x0002 // Prohibit RDP
+#define CSP_SO_HMACREQ				0x0004 // Require HMAC
+#define CSP_SO_HMACPROHIB			0x0008 // Prohibit HMAC
+#define CSP_SO_XTEAREQ				0x0010 // Require XTEA
+#define CSP_SO_XTEAPROHIB			0x0020 // Prohibit HMAC
+#define CSP_SO_CRC32REQ				0x0040 // Require CRC32
+#define CSP_SO_CRC32PROHIB			0x0080 // Prohibit CRC32
+#define CSP_SO_CONN_LESS			0x0100 // Enable Connection Less mode
+#define CSP_SO_CONN_LESS_CALLBACK 	0x0200 // Enable Callbacks directly in router task
+#define CSP_SO_SAME					0x8000 // Copy opts from incoming packet only apllies to csp_sendto_reply()
 
 /** CSP Connect options */
-#define CSP_O_NONE			CSP_SO_NONE // No connection options
-#define CSP_O_RDP			CSP_SO_RDPREQ // Enable RDP
-#define CSP_O_NORDP			CSP_SO_RDPPROHIB // Disable RDP
-#define CSP_O_HMAC			CSP_SO_HMACREQ // Enable HMAC
+#define CSP_O_NONE				CSP_SO_NONE // No connection options
+#define CSP_O_RDP				CSP_SO_RDPREQ // Enable RDP
+#define CSP_O_NORDP				CSP_SO_RDPPROHIB // Disable RDP
+#define CSP_O_HMAC				CSP_SO_HMACREQ // Enable HMAC
 #define CSP_O_NOHMAC			CSP_SO_HMACPROHIB // Disable HMAC
-#define CSP_O_XTEA			CSP_SO_XTEAREQ // Enable XTEA
+#define CSP_O_XTEA				CSP_SO_XTEAREQ // Enable XTEA
 #define CSP_O_NOXTEA			CSP_SO_XTEAPROHIB // Disable XTEA
-#define CSP_O_CRC32			CSP_SO_CRC32REQ // Enable CRC32
+#define CSP_O_CRC32				CSP_SO_CRC32REQ // Enable CRC32
 #define CSP_O_NOCRC32			CSP_SO_CRC32PROHIB // Disable CRC32
+#define CSP_O_SAME				CSP_SO_SAME
 
 /**
  * CSP PACKET STRUCTURE

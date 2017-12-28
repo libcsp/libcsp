@@ -90,6 +90,8 @@ uint8_t csp_get_address(void);
  */
 csp_socket_t *csp_socket(uint32_t opts);
 
+void csp_socket_set_callback(csp_socket_t * socket, void (*callback)(csp_packet_t * packet));
+
 /**
  * Wait for a new connection on a socket created by csp_socket
  * @param socket Socket to accept connections on
@@ -371,10 +373,9 @@ int csp_sfp_recv_fp(csp_conn_t * conn, void ** dataout, int * datasize, uint32_t
  * a switch/case statement in a csp_listener task.
  * In order to listen to csp service ports, bind your listener to the CSP_ANY port.
  * This function may only be called from task context.
- * @param conn Pointer to the new connection
  * @param packet Pointer to the first packet, obtained by using csp_read()
  */
-void csp_service_handler(csp_conn_t *conn, csp_packet_t *packet);
+void csp_service_handler(csp_packet_t *packet);
 
 /**
  * Send a single ping/echo packet
