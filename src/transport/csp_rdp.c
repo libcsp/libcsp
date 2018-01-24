@@ -402,15 +402,6 @@ static void csp_rdp_flush_eack(csp_conn_t * conn, csp_packet_t * eack_packet) {
 
 static inline bool csp_rdp_should_ack(csp_conn_t * conn) {
 
-	/* If delayed ACKs are not used, always ACK */
-	if (!conn->rdp.delayed_acks) {
-		if (conn->rdp.rcv_lsa != conn->rdp.rcv_cur) {
-			return true;
-		} else {
-			return false;
-		}
-	}
-
 	/* ACK if time since last ACK is greater than ACK timeout */
 	uint32_t time_now = csp_get_ms();
 	if (csp_rdp_time_after(time_now, conn->rdp.ack_timestamp + conn->rdp.ack_timeout))
@@ -451,19 +442,18 @@ void csp_rdp_flush_all(csp_conn_t * conn) {
 
 }
 
-int csp_rdp_check_ack(csp_conn_t * conn) {
+int csp_rdp_check_ack(csp_conn_t * conn, int force) {
 
 	/* Check all RX queues for spare capacity */
-	int prio, avail = 1;
+	int prio;
 	for (prio = 0; prio < CSP_RX_QUEUES; prio++) {
 		if (CSP_RX_QUEUE_LENGTH - csp_queue_size(conn->rx_queue[prio]) <= 2 * (int32_t)conn->rdp.window_size) {
-			avail = 0;
-			break;
+			return CSP_ERR_NONE;
 		}
 	}
 
-	/* If more space available, only send after ack timeout or immediately if delay_acks is zero */
-	if (avail && csp_rdp_should_ack(conn))
+	/* If more space available, only send after ack timeout or immediately if delay_acks is zero (unless force is used) */
+	if (force || csp_rdp_should_ack(conn))
 		csp_rdp_send_cmp(conn, NULL, RDP_ACK, conn->rdp.snd_nxt, conn->rdp.rcv_cur);
 
 	return CSP_ERR_NONE;
@@ -555,7 +545,7 @@ void csp_rdp_check_timeouts(csp_conn_t * conn) {
 	 * ACK TIMEOUT:
 	 * Check ACK timeouts, if we have unacknowledged segments
 	 */
-	csp_rdp_check_ack(conn);
+	csp_rdp_check_ack(conn, false);
 
 	/* Wake user task if TX queue is ready for more data */
 	if (conn->rdp.state == RDP_OPEN)
@@ -804,10 +794,16 @@ void csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 		/* Update last received packet */
 		conn->rdp.rcv_cur = seq_nr;
 
-		/* Only ACK the message if there is room for a full window in the RX buffer.
+		/* If delayed acks, only ACK the message if there is room for a full window in the RX buffer.
 		 * Unacknowledged segments are ACKed by csp_rdp_check_timeouts when the buffer is
 		 * no longer full. */
-		csp_rdp_check_ack(conn);
+		if (conn->rdp.delayed_acks) {
+			csp_rdp_check_ack(conn, false);
+
+		/* Otherwise, force an ack now */
+		} else {
+			csp_rdp_check_ack(conn, true);
+		}
 
 		/* Flush RX queue */
 		csp_rdp_rx_queue_flush(conn);
