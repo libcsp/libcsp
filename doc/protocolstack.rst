@@ -11,7 +11,7 @@ Lib CSP is not designed for any specific processor or hardware peripheral, but y
 Layer 2: MAC interfaces
 -----------------------
 
-CSP has interfaces for I2C, CAN, RS232 (KISS) and Loopback. The layer 2 protocol software defines a frame-format that is suitable for the media. CSP can be easily extended with implementations for even more links. For example a radio-link and IP-networks. The file `csp_interface.h` declares the rx and tx functions needed in order to define a network interface in CSP. During initialisation of CSP each interface will be inserted into a linked list of interfaces that is available to the router. In cases where link-layer addresses are required, such as I2C, the routing table supoorts specifying next-hop link-layer address directly. This avoids the need to implement an address resolution protocol to translate CSP addresses to I2C addresses.
+CSP has interfaces for I2C, CAN, RS232 (KISS) and Loopback. The layer 2 protocol software defines a frame-format that is suitable for the media. CSP can be easily extended with implementations for even more links. For example a radio-link and IP-networks. The file `csp_interface.h` declares the rx and tx functions needed in order to define a network interface in CSP. During initialisation of CSP each interface will be inserted into a linked list of interfaces that is available to the router. In cases where link-layer addresses are required, such as I2C, the routing table supports specifying next-hop link-layer address directly. This avoids the need to implement an address resolution protocol to translate CSP addresses to I2C addresses.
 
 Layer 3: Network Router
 -----------------------
@@ -25,9 +25,9 @@ There is no routing protocol for automatic route discovery, all routing tables a
 Layer 4: Transport Layer
 ------------------------
 
-LibCSP implements two different Transport Layer protocols, they are called UDP (unreliable datagram protcol) and RDP (reliable datagram protocol). The name UDP has not been chosen to be an exact replica of the UDP (user datagram protocol) known from the TCP/IP model, but they have certain similarities.
+LibCSP implements two different Transport Layer protocols, they are called UDP (unreliable datagram protocol) and RDP (reliable datagram protocol). The name UDP has not been chosen to be an exact replica of the UDP (user datagram protocol) known from the TCP/IP model, but they have certain similarities.
 
-The most important thing to notice is that CSP is entirely a datagram service. There is no stream based service like TCP. A datagram is defined a block of data with a specified size and structure. This block enters the transport layer as a single datagram and exits the transport layer in the other end as a sigle datagram. CSP preserves this structure all the way to the physical layer for I2C, KISS and Loopback interfaces are used. The CAN-bus interface has to fragment the datagram into CAN-frames of 8 bytes, however only a fully completed datagram will arrive at the receiver.
+The most important thing to notice is that CSP is entirely a datagram service. There is no stream based service like TCP. A datagram is defined a block of data with a specified size and structure. This block enters the transport layer as a single datagram and exits the transport layer in the other end as a single datagram. CSP preserves this structure all the way to the physical layer for I2C, KISS and Loopback interfaces are used. The CAN-bus interface has to fragment the datagram into CAN-frames of 8 bytes, however only a fully completed datagram will arrive at the receiver.
 
 UDP
 ^^^
@@ -36,7 +36,7 @@ UDP uses a simple transmission model without implicit hand-shaking dialogues for
 
 UDP is very practical to implement request/reply based communication where a single packet forms the request and a single packet forms the reply. In this case a typical request and wait protocol is used between the client and server, which will simply return an error if a reply is not received within a specified time limit. An error would normally lead to a retransmission of the request from the user or operator which sent the request.
 
-While UDP is very simple, it also has some limitations. Normally a human in the loop is a good thing when operating the satellite over UDP. But when it comes to larger file transfers, the human becomes the bottleneck. When a high-speed file transfer is initiated data acknowledgement should be done automatically in order to speed up the transfer. This is where the RDP protocol can help.
+While UDP is very simple, it also has some limitations. Normally a human in the loop is a good thing when operating the satellite over UDP. But when it comes to larger file transfers, the human becomes the bottleneck. When a high-speed file transfer is initiated data acknowledgment should be done automatically in order to speed up the transfer. This is where the RDP protocol can help.
 
 RDP
 ^^^
@@ -48,7 +48,7 @@ CSP provides a transport layer extension called RDP (reliable datagram protocol)
  * Packet re-ordering
  * Retransmission
  * Windowing
- * Extended Acknowdlegment
+ * Extended Acknowledgment
 
 For more information on this, please refer to RFC908.
 
