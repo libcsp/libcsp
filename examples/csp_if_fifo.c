@@ -56,7 +56,7 @@ void * fifo_rx(void * parameters) {
     csp_packet_t *buf = csp_buffer_get(BUF_SIZE);
     /* Wait for packet on fifo */
     while (read(rx_channel, &buf->length, BUF_SIZE) > 0) {
-        csp_new_packet(buf, &csp_if_fifo, NULL);
+        csp_qfifo_write(buf, &csp_if_fifo, NULL);
         buf = csp_buffer_get(BUF_SIZE);
     }
 

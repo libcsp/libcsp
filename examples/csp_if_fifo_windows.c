@@ -215,7 +215,7 @@ unsigned WINAPI fifo_rx(void *handle) {
             printError();
             break;
         }
-        csp_new_packet(buf, &csp_if_fifo, NULL);
+        csp_qfifo_write(buf, &csp_if_fifo, NULL);
         buf = csp_buffer_get(BUF_SIZE);
     }
     printf("Closing pipe to client\n");

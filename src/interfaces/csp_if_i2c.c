@@ -91,7 +91,7 @@ void csp_i2c_rx(i2c_frame_t * frame, void * pxTaskWoken) {
 	packet->id.ext = csp_ntoh32(packet->id.ext);
 
 	/* Receive the packet in CSP */
-	csp_new_packet(packet, &csp_if_i2c, pxTaskWoken);
+	csp_qfifo_write(packet, &csp_if_i2c, pxTaskWoken);
 
 }
 

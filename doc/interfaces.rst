@@ -44,20 +44,20 @@ The interface also needs to receive incoming packets and pass it to the CSP prot
        csp_packet_t *buf = csp_buffer_get(BUF_SIZE);
        /* Wait for packet on fifo */
        while (read(rx_channel, &buf->length, BUF_SIZE) > 0) {
-           csp_new_packet(buf, &csp_if_fifo, NULL);
+           csp_qfifo_write(buf, &csp_if_fifo, NULL);
            buf = csp_buffer_get(BUF_SIZE);
        }
    }
 
-A new CSP buffer is preallocated with csp_buffer_get(). When data is received, the packet is passed to CSP using `csp_new_packet()` and a new buffer is allocated for the next packet. In addition to the received packet, `csp_new_packet()` takes two additional arguments:
+A new CSP buffer is preallocated with csp_buffer_get(). When data is received, the packet is passed to CSP using `csp_qfifo_write()` and a new buffer is allocated for the next packet. In addition to the received packet, `csp_qfifo_write()` takes two additional arguments:
 
 .. code-block:: c
 
-   void csp_new_packet(csp_packet_t *packet, csp_iface_t *interface, CSP_BASE_TYPE *pxTaskWoken);
+   void csp_qfifo_write(csp_packet_t *packet, csp_iface_t *interface, CSP_BASE_TYPE *pxTaskWoken);
 
 The calling interface must be passed in `interface` to avoid routing loops. Furthermore, `pxTaskWoken` must be set to a non-NULL value if the packet is received in an interrupt service routine. If the packet is received in task context, NULL must be passed. 'pxTaskWoken' only applies to FreeRTOS systems, and POSIX system should always set the value to NULL.
 
-`csp_new_packet` will either accept the packet or free the packet buffer, so the interface must never free the packet after passing it to CSP.
+`csp_qfifo_write` will either accept the packet or free the packet buffer, so the interface must never free the packet after passing it to CSP.
 
 Initialization
 --------------
