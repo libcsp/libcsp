@@ -105,7 +105,7 @@ static void * socketcan_rx_thread(void * parameters)
 }
 
 
-int csp_can_tx_frame(csp_iface_t *interface, uint32_t id, uint8_t * data, uint8_t dlc)
+int csp_can_tx_frame(csp_iface_t *interface, uint32_t id, const uint8_t * data, uint8_t dlc)
 {
 	struct can_frame frame;
 	int i, tries = 0;

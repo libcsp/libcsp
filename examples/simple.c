@@ -120,7 +120,7 @@ CSP_DEFINE_TASK(task_client) {
 		}
 
 		/* Copy dummy data to packet */
-		char *msg = "Hello World";
+		const char *msg = "Hello World";
 		strcpy((char *) packet->data, msg);
 
 		/* Set packet length */

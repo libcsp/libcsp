@@ -48,7 +48,7 @@ static sfp_header_t * csp_sfp_header_remove(csp_packet_t * packet) {
 	return header;
 }
 
-int csp_sfp_send_own_memcpy(csp_conn_t * conn, void * data, int totalsize, int mtu, uint32_t timeout, void * (*memcpyfcn)(void *, const void *, size_t)) {
+int csp_sfp_send_own_memcpy(csp_conn_t * conn, const void * data, int totalsize, int mtu, uint32_t timeout, void * (*memcpyfcn)(void *, const void *, size_t)) {
 
 	int count = 0;
 	while(count < totalsize) {
@@ -93,7 +93,7 @@ int csp_sfp_send_own_memcpy(csp_conn_t * conn, void * data, int totalsize, int m
 
 }
 
-int csp_sfp_send(csp_conn_t * conn, void * data, int totalsize, int mtu, uint32_t timeout) {
+int csp_sfp_send(csp_conn_t * conn, const void * data, int totalsize, int mtu, uint32_t timeout) {
 	return csp_sfp_send_own_memcpy(conn, data, totalsize, mtu, timeout, &memcpy);
 }
 

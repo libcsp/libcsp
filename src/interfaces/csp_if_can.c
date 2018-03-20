@@ -63,7 +63,7 @@ enum cfp_frame_t {
 	CFP_MORE = 1
 };
 
-int csp_can_rx(csp_iface_t *interface, uint32_t id, uint8_t *data, uint8_t dlc, CSP_BASE_TYPE *task_woken)
+int csp_can_rx(csp_iface_t *interface, uint32_t id, const uint8_t *data, uint8_t dlc, CSP_BASE_TYPE *task_woken)
 {
 	csp_can_pbuf_element_t *buf;
 	uint8_t offset;
@@ -255,7 +255,7 @@ int csp_can_tx(csp_iface_t *interface, csp_packet_t *packet, uint32_t timeout)
 		bytes = (packet->length - tx_count >= 8) ? 8 : packet->length - tx_count;
 
 		/* Prepare identifier */
-		uint32_t id = 0;
+		id = 0;
 		id |= CFP_MAKE_SRC(packet->id.src);
 		id |= CFP_MAKE_DST(dest);
 		id |= CFP_MAKE_ID(ident);
