@@ -4,7 +4,7 @@ cc = meson.get_compiler('c')
 
 conf = configuration_data()
 
-conf.set('CSP_DEBUG', 1)
+#conf.set('CSP_DEBUG', 1)
 conf.set('CSP_LOG_LEVEL_DEBUG', 1)
 conf.set('CSP_LOG_LEVEL_INFO', 1)
 conf.set('CSP_LOG_LEVEL_WARN', 1)
