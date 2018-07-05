@@ -196,6 +196,10 @@ int csp_route_work(uint32_t timeout) {
 	csp_promisc_add(packet);
 #endif
 
+	/* Count the message */
+	input.interface->rx++;
+	input.interface->rxbytes += packet->length;
+
 #ifdef CSP_USE_DEDUP
 	/* Check for duplicates */
 	if (csp_dedup_is_duplicate(packet)) {
@@ -206,10 +210,6 @@ int csp_route_work(uint32_t timeout) {
 		return 0;
 	}
 #endif
-
-	/* Now we count the message (since its deduplicated) */
-	input.interface->rx++;
-	input.interface->rxbytes += packet->length;
 
 	/* If the message is not to me, route the message to the correct interface */
 	if ((packet->id.dst != csp_conf.address) && (packet->id.dst != CSP_BROADCAST_ADDR)) {
