@@ -120,8 +120,8 @@ int csp_conn_init(void) {
 	arr_conn = calloc(sizeof(csp_conn_t), csp_conf.conn_max);
 
 	/* Initialize source port */
-	srand(csp_get_ms());
-	sport = (rand() % (CSP_ID_PORT_MAX - csp_conf.port_max_bind)) + (csp_conf.port_max_bind + 1);
+	unsigned int seed = csp_get_ms();
+	sport = (rand_r(&seed) % (CSP_ID_PORT_MAX - csp_conf.port_max_bind)) + (csp_conf.port_max_bind + 1);
 
 	if (csp_bin_sem_create(&sport_lock) != CSP_SEMAPHORE_OK) {
 		csp_log_error("No more memory for sport semaphore");

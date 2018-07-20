@@ -112,7 +112,8 @@ static int csp_rtable_parse(char * buffer, int dry_run) {
 	memcpy(str, buffer, strlen(buffer) + 1);
 
 	/* Get first token */
-	str = strtok(str, ",");
+	char *saveptr;
+	str = strtok_r(str, ",", &saveptr);
 
 	while ((str) && (strlen(str) > 1)) {
 		unsigned int address = 0, netmask = 0, mac = 255;
@@ -133,7 +134,7 @@ static int csp_rtable_parse(char * buffer, int dry_run) {
 			return -1;
 		}
 		valid_entries++;
-		str = strtok(NULL, ",");
+		str = strtok_r(NULL, ",", &saveptr);
 	}
 
 	return valid_entries;
