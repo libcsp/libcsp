@@ -42,10 +42,10 @@ enum csp_reserved_ports_e {
 	CSP_PS				= 2,
 	CSP_MEMFREE			= 3,
 	CSP_REBOOT			= 4,
-	CSP_BUF_FREE			= 5,
+	CSP_BUF_FREE		= 5,
 	CSP_UPTIME			= 6,
-	CSP_ANY				= (CSP_MAX_BIND_PORT + 1),
-	CSP_PROMISC			= (CSP_MAX_BIND_PORT + 2)
+	CSP_ANY				= 254,
+	CSP_PROMISC			= 255,
 };
 
 typedef enum {
@@ -58,11 +58,9 @@ typedef enum {
 #define CSP_PRIORITIES			(1 << CSP_ID_PRIO_SIZE)
 
 #ifdef CSP_USE_QOS
-#define CSP_RX_QUEUE_LENGTH		(CSP_CONN_QUEUE_LENGTH / CSP_PRIORITIES)
 #define CSP_ROUTE_FIFOS			CSP_PRIORITIES
 #define CSP_RX_QUEUES			CSP_PRIORITIES
 #else
-#define CSP_RX_QUEUE_LENGTH		CSP_CONN_QUEUE_LENGTH
 #define CSP_ROUTE_FIFOS			1
 #define CSP_RX_QUEUES			1
 #endif
@@ -165,6 +163,7 @@ typedef union {
  * with all interface frame types in order to
  * have buffer reuse
  */
+#define CSP_PADDING_BYTES		8
 typedef struct __attribute__((__packed__)) {
 	uint8_t padding[CSP_PADDING_BYTES];	/**< Interface dependent padding */
 	uint16_t length;			/**< Length field must be just before CSP ID */

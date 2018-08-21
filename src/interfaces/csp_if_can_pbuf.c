@@ -9,7 +9,7 @@
 #include "csp_if_can_pbuf.h"
 
 /* Number of packet buffer elements */
-#define PBUF_ELEMENTS		CSP_CONN_MAX
+#define PBUF_ELEMENTS		5
 
 /* Buffer element timeout in ms */
 #define PBUF_TIMEOUT_MS		1000

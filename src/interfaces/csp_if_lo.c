@@ -28,6 +28,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/arch/csp_queue.h>
 
 #include "../csp_route.h"
+#include "../csp_init.h"
 
 /**
  * Loopback interface transmit function
@@ -41,7 +42,7 @@ static int csp_lo_tx(csp_iface_t * interface, csp_packet_t * packet, uint32_t ti
 	 * blackhole routing addresses by setting their nexthop to
 	 * the loopback interface.
 	 */
-	if (packet->id.dst != csp_get_address()) {
+	if (packet->id.dst != csp_conf.address) {
 		/* Consume and drop packet */
 		csp_buffer_free(packet);
 		return CSP_ERR_NONE;

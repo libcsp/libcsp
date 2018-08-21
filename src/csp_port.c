@@ -30,24 +30,26 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/arch/csp_queue.h>
 #include <csp/arch/csp_semaphore.h>
 
-#include "csp_port.h"
 #include "csp_conn.h"
+#include "csp_init.h"
+
+#include "csp_port.h"
 
 /* Allocation of ports */
-static csp_port_t ports[CSP_MAX_BIND_PORT + 2];
+static csp_port_t * ports;
 
 csp_socket_t * csp_port_get_socket(unsigned int port) {
 
 	csp_socket_t * ret = NULL;
 
-	if (port >= CSP_ANY)
+	if (port > csp_conf.port_max_bind)
 		return NULL;
 
 	/* Match dport to socket or local "catch all" port number */
 	if (ports[port].state == PORT_OPEN)
 		ret = ports[port].socket;
-	else if (ports[CSP_ANY].state == PORT_OPEN)
-		ret = ports[CSP_ANY].socket;
+	else if (ports[csp_conf.port_max_bind + 1].state == PORT_OPEN)
+		ret = ports[csp_conf.port_max_bind + 1].socket;
 
 	return ret;
 
@@ -55,7 +57,7 @@ csp_socket_t * csp_port_get_socket(unsigned int port) {
 
 int csp_port_init(void) {
 
-	memset(ports, PORT_CLOSED, sizeof(csp_port_t) * (CSP_MAX_BIND_PORT + 2));
+	ports = calloc(sizeof(csp_port_t), csp_conf.port_max_bind + 2);
 
 	return CSP_ERR_NONE;
 
@@ -79,8 +81,13 @@ int csp_bind(csp_socket_t * socket, uint8_t port) {
 	if (socket == NULL)
 		return CSP_ERR_INVAL;
 
-	if (port > CSP_ANY) {
-		csp_log_error("Only ports from 0-%u (and CSP_ANY for default) are available for incoming ports", CSP_ANY);
+	if (port == CSP_ANY)
+		port = csp_conf.port_max_bind + 1;
+	if (port == CSP_PROMISC)
+		port = csp_conf.port_max_bind + 2;
+
+	if (port > csp_conf.port_max_bind + 2) {
+		csp_log_error("Only ports from 0-%u (and CSP_ANY for default) are available for incoming ports", csp_conf.port_max_bind);
 		return CSP_ERR_INVAL;
 	}
 

@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/csp.h>
 #include <csp/csp_interface.h>
 #include <csp/arch/csp_queue.h>
+#include "csp_init.h"
 #include "csp_qfifo.h"
 
 static csp_queue_handle_t qfifo[CSP_ROUTE_FIFOS];
@@ -34,7 +35,7 @@ int csp_qfifo_init(void) {
 	/* Create router fifos for each priority */
 	for (prio = 0; prio < CSP_ROUTE_FIFOS; prio++) {
 		if (qfifo[prio] == NULL) {
-			qfifo[prio] = csp_queue_create(CSP_FIFO_INPUT, sizeof(csp_qfifo_t));
+			qfifo[prio] = csp_queue_create(csp_conf.fifo_length, sizeof(csp_qfifo_t));
 			if (!qfifo[prio])
 				return CSP_ERR_NOMEM;
 		}
@@ -42,7 +43,7 @@ int csp_qfifo_init(void) {
 
 #ifdef CSP_USE_QOS
 	/* Create QoS fifo notification queue */
-	qfifo_events = csp_queue_create(CSP_FIFO_INPUT, sizeof(int));
+	qfifo_events = csp_queue_create(csp_conf.fifo_length, sizeof(int));
 	if (!qfifo_events)
 		return CSP_ERR_NOMEM;
 #endif
