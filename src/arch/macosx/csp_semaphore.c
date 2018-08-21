@@ -72,7 +72,7 @@ int csp_mutex_lock(csp_mutex_t * mutex, uint32_t timeout) {
 			ret = CSP_MUTEX_ERROR;
 	}
 
-	return CSP_SEMAPHORE_OK;
+	return ret == CSP_MUTEX_ERROR ? CSP_SEMAPHORE_ERROR : CSP_SEMAPHORE_OK;
 }
 
 int csp_mutex_unlock(csp_mutex_t * mutex) {
