@@ -26,9 +26,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 /* CSP includes */
 #include <csp/csp.h>
 #include <csp/csp_endian.h>
-
-#include "csp_sha1.h"
-#include "csp_xtea.h"
+#include <csp/crypto/csp_sha1.h>
+#include <csp/crypto/csp_xtea.h>
 
 #ifdef CSP_USE_XTEA
 

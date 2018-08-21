@@ -100,8 +100,10 @@ csp_socket_t * csp_socket(uint32_t opts) {
 	 * if not, the user must init the queue using csp_listen */
 	if (opts & CSP_SO_CONN_LESS) {
 		sock->socket = csp_queue_create(csp_conf.conn_queue_length, sizeof(csp_packet_t *));
-		if (sock->socket == NULL)
+		if (sock->socket == NULL) {
+			csp_close(sock);
 			return NULL;
+                }
 	} else {
 		sock->socket = NULL;
 	}
@@ -149,8 +151,9 @@ csp_packet_t * csp_read(csp_conn_t * conn, uint32_t timeout) {
 
 #ifdef CSP_USE_RDP
 	/* Packet read could trigger ACK transmission */
-	if (conn->idin.flags & CSP_FRDP)
-		csp_rdp_check_ack(conn);
+	if (conn->idin.flags & CSP_FRDP && conn->rdp.delayed_acks)
+	    csp_rdp_check_ack(conn);
+
 #endif
 
 	return packet;

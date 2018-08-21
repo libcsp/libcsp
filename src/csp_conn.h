@@ -103,6 +103,8 @@ csp_conn_t * csp_conn_new(csp_id_t idin, csp_id_t idout);
 void csp_conn_check_timeouts(void);
 int csp_conn_get_rxq(int prio);
 
+const csp_conn_t * csp_conn_get_array(size_t * size); // for test purposes only!
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
