@@ -329,7 +329,7 @@ csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport, uint32_t tim
 		incoming_id.flags |= CSP_FRDP;
 		outgoing_id.flags |= CSP_FRDP;
 #else
-		csp_log_error("Attempt to create RDP connection, but CSP was compiled without RDP support");
+		csp_log_error("No RDP support");
 		return NULL;
 #endif
 	}
@@ -339,7 +339,7 @@ csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport, uint32_t tim
 		outgoing_id.flags |= CSP_FHMAC;
 		incoming_id.flags |= CSP_FHMAC;
 #else
-		csp_log_error("Attempt to create HMAC authenticated connection, but CSP was compiled without HMAC support");
+		csp_log_error("No HMAC support");
 		return NULL;
 #endif
 	}
@@ -349,7 +349,7 @@ csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport, uint32_t tim
 		outgoing_id.flags |= CSP_FXTEA;
 		incoming_id.flags |= CSP_FXTEA;
 #else
-		csp_log_error("Attempt to create XTEA encrypted connection, but CSP was compiled without XTEA support");
+		csp_log_error("No XTEA support");
 		return NULL;
 #endif
 	}
@@ -359,7 +359,7 @@ csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport, uint32_t tim
 		outgoing_id.flags |= CSP_FCRC32;
 		incoming_id.flags |= CSP_FCRC32;
 #else
-		csp_log_error("Attempt to create CRC32 validated connection, but CSP was compiled without CRC32 support");
+		csp_log_error("No CRC32 support");
 		return NULL;
 #endif
 	}
