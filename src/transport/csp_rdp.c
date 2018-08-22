@@ -414,7 +414,7 @@ static inline bool csp_rdp_should_ack(csp_conn_t * conn) {
 		return true;
 
 	/* ACK if number of unacknowledged packets is greater than delay count */
-	if (csp_rdp_seq_after(conn->rdp.rcv_cur, conn->rdp.rcv_lsa + conn->rdp.ack_delay_count))
+	if (csp_rdp_seq_after(conn->rdp.rcv_cur + 1, conn->rdp.rcv_lsa + conn->rdp.ack_delay_count))
 		return true;
 
 	return false;
