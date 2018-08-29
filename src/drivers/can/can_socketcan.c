@@ -19,13 +19,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 /* SocketCAN driver */
+#include <csp/drivers/can_socketcan.h>
 
 #include <stdint.h>
 #include <stdio.h>
 
-#include <stdint.h>
 #include <stdlib.h>
-#include <stdio.h>
 #include <unistd.h>
 #include <time.h>
 #include <string.h>
@@ -105,7 +104,7 @@ static void * socketcan_rx_thread(void * parameters)
 }
 
 
-int csp_can_tx_frame(csp_iface_t *interface, uint32_t id, uint8_t * data, uint8_t dlc)
+int csp_can_tx_frame(csp_iface_t *interface, uint32_t id, const uint8_t * data, uint8_t dlc)
 {
 	struct can_frame frame;
 	int i, tries = 0;
@@ -137,7 +136,7 @@ int csp_can_tx_frame(csp_iface_t *interface, uint32_t id, uint8_t * data, uint8_
 	return 0;
 }
 
-csp_iface_t * csp_can_socketcan_init(char * ifc, int bitrate, int promisc)
+csp_iface_t * csp_can_socketcan_init(const char * ifc, int bitrate, int promisc)
 {
 	struct ifreq ifr;
 	struct sockaddr_can addr;

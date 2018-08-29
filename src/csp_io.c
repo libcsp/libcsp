@@ -336,9 +336,9 @@ int csp_transaction_persistent(csp_conn_t * conn, uint32_t timeout, void * outbu
 
 }
 
-int csp_transaction(uint8_t prio, uint8_t dest, uint8_t port, uint32_t timeout, void * outbuf, int outlen, void * inbuf, int inlen) {
+int csp_transaction2(uint8_t prio, uint8_t dest, uint8_t port, uint32_t timeout, void * outbuf, int outlen, void * inbuf, int inlen, uint32_t opts) {
 
-	csp_conn_t * conn = csp_connect(prio, dest, port, 0, csp_conf.conn_dfl_so);
+	csp_conn_t * conn = csp_connect(prio, dest, port, 0, opts);
 	if (conn == NULL)
 		return 0;
 

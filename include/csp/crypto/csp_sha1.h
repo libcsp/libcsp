@@ -31,11 +31,18 @@ extern "C" {
 #define SHA1_BLOCKSIZE	64
 #define SHA1_DIGESTSIZE	20
 
-/* SHA1 state structure */
+/**
+   SHA1 state structure
+*/
 typedef struct {
+        //! Internal SHA1 state.
 	uint64_t length;
-	uint32_t state[5], curlen;
-	uint8_t buf[SHA1_BLOCKSIZE];
+        //! Internal SHA1 state.
+	uint32_t state[5];
+        //! Internal SHA1 state.
+	uint32_t curlen;
+        //! Internal SHA1 state.
+	uint8_t  buf[SHA1_BLOCKSIZE];
 } csp_sha1_state;
 
 /**

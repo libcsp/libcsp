@@ -45,4 +45,10 @@ typedef struct {
  */
 int csp_qfifo_read(csp_qfifo_t * input);
 
+/**
+ * Wake up any task (e.g. router) waiting on messages.
+ * For testing.
+ */
+void csp_qfifo_wake_up(void);
+
 #endif /* CSP_QFIFO_H_ */

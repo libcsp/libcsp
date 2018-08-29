@@ -85,12 +85,19 @@ typedef enum {
  * no member information should be changed
  */
 typedef struct csp_kiss_handle_s {
+        //! Put character on usart (tx).
 	csp_kiss_putc_f kiss_putc;
+        //! Discard - not KISS data (rx).
 	csp_kiss_discard_f kiss_discard;
+        //! Internal KISS state.
 	unsigned int rx_length;
+        //! Internal KISS state.
 	kiss_mode_e rx_mode;
+        //! Internal KISS state.
 	unsigned int rx_first;
+        //! Not used.
 	volatile unsigned char *rx_cbuf;
+        //! Internal KISS state.
 	csp_packet_t * rx_packet;
 } csp_kiss_handle_t;
 

@@ -21,19 +21,36 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef _CSP_CLOCK_H_
 #define _CSP_CLOCK_H_
 
+/**
+   @file
+
+   Clock API.
+*/
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #include <stdint.h>
 
+/**
+   Cross-platform timestamp.
+*/
 typedef struct {
+        //! Seconds
 	uint32_t tv_sec;
+        //! Nano-seconds.
 	uint32_t tv_nsec;
 } csp_timestamp_t;
 
-/* User functions required */
+/**
+   Get time - must be implemented by the user.
+*/
 __attribute__((weak)) extern void clock_get_time(csp_timestamp_t * time);
+
+/**
+   Set time - must be implemented by the user.
+*/
 __attribute__((weak)) extern void clock_set_time(csp_timestamp_t * time);
 
 #ifdef __cplusplus

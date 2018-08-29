@@ -32,7 +32,7 @@ void csp_iflist_add(csp_iface_t *ifc);
  * @param name String with interface name
  * @return Pointer to interface or NULL if not found
  */
-csp_iface_t * csp_iflist_get_by_name(char *name);
+csp_iface_t * csp_iflist_get_by_name(const char *name);
 
 /**
  * Print list of interfaces to stdout

@@ -186,6 +186,8 @@ int csp_route_work(uint32_t timeout) {
 		return -1;
 
 	packet = input.packet;
+	if (!packet)
+		return -1;
 
 	csp_log_packet("INP: S %u, D %u, Dp %u, Sp %u, Pr %u, Fl 0x%02X, Sz %"PRIu16" VIA: %s",
 			packet->id.src, packet->id.dst, packet->id.dport,

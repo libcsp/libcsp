@@ -24,7 +24,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 /* Interfaces are stored in a linked list*/
 static csp_iface_t * interfaces = NULL;
 
-csp_iface_t * csp_iflist_get_by_name(char *name) {
+csp_iface_t * csp_iflist_get_by_name(const char *name) {
 	csp_iface_t *ifc = interfaces;
 	while(ifc) {
 		if (strncmp(ifc->name, name, 10) == 0)

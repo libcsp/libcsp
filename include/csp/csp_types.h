@@ -21,6 +21,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef CSP_TYPES_H_
 #define CSP_TYPES_H_
 
+#include <stdint.h>
+
 #include <csp/csp_autoconfig.h>
 
 /* Make bool for compilers without stdbool.h */
@@ -94,28 +96,32 @@ typedef enum {
 
 #define CSP_ID_CONN_MASK		(CSP_ID_SRC_MASK | CSP_ID_DST_MASK | CSP_ID_DPORT_MASK | CSP_ID_SPORT_MASK)
 
-/** @brief This union defines a CSP identifier and allows access to the individual fields or the entire identifier */
+/**
+   CSP identifier.
+*/
 typedef union {
-	uint32_t ext;
-	struct __attribute__((__packed__)) {
+    //! Entire identifier.
+    uint32_t ext;
+    //! Individual fields.
+    struct __attribute__((__packed__)) {
 #if defined(CSP_BIG_ENDIAN) && !defined(CSP_LITTLE_ENDIAN)
-		unsigned int pri : CSP_ID_PRIO_SIZE;
-		unsigned int src : CSP_ID_HOST_SIZE;
-		unsigned int dst : CSP_ID_HOST_SIZE;
-		unsigned int dport : CSP_ID_PORT_SIZE;
-		unsigned int sport : CSP_ID_PORT_SIZE;
-		unsigned int flags : CSP_ID_FLAGS_SIZE;
+        unsigned int pri : CSP_ID_PRIO_SIZE;
+        unsigned int src : CSP_ID_HOST_SIZE;
+        unsigned int dst : CSP_ID_HOST_SIZE;
+        unsigned int dport : CSP_ID_PORT_SIZE;
+        unsigned int sport : CSP_ID_PORT_SIZE;
+        unsigned int flags : CSP_ID_FLAGS_SIZE;
 #elif defined(CSP_LITTLE_ENDIAN) && !defined(CSP_BIG_ENDIAN)
-		unsigned int flags : CSP_ID_FLAGS_SIZE;
-		unsigned int sport : CSP_ID_PORT_SIZE;
-		unsigned int dport : CSP_ID_PORT_SIZE;
-		unsigned int dst : CSP_ID_HOST_SIZE;
-		unsigned int src : CSP_ID_HOST_SIZE;
-		unsigned int pri : CSP_ID_PRIO_SIZE;
+        unsigned int flags : CSP_ID_FLAGS_SIZE;
+        unsigned int sport : CSP_ID_PORT_SIZE;
+        unsigned int dport : CSP_ID_PORT_SIZE;
+        unsigned int dst : CSP_ID_HOST_SIZE;
+        unsigned int src : CSP_ID_HOST_SIZE;
+        unsigned int pri : CSP_ID_PRIO_SIZE;
 #else
-		#error "Must define one of CSP_BIG_ENDIAN or CSP_LITTLE_ENDIAN in csp_platform.h"
+#error "Must define one of CSP_BIG_ENDIAN or CSP_LITTLE_ENDIAN in csp_platform.h"
 #endif
-	};
+    };
 } csp_id_t;
 
 /** Broadcast address */
@@ -157,13 +163,14 @@ typedef union {
 #define CSP_O_CRC32			CSP_SO_CRC32REQ // Enable CRC32
 #define CSP_O_NOCRC32			CSP_SO_CRC32PROHIB // Disable CRC32
 
+#define CSP_PADDING_BYTES		8
+
 /**
  * CSP PACKET STRUCTURE
  * Note: This structure is constructed to fit
  * with all interface frame types in order to
  * have buffer reuse
  */
-#define CSP_PADDING_BYTES		8
 typedef struct __attribute__((__packed__)) {
 	uint8_t padding[CSP_PADDING_BYTES];	/**< Interface dependent padding */
 	uint16_t length;			/**< Length field must be just before CSP ID */

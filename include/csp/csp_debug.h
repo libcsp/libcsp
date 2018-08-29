@@ -43,13 +43,13 @@ typedef enum {
 #define BASENAME(_file) ((strrchr(_file, '/') ? : (strrchr(_file, '\\') ? : _file)) + 1)
 
 /* Implement csp_assert_fail_action to override default failure action */
-extern void __attribute__((weak)) csp_assert_fail_action(char *assertion, const char *file, int line);
+extern void __attribute__((weak)) csp_assert_fail_action(const char *assertion, const char *file, int line);
 
 #ifndef NDEBUG
 	#define csp_assert(exp)										\
 	do {												\
 		if (!(exp)) {										\
-			char *assertion = #exp;								\
+			const char *assertion = #exp;							\
 			const char *file = BASENAME(__FILE__);						\
 			int line = __LINE__;								\
 			printf("\E[1;31m[%02" PRIu8 "] Assertion \'%s\' failed in %s:%d\E[0m\r\n",	\
@@ -63,6 +63,7 @@ extern void __attribute__((weak)) csp_assert_fail_action(char *assertion, const 
 #endif
 
 #ifdef __AVR__
+        #include <stdio.h>
 	#include <avr/pgmspace.h>
 	#define CONSTSTR(data) PSTR(data)
 	#undef printf

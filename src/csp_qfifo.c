@@ -135,3 +135,10 @@ void csp_qfifo_write(csp_packet_t * packet, csp_iface_t * interface, CSP_BASE_TY
 	}
 
 }
+
+void csp_qfifo_wake_up(void) {
+	csp_qfifo_t queue_element;
+	queue_element.interface = NULL;
+	queue_element.packet = NULL;
+	csp_queue_enqueue(qfifo[0], &queue_element, 0);
+}
