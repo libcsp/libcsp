@@ -129,11 +129,11 @@ static int csp_rtable_parse(char * buffer, int dry_run) {
 		if (ifc) {
 			if (dry_run == 0)
 				csp_rtable_set(address, netmask, ifc, mac);
+			valid_entries++;
 		} else {
 			csp_log_error("Unknown interface %s", name);
-			return -1;
 		}
-		valid_entries++;
+
 		str = strtok_r(NULL, ",", &saveptr);
 	}
 
