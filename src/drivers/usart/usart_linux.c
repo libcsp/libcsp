@@ -28,6 +28,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <unistd.h>
 #include <errno.h>
 #include <termios.h>
+#include <sys/ioctl.h>
+#include <linux/serial.h>
 #include <fcntl.h>
 
 #include <csp/csp.h>
@@ -150,7 +152,7 @@ void usart_init(struct usart_conf * conf) {
 	struct termios options;
 	pthread_t rx_thread;
 
-	fd = open(conf->device, O_RDWR | O_NOCTTY | O_NONBLOCK);
+	fd = open(conf->device, O_RDWR | O_NOCTTY);
 
 	if (fd < 0) {
 		printf("Failed to open %s: %s\r\n", conf->device, strerror(errno));
@@ -185,6 +187,13 @@ void usart_init(struct usart_conf * conf) {
       brate=B500000;
       break;
     }
+
+    struct serial_struct serial;
+    ioctl(fd, TIOCGSERIAL, &serial);
+    serial.flags |= ASYNC_LOW_LATENCY;
+    //serial.flags &= ~ASYNC_LOW_LATENCY;
+    serial.xmit_fifo_size = 10000;
+    ioctl(fd, TIOCSSERIAL, &serial);
 
 	tcgetattr(fd, &options);
 	cfsetispeed(&options, brate);
@@ -254,7 +263,7 @@ static void *serial_rx_thread(void *vptr_args) {
 
 	// Receive loop
 	while (1) {
-		length = read(fd, cbuf, 300);
+		length = read(fd, cbuf, 1);
 		if (length <= 0) {
 			perror("Error: ");
 			exit(1);
