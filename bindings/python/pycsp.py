@@ -348,13 +348,13 @@ except:
 	pass
 
 # Debug hook
-CSP_INFO		= 0
-CSP_ERROR		= 1
-CSP_WARN		= 2
-CSP_BUFFER		= 3
-CSP_PACKET		= 4
-CSP_PROTOCOL	= 5
-CSP_LOCK		= 6
+CSP_INFO = 0
+CSP_ERROR = 1
+CSP_WARN = 2
+CSP_BUFFER = 3
+CSP_PACKET = 4
+CSP_PROTOCOL = 5
+CSP_LOCK = 6
 
 # CAN Interface - this should be moved to it's own bindings
 class can_socketcan_conf (ctypes.Structure):
