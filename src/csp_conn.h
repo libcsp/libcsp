@@ -78,7 +78,6 @@ typedef struct {
 struct csp_conn_s {
 	csp_conn_type_t type;		/* Connection type (CONN_CLIENT or CONN_SERVER) */
 	csp_conn_state_t state;		/* Connection state (SOCKET_OPEN or SOCKET_CLOSED) */
-	csp_mutex_t lock;		/* Connection structure lock */
 	csp_id_t idin;			/* Identifier received */
 	csp_id_t idout;			/* Identifier transmitted */
 #ifdef CSP_USE_QOS

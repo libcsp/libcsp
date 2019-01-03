@@ -70,23 +70,6 @@ int csp_conn_get_rxq(int prio) {
 
 }
 
-int csp_conn_lock(csp_conn_t * conn, uint32_t timeout) {
-
-	if (csp_mutex_lock(&conn->lock, timeout) != CSP_MUTEX_OK)
-		return CSP_ERR_TIMEDOUT;
-
-	return CSP_ERR_NONE;
-
-}
-
-int csp_conn_unlock(csp_conn_t * conn) {
-
-	csp_mutex_unlock(&conn->lock);
-
-	return CSP_ERR_NONE;
-
-}
-
 int csp_conn_enqueue_packet(csp_conn_t * conn, csp_packet_t * packet) {
 
 	if (!conn)
@@ -137,11 +120,6 @@ int csp_conn_init(void) {
 		arr_conn[i].rx_event = csp_queue_create(csp_conf.conn_queue_length, sizeof(int));
 #endif
 		arr_conn[i].state = CONN_CLOSED;
-
-		if (csp_mutex_create(&arr_conn[i].lock) != CSP_MUTEX_OK) {
-			csp_log_error("Failed to create connection lock");
-			return CSP_ERR_NOMEM;
-		}
 
 #ifdef CSP_USE_RDP
 		if (csp_rdp_allocate(&arr_conn[i]) != CSP_ERR_NONE) {
