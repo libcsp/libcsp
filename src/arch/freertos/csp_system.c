@@ -39,6 +39,10 @@ int csp_sys_tasklist_size(void) {
 
 uint32_t csp_sys_memfree(void) {
 
+#if 1
+	return xPortGetFreeHeapSize();
+#else
+
 	uint32_t total = 0, max = UINT32_MAX, size;
 	void * pmem;
 
@@ -58,8 +62,9 @@ uint32_t csp_sys_memfree(void) {
 		}
 		if (size < 32) break;
 	}
-
 	return total;
+#endif
+
 }
 
 int csp_sys_reboot(void) {
