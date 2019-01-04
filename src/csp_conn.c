@@ -100,7 +100,8 @@ int csp_conn_enqueue_packet(csp_conn_t * conn, csp_packet_t * packet) {
 
 int csp_conn_init(void) {
 
-	arr_conn = calloc(sizeof(csp_conn_t), csp_conf.conn_max);
+	arr_conn = csp_malloc(sizeof(csp_conn_t) * csp_conf.conn_max);
+	memset(arr_conn, 0, sizeof(csp_conn_t) * csp_conf.conn_max);
 
 	/* Initialize source port */
 	unsigned int seed = csp_get_ms();
