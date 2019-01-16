@@ -7,3 +7,7 @@ if zmq_dep.found()
 	csp_sources += files('csp_if_zmqhub.c')
 	csp_deps += zmq_dep
 endif
+
+if meson.get_compiler('c').has_header('sys/socket.h')
+	csp_sources += files('csp_if_udp.c')
+endif
