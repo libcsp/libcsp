@@ -27,6 +27,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/csp_error.h>
 
 #include <csp/arch/csp_thread.h>
+#include <csp/arch/csp_malloc.h>
 #include <csp/arch/csp_queue.h>
 #include <csp/arch/csp_semaphore.h>
 
@@ -57,7 +58,8 @@ csp_socket_t * csp_port_get_socket(unsigned int port) {
 
 int csp_port_init(void) {
 
-	ports = calloc(sizeof(csp_port_t), csp_conf.port_max_bind + 2);
+	ports = csp_malloc(sizeof(csp_port_t) * csp_conf.port_max_bind + 2);
+	memset(ports, 0, sizeof(csp_port_t) * csp_conf.port_max_bind + 2);
 
 	return CSP_ERR_NONE;
 
