@@ -87,7 +87,7 @@ CSP_DEFINE_TASK(csp_if_udp_rx_task) {
 void csp_if_udp_init(csp_iface_t * iface, char * host) {
 
 	peer_addr.sin_family = AF_INET;
-	peer_addr.sin_port = htons(9610);
+	peer_addr.sin_port = htons(9600);
 
 	if (inet_aton(host, &peer_addr.sin_addr) == 0) {
 		printf("Invalid address %s\n", host);
