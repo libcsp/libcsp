@@ -80,10 +80,16 @@ void * csp_buffer_clone(void *buffer);
 int csp_buffer_remaining(void);
 
 /**
- * Return the size of the CSP buffers
+ * Return the total size of the CSP buffers including overhead
  * @return size of CSP buffers
  */
 int csp_buffer_size(void);
+
+/**
+ * Return the payload (data-size) of the CSP buffers not including the csp header
+ * @return
+ */
+int csp_buffer_datasize(void);
 
 #ifdef __cplusplus
 } /* extern "C" */
