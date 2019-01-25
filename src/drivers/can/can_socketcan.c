@@ -62,7 +62,6 @@ static struct can_socketcan_s {
 		.interface = {
 			.name = "CAN",
 			.nexthop = csp_can_tx,
-			.mtu = CSP_CAN_MTU,
 			.driver = &socketcan[0],
 		},
 	},
@@ -204,6 +203,15 @@ csp_iface_t * csp_can_socketcan_init(char * ifc, int bitrate, int promisc)
 	if (pthread_create(&rx_thread, NULL, socketcan_rx_thread, NULL) != 0) {
 		csp_log_error("pthread_create: %s", strerror(errno));
 		return NULL;
+	}
+
+	/* The MTU is configured run-time, since the buffer size can be configured externally
+	 * however, it must not exceed 2042 due to the CFP_REMAIN field limitation
+	 * CFP_REMAIN gives possibility of 255 * 8 bytes = 2040
+	 * CSP_BEGIN frame, has two additional bytes, in total 2042 */
+	socketcan[0].interface.mtu = csp_buffer_datasize();
+	if (socketcan[0].interface.mtu > 2042) {
+		socketcan[0].interface.mtu = 2042;
 	}
 
 	csp_iflist_add(&socketcan[0].interface);
