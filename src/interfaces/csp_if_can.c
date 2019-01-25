@@ -119,9 +119,9 @@ int csp_can_rx(csp_iface_t *interface, uint32_t id, uint8_t *data, uint8_t dlc, 
 		} else {
 			/* Allocate memory for frame */
 			if (task_woken == NULL) {
-				buf->packet = csp_buffer_get(CSP_CAN_MTU);
+				buf->packet = csp_buffer_get(interface->mtu);
 			} else {
-				buf->packet = csp_buffer_get_isr(CSP_CAN_MTU);
+				buf->packet = csp_buffer_get_isr(interface->mtu);
 			}
 			if (buf->packet == NULL) {
 				//csp_log_error("Failed to get buffer for CSP_BEGIN packet");
@@ -136,6 +136,13 @@ int csp_can_rx(csp_iface_t *interface, uint32_t id, uint8_t *data, uint8_t dlc, 
 		buf->packet->id.ext = csp_ntoh32(buf->packet->id.ext);
 		memcpy(&(buf->packet->length), data + sizeof(csp_id_t), sizeof(uint16_t));
 		buf->packet->length = csp_ntoh16(buf->packet->length);
+
+		/* Check if frame exceeds MTU */
+		if (buf->packet->length > interface->mtu) {
+			interface->rx_error++;
+			csp_can_pbuf_free(buf, task_woken);
+			break;
+		}
 
 		/* Reset RX count */
 		buf->rx_count = 0;
