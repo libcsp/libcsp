@@ -31,8 +31,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/arch/csp_semaphore.h>
 #include <csp/csp_crc32.h>
 
-#define KISS_MTU				256
-
 #define FEND  					0xC0
 #define FESC  					0xDB
 #define TFEND 					0xDC
@@ -245,8 +243,10 @@ void csp_kiss_init(csp_iface_t * csp_iface, csp_kiss_handle_t * csp_kiss_handle,
 	csp_kiss_handle->rx_packet = NULL;
 	csp_kiss_handle->rx_mode = KISS_MODE_NOT_STARTED;
 
+	/* The MTU is 4 bytes shorter due to an added CRC32 */
+	csp_iface->mtu = csp_buffer_datasize() - 4;
+
 	/* Setop other mandatories */
-	csp_iface->mtu = KISS_MTU;
 	csp_iface->nexthop = csp_kiss_tx;
 	csp_iface->name = name;
 

@@ -66,9 +66,9 @@ CSP_DEFINE_TASK(csp_if_udp_rx_task) {
 
 		while(1) {
 
-			char buffer[256];
+			char buffer[iface->mtu + 4];
 			unsigned int peer_addr_len = sizeof(peer_addr);
-			int received_len = recvfrom(sockfd, (char *)buffer, 256, MSG_WAITALL, (struct sockaddr *) &peer_addr, &peer_addr_len);
+			int received_len = recvfrom(sockfd, (char *)buffer, iface->mtu + 4, MSG_WAITALL, (struct sockaddr *) &peer_addr, &peer_addr_len);
 
 			/* Check for short */
 			if (received_len < 4) {
@@ -78,7 +78,7 @@ CSP_DEFINE_TASK(csp_if_udp_rx_task) {
 
 			csp_log_info("UDP peer address: %s", inet_ntoa(peer_addr.sin_addr));
 
-			csp_packet_t * packet = csp_buffer_get(256);
+			csp_packet_t * packet = csp_buffer_get(iface->mtu);
 			if (packet == NULL)
 				continue;
 
@@ -110,6 +110,9 @@ void csp_if_udp_init(csp_iface_t * iface, char * host) {
 	static csp_thread_handle_t handle_server;
 	int ret = csp_thread_create(csp_if_udp_rx_task, "UDPS", 10000, iface, 0, &handle_server);
 	csp_log_info("csp_if_udp_rx_task start %d\r\n", ret);
+
+	/* MTU is datasize */
+	iface->mtu = csp_buffer_datasize();
 
 	/* Regsiter interface */
 	iface->name = "UDP",
