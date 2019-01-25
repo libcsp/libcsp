@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <arpa/inet.h>
 
 #include <csp/csp.h>
+#include <csp/csp_endian.h>
 #include <csp/csp_interface.h>
 #include <csp/arch/csp_thread.h>
 
@@ -33,6 +34,10 @@ static int csp_if_udp_tx(csp_iface_t * interface, csp_packet_t * packet, uint32_
 		return CSP_ERR_BUSY;
 	}
 
+	packet->id.ext = csp_hton32(packet->id.ext);
+
+	peer_addr.sin_family = AF_INET;
+	peer_addr.sin_port = htons(9600);
 	sendto(sockfd, (void *) &packet->id, packet->length + 4, MSG_CONFIRM, (struct sockaddr *) &peer_addr, sizeof(peer_addr));
 	csp_buffer_free(packet);
 
@@ -62,9 +67,16 @@ CSP_DEFINE_TASK(csp_if_udp_rx_task) {
 		while(1) {
 
 			char buffer[256];
-			struct sockaddr_in client_addr = {0};
-			unsigned int client_addr_len;
-			int received_len = recvfrom(sockfd, (char *)buffer, 256, MSG_WAITALL, (struct sockaddr *) &client_addr, &client_addr_len);
+			unsigned int peer_addr_len = sizeof(peer_addr);
+			int received_len = recvfrom(sockfd, (char *)buffer, 256, MSG_WAITALL, (struct sockaddr *) &peer_addr, &peer_addr_len);
+
+			/* Check for short */
+			if (received_len < 4) {
+				csp_log_error("Too short UDP packet");
+				continue;
+			}
+
+			csp_log_info("UDP peer address: %s", inet_ntoa(peer_addr.sin_addr));
 
 			csp_packet_t * packet = csp_buffer_get(256);
 			if (packet == NULL)
@@ -72,6 +84,8 @@ CSP_DEFINE_TASK(csp_if_udp_rx_task) {
 
 			memcpy(&packet->id, buffer, received_len);
 			packet->length = received_len - 4;
+
+			packet->id.ext = csp_ntoh32(packet->id.ext);
 
 			csp_new_packet(packet, iface, NULL);
 
@@ -86,12 +100,8 @@ CSP_DEFINE_TASK(csp_if_udp_rx_task) {
 
 void csp_if_udp_init(csp_iface_t * iface, char * host) {
 
-	peer_addr.sin_family = AF_INET;
-	peer_addr.sin_port = htons(9600);
-
 	if (inet_aton(host, &peer_addr.sin_addr) == 0) {
-		printf("Invalid address %s\n", host);
-	    return;
+		printf("Unknown peer address %s\n", host);
 	}
 
 	printf("UDP peer address: %s\n", inet_ntoa(peer_addr.sin_addr));
