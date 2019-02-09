@@ -59,10 +59,11 @@ CSP_DEFINE_TASK(csp_ip_server) {
         // Receive incoming packets 
         uint8_t buffer[CSP_IF_IP_MAX_BUF_SIZE];
         int recvlen = recvfrom(csp_if_ip_fd, buffer, CSP_IF_IP_MAX_BUF_SIZE, 0, (struct sockaddr*)&client_addr, (socklen_t*)&client_addr_len);
+        csp_log_info("Received data over IP interface of length %d bytes...", recvlen);
 
         // Verify length of incoming data 
         if (recvlen >= CSP_IF_IP_MAX_BUF_SIZE) {
-            csp_log_error("Incoming data was too large! Received %d bytes, but IP MTU is %d", recvlen, CSP_IF_IP_MAX_BUF_SIZE);
+            csp_log_error("Incoming data was too large for IP interface! Received %d bytes, but IP MTU is %d", recvlen, CSP_IF_IP_MAX_BUF_SIZE);
             continue;
         }
 
@@ -84,12 +85,14 @@ CSP_DEFINE_TASK(csp_ip_server) {
 int csp_ip_tx(csp_iface_t* interfafce, csp_packet_t* packet, uint32_t timeout) {
     // Send to outgoing address, on port CSP_IF_IP_SERVER_PORT
 
+    csp_log_info("Creating socket...");
     int temp_socket_fd = socket(AF_INET, SOCK_DGRAM, 0);
     if (temp_socket_fd < 0) {
         csp_log_error("Failed to create IP socket");
         return CSP_ERR_DRIVER;
     }
 
+    csp_log_info("Creating target address...");
     struct sockaddr_in target_addr;
     memset(&target_addr, 0, sizeof(target_addr));
     target_addr.sin_family = AF_INET; 
@@ -97,6 +100,7 @@ int csp_ip_tx(csp_iface_t* interfafce, csp_packet_t* packet, uint32_t timeout) {
     target_addr.sin_addr.s_addr = inet_addr(csp_ip_outgoing_addr);
 
     // Copy packet to buffer 
+    csp_log_info("Copying packet to outgoing buffer...");
     int buffer_len = sizeof(packet->id) + packet->length;
     uint8_t buffer[buffer_len];
 
@@ -104,6 +108,7 @@ int csp_ip_tx(csp_iface_t* interfafce, csp_packet_t* packet, uint32_t timeout) {
     memcpy(&(buffer[sizeof(packet->id)]), packet->data, packet->length);
 
     // Send off 
+    csp_log_info("Sending over IP...");
     sendto(temp_socket_fd, buffer, buffer_len, 0, (struct sockaddr*)&target_addr, sizeof(target_addr));
 
     close(temp_socket_fd);
