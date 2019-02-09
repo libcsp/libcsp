@@ -112,6 +112,9 @@ int csp_ip_tx(csp_iface_t* interfafce, csp_packet_t* packet, uint32_t timeout) {
     sendto(temp_socket_fd, buffer, buffer_len, 0, (struct sockaddr*)&target_addr, sizeof(target_addr));
 
     close(temp_socket_fd);
+    csp_log_info("Successfully send packet over IP interface");
+
+    return CSP_ERR_NONE;
 }
 
 // Interface definition 
