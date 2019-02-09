@@ -67,8 +67,19 @@ CSP_DEFINE_TASK(csp_ip_server) {
             continue;
         }
 
+        // Verify length of incoming data against max CSP buffer size 
+        if (recvlen >= csp_buffer_size()) {
+            csp_log_error("Incoming data was too large for CSP! Received %d bytes, but CSP max buffer size is %d", recvlen, csp_buffer_size());
+            continue;
+        }
+
         // Create CSP packet and set data appropriately
-        csp_packet_t* packet = csp_buffer_get(CSP_IF_IP_MAX_BUF_SIZE);
+        csp_log_info("Copying incoming data buffer into a packet...");
+        if (csp_buffer_remaining() == 0) {
+            csp_log_error("No more buffers, cannot receive packets!");
+            continue;
+        }
+        csp_packet_t* packet = csp_buffer_get(recvlen);
         memcpy(&(packet->id), buffer, 4); // First four bytes are CSP header 
         memcpy(packet->data, &(buffer[4]), recvlen);
         packet->length = recvlen - 4;
