@@ -47,6 +47,8 @@ int csp_ip_init(csp_ip_config_t config) {
 
     // Start IP server task
     csp_thread_create(csp_ip_server, "IP_SERV", 5 * CSP_IF_IP_MAX_BUF_SIZE, NULL, 0, &csp_ip_server_handle);
+
+    return CSP_ERR_NONE;
 }
 
 // IP interface RX definition: UNIX socket server 
