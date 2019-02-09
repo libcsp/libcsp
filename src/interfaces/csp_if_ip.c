@@ -104,6 +104,7 @@ int csp_ip_tx(csp_iface_t* interfafce, csp_packet_t* packet, uint32_t timeout) {
     int buffer_len = sizeof(packet->id) + packet->length;
     uint8_t buffer[buffer_len];
 
+    packet->id.ext = csp_hton32(packet->id.ext);
     memcpy(buffer, &(packet->id), sizeof(packet->id));
     memcpy(&(buffer[sizeof(packet->id)]), packet->data, packet->length);
 
