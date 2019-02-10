@@ -128,6 +128,8 @@ int csp_ip_tx(csp_iface_t* interfafce, csp_packet_t* packet, uint32_t timeout) {
     close(temp_socket_fd);
     csp_log_info("Successfully send packet over IP interface");
 
+    csp_buffer_free(packet);
+
     return CSP_ERR_NONE;
 }
 
