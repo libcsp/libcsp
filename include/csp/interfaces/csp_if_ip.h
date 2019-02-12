@@ -45,4 +45,8 @@ int csp_ip_init(csp_ip_config_t config);
 csp_thread_handle_t csp_ip_server_handle;
 csp_thread_return_t csp_ip_server(void* params);
 
+#ifdef __cplusplus
+}
+#endif 
+
 #endif 
