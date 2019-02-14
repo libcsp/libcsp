@@ -146,6 +146,7 @@ csp_iface_t * csp_can_socketcan_init(char * ifc, int bitrate, int promisc)
 	/* Set interface up */
 	if (bitrate > 0) {
 		can_do_stop(ifc);
+#if 0
                 struct can_bittiming cbt = {
                   //.bitrate = 1000000,
                   //.sample_point = 875,
@@ -156,9 +157,10 @@ csp_iface_t * csp_can_socketcan_init(char * ifc, int bitrate, int promisc)
                   .sjw = 4,
                   //.brp = 0 
                 };
-                int result = can_set_bittiming(ifc, &cbt);
-                printf("set bittiming %d\n", result);
-                //can_set_bitrate_samplepoint(ifc, bitrate, 875);i
+                //int result = can_set_bittiming(ifc, &cbt);
+                //printf("set bittiming %d\n", result);
+#endif
+                can_set_bitrate_samplepoint(ifc, bitrate, 875);
 		can_set_restart_ms(ifc, 100);
 		can_do_start(ifc);
 	}
