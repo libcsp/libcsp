@@ -20,7 +20,8 @@
 
 int csp_ip_init(csp_ip_config_t config) {
     // Configure target for TX task 
-    csp_ip_outgoing_addr = config.outgoing_addr;
+    csp_ip_tx_addr = config.tx_addr;
+    csp_ip_tx_port = config.tx_ip_port;
 
     // Create socket
     csp_if_ip_fd = socket(AF_INET, SOCK_DGRAM, 0);
@@ -34,7 +35,8 @@ int csp_ip_init(csp_ip_config_t config) {
     memset(&server_addr, 0, sizeof(server_addr));
     server_addr.sin_family = AF_INET; // IPv4 
     server_addr.sin_addr.s_addr = INADDR_ANY; 
-    server_addr.sin_port = htons(config.server_port);
+    server_addr.sin_port = htons(config.rx_ip_port);
+    csp_log_info("Set server port to listen on %d\n", server_addr.sin_port);
 
     // Bind the socket 
     if (bind(csp_if_ip_fd, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0) {
@@ -109,8 +111,9 @@ int csp_ip_tx(csp_iface_t* interfafce, csp_packet_t* packet, uint32_t timeout) {
     struct sockaddr_in target_addr;
     memset(&target_addr, 0, sizeof(target_addr));
     target_addr.sin_family = AF_INET; 
-    target_addr.sin_port = htons(CSP_IF_IP_SERVER_PORT); 
-    target_addr.sin_addr.s_addr = inet_addr(csp_ip_outgoing_addr);
+    target_addr.sin_port = htons(csp_ip_tx_port); 
+    target_addr.sin_addr.s_addr = inet_addr(csp_ip_tx_addr);
+    csp_log_info("Set target port to %d\n", target_addr.sin_port);
 
     // Copy packet to buffer 
     csp_log_info("Copying packet to outgoing buffer...");

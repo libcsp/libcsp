@@ -24,18 +24,19 @@ extern "C" {
 
 // ***** IP interface definitions 
 #define CSP_IF_IP_MAX_BUF_SIZE 1500 /* IP IF MTU */
-#define CSP_IF_IP_SERVER_PORT 60314
 
 // ***** IP interface global objects 
 extern csp_iface_t csp_if_ip;
 int csp_if_ip_fd;
-const char* csp_ip_outgoing_addr;
-uint16_t csp_ip_server_port;
+const char* csp_ip_tx_addr;
+uint16_t csp_ip_tx_port;
+uint16_t csp_ip_rx_port;
 
 // ***** IP interface configuration struct 
 typedef struct {
-    const char* outgoing_addr; // Address to send data to
-    uint16_t server_port; // Port to receive data on
+    const char* tx_addr; // IP address to send data to
+    uint16_t tx_ip_port; // IP (BSD socket) port to send to 
+    uint16_t rx_ip_port; // IP (BSD socket) port to receive data on
 } csp_ip_config_t;
 
 // Initialize the IP interface and start the IP server 
