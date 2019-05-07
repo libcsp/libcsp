@@ -178,7 +178,7 @@ typedef struct __attribute__((__packed__)) {
 
 /** Interface TX function */
 struct csp_iface_s;
-typedef int (*nexthop_t)(struct csp_iface_s * interface, csp_packet_t *packet, uint32_t timeout);
+typedef int (*nexthop_t)(struct csp_iface_s * iface, csp_packet_t *packet, uint32_t timeout);
 
 /** Interface struct */
 typedef struct csp_iface_s {
