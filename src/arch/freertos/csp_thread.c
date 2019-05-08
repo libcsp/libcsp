@@ -27,7 +27,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/arch/csp_thread.h>
 
 int csp_thread_create(csp_thread_return_t (* routine)(void *), const char * const thread_name, unsigned short stack_depth, void * parameters, unsigned int priority, csp_thread_handle_t * handle) {
-	portBASE_TYPE ret = xTaskCreate(routine, thread_name, stack_depth, parameters, priority, handle);
+	portBASE_TYPE ret = xTaskCreate(routine, thread_name, stack_depth, parameters, priority, (TaskHandle_t *) handle);
 	if (ret != pdTRUE)
 		return CSP_ERR_NOMEM;
 	return CSP_ERR_NONE;

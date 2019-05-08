@@ -68,16 +68,13 @@ typedef unsigned int csp_thread_return_t;
 /* FreeRTOS interface */
 #if defined(CSP_FREERTOS)
 
-#include <FreeRTOS.h>
-#include <task.h>
-
 #if INCLUDE_vTaskDelete
 #define csp_thread_exit() vTaskDelete(NULL)
 #else
 #define csp_thread_exit()
 #endif
 
-typedef TaskHandle_t csp_thread_handle_t;
+typedef void * csp_thread_handle_t;
 typedef void csp_thread_return_t;
 
 #define CSP_DEFINE_TASK(task_name) csp_thread_return_t task_name(void * param)

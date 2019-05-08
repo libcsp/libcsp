@@ -79,16 +79,13 @@ typedef HANDLE csp_mutex_t;
 /* FreeRTOS interface */
 #if defined(CSP_FREERTOS)
 
-#include <FreeRTOS.h>
-#include <semphr.h>
-
-#define CSP_SEMAPHORE_OK 	pdPASS
-#define CSP_SEMAPHORE_ERROR	pdFAIL
+#define CSP_SEMAPHORE_OK 	1
+#define CSP_SEMAPHORE_ERROR	0
 #define CSP_MUTEX_OK		CSP_SEMAPHORE_OK
 #define CSP_MUTEX_ERROR		CSP_SEMAPHORE_ERROR
 
-typedef SemaphoreHandle_t csp_bin_sem_handle_t;
-typedef SemaphoreHandle_t csp_mutex_t;
+typedef void * csp_bin_sem_handle_t;
+typedef void * csp_mutex_t;
 
 #endif // CSP_FREERTOS
 
