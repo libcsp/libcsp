@@ -32,3 +32,7 @@ int csp_thread_create(csp_thread_return_t (* routine)(void *), const char * cons
 		return CSP_ERR_NOMEM;
 	return CSP_ERR_NONE;
 }
+
+void csp_sleep_ms(int time_ms) {
+	vTaskDelay(time_ms / portTICK_PERIOD_MS);
+}
