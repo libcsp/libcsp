@@ -156,7 +156,7 @@ csp_packet_t * csp_read(csp_conn_t * conn, uint32_t timeout) {
 
 #ifdef CSP_USE_RDP
 	/* Packet read could trigger ACK transmission */
-	if (conn->idin.flags & CSP_FRDP && conn->rdp.delayed_acks)
+	if ((conn->idin.flags & CSP_FRDP) && conn->rdp.delayed_acks)
 	    csp_rdp_check_ack(conn);
 
 #endif
