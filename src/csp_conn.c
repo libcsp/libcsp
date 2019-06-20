@@ -494,6 +494,6 @@ int csp_conn_print_table_str(char * str_buf, int str_size) {
 
 const csp_conn_t * csp_conn_get_array(size_t * size)
 {
-	*size = CSP_CONN_MAX;    
+	*size = csp_conf.conn_max;
 	return arr_conn;
 }

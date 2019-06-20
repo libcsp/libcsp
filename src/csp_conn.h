@@ -52,8 +52,9 @@ typedef enum {
 	RDP_CLOSE_WAIT,
 } csp_rdp_state_t;
 
-/** @brief RDP Connection header
- *  @note Do not try to pack this struct, the posix sem handle will stop working */
+/**
+ * RDP Connection
+ */
 typedef struct {
 	csp_rdp_state_t state;		/**< Connection state */
 	uint16_t snd_nxt;		/**< The sequence number of the next segment that is to be sent */
@@ -77,7 +78,7 @@ typedef struct {
 /** @brief Connection struct */
 struct csp_conn_s {
 	csp_conn_type_t type;		/* Connection type (CONN_CLIENT or CONN_SERVER) */
-	csp_conn_state_t state;		/* Connection state (SOCKET_OPEN or SOCKET_CLOSED) */
+	csp_conn_state_t state;		/* Connection state (CONN_OPEN or CONN_CLOSED) */
 	csp_mutex_t lock;		/* Connection structure lock */
 	csp_id_t idin;			/* Identifier received */
 	csp_id_t idout;			/* Identifier transmitted */

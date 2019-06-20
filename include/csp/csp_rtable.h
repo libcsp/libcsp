@@ -99,17 +99,16 @@ int csp_rtable_save(char * buffer, int maxlen);
  * - Mac Address (this field is optional)
  * An example routing string is "0/0 I2C, 8/2 KISS"
  * The string must be \0 null terminated
- * The string must NOT be const.
  * @param buffer Pointer to string
  */
-void csp_rtable_load(char * buffer);
+void csp_rtable_load(const char * buffer);
 
 /**
  * Check string for valid routing table
  * @param buffer Pointer to string
  * @return number of valid entries found
  */
-int csp_rtable_check(char * buffer);
+int csp_rtable_check(const char * buffer);
 
 /**
  * Clear routing table:

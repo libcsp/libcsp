@@ -103,7 +103,7 @@ void csp_rtable_clear(void) {
 
 }
 
-static int csp_rtable_parse(char * buffer, int dry_run) {
+static int csp_rtable_parse(const char * buffer, int dry_run) {
 
 	int valid_entries = 0;
 
@@ -139,11 +139,11 @@ static int csp_rtable_parse(char * buffer, int dry_run) {
 	return valid_entries;
 }
 
-void csp_rtable_load(char * buffer) {
+void csp_rtable_load(const char * buffer) {
 	csp_rtable_parse(buffer, 0);
 }
 
-int csp_rtable_check(char * buffer) {
+int csp_rtable_check(const char * buffer) {
 	return csp_rtable_parse(buffer, 1);
 }
 

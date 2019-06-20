@@ -48,18 +48,6 @@ extern "C" {
 void csp_qfifo_write(csp_packet_t *packet, csp_iface_t *interface, CSP_BASE_TYPE *pxTaskWoken);
 
 /**
- * csp_new_packet is deprecated, use csp_qfifo_write
- */
-#define csp_new_packet csp_qfifo_write
-
-/**
- * Get MAC layer address of next hop.
- * @param node Next hop node
- * @return MAC layer address
- */
-uint8_t csp_route_get_mac(uint8_t node);
-
-/**
  * Register your interface in the router core using this function.
  * This must be done in the interface init() function.
  */

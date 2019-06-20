@@ -29,7 +29,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/arch/csp_thread.h>
 
 /** Example defines */
-#define MY_ADDRESS  1			// Address of local CSP node
+#define MY_ADDRESS	1			// Address of local CSP node
 #define MY_PORT		10			// Port to send test traffic to
 
 CSP_DEFINE_TASK(task_server) {
@@ -120,7 +120,7 @@ CSP_DEFINE_TASK(task_client) {
 		}
 
 		/* Copy dummy data to packet */
-		char *msg = "Hello World";
+		const char *msg = "Hello World";
 		strcpy((char *) packet->data, msg);
 
 		/* Set packet length */
@@ -154,7 +154,10 @@ int main(int argc, char * argv[]) {
 	csp_buffer_init(5, 300);
 
 	/* Init CSP with address MY_ADDRESS */
-	csp_init(MY_ADDRESS);
+	csp_conf_t csp_conf;
+	csp_conf_get_defaults(&csp_conf);
+	csp_conf.address = MY_ADDRESS;
+	csp_init(&csp_conf);
 
 	/* Start router task with 500 word stack, OS task priority 1 */
 	csp_route_start_task(500, 1);

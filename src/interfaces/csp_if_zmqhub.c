@@ -26,6 +26,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/csp_interface.h>
 #include <csp/arch/csp_thread.h>
 #include <csp/interfaces/csp_if_zmqhub.h>
+#include <errno.h>
 
 /* ZMQ */
 #include <zmq.h>
@@ -125,13 +126,13 @@ int csp_zmqhub_init_w_endpoints(char _addr, char * publisher_endpoint,
 		publisher_endpoint, subscriber_endpoint);
 
 	/* Publisher (TX) */
-    publisher = zmq_socket(context, ZMQ_PUB);
-    assert(publisher);
-    assert(zmq_connect(publisher, publisher_endpoint) == 0);
+	publisher = zmq_socket(context, ZMQ_PUB);
+	assert(publisher);
+	assert(zmq_connect(publisher, publisher_endpoint) == 0);
 
-    /* Subscriber (RX) */
-    subscriber = zmq_socket(context, ZMQ_SUB);
-    assert(subscriber);
+	/* Subscriber (RX) */
+	subscriber = zmq_socket(context, ZMQ_SUB);
+	assert(subscriber);
 	assert(zmq_connect(subscriber, subscriber_endpoint) == 0);
 
 	if (addr == (char) 255) {
@@ -142,8 +143,11 @@ int csp_zmqhub_init_w_endpoints(char _addr, char * publisher_endpoint,
 
 	/* Start RX thread */
 	static csp_thread_handle_t handle_subscriber;
-	int ret = csp_thread_create(csp_zmqhub_task, "ZMQ", 10000, NULL, 0, &handle_subscriber);
-	csp_log_info("Task start %d\r\n", ret);
+	int res = csp_thread_create(csp_zmqhub_task, "ZMQ", 10000, NULL, 0, &handle_subscriber);
+	if (res != 0) {
+            csp_log_error("%s: csp_thread_create() failed, res: %d, errno: %d", res, errno);
+            return CSP_ERR_DRIVER;
+	}
 
 	/* Regsiter interface */
 	csp_iflist_add(&csp_if_zmqhub);

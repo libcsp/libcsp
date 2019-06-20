@@ -1,5 +1,7 @@
 .. CSP Documentation master file.
 
+.. _libcsp:
+   
 **********************
 CubeSat Space Protocol
 **********************
