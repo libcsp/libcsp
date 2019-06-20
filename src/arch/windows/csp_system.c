@@ -32,6 +32,10 @@ int csp_sys_tasklist(char * out) {
 	return CSP_ERR_NONE;
 }
 
+int csp_sys_tasklist_size(void) {
+        return 100;
+}
+
 uint32_t csp_sys_memfree(void) {
 	MEMORYSTATUSEX statex;
 	statex.dwLength = sizeof(statex);
