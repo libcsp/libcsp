@@ -237,7 +237,7 @@ char usart_getc(void) {
 }
 
 static void *serial_rx_thread(void *vptr_args) {
-	unsigned int length;
+	int length;
 	uint8_t * cbuf = malloc(100000);
 
 	// Receive loop
