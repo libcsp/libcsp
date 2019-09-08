@@ -22,6 +22,7 @@ int csp_ip_init(csp_ip_config_t config) {
     // Configure target for TX task 
     csp_ip_tx_addr = config.tx_addr;
     csp_ip_tx_port = config.tx_ip_port;
+    csp_ip_rx_port = config.rx_ip_port;
 
     // Create socket
     csp_if_ip_fd = socket(AF_INET, SOCK_DGRAM, 0);
@@ -35,8 +36,8 @@ int csp_ip_init(csp_ip_config_t config) {
     memset(&server_addr, 0, sizeof(server_addr));
     server_addr.sin_family = AF_INET; // IPv4 
     server_addr.sin_addr.s_addr = INADDR_ANY; 
-    server_addr.sin_port = htons(config.rx_ip_port);
-    csp_log_info("Set server port to listen on %d\n", server_addr.sin_port);
+    server_addr.sin_port = htons(csp_ip_rx_port);
+    csp_log_info("Set server port to listen on %d\n", csp_ip_rx_port);
 
     // Bind the socket 
     if (bind(csp_if_ip_fd, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0) {

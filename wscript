@@ -298,6 +298,13 @@ def build(ctx):
                 includes = ctx.env.INCLUDES_CSP,
                 lib = ctx.env.LIBS,
                 use = 'csp')
+        
+        if ctx.options.enable_if_ip:
+            ctx.program(source = 'examples/ip.c',
+                target = 'ip',
+                includes = ctx.env.INCLUDES_CSP,
+                lib = ctx.env.LIBS,
+                use = 'csp')
 
         if 'posix' in ctx.env.OS:
             ctx.program(source = 'examples/csp_if_fifo.c',
@@ -311,6 +318,7 @@ def build(ctx):
                 target = 'csp_if_fifo',
                 includes = ctx.env.INCLUDES_CSP,
                 use = 'csp')
+        
 
 def dist(ctx):
     ctx.excl = 'build/* **/.* **/*.pyc **/*.o **/*~ *.tar.gz'
