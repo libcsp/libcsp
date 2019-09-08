@@ -3,6 +3,10 @@
 
 #include <csp/csp.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern csp_iface_t csp_if_zmqhub;
 
 /**
@@ -22,5 +26,9 @@ int csp_zmqhub_init(char addr, char * host);
  */
 int csp_zmqhub_init_w_endpoints(char _addr, char * publisher_url,
 		char * subscriber_url);
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif /* CSP_IF_ZMQHUB_H_ */
