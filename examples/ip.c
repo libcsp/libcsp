@@ -87,17 +87,19 @@ CSP_DEFINE_TASK(client_task) {
         
         csp_sleep_ms(3000);
     }
+    
+    return CSP_TASK_RETURN;
 }
 
 
 
 int main(int argc, char** argv) {
     
-    printf("Due to routing, you must start this program twice, first \
-            as the client (node 1) and second as the server (node 2).\n");
+    printf("Due to routing, you must start this program twice, first as the server (node 1) and second as the client (node 2).\n");
     
-    if (argc != 2) {
-        printf("Format: ./ip {1 | 2} // 1 for client, 2 for server");
+    if (argc != 3) {
+        printf("Format: ./ip {1 | 2} {REMOTE_IP_ADDR} # 1 for server, 2 for client\n");
+        printf("Example: \n\t./ip 1 10.0.1.100 # Server\n\t./ip 2 10.0.1.200 # Client\n");
         return 1;
     }
     
@@ -112,9 +114,9 @@ int main(int argc, char** argv) {
     
     // Setup IP interface
     csp_ip_config_t ip_config;
-    ip_config.tx_addr = SERVER_ADDR;
-    ip_config.tx_ip_port = node == 1 ? SERVER_IP_PORT : CLIENT_IP_PORT;
-    ip_config.rx_ip_port = node == 1 ? CLIENT_IP_PORT : SERVER_IP_PORT;
+    ip_config.tx_addr = argv[2];
+    ip_config.rx_ip_port = node == 1 ? SERVER_IP_PORT : CLIENT_IP_PORT;
+    ip_config.tx_ip_port = node == 1 ? CLIENT_IP_PORT : SERVER_IP_PORT;
     
     csp_ip_init(ip_config);
 
@@ -123,11 +125,11 @@ int main(int argc, char** argv) {
     csp_route_start_task(500, 1);
     
     if (node == 1) { 
-        csp_thread_handle_t handle_client;
-        csp_thread_create(client_task, "CLIENT", 1000, NULL, 0, &handle_client);
-    } else {
         csp_thread_handle_t handle_server;
         csp_thread_create(server_task, "SERVER", 1000, NULL, 0, &handle_server);
+    } else {
+        csp_thread_handle_t handle_client;
+        csp_thread_create(client_task, "CLIENT", 1000, NULL, 0, &handle_client);
     }
 
     /* Wait for program to terminate (ctrl + c) */
