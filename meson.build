@@ -71,5 +71,10 @@ csp_lib = static_library('csp',
 
 csp_dep = declare_dependency(
 	include_directories : csp_inc,
+	link_with : csp_lib,
+)
+
+csp_dep_whole = declare_dependency(
+	include_directories : csp_inc,
 	link_whole : csp_lib,
 )
