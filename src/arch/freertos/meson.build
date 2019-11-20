@@ -7,4 +7,6 @@ csp_sources += files([
 	'csp_time.c',
 ])
 
-csp_deps += dependency('freertos', fallback : ['freertos', 'freertos_dep'], required: true)
+# FreeRTOS can be provided by either a freertos subproject, or a bsp subproject
+csp_deps += dependency('freertos', fallback : ['freertos', 'freertos_dep'], required: false)
+csp_deps += dependency('freertos', fallback : ['bsp', 'bsp_dep'], required: false)
