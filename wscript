@@ -22,10 +22,8 @@
 import os
 
 APPNAME = 'libcsp'
-VERSION = '1.5'
+VERSION = '1.6'
 
-top = '.'
-out = 'build'
 
 def options(ctx):
     # Load GCC options
@@ -50,6 +48,7 @@ def options(ctx):
     gr.add_option('--enable-python3-bindings', action='store_true', help='Enable Python3 bindings')
     gr.add_option('--enable-examples', action='store_true', help='Enable examples')
     gr.add_option('--enable-dedup', action='store_true', help='Enable packet deduplicator')
+    gr.add_option('--enable-external-debug', action='store_true', help='Enable external debug API')
 
     # Interfaces
     gr.add_option('--enable-if-i2c', action='store_true', help='Enable I2C interface')
@@ -59,27 +58,30 @@ def options(ctx):
     
     # Drivers
     gr.add_option('--enable-can-socketcan', action='store_true', help='Enable Linux socketcan driver')
-    gr.add_option('--with-driver-usart', default=None, metavar='DRIVER', help='Build USART driver. [windows, linux, None]')
+    gr.add_option('--with-driver-usart', default=None, metavar='DRIVER',
+                  help='Build USART driver. [windows, linux, None]')
 
     # OS
-    gr.add_option('--with-os', metavar='OS', default='posix', help='Set operating system. Must be either \'posix\', \'macosx\', \'windows\' or \'freertos\'')
+    gr.add_option('--with-os', metavar='OS', default='posix',
+                  help='Set operating system. Must be either \'posix\', \'macosx\', \'windows\' or \'freertos\'')
     gr.add_option('--enable-init-shutdown', action='store_true', help='Use init system commands for shutdown/reboot')
 
     # Options
-    gr.add_option('--with-loglevel', metavar='LEVEL', default='debug', help='Set minimum compile time log level. Must be one of \'error\', \'warn\', \'info\' or \'debug\'')
-    gr.add_option('--with-rtable', metavar='TABLE', default='static', help='Set routing table type')
+    gr.add_option('--with-loglevel', metavar='LEVEL', default='debug',
+                  help='Set minimum compile time log level. Must be one of \'error\', \'warn\', \'info\' or \'debug\'')
+    gr.add_option('--with-rtable', metavar='TABLE', default='static',
+                  help='Set routing table type: \'static\' or \'cidr\'')
+
 
 def configure(ctx):
-    # Validate OS
-    if not ctx.options.with_os in ('posix', 'windows', 'freertos', 'macosx'):
-        ctx.fatal('--with-os must be either \'posix\', \'windows\', \'macosx\' or \'freertos\'')
+    # Validate options
+    valid_os = ['posix', 'windows', 'freertos', 'macosx']
+    if ctx.options.with_os not in valid_os:
+        ctx.fatal('--with-os must be either: ' + str(valid_os))
 
-    # Validate USART drivers
-    if not ctx.options.with_driver_usart in (None, 'windows', 'linux'):
-        ctx.fatal('--with-driver-usart must be either \'windows\' or \'linux\'')
-
-    if not ctx.options.with_loglevel in ('error', 'warn', 'info', 'debug'):
-        ctx.fatal('--with-loglevel must be either \'error\', \'warn\', \'info\' or \'debug\'')
+    valid_loglevel = ['error', 'warn', 'info', 'debug']
+    if ctx.options.with_loglevel not in valid_loglevel:
+        ctx.fatal('--with-loglevel must be either: ' + str(valid_loglevel))
 
     # Setup and validate toolchain
     if (len(ctx.stack_path) <= 1) and ctx.options.toolchain:
@@ -101,13 +103,11 @@ def configure(ctx):
 
     # Setup CFLAGS
     if (len(ctx.stack_path) <= 1) and (len(ctx.env.CFLAGS) == 0):
-        ctx.env.prepend_value('CFLAGS', ["-std=gnu99", "-g", "-Os", "-Wall", "-Wextra", "-Wshadow", "-Wcast-align", "-Wwrite-strings", "-Wno-unused-parameter"])
+        ctx.env.prepend_value('CFLAGS', ["-std=gnu99", "-g", "-Os", "-Wall", "-Wextra", "-Wshadow", "-Wcast-align",
+                                         "-Wwrite-strings", "-Wno-unused-parameter"])
 
     # Setup extra includes
     ctx.env.append_unique('INCLUDES_CSP', ['include'] + ctx.options.includes.split(','))
-
-    # Add default files
-    ctx.env.append_unique('FILES_CSP', ['src/*.c','src/interfaces/csp_if_lo.c','src/transport/csp_udp.c','src/arch/{0}/**/*.c'.format(ctx.options.with_os)])
     
     # Store OS as env variable
     ctx.env.append_unique('OS', ctx.options.with_os)
@@ -130,19 +130,26 @@ def configure(ctx):
     ctx.define_cond('CSP_POSIX', ctx.options.with_os == 'posix')
     ctx.define_cond('CSP_WINDOWS', ctx.options.with_os == 'windows')
     ctx.define_cond('CSP_MACOSX', ctx.options.with_os == 'macosx')
+
+    # Add default files
+    ctx.env.append_unique('FILES_CSP', ['src/*.c',
+                                        'src/interfaces/csp_if_lo.c',
+                                        'src/transport/csp_udp.c',
+                                        'src/arch/{0}/**/*.c'.format(ctx.options.with_os),
+                                        'src/rtable/csp_rtable.c',
+                                        'src/rtable/csp_rtable_{0}.c'.format(ctx.options.with_rtable)])
         
     # Add CAN driver
     if ctx.options.enable_can_socketcan:
         ctx.env.append_unique('FILES_CSP', 'src/drivers/can/can_socketcan.c')
 
     # Add USART driver
-    if ctx.options.with_driver_usart != None:
+    if ctx.options.with_driver_usart:
         ctx.env.append_unique('FILES_CSP', 'src/drivers/usart/usart_{0}.c'.format(ctx.options.with_driver_usart))
         
     # Interfaces
     if ctx.options.enable_if_can:
-        ctx.env.append_unique('FILES_CSP', 'src/interfaces/csp_if_can.c')
-        ctx.env.append_unique('FILES_CSP', 'src/interfaces/csp_if_can_pbuf.c')
+        ctx.env.append_unique('FILES_CSP', ['src/interfaces/csp_if_can.c', 'src/interfaces/csp_if_can_pbuf.c'])
     if ctx.options.enable_if_i2c:
         ctx.env.append_unique('FILES_CSP', 'src/interfaces/csp_if_i2c.c')
     if ctx.options.enable_if_kiss:
@@ -158,36 +165,34 @@ def configure(ctx):
 
     # Check for python development
     if ctx.options.enable_bindings:
-        ctx.env.LIBCSP_PYTHON2 = ctx.check_cfg(package='python2', args='--cflags --libs', atleast_version='2.7', mandatory=False)
+        ctx.env.LIBCSP_PYTHON2 = ctx.check_cfg(package='python2', args='--cflags --libs', atleast_version='2.7',
+                                               mandatory=False)
         if ctx.options.enable_python3_bindings:
-            ctx.env.LIBCSP_PYTHON3 = ctx.check_cfg(package='python3', args='--cflags --libs', atleast_version='3.5', mandatory=False)
+            ctx.env.LIBCSP_PYTHON3 = ctx.check_cfg(package='python3', args='--cflags --libs', atleast_version='3.5',
+                                                   mandatory=False)
 
-    # Create config file
-    if not ctx.options.disable_output:
-        ctx.env.append_unique('FILES_CSP', 'src/csp_debug.c')
-    else:
+    # Check options
+    if ctx.options.disable_output:
         ctx.env.append_unique('EXCL_CSP', 'src/csp_debug.c')
 
     if ctx.options.enable_rdp:
         ctx.env.append_unique('FILES_CSP', 'src/transport/csp_rdp.c')
 
-    if ctx.options.enable_crc32:
-        ctx.env.append_unique('FILES_CSP', 'src/csp_crc32.c')
-    else:
+    if not ctx.options.enable_crc32:
         ctx.env.append_unique('EXCL_CSP', 'src/csp_crc32.c')
 
     if not ctx.options.enable_dedup:
         ctx.env.append_unique('EXCL_CSP', 'src/csp_dedup.c')
 
     if ctx.options.enable_hmac:
-        ctx.env.append_unique('FILES_CSP', 'src/crypto/csp_hmac.c')
-        ctx.env.append_unique('FILES_CSP', 'src/crypto/csp_sha1.c')
+        ctx.env.append_unique('FILES_CSP', ['src/crypto/csp_hmac.c', 'src/crypto/csp_sha1.c'])
 
     if ctx.options.enable_xtea:
-        ctx.env.append_unique('FILES_CSP', 'src/crypto/csp_xtea.c')
-        ctx.env.append_unique('FILES_CSP', 'src/crypto/csp_sha1.c')
+        ctx.env.append_unique('FILES_CSP', ['src/crypto/csp_xtea.c', 'src/crypto/csp_sha1.c'])
         
-    ctx.env.append_unique('FILES_CSP', 'src/rtable/csp_rtable_' + ctx.options.with_rtable  + '.c')
+    if ctx.options.enable_external_debug:
+        ctx.env.append_unique('EXCL_CSP', 'src/csp_debug.c')
+        ctx.env.append_unique('FILES_CSP', 'src/external/*.c')
 
     ctx.define_cond('CSP_DEBUG', not ctx.options.disable_output)
     ctx.define_cond('CSP_USE_RDP', ctx.options.enable_rdp)
@@ -198,6 +203,11 @@ def configure(ctx):
     ctx.define_cond('CSP_USE_QOS', ctx.options.enable_qos)
     ctx.define_cond('CSP_USE_DEDUP', ctx.options.enable_dedup)
     ctx.define_cond('CSP_USE_INIT_SHUTDOWN', ctx.options.enable_init_shutdown)
+    ctx.define_cond('CSP_USE_CAN', ctx.options.enable_if_can)
+    ctx.define_cond('CSP_USE_I2C', ctx.options.enable_if_i2c)
+    ctx.define_cond('CSP_USE_KISS', ctx.options.enable_if_kiss)
+    ctx.define_cond('CSP_USE_ZMQHUB', ctx.options.enable_if_zmqhub)
+    ctx.define_cond('CSP_USE_EXTERNAL_DEBUG', ctx.options.enable_external_debug)
 
     # Set logging level
     ctx.define_cond('CSP_LOG_LEVEL_DEBUG', ctx.options.with_loglevel in ('debug'))
@@ -223,6 +233,7 @@ def configure(ctx):
 
     ctx.write_config_header('include/csp/csp_autoconfig.h')
     
+
 def build(ctx):
 
     # Set install path for header files
@@ -247,78 +258,67 @@ def build(ctx):
 
         ctx.install_files('${PREFIX}/include/csp', 'include/csp/csp_autoconfig.h', cwd=ctx.bldnode)
 
-    ctx(export_includes='include', name='csp_h')
+    ctx(export_includes=ctx.env.INCLUDES_CSP, name='csp_h')
 
     ctx(features=ctx.env.FEATURES,
         source=ctx.path.ant_glob(ctx.env.FILES_CSP, excl=ctx.env.EXCL_CSP),
         target = 'csp',
-        includes= ctx.env.INCLUDES_CSP,
-        export_includes = ctx.env.INCLUDES_CSP,
-        use = 'include freertos_h',
-        install_path = install_path,
-    )
+        use=['csp_h', 'freertos_h', 'util'],
+        install_path=install_path)
 
     # Build shared library for Python bindings
     if ctx.env.ENABLE_BINDINGS:
         ctx.shlib(source = ctx.path.ant_glob(ctx.env.FILES_CSP, excl=ctx.env.EXCL_CSP),
                   name = 'csp_shlib',
                   target = 'csp',
-                  includes = ctx.env.INCLUDES_CSP,
-                  export_includes = 'include',
-                  use = ['include'],
+                  use=['csp_h', 'util_shlib'],
                   lib = ctx.env.LIBS)
 
         # python3 bindings
         if ctx.env.LIBCSP_PYTHON3:
             ctx.shlib(source = ['src/bindings/python/pycsp.c'],
                       target = 'csp_py3',
-                      includes = ctx.env.INCLUDES_CSP + ctx.env.INCLUDES_PYTHON3,
-                      export_includes = 'include',
-                      use = ['csp_shlib', 'include'],
+                      includes=ctx.env.INCLUDES_PYTHON3,
+                      use=['csp_shlib'],
                       lib = ctx.env.LIBS)
 
         # python2 bindings
         if ctx.env.LIBCSP_PYTHON2:
             ctx.shlib(source = ['src/bindings/python/pycsp.c'],
                       target = 'csp_py2',
-                      includes = ctx.env.INCLUDES_CSP + ctx.env.INCLUDES_PYTHON2,
-                      export_includes = 'include',
-                      use = ['csp_shlib', 'include'],
+                      includes=ctx.env.INCLUDES_PYTHON2,
+                      use=['csp_shlib'],
                       lib = ctx.env.LIBS)
 
     if ctx.env.ENABLE_EXAMPLES:
-        ctx.program(source = ctx.path.ant_glob('examples/simple.c'),
+        ctx.program(source='examples/simple.c',
             target = 'simple',
-            includes = ctx.env.INCLUDES_CSP,
             lib = ctx.env.LIBS,
             use = 'csp')
 
         if ctx.options.enable_if_kiss:
             ctx.program(source = 'examples/kiss.c',
                 target = 'kiss',
-                includes = ctx.env.INCLUDES_CSP,
                 lib = ctx.env.LIBS,
                 use = 'csp')
 
         if ctx.options.enable_if_zmqhub:
             ctx.program(source = 'examples/zmqproxy.c',
                         target = 'zmqproxy',
-                        includes = ctx.env.INCLUDES_CSP,
                         lib = ctx.env.LIBS,
                         use = 'csp')
 
         if 'posix' in ctx.env.OS:
             ctx.program(source = 'examples/csp_if_fifo.c',
                 target = 'fifo',
-                includes = ctx.env.INCLUDES_CSP,
                 lib = ctx.env.LIBS,
-                use = 'csp')
+                        use=['csp'])
 
         if 'windows' in ctx.env.OS:
             ctx.program(source = ctx.path.ant_glob('examples/csp_if_fifo_windows.c'),
                 target = 'csp_if_fifo',
-                includes = ctx.env.INCLUDES_CSP,
                 use = 'csp')
+
 
 def dist(ctx):
     ctx.excl = 'build/* **/.* **/*.pyc **/*.o **/*~ *.tar.gz'

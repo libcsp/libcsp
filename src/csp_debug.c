@@ -18,7 +18,8 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <stdint.h>
+#include <csp/csp_debug.h>
+
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
@@ -27,16 +28,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <avr/pgmspace.h>
 #endif
 
-/* CSP includes */
 #include <csp/csp.h>
-
 #include <csp/arch/csp_system.h>
 
 /* Custom debug function */
 csp_debug_hook_func_t csp_debug_hook_func = NULL;
 
 /* Debug levels */
-static bool csp_debug_level_enabled[] = {
+bool csp_debug_level_enabled[] = {
 	[CSP_ERROR]	= true,
 	[CSP_WARN]	= true,
 	[CSP_INFO]	= false,
