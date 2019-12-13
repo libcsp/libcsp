@@ -218,23 +218,12 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, csp_iface_t * ifout, 
 
 		if (idout.flags & CSP_FXTEA) {
 #ifdef CSP_USE_XTEA
-			/* Create nonce */
-			uint32_t nonce, nonce_n;
-			nonce = (uint32_t)rand();
-			nonce_n = csp_hton32(nonce);
-			memcpy(&packet->data[packet->length], &nonce_n, sizeof(nonce_n));
-
-			/* Create initialization vector */
-			uint32_t iv[2] = {nonce, 1};
-
 			/* Encrypt data */
-			if (csp_xtea_encrypt(packet->data, packet->length, iv) != 0) {
+			if (csp_xtea_encrypt_packet(packet) != CSP_ERR_NONE) {
 				/* Encryption failed */
-				csp_log_warn("Encryption failed! Discarding packet");
+				csp_log_warn("XTEA Encryption failed!");
 				goto tx_err;
 			}
-
-			packet->length += sizeof(nonce_n);
 #else
 			csp_log_warn("Attempt to send XTEA encrypted packet, but CSP was compiled without XTEA support. Discarding packet");
 			goto tx_err;
