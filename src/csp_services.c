@@ -18,16 +18,12 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <stdio.h>
-#include <string.h>
-#include <stdint.h>
-#include <inttypes.h>
-
-/* CSP includes */
 #include <csp/csp.h>
+
+#include <stdio.h>
+
 #include <csp/csp_cmp.h>
 #include <csp/csp_endian.h>
-
 #include <csp/arch/csp_time.h>
 
 int csp_ping(uint8_t node, uint32_t timeout, unsigned int size, uint8_t conn_options) {
@@ -44,8 +40,7 @@ int csp_ping(uint8_t node, uint32_t timeout, unsigned int size, uint8_t conn_opt
 		return -1;
 
 	/* Prepare data */
-	csp_packet_t * packet;
-	packet = csp_buffer_get(size);
+	csp_packet_t * packet = csp_buffer_get(size);
 	if (packet == NULL)
 		goto out;
 
@@ -64,16 +59,16 @@ int csp_ping(uint8_t node, uint32_t timeout, unsigned int size, uint8_t conn_opt
 		goto out;
 
 	/* Ensure that the data was actually echoed */
-	for (i = 0; i < size; i++)
-		if (packet->data[i] != i % (0xff + 1))
+	for (i = 0; i < size; i++) {
+		if (packet->data[i] != i % (0xff + 1)) {
 			goto out;
-
+		}
+	}
 	status = 1;
 
 out:
 	/* Clean up */
-	if (packet != NULL)
-		csp_buffer_free(packet);
+	csp_buffer_free(packet);
 	csp_close(conn);
 
 	/* We have a reply */
@@ -81,19 +76,15 @@ out:
 
 	if (status) {
 		return time;
-	} else {
-		return -1;
 	}
 
+	return -1;
 }
 
 void csp_ping_noreply(uint8_t node) {
 
 	/* Prepare data */
-	csp_packet_t * packet;
-	packet = csp_buffer_get(1);
-
-	/* Check malloc */
+	csp_packet_t * packet = csp_buffer_get(1);
 	if (packet == NULL)
 		return;
 
@@ -131,32 +122,35 @@ void csp_ps(uint8_t node, uint32_t timeout) {
 
 	/* Open connection */
 	csp_conn_t * conn = csp_connect(CSP_PRIO_NORM, node, CSP_PS, 0, 0);
-	if (conn == NULL)
+	if (conn == NULL) {
 		return;
+	}
 
 	/* Prepare data */
-	csp_packet_t * packet;
-	packet = csp_buffer_get(95);
+	csp_packet_t * packet = csp_buffer_get(95);
 
 	/* Check malloc */
-	if (packet == NULL)
+	if (packet == NULL) {
 		goto out;
+	}
 
 	packet->data[0] = 0x55;
 	packet->length = 1;
 
-	printf("PS node %u: \r\n", (unsigned int) node);
+	printf("PS node %u: \r\n", node);
 
 	/* Try to send frame */
-	if (!csp_send(conn, packet, 0))
+	if (!csp_send(conn, packet, 0)) {
 		goto out;
+	}
 
 	while(1) {
 
 		/* Read incoming frame */
 		packet = csp_read(conn, timeout);
-		if (packet == NULL)
+		if (packet == NULL) {
 			break;
+		}
 
 		/* We have a reply, add our own NULL char */
 		packet->data[packet->length] = 0;
@@ -170,8 +164,7 @@ void csp_ps(uint8_t node, uint32_t timeout) {
 
 	/* Clean up */
 out:
-	if (packet != NULL)
-		csp_buffer_free(packet);
+	csp_buffer_free(packet);
 	csp_close(conn);
 
 }
@@ -221,12 +214,13 @@ void csp_uptime(uint8_t node, uint32_t timeout) {
 
 }
 
-int csp_cmp(uint8_t node, uint32_t timeout, uint8_t code, int membsize, struct csp_cmp_message * msg) {
+int csp_cmp(uint8_t node, uint32_t timeout, uint8_t code, int msg_size, struct csp_cmp_message * msg) {
 	msg->type = CSP_CMP_REQUEST;
 	msg->code = code;
-	int status = csp_transaction(CSP_PRIO_NORM, node, CSP_CMP, timeout, msg, membsize, msg, membsize);
-	if (status == 0)
+	int status = csp_transaction(CSP_PRIO_NORM, node, CSP_CMP, timeout, msg, msg_size, msg, msg_size);
+	if (status == 0) {
 		return CSP_ERR_TIMEDOUT;
+	}
 
 	return CSP_ERR_NONE;
 }

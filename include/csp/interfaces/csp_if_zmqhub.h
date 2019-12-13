@@ -28,7 +28,6 @@ int csp_zmqhub_init_w_endpoints(char _addr, char * publisher_url,
 		char * subscriber_url);
 
 #ifdef __cplusplus
-} /* extern "C" */
+}
 #endif
-
-#endif /* CSP_IF_ZMQHUB_H_ */
+#endif

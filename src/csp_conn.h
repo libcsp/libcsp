@@ -21,6 +21,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef _CSP_CONN_H_
 #define _CSP_CONN_H_
 
+#include <csp/csp.h>
+#include <csp/arch/csp_queue.h>
+#include <csp/arch/csp_semaphore.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -79,7 +83,6 @@ typedef struct {
 struct csp_conn_s {
 	csp_conn_type_t type;		/* Connection type (CONN_CLIENT or CONN_SERVER) */
 	csp_conn_state_t state;		/* Connection state (CONN_OPEN or CONN_CLOSED) */
-	csp_mutex_t lock;		/* Connection structure lock */
 	csp_id_t idin;			/* Identifier received */
 	csp_id_t idout;			/* Identifier transmitted */
 #ifdef CSP_USE_QOS
@@ -94,8 +97,6 @@ struct csp_conn_s {
 #endif
 };
 
-int csp_conn_lock(csp_conn_t * conn, uint32_t timeout);
-int csp_conn_unlock(csp_conn_t * conn);
 int csp_conn_enqueue_packet(csp_conn_t * conn, csp_packet_t * packet);
 int csp_conn_init(void);
 csp_conn_t * csp_conn_allocate(csp_conn_type_t type);

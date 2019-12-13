@@ -18,15 +18,8 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <stdint.h>
-#include <pthread.h>
-
-/* CSP includes */
-#include <csp/csp.h>
-
-#include <csp/arch/posix/pthread_queue.h>
 #include <csp/arch/csp_queue.h>
-
+#include <csp/arch/posix/pthread_queue.h>
 
 csp_queue_handle_t csp_queue_create(int length, size_t item_size) {
 	return pthread_queue_create(length, item_size);
@@ -36,11 +29,11 @@ void csp_queue_remove(csp_queue_handle_t queue) {
 	return pthread_queue_delete(queue);
 }
 
-int csp_queue_enqueue(csp_queue_handle_t handle, void *value, uint32_t timeout) {
+int csp_queue_enqueue(csp_queue_handle_t handle, const void *value, uint32_t timeout) {
 	return pthread_queue_enqueue(handle, value, timeout);
 }
 
-int csp_queue_enqueue_isr(csp_queue_handle_t handle, void * value, CSP_BASE_TYPE * task_woken) {
+int csp_queue_enqueue_isr(csp_queue_handle_t handle, const void * value, CSP_BASE_TYPE * task_woken) {
 	if (task_woken != NULL)
 		*task_woken = 0;
 	return csp_queue_enqueue(handle, value, 0);

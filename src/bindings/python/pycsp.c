@@ -5,6 +5,7 @@
 #include <csp/csp_iflist.h>
 #include <csp/csp_buffer.h>
 #include <csp/csp_cmp.h>
+#include <csp/crypto/csp_xtea.h>
 #include <csp/interfaces/csp_if_zmqhub.h>
 #include <csp/interfaces/csp_if_kiss.h>
 #include <csp/drivers/usart.h>
@@ -945,7 +946,6 @@ PyMODINIT_FUNC PyInit_libcsp_py3(void) {
         PyModule_AddIntConstant(m, "CSP_BUF_FREE", CSP_BUF_FREE);
         PyModule_AddIntConstant(m, "CSP_UPTIME", CSP_UPTIME);
         PyModule_AddIntConstant(m, "CSP_ANY", CSP_ANY);
-        PyModule_AddIntConstant(m, "CSP_PROMISC", CSP_PROMISC);
 
         /* PRIORITIES */
         PyModule_AddIntConstant(m, "CSP_PRIO_CRITICAL", CSP_PRIO_CRITICAL);

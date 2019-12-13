@@ -59,7 +59,7 @@ CSP_DEFINE_TASK(task_server) {
 			switch (csp_conn_dport(conn)) {
 			case MY_PORT:
 				/* Process packet here */
-				printf("Packet received on MY_PORT: %s\r\n", (char *) packet->data);
+				csp_log_protocol("Packet received on MY_PORT: %s", (char *) packet->data);
 				csp_buffer_free(packet);
 				break;
 
@@ -93,7 +93,7 @@ CSP_DEFINE_TASK(task_client) {
 		csp_sleep_ms(1000);
 
 		int result = csp_ping(MY_ADDRESS, 100, 100, CSP_O_NONE);
-		printf("Ping result %d [ms]\r\n", result);
+		csp_log_protocol("Ping result %d [ms]", result);
 
 		csp_sleep_ms(1000);
 
@@ -105,7 +105,7 @@ CSP_DEFINE_TASK(task_client) {
 		packet = csp_buffer_get(100);
 		if (packet == NULL) {
 			/* Could not get buffer element */
-			printf("Failed to get buffer element\n");
+			csp_log_error("Failed to get buffer element");
 			return CSP_TASK_RETURN;
 		}
 
@@ -113,7 +113,7 @@ CSP_DEFINE_TASK(task_client) {
 		conn = csp_connect(CSP_PRIO_NORM, MY_ADDRESS, MY_PORT, 1000, CSP_O_NONE);
 		if (conn == NULL) {
 			/* Connect failed */
-			printf("Connection failed\n");
+			csp_log_error("Connection failed");
 			/* Remember to free packet buffer */
 			csp_buffer_free(packet);
 			return CSP_TASK_RETURN;
@@ -129,7 +129,7 @@ CSP_DEFINE_TASK(task_client) {
 		/* Send packet */
 		if (!csp_send(conn, packet, 1000)) {
 			/* Send failed */
-			printf("Send failed\n");
+			csp_log_error("Send failed");
 			csp_buffer_free(packet);
 		}
 
@@ -149,8 +149,11 @@ int main(int argc, char * argv[]) {
 	 * so only the loopback interface is registered.
 	 */
 
+	/* Set default logging */
+	csp_debug_set_level(CSP_INFO, true);
+
 	/* Init buffer system with 10 packets of maximum 300 bytes each */
-	printf("Initialising CSP\r\n");
+	csp_log_info("Initialising CSP");
 	csp_buffer_init(5, 300);
 
 	/* Init CSP with address MY_ADDRESS */
@@ -164,9 +167,11 @@ int main(int argc, char * argv[]) {
 
 	/* Enable debug output from CSP */
 	if ((argc > 1) && (strcmp(argv[1], "-v") == 0)) {
-		printf("Debug enabed\r\n");
-		csp_debug_toggle_level(3);
-		csp_debug_toggle_level(4);
+		printf("Set logging\r\n");
+                csp_debug_set_level(CSP_BUFFER, true);
+                csp_debug_set_level(CSP_PACKET, true);
+                csp_debug_set_level(CSP_PROTOCOL, true);
+                csp_debug_set_level(CSP_LOCK, true);
 
 		printf("Conn table\r\n");
 		csp_conn_print_table();
@@ -176,7 +181,6 @@ int main(int argc, char * argv[]) {
 
 		printf("Interfaces\r\n");
 		csp_route_print_interfaces();
-
 	}
 
 	/**
@@ -184,14 +188,14 @@ int main(int argc, char * argv[]) {
 	 */
 
 	/* Server */
-	printf("Starting Server task\r\n");
+	csp_log_info("Starting Server task");
 	csp_thread_handle_t handle_server;
 	csp_thread_create(task_server, "SERVER", 1000, NULL, 0, &handle_server);
 
 	/* Client */
-	printf("Starting Client task\r\n");
+	csp_log_info("Starting Client task");
 	csp_thread_handle_t handle_client;
-	csp_thread_create(task_client, "SERVER", 1000, NULL, 0, &handle_client);
+	csp_thread_create(task_client, "CLIENTR", 1000, NULL, 0, &handle_client);
 
 	/* Wait for execution to end (ctrl+c) */
 	while(1) {

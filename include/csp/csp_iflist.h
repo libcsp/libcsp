@@ -22,21 +22,55 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #define CSP_IFLIST_H_
 
 /**
- * Add interface to list
- * @param ifc Pointer to interface to add
+   @file
+
+   Interface list.
+
+   Linked-list of interfaces in the system.
+
+   This API is not thread-safe.
  */
-void csp_iflist_add(csp_iface_t *ifc);
+
+#include <csp/csp_interface.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
- * Lookup interface by name
- * @param name String with interface name
- * @return Pointer to interface or NULL if not found
+   Add interface to the list.
+
+   @param[in] iface interface. The interface must remain valid as long as the application is running.
+   @return #CSP_ERR_NONE on success, otherwise an error code.
+*/
+int csp_iflist_add(csp_iface_t * iface);
+
+/**
+   Get interface by name.
+
+   @param[in] name interface name.
+   @return Interface or NULL if not found.
  */
 csp_iface_t * csp_iflist_get_by_name(const char *name);
 
 /**
- * Print list of interfaces to stdout
+   Print list of interfaces to stdout.
  */
 void csp_iflist_print(void);
 
-#endif /* CSP_IFLIST_H_ */
+/**
+   Return list of interfaces.
+
+   @return First interface or NULL, if no interfaces added.
+*/
+csp_iface_t * csp_iflist_get(void);
+
+/**
+   Convert bytes to readable string.
+*/
+int csp_bytesize(char *buffer, int buffer_len, unsigned long int bytes);
+    
+#ifdef __cplusplus
+}
+#endif
+#endif

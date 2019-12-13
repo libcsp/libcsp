@@ -18,16 +18,8 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/* CSP includes */
-#include <csp/csp.h>
-#include <csp/csp_platform.h>
-#include <csp/csp_interface.h>
 #include <csp/interfaces/csp_if_lo.h>
 
-#include <csp/arch/csp_semaphore.h>
-#include <csp/arch/csp_queue.h>
-
-#include "../csp_route.h"
 #include "../csp_init.h"
 
 /**
@@ -57,6 +49,6 @@ static int csp_lo_tx(csp_iface_t * interface, csp_packet_t * packet, uint32_t ti
 
 /* Interface definition */
 csp_iface_t csp_if_lo = {
-	.name = "LOOP",
+	.name = CSP_IF_LOOPBACK_NAME,
 	.nexthop = csp_lo_tx,
 };

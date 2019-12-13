@@ -21,13 +21,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef _CSP_IO_H_
 #define _CSP_IO_H_
 
+#include <csp/csp.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include <stdint.h>
-
-#include <csp/csp.h>
 
 /**
  * Function to transmit a frame without an existing connection structure.
@@ -41,7 +39,6 @@ extern "C" {
 int csp_send_direct(csp_id_t idout, csp_packet_t * packet, csp_iface_t * ifout, uint32_t timeout);
 
 #ifdef __cplusplus
-} /* extern "C" */
+}
 #endif
-
-#endif // _CSP_IO_H_
+#endif

@@ -18,16 +18,20 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <stdio.h>
-#include <string.h>
-#include <csp/csp.h>
+#include "csp_rtable_internal.h"
+
 #include <alloca.h>
+#include <stdio.h>
+
+#include <csp/csp.h>
+#include <csp/csp_iflist.h>
 #include <csp/arch/csp_malloc.h>
 #include <csp/interfaces/csp_if_lo.h>
+#include <csp/csp_buffer.h>
 
 #include "../csp_init.h"
 
-/* Local typedef for routing table */
+/* Definition of routing table */
 typedef struct __attribute__((__packed__)) csp_rtable_s {
 	uint8_t address;
 	uint8_t netmask;
@@ -36,7 +40,7 @@ typedef struct __attribute__((__packed__)) csp_rtable_s {
 	struct csp_rtable_s * next;
 } csp_rtable_t;
 
-/* Routing entries are stored in a linked list*/
+/* Routing table (linked list) */
 static csp_rtable_t * rtable = NULL;
 
 static csp_rtable_t * csp_rtable_find(uint8_t addr, uint8_t netmask, uint8_t exact) {

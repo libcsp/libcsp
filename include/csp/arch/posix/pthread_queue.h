@@ -29,15 +29,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
    Inspired by c-pthread-queue by Matthew Dickinson: http://code.google.com/p/c-pthread-queue/
 */
 
+#include <pthread.h>
+
+#include <csp/arch/csp_queue.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include <stdlib.h>
-#include <stdint.h>
-#include <sys/time.h>
-
-#include <csp/arch/csp_queue.h>
 
 /**
    Queue error codes.
@@ -98,7 +96,7 @@ void pthread_queue_delete(pthread_queue_t * q);
 /**
    Enqueue/insert element.
 */
-int pthread_queue_enqueue(pthread_queue_t * queue, void * value, uint32_t timeout);
+int pthread_queue_enqueue(pthread_queue_t * queue, const void * value, uint32_t timeout);
 
 /**
    Dequeue/extract element.
@@ -111,8 +109,6 @@ int pthread_queue_dequeue(pthread_queue_t * queue, void * buf, uint32_t timeout)
 int pthread_queue_items(pthread_queue_t * queue);
 
 #ifdef __cplusplus
-} /* extern "C" */
+}
 #endif
-
-#endif // _PTHREAD_QUEUE_H_
-
+#endif

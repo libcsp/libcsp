@@ -21,15 +21,26 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef _CSP_SYSTEM_H_
 #define _CSP_SYSTEM_H_
 
+/**
+   @file
+
+   System interface.
+*/
+
+#include <csp/csp_platform.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include <stdint.h>
-
+/** Color mask */
 #define COLOR_MASK_COLOR 	0x0F
+/** Color modifier mask */
 #define COLOR_MASK_MODIFIER	0xF0
 
+/**
+   Color and color modifiers.
+*/
 typedef enum {
 	/* Colors */
 	COLOR_RESET		= 0xF0,
@@ -50,25 +61,47 @@ typedef enum {
 } csp_color_t;
 
 /**
- * Writes out a task list into a pre-allocate buffer,
- * use csp_sys_tasklist_size to get sizeof buffer to allocate
- * @param out pointer to output buffer
- * @return
+   Get task list.
+   Write task list into a pre-allocate buffer. The buffer must be at least the size returned by csp_sys_tasklist_size().
+   @param[out] out pre-allocate buffer for returning task.
+   @return #CSP_ERR_NONE on success.
  */
 int csp_sys_tasklist(char * out);
 
 /**
- * @return Size of tasklist buffer to allocate for the csp_sys_tasklist call
+   Get size of task buffer.
+   @return Size of task list buffer to allocate for the csp_sys_tasklist().
  */
 int csp_sys_tasklist_size(void);
 
+/**
+   Free system memory.
+
+   @return Free system memory (bytes)
+*/
 uint32_t csp_sys_memfree(void);
+
+/**
+   Reboot system.
+
+   @return #CSP_ERR_NONE on success.
+*/
 int csp_sys_reboot(void);
+
+/**
+   Shutdown system.
+
+   @return #CSP_ERR_NONE on success.
+*/
 int csp_sys_shutdown(void);
+
+/**
+   Set color on stdout.
+   @param[in] color color.
+*/
 void csp_sys_set_color(csp_color_t color);
 
 #ifdef __cplusplus
-} /* extern "C" */
+}
 #endif
-
-#endif // _CSP_SYSTEM_H_
+#endif

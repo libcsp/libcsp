@@ -18,22 +18,8 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <semaphore.h>
-#include <pthread.h>
-#include <sys/time.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <errno.h>
-#include <string.h>
-#include <stdint.h>
-#include <inttypes.h>
-
-/* CSP includes */
-#include <csp/csp.h>
-
 #include <csp/arch/csp_semaphore.h>
+#include <csp/csp_debug.h>
 
 int csp_mutex_create(csp_mutex_t * mutex) {
 	csp_log_lock("Mutex init: %p", mutex);
@@ -60,7 +46,7 @@ int csp_mutex_lock(csp_mutex_t * mutex, uint32_t timeout) {
 
 	csp_log_lock("Wait: %p timeout %"PRIu32, mutex, timeout);
 
-	if (timeout == CSP_INFINITY) {
+	if (timeout == CSP_MAX_TIMEOUT) {
 		ret = pthread_mutex_lock(mutex);
 	} else {
 		if (clock_gettime(CLOCK_REALTIME, &ts))
@@ -117,7 +103,7 @@ int csp_bin_sem_wait(csp_bin_sem_handle_t * sem, uint32_t timeout) {
 
 	csp_log_lock("Wait: %p timeout %"PRIu32, sem, timeout);
 
-	if (timeout == CSP_INFINITY) {
+	if (timeout == CSP_MAX_TIMEOUT) {
 		ret = sem_wait(sem);
 	} else {
 		if (clock_gettime(CLOCK_REALTIME, &ts))

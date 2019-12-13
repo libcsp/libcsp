@@ -18,14 +18,11 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <pthread.h>
+#include <csp/arch/csp_time.h>
+
 #include <time.h>
 #include <sys/time.h>
-
-/* CSP includes */
-#include <csp/csp.h>
-
-#include <csp/arch/csp_time.h>
+#include <limits.h>
 
 uint32_t csp_get_ms(void) {
 	struct timespec ts;

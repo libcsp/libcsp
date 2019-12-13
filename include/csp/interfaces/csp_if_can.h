@@ -67,7 +67,6 @@ int csp_can_tx(csp_iface_t *interface, csp_packet_t *packet, uint32_t timeout);
 int csp_can_tx_frame(csp_iface_t *interface, uint32_t id, const uint8_t * data, uint8_t dlc);
 
 #ifdef __cplusplus
-} /* extern "C" */
+}
 #endif
-
-#endif /* _CSP_IF_CAN_H_ */
+#endif

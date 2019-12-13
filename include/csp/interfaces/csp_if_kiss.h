@@ -104,7 +104,6 @@ typedef struct csp_kiss_handle_s {
 void csp_kiss_init(csp_iface_t * csp_iface, csp_kiss_handle_t * csp_kiss_handle, csp_kiss_putc_f kiss_putc_f, csp_kiss_discard_f kiss_discard_f, const char * name);
 
 #ifdef __cplusplus
-} /* extern "C" */
+}
 #endif
-
-#endif /* _CSP_IF_KISS_H_ */
+#endif

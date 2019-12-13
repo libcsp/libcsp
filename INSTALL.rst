@@ -14,7 +14,7 @@ the compiled libcsp.a and header files to the install directory, issue:
    ./waf configure --toolchain=avr32- --with-os=freertos --prefix=install
 
 When compiling for FreeRTOS, the path to the FreeRTOS header files must be
-specified with `--with-freertos=PATH.`
+specified with `--includes=PATH`.
 
 A number of optional features can be enabled by from the configure script.
 Support for XTEA encryption can e.g. be enabled with `--enable-xtea`. Run 

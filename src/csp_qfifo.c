@@ -18,11 +18,11 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <csp/csp.h>
-#include <csp/csp_interface.h>
-#include <csp/arch/csp_queue.h>
-#include "csp_init.h"
 #include "csp_qfifo.h"
+
+#include <csp/arch/csp_queue.h>
+
+#include "csp_init.h"
 
 static csp_queue_handle_t qfifo[CSP_ROUTE_FIFOS];
 #ifdef CSP_USE_QOS
@@ -88,10 +88,16 @@ void csp_qfifo_write(csp_packet_t * packet, csp_iface_t * interface, CSP_BASE_TY
 	int result;
 
 	if (packet == NULL) {
+		if (pxTaskWoken == NULL) { // Only do logging in non-ISR context
 		csp_log_warn("csp_new packet called with NULL packet");
+		}
 		return;
-	} else if (interface == NULL) {
+	}
+
+	if (interface == NULL) {
+		if (pxTaskWoken == NULL) { // Only do logging in non-ISR context
 		csp_log_warn("csp_new packet called with NULL interface");
+		}
 		if (pxTaskWoken == NULL)
 			csp_buffer_free(packet);
 		else
@@ -126,7 +132,9 @@ void csp_qfifo_write(csp_packet_t * packet, csp_iface_t * interface, CSP_BASE_TY
 #endif
 
 	if (result != CSP_QUEUE_OK) {
+		if (pxTaskWoken == NULL) { // Only do logging in non-ISR context
 		csp_log_warn("ERROR: Routing input FIFO is FULL. Dropping packet.");
+		}
 		interface->drop++;
 		if (pxTaskWoken == NULL)
 			csp_buffer_free(packet);
@@ -137,8 +145,6 @@ void csp_qfifo_write(csp_packet_t * packet, csp_iface_t * interface, CSP_BASE_TY
 }
 
 void csp_qfifo_wake_up(void) {
-	csp_qfifo_t queue_element;
-	queue_element.interface = NULL;
-	queue_element.packet = NULL;
+	const csp_qfifo_t queue_element = {.interface = NULL, .packet = NULL};
 	csp_queue_enqueue(qfifo[0], &queue_element, 0);
 }

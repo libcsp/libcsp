@@ -18,14 +18,9 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <stdint.h>
-#include <string.h>
-#include <inttypes.h>
-
-#include <csp/csp.h>
-#include <csp/csp_endian.h>
-
 #include <csp/csp_crc32.h>
+
+#include <csp/csp_endian.h>
 
 #ifdef CSP_USE_CRC32
 
@@ -96,6 +91,7 @@ int csp_crc32_append(csp_packet_t * packet, bool include_header) {
 	} else {
 		crc = csp_crc32_memory(packet->data, packet->length);
 	}
+	/* Convert to network byte order */
 	crc = csp_hton32(crc);
 
 	/* Copy checksum to packet */

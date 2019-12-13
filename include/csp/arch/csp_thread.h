@@ -21,12 +21,17 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef _CSP_THREAD_H_
 #define _CSP_THREAD_H_
 
+/**
+   @file
+
+   Thread (task) interface.
+*/
+
+#include <csp/csp_platform.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include <stdint.h>
-#include <csp/csp.h>
 
 /* POSIX interface */
 #if defined(CSP_POSIX) || defined(CSP_MACOSX)
@@ -88,13 +93,23 @@ typedef void csp_thread_return_t;
 #endif // CSP_FREERTOS
 
 #ifndef CSP_WINDOWS
-int csp_thread_create(csp_thread_return_t (* routine)(void *), const char * const thread_name, unsigned short stack_depth, void * parameters, unsigned int priority, csp_thread_handle_t * handle);
+/**
+   Create thread/task.
+
+   @param[in] routine thread function
+   @param[in] thread_name name of thread (not supported on all platforms).
+   @param[in] stack_depth stack size
+   @param[in] parameter parameter for thread function.
+   @param[in] priority thread priority, platform specific - not supported on all platforms.
+   @param[out] handle created thread.
+   @return #CSP_ERR_NONE on success, otherwise an error code.
+*/
+int csp_thread_create(csp_thread_return_t (* routine)(void *), const char * const thread_name, unsigned short stack_depth, void * parameter, unsigned int priority, csp_thread_handle_t * handle);
 #else
-int csp_thread_create(csp_thread_return_t (* routine)(void *)__attribute__((stdcall)), const char * const thread_name, unsigned short stack_depth, void * parameters, unsigned int priority, csp_thread_handle_t * handle);
+int csp_thread_create(csp_thread_return_t (* routine)(void *)__attribute__((stdcall)), const char * const thread_name, unsigned short stack_depth, void * parameter, unsigned int priority, csp_thread_handle_t * handle);
 #endif
 
 #ifdef __cplusplus
-} /* extern "C" */
+}
 #endif
-
-#endif // _CSP_THREAD_H_
+#endif

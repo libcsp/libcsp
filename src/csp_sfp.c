@@ -18,11 +18,13 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <stdint.h>
-#include <stdlib.h>
-#include <csp/csp.h>
+#include <csp/csp_sfp.h>
+
+#include <csp/csp_buffer.h>
+#include <csp/csp_debug.h>
 #include <csp/csp_endian.h>
 #include <csp/arch/csp_malloc.h>
+
 #include "csp_conn.h"
 
 typedef struct __attribute__((__packed__)) {
@@ -35,10 +37,10 @@ typedef struct __attribute__((__packed__)) {
  * The following functions are helper functions that handles the extra SFP
  * information that needs to be appended to all data packets.
  */
-static sfp_header_t * csp_sfp_header_add(csp_packet_t * packet) {
+static inline sfp_header_t * csp_sfp_header_add(csp_packet_t * packet) {
+
 	sfp_header_t * header = (sfp_header_t *) &packet->data[packet->length];
-	packet->length += sizeof(sfp_header_t);
-	memset(header, 0, sizeof(sfp_header_t));
+	packet->length += sizeof(*header);
 	return header;
 }
 
@@ -48,9 +50,12 @@ static sfp_header_t * csp_sfp_header_remove(csp_packet_t * packet) {
 	return header;
 }
 
-int csp_sfp_send_own_memcpy(csp_conn_t * conn, const void * data, int totalsize, int mtu, uint32_t timeout, void * (*memcpyfcn)(void *, const void *, size_t)) {
+int csp_sfp_send_own_memcpy(csp_conn_t * conn, const void * data, unsigned int totalsize, unsigned int mtu, uint32_t timeout, csp_memcpy_fnc_t memcpyfcn) {
+	if (mtu == 0) {
+		return CSP_ERR_INVAL;
+	}
 
-	int count = 0;
+	unsigned int count = 0;
 	while(count < totalsize) {
 
 		/* Allocate packet */
@@ -59,12 +64,12 @@ int csp_sfp_send_own_memcpy(csp_conn_t * conn, const void * data, int totalsize,
 			return -1;
 
 		/* Calculate sending size */
-		int size = totalsize - count;
+		unsigned int size = totalsize - count;
 		if (size > mtu)
 			size = mtu;
 
 		/* Print debug */
-		csp_debug(CSP_PROTOCOL, "Sending SFP at %x size %u", data + count, size);
+		csp_debug(CSP_PROTOCOL, "Sending SFP at %p size %u", ((uint8_t*)data) + count, size);
 
 		/* Copy data */
 		(*memcpyfcn)(packet->data, data + count, size);
@@ -89,12 +94,8 @@ int csp_sfp_send_own_memcpy(csp_conn_t * conn, const void * data, int totalsize,
 
 	}
 
-	return 0;
+	return CSP_ERR_NONE;
 
-}
-
-int csp_sfp_send(csp_conn_t * conn, const void * data, int totalsize, int mtu, uint32_t timeout) {
-	return csp_sfp_send_own_memcpy(conn, data, totalsize, mtu, timeout, &memcpy);
 }
 
 int csp_sfp_recv_fp(csp_conn_t * conn, void ** dataout, int * datasize, uint32_t timeout, csp_packet_t * first_packet) {
@@ -163,8 +164,3 @@ int csp_sfp_recv_fp(csp_conn_t * conn, void ** dataout, int * datasize, uint32_t
 	return -1;
 
 }
-
-int csp_sfp_recv(csp_conn_t * conn, void ** dataout, int * datasize, uint32_t timeout) {
-	return csp_sfp_recv_fp(conn, dataout, datasize, timeout, NULL);
-}
-

@@ -18,9 +18,13 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+#include "csp_rtable_internal.h"
+
+#include <string.h>
 #include <stdio.h>
-#include <csp/csp.h>
-#include <stdio.h>
+
+#include <csp/csp_iflist.h>
+#include <csp/csp_debug.h>
 
 /* Local typedef for routing table */
 typedef struct __attribute__((__packed__)) csp_rtable_s {

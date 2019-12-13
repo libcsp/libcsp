@@ -50,5 +50,5 @@ CSP provides a transport layer extension called RDP (reliable datagram protocol)
  * Windowing
  * Extended Acknowledgment
 
-For more information on this, please refer to RFC908.
+For more information on this, please refer to RFC908 and RFC1151.
 

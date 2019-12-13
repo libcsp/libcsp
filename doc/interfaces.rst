@@ -3,11 +3,10 @@ CSP Interfaces
 
 This is an example of how to implement a new layer-2 interface in CSP. The example is going to show how to create a `csp_if_fifo`, using a set of [named pipes](http://en.wikipedia.org/wiki/Named_pipe). The complete interface example code can be found in `examples/fifo.c`. For an example of a fragmenting interface, see the CAN interface in `src/interfaces/csp_if_can.c`.
 
-CSP interfaces are declared in a `csp_iface_t` structure, which sets the interface nexthop function and name. A maximum transmission unit can also be set, which forces CSP to drop outgoing packets above a certain size. The fifo interface is defined as:
+CSP interfaces are declared in a `csp_iface_t` structure, which sets the interface nexthop function and name. A maximum transmission unit (MTU) can also be set, which forces CSP to drop outgoing packets above a certain size. The fifo interface is defined as:
 
 .. code-block:: c
 
-   #include <csp/csp.h>
    #include <csp/csp_interface.h>
    
    csp_iface_t csp_if_fifo = {

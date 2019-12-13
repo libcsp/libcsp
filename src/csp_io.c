@@ -18,37 +18,30 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+#include "csp_io.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdint.h>
 
-/* CSP includes */
 #include <csp/csp.h>
-#include <csp/csp_error.h>
 #include <csp/csp_endian.h>
 #include <csp/csp_crc32.h>
 #include <csp/csp_rtable.h>
 #include <csp/interfaces/csp_if_lo.h>
-
 #include <csp/arch/csp_thread.h>
 #include <csp/arch/csp_queue.h>
 #include <csp/arch/csp_semaphore.h>
 #include <csp/arch/csp_time.h>
-#include <csp/arch/csp_malloc.h>
-
 #include <csp/crypto/csp_hmac.h>
 #include <csp/crypto/csp_xtea.h>
 
 #include "csp_init.h"
 #include "csp_port.h"
 #include "csp_conn.h"
-#include "csp_route.h"
 #include "csp_promisc.h"
 #include "csp_qfifo.h"
 #include "transport/csp_transport.h"
-
-#include "csp_io.h"
 
 #ifdef CSP_USE_PROMISC
 extern csp_queue_handle_t csp_promisc_queue;
@@ -133,27 +126,32 @@ csp_packet_t * csp_read(csp_conn_t * conn, uint32_t timeout) {
 
 	csp_packet_t * packet = NULL;
 
-	if (conn == NULL || conn->state != CONN_OPEN)
+	if ((conn == NULL) || (conn->state != CONN_OPEN)) {
 		return NULL;
+	}
 
 #ifdef CSP_USE_QOS
-	int prio, event;
-	if (csp_queue_dequeue(conn->rx_event, &event, timeout) != CSP_QUEUE_OK)
+	int event;
+	if (csp_queue_dequeue(conn->rx_event, &event, timeout) != CSP_QUEUE_OK) {
 		return NULL;
+	}
 
-	for (prio = 0; prio < CSP_RX_QUEUES; prio++)
-		if (csp_queue_dequeue(conn->rx_queue[prio], &packet, 0) == CSP_QUEUE_OK)
+	for (int prio = 0; prio < CSP_RX_QUEUES; prio++) {
+		if (csp_queue_dequeue(conn->rx_queue[prio], &packet, 0) == CSP_QUEUE_OK) {
 			break;
+		}
+	}
 #else
-	if (csp_queue_dequeue(conn->rx_queue[0], &packet, timeout) != CSP_QUEUE_OK)
+	if (csp_queue_dequeue(conn->rx_queue[0], &packet, timeout) != CSP_QUEUE_OK) {
 		return NULL;
+	}
 #endif
 
 #ifdef CSP_USE_RDP
 	/* Packet read could trigger ACK transmission */
-	if (conn->idin.flags & CSP_FRDP && conn->rdp.delayed_acks)
+	if ((conn->idin.flags & CSP_FRDP) && conn->rdp.delayed_acks) {
 	    csp_rdp_check_ack(conn);
-
+	}
 #endif
 
 	return packet;
@@ -192,7 +190,7 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, csp_iface_t * ifout, 
 		if (idout.flags & CSP_FHMAC) {
 #ifdef CSP_USE_HMAC
 			/* Calculate and add HMAC (does not include header for backwards compatability with csp1.x) */
-			if (csp_hmac_append(packet, false) != 0) {
+			if (csp_hmac_append(packet, false) != CSP_ERR_NONE) {
 				/* HMAC append failed */
 				csp_log_warn("HMAC append failed!");
 				goto tx_err;
@@ -207,7 +205,7 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, csp_iface_t * ifout, 
 		if (idout.flags & CSP_FCRC32) {
 #ifdef CSP_USE_CRC32
 			/* Calculate and add CRC32 (does not include header for backwards compatability with csp1.x) */
-			if (csp_crc32_append(packet, false) != 0) {
+			if (csp_crc32_append(packet, false) != CSP_ERR_NONE) {
 				/* CRC32 append failed */
 				csp_log_warn("CRC32 append failed!");
 				goto tx_err;
@@ -412,7 +410,7 @@ int csp_sendto(uint8_t prio, uint8_t dest, uint8_t dport, uint8_t src_port, uint
 
 }
 
-int csp_sendto_reply(csp_packet_t * request_packet, csp_packet_t * reply_packet, uint32_t opts, uint32_t timeout) {
+int csp_sendto_reply(const csp_packet_t * request_packet, csp_packet_t * reply_packet, uint32_t opts, uint32_t timeout) {
 	if (request_packet == NULL)
 		return CSP_ERR_INVAL;
 

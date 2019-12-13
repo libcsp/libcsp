@@ -18,20 +18,18 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+#include <csp/arch/csp_system.h>
+
 #include <stdio.h>
-#include <stdint.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 #include <errno.h>
 #include <sys/sysinfo.h>
 #include <sys/reboot.h>
 #include <linux/reboot.h>
 
-#include <csp/csp.h>
-#include <csp/csp_error.h>
-
-#include <csp/arch/csp_system.h>
+#include <csp/csp_debug.h>
 
 int csp_sys_tasklist(char * out) {
 	strcpy(out, "Tasklist not available on POSIX");

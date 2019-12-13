@@ -145,7 +145,7 @@ int csp_zmqhub_init_w_endpoints(char _addr, char * publisher_endpoint,
 	static csp_thread_handle_t handle_subscriber;
 	int res = csp_thread_create(csp_zmqhub_task, "ZMQ", 10000, NULL, 0, &handle_subscriber);
 	if (res != 0) {
-            csp_log_error("%s: csp_thread_create() failed, res: %d, errno: %d", res, errno);
+            csp_log_error("csp_thread_create() failed, res: %d, errno: %d", res, errno);
             return CSP_ERR_DRIVER;
 	}
 

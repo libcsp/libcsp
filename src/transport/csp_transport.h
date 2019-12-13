@@ -21,6 +21,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef _CSP_TRANSPORT_H_
 #define _CSP_TRANSPORT_H_
 
+#include <csp/csp_types.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -40,7 +42,6 @@ void csp_rdp_check_timeouts(csp_conn_t * conn);
 void csp_rdp_flush_all(csp_conn_t * conn);
 
 #ifdef __cplusplus
-} /* extern "C" */
+}
 #endif
-
-#endif /* _CSP_TRANSPORT_H_ */
+#endif

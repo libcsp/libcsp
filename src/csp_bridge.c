@@ -19,9 +19,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 #include <csp/csp.h>
+
 #include <csp/csp_interface.h>
+#include <csp/interfaces/csp_if_zmqhub.h>
 #include <csp/arch/csp_thread.h>
-#include "csp_route.h"
 #include "csp_qfifo.h"
 #include "csp_io.h"
 #include "csp_promisc.h"

@@ -1,3 +1,23 @@
+libcsp 1.6, DD-MM-YYYY
+----------------------
+- improvement: Logging, check level before doing the actual call. Added support for external log macros.
+- other: Removed unused defines/functions: csp_conn_lock, csp_conn_unlock, CSP_PROMISC
+- alignment: Replaced CSP_MAX_DELAY and CSP_INFINITY with CSP_MAX_TIMEOUT (same value).
+- api: Added csp_calloc(), csp/arch/csp_malloc.h
+- api: Added csp_buffer_data_size(), csp/csp_buffer.h
+- Updated API/header documentation (doxygen).
+- api/code: Restructured header includes.
+- api: Added const for read-only parameters.
+- api: Changed a number of uint8_t pointers to void, to avoid casts.
+
+libcsp 1.5-internal, 21-08-2018
+-------------------------------
+- Internal release.
+- New python bindings with examples and python3 support.
+- Introduced csp_conf_t, which replaces a number of compile options. This has broken csp_init().
+- Refactored CAN interface.
+- Bug fixes.
+
 libcsp 1.4, 07-05-2015
 ----------------------
 - new: General rtable interface with support for STATIC or CIDR format

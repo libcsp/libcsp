@@ -18,16 +18,10 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <FreeRTOS.h>
-#include <task.h>
-
-/* CSP includes */
-#include <csp/csp.h>
-
 #include <csp/arch/csp_thread.h>
 
 int csp_thread_create(csp_thread_return_t (* routine)(void *), const char * const thread_name, unsigned short stack_depth, void * parameters, unsigned int priority, csp_thread_handle_t * handle) {
-#if (FREERTOS_VERSION >= 8)
+#if (tskKERNEL_VERSION_MAJOR >= 8)
 	portBASE_TYPE ret = xTaskCreate(routine, thread_name, stack_depth, parameters, priority, handle);
 #else
 	portBASE_TYPE ret = xTaskCreate(routine, (signed char *) thread_name, stack_depth, parameters, priority, handle);

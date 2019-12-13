@@ -46,19 +46,15 @@ uint32_t csp_sys_memfree(void) {
 }
 
 int csp_sys_reboot(void) {
-	/* TODO: Fix reboot on Windows */
-	csp_log_error("Failed to reboot");
-
-	return CSP_ERR_INVAL;
+	csp_log_error("%s: not supported", __FUNCTION__);
+	return CSP_ERR_NOTSUP
 }
 
 int csp_sys_shutdown(void) {
-	/* TODO: Fix shutdown on Windows */
-	csp_log_error("Failed to shutdown");
-
-	return CSP_ERR_INVAL;
+	csp_log_error("%s: not supported", __FUNCTION__);
+	return CSP_ERR_NOTSUP
 }
 
 void csp_sys_set_color(csp_color_t color) {
-	/* TODO: Add Windows color output here */
+	// not implemented
 }
