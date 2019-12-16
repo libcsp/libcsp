@@ -205,7 +205,7 @@ typedef union {
    Padding size in #csp_packet_t.
    10 bytes ensure correct aligned \a id and \a data in #csp_packet_t.
 */
-#define CSP_PADDING_BYTES		8
+#define CSP_PADDING_BYTES		10
 
 /**
    CSP Packet.
@@ -215,7 +215,7 @@ typedef union {
    @note In most cases a CSP packet cannot be reused in case of send failure, because the lower layers may add additional data causing 
    increased length (e.g. CRC32), convert the CSP id/ to different endian (e.g. I2C), etc.
  */
-typedef struct __attribute__((__packed__)) {
+typedef struct {
 	/** Padding. These bytes are used by some interface or protocols to store local data. */
 	uint8_t padding[CSP_PADDING_BYTES];
         /** Data length. Must be just before CSP ID. */

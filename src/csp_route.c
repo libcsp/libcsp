@@ -200,16 +200,16 @@ int csp_route_work(uint32_t timeout) {
 	if ((packet->id.dst != csp_conf.address) && (packet->id.dst != CSP_BROADCAST_ADDR)) {
 
 		/* Find the destination interface */
-		csp_iface_t * dstif = csp_rtable_find_iface(packet->id.dst);
+		const csp_rtable_route_t * ifroute = csp_rtable_find_route(packet->id.dst);
 
 		/* If the message resolves to the input interface, don't loop it back out */
-		if ((dstif == NULL) || ((dstif == input.interface) && (input.interface->split_horizon_off == 0))) {
+		if ((ifroute == NULL) || ((ifroute->interface == input.interface) && (input.interface->split_horizon_off == 0))) {
 			csp_buffer_free(packet);
 			return CSP_ERR_NONE;
 		}
 
 		/* Otherwise, actually send the message */
-		if (csp_send_direct(packet->id, packet, dstif, 0) != CSP_ERR_NONE) {
+		if (csp_send_direct(packet->id, packet, ifroute, 0) != CSP_ERR_NONE) {
 			csp_log_warn("Router failed to send");
 			csp_buffer_free(packet);
 		}

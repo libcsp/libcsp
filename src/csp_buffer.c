@@ -44,11 +44,12 @@ static size_t buffer_size;
 // Data size of csp_packet_t
 static size_t data_size;
 
+// Ensure the csp_packet is correctly aligned (as it is not packed)
 CSP_STATIC_ASSERT(CSP_HEADER_LENGTH == sizeof(csp_id_t), csp_header_length);
-CSP_STATIC_ASSERT(sizeof(csp_packet_t) == 14, csp_packet);
-CSP_STATIC_ASSERT(offsetof(csp_packet_t, length) == 8, length_field_misaligned);
-CSP_STATIC_ASSERT(offsetof(csp_packet_t, id) == 10, csp_id_field_misaligned);
-CSP_STATIC_ASSERT(offsetof(csp_packet_t, data) == 14, data_field_misaligned);
+CSP_STATIC_ASSERT(sizeof(csp_packet_t) == 16, csp_packet);
+CSP_STATIC_ASSERT(offsetof(csp_packet_t, length) == 10, length_field_misaligned);
+CSP_STATIC_ASSERT(offsetof(csp_packet_t, id) == 12, csp_id_field_misaligned);
+CSP_STATIC_ASSERT(offsetof(csp_packet_t, data) == 16, data_field_misaligned);
 
 int csp_buffer_init(size_t buf_count, size_t _data_size) {
 

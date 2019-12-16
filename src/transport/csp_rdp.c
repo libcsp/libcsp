@@ -59,7 +59,7 @@ static uint32_t csp_rdp_ack_delay_count = 4 / 2;
 static CSP_BASE_TYPE pdTrue = 1;
 
 /* RDP header - on top of csp_packet_t */
-typedef struct __attribute__((__packed__)) {
+typedef struct {
 	uint32_t quarantine;	// EACK quarantine period (-> csp_packet_t.padding)
 	uint32_t timestamp;	// Time the message was sent (-> csp_packet_t.padding)
 	uint8_t padding[CSP_PADDING_BYTES - (2 * sizeof(uint32_t))];
@@ -196,8 +196,7 @@ static int csp_rdp_send_cmp(csp_conn_t * conn, csp_packet_t * packet, int flags,
                          packet->length, (unsigned int)(packet->length - sizeof(rdp_header_t)));
 
 	/* Send packet to IF */
-	csp_iface_t * ifout = csp_rtable_find_iface(idout.dst);
-	if (csp_send_direct(idout, packet, ifout, 0) != CSP_ERR_NONE) {
+	if (csp_send_direct(idout, packet, csp_rtable_find_route(idout.dst), 0) != CSP_ERR_NONE) {
 		csp_log_error("RDP %p: INTERFACE ERROR: not possible to send", conn);
 		csp_buffer_free(packet);
 		return CSP_ERR_BUSY;
@@ -543,8 +542,7 @@ void csp_rdp_check_timeouts(csp_conn_t * conn) {
 			/* Send copy to tx_queue */
 			packet->timestamp = csp_get_ms();
 			csp_packet_t * new_packet = csp_buffer_clone(packet);
-			csp_iface_t * ifout = csp_rtable_find_iface(conn->idout.dst);
-			if (csp_send_direct(conn->idout, new_packet, ifout, 0) != CSP_ERR_NONE) {
+			if (csp_send_direct(conn->idout, new_packet, csp_rtable_find_route(conn->idout.dst), 0) != CSP_ERR_NONE) {
 				csp_log_warn("RDP %p: Retransmission failed", conn);
 				csp_buffer_free(new_packet);
 			}
