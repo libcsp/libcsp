@@ -398,11 +398,29 @@ void csp_ps(uint8_t node, uint32_t timeout);
  * Request amount of free memory
  * @param node node id
  * @param timeout timeout in ms
+ * @param[out] size free memory.
+ * @return #CSP_ERR_NONE on success, otherwise an error code.
+ */
+int csp_get_memfree(uint8_t node, uint32_t timeout, uint32_t * size);
+
+/**
+ * Request amount of free memory
+ * @param node node id
+ * @param timeout timeout in ms
  */
 void csp_memfree(uint8_t node, uint32_t timeout);
 
 /**
- * Request number of free buffer elements
+ * Request number of free buffers on node.
+ * @param[in] node node id
+ * @param[in] timeout timeout in ms
+ * @param[out] size free buffers.
+ * @return #CSP_ERR_NONE on success, otherwise an error code.
+ */
+int csp_get_buf_free(uint8_t node, uint32_t timeout, uint32_t * size);
+
+/**
+ * Request number of free buffers on node and print to stdout.
  * @param node node id
  * @param timeout timeout in ms
  */
@@ -426,6 +444,15 @@ void csp_shutdown(uint8_t node);
  * @param timeout timeout in ms
  */
 void csp_uptime(uint8_t node, uint32_t timeout);
+
+/**
+ * Request subsystem uptime
+ * @param[in] node node id
+ * @param[in] timeout timeout in ms
+ * @param[out] uptime uptime in seconds.
+ * @return #CSP_ERR_NONE on success, otherwise an error code.
+ */
+int csp_get_uptime(uint8_t node, uint32_t timeout, uint32_t * uptime);
 
 /**
  * Set RDP options
