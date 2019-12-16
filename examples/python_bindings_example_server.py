@@ -70,4 +70,3 @@ if __name__ == "__main__":
             else:
                 csp.service_handler(conn, packet)
         csp.close(conn)
-

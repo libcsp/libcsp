@@ -39,4 +39,3 @@ if __name__ == "__main__":
         print ("csp_transaction failed")
     else:
         print ("got reply, data=" + ''.join('{:02x}'.format(x) for x in inbuf))
-
