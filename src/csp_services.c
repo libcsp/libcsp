@@ -152,8 +152,9 @@ void csp_ps(uint8_t node, uint32_t timeout) {
 			break;
 		}
 
-		/* We have a reply, add our own NULL char */
-		packet->data[packet->length] = 0;
+		/* We have a reply, ensure data is 0 (zero) termianted */
+		const unsigned int length = (packet->length < csp_buffer_data_size()) ? packet->length : (csp_buffer_data_size() - 1);
+		packet->data[length] = 0;
 		printf("%s", packet->data);
 
 		/* Each packet from csp_read must to be freed by user */
@@ -169,48 +170,74 @@ out:
 
 }
 
+int csp_get_memfree(uint8_t node, uint32_t timeout, uint32_t * size) {
+
+	int status = csp_transaction(CSP_PRIO_NORM, node, CSP_MEMFREE, timeout, NULL, 0, size, sizeof(*size));
+	if (status == sizeof(*size)) {
+		*size = csp_ntoh32(*size);
+		return CSP_ERR_NONE;
+	}
+	*size = 0;
+	return CSP_ERR_TIMEDOUT;
+
+}
+
 void csp_memfree(uint8_t node, uint32_t timeout) {
 
 	uint32_t memfree;
-
-	int status = csp_transaction(CSP_PRIO_NORM, node, CSP_MEMFREE, timeout, NULL, 0, &memfree, sizeof(memfree));
-	if (status == 0) {
+        int err = csp_get_memfree(node, timeout, &memfree);
+	if (err == CSP_ERR_NONE) {
+		printf("Free Memory at node %u is %"PRIu32" bytes\r\n", node, memfree);
+	} else {
 		printf("Network error\r\n");
-		return;
 	}
 
-	/* Convert from network to host order */
-	memfree = csp_ntoh32(memfree);
+}
 
-	printf("Free Memory at node %u is %"PRIu32" bytes\r\n", (unsigned int) node, memfree);
+int csp_get_buf_free(uint8_t node, uint32_t timeout, uint32_t * size) {
+
+	int status = csp_transaction(CSP_PRIO_NORM, node, CSP_BUF_FREE, timeout, NULL, 0, size, sizeof(*size));
+	if (status == sizeof(*size)) {
+		*size = csp_ntoh32(*size);
+		return CSP_ERR_NONE;
+	}
+	*size = 0;
+	return CSP_ERR_TIMEDOUT;
 
 }
 
 void csp_buf_free(uint8_t node, uint32_t timeout) {
 
-	uint32_t size = 0;
-
-	int status = csp_transaction(CSP_PRIO_NORM, node, CSP_BUF_FREE, timeout, NULL, 0, &size, sizeof(size));
-	if (status == 0) {
+	uint32_t size;
+	int err = csp_get_buf_free(node, timeout, &size);
+	if (err == CSP_ERR_NONE) {
+		printf("Free buffers at node %u is %"PRIu32"\r\n", node, size);
+	} else {
 		printf("Network error\r\n");
-		return;
 	}
-	size = csp_ntoh32(size);
-	printf("Free buffers at node %u is %"PRIu32"\r\n", (unsigned int) node, size);
 
+}
+
+int csp_get_uptime(uint8_t node, uint32_t timeout, uint32_t * uptime) {
+
+	int status = csp_transaction(CSP_PRIO_NORM, node, CSP_UPTIME, timeout, NULL, 0, uptime, sizeof(*uptime));
+	if (status == sizeof(*uptime)) {
+		*uptime = csp_ntoh32(*uptime);
+		return CSP_ERR_NONE;
+	}
+	*uptime = 0;
+	return CSP_ERR_TIMEDOUT;
 }
 
 void csp_uptime(uint8_t node, uint32_t timeout) {
 
-	uint32_t uptime = 0;
-
-	int status = csp_transaction(CSP_PRIO_NORM, node, CSP_UPTIME, timeout, NULL, 0, &uptime, sizeof(uptime));
-	if (status == 0) {
+	uint32_t uptime;
+	int err = csp_get_uptime(node, timeout, &uptime);
+	if (err == CSP_ERR_NONE) {
+		printf("Uptime of node %u is %"PRIu32" s\r\n", node, uptime);
+	} else {
 		printf("Network error\r\n");
-		return;
 	}
-	uptime = csp_ntoh32(uptime);
-	printf("Uptime of node %u is %"PRIu32" s\r\n", (unsigned int) node, uptime);
 
 }
 
