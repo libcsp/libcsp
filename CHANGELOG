@@ -1,6 +1,7 @@
 libcsp 1.6, DD-MM-YYYY
 ----------------------
 - refactored rtable CIDR/static impl., e.g. use same format for storing table (text). csp_rtable_route_t (new) holds route entry.
+- api: added csp_get_memfree()/csp_get_buf_free()/csp_get_uptime(), which returns an error code.
 - improvement: Logging, check level before doing the actual call. Added support for external log macros.
 - other: Removed unused defines/functions: csp_conn_lock, csp_conn_unlock, CSP_PROMISC
 - alignment: Replaced CSP_MAX_DELAY and CSP_INFINITY with CSP_MAX_TIMEOUT (same value).
