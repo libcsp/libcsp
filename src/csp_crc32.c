@@ -22,8 +22,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <csp/csp_endian.h>
 
-#ifdef CSP_USE_CRC32
-
 #ifdef __AVR__
 #include <avr/pgmspace.h>
 static const uint32_t crc_tab[256] PROGMEM = {
@@ -81,9 +79,9 @@ int csp_crc32_append(csp_packet_t * packet, bool include_header) {
 
 	uint32_t crc;
 
-	/* NULL pointer check */
-	if (packet == NULL)
-		return CSP_ERR_INVAL;
+	if ((packet->length + sizeof(crc)) > csp_buffer_data_size()) {
+		return CSP_ERR_NOMEM;
+	}
 
 	/* Calculate CRC32, convert to network byte order */
 	if (include_header) {
@@ -95,8 +93,8 @@ int csp_crc32_append(csp_packet_t * packet, bool include_header) {
 	crc = csp_hton32(crc);
 
 	/* Copy checksum to packet */
-	memcpy(&packet->data[packet->length], &crc, sizeof(uint32_t));
-	packet->length += sizeof(uint32_t);
+	memcpy(&packet->data[packet->length], &crc, sizeof(crc));
+	packet->length += sizeof(crc);
 
 	return CSP_ERR_NONE;
 
@@ -106,31 +104,27 @@ int csp_crc32_verify(csp_packet_t * packet, bool include_header) {
 
 	uint32_t crc;
 
-	/* NULL pointer check */
-	if (packet == NULL)
-		return CSP_ERR_INVAL;
-
-	if (packet->length < sizeof(uint32_t))
-		return CSP_ERR_INVAL;
+	if (packet->length < sizeof(crc)) {
+		return CSP_ERR_CRC32;
+	}
 
 	/* Calculate CRC32, convert to network byte order */
 	if (include_header) {
-		crc = csp_crc32_memory((uint8_t *) &packet->id, packet->length + sizeof(packet->id) - sizeof(uint32_t));
+		crc = csp_crc32_memory((uint8_t *) &packet->id, packet->length + sizeof(packet->id) - sizeof(crc));
 	} else {
-		crc = csp_crc32_memory(packet->data, packet->length - sizeof(uint32_t));
+		crc = csp_crc32_memory(packet->data, packet->length - sizeof(crc));
 	}
 	crc = csp_hton32(crc);
 
 	/* Compare calculated checksum with packet header */
-	if (memcmp(&packet->data[packet->length] - sizeof(uint32_t), &crc, sizeof(uint32_t)) != 0) {
+	if (memcmp(&packet->data[packet->length] - sizeof(crc), &crc, sizeof(crc)) != 0) {
 		/* CRC32 failed */
-		return CSP_ERR_INVAL;
-	} else {
-		/* Strip CRC32 */
-		packet->length -= sizeof(uint32_t);
-		return CSP_ERR_NONE;
+		return CSP_ERR_CRC32;
 	}
+
+		/* Strip CRC32 */
+	packet->length -= sizeof(crc);
+		return CSP_ERR_NONE;
 
 }
 
-#endif // CSP_USE_CRC32

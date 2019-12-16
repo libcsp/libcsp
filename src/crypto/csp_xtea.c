@@ -122,6 +122,31 @@ int csp_xtea_encrypt(void * plain, const uint32_t len, uint32_t iv[2]) {
 
 }
 
+int csp_xtea_encrypt_packet(csp_packet_t * packet) {
+
+	/* Create nonce */
+	const uint32_t nonce = (uint32_t)rand();
+	const uint32_t nonce_n = csp_hton32(nonce);
+
+	if ((packet->length + sizeof(nonce_n)) > csp_buffer_data_size()) {
+		return CSP_ERR_NOMEM;
+	}
+
+	/* Create initialization vector */
+	uint32_t iv[2] = {nonce, 1};
+
+	/* Encrypt data */
+	if (csp_xtea_encrypt(packet->data, packet->length, iv) != CSP_ERR_NONE) {
+		return CSP_ERR_XTEA;
+        }
+
+	memcpy(&packet->data[packet->length], &nonce_n, sizeof(nonce_n));
+	packet->length += sizeof(nonce_n);
+
+	return CSP_ERR_NONE;
+
+}
+
 int csp_xtea_decrypt(void * cipher, const uint32_t len, uint32_t iv[2]) {
 
 	/* Since we use counter mode, we can reuse the encryption function */
@@ -129,3 +154,28 @@ int csp_xtea_decrypt(void * cipher, const uint32_t len, uint32_t iv[2]) {
 
 }
 
+int csp_xtea_decrypt_packet(csp_packet_t * packet) {
+
+	/* Read nonce */
+	uint32_t nonce;
+
+	if (packet->length < sizeof(nonce)) {
+		return CSP_ERR_XTEA;
+	}
+
+        memcpy(&nonce, &packet->data[packet->length - sizeof(nonce)], sizeof(nonce));
+	nonce = csp_ntoh32(nonce);
+
+	/* Create initialization vector */
+	uint32_t iv[2] = {nonce, 1};
+
+	/* Decrypt data */
+	if (csp_xtea_decrypt(packet->data, packet->length, iv) != CSP_ERR_NONE) {
+		return CSP_ERR_XTEA;
+	}
+
+	packet->length -= sizeof(nonce);
+
+	return CSP_ERR_NONE;
+
+}

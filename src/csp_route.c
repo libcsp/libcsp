@@ -87,19 +87,9 @@ static int csp_route_security_check(uint32_t security_opts, csp_iface_t * interf
 #ifdef CSP_USE_XTEA
 	/* XTEA encrypted packet */
 	if (packet->id.flags & CSP_FXTEA) {
-		/* Read nonce */
-		uint32_t nonce;
-		memcpy(&nonce, &packet->data[packet->length - sizeof(nonce)], sizeof(nonce));
-		nonce = csp_ntoh32(nonce);
-		packet->length -= sizeof(nonce);
-
-		/* Create initialization vector */
-		uint32_t iv[2] = {nonce, 1};
-
 		/* Decrypt data */
-		if (csp_xtea_decrypt(packet->data, packet->length, iv) != 0) {
-			/* Decryption failed */
-			csp_log_error("Decryption failed! Discarding packet");
+		if (csp_xtea_decrypt_packet(packet) != CSP_ERR_NONE) {
+			csp_log_error("XTEA Decryption failed! Discarding packet");
 			interface->autherr++;
 			return CSP_ERR_XTEA;
 		}
@@ -113,8 +103,6 @@ static int csp_route_security_check(uint32_t security_opts, csp_iface_t * interf
 	/* CRC32 verified packet */
 	if (packet->id.flags & CSP_FCRC32) {
 #ifdef CSP_USE_CRC32
-		if (packet->length < 4)
-			csp_log_error("Too short packet for CRC32, %u", packet->length);
 		/* Verify CRC32 (does not include header for backwards compatability with csp1.x) */
 		if (csp_crc32_verify(packet, false) != CSP_ERR_NONE) {
 			csp_log_error("CRC32 verification error! Discarding packet");
