@@ -395,37 +395,64 @@ void csp_ping_noreply(uint8_t node);
 void csp_ps(uint8_t node, uint32_t timeout);
 
 /**
- * Request amount of free memory
- * @param node node id
+ * Request subsystem free memory.
+ * @param node address of subsystem.
+ * @param timeout timeout in ms
+ * @param[out] size free memory.
+ * @return #CSP_ERR_NONE on success, otherwise an error code.
+ */
+int csp_get_memfree(uint8_t node, uint32_t timeout, uint32_t * size);
+
+/**
+ * Request subsystem free memory and print to stdout.
+ * @param node address of subsystem.
  * @param timeout timeout in ms
  */
 void csp_memfree(uint8_t node, uint32_t timeout);
 
 /**
- * Request number of free buffer elements
- * @param node node id
+ * Request subsystem free buffers.
+ * @param[in] node address of subsystem.
+ * @param[in] timeout timeout in ms
+ * @param[out] size free buffers.
+ * @return #CSP_ERR_NONE on success, otherwise an error code.
+ */
+int csp_get_buf_free(uint8_t node, uint32_t timeout, uint32_t * size);
+
+/**
+ * Request subsystem free buffers and print to stdout.
+ * @param node address of subsystem.
  * @param timeout timeout in ms
  */
 void csp_buf_free(uint8_t node, uint32_t timeout);
 
 /**
- * Reboot subsystem
- * @param node node id
+ * Reboot subsystem.
+ * @param node address of subsystem.
  */
 void csp_reboot(uint8_t node);
 
 /**
- * Shutdown subsystem
- * @param node node id
+ * Shutdown subsystem.
+ * @param node address of subsystem.
  */
 void csp_shutdown(uint8_t node);
 
 /**
- * Request subsystem uptime
- * @param node node id
+ * Request subsystem uptime and print to stdout.
+ * @param node address of subsystem.
  * @param timeout timeout in ms
  */
 void csp_uptime(uint8_t node, uint32_t timeout);
+
+/**
+ * Request subsystem uptime
+ * @param[in] node address of subsystem.
+ * @param[in] timeout timeout in ms
+ * @param[out] uptime uptime in seconds.
+ * @return #CSP_ERR_NONE on success, otherwise an error code.
+ */
+int csp_get_uptime(uint8_t node, uint32_t timeout, uint32_t * uptime);
 
 /**
  * Set RDP options
