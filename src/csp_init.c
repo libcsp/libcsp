@@ -69,8 +69,8 @@ int csp_init(const csp_conf_t * conf) {
 void csp_free_resources(void) {
 
 	csp_port_free_resources();
-	//csp_rtable_free();
-        void csp_buffer_free_resources(void);
+	csp_rtable_free();
+	void csp_buffer_free_resources(void);
 	csp_buffer_free_resources();
 
 }

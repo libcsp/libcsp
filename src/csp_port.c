@@ -79,6 +79,8 @@ int csp_listen(csp_socket_t * socket, size_t backlog) {
 	if (socket->socket == NULL)
 		return CSP_ERR_NOMEM;
 
+        socket->opts |= CSP_SO_INTERNAL_LISTEN;
+
 	return CSP_ERR_NONE;
 
 }

@@ -187,7 +187,7 @@ csp_conn_t * csp_conn_allocate(csp_conn_type_t type) {
 
 	static uint8_t csp_conn_last_given = 0;
 
-	if (csp_bin_sem_wait(&conn_lock, 100) != CSP_SEMAPHORE_OK) {
+	if (csp_bin_sem_wait(&conn_lock, CSP_MAX_TIMEOUT) != CSP_SEMAPHORE_OK) {
 		csp_log_error("Failed to lock conn array");
 		return NULL;
 	}
@@ -265,7 +265,7 @@ int csp_close(csp_conn_t * conn) {
 #endif
 
 	/* Lock connection array while closing connection */
-	if (csp_bin_sem_wait(&conn_lock, 100) != CSP_SEMAPHORE_OK) {
+	if (csp_bin_sem_wait(&conn_lock, CSP_MAX_TIMEOUT) != CSP_SEMAPHORE_OK) {
 		csp_log_error("Failed to lock conn array");
 		return CSP_ERR_TIMEDOUT;
 	}
@@ -276,7 +276,7 @@ int csp_close(csp_conn_t * conn) {
 	/* Ensure connection queue is empty */
 	csp_conn_flush_rx_queue(conn);
 
-        if (conn->socket && (conn->type == CONN_SERVER) && (conn->opts & CSP_SO_CONN_LESS)) {
+        if (conn->socket && (conn->type == CONN_SERVER) && (conn->opts & (CSP_SO_CONN_LESS | CSP_SO_INTERNAL_LISTEN))) {
 		csp_queue_remove(conn->socket);
 		conn->socket = NULL;
         }
@@ -361,7 +361,7 @@ csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport, uint32_t tim
 	csp_conn_t * conn = NULL;
 
 	/* Wait for sport lock - note that csp_conn_new(..) is called inside the lock! */
-	if (csp_bin_sem_wait(&sport_lock, 1000) != CSP_SEMAPHORE_OK) {
+	if (csp_bin_sem_wait(&sport_lock, CSP_MAX_TIMEOUT) != CSP_SEMAPHORE_OK) {
 		return NULL;
 	}
 
