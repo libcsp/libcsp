@@ -55,21 +55,6 @@ extern "C" {
 #define CSP_ZMQHUB_IF_NAME            "ZMQHUB"
 
 /**
-   ZMQHUB packet overlay for csp_packet_t.
-   The ZMQ interface stores the MAC/via address in padding, making it possible for the csp_bridge to transfer it to another interface.
-*/
-typedef struct {
-    //! MAC (via) address (-> csp_packet_t.padding)
-    uint8_t mac;
-    //! Not used  (-> csp_packet_t.padding)
-    uint8_t padding[CSP_PADDING_BYTES - sizeof(uint8_t)];
-    //! Length (-> csp_packet_t.length)
-    uint16_t length;
-    //! CSP id (-> csp_packet_t.id)
-    csp_id_t id;
-} csp_zmqhub_csp_packet_t;
-    
-/**
    Format endpoint connection string for ZMQ.
 
    @param[in] host host name of IP.

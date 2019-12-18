@@ -33,10 +33,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #define CSP_ZMQ_MTU   1024   // max payload data, see documentation
 
-// Ensure certain fields in the zmqhub_csp_packet_t matches the fields in the csp_packet_t
-CSP_STATIC_ASSERT(offsetof(csp_zmqhub_csp_packet_t, length) == offsetof(csp_packet_t, length), length_field_misaligned);
-CSP_STATIC_ASSERT(offsetof(csp_zmqhub_csp_packet_t, id) == offsetof(csp_packet_t, id), id_field_misaligned);
-
 /* ZMQ driver & interface */
 typedef struct {
 	csp_thread_handle_t rx_thread;
@@ -111,8 +107,7 @@ CSP_DEFINE_TASK(csp_zmqhub_task) {
 		// Copy the data from zmq to csp
 		const uint8_t * rx_data = zmq_msg_data(&msg);
 
-		// First byte is the MAC (via) address - the bridge needs it
-		((csp_zmqhub_csp_packet_t*)packet)->mac = *rx_data;
+		// First byte is the MAC (via) address
 		++rx_data;
 		--datalen;
 

@@ -29,19 +29,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 typedef struct {
     csp_iface_t* iface;
-    bool is_zmq;
 } bridge_interface_t;
 
-static bridge_interface_t if_a;
-static bridge_interface_t if_b;
-
-static uint8_t get_mac(bridge_interface_t * iface, const csp_packet_t * packet) {
-
-	if (iface->is_zmq) {
-		return ((const csp_zmqhub_csp_packet_t *)packet)->mac;
-	}
-	return CSP_NODE_MAC;
-}
+static bridge_interface_t bif_a;
+static bridge_interface_t bif_b;
 
 static CSP_DEFINE_TASK(csp_bridge) {
 
@@ -67,12 +58,12 @@ static CSP_DEFINE_TASK(csp_bridge) {
 
 		/* Find the opposing interface */
 		csp_rtable_route_t route;
-		if (input.interface == if_a.iface) {
-			route.interface = if_b.iface;
-			route.mac = get_mac(&if_a, packet);
+		if (input.interface == bif_a.iface) {
+			route.interface = bif_b.iface;
+			route.mac = CSP_NODE_MAC;
 		} else {
-			route.interface = if_a.iface;
-			route.mac = get_mac(&if_b, packet);
+			route.interface = bif_a.iface;
+			route.mac = CSP_NODE_MAC;
 		}
 
 		/* Send to the interface directly, no hassle */
@@ -86,26 +77,11 @@ static CSP_DEFINE_TASK(csp_bridge) {
 
 }
 
-static bool is_zmq_interface(const char * ifname)
-{
-	if (ifname) {
-		// if the interface contains zmq, we assume it is a ZMQ interface
-		for (unsigned int i = 0; i < strlen(ifname); ++i) {
-                    if (strncasecmp(&ifname[i], "zmq", 3) == 0 ) {
-				return true;
-			}
-		}
-	}
-	return false;
-}
-
-int csp_bridge_start(unsigned int task_stack_size, unsigned int task_priority, csp_iface_t * _if_a, csp_iface_t * _if_b) {
+int csp_bridge_start(unsigned int task_stack_size, unsigned int task_priority, csp_iface_t * if_a, csp_iface_t * if_b) {
 
 	/* Set static references to A/B side of bridge */
-	if_a.iface = _if_a;
-	if_a.is_zmq = is_zmq_interface(_if_a->name);
-	if_b.iface = _if_b;
-	if_b.is_zmq = is_zmq_interface(_if_b->name);
+	bif_a.iface = if_a;
+	bif_b.iface = if_b;
 
 	static csp_thread_handle_t handle;
 	int ret = csp_thread_create(csp_bridge, "BRIDGE", task_stack_size, NULL, task_priority, &handle);
