@@ -116,6 +116,7 @@ int csp_sfp_recv_fp(csp_conn_t * conn, void ** dataout, int * datasize, uint32_t
 		/* Check that SFP header is present */
 		if ((packet->id.flags & CSP_FFRAG) == 0) {
 			csp_debug(CSP_ERROR, "Missing SFP header");
+			csp_buffer_free(packet);
 			return -1;
 		}
 
@@ -164,4 +165,3 @@ int csp_sfp_recv_fp(csp_conn_t * conn, void ** dataout, int * datasize, uint32_t
 int csp_sfp_recv(csp_conn_t * conn, void ** dataout, int * datasize, uint32_t timeout) {
 	return csp_sfp_recv_fp(conn, dataout, datasize, timeout, NULL);
 }
-
