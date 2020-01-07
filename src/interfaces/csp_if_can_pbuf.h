@@ -40,7 +40,7 @@ typedef struct {
 
 int csp_can_pbuf_free(csp_can_pbuf_element_t *buf, CSP_BASE_TYPE *task_woken);
 csp_can_pbuf_element_t *csp_can_pbuf_new(uint32_t id, CSP_BASE_TYPE *task_woken);
-csp_can_pbuf_element_t *csp_can_pbuf_find(uint32_t id, uint32_t mask);
+csp_can_pbuf_element_t *csp_can_pbuf_find(uint32_t id, uint32_t mask, CSP_BASE_TYPE *task_woken);
 void csp_can_pbuf_cleanup(CSP_BASE_TYPE *task_woken);
 
 #endif

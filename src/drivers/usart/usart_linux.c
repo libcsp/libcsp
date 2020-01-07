@@ -29,14 +29,36 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <errno.h>
 #include <termios.h>
 #include <fcntl.h>
-
-#include <csp/csp.h>
 #include <sys/time.h>
 
-int fd;
-usart_callback_t usart_callback = NULL;
+#include <csp/csp.h>
+#include <csp/interfaces/csp_if_kiss.h>
+#include <csp/arch/csp_malloc.h>
 
-static void *serial_rx_thread(void *vptr_args);
+typedef struct {
+    usart_callback_t rx_callback;
+    void * user_data;
+int fd;
+    pthread_t rx_thread;
+} usart_context_t;
+
+static void * usart_rx_thread(void * arg) {
+
+    usart_context_t * ctx = arg;
+    const unsigned int CBUF_SIZE = 400;
+    uint8_t * cbuf = malloc(CBUF_SIZE);
+
+	// Receive loop
+	while (1) {
+		int length = read(ctx->fd, cbuf, CBUF_SIZE);
+		if (length <= 0) {
+			csp_log_error("%s: read() failed, returned: %d", __FUNCTION__, length);
+			exit(1);
+		}
+                ctx->rx_callback(ctx->user_data, cbuf, length, NULL);
+	}
+	return NULL;
+}
 
 int getbaud(int ifd) {
 	struct termios termAttr;
@@ -144,17 +166,7 @@ int getbaud(int ifd) {
 
 }
 
-void usart_init(struct usart_conf * conf) {
-
-	struct termios options;
-	pthread_t rx_thread;
-
-	fd = open(conf->device, O_RDWR | O_NOCTTY | O_NONBLOCK);
-
-	if (fd < 0) {
-		printf("Failed to open %s: %s\r\n", conf->device, strerror(errno));
-		return;
-	}
+int usart_open(const usart_conf_t *conf, usart_callback_t rx_callback, void * user_data, int * return_fd) {
 
 	int brate = 0;
     switch(conf->baudrate) {
@@ -180,11 +192,17 @@ void usart_init(struct usart_conf * conf) {
     case 4000000: brate=B4000000; break;
 #endif
     default:
-      printf("Unsupported baudrate requested, defaulting to 500000, requested baudrate=%u\n", conf->baudrate);
-      brate=B500000;
-      break;
+			csp_log_error("%s: Unsupported baudrate: %u", __FUNCTION__, conf->baudrate);
+			return CSP_ERR_INVAL;
     }
 
+	int fd = open(conf->device, O_RDWR | O_NOCTTY | O_NONBLOCK);
+	if (fd < 0) {
+		csp_log_error("%s: failed to open device: [%s], errno: %s", __FUNCTION__, conf->device, strerror(errno));
+		return CSP_ERR_INVAL;
+	}
+
+	struct termios options;
 	tcgetattr(fd, &options);
 	cfsetispeed(&options, brate);
 	cfsetospeed(&options, brate);
@@ -198,57 +216,100 @@ void usart_init(struct usart_conf * conf) {
 	options.c_oflag &= ~(OCRNL | ONLCR | ONLRET | ONOCR | OFILL | OPOST);
 	options.c_cc[VTIME] = 0;
 	options.c_cc[VMIN] = 1;
-	tcsetattr(fd, TCSANOW, &options);
-	if (tcgetattr(fd, &options) == -1)
-		perror("error setting options");
+	/* tcsetattr() succeeds if just one attribute was changed, should read back attributes and check all has been changed */
+	if (tcsetattr(fd, TCSANOW, &options) != 0) {
+		csp_log_error("%s: Failed to set attributes on device: [%s], errno: %s", __FUNCTION__, conf->device, strerror(errno));
+		close(fd);
+		return CSP_ERR_DRIVER;
+	}
 	fcntl(fd, F_SETFL, 0);
 
 	/* Flush old transmissions */
-	if (tcflush(fd, TCIOFLUSH) == -1)
-		printf("Error flushing serial port - %s(%d).\n", strerror(errno), errno);
-
-	if (pthread_create(&rx_thread, NULL, serial_rx_thread, NULL) != 0)
-		return;
-
-}
-
-void usart_set_callback(usart_callback_t callback) {
-	usart_callback = callback;
-}
-
-void usart_insert(char c, void * pxTaskWoken) {
-	printf("%c", c);
-}
-
-void usart_putstr(char * buf, int len) {
-	if (write(fd, buf, len) != len)
-		return;
-}
-
-void usart_putc(char c) {
-	if (write(fd, &c, 1) != 1)
-		return;
-}
-
-char usart_getc(void) {
-	char c;
-	if (read(fd, &c, 1) != 1) return 0;
-	return c;
-}
-
-static void *serial_rx_thread(void *vptr_args) {
-	int length;
-	uint8_t * cbuf = malloc(100000);
-
-	// Receive loop
-	while (1) {
-		length = read(fd, cbuf, 300);
-		if (length <= 0) {
-			perror("Error: ");
-			exit(1);
-		}
-		if (usart_callback)
-			usart_callback(cbuf, length, NULL);
+	if (tcflush(fd, TCIOFLUSH) != 0) {
+		csp_log_error("%s: Error flushing device: [%s], errno: %s", __FUNCTION__, conf->device, strerror(errno));
+		close(fd);
+		return CSP_ERR_DRIVER;
 	}
-	return NULL;
+
+        usart_context_t * ctx = calloc(1, sizeof(*ctx));
+        if (ctx == NULL) {
+		csp_log_error("%s: Error flushing device: [%s], errno: %s", __FUNCTION__, conf->device, strerror(errno));
+		close(fd);
+		return CSP_ERR_NOMEM;
+        }
+        ctx->rx_callback = rx_callback;
+        ctx->user_data = user_data;
+        ctx->fd = fd;
+
+        if (rx_callback) {
+            if (pthread_create(&ctx->rx_thread, NULL, usart_rx_thread, ctx) != 0) {
+		csp_log_error("%s: pthread_create() failed to create Rx thread for device: [%s], errno: %s", __FUNCTION__, conf->device, strerror(errno));
+                free(ctx);
+		close(fd);
+		return CSP_ERR_NOMEM;
+            }
 }
+
+        if (return_fd) {
+            *return_fd = fd;
+}
+
+	return CSP_ERR_NONE;
+}
+
+#if (CSP_USE_KISS)
+// csp/interfaces/csp_if_kiss.h
+
+typedef struct {
+    char name[CSP_IFLIST_NAME_MAX + 1];
+    csp_iface_t iface;
+    csp_kiss_interface_data_t ifdata;
+    int fd;
+} kiss_context_t;
+
+static int kiss_driver_tx(void *driver_data, const unsigned char * data, size_t data_length) {
+    kiss_context_t * ctx = driver_data;
+    if (ctx->fd >= 0) {
+        if (write(ctx->fd, data, data_length) == (int) data_length) {
+            return CSP_ERR_NONE;
+        }
+        return CSP_ERR_TX;
+    }
+    return CSP_ERR_DRIVER;
+}
+
+static void usart_rx_callback(void * user_data, uint8_t * data, size_t data_size, void * pxTaskWoken) {
+    kiss_context_t * ctx = user_data;
+    csp_kiss_rx(&ctx->iface, data, data_size, NULL);
+}
+
+int usart_open_and_add_kiss_interface(const usart_conf_t *conf, const char * ifname, csp_iface_t ** return_iface) {
+
+    kiss_context_t * ctx = csp_calloc(1, sizeof(*ctx));
+    if (ctx == NULL) {
+        return CSP_ERR_NOMEM;
+}
+
+    if (ifname == NULL) {
+        ifname = CSP_IF_KISS_DEFAULT_NAME;
+    }
+
+    strncpy(ctx->name, ifname, sizeof(ctx->name) - 1);
+    ctx->iface.name = ctx->name;
+    ctx->iface.driver_data = ctx;
+    ctx->iface.interface_data = &ctx->ifdata;
+    ctx->ifdata.tx_func = kiss_driver_tx;
+    ctx->fd = -1;
+
+    int res = csp_kiss_add_interface(&ctx->iface);
+    if (res == CSP_ERR_NONE) {
+	res = usart_open(conf, usart_rx_callback, ctx, &ctx->fd);
+		}
+
+    if (return_iface) {
+        *return_iface = &ctx->iface;
+	}
+
+    return res;
+}
+#endif // CSP_USE_KISS

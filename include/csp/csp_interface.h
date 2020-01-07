@@ -45,27 +45,30 @@ extern "C" {
    @param[in] timeout max time to wait for Tx to complete.
    @return #CSP_ERR_NONE on success, otherwise an error code.
  */
-typedef int (*nexthop_t)(struct csp_iface_s * iface, csp_packet_t *packet, uint32_t timeout);
+typedef int (*nexthop_t)(const csp_rtable_route_t * ifroute, csp_packet_t *packet, uint32_t timeout);
 
-/** Interface struct */
-typedef struct csp_iface_s {
-       const char *name;                       /**< Interface name (keep below 10 bytes) */
-       void * driver;                          /**< Pointer to interface handler structure */
-       nexthop_t nexthop;                      /**< Next hop function */
-       uint16_t mtu;                           /**< Maximum Transmission Unit of interface */
-       uint8_t split_horizon_off;      /**< Disable the route-loop prevention on if */
-       uint32_t tx;                            /**< Successfully transmitted packets */
-       uint32_t rx;                            /**< Successfully received packets */
-       uint32_t tx_error;                      /**< Transmit errors */
-       uint32_t rx_error;                      /**< Receive errors */
-       uint32_t drop;                          /**< Dropped packets */
-       uint32_t autherr;                       /**< Authentication errors */
-       uint32_t frame;                         /**< Frame format errors */
-       uint32_t txbytes;                       /**< Transmitted bytes */
-       uint32_t rxbytes;                       /**< Received bytes */
-       uint32_t irq;                           /**< Interrupts */
-       struct csp_iface_s *next;       /**< Next interface */
-} csp_iface_t;
+/**
+   CSP interface.
+*/
+struct csp_iface_s {
+	const char *name;			//!< Interface name, name should not exceed #CSP_IFLIST_NAME_MAX
+	void * interface_data;			//!< Interface data, can be used by the specific interface layer (e.g. KISS) for state information.
+	void * driver_data;			//!< Driver data, can be used by the driver layer to identify a specific device/channel.
+	nexthop_t nexthop;			//!< Next hop function
+	uint16_t mtu;				//!< Maximum Transmission Unit of interface
+	uint8_t split_horizon_off;		//!< Disable the route-loop prevention on if
+	uint32_t tx;				//!< Successfully transmitted packets
+	uint32_t rx;				//!< Successfully received packets
+	uint32_t tx_error;			//!< Transmit errors
+	uint32_t rx_error;			//!< Receive errors, e.g. too large message
+	uint32_t drop;				//!< Dropped packets
+	uint32_t autherr; 			//!< Authentication errors
+	uint32_t frame;				//!< Frame format errors
+	uint32_t txbytes;			//!< Transmitted bytes
+	uint32_t rxbytes;			//!< Received bytes
+	uint32_t irq;				//!< Interrupts
+	struct csp_iface_s *next;		//!< Next interface (internal use)
+};
     
 /**
    Inputs a new packet into the system.
@@ -85,6 +88,7 @@ typedef struct csp_iface_s {
 void csp_qfifo_write(csp_packet_t *packet, csp_iface_t *interface, CSP_BASE_TYPE *pxTaskWoken);
 
 #ifdef __cplusplus
-}
+} /* extern "C" */
 #endif
-#endif
+
+#endif // _CSP_INTERFACE_H_

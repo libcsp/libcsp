@@ -18,42 +18,52 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+#include <csp/interfaces/csp_if_zmqhub.h>
+
 #include <assert.h>
 
-/* CSP includes */
 #include <csp/csp.h>
 #include <csp/csp_debug.h>
-#include <csp/csp_interface.h>
 #include <csp/arch/csp_thread.h>
-#include <csp/interfaces/csp_if_zmqhub.h>
-#include <errno.h>
+#include <csp/arch/csp_malloc.h>
+#include <csp/arch/csp_semaphore.h>
 
 /* ZMQ */
 #include <zmq.h>
 
-static void * context;
-static void * publisher;
-static void * subscriber;
+#define CSP_ZMQ_MTU   1024   // max payload data, see documentation
+
+/* ZMQ driver & interface */
+typedef struct {
+	csp_thread_handle_t rx_thread;
+	void * context;
+	void * publisher;
+	void * subscriber;
+	csp_bin_sem_handle_t tx_wait;
+	csp_iface_t interface;
+} zmq_driver_t;
 
 /**
  * Interface transmit function
  * @param packet Packet to transmit
- * @param timeout Timout in ms
+ * @param timeout Timeout in ms
  * @return 1 if packet was successfully transmitted, 0 on error
  */
-int csp_zmqhub_tx(csp_iface_t * interface, csp_packet_t * packet, uint32_t timeout) {
+int csp_zmqhub_tx(const csp_rtable_route_t * route, csp_packet_t * packet, uint32_t timeout) {
 
-	/* Send envelope */
-	char satid = (char) csp_rtable_find_mac(packet->id.dst);
-	if (satid == (char) 255)
-		satid = packet->id.dst;
+	zmq_driver_t * drv = route->interface->driver_data;
+
+	const uint8_t dest = (route->mac != CSP_NODE_MAC) ? route->mac : packet->id.dst;
 
 	uint16_t length = packet->length;
-	char * satidptr = ((char *) &packet->id) - 1;
-	memcpy(satidptr, &satid, 1);
-	int result = zmq_send(publisher, satidptr, length + sizeof(packet->id) + sizeof(char), 0);
-	if (result < 0)
-		csp_log_error("ZMQ send error: %u %s\r\n", result, strerror(result));
+	uint8_t * destptr = ((uint8_t *) &packet->id) - sizeof(dest);
+	memcpy(destptr, &dest, sizeof(dest));
+	csp_bin_sem_wait(&drv->tx_wait, CSP_MAX_TIMEOUT); /* Using ZMQ in thread safe manner*/
+	int result = zmq_send(drv->publisher, destptr, length + sizeof(packet->id) + sizeof(dest), 0);
+	csp_bin_sem_post(&drv->tx_wait); /* Release tx semaphore */
+	if (result < 0) {
+		csp_log_error("ZMQ send error: %u %s\r\n", result, zmq_strerror(zmq_errno()));
+	}
 
 	csp_buffer_free(packet);
 
@@ -63,39 +73,50 @@ int csp_zmqhub_tx(csp_iface_t * interface, csp_packet_t * packet, uint32_t timeo
 
 CSP_DEFINE_TASK(csp_zmqhub_task) {
 
+	zmq_driver_t * drv = param;
+	csp_packet_t * packet;
+	const uint32_t HEADER_SIZE = (sizeof(packet->id) + sizeof(uint8_t));
+
+	csp_log_info("RX %s started", drv->interface.name);
+
 	while(1) {
 		zmq_msg_t msg;
-		assert(zmq_msg_init_size(&msg, 1024) == 0);
+		assert(zmq_msg_init_size(&msg, CSP_ZMQ_MTU + HEADER_SIZE) == 0);
 
-		/* Receive data */
-		if (zmq_msg_recv(&msg, subscriber, 0) < 0) {
-			zmq_msg_close(&msg);
-			csp_log_error("ZMQ: %s", zmq_strerror(zmq_errno()));
+		// Receive data
+		if (zmq_msg_recv(&msg, drv->subscriber, 0) < 0) {
+			csp_log_error("RX %s: %s", drv->interface.name, zmq_strerror(zmq_errno()));
 			continue;
 		}
 
-		int datalen = zmq_msg_size(&msg);
-		if (datalen < 5) {
-			csp_log_warn("ZMQ: Too short datalen: %u", datalen);
-			while(zmq_msg_recv(&msg, subscriber, ZMQ_NOBLOCK) > 0)
+		unsigned int datalen = zmq_msg_size(&msg);
+		if (datalen < HEADER_SIZE) {
+			csp_log_warn("RX %s: Too short datalen: %u - expected min %u bytes", drv->interface.name, datalen, HEADER_SIZE);
 			zmq_msg_close(&msg);
 			continue;
 		}
 
-		/* Create new csp packet */
-		csp_packet_t * packet = csp_buffer_get(256);
+		// Create new csp packet
+		packet = csp_buffer_get(datalen - HEADER_SIZE);
 		if (packet == NULL) {
+			csp_log_warn("RX %s: Failed to get csp_buffer(%u)", drv->interface.name, datalen);
 			zmq_msg_close(&msg);
 			continue;
 		}
 
-		/* Copy the data from zmq to csp */
-		char * satidptr = ((char *) &packet->id) - 1;
-		memcpy(satidptr, zmq_msg_data(&msg), datalen);
-		packet->length = datalen - 4 - 1;
+		// Copy the data from zmq to csp
+		const uint8_t * rx_data = zmq_msg_data(&msg);
 
-		/* Queue up packet to router */
-		csp_qfifo_write(packet, &csp_if_zmqhub, NULL);
+		// First byte is the MAC (via) address
+		++rx_data;
+		--datalen;
+
+		// Remaining is CSP header and payload
+		memcpy(&packet->id, rx_data, datalen);
+		packet->length = (datalen - sizeof(packet->id));
+
+		// Route packet
+		csp_qfifo_write(packet, &drv->interface, NULL);
 
 		zmq_msg_close(&msg);
 	}
@@ -104,60 +125,101 @@ CSP_DEFINE_TASK(csp_zmqhub_task) {
 
 }
 
-int csp_zmqhub_init(char _addr, char * host) {
-	char url_pub[100];
-	char url_sub[100];
-
-	sprintf(url_pub, "tcp://%s:6000", host);
-	sprintf(url_sub, "tcp://%s:7000", host);
-
-	return csp_zmqhub_init_w_endpoints(_addr, url_pub, url_sub);
+int csp_zmqhub_make_endpoint(const char * host, uint16_t port, char * buf, size_t buf_size) {
+	int res = snprintf(buf, buf_size, "tcp://%s:%u", host, port);
+	if ((res < 0) || (res >= (int)buf_size)) {
+		buf[0] = 0;
+		return CSP_ERR_NOMEM;
+	}
+	return CSP_ERR_NONE;
 }
 
-int csp_zmqhub_init_w_endpoints(char _addr, char * publisher_endpoint,
-		char * subscriber_endpoint) {
+int csp_zmqhub_init(uint8_t addr, const char * host) {
+	char pub[100];
+	csp_zmqhub_make_endpoint(host, CSP_ZMQPROXY_SUBSCRIBE_PORT, pub, sizeof(pub));
 
-	context = zmq_ctx_new();
-	assert(context);
+	char sub[100];
+	csp_zmqhub_make_endpoint(host, CSP_ZMQPROXY_PUBLISH_PORT, sub, sizeof(sub));
 
-	char addr = _addr;
+	return csp_zmqhub_init_w_endpoints(addr, pub, sub);
+}
 
-	csp_log_info("INIT ZMQ with addr %hhu to servers %s / %s\r\n", addr,
-		publisher_endpoint, subscriber_endpoint);
+int csp_zmqhub_init_w_endpoints(uint8_t addr,
+                                const char * publisher_endpoint,
+				const char * subscriber_endpoint) {
+
+	uint8_t * rxfilter = NULL;
+	unsigned int rxfilter_count = 0;
+
+	if (addr != CSP_NODE_MAC) { // != 255
+		rxfilter = &addr;
+		rxfilter_count = 1;
+	}
+
+	return csp_zmqhub_init_w_name_endpoints_rxfilter(CSP_ZMQHUB_IF_NAME,
+							 rxfilter, rxfilter_count,
+							 publisher_endpoint,
+							 subscriber_endpoint,
+							 NULL);
+}
+
+int csp_zmqhub_init_w_name_endpoints_rxfilter(const char * name,
+                                              const uint8_t rxfilter[], unsigned int rxfilter_count,
+                                              const char * publish_endpoint,
+                                              const char * subscribe_endpoint,
+                                              csp_iface_t ** return_interface) {
+
+	zmq_driver_t * drv = csp_malloc(sizeof(*drv));
+	assert(drv);
+	memset(drv, 0, sizeof(*drv));
+
+	char * alloc_name = csp_malloc(strlen(name) + 1);
+	drv->interface.name = alloc_name;
+	assert(alloc_name);
+	strcpy(alloc_name, name);
+	drv->interface.driver_data = drv;
+	drv->interface.nexthop = csp_zmqhub_tx;
+	drv->interface.mtu = CSP_ZMQ_MTU; // there is actually no 'max' MTU on ZMQ, but assuming the other end is based on the same code
+
+	drv->context = zmq_ctx_new();
+	assert(drv->context);
+
+	csp_log_info("INIT %s: pub(tx): [%s], sub(rx): [%s], rx filters: %u",
+		     drv->interface.name, publish_endpoint, subscribe_endpoint, rxfilter_count);
 
 	/* Publisher (TX) */
-	publisher = zmq_socket(context, ZMQ_PUB);
-	assert(publisher);
-	assert(zmq_connect(publisher, publisher_endpoint) == 0);
+	drv->publisher = zmq_socket(drv->context, ZMQ_PUB);
+	assert(drv->publisher);
 
 	/* Subscriber (RX) */
-	subscriber = zmq_socket(context, ZMQ_SUB);
-	assert(subscriber);
-	assert(zmq_connect(subscriber, subscriber_endpoint) == 0);
+	drv->subscriber = zmq_socket(drv->context, ZMQ_SUB);
+	assert(drv->subscriber);
 
-	if (addr == (char) 255) {
-		assert(zmq_setsockopt(subscriber, ZMQ_SUBSCRIBE, "", 0) == 0);
+	if (rxfilter && rxfilter_count) {
+		for (unsigned int i = 0; i < rxfilter_count; ++i, ++rxfilter) {
+			assert(zmq_setsockopt(drv->subscriber, ZMQ_SUBSCRIBE, rxfilter, 1) == 0);
+		}
 	} else {
-		assert(zmq_setsockopt(subscriber, ZMQ_SUBSCRIBE, &addr, 1) == 0);
+		assert(zmq_setsockopt(drv->subscriber, ZMQ_SUBSCRIBE, NULL, 0) == 0);
 	}
+
+	/* Connect to server */
+	assert(zmq_connect(drv->publisher, publish_endpoint) == 0);
+	assert(zmq_connect(drv->subscriber, subscribe_endpoint) == 0);
+
+	/* ZMQ isn't thread safe, so we add a binary semaphore to wait on for tx */
+	assert(csp_bin_sem_create(&drv->tx_wait) == CSP_SEMAPHORE_OK);
 
 	/* Start RX thread */
-	static csp_thread_handle_t handle_subscriber;
-	int res = csp_thread_create(csp_zmqhub_task, "ZMQ", 10000, NULL, 0, &handle_subscriber);
-	if (res != 0) {
-            csp_log_error("csp_thread_create() failed, res: %d, errno: %d", res, errno);
-            return CSP_ERR_DRIVER;
-	}
+	assert(csp_thread_create(csp_zmqhub_task, drv->interface.name, 20000, drv, 0, &drv->rx_thread) == 0);
 
-	/* Regsiter interface */
-	csp_iflist_add(&csp_if_zmqhub);
+	/* Register interface */
+	csp_iflist_add(&drv->interface);
+
+	if (return_interface) {
+		*return_interface = &drv->interface;
+	}
 
 	return CSP_ERR_NONE;
 
 }
-
-/* Interface definition */
-csp_iface_t csp_if_zmqhub = {
-	.name = "ZMQHUB",
-	.nexthop = csp_zmqhub_tx,
-};
