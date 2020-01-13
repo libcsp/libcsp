@@ -34,8 +34,6 @@ int windows_queue_dequeue(windows_queue_t * queue, void * buf, int timeout);
 int windows_queue_items(windows_queue_t * queue);
 
 #ifdef __cplusplus
-} /* extern "C" */
+}
 #endif
-
-#endif // _WINDOWS_QUEUE_H_
-
+#endif
