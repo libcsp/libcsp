@@ -25,7 +25,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "csp_init.h"
 
 static csp_queue_handle_t qfifo[CSP_ROUTE_FIFOS];
-#ifdef CSP_USE_QOS
+#if (CSP_USE_QOS)
 static csp_queue_handle_t qfifo_events;
 #endif
 
@@ -41,7 +41,7 @@ int csp_qfifo_init(void) {
 		}
 	}
 
-#ifdef CSP_USE_QOS
+#if (CSP_USE_QOS)
 	/* Create QoS fifo notification queue */
 	qfifo_events = csp_queue_create(csp_conf.fifo_length, sizeof(int));
 	if (!qfifo_events)
@@ -54,7 +54,7 @@ int csp_qfifo_init(void) {
 
 int csp_qfifo_read(csp_qfifo_t * input) {
 
-#ifdef CSP_USE_QOS
+#if (CSP_USE_QOS)
 	int prio, found, event;
 
 	/* Wait for packet in any queue */
@@ -109,7 +109,7 @@ void csp_qfifo_write(csp_packet_t * packet, csp_iface_t * interface, CSP_BASE_TY
 	queue_element.interface = interface;
 	queue_element.packet = packet;
 
-#ifdef CSP_USE_QOS
+#if (CSP_USE_QOS)
 	int fifo = packet->id.pri;
 #else
 	int fifo = 0;
@@ -120,7 +120,7 @@ void csp_qfifo_write(csp_packet_t * packet, csp_iface_t * interface, CSP_BASE_TY
 	else
 		result = csp_queue_enqueue_isr(qfifo[fifo], &queue_element, pxTaskWoken);
 
-#ifdef CSP_USE_QOS
+#if (CSP_USE_QOS)
 	static int event = 0;
 
 	if (result == CSP_QUEUE_OK) {

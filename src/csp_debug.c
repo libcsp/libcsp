@@ -31,6 +31,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/csp.h>
 #include <csp/arch/csp_system.h>
 
+#if (CSP_DEBUG) && (CSP_USE_EXTERNAL_DEBUG == 0)
+
 /* Custom debug function */
 csp_debug_hook_func_t csp_debug_hook_func = NULL;
 
@@ -130,3 +132,5 @@ void csp_debug_toggle_level(csp_debug_level_t level)
 	csp_debug_level_enabled[level] = (csp_debug_level_enabled[level]) ? false : true;
 	printf("Level %u: value %u\r\n", level, csp_debug_level_enabled[level]);
 }
+
+#endif // (CSP_DEBUG) && !(CSP_USE_EXTERNAL_DEBUG)

@@ -46,7 +46,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 static int csp_route_check_options(csp_iface_t *interface, csp_packet_t *packet)
 {
-#ifndef CSP_USE_XTEA
+#if (CSP_USE_XTEA == 0)
 	/* Drop XTEA packets */
 	if (packet->id.flags & CSP_FXTEA) {
 		csp_log_error("Received XTEA encrypted packet, but CSP was compiled without XTEA support. Discarding packet");
@@ -55,7 +55,7 @@ static int csp_route_check_options(csp_iface_t *interface, csp_packet_t *packet)
 	}
 #endif
 
-#ifndef CSP_USE_HMAC
+#if (CSP_USE_HMAC == 0)
 	/* Drop HMAC packets */
 	if (packet->id.flags & CSP_FHMAC) {
 		csp_log_error("Received packet with HMAC, but CSP was compiled without HMAC support. Discarding packet");
@@ -64,7 +64,7 @@ static int csp_route_check_options(csp_iface_t *interface, csp_packet_t *packet)
 	}
 #endif
 
-#ifndef CSP_USE_RDP
+#if (CSP_USE_RDP == 0)
 	/* Drop RDP packets */
 	if (packet->id.flags & CSP_FRDP) {
 		csp_log_error("Received RDP packet, but CSP was compiled without RDP support. Discarding packet");
@@ -84,7 +84,7 @@ static int csp_route_check_options(csp_iface_t *interface, csp_packet_t *packet)
  */
 static int csp_route_security_check(uint32_t security_opts, csp_iface_t * interface, csp_packet_t * packet) {
 
-#ifdef CSP_USE_XTEA
+#if (CSP_USE_XTEA)
 	/* XTEA encrypted packet */
 	if (packet->id.flags & CSP_FXTEA) {
 		/* Decrypt data */
@@ -102,23 +102,27 @@ static int csp_route_security_check(uint32_t security_opts, csp_iface_t * interf
 
 	/* CRC32 verified packet */
 	if (packet->id.flags & CSP_FCRC32) {
-#ifdef CSP_USE_CRC32
+#if (CSP_USE_CRC32)
 		/* Verify CRC32 (does not include header for backwards compatability with csp1.x) */
 		if (csp_crc32_verify(packet, false) != CSP_ERR_NONE) {
 			csp_log_error("CRC32 verification error! Discarding packet");
 			interface->rx_error++;
 			return CSP_ERR_CRC32;
 		}
-	} else if (security_opts & CSP_SO_CRC32REQ) {
-		csp_log_warn("Received packet without CRC32. Accepting packet");
 #else
-		/* Strip CRC32 field and accept the packet */
-		csp_log_warn("Received packet with CRC32, but CSP was compiled without CRC32 support. Accepting packet");
+		/* No CRC32 validation - but size must be checked and adjusted */
+		if (packet->length < sizeof(uint32_t)) {
+			csp_log_error("CRC32 verification error! Discarding packet");
+			interface->rx_error++;
+			return CSP_ERR_CRC32;
+		}
 		packet->length -= sizeof(uint32_t);
 #endif
+	} else if (security_opts & CSP_SO_CRC32REQ) {
+		csp_log_warn("Received packet with CRC32, but CSP was compiled without CRC32 support. Accepting packet");
 	}
 
-#ifdef CSP_USE_HMAC
+#if (CSP_USE_HMAC)
 	/* HMAC authenticated packet */
 	if (packet->id.flags & CSP_FHMAC) {
 		/* Verify HMAC (does not include header for backwards compatability with csp1.x) */
@@ -135,7 +139,7 @@ static int csp_route_security_check(uint32_t security_opts, csp_iface_t * interf
 	}
 #endif
 
-#ifdef CSP_USE_RDP
+#if (CSP_USE_RDP)
 	/* RDP packet */
 	if (!(packet->id.flags & CSP_FRDP)) {
 		if (security_opts & CSP_SO_RDPREQ) {
@@ -157,7 +161,7 @@ int csp_route_work(uint32_t timeout) {
 	csp_conn_t * conn;
 	csp_socket_t * socket;
 
-#ifdef CSP_USE_RDP
+#if (CSP_USE_RDP)
 	/* Check connection timeouts (currently only for RDP) */
 	csp_conn_check_timeouts();
 #endif
@@ -177,11 +181,11 @@ int csp_route_work(uint32_t timeout) {
 			packet->id.sport, packet->id.pri, packet->id.flags, packet->length, input.interface->name);
 
 	/* Here there be promiscuous mode */
-#ifdef CSP_USE_PROMISC
+#if (CSP_USE_PROMISC)
 	csp_promisc_add(packet);
 #endif
 
-#ifdef CSP_USE_DEDUP
+#if (CSP_USE_DEDUP)
 	/* Check for duplicates */
 	if (csp_dedup_is_duplicate(packet)) {
 		/* Discard packet */
@@ -293,7 +297,7 @@ int csp_route_work(uint32_t timeout) {
 
 	}
 
-#ifdef CSP_USE_RDP
+#if (CSP_USE_RDP)
 	/* Pass packet to RDP module */
 	if (packet->id.flags & CSP_FRDP) {
 		csp_rdp_new_packet(conn, packet);

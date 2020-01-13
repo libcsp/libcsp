@@ -122,7 +122,7 @@ int getbaud(int ifd) {
 	case B230400:
 		inputSpeed = 230400;
 		break;
-#ifndef CSP_MACOSX
+#if (CSP_MACOSX == 0)
 	case B460800:
 		inputSpeed = 460800;
 		break;
@@ -177,7 +177,7 @@ int usart_open(const usart_conf_t *conf, usart_callback_t rx_callback, void * us
     case 57600:   brate=B57600;   break;
     case 115200:  brate=B115200;  break;
     case 230400:  brate=B230400;  break;
-#ifndef CSP_MACOSX
+#if (CSP_MACOSX == 0)
     case 460800:  brate=B460800;  break;
     case 500000:  brate=B500000;  break;
     case 576000:  brate=B576000;  break;
@@ -257,7 +257,6 @@ int usart_open(const usart_conf_t *conf, usart_callback_t rx_callback, void * us
 	return CSP_ERR_NONE;
 }
 
-#if (CSP_USE_KISS)
 // csp/interfaces/csp_if_kiss.h
 
 typedef struct {
@@ -312,4 +311,4 @@ int usart_open_and_add_kiss_interface(const usart_conf_t *conf, const char * ifn
 
     return res;
 }
-#endif // CSP_USE_KISS
+

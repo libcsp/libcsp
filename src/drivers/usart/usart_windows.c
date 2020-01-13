@@ -1,9 +1,30 @@
+/*
+Cubesat Space Protocol - A small network-layer protocol designed for Cubesats
+Copyright (C) 2012 GomSpace ApS (http://www.gomspace.com)
+Copyright (C) 2012 AAUSAT3 Project (http://aausat3.space.aau.dk)
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
+#include <csp/drivers/usart.h>
+
 #include <stdio.h>
 #include <Windows.h>
 #include <process.h>
 
 #include <csp/csp.h>
-#include <csp/drivers/usart.h>
 
 static HANDLE portHandle = INVALID_HANDLE_VALUE;
 static HANDLE rxThread = INVALID_HANDLE_VALUE;
@@ -17,7 +38,7 @@ static int prvTryConfigurePort(const struct usart_conf*);
 static int prvTrySetPortTimeouts(void);
 static const char* prvParityToStr(BYTE paritySetting);
 
-#ifdef CSP_DEBUG
+#if (CSP_DEBUG)
 static void prvPrintError(void) {
     char *messageBuffer = NULL;
     DWORD errorCode = GetLastError();
@@ -41,7 +62,7 @@ static void prvPrintError(void) {
 }
 #endif
 
-#ifdef CSP_DEBUG
+#if (CSP_DEBUG)
 #define printError() prvPrintError()
 #else
 #define printError() do {} while(0)

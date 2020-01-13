@@ -38,15 +38,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 enum cfp_frame_t {
 	/* First CFP fragment of a CSP packet */
 	CFP_BEGIN = 0,
-	/* Remaining CFP fragments */
+	/* Remaining CFP fragment(s) of a CSP packet */
 	CFP_MORE = 1
 };
 
 int csp_can_rx(csp_iface_t *interface, uint32_t id, const uint8_t *data, uint8_t dlc, CSP_BASE_TYPE *task_woken)
 {
-	csp_can_pbuf_element_t *buf;
-	uint8_t offset;
-
 	/* Test: random packet loss */
         if (0) {
 	int random = rand();
@@ -57,9 +54,7 @@ int csp_can_rx(csp_iface_t *interface, uint32_t id, const uint8_t *data, uint8_t
 	}
 
 	/* Bind incoming frame to a packet buffer */
-	buf = csp_can_pbuf_find(id, CFP_ID_CONN_MASK, task_woken);
-
-	/* Check returned buffer */
+	csp_can_pbuf_element_t * buf = csp_can_pbuf_find(id, CFP_ID_CONN_MASK, task_woken);
 	if (buf == NULL) {
 		if (CFP_TYPE(id) == CFP_BEGIN) {
 			buf = csp_can_pbuf_new(id, task_woken);
@@ -76,7 +71,7 @@ int csp_can_rx(csp_iface_t *interface, uint32_t id, const uint8_t *data, uint8_t
 	}
 
 	/* Reset frame data offset */
-	offset = 0;
+	uint8_t offset = 0;
 
 	switch (CFP_TYPE(id)) {
 

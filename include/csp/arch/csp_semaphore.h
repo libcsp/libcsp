@@ -34,7 +34,7 @@ extern "C" {
 #endif
 
 /* POSIX interface */
-#if defined(CSP_POSIX) || defined(__DOXYGEN__)
+#if (CSP_POSIX || __DOXYGEN__)
 
 #include <pthread.h>
 #include <semaphore.h>
@@ -68,7 +68,7 @@ typedef pthread_mutex_t csp_mutex_t;
 #endif // CSP_POSIX
 
 /* MAC OS X interface */
-#if defined(CSP_MACOSX)
+#if (CSP_MACOSX)
 
 #include <pthread.h>
 #include "posix/pthread_queue.h"
@@ -81,7 +81,7 @@ typedef pthread_queue_t * csp_mutex_t;
 
 #endif // CSP_MACOSX
 
-#if defined(CSP_WINDOWS)
+#if (CSP_WINDOWS)
 
 #include <Windows.h>
 #undef interface
@@ -95,7 +95,7 @@ typedef HANDLE csp_mutex_t;
 #endif // CSP_WINDOWS
 
 /* FreeRTOS interface */
-#if defined(CSP_FREERTOS)
+#if (CSP_FREERTOS)
 
 #include <FreeRTOS.h>
 #include <semphr.h>

@@ -68,7 +68,7 @@ csp_iface_t * csp_iflist_get(void)
     return interfaces;
 }
 
-#ifdef CSP_DEBUG
+#if (CSP_DEBUG)
 int csp_bytesize(char *buffer, int buffer_len, unsigned long int bytes) {
 	char postfix;
 	double size;

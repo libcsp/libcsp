@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <csp/arch/csp_queue.h>
 
-#ifdef CSP_USE_PROMISC
+#if (CSP_USE_PROMISC)
 
 static csp_queue_handle_t csp_promisc_queue = NULL;
 static int csp_promisc_enabled = 0;
