@@ -78,7 +78,7 @@ static csp_rtable_t * csp_rtable_find(uint8_t addr, uint8_t netmask, uint8_t exa
 
 	if (0 && best_result) {
 		csp_log_packet("Using routing entry: %u/%u if %s mtu %u",
-				best_result->address, best_result->netmask, best_result->route.interface->name, best_result->route.mac);
+				best_result->address, best_result->netmask, best_result->route.iface->name, best_result->route.mac);
         }
 
 	return best_result;
@@ -124,7 +124,7 @@ int csp_rtable_set_internal(uint8_t address, uint8_t netmask, csp_iface_t *ifc, 
 	/* Fill in the data */
 	entry->address = address;
 	entry->netmask = netmask;
-	entry->route.interface = ifc;
+	entry->route.iface = ifc;
 	entry->route.mac = mac;
 
 	return CSP_ERR_NONE;

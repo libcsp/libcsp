@@ -170,7 +170,7 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, const csp_rtable_rout
 		goto err;
 	}
 
-	csp_iface_t * ifout = ifroute->interface;
+	csp_iface_t * ifout = ifroute->iface;
 
 	csp_log_packet("OUT: S %u, D %u, Dp %u, Sp %u, Pr %u, Fl 0x%02X, Sz %u VIA: %s (%u)",
                        idout.src, idout.dst, idout.dport, idout.sport, idout.pri, idout.flags, packet->length, ifout->name, (ifroute->mac != CSP_NODE_MAC) ? ifroute->mac : idout.dst);

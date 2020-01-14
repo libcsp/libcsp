@@ -43,12 +43,12 @@ uint32_t csp_sys_memfree(void) {
 
 int csp_sys_reboot(void) {
 	csp_log_error("%s: not supported", __FUNCTION__);
-	return CSP_ERR_NOTSUP
+	return CSP_ERR_NOTSUP;
 }
 
 int csp_sys_shutdown(void) {
 	csp_log_error("%s: not supported", __FUNCTION__);
-	 return CSP_ERR_NOTSUP
+	return CSP_ERR_NOTSUP;
 }
 
 void csp_sys_set_color(csp_color_t color) {

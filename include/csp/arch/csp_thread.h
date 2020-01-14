@@ -75,7 +75,6 @@ typedef csp_thread_return_t (* csp_thread_func_t)(void * parameter);
 #if (CSP_WINDOWS)
 
 #include <Windows.h>
-#undef interface
 
 typedef HANDLE csp_thread_handle_t;
 typedef unsigned int csp_thread_return_t;

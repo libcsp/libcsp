@@ -40,7 +40,7 @@ typedef struct {
 	void * publisher;
 	void * subscriber;
 	csp_bin_sem_handle_t tx_wait;
-	csp_iface_t interface;
+	csp_iface_t iface;
 } zmq_driver_t;
 
 /**
@@ -51,7 +51,7 @@ typedef struct {
  */
 int csp_zmqhub_tx(const csp_rtable_route_t * route, csp_packet_t * packet, uint32_t timeout) {
 
-	zmq_driver_t * drv = route->interface->driver_data;
+	zmq_driver_t * drv = route->iface->driver_data;
 
 	const uint8_t dest = (route->mac != CSP_NODE_MAC) ? route->mac : packet->id.dst;
 
@@ -77,7 +77,7 @@ CSP_DEFINE_TASK(csp_zmqhub_task) {
 	csp_packet_t * packet;
 	const uint32_t HEADER_SIZE = (sizeof(packet->id) + sizeof(uint8_t));
 
-	csp_log_info("RX %s started", drv->interface.name);
+	csp_log_info("RX %s started", drv->iface.name);
 
 	while(1) {
 		zmq_msg_t msg;
@@ -85,13 +85,13 @@ CSP_DEFINE_TASK(csp_zmqhub_task) {
 
 		// Receive data
 		if (zmq_msg_recv(&msg, drv->subscriber, 0) < 0) {
-			csp_log_error("RX %s: %s", drv->interface.name, zmq_strerror(zmq_errno()));
+			csp_log_error("RX %s: %s", drv->iface.name, zmq_strerror(zmq_errno()));
 			continue;
 		}
 
 		unsigned int datalen = zmq_msg_size(&msg);
 		if (datalen < HEADER_SIZE) {
-			csp_log_warn("RX %s: Too short datalen: %u - expected min %u bytes", drv->interface.name, datalen, HEADER_SIZE);
+			csp_log_warn("RX %s: Too short datalen: %u - expected min %u bytes", drv->iface.name, datalen, HEADER_SIZE);
 			zmq_msg_close(&msg);
 			continue;
 		}
@@ -99,7 +99,7 @@ CSP_DEFINE_TASK(csp_zmqhub_task) {
 		// Create new csp packet
 		packet = csp_buffer_get(datalen - HEADER_SIZE);
 		if (packet == NULL) {
-			csp_log_warn("RX %s: Failed to get csp_buffer(%u)", drv->interface.name, datalen);
+			csp_log_warn("RX %s: Failed to get csp_buffer(%u)", drv->iface.name, datalen);
 			zmq_msg_close(&msg);
 			continue;
 		}
@@ -116,7 +116,7 @@ CSP_DEFINE_TASK(csp_zmqhub_task) {
 		packet->length = (datalen - sizeof(packet->id));
 
 		// Route packet
-		csp_qfifo_write(packet, &drv->interface, NULL);
+		csp_qfifo_write(packet, &drv->iface, NULL);
 
 		zmq_msg_close(&msg);
 	}
@@ -174,18 +174,18 @@ int csp_zmqhub_init_w_name_endpoints_rxfilter(const char * name,
 	memset(drv, 0, sizeof(*drv));
 
 	char * alloc_name = csp_malloc(strlen(name) + 1);
-	drv->interface.name = alloc_name;
+	drv->iface.name = alloc_name;
 	assert(alloc_name);
 	strcpy(alloc_name, name);
-	drv->interface.driver_data = drv;
-	drv->interface.nexthop = csp_zmqhub_tx;
-	drv->interface.mtu = CSP_ZMQ_MTU; // there is actually no 'max' MTU on ZMQ, but assuming the other end is based on the same code
+	drv->iface.driver_data = drv;
+	drv->iface.nexthop = csp_zmqhub_tx;
+	drv->iface.mtu = CSP_ZMQ_MTU; // there is actually no 'max' MTU on ZMQ, but assuming the other end is based on the same code
 
 	drv->context = zmq_ctx_new();
 	assert(drv->context);
 
 	csp_log_info("INIT %s: pub(tx): [%s], sub(rx): [%s], rx filters: %u",
-		     drv->interface.name, publish_endpoint, subscribe_endpoint, rxfilter_count);
+		     drv->iface.name, publish_endpoint, subscribe_endpoint, rxfilter_count);
 
 	/* Publisher (TX) */
 	drv->publisher = zmq_socket(drv->context, ZMQ_PUB);
@@ -211,13 +211,13 @@ int csp_zmqhub_init_w_name_endpoints_rxfilter(const char * name,
 	assert(csp_bin_sem_create(&drv->tx_wait) == CSP_SEMAPHORE_OK);
 
 	/* Start RX thread */
-	assert(csp_thread_create(csp_zmqhub_task, drv->interface.name, 20000, drv, 0, &drv->rx_thread) == 0);
+	assert(csp_thread_create(csp_zmqhub_task, drv->iface.name, 20000, drv, 0, &drv->rx_thread) == 0);
 
 	/* Register interface */
-	csp_iflist_add(&drv->interface);
+	csp_iflist_add(&drv->iface);
 
 	if (return_interface) {
-		*return_interface = &drv->interface;
+		*return_interface = &drv->iface;
 	}
 
 	return CSP_ERR_NONE;

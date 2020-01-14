@@ -267,6 +267,7 @@ typedef struct {
 } kiss_context_t;
 
 static int kiss_driver_tx(void *driver_data, const unsigned char * data, size_t data_length) {
+
     kiss_context_t * ctx = driver_data;
     if (ctx->fd >= 0) {
         if (write(ctx->fd, data, data_length) == (int) data_length) {
@@ -278,6 +279,7 @@ static int kiss_driver_tx(void *driver_data, const unsigned char * data, size_t 
 }
 
 static void usart_rx_callback(void * user_data, uint8_t * data, size_t data_size, void * pxTaskWoken) {
+
     kiss_context_t * ctx = user_data;
     csp_kiss_rx(&ctx->iface, data, data_size, NULL);
 }

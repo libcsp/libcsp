@@ -82,13 +82,13 @@ struct csp_iface_s {
    either accepted or dropped, so the memory will always be freed.
 
    @param[in] packet A pointer to the incoming packet
-   @param[in] interface A pointer to the incoming interface TX function.
+   @param[in] iface A pointer to the incoming interface TX function.
    @param[out] pxTaskWoken Valid reference if called from ISR, otherwise NULL!
 */
-void csp_qfifo_write(csp_packet_t *packet, csp_iface_t *interface, CSP_BASE_TYPE *pxTaskWoken);
+void csp_qfifo_write(csp_packet_t *packet, csp_iface_t *iface, CSP_BASE_TYPE *pxTaskWoken);
 
 #ifdef __cplusplus
-} /* extern "C" */
+}
+#endif
 #endif
 
-#endif // _CSP_INTERFACE_H_

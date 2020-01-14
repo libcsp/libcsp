@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "csp_rtable_internal.h"
 
-#include <alloca.h>
 #include <stdio.h>
 
 #include <csp/csp.h>
@@ -117,7 +116,7 @@ static bool csp_rtable_save_route(void * vctx, uint8_t address, uint8_t mask, co
     csp_rtable_save_ctx_t * ctx = vctx;
 
     // Do not save loop back interface
-    if (strcasecmp(route->interface->name, CSP_IF_LOOPBACK_NAME) == 0) {
+    if (strcasecmp(route->iface->name, CSP_IF_LOOPBACK_NAME) == 0) {
         return true;
     }
 
@@ -137,7 +136,7 @@ static bool csp_rtable_save_route(void * vctx, uint8_t address, uint8_t mask, co
     }
     size_t remain_buf_size = ctx->maxlen - ctx->len;
     int res = snprintf(ctx->buffer + ctx->len, remain_buf_size,
-                       "%s%u%s %s%s", sep, address, mask_str, route->interface->name, mac_str);
+                       "%s%u%s %s%s", sep, address, mask_str, route->iface->name, mac_str);
     if ((res < 0) || (res >= (int)(remain_buf_size))) {
         ctx->error = CSP_ERR_NOMEM;
         return false;
@@ -165,7 +164,7 @@ csp_iface_t * csp_rtable_find_iface(uint8_t address)
 {
     const csp_rtable_route_t * route = csp_rtable_find_route(address);
     if (route) {
-        return route->interface;
+        return route->iface;
     }
     return NULL;
 }
@@ -184,9 +183,9 @@ uint8_t csp_rtable_find_mac(uint8_t address)
 static bool csp_rtable_print_route(void * ctx, uint8_t address, uint8_t mask, const csp_rtable_route_t * route)
 {
     if (route->mac == CSP_NODE_MAC) {
-        printf("%u/%u %s\r\n", address, mask, route->interface->name);
+        printf("%u/%u %s\r\n", address, mask, route->iface->name);
     } else {
-        printf("%u/%u %s %u\r\n", address, mask, route->interface->name, route->mac);
+        printf("%u/%u %s %u\r\n", address, mask, route->iface->name, route->mac);
     }
     return true;
 }

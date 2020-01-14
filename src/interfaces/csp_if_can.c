@@ -42,7 +42,7 @@ enum cfp_frame_t {
 	CFP_MORE = 1
 };
 
-int csp_can_rx(csp_iface_t *interface, uint32_t id, const uint8_t *data, uint8_t dlc, CSP_BASE_TYPE *task_woken)
+int csp_can_rx(csp_iface_t *iface, uint32_t id, const uint8_t *data, uint8_t dlc, CSP_BASE_TYPE *task_woken)
 {
 	/* Test: random packet loss */
         if (0) {
@@ -60,12 +60,12 @@ int csp_can_rx(csp_iface_t *interface, uint32_t id, const uint8_t *data, uint8_t
 			buf = csp_can_pbuf_new(id, task_woken);
 			if (buf == NULL) {
 				//csp_log_warn("No available packet buffer for CAN");
-				interface->rx_error++;
+				iface->rx_error++;
 				return CSP_ERR_NOMEM;
 			}
 		} else {
 			//csp_log_warn("Out of order id 0x%X remain %u", CFP_ID(id), CFP_REMAIN(id));
-			interface->frame++;
+			iface->frame++;
 			return CSP_ERR_INVAL;
 		}
 	}
@@ -80,7 +80,7 @@ int csp_can_rx(csp_iface_t *interface, uint32_t id, const uint8_t *data, uint8_t
 		/* Discard packet if DLC is less than CSP id + CSP length fields */
 		if (dlc < (sizeof(csp_id_t) + sizeof(uint16_t))) {
 			//csp_log_warn("Short BEGIN frame received");
-			interface->frame++;
+			iface->frame++;
 			csp_can_pbuf_free(buf, task_woken);
 			break;
 		}
@@ -89,13 +89,13 @@ int csp_can_rx(csp_iface_t *interface, uint32_t id, const uint8_t *data, uint8_t
 		if (buf->packet != NULL) {
 			/* Reuse the buffer */
 			//csp_log_warn("Incomplete frame");
-			interface->frame++;
+			iface->frame++;
 		} else {
 			/* Get free buffer for frame */
 			buf->packet = task_woken ? csp_buffer_get_isr(0) : csp_buffer_get(0); // CSP only supports one size
 			if (buf->packet == NULL) {
 				//csp_log_error("Failed to get buffer for CSP_BEGIN packet");
-				interface->frame++;
+				iface->frame++;
 				csp_can_pbuf_free(buf, task_woken);
 				break;
 			}
@@ -111,7 +111,7 @@ int csp_can_rx(csp_iface_t *interface, uint32_t id, const uint8_t *data, uint8_t
 
 		/* Check length against max */
 		if ((buf->packet->length > MAX_CAN_DATA_SIZE) || (buf->packet->length > csp_buffer_data_size())) {
-			interface->rx_error++;
+			iface->rx_error++;
 			csp_can_pbuf_free(buf, task_woken);
 			break;
 		}
@@ -133,7 +133,7 @@ int csp_can_rx(csp_iface_t *interface, uint32_t id, const uint8_t *data, uint8_t
 		if (CFP_REMAIN(id) != buf->remain - 1) {
 			//csp_log_error("CAN frame lost in CSP packet");
 			csp_can_pbuf_free(buf, task_woken);
-			interface->frame++;
+			iface->frame++;
 			break;
 		}
 
@@ -143,7 +143,7 @@ int csp_can_rx(csp_iface_t *interface, uint32_t id, const uint8_t *data, uint8_t
 		/* Check for overflow */
 		if ((buf->rx_count + dlc - offset) > buf->packet->length) {
 			//csp_log_error("RX buffer overflow");
-			interface->frame++;
+			iface->frame++;
 			csp_can_pbuf_free(buf, task_woken);
 			break;
 		}
@@ -157,7 +157,7 @@ int csp_can_rx(csp_iface_t *interface, uint32_t id, const uint8_t *data, uint8_t
 			break;
 
 		/* Data is available */
-		csp_qfifo_write(buf->packet, interface, task_woken);
+		csp_qfifo_write(buf->packet, iface, task_woken);
 
 		/* Drop packet buffer reference */
 		buf->packet = NULL;
@@ -178,7 +178,7 @@ int csp_can_rx(csp_iface_t *interface, uint32_t id, const uint8_t *data, uint8_t
 
 int csp_can_tx(const csp_rtable_route_t * ifroute, csp_packet_t *packet, uint32_t timeout)
 {
-        csp_iface_t * iface = ifroute->interface;
+        csp_iface_t * iface = ifroute->iface;
         csp_can_interface_data_t * ifdata = iface->interface_data;
 
 	/* Get an unique CFP id - this should be locked to prevent access from multiple tasks */

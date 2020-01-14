@@ -27,10 +27,10 @@ static csp_rtable_route_t rtable[CSP_DEFAULT_ROUTE + 1] = {};
 
 const csp_rtable_route_t * csp_rtable_find_route(uint8_t address) {
 
-	if (rtable[address].interface != NULL) {
+	if (rtable[address].iface != NULL) {
 		return &rtable[address];
 	}
-	if (rtable[CSP_DEFAULT_ROUTE].interface != NULL) {
+	if (rtable[CSP_DEFAULT_ROUTE].iface != NULL) {
 		return &rtable[CSP_DEFAULT_ROUTE];
 	}
 	return NULL;
@@ -47,7 +47,7 @@ int csp_rtable_set_internal(uint8_t address, uint8_t netmask, csp_iface_t *ifc, 
 
 	/* Set route */
         const unsigned int ri = (netmask == 0) ? CSP_DEFAULT_ROUTE : address;
-        rtable[ri].interface = ifc;
+        rtable[ri].iface = ifc;
         rtable[ri].mac = mac;
 
 	return CSP_ERR_NONE;
@@ -61,13 +61,13 @@ void csp_rtable_free(void) {
 void csp_rtable_iterate(csp_rtable_iterator_t iter, void * ctx) {
 
 	for (unsigned int i = 0; i < CSP_DEFAULT_ROUTE; ++i) {
-		if (rtable[i].interface != NULL) {
+		if (rtable[i].iface != NULL) {
 			if (iter(ctx, i, CSP_ID_HOST_SIZE, &rtable[i]) == false) {
 				return; // stopped by user
 			}
 		}
 	}
-	if (rtable[CSP_DEFAULT_ROUTE].interface) {
+	if (rtable[CSP_DEFAULT_ROUTE].iface) {
 		iter(ctx, 0, 0, &rtable[CSP_DEFAULT_ROUTE]);
 	}
 }

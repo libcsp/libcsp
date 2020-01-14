@@ -1,5 +1,6 @@
 libcsp 1.6, DD-MM-YYYY
 ----------------------
+- new: Added Travis-CI support on Github, builds Linux, Mac and Windows.
 - code: Changed #ifdef/ifndef to single #if in order to support forced disabling and alignment with log macro's.
 - bug: Check message length when receiving CRC32.
 - api: Updated thread API, documentation, aligned implementation

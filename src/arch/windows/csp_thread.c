@@ -29,7 +29,7 @@ int csp_thread_create(csp_thread_func_t routine, const char * const thread_name,
 		return CSP_ERR_NOMEM;
 	}
 	if (return_handle) {
-    *handle = taskHandle;
+		*return_handle = handle;
 	}
 
     return CSP_ERR_NONE;
