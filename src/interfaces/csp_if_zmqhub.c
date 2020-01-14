@@ -20,6 +20,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <csp/interfaces/csp_if_zmqhub.h>
 
+#if (CSP_HAVE_LIBZMQ)
+
+#include <zmq.h>
 #include <assert.h>
 
 #include <csp/csp.h>
@@ -27,9 +30,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/arch/csp_thread.h>
 #include <csp/arch/csp_malloc.h>
 #include <csp/arch/csp_semaphore.h>
-
-/* ZMQ */
-#include <zmq.h>
 
 #define CSP_ZMQ_MTU   1024   // max payload data, see documentation
 
@@ -223,3 +223,5 @@ int csp_zmqhub_init_w_name_endpoints_rxfilter(const char * name,
 	return CSP_ERR_NONE;
 
 }
+
+#endif // CSP_HAVE_LIBZMQ

@@ -29,25 +29,19 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 extern "C" {
 #endif
 
-#include <stdint.h>
-
-#include <csp/csp.h>
-
-#include <csp/arch/csp_queue.h>
-#include <csp/arch/csp_semaphore.h>
-
-/** @brief Connection states */
+/** Connection states */
 typedef enum {
 	CONN_CLOSED = 0,
 	CONN_OPEN = 1,
 } csp_conn_state_t;
 
-/** @brief Connection types */
+/** Connection types */
 typedef enum {
 	CONN_CLIENT = 0,
 	CONN_SERVER = 1,
 } csp_conn_type_t;
 
+/** RDP Connection states */
 typedef enum {
 	RDP_CLOSED = 0,
 	RDP_SYN_SENT,
@@ -85,14 +79,14 @@ struct csp_conn_s {
 	csp_conn_state_t state;		/* Connection state (CONN_OPEN or CONN_CLOSED) */
 	csp_id_t idin;			/* Identifier received */
 	csp_id_t idout;			/* Identifier transmitted */
-#ifdef CSP_USE_QOS
+#if (CSP_USE_QOS)
 	csp_queue_handle_t rx_event;	/* Event queue for RX packets */
 #endif
 	csp_queue_handle_t rx_queue[CSP_RX_QUEUES]; /* Queue for RX packets */
 	csp_queue_handle_t socket;	/* Socket to be "woken" when first packet is ready */
 	uint32_t timestamp;		/* Time the connection was opened */
 	uint32_t opts;			/* Connection or socket options */
-#ifdef CSP_USE_RDP
+#if (CSP_USE_RDP)
 	csp_rdp_t rdp;			/* RDP state */
 #endif
 };
@@ -108,7 +102,6 @@ int csp_conn_get_rxq(int prio);
 const csp_conn_t * csp_conn_get_array(size_t * size); // for test purposes only!
 
 #ifdef __cplusplus
-} /* extern "C" */
+}
 #endif
-
-#endif // _CSP_CONN_H_
+#endif

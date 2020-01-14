@@ -23,38 +23,41 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <unistd.h>
 
 #include <csp/csp.h>
-
-/* Using un-exported header file.
- * This is allowed since we are still in libcsp */
 #include <csp/arch/csp_thread.h>
 
-/** Example defines */
-#define MY_ADDRESS	1			// Address of local CSP node
-#define MY_PORT		10			// Port to send test traffic to
+/* CSP address - since this example runs both server and client in same process, the address is
+   the same for both server and client */
+#define MY_ADDRESS	1
 
+/* Server port, the port the server listens on for incoming connections from the client. */
+#define MY_PORT		10
+
+/* Server task - handles requests from clients */
 CSP_DEFINE_TASK(task_server) {
 
-	/* Create socket without any socket options */
+	csp_log_info("Server task started");
+
+	/* Create socket with no specific socket options, e.g. accepts CRC32, HMAC, XTEA, etc. if enabled during compilation */
 	csp_socket_t *sock = csp_socket(CSP_SO_NONE);
 
-	/* Bind all ports to socket */
+	/* Bind socket to all ports, e.g. all incoming connections will be handled here */
 	csp_bind(sock, CSP_ANY);
 
-	/* Create 10 connections backlog queue */
+	/* Create a backlog of 10 connections, i.e. up to 10 new connections can be queued */
 	csp_listen(sock, 10);
 
-	/* Pointer to current connection and packet */
-	csp_conn_t *conn;
-	csp_packet_t *packet;
-
-	/* Process incoming connections */
+	/* Wait for connections and then process packets on the connection */
 	while (1) {
 
-		/* Wait for connection, 10000 ms timeout */
-		if ((conn = csp_accept(sock, 10000)) == NULL)
+		/* Wait for a new connection, 10000 mS timeout */
+		csp_conn_t *conn;
+		if ((conn = csp_accept(sock, 10000)) == NULL) {
+			/* timeout */
 			continue;
+		}
 
-		/* Read packets. Timout is 100 ms */
+		/* Read packets on connection, timout is 100 mS */
+		csp_packet_t *packet;
 		while ((packet = csp_read(conn, 100)) != NULL) {
 			switch (csp_conn_dport(conn)) {
 			case MY_PORT:
@@ -64,13 +67,13 @@ CSP_DEFINE_TASK(task_server) {
 				break;
 
 			default:
-				/* Let the service handler reply pings, buffer use, etc. */
+				/* Call the default CSP service handler, handle pings, buffer use, etc. */
 				csp_service_handler(conn, packet);
 				break;
 			}
 		}
 
-		/* Close current connection, and handle next */
+		/* Close current connection */
 		csp_close(conn);
 
 	}
@@ -78,53 +81,46 @@ CSP_DEFINE_TASK(task_server) {
 	return CSP_TASK_RETURN;
 
 }
+/* End of server task */
 
+/* Client task sending requests to server task */
 CSP_DEFINE_TASK(task_client) {
 
-	csp_packet_t * packet;
-	csp_conn_t * conn;
+	csp_log_info("Client task started");
 
 	while (1) {
 
-		/**
-		 * Try ping
-		 */
-
 		csp_sleep_ms(1000);
 
+		/* Send ping to server, timeout 100 mS, ping size 100 bytes */
 		int result = csp_ping(MY_ADDRESS, 100, 100, CSP_O_NONE);
-		csp_log_protocol("Ping result %d [ms]", result);
+		csp_log_protocol("Ping result %d [mS]", result);
 
 		csp_sleep_ms(1000);
 
-		/**
-		 * Try data packet to server
-		 */
+		/* Send data packet to server */
 
-		/* Get packet buffer for data */
-		packet = csp_buffer_get(100);
+		/* Connect to host on MY_ADDRESS, port MY_PORT with regular UDP-like protocol and 1000 ms timeout */
+		csp_conn_t * conn = csp_connect(CSP_PRIO_NORM, MY_ADDRESS, MY_PORT, 1000, CSP_O_NONE);
+		if (conn == NULL) {
+			/* Connect failed */
+			csp_log_error("Connection failed");
+			return CSP_TASK_RETURN;
+		}
+
+		/* Get packet buffer for message/data */
+		csp_packet_t * packet = csp_buffer_get(100);
 		if (packet == NULL) {
 			/* Could not get buffer element */
 			csp_log_error("Failed to get buffer element");
 			return CSP_TASK_RETURN;
 		}
 
-		/* Connect to host HOST, port PORT with regular UDP-like protocol and 1000 ms timeout */
-		conn = csp_connect(CSP_PRIO_NORM, MY_ADDRESS, MY_PORT, 1000, CSP_O_NONE);
-		if (conn == NULL) {
-			/* Connect failed */
-			csp_log_error("Connection failed");
-			/* Remember to free packet buffer */
-			csp_buffer_free(packet);
-			return CSP_TASK_RETURN;
-		}
-
-		/* Copy dummy data to packet */
-		const char *msg = "Hello World";
-		strcpy((char *) packet->data, msg);
+		/* Copy data to packet */
+		strcpy((char *) packet->data, "Hello World"); // strcpy adds a 0 termination
 
 		/* Set packet length */
-		packet->length = strlen(msg);
+		packet->length = (strlen((char *) packet->data) + 1); // include the 0 termination
 
 		/* Send packet */
 		if (!csp_send(conn, packet, 1000)) {
@@ -140,20 +136,21 @@ CSP_DEFINE_TASK(task_client) {
 
 	return CSP_TASK_RETURN;
 }
+/* End of client task */
 
+/* main - initialization of CSP and start of server/client tasks */
 int main(int argc, char * argv[]) {
 
 	/**
 	 * Initialise CSP,
-	 * No physical interfaces are initialised in this example,
-	 * so only the loopback interface is registered.
+	 * No physical interfaces are initialised in this example, e.g. only the loopback interface is used.
 	 */
 
 	/* Set default logging */
 	csp_debug_set_level(CSP_INFO, true);
+	csp_log_info("Initialising CSP");
 
 	/* Init buffer system with 10 packets of maximum 300 bytes each */
-	csp_log_info("Initialising CSP");
 	csp_buffer_init(5, 300);
 
 	/* Init CSP with address MY_ADDRESS */
@@ -183,19 +180,13 @@ int main(int argc, char * argv[]) {
 		csp_route_print_interfaces();
 	}
 
-	/**
-	 * Initialise example threads, using pthreads.
-	 */
-
-	/* Server */
-	csp_log_info("Starting Server task");
+	/* Start server thread */
 	csp_thread_handle_t handle_server;
 	csp_thread_create(task_server, "SERVER", 1000, NULL, 0, &handle_server);
 
-	/* Client */
-	csp_log_info("Starting Client task");
+	/* Start client thread */
 	csp_thread_handle_t handle_client;
-	csp_thread_create(task_client, "CLIENTR", 1000, NULL, 0, &handle_client);
+	csp_thread_create(task_client, "CLIENT", 1000, NULL, 0, &handle_client);
 
 	/* Wait for execution to end (ctrl+c) */
 	while(1) {

@@ -48,6 +48,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #define RDP_EAK 0x04
 #define RDP_RST	0x08
 
+#if (CSP_USE_RDP)
+
 static uint32_t csp_rdp_window_size = 4;
 static uint32_t csp_rdp_conn_timeout = 10000;
 static uint32_t csp_rdp_packet_timeout = 1000;
@@ -77,20 +79,18 @@ typedef struct __attribute__((__packed__)) {
 	union __attribute__((__packed__)) {
 		uint8_t flags;
 		struct __attribute__((__packed__)) {
-#if defined(CSP_BIG_ENDIAN) && !defined(CSP_LITTLE_ENDIAN)
+#if (CSP_BIG_ENDIAN)
 			unsigned int res : 4;
 			unsigned int syn : 1;
 			unsigned int ack : 1;
 			unsigned int eak : 1;
 			unsigned int rst : 1;
-#elif defined(CSP_LITTLE_ENDIAN) && !defined(CSP_BIG_ENDIAN)
+#elif (CSP_LITTLE_ENDIAN)
 			unsigned int rst : 1;
 			unsigned int eak : 1;
 			unsigned int ack : 1;
 			unsigned int syn : 1;
 			unsigned int res : 4;
-#else
-  #error "Must define one of CSP_BIG_ENDIAN or CSP_LITTLE_ENDIAN in csp_platform.h"
 #endif
 		};
 	};
@@ -1084,7 +1084,7 @@ void csp_rdp_get_opt(unsigned int * window_size, unsigned int * conn_timeout_ms,
 		*ack_delay_count = csp_rdp_ack_delay_count;
 }
 
-#ifdef CSP_DEBUG
+#if (CSP_DEBUG)
 void csp_rdp_conn_print(csp_conn_t * conn) {
 
 	if (conn == NULL)
@@ -1094,4 +1094,6 @@ void csp_rdp_conn_print(csp_conn_t * conn) {
 			conn->rdp.state, conn->rdp.rcv_cur, conn->rdp.snd_una, conn->rdp.window_size);
 
 }
-#endif
+#endif // CSP_DEBUG
+
+#endif // CSP_USE_RDP

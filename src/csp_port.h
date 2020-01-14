@@ -52,7 +52,6 @@ void csp_port_free_resources(void);
 csp_socket_t * csp_port_get_socket(unsigned int dport);
 
 #ifdef __cplusplus
-} /* extern "C" */
+}
 #endif
-
-#endif // _CSP_PORT_H_
+#endif

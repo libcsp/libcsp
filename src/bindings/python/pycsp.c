@@ -12,10 +12,6 @@
 #include <csp/drivers/can_socketcan.h>
 #include <csp/csp_endian.h>
 
-#if PY_MAJOR_VERSION == 3
-#define IS_PY3
-#endif
-
 static int is_capsule_of_type(PyObject* capsule, const char* expected_type) {
     const char* capsule_name = PyCapsule_GetName(capsule);
     if (strcmp(capsule_name, expected_type) != 0) {
@@ -440,7 +436,7 @@ static PyObject* pycsp_rdp_set_opt(PyObject *self, PyObject *args) {
                           &ack_timeout, &ack_delay_count)) {
         return NULL; // TypeError is thrown
     }
-#ifdef CSP_USE_RDP
+#if (CSP_USE_RDP)
     csp_rdp_set_opt(window_size, conn_timeout_ms, packet_timeout_ms,
                     delayed_acks, ack_timeout, ack_delay_count);
 #endif
@@ -463,7 +459,7 @@ static PyObject* pycsp_rdp_get_opt(PyObject *self, PyObject *args) {
     unsigned int delayed_acks = 0;
     unsigned int ack_timeout = 0;
     unsigned int ack_delay_count = 0;
-#ifdef CSP_USE_RDP
+#if (CSP_USE_RDP)
     csp_rdp_get_opt(&window_size,
                     &conn_timeout_ms,
                     &packet_timeout_ms,
@@ -818,7 +814,7 @@ static PyObject* pycsp_packet_get_data(PyObject *self, PyObject *packet_capsule)
     }
 
     csp_packet_t* packet = PyCapsule_GetPointer(packet_capsule, "csp_packet_t");
-#ifdef IS_PY3
+#if (PY_MAJOR_VERSION == 3)
     return Py_BuildValue("y#", packet->data, packet->length);
 #else
     return Py_BuildValue("s#", packet->data, packet->length);
@@ -901,7 +897,7 @@ static PyMethodDef methods[] = {
     {NULL, NULL, 0, NULL}
 };
 
-#ifdef IS_PY3
+#if (PY_MAJOR_VERSION == 3)
 static struct PyModuleDef moduledef = {
     PyModuleDef_HEAD_INIT,
     "libcsp_py3",
@@ -915,7 +911,7 @@ static struct PyModuleDef moduledef = {
 };
 #endif
 
-#ifdef IS_PY3
+#if (PY_MAJOR_VERSION == 3)
 PyMODINIT_FUNC PyInit_libcsp_py3(void) {
 #else
     PyMODINIT_FUNC initlibcsp_py2(void) {
@@ -923,7 +919,7 @@ PyMODINIT_FUNC PyInit_libcsp_py3(void) {
 
         PyObject* m;
 
-#ifdef IS_PY3
+#if (PY_MAJOR_VERSION == 3)
         m = PyModule_Create(&moduledef);
 #else
         m = Py_InitModule("libcsp_py2", methods);
@@ -1005,7 +1001,7 @@ PyMODINIT_FUNC PyInit_libcsp_py3(void) {
          */
         PyModule_AddIntConstant(m, "CSP_NODE_MAC", CSP_NODE_MAC);
 
-#ifdef IS_PY3
+#if (PY_MAJOR_VERSION == 3)
         return m;
 #endif
     }

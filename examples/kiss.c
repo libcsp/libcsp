@@ -110,21 +110,12 @@ int main(int argc, char **argv) {
 
     struct usart_conf conf = {
         .device = argv[1],
-        .baudrate = 500000,
+        .baudrate = 115200, // supported on all platforms
         .databits = 8,
         .stopbits = 1,
         .paritysetting = 0,
         .checkparity = 0
     };
-
-#if defined(CSP_WINDOWS)
-    conf.baudrate = CBR_9600;
-    conf.paritysetting = NOPARITY;
-    conf.stopbits = ONESTOPBIT;
-    conf.checkparity = FALSE;
-#elif defined(CSP_MACOSX)
-    conf.baudrate = 115200;
-#endif
 
     /* Initialize UART and register CSP KISS interface */
     csp_iface_t * csp_if_kiss;

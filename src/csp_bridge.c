@@ -52,7 +52,7 @@ static CSP_DEFINE_TASK(csp_bridge) {
 				packet->id.sport, packet->id.pri, packet->id.flags, packet->length);
 
 		/* Here there be promiscuous mode */
-#ifdef CSP_USE_PROMISC
+#if (CSP_USE_PROMISC)
 		csp_promisc_add(packet);
 #endif
 

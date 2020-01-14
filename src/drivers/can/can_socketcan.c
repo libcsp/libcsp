@@ -28,7 +28,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <sys/ioctl.h>
 #include <net/if.h>
 #include <linux/can/raw.h>
-#ifdef CSP_HAVE_LIBSOCKETCAN
+#if (CSP_HAVE_LIBSOCKETCAN)
 #include <libsocketcan.h>
 #endif
 
@@ -123,7 +123,7 @@ int csp_can_socketcan_open_and_add_interface(const char * device, const char * i
 	csp_log_info("%s: device: [%s], interface: [%s], bitrate: %d, promisc: %d",
 			__FUNCTION__, device, ifname, bitrate, promisc);
 
-#ifdef CSP_HAVE_LIBSOCKETCAN
+#if (CSP_HAVE_LIBSOCKETCAN)
 	/* Set interface up - this may require increased OS privileges */
 	if (bitrate > 0) {
 		can_do_stop(device);

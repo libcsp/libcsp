@@ -33,7 +33,7 @@ extern "C" {
 #endif
 
 /* Set OS */
-#if defined(CSP_POSIX) || defined(CSP_WINDOWS) || defined(CSP_MACOSX) || defined(__DOXYGEN__)
+#if (CSP_POSIX || CSP_WINDOWS || CSP_MACOSX || __DOXYGEN__)
 	/** Base type. Mainly used for FreeRTOS calls to trigger task re-scheduling. */
 	#define CSP_BASE_TYPE int
 	/** Max timeout time. On platforms supporting no timeouts (e.g. Linux), the timeout will be converted to \a forever. */
@@ -46,7 +46,7 @@ extern "C" {
 	#define CSP_ENTER_CRITICAL(lock) do { csp_bin_sem_wait(&lock, CSP_MAX_DELAY); } while(0)
 	/** Exit/release critical lock. */
 	#define CSP_EXIT_CRITICAL(lock) do { csp_bin_sem_post(&lock); } while(0)
-#elif defined(CSP_FREERTOS)
+#elif (CSP_FREERTOS)
 	#include "FreeRTOS.h"
 	#define CSP_BASE_TYPE portBASE_TYPE
 	#define CSP_MAX_TIMEOUT portMAX_DELAY
@@ -55,7 +55,7 @@ extern "C" {
 	#define CSP_ENTER_CRITICAL(lock) do { portENTER_CRITICAL(); } while (0)
 	#define CSP_EXIT_CRITICAL(lock) do { portEXIT_CRITICAL(); } while (0)
 #else
-	#error "OS must be either CSP_POSIX, CSP_MACOSX, CSP_FREERTOS OR CSP_WINDOWS"
+	#error "OS must be either CSP_POSIX, CSP_MACOSX, CSP_FREERTOS or CSP_WINDOWS"
 #endif
 
 /** Legacy definition for #CSP_MAX_TIMEOUT. */

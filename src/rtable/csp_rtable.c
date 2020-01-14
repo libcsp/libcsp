@@ -179,7 +179,7 @@ uint8_t csp_rtable_find_mac(uint8_t address)
     return CSP_NODE_MAC;
 }
 
-#ifdef CSP_DEBUG
+#if (CSP_DEBUG)
 
 static bool csp_rtable_print_route(void * ctx, uint8_t address, uint8_t mask, const csp_rtable_route_t * route)
 {
