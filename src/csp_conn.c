@@ -247,6 +247,10 @@ csp_conn_t * csp_conn_new(csp_id_t idin, csp_id_t idout) {
 }
 
 int csp_close(csp_conn_t * conn) {
+    return csp_conn_close(conn, CSP_RDP_CLOSED_BY_USERSPACE);
+}
+
+int csp_conn_close(csp_conn_t * conn, uint8_t closed_by) {
 
 	if (conn == NULL) {
 		return CSP_ERR_NONE;
@@ -259,9 +263,11 @@ int csp_close(csp_conn_t * conn) {
 
 #if (CSP_USE_RDP)
 	/* Ensure RDP knows this connection is closing */
-	if ((conn->idin.flags & CSP_FRDP) || (conn->idout.flags & CSP_FRDP))
-		if (csp_rdp_close(conn) == CSP_ERR_AGAIN)
+	if ((conn->idin.flags & CSP_FRDP) || (conn->idout.flags & CSP_FRDP)) {
+		if (csp_rdp_close(conn, closed_by) == CSP_ERR_AGAIN) {
 			return CSP_ERR_NONE;
+		}
+	}
 #endif
 
 	/* Lock connection array while closing connection */

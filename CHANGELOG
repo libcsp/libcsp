@@ -1,5 +1,10 @@
 libcsp 1.6, DD-MM-YYYY
 ----------------------
+- RDP: Ensure connection is kept in CLOSE_WAIT for period of time. In some cases, the connection would switch to CLOSED immediately.
+- RDP: Fixed connection leak, if a RST segment was received on a closed connecton.
+- RDP: Ensure connection is closed from both userspace and protocol, before closing completely (preventing undetermined behaviour).
+- RDP: Added support for fast close of a connection (skipping the CLOSE_WAIT period), but only if both ends agree on close.
+- RDP: Fixed issue "Possible bug in RDP TX timeout" (#109), see issue on github for further details.
 - new: Added Travis-CI support on Github, builds Linux, Mac and Windows.
 - code: Changed #ifdef/ifndef to single #if in order to support forced disabling and alignment with log macro's.
 - bug: Check message length when receiving CRC32.
