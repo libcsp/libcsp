@@ -58,11 +58,11 @@ static CSP_DEFINE_TASK(csp_bridge) {
 
 		/* Find the opposing interface */
 		csp_rtable_route_t route;
-		if (input.interface == bif_a.iface) {
-			route.interface = bif_b.iface;
+		if (input.iface == bif_a.iface) {
+			route.iface = bif_b.iface;
 			route.mac = CSP_NODE_MAC;
 		} else {
-			route.interface = bif_a.iface;
+			route.iface = bif_a.iface;
 			route.mac = CSP_NODE_MAC;
 		}
 

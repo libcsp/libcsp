@@ -110,7 +110,7 @@ static int prvTryConfigurePort(const struct usart_conf * conf) {
 
     GetCommState(portHandle, &portSettings);
 
-    csp_log_info("Port: %s, Baudrate: %lu, Data bits: %d, Stop bits: %d, Parity: %s",
+    csp_log_info("Port: %s, Baudrate: %u, Data bits: %d, Stop bits: %d, Parity: %s",
             conf->device, conf->baudrate, conf->databits, conf->stopbits, prvParityToStr(conf->paritysetting));
     return 0;
 }
@@ -247,5 +247,4 @@ void usart_init(struct usart_conf * conf) {
     /* Start receiver thread */
     usart_listen();
 }
-
 

@@ -2,8 +2,6 @@
 #include <process.h>
 #include <stdio.h>
 #include <ctype.h>
-#include <stddef.h>
-#undef interface
 
 #include <csp/csp.h>
 #include <csp/csp_interface.h>

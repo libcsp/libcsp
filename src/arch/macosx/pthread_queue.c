@@ -73,7 +73,7 @@ void pthread_queue_delete(pthread_queue_t * q) {
 
 }
 
-int pthread_queue_enqueue(pthread_queue_t * queue, void * value, uint32_t timeout) {
+int pthread_queue_enqueue(pthread_queue_t * queue, const void * value, uint32_t timeout) {
 	
 	int ret;
 

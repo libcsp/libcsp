@@ -83,7 +83,7 @@ int csp_qfifo_read(csp_qfifo_t * input) {
 
 }
 
-void csp_qfifo_write(csp_packet_t * packet, csp_iface_t * interface, CSP_BASE_TYPE * pxTaskWoken) {
+void csp_qfifo_write(csp_packet_t * packet, csp_iface_t * iface, CSP_BASE_TYPE * pxTaskWoken) {
 
 	int result;
 
@@ -94,7 +94,7 @@ void csp_qfifo_write(csp_packet_t * packet, csp_iface_t * interface, CSP_BASE_TY
 		return;
 	}
 
-	if (interface == NULL) {
+	if (iface == NULL) {
 		if (pxTaskWoken == NULL) { // Only do logging in non-ISR context
 		csp_log_warn("csp_new packet called with NULL interface");
 		}
@@ -106,7 +106,7 @@ void csp_qfifo_write(csp_packet_t * packet, csp_iface_t * interface, CSP_BASE_TY
 	}
 
 	csp_qfifo_t queue_element;
-	queue_element.interface = interface;
+	queue_element.iface = iface;
 	queue_element.packet = packet;
 
 #if (CSP_USE_QOS)
@@ -135,7 +135,7 @@ void csp_qfifo_write(csp_packet_t * packet, csp_iface_t * interface, CSP_BASE_TY
 		if (pxTaskWoken == NULL) { // Only do logging in non-ISR context
 		csp_log_warn("ERROR: Routing input FIFO is FULL. Dropping packet.");
 		}
-		interface->drop++;
+		iface->drop++;
 		if (pxTaskWoken == NULL)
 			csp_buffer_free(packet);
 		else
@@ -145,6 +145,6 @@ void csp_qfifo_write(csp_packet_t * packet, csp_iface_t * interface, CSP_BASE_TY
 }
 
 void csp_qfifo_wake_up(void) {
-	const csp_qfifo_t queue_element = {.interface = NULL, .packet = NULL};
+	const csp_qfifo_t queue_element = {.iface = NULL, .packet = NULL};
 	csp_queue_enqueue(qfifo[0], &queue_element, 0);
 }

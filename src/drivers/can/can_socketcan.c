@@ -34,6 +34,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <csp/csp.h>
 
+// CAN interface data, state, etc.
 typedef struct {
     char name[CSP_IFLIST_NAME_MAX + 1];
     csp_iface_t iface;
@@ -42,8 +43,7 @@ typedef struct {
 	int socket;
 } can_context_t;
 
-static void socketcan_free(can_context_t * ctx)
-	{
+static void socketcan_free(can_context_t * ctx) {
     if (ctx) {
         if (ctx->socket >= 0) {
             close(ctx->socket);

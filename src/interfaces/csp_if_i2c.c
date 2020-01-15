@@ -49,8 +49,8 @@ int csp_i2c_tx(const csp_rtable_route_t * ifroute, csp_packet_t * packet, uint32
 	frame->retries = 0;
 
 	/* send frame */
-        csp_i2c_interface_data_t * ifdata = ifroute->interface->interface_data;
-	return (ifdata->tx_func)(ifroute->interface->driver_data, frame, timeout);
+        csp_i2c_interface_data_t * ifdata = ifroute->iface->interface_data;
+	return (ifdata->tx_func)(ifroute->iface->driver_data, frame, timeout);
 
 }
 

@@ -84,7 +84,6 @@ typedef pthread_queue_t * csp_mutex_t;
 #if (CSP_WINDOWS)
 
 #include <Windows.h>
-#undef interface
 
 #define CSP_SEMAPHORE_OK 	1
 #define CSP_SEMAPHORE_ERROR 2
