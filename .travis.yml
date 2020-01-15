@@ -1,6 +1,5 @@
 # Travis CI
 
-branches: [develop-travis]
 language: c
 
 jobs:
