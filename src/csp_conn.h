@@ -29,6 +29,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 extern "C" {
 #endif
 
+#ifndef CSP_USE_RDP_FAST_CLOSE
+#define CSP_USE_RDP_FAST_CLOSE 0
+#endif
+
 /** Connection states */
 typedef enum {
 	CONN_CLOSED = 0,
@@ -50,11 +54,17 @@ typedef enum {
 	RDP_CLOSE_WAIT,
 } csp_rdp_state_t;
 
+#define CSP_RDP_CLOSED_BY_USERSPACE  0x01
+#define CSP_RDP_CLOSED_BY_PROTOCOL   0x02
+#define CSP_RDP_CLOSED_BY_TIMEOUT    0x04
+#define CSP_RDP_CLOSED_BY_ALL        (CSP_RDP_CLOSED_BY_USERSPACE | CSP_RDP_CLOSED_BY_PROTOCOL | CSP_RDP_CLOSED_BY_TIMEOUT)
+
 /**
  * RDP Connection
  */
 typedef struct {
 	csp_rdp_state_t state;		/**< Connection state */
+	uint8_t closed_by;		/**< Tracks 'who' have closed the RDP connection */
 	uint16_t snd_nxt;		/**< The sequence number of the next segment that is to be sent */
 	uint16_t snd_una;		/**< The sequence number of the oldest unacknowledged segment */
 	uint16_t snd_iss;		/**< The initial send sequence number */
@@ -98,6 +108,7 @@ csp_conn_t * csp_conn_find(uint32_t id, uint32_t mask);
 csp_conn_t * csp_conn_new(csp_id_t idin, csp_id_t idout);
 void csp_conn_check_timeouts(void);
 int csp_conn_get_rxq(int prio);
+int csp_conn_close(csp_conn_t * conn, uint8_t closed_by);
 
 const csp_conn_t * csp_conn_get_array(size_t * size); // for test purposes only!
 
