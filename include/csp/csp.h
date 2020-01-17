@@ -502,7 +502,7 @@ void csp_hex_dump(const char *desc, void *addr, int len);
 
 /**
    Set platform specific memory copy function.
- */
+*/
 void csp_cmp_set_memcpy(csp_memcpy_fnc_t fnc);
 
 #ifdef __cplusplus

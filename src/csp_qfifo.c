@@ -89,14 +89,14 @@ void csp_qfifo_write(csp_packet_t * packet, csp_iface_t * iface, CSP_BASE_TYPE *
 
 	if (packet == NULL) {
 		if (pxTaskWoken == NULL) { // Only do logging in non-ISR context
-		csp_log_warn("csp_new packet called with NULL packet");
+			csp_log_warn("csp_new packet called with NULL packet");
 		}
 		return;
 	}
 
 	if (iface == NULL) {
 		if (pxTaskWoken == NULL) { // Only do logging in non-ISR context
-		csp_log_warn("csp_new packet called with NULL interface");
+			csp_log_warn("csp_new packet called with NULL interface");
 		}
 		if (pxTaskWoken == NULL)
 			csp_buffer_free(packet);
@@ -133,7 +133,7 @@ void csp_qfifo_write(csp_packet_t * packet, csp_iface_t * iface, CSP_BASE_TYPE *
 
 	if (result != CSP_QUEUE_OK) {
 		if (pxTaskWoken == NULL) { // Only do logging in non-ISR context
-		csp_log_warn("ERROR: Routing input FIFO is FULL. Dropping packet.");
+			csp_log_warn("ERROR: Routing input FIFO is FULL. Dropping packet.");
 		}
 		iface->drop++;
 		if (pxTaskWoken == NULL)

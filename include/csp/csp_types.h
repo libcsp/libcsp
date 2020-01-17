@@ -43,7 +43,7 @@ extern "C" {
 
 /**
    Reserved ports for services.
- */
+*/
 enum csp_reserved_ports_e {
 	CSP_CMP				= 0,   //!< CSP management, e.g. memory, routes, stats
 	CSP_PING			= 1,   //!< Ping - return ping
@@ -107,7 +107,7 @@ typedef enum {
 /** CSP identifier/header - destination port mask */
 #define CSP_ID_DPORT_MASK   		((uint32_t) CSP_ID_PORT_MAX  << (CSP_ID_FLAGS_SIZE + (1 * CSP_ID_PORT_SIZE)))
 /** CSP identifier/header - source port mask */
-#define CSP_ID_SPORT_MASK   		((uint32_t) CSP_ID_PORT_MAX << (CSP_ID_FLAGS_SIZE))
+#define CSP_ID_SPORT_MASK   		((uint32_t) CSP_ID_PORT_MAX  << (CSP_ID_FLAGS_SIZE))
 /** CSP identifier/header - flag mask */
 #define CSP_ID_FLAGS_MASK		((uint32_t) CSP_ID_FLAGS_MAX << (0))
 /** CSP identifier/header - connection mask (source & destination address + source & destination ports) */
@@ -134,9 +134,9 @@ typedef union {
         unsigned int flags : CSP_ID_FLAGS_SIZE;
         unsigned int sport : CSP_ID_PORT_SIZE;
         unsigned int dport : CSP_ID_PORT_SIZE;
-        unsigned int dst : CSP_ID_HOST_SIZE;
-        unsigned int src : CSP_ID_HOST_SIZE;
-        unsigned int pri : CSP_ID_PRIO_SIZE;
+        unsigned int dst   : CSP_ID_HOST_SIZE;
+        unsigned int src   : CSP_ID_HOST_SIZE;
+        unsigned int pri   : CSP_ID_PRIO_SIZE;
 #endif
     };
 } csp_id_t;
@@ -206,7 +206,7 @@ typedef union {
 
    @note In most cases a CSP packet cannot be reused in case of send failure, because the lower layers may add additional data causing 
    increased length (e.g. CRC32), convert the CSP id/ to different endian (e.g. I2C), etc.
- */
+*/
 typedef struct {
 	/** Padding. These bytes are used by some interface or protocols to store local data. */
 	uint8_t padding[CSP_PADDING_BYTES];
@@ -232,8 +232,8 @@ typedef struct {
    Size of the packet overhead in #csp_packet_t.
    The overhead is the difference between the total buffer size (returned by csp_buffer_size()) and the data part
    of the #csp_packet_t (returned by csp_buffer_data_size()).
- */
-#define CSP_BUFFER_PACKET_OVERHEAD 	(sizeof(csp_packet_t) - sizeof(((csp_packet_t *)0)->data))
+*/
+#define CSP_BUFFER_PACKET_OVERHEAD      (sizeof(csp_packet_t) - sizeof(((csp_packet_t *)0)->data))
 
 /** Forward declaration of CSP interface, see #csp_iface_s for details. */
 typedef struct csp_iface_s csp_iface_t;

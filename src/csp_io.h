@@ -35,7 +35,7 @@ extern "C" {
    @param ifroute route to destination
    @param timeout timeout to wait for TX to complete. NOTE: not all underlying drivers supports flow-control.
    @return #CSP_ERR_NONE on success, otherwise an error code.
- */
+*/
 int csp_send_direct(csp_id_t idout, csp_packet_t * packet, const csp_rtable_route_t * ifroute, uint32_t timeout);
 
 #ifdef __cplusplus

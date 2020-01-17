@@ -772,7 +772,7 @@ static PyObject* pycsp_can_socketcan_init(PyObject *self, PyObject *args)
 static PyObject* pycsp_kiss_init(PyObject *self, PyObject *args) {
 	char* device;
 	uint32_t baudrate = 500000;
-	uint32_t mtu = 512; 
+	uint32_t mtu = 512;
 	const char* if_name = CSP_IF_KISS_DEFAULT_NAME;
 	if (!PyArg_ParseTuple(args, "s|IIs", &device, &baudrate, &mtu, &if_name)) {
 		return NULL; // TypeError is thrown

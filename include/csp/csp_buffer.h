@@ -40,7 +40,7 @@ extern "C" {
    @param[in] count Number of buffers to allocate.
    @param[in] data_size data size in bytes, sizeof #csp_packet_t -> data[..]
    @return #CSP_ERR_NONE on success, otherwise an error code.
- */
+*/
 int csp_buffer_init(size_t count, size_t data_size);
 
 /**
@@ -48,7 +48,7 @@ int csp_buffer_init(size_t count, size_t data_size);
 
    @param[in] data_size minimum data size of requested buffer.
    @return Buffer (pointer to #csp_packet_t) or NULL if no buffers available.
- */
+*/
 void * csp_buffer_get(size_t data_size);
 
 /**
@@ -56,19 +56,19 @@ void * csp_buffer_get(size_t data_size);
 
    @param[in] data_size minimum data size of requested buffer.
    @return Buffer (pointer to #csp_packet_t) or NULL if no buffers available.
- */
+*/
 void * csp_buffer_get_isr(size_t data_size);
 
 /**
    Free buffer.
    @param[in] buffer buffer to free. NULL is handled gracefully.
- */
+*/
 void csp_buffer_free(void *buffer);
 
 /**
    Free buffer from within ISR context.
    @param[in] buffer buffer to free. NULL is handled gracefully.
- */
+*/
 void csp_buffer_free_isr(void *buffer);
 
 /**
@@ -76,19 +76,19 @@ void csp_buffer_free_isr(void *buffer);
    The existing \a buffer content is copied to the new buffer.
    @param[in] buffer Existing buffer to clone.
    @return cloned buffer, NULL on failure.
- */
+*/
 void * csp_buffer_clone(void *buffer);
 
 /**
    Return number of remaining/free buffers.
    @return number of remaining/free buffers
- */
+*/
 int csp_buffer_remaining(void);
 
 /**
    Return the size of a CSP buffer.
    @return size of a CSP buffer, sizeof(#csp_packet_t) + data_size.
- */
+*/
 size_t csp_buffer_size(void);
 
 /**

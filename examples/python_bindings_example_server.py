@@ -46,9 +46,9 @@ if __name__ == "__main__":
             continue
 
         print ("connection: source=%i:%i, dest=%i:%i" % (csp.conn_src(conn),
-                                                        csp.conn_sport(conn),
-                                                        csp.conn_dst(conn),
-                                                        csp.conn_dport(conn)))
+                                                         csp.conn_sport(conn),
+                                                         csp.conn_dst(conn),
+                                                         csp.conn_dport(conn)))
 
         while True:
             packet = csp.read(conn)

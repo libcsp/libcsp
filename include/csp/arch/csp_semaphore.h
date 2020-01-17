@@ -50,7 +50,7 @@ extern "C" {
 
    @note Platform specific (this is Posix) and differs from standard CSP error codes.
 */
-#define CSP_SEMAPHORE_ERROR 2
+#define CSP_SEMAPHORE_ERROR	2
 
 /**
    Semaphore handle.
@@ -86,7 +86,7 @@ typedef pthread_queue_t * csp_mutex_t;
 #include <Windows.h>
 
 #define CSP_SEMAPHORE_OK 	1
-#define CSP_SEMAPHORE_ERROR 2
+#define CSP_SEMAPHORE_ERROR	2
 
 typedef HANDLE csp_bin_sem_handle_t;
 typedef HANDLE csp_mutex_t;

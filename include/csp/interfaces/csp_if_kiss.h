@@ -36,7 +36,7 @@ extern "C" {
 
 /**
    Default name of KISS interface.
- */
+*/
 #define CSP_IF_KISS_DEFAULT_NAME "KISS"
 
 /**
@@ -46,12 +46,12 @@ extern "C" {
    @param[in] data data to send
    @param[in] len length of \a data.
    @return #CSP_ERR_NONE on success, otherwise an error code.
- */
+*/
 typedef int (*csp_kiss_driver_tx_f)(void *driver_data, const uint8_t * data, size_t len);
 
 /**
    KISS Rx mode/state.
- */
+*/
 typedef enum {
 	KISS_MODE_NOT_STARTED,  //!< No start detected
 	KISS_MODE_STARTED,      //!< Started on a KISS frame
@@ -61,21 +61,21 @@ typedef enum {
 
 /**
    KISS interface data (state information).
- */
+*/
 typedef struct {
-    /** Max Rx length */
-    unsigned int max_rx_length;
-    /** Tx function */
-    csp_kiss_driver_tx_f tx_func;
-    /** Tx lock. Current implementation doesn't transfer data to driver in a single 'write', hence locking is necessary. */
-    csp_mutex_t lock;
-    /** Rx mode/state. */
+	/** Max Rx length */
+	unsigned int max_rx_length;
+	/** Tx function */
+	csp_kiss_driver_tx_f tx_func;
+	/** Tx lock. Current implementation doesn't transfer data to driver in a single 'write', hence locking is necessary. */
+	csp_mutex_t lock;
+	/** Rx mode/state. */
 	kiss_mode_e rx_mode;
-    /** Rx length */
-    unsigned int rx_length;
-    /** Rx first - if set, waiting for first character (== TNC_DATA) after start */
-    bool rx_first;
-    /** CSP packet for storing Rx data. */
+	/** Rx length */
+	unsigned int rx_length;
+	/** Rx first - if set, waiting for first character (== TNC_DATA) after start */
+	bool rx_first;
+	/** CSP packet for storing Rx data. */
 	csp_packet_t * rx_packet;
 } csp_kiss_interface_data_t;
 

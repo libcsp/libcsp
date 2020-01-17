@@ -22,7 +22,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <stdio.h>
 
-void csp_hex_dump (const char *desc, void *addr, int len)
+void csp_hex_dump(const char *desc, void *addr, int len)
 {
 	int i;
 	unsigned char buff[17];

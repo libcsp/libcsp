@@ -46,12 +46,12 @@ extern "C" {
 /**
    zmqproxy default publish (tx) port.
    The client must connect it's subscribe endpoint to the zmqproxy's publish port.
- */
+*/
 #define CSP_ZMQPROXY_PUBLISH_PORT     7000
 
 /**
    Default ZMQ interface name.
- */
+*/
 #define CSP_ZMQHUB_IF_NAME            "ZMQHUB"
 
 /**

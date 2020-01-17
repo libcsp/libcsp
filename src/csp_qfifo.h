@@ -24,7 +24,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/csp_interface.h>
 
 #if (CSP_USE_RDP)
-#define FIFO_TIMEOUT 100				//! If RDP is enabled, the router needs to awake some times to check timeouts
+#define FIFO_TIMEOUT 100			//! If RDP is enabled, the router needs to awake some times to check timeouts
 #else
 #define FIFO_TIMEOUT CSP_MAX_TIMEOUT		//! If no RDP, the router can sleep untill data arrives
 #endif

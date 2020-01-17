@@ -36,20 +36,21 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 // CAN interface data, state, etc.
 typedef struct {
-    char name[CSP_IFLIST_NAME_MAX + 1];
-    csp_iface_t iface;
-    csp_can_interface_data_t ifdata;
-    pthread_t rx_thread;
+	char name[CSP_IFLIST_NAME_MAX + 1];
+	csp_iface_t iface;
+	csp_can_interface_data_t ifdata;
+	pthread_t rx_thread;
 	int socket;
 } can_context_t;
 
 static void socketcan_free(can_context_t * ctx) {
-    if (ctx) {
-        if (ctx->socket >= 0) {
-            close(ctx->socket);
-        }
-        free(ctx);
-    }
+
+	if (ctx) {
+		if (ctx->socket >= 0) {
+			close(ctx->socket);
+		}
+		free(ctx);
+	}
 }
 
 static void * socketcan_rx_thread(void * arg)
@@ -75,7 +76,7 @@ static void * socketcan_rx_thread(void * arg)
 			continue;
 		}
 
-			/* Drop error and remote frames */
+		/* Drop error and remote frames */
 		if (frame.can_id & (CAN_ERR_FLAG | CAN_RTR_FLAG)) {
 			csp_log_warn("%s[%s]: discarding ERR/RTR/SFF frame", __FUNCTION__, ctx->name);
 			continue;
@@ -111,7 +112,7 @@ static int csp_can_tx_frame(void * driver_data, uint32_t id, const uint8_t * dat
 			return CSP_ERR_TX;
 		}
 		// cppcheck-suppress usleepCalled 
-			usleep(10000);
+		usleep(10000);
 		elapsed_ms += 10;
 	}
 
@@ -182,7 +183,7 @@ int csp_can_socketcan_open_and_add_interface(const char * device, const char * i
 			socketcan_free(ctx);
 			return CSP_ERR_INVAL;
 		}
-		}
+	}
 
 	/* Add interface to CSP */
         int res = csp_can_add_interface(&ctx->iface);

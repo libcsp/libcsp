@@ -58,13 +58,13 @@ extern "C" {
    @{
 */
 /** Host - source/destination address. */
-#define CFP_HOST_SIZE       5
+#define CFP_HOST_SIZE		5
 /** Type - \a begin fragment or \a more fragments. */
-#define CFP_TYPE_SIZE       1
+#define CFP_TYPE_SIZE		1
 /** Remaining fragments */
-#define CFP_REMAIN_SIZE     8
+#define CFP_REMAIN_SIZE		8
 /** CFP identification. */
-#define CFP_ID_SIZE         10
+#define CFP_ID_SIZE		10
 /** @} */
 
 /**
@@ -74,15 +74,15 @@ extern "C" {
 /** Helper macro */
 #define CFP_FIELD(id,rsiz,fsiz) ((uint32_t)((uint32_t)((id) >> (rsiz)) & (uint32_t)((1 << (fsiz)) - 1)))
 /** Extract source address */
-#define CFP_SRC(id)			CFP_FIELD(id, CFP_HOST_SIZE + CFP_TYPE_SIZE + CFP_REMAIN_SIZE + CFP_ID_SIZE, CFP_HOST_SIZE)
+#define CFP_SRC(id)		CFP_FIELD(id, CFP_HOST_SIZE + CFP_TYPE_SIZE + CFP_REMAIN_SIZE + CFP_ID_SIZE, CFP_HOST_SIZE)
 /** Extract destination address */
-#define CFP_DST(id)			CFP_FIELD(id, CFP_TYPE_SIZE + CFP_REMAIN_SIZE + CFP_ID_SIZE, CFP_HOST_SIZE)
+#define CFP_DST(id)		CFP_FIELD(id, CFP_TYPE_SIZE + CFP_REMAIN_SIZE + CFP_ID_SIZE, CFP_HOST_SIZE)
 /** Extract type (begin or more) */
 #define CFP_TYPE(id)		CFP_FIELD(id, CFP_REMAIN_SIZE + CFP_ID_SIZE, CFP_TYPE_SIZE)
 /** Extract remaining fragments */
 #define CFP_REMAIN(id)		CFP_FIELD(id, CFP_ID_SIZE, CFP_REMAIN_SIZE)
 /** Extract CFP identification */
-#define CFP_ID(id)			CFP_FIELD(id, 0, CFP_ID_SIZE)
+#define CFP_ID(id)		CFP_FIELD(id, 0, CFP_ID_SIZE)
 /** @} */
 
 /**

@@ -10,13 +10,13 @@ libcsp 1.6, DD-MM-YYYY
 - bug: Check message length when receiving CRC32.
 - api: Updated thread API, documentation, aligned implementation
 - refactored all CSP interfaces.
-  - Accept csp_rtable_route_t, instead of csp_iface_t.
-  - No static members -> multiple interfaces of all types.
-    - Added csp_iface_t.interface_data for interface data.
-    - Added csp_iface_t.driver_data for driver data (unknown to interface level).
-  - Checks for buffer overrun
-  - Set MTU if not already set, and it make sense on the respective interface.
-  - Driver Tx function is now a callback, must be set by the application in the interface data.
+   - Accept csp_rtable_route_t, instead of csp_iface_t.
+   - No static members -> multiple interfaces of all types.
+      - Added csp_iface_t.interface_data for interface data.
+      - Added csp_iface_t.driver_data for driver data (unknown to interface level).
+   - Checks for buffer overrun
+   - Set MTU if not already set, and it make sense on the respective interface.
+   - Driver Tx function is now a callback, must be set by the application in the interface data.
 - csp_packet_t (and other structs) are no longer packed, instead padding is increased from 8 to 10 bytes to ensure correct alignment.
 - refactored rtable CIDR/static impl., e.g. use same format for storing table (text). csp_rtable_route_t (new) holds route entry.
 - api: Added csp_get_memfree()/csp_get_buf_free()/csp_get_uptime(), which returns an error code.

@@ -3,7 +3,7 @@
 
 # Cubesat Space Protocol - A small network-layer protocol designed for Cubesats
 # Copyright (C) 2012 GomSpace ApS (http://www.gomspace.com)
-# Copyright (C) 2012 AAUSAT3 Project (http://aausat3.space.aau.dk) 
+# Copyright (C) 2012 AAUSAT3 Project (http://aausat3.space.aau.dk)
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -31,7 +31,7 @@ valid_loglevel = ['error', 'warn', 'info', 'debug']
 def options(ctx):
     # Load compiler
     ctx.load('compiler_c')
-    
+
     ctx.add_option('--toolchain', default=None, help='Set toolchain prefix')
 
     # Set libcsp options
@@ -103,7 +103,7 @@ def configure(ctx):
 
     # Setup default include path and any extra defined
     ctx.env.append_unique('INCLUDES_CSP', ['include'] + ctx.options.includes.split(','))
-    
+
     # Store OS as env variable
     ctx.env.append_unique('OS', ctx.options.with_os)
 
@@ -129,7 +129,7 @@ def configure(ctx):
                                         'src/arch/{0}/**/*.c'.format(ctx.options.with_os),
                                         'src/rtable/csp_rtable.c',
                                         'src/rtable/csp_rtable_{0}.c'.format(ctx.options.with_rtable)])
-        
+
     # Add socketcan
     if ctx.options.enable_can_socketcan:
         ctx.env.append_unique('FILES_CSP', 'src/drivers/can/can_socketcan.c')
@@ -139,7 +139,7 @@ def configure(ctx):
     # Add USART driver
     if ctx.options.with_driver_usart:
         ctx.env.append_unique('FILES_CSP', 'src/drivers/usart/usart_{0}.c'.format(ctx.options.with_driver_usart))
-        
+
     # Add ZMQ
     if ctx.options.enable_if_zmqhub:
         ctx.check_cfg(package='libzmq', args='--cflags --libs', define_name='CSP_HAVE_LIBZMQ')
@@ -183,7 +183,7 @@ def configure(ctx):
     ctx.define('LIBCSP_VERSION', VERSION)
 
     ctx.write_config_header('include/csp/csp_autoconfig.h')
-    
+
 
 def build(ctx):
 
@@ -201,62 +201,62 @@ def build(ctx):
 
     ctx(features=ctx.env.FEATURES,
         source=ctx.path.ant_glob(ctx.env.FILES_CSP),
-        target = 'csp',
+        target='csp',
         use=['csp_h', 'freertos_h', 'util'],
         install_path=install_path)
 
     # Build shared library for Python bindings
     if ctx.env.LIBCSP_PYTHON2 or ctx.env.LIBCSP_PYTHON3:
         ctx.shlib(source=ctx.path.ant_glob(ctx.env.FILES_CSP),
-                  name = 'csp_shlib',
-                  target = 'csp',
+                  name='csp_shlib',
+                  target='csp',
                   use=['csp_h', 'util_shlib'],
-                  lib = ctx.env.LIBS)
+                  lib=ctx.env.LIBS)
 
         # python3 bindings
         if ctx.env.LIBCSP_PYTHON3:
-            ctx.shlib(source = ['src/bindings/python/pycsp.c'],
-                      target = 'csp_py3',
+            ctx.shlib(source=['src/bindings/python/pycsp.c'],
+                      target='csp_py3',
                       includes=ctx.env.INCLUDES_PYTHON3,
                       use=['csp_shlib'],
-                      lib = ctx.env.LIBS)
+                      lib=ctx.env.LIBS)
 
         # python2 bindings
         if ctx.env.LIBCSP_PYTHON2:
-            ctx.shlib(source = ['src/bindings/python/pycsp.c'],
-                      target = 'csp_py2',
+            ctx.shlib(source=['src/bindings/python/pycsp.c'],
+                      target='csp_py2',
                       includes=ctx.env.INCLUDES_PYTHON2,
                       use=['csp_shlib'],
-                      lib = ctx.env.LIBS)
+                      lib=ctx.env.LIBS)
 
     if ctx.env.ENABLE_EXAMPLES:
         ctx.program(source='examples/simple.c',
-            target = 'simple',
-            lib = ctx.env.LIBS,
-            use = 'csp')
+                    target='simple',
+                    lib=ctx.env.LIBS,
+                    use='csp')
 
         if ctx.options.with_driver_usart and (ctx.options.with_driver_usart == 'linux'):
-            ctx.program(source = 'examples/kiss.c',
-                target = 'kiss',
-                lib = ctx.env.LIBS,
-                use = 'csp')
+            ctx.program(source='examples/kiss.c',
+                        target='kiss',
+                        lib=ctx.env.LIBS,
+                        use='csp')
 
         if ctx.env.CSP_HAVE_LIBZMQ:
-            ctx.program(source = 'examples/zmqproxy.c',
-                        target = 'zmqproxy',
-                        lib = ctx.env.LIBS,
-                        use = 'csp')
+            ctx.program(source='examples/zmqproxy.c',
+                        target='zmqproxy',
+                        lib=ctx.env.LIBS,
+                        use='csp')
 
         if 'posix' in ctx.env.OS:
-            ctx.program(source = 'examples/csp_if_fifo.c',
-                target = 'fifo',
-                lib = ctx.env.LIBS,
+            ctx.program(source='examples/csp_if_fifo.c',
+                        target='fifo',
+                        lib=ctx.env.LIBS,
                         use=['csp'])
 
         if 'windows' in ctx.env.OS:
             ctx.program(source='examples/csp_if_fifo_windows.c',
-                target = 'csp_if_fifo',
-                use = 'csp')
+                        target='csp_if_fifo',
+                        use='csp')
 
 
 def dist(ctx):

@@ -196,21 +196,21 @@ csp_conn_t * csp_conn_allocate(csp_conn_type_t type) {
 	csp_conn_t * conn = NULL;
 	int i = csp_conn_last_given;
 	for (int j = 0; j < csp_conf.conn_max; j++) {
-	i = (i + 1) % csp_conf.conn_max;
+		i = (i + 1) % csp_conf.conn_max;
 		conn = &arr_conn[i];
 		if (conn->state == CONN_CLOSED) {
 			break;
-	}
+		}
 	}
 
 	if (conn && (conn->state == CONN_CLOSED)) {
 		conn->idin.ext = 0;
 		conn->idout.ext = 0;
-	conn->socket = NULL;
+		conn->socket = NULL;
 		conn->timestamp = 0;
-	conn->type = type;
+		conn->type = type;
 		conn->state = CONN_OPEN;
-	csp_conn_last_given = i;
+		csp_conn_last_given = i;
 	} else {
 		// no free connections
 		conn = NULL;
@@ -362,7 +362,7 @@ csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport, uint32_t tim
 		return NULL;
 #endif
 	}
-	
+
 	/* Find an unused ephemeral port */
 	csp_conn_t * conn = NULL;
 
@@ -378,7 +378,7 @@ csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport, uint32_t tim
 
 		outgoing_id.sport = sport;
 		incoming_id.dport = sport;
-		
+
 		/* Match on destination port of _incoming_ identifier */
 		if (csp_conn_find(incoming_id.ext, CSP_ID_DPORT_MASK) == NULL) {
 			/* Break - we found an unused ephemeral port

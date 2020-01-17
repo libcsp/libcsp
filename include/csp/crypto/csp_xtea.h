@@ -53,7 +53,7 @@ int csp_xtea_encrypt(void * data, uint32_t len, uint32_t iv[2]);
    XTEA encrypt message.
    @param packet CSP packet, must be valid.
    @return #CSP_ERR_NONE on success, otherwise an error code.
- */
+*/
 int csp_xtea_encrypt_packet(csp_packet_t * packet);
 
 /**
@@ -62,7 +62,7 @@ int csp_xtea_encrypt_packet(csp_packet_t * packet);
    @param[in] len length of \a encrypted data.
    @param[in] iv Initialization vector.
    @return #CSP_ERR_NONE on success, otherwise an error code.
- */
+*/
 int csp_xtea_decrypt(void * encrypted, uint32_t len, uint32_t iv[2]);
 
 /**
@@ -71,7 +71,7 @@ int csp_xtea_decrypt(void * encrypted, uint32_t len, uint32_t iv[2]);
    @return #CSP_ERR_NONE on success, otherwise an error code.
 */
 int csp_xtea_decrypt_packet(csp_packet_t * packet);
-
+    
 #ifdef __cplusplus
 }
 #endif

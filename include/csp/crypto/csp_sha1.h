@@ -57,7 +57,7 @@ typedef struct {
 /**
    Initialize the hash state
    @param[in] state hash state.
- */
+*/
 void csp_sha1_init(csp_sha1_state * state);
 
 /**
@@ -65,14 +65,14 @@ void csp_sha1_init(csp_sha1_state * state);
    @param[in] state hash state
    @param[in] data data.
    @param[in] length length of \a data.
- */
+*/
 void csp_sha1_process(csp_sha1_state * state, const void * data, uint32_t length);
 
 /**
    Terminate the hash calculation and get the SHA1.
    @param[in] state hash state
    @param[out] sha1 user supplied buffer of minimum #CSP_SHA1_DIGESTSIZE bytes.
- */
+*/
 void csp_sha1_done(csp_sha1_state * state, uint8_t * sha1);
 
 /**
@@ -80,7 +80,7 @@ void csp_sha1_done(csp_sha1_state * state, uint8_t * sha1);
    @param[in] data data.
    @param[in] length length of \a data.
    @param[out] sha1 user supplied buffer of minimum #CSP_SHA1_DIGESTSIZE bytes.
- */
+*/
 void csp_sha1_memory(const void * data, uint32_t length, uint8_t * sha1);
 
 #ifdef __cplusplus

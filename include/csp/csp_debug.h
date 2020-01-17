@@ -111,7 +111,7 @@ extern void __attribute__((weak)) csp_assert_fail_action(const char *assertion, 
 #define CSP_LOG_LEVEL_ERROR 0
 #endif
 #endif // __DOXYGEN__
-    
+
 #ifdef __AVR__
         #include <stdio.h>
 	#include <avr/pgmspace.h>

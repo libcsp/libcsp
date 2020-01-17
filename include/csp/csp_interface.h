@@ -44,7 +44,7 @@ extern "C" {
    @param[in] packet CSP packet to send. On success, the packet must be freed using csp_buffer_free().
    @param[in] timeout max time to wait for Tx to complete.
    @return #CSP_ERR_NONE on success, otherwise an error code.
- */
+*/
 typedef int (*nexthop_t)(const csp_rtable_route_t * ifroute, csp_packet_t *packet, uint32_t timeout);
 
 /**

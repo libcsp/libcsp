@@ -59,7 +59,7 @@ static int csp_hmac_init(hmac_state * hmac, const uint8_t * key, uint32_t keylen
 
 	/* Create the initial vector */
 	for(i = 0; i < CSP_SHA1_BLOCKSIZE; i++) {
-	   buf[i] = hmac->key[i] ^ 0x36;
+		buf[i] = hmac->key[i] ^ 0x36;
 	}
 
 	/* Prepend to the hash data */
@@ -186,9 +186,9 @@ int csp_hmac_verify(csp_packet_t * packet, bool include_header) {
 		return CSP_ERR_HMAC;
 	}
 
-		/* Strip HMAC */
-		packet->length -= CSP_HMAC_LENGTH;
-		return CSP_ERR_NONE;
+	/* Strip HMAC */
+	packet->length -= CSP_HMAC_LENGTH;
+	return CSP_ERR_NONE;
 
 }
 

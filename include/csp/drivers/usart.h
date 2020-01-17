@@ -27,7 +27,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
    USART driver.
 
    @note This interface implementation only support ONE open UART connection.
- */
+*/
 
 #include <csp/csp_types.h>
 

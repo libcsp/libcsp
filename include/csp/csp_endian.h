@@ -34,52 +34,52 @@ extern "C" {
 
 /**
    Convert from host order to network order.
- */
+*/
 uint16_t csp_hton16(uint16_t h16);
 
 /**
    Convert from network order to host order.
- */
+*/
 uint16_t csp_ntoh16(uint16_t n16);
 
 /**
    Convert from host order to network order.
- */
+*/
 uint32_t csp_hton32(uint32_t h32);
 
 /**
    Convert from network order to host order.
- */
+*/
 uint32_t csp_ntoh32(uint32_t n32);
 
 /**
    Convert from host order to network order.
- */
+*/
 uint64_t csp_hton64(uint64_t h64);
 
 /**
    Convert from network order to host order.
- */
+*/
 uint64_t csp_ntoh64(uint64_t n64);
 
 /**
    Convert from host order to big endian.
- */
+*/
 uint16_t csp_htobe16(uint16_t h16);
 
 /**
    Convert from host order to little endian.
- */
+*/
 uint16_t csp_htole16(uint16_t h16);
 
 /**
    Convert from big endian to host order.
- */
+*/
 uint16_t csp_betoh16(uint16_t be16);
 
 /**
    Convert from little endian to host order.
- */
+*/
 uint16_t csp_letoh16(uint16_t le16);
 
 /**
@@ -89,57 +89,57 @@ uint32_t csp_htobe32(uint32_t h32);
 
 /**
    Convert from host order to little endian.
- */
+*/
 uint32_t csp_htole32(uint32_t h32);
 
 /**
    Convert from big endian to host order.
- */
+*/
 uint32_t csp_betoh32(uint32_t be32);
 
 /**
    Convert from little endian to host order.
- */
+*/
 uint32_t csp_letoh32(uint32_t le32);
 
 /**
    Convert from host order to big endian.
- */
+*/
 uint64_t csp_htobe64(uint64_t h64);
 
 /**
    Convert from host order to little endian.
- */
+*/
 uint64_t csp_htole64(uint64_t h64);
 
 /**
    Convert from big endian to host order.
- */
+*/
 uint64_t csp_betoh64(uint64_t be64);
 
 /**
    Convert from little endian to host order.
- */
+*/
 uint64_t csp_letoh64(uint64_t le64);
 
 /**
    Convert from host order to network order.
- */
+*/
 float csp_htonflt(float f);
 
 /**
    Convert from network order to host order.
- */
+*/
 float csp_ntohflt(float f);
 
 /**
    Convert from host order to network order.
- */
+*/
 double csp_htondbl(double d);
 
 /**
    Convert from network order to host order.
- */
+*/
 double csp_ntohdbl(double d);
 
 #ifdef __cplusplus

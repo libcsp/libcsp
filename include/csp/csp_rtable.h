@@ -46,7 +46,7 @@ extern "C" {
 /**
    Route entry.
    @see csp_rtable_find_route().
- */
+*/
 struct csp_rtable_route_s {
     /** Which interface to route packet on */
     csp_iface_t * iface;
@@ -58,21 +58,21 @@ struct csp_rtable_route_s {
    Find route to node.
    @param[in] node destination node
    @return Route or NULL if no route found.
- */
+*/
 const csp_rtable_route_t * csp_rtable_find_route(uint8_t node);
 
 /**
    Find outgoing interface for node.
    @param[in] node destination node
    @return Interface or NULL if not found.
- */
+*/
 csp_iface_t * csp_rtable_find_iface(uint8_t node);
 
 /**
    Find MAC address associated for node.
    @param[in] node destination node
    @return MAC address or #CSP_NODE_MAC if not found.
- */
+*/
 uint8_t csp_rtable_find_mac(uint8_t node);
 
 /**
@@ -91,7 +91,7 @@ int csp_rtable_set(uint8_t node, uint8_t mask, csp_iface_t *ifc, uint8_t mac);
    @param[out] buffer user supplied buffer.
    @param[in] buffer_size size of \a buffer.
    @return #CSP_ERR_NONE on success, or an error code.
- */
+*/
 int csp_rtable_save(char * buffer, size_t buffer_size);
 
 /**
@@ -102,30 +102,30 @@ int csp_rtable_save(char * buffer, size_t buffer_size);
    @see csp_rtable_save(), csp_rtable_clear(), csp_rtable_free()
    @param[in] rtable routing table (nul terminated)
    @return @ref CSP_ERR or number of entries.
- */
+*/
 int csp_rtable_load(const char * rtable);
 
 /**
    Check string for valid routing elements.
    @param[in] rtable routing table (nul terminated)
    @return @ref CSP_ERR or number of entries.
- */
+*/
 int csp_rtable_check(const char * rtable);
 
 /**
    Clear routing table and add loopback route.
    @see csp_rtable_free()
- */
+*/
 void csp_rtable_clear(void);
 
 /**
    Clear/free all entries in the routing table.
- */
+*/
 void csp_rtable_free(void);
 
 /**
    Print routing table
- */
+*/
 void csp_rtable_print(void);
 
 /** Iterator for looping through the routing table. */
@@ -133,7 +133,7 @@ typedef bool (*csp_rtable_iterator_t)(void * ctx, uint8_t address, uint8_t mask,
 
 /**
    Iterate routing table.
- */
+*/
 void csp_rtable_iterate(csp_rtable_iterator_t iter, void * ctx);
 
 /**
@@ -143,7 +143,7 @@ void csp_rtable_iterate(csp_rtable_iterator_t iter, void * ctx);
    @param[in] ifc Interface
    @param[in] mac MAC address
    @return CSP error type
- */
+*/
 static inline int csp_route_set(uint8_t node, csp_iface_t *ifc, uint8_t mac) {
     return csp_rtable_set(node, CSP_ID_HOST_SIZE, ifc, mac);
 }
@@ -151,7 +151,7 @@ static inline int csp_route_set(uint8_t node, csp_iface_t *ifc, uint8_t mac) {
 /**
    Print routing table.
    @deprecated Use csp_rtable_print() instead.
- */
+*/
 static inline void csp_route_print_table() {
     csp_rtable_print();
 }

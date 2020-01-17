@@ -32,7 +32,7 @@ int csp_thread_create(csp_thread_func_t routine, const char * const thread_name,
 		*return_handle = handle;
 	}
 
-    return CSP_ERR_NONE;
+	return CSP_ERR_NONE;
 }
 
 void csp_thread_exit(void) {

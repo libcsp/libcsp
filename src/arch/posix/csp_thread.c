@@ -27,15 +27,15 @@ int csp_thread_create(csp_thread_func_t routine, const char * const thread_name,
 
 	pthread_attr_t attributes;
 	pthread_attr_t *attr_ref = NULL;
-	
+
 	if( pthread_attr_init(&attributes) == 0 ) {
 		unsigned int min_stack_size = PTHREAD_STACK_MIN;// use at least one memory 
-		
+
 		while(min_stack_size < stack_size) { // must reach at least the provided size
 			min_stack_size += PTHREAD_STACK_MIN;// keep memory page boundary (some systems may fail otherwise))
 		}
 		attr_ref = &attributes;
-		
+
 		pthread_attr_setdetachstate(attr_ref, PTHREAD_CREATE_DETACHED);// do not waste memory on each call
 		pthread_attr_setstacksize(attr_ref, min_stack_size);
 	}
@@ -50,7 +50,7 @@ int csp_thread_create(csp_thread_func_t routine, const char * const thread_name,
 	if (return_handle) {
 		*return_handle = handle;
 	}
-	
+
 	return CSP_ERR_NONE;
 }
 

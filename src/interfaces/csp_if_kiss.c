@@ -1,7 +1,7 @@
 /*
 Cubesat Space Protocol - A small network-layer protocol designed for Cubesats
 Copyright (C) 2012 GomSpace ApS (http://www.gomspace.com)
-Copyright (C) 2012 AAUSAT3 Project (http://aausat3.space.aau.dk) 
+Copyright (C) 2012 AAUSAT3 Project (http://aausat3.space.aau.dk)
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -25,11 +25,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/csp_endian.h>
 #include <csp/csp_crc32.h>
 
-#define FEND  					0xC0
-#define FESC  					0xDB
-#define TFEND 					0xDC
-#define TFESC 					0xDD
-#define TNC_DATA				0x00
+#define FEND  		0xC0
+#define FESC  		0xDB
+#define TFEND 		0xDC
+#define TFESC 		0xDD
+#define TNC_DATA	0x00
 
 int csp_kiss_tx(const csp_rtable_route_t * ifroute, csp_packet_t * packet, uint32_t timeout) {
 
@@ -62,7 +62,7 @@ int csp_kiss_tx(const csp_rtable_route_t * ifroute, csp_packet_t * packet, uint3
                 if (*data == FESC) {
                     ifdata->tx_func(driver, esc_esc, sizeof(esc_esc));
                     continue;
-	}
+		}
 		ifdata->tx_func(driver, data, 1);
 	}
         const unsigned char stop[] = {FEND};

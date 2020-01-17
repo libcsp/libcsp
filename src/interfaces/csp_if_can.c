@@ -46,11 +46,11 @@ int csp_can_rx(csp_iface_t *iface, uint32_t id, const uint8_t *data, uint8_t dlc
 {
 	/* Test: random packet loss */
         if (0) {
-	int random = rand();
-	if (random < RAND_MAX * 0.00005) {
-		csp_log_warn("Dropping frame");
+		int random = rand();
+		if (random < RAND_MAX * 0.00005) {
+			csp_log_warn("Dropping frame");
 			return CSP_ERR_DRIVER;
-	}
+		}
 	}
 
 	/* Bind incoming frame to a packet buffer */

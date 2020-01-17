@@ -198,8 +198,8 @@ void csp_buffer_free(void *packet) {
 		return;
 	}
 
-		csp_log_buffer("FREE: %p", buf);
-		csp_queue_enqueue(csp_buffers, &buf, 0);
+	csp_log_buffer("FREE: %p", buf);
+	csp_queue_enqueue(csp_buffers, &buf, 0);
 
 }
 

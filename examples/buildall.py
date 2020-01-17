@@ -5,7 +5,7 @@ import subprocess
 import sys
 
 
-os = 'posix'  ## default OS
+os = 'posix'  # default OS
 options = sys.argv[1:]
 if (len(options) > 0) and not options[0].startswith('--'):
     os = options[0]
@@ -25,12 +25,12 @@ options += [
 waf = ['./waf']
 if os in ['posix']:
     options += [
-    '--enable-bindings',
-    '--enable-python3-bindings',
-    '--enable-can-socketcan',
-    '--with-driver-usart=linux',
-    '--enable-if-zmqhub'
-]
+        '--enable-bindings',
+        '--enable-python3-bindings',
+        '--enable-can-socketcan',
+        '--with-driver-usart=linux',
+        '--enable-if-zmqhub'
+    ]
 
 if os in ['macosx']:
     options += [
@@ -51,4 +51,4 @@ subprocess.check_call(waf + options +
                        '--disable-output'])
 if os not in ['windows']:  # TODO fix examples for WIndows
     subprocess.check_call(waf + options +
-                      ['--enable-examples'])
+                          ['--enable-examples'])

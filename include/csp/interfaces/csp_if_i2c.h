@@ -75,7 +75,7 @@ typedef int (*csp_i2c_driver_tx_f)(void * driver_data, csp_i2c_frame_t * frame, 
 
 /**
    Interface data (state information).
- */
+*/
 typedef struct {
     /** Tx function */
     csp_i2c_driver_tx_f tx_func;

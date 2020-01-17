@@ -176,7 +176,7 @@ int csp_sfp_recv_fp(csp_conn_t * conn, void ** return_data, int * return_datasiz
 				csp_log_warn("%s: %u:%u, csp_malloc(%"PRIu32") failed",
 					__FUNCTION__, packet->id.src, packet->id.sport,
 					datasize);
-			csp_buffer_free(packet);
+				csp_buffer_free(packet);
 
 				error = CSP_ERR_NOMEM;
 				goto error;

@@ -29,7 +29,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
    Linked-list of interfaces in the system.
 
    This API is not thread-safe.
- */
+*/
 
 #include <csp/csp_interface.h>
 
@@ -50,12 +50,12 @@ int csp_iflist_add(csp_iface_t * iface);
 
    @param[in] name interface name.
    @return Interface or NULL if not found.
- */
+*/
 csp_iface_t * csp_iflist_get_by_name(const char *name);
 
 /**
    Print list of interfaces to stdout.
- */
+*/
 void csp_iflist_print(void);
 
 /**
