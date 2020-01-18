@@ -29,7 +29,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 static csp_iface_t* if_a = NULL;
 static csp_iface_t* if_b = NULL;
 
-static CSP_DEFINE_TASK(csp_bridge) {
+static __attribute__((noreturn)) CSP_DEFINE_TASK(csp_bridge) {
 
 	csp_qfifo_t input;
 	csp_packet_t * packet;
