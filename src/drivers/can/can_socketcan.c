@@ -33,6 +33,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #endif
 
 #include <csp/csp.h>
+#include <csp/arch/csp_thread.h>
 
 // CAN interface data, state, etc.
 typedef struct {
@@ -111,8 +112,7 @@ static int csp_can_tx_frame(void * driver_data, uint32_t id, const uint8_t * dat
 			csp_log_warn("%s[%s]: write() failed, errno %d: %s", __FUNCTION__, ctx->name, errno, strerror(errno));
 			return CSP_ERR_TX;
 		}
-		// cppcheck-suppress usleepCalled 
-		usleep(10000);
+		csp_sleep_ms(10);
 		elapsed_ms += 10;
 	}
 
