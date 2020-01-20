@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/csp_debug.h>
 #include <csp/arch/csp_queue.h>
 #include <csp/arch/csp_malloc.h>
+#include "csp_init.h"
 
 #ifndef CSP_BUFFER_ALIGN
 #define CSP_BUFFER_ALIGN	(sizeof(int *))
@@ -76,7 +77,7 @@ int csp_buffer_init(size_t buf_count, size_t _data_size) {
 	return CSP_ERR_NONE;
 
 fail_queue:
-	csp_free(csp_buffer_pool);
+	csp_buffer_free_resources();
 fail_malloc:
 	return CSP_ERR_NOMEM;
 
