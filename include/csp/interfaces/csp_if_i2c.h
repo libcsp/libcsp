@@ -97,7 +97,7 @@ int csp_i2c_add_interface(csp_iface_t * iface);
    @param[in] timeout timeout in mS.
    @return #CSP_ERR_NONE on success, otherwise an error code.
 */
-int csp_i2c_tx(const csp_rtable_route_t * ifroute, csp_packet_t * packet, uint32_t timeout);
+int csp_i2c_tx(const csp_route_t * ifroute, csp_packet_t * packet, uint32_t timeout);
 
 /**
    Process received I2C frame.

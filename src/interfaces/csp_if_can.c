@@ -176,7 +176,7 @@ int csp_can_rx(csp_iface_t *iface, uint32_t id, const uint8_t *data, uint8_t dlc
 	return CSP_ERR_NONE;
 }
 
-int csp_can_tx(const csp_rtable_route_t * ifroute, csp_packet_t *packet, uint32_t timeout)
+int csp_can_tx(const csp_route_t * ifroute, csp_packet_t *packet, uint32_t timeout)
 {
         csp_iface_t * iface = ifroute->iface;
         csp_can_interface_data_t * ifdata = iface->interface_data;
@@ -189,8 +189,8 @@ int csp_can_tx(const csp_rtable_route_t * ifroute, csp_packet_t *packet, uint32_
 		return CSP_ERR_TX;
         }
 
-	/* Insert destination node mac address into the CFP destination field */
-	const uint8_t dest = (ifroute->mac != CSP_NODE_MAC) ? ifroute->mac : packet->id.dst;
+	/* Insert destination node/via address into the CFP destination field */
+	const uint8_t dest = (ifroute->via != CSP_NO_VIA_ADDRESS) ? ifroute->via : packet->id.dst;
 
 	/* Create CAN identifier */
 	uint32_t id = (CFP_MAKE_SRC(packet->id.src) |

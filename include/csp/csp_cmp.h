@@ -126,7 +126,7 @@ struct csp_cmp_message {
 		} ident;
 		struct {
 			uint8_t dest_node;
-			uint8_t next_hop_mac;
+			uint8_t next_hop_via;
 			char interface[CSP_CMP_ROUTE_IFACE_LEN];
 		} route_set;
 		struct __attribute__((__packed__)) {

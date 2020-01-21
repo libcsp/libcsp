@@ -237,8 +237,8 @@ typedef struct {
 
 /** Forward declaration of CSP interface, see #csp_iface_s for details. */
 typedef struct csp_iface_s csp_iface_t;
-/** Forward declaration of outgoing CSP route, see #csp_rtable_route_s for details. */
-typedef struct csp_rtable_route_s csp_rtable_route_t;
+/** Forward declaration of outgoing CSP route, see #csp_route_s for details. */
+typedef struct csp_route_s csp_route_t;
 
 /** Forward declaration of socket structure */
 typedef struct csp_conn_s csp_socket_t;

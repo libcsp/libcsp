@@ -49,11 +49,11 @@ typedef struct {
  * @param timeout Timeout in ms
  * @return 1 if packet was successfully transmitted, 0 on error
  */
-int csp_zmqhub_tx(const csp_rtable_route_t * route, csp_packet_t * packet, uint32_t timeout) {
+int csp_zmqhub_tx(const csp_route_t * route, csp_packet_t * packet, uint32_t timeout) {
 
 	zmq_driver_t * drv = route->iface->driver_data;
 
-	const uint8_t dest = (route->mac != CSP_NODE_MAC) ? route->mac : packet->id.dst;
+	const uint8_t dest = (route->via != CSP_NO_VIA_ADDRESS) ? route->via : packet->id.dst;
 
 	uint16_t length = packet->length;
 	uint8_t * destptr = ((uint8_t *) &packet->id) - sizeof(dest);
@@ -107,7 +107,7 @@ CSP_DEFINE_TASK(csp_zmqhub_task) {
 		// Copy the data from zmq to csp
 		const uint8_t * rx_data = zmq_msg_data(&msg);
 
-		// First byte is the MAC (via) address
+		// First byte is the "via" address
 		++rx_data;
 		--datalen;
 
@@ -151,7 +151,7 @@ int csp_zmqhub_init_w_endpoints(uint8_t addr,
 	uint8_t * rxfilter = NULL;
 	unsigned int rxfilter_count = 0;
 
-	if (addr != CSP_NODE_MAC) { // != 255
+	if (addr != CSP_NO_VIA_ADDRESS) { // != 255
 		rxfilter = &addr;
 		rxfilter_count = 1;
 	}

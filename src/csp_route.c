@@ -204,7 +204,7 @@ int csp_route_work(uint32_t timeout) {
 	if ((packet->id.dst != csp_conf.address) && (packet->id.dst != CSP_BROADCAST_ADDR)) {
 
 		/* Find the destination interface */
-		const csp_rtable_route_t * ifroute = csp_rtable_find_route(packet->id.dst);
+		const csp_route_t * ifroute = csp_rtable_find_route(packet->id.dst);
 
 		/* If the message resolves to the input interface, don't loop it back out */
 		if ((ifroute == NULL) || ((ifroute->iface == input.iface) && (input.iface->split_horizon_off == 0))) {

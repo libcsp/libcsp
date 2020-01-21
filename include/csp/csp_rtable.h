@@ -26,10 +26,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
    Routing table.
 
-   The routing table maps a CSP address to an interface.
+   The routing table maps a CSP destination address to an interface (and optional a via address).
 
-   Normal routing: If the route's MAC address is set to #CSP_NODE_MAC, the message will be sent to the destination address specified in the
-   CSP header, otherwise the message will be sent to route's MAC address.
+   Normal routing: If the route's via address is set to #CSP_NO_VIA_ADDRESS, the packet will be sent directly to the destination address
+   specified in the CSP header, otherwise the packet will be sent the to the route's via address.
 */
 
 #include <csp/csp_iflist.h>
@@ -39,51 +39,65 @@ extern "C" {
 #endif
 
 /**
-   Node MAC address (i.e. not set) -> use CSP header destination.
+   No via address specified for the route, use CSP header destination.
 */
-#define CSP_NODE_MAC	0xFF
+#define CSP_NO_VIA_ADDRESS	0xFF
 
+/**
+   Legacy definition for #CSP_NO_VIA_ADDRESS.
+*/
+#define CSP_NODE_MAC	CSP_NO_VIA_ADDRESS
+    
 /**
    Route entry.
    @see csp_rtable_find_route().
 */
-struct csp_rtable_route_s {
+struct csp_route_s {
     /** Which interface to route packet on */
     csp_iface_t * iface;
-    /** If different from #CSP_NODE_MAC, route packet to this address, instead of address in CSP header. */
-    uint8_t mac;
+    /** If different from #CSP_NO_VIA_ADDRESS, send packet to this address, instead of the destination address in the CSP header. */
+    uint8_t via;
 };
 
 /**
-   Find route to node.
-   @param[in] node destination node
+   Find route to address/node.
+   @param[in] dest_address destination address.
    @return Route or NULL if no route found.
 */
-const csp_rtable_route_t * csp_rtable_find_route(uint8_t node);
+const csp_route_t * csp_rtable_find_route(uint8_t dest_address);
 
 /**
-   Find outgoing interface for node.
-   @param[in] node destination node
+   Find outgoing interface for destination address/node.
+   @param[in] dest_address destination address.
    @return Interface or NULL if not found.
 */
-csp_iface_t * csp_rtable_find_iface(uint8_t node);
+csp_iface_t * csp_rtable_find_iface(uint8_t dest_address);
 
 /**
-   Find MAC address associated for node.
-   @param[in] node destination node
-   @return MAC address or #CSP_NODE_MAC if not found.
+   Find via address for destination address/node.
+   @param[in] dest_address destination address.
+   @return via via address or #CSP_NO_VIA_ADDRESS if not found.
 */
-uint8_t csp_rtable_find_mac(uint8_t node);
+uint8_t csp_rtable_find_via(uint8_t dest_address);
 
 /**
-   Set routing entry.
-   @param[in] node destination node.
+   Legacy function for finding via (former mac) address for destination address/node.
+   @param[in] dest_address destination address.
+   @return via via address or #CSP_NO_VIA_ADDRESS if not found.
+*/
+static inline uint8_t csp_rtable_find_mac(uint8_t dest_address) {
+    return csp_rtable_find_via(dest_address);
+}
+
+/**
+   Set route to destination address/node.
+   @param[in] dest_address destination address.
    @param[in] mask number of bits in netmask
    @param[in] ifc interface.
-   @param[in] mac assosicated MAC address.
-   @return @ref CSP_ERR.
+   @param[in] via assosicated via address.
+   @return #CSP_ERR_NONE on success, or an error code.
 */
-int csp_rtable_set(uint8_t node, uint8_t mask, csp_iface_t *ifc, uint8_t mac);
+int csp_rtable_set(uint8_t dest_address, uint8_t mask, csp_iface_t *ifc, uint8_t via);
 
 /**
    Save routing table as a string (readable format).
@@ -97,8 +111,19 @@ int csp_rtable_save(char * buffer, size_t buffer_size);
 /**
    Load routing table from a string.
    Table will be loaded on-top of existing routes, possibly overwriting existing entries.
-   Format: \<address\>[/mask] \<interface\> [mac][, next entry]
-   Example: "0/0 CAN, 8 KISS, 10 I2C 10"
+   Format: \<address\>[/mask] \<interface\> [via][, next entry]
+   Example: "0/0 CAN, 8 KISS, 10 I2C 10", same as "0/0 CAN, 8/5 KISS, 10/5 I2C 10".
+   @see csp_rtable_save(), csp_rtable_clear(), csp_rtable_free()
+   @param[in] rtable routing table (nul terminated)
+   @return @ref CSP_ERR or number of entries.
+*/
+int csp_rtable_load(const char * rtable);
+
+/**
+   Load routing table from a string.
+   Table will be loaded on-top of existing routes, possibly overwriting existing entries.
+   Format: \<address\>[/mask] \<interface\> [via][, next entry]
+   Example: "0/0 CAN, 8 KISS, 10 I2C 10", same as "0/0 CAN, 8/5 KISS, 10/5 I2C 10".
    @see csp_rtable_save(), csp_rtable_clear(), csp_rtable_free()
    @param[in] rtable routing table (nul terminated)
    @return @ref CSP_ERR or number of entries.
@@ -129,7 +154,7 @@ void csp_rtable_free(void);
 void csp_rtable_print(void);
 
 /** Iterator for looping through the routing table. */
-typedef bool (*csp_rtable_iterator_t)(void * ctx, uint8_t address, uint8_t mask, const csp_rtable_route_t * route);
+typedef bool (*csp_rtable_iterator_t)(void * ctx, uint8_t address, uint8_t mask, const csp_route_t * route);
 
 /**
    Iterate routing table.
@@ -137,15 +162,15 @@ typedef bool (*csp_rtable_iterator_t)(void * ctx, uint8_t address, uint8_t mask,
 void csp_rtable_iterate(csp_rtable_iterator_t iter, void * ctx);
 
 /**
-   Set routing entry.
+   Set route to destination address/node.
    @deprecated Use csp_rtable_set() instead.
-   @param[in] node Host
-   @param[in] ifc Interface
-   @param[in] mac MAC address
-   @return CSP error type
+   @param[in] dest_address destination address.
+   @param[in] ifc interface.
+   @param[in] via assosicated via address.
+   @return #CSP_ERR_NONE on success, or an error code.
 */
-static inline int csp_route_set(uint8_t node, csp_iface_t *ifc, uint8_t mac) {
-    return csp_rtable_set(node, CSP_ID_HOST_SIZE, ifc, mac);
+static inline int csp_route_set(uint8_t dest_address, csp_iface_t *ifc, uint8_t via) {
+    return csp_rtable_set(dest_address, CSP_ID_HOST_SIZE, ifc, via);
 }
 
 /**
@@ -167,4 +192,4 @@ static inline void csp_route_print_interfaces(void) {
 #ifdef __cplusplus
 }
 #endif
-#endif /* CSP_RTABLE_H_ */
+#endif

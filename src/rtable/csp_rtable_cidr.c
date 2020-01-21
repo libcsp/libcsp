@@ -25,7 +25,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 /* Definition of routing table */
 typedef struct csp_rtable_s {
-    csp_rtable_route_t route;
+    csp_route_t route;
     uint8_t address;
     uint8_t netmask;
     struct csp_rtable_s * next;
@@ -78,23 +78,23 @@ static csp_rtable_t * csp_rtable_find(uint8_t addr, uint8_t netmask, uint8_t exa
 
 	if (0 && best_result) {
 		csp_log_packet("Using routing entry: %u/%u if %s mtu %u",
-				best_result->address, best_result->netmask, best_result->route.iface->name, best_result->route.mac);
+				best_result->address, best_result->netmask, best_result->route.iface->name, best_result->route.via);
         }
 
 	return best_result;
 
 }
 
-const csp_rtable_route_t * csp_rtable_find_route(uint8_t address)
+const csp_route_t * csp_rtable_find_route(uint8_t dest_address)
 {
-    csp_rtable_t * entry = csp_rtable_find(address, CSP_ID_HOST_SIZE, 0);
+    csp_rtable_t * entry = csp_rtable_find(dest_address, CSP_ID_HOST_SIZE, 0);
     if (entry) {
 	return &entry->route;
     }
     return NULL;
 }
 
-int csp_rtable_set_internal(uint8_t address, uint8_t netmask, csp_iface_t *ifc, uint8_t mac) {
+int csp_rtable_set_internal(uint8_t address, uint8_t netmask, csp_iface_t *ifc, uint8_t via) {
 
 	/* First see if the entry exists */
 	csp_rtable_t * entry = csp_rtable_find(address, netmask, 1);
@@ -125,7 +125,7 @@ int csp_rtable_set_internal(uint8_t address, uint8_t netmask, csp_iface_t *ifc, 
 	entry->address = address;
 	entry->netmask = netmask;
 	entry->route.iface = ifc;
-	entry->route.mac = mac;
+	entry->route.via = via;
 
 	return CSP_ERR_NONE;
 }

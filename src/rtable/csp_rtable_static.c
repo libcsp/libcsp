@@ -23,12 +23,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/csp_debug.h>
 
 /* Routing table (static array) */
-static csp_rtable_route_t rtable[CSP_DEFAULT_ROUTE + 1] = {};
+static csp_route_t rtable[CSP_DEFAULT_ROUTE + 1] = {};
 
-const csp_rtable_route_t * csp_rtable_find_route(uint8_t address) {
+const csp_route_t * csp_rtable_find_route(uint8_t dest_address) {
 
-	if (rtable[address].iface != NULL) {
-		return &rtable[address];
+	if (rtable[dest_address].iface != NULL) {
+		return &rtable[dest_address];
 	}
 	if (rtable[CSP_DEFAULT_ROUTE].iface != NULL) {
 		return &rtable[CSP_DEFAULT_ROUTE];
@@ -37,18 +37,18 @@ const csp_rtable_route_t * csp_rtable_find_route(uint8_t address) {
 
 }
 
-int csp_rtable_set_internal(uint8_t address, uint8_t netmask, csp_iface_t *ifc, uint8_t mac) {
+int csp_rtable_set_internal(uint8_t address, uint8_t netmask, csp_iface_t *ifc, uint8_t via) {
 
 	/* Validates options */
 	if ((netmask != 0) && (netmask != CSP_ID_HOST_SIZE)) {
-		csp_log_error("%s: invalid netmask in route: address %u, netmask %u, interface %p, mac %u", __FUNCTION__, address, netmask, ifc, mac);
+		csp_log_error("%s: invalid netmask in route: address %u, netmask %u, interface %p, via %u", __FUNCTION__, address, netmask, ifc, via);
 		return CSP_ERR_INVAL;
 	}
 
 	/* Set route */
         const unsigned int ri = (netmask == 0) ? CSP_DEFAULT_ROUTE : address;
         rtable[ri].iface = ifc;
-        rtable[ri].mac = mac;
+        rtable[ri].via = via;
 
 	return CSP_ERR_NONE;
 }

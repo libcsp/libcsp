@@ -73,7 +73,7 @@ In order to setup a manual static route, use the following example where the def
 
 .. code-block:: c
 
-   csp_route_set(CSP_DEFAULT_ROUTE, &csp_if_fifo, CSP_NODE_MAC);
+   csp_route_set(CSP_DEFAULT_ROUTE, &csp_if_fifo, CSP_NO_VIA_ADDRESS);
 
 All outgoing traffic except loopback, is now passed to the fifo interface's nexthop function. 
 
