@@ -97,7 +97,7 @@ int main(int argc, char *argv[]) {
     }
 
     /* Set default route and start router */
-    csp_route_set(CSP_DEFAULT_ROUTE, &csp_if_fifo, CSP_NODE_MAC);
+    csp_route_set(CSP_DEFAULT_ROUTE, &csp_if_fifo, CSP_NO_VIA_ADDRESS);
     csp_route_start_task(0, 0);
 
     /* Create socket and listen for incoming connections */

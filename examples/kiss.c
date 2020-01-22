@@ -125,7 +125,7 @@ int main(int argc, char **argv) {
         return -1;
     }
 
-    csp_route_set(MY_ADDRESS, csp_if_kiss, CSP_NODE_MAC);
+    csp_route_set(MY_ADDRESS, csp_if_kiss, CSP_NO_VIA_ADDRESS);
     csp_route_start_task(0, 0);
 
     csp_conn_print_table();

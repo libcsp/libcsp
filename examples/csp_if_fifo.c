@@ -36,7 +36,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 pthread_t rx_thread;
 int rx_channel, tx_channel;
 
-int csp_fifo_tx(const csp_rtable_route_t *route, csp_packet_t *packet, uint32_t timeout);
+int csp_fifo_tx(const csp_route_t *route, csp_packet_t *packet, uint32_t timeout);
 
 csp_iface_t csp_if_fifo = {
     .name = "fifo",
@@ -44,7 +44,7 @@ csp_iface_t csp_if_fifo = {
     .mtu = BUF_SIZE,
 };
 
-int csp_fifo_tx(const csp_rtable_route_t *route, csp_packet_t *packet, uint32_t timeout) {
+int csp_fifo_tx(const csp_route_t *route, csp_packet_t *packet, uint32_t timeout) {
     /* Write packet to fifo */
     if (write(tx_channel, &packet->length, packet->length + sizeof(uint32_t) + sizeof(uint16_t)) < 0)
         printf("Failed to write frame\r\n");
@@ -126,7 +126,7 @@ int main(int argc, char **argv) {
 	pthread_create(&rx_thread, NULL, fifo_rx, NULL);
 
     /* Set default route and start router */
-    csp_route_set(CSP_DEFAULT_ROUTE, &csp_if_fifo, CSP_NODE_MAC);
+    csp_route_set(CSP_DEFAULT_ROUTE, &csp_if_fifo, CSP_NO_VIA_ADDRESS);
     csp_route_start_task(0, 0);
 
     /* Create socket and listen for incoming connections */

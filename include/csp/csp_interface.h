@@ -45,7 +45,7 @@ extern "C" {
    @param[in] timeout max time to wait for Tx to complete.
    @return #CSP_ERR_NONE on success, otherwise an error code.
 */
-typedef int (*nexthop_t)(const csp_rtable_route_t * ifroute, csp_packet_t *packet, uint32_t timeout);
+typedef int (*nexthop_t)(const csp_route_t * ifroute, csp_packet_t *packet, uint32_t timeout);
 
 /**
    CSP interface.

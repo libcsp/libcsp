@@ -494,22 +494,21 @@ static PyObject* pycsp_xtea_set_key(PyObject *self, PyObject *args) {
  */
 
 /*
- * int csp_rtable_set(uint8_t node, uint8_t mask,
- *                    csp_iface_t *ifc, uint8_t mac);
+ * int csp_rtable_set(uint8_t node, uint8_t mask, csp_iface_t *ifc, uint8_t via);
  */
 static PyObject* pycsp_rtable_set(PyObject *self, PyObject *args) {
     uint8_t node;
     uint8_t mask;
     char* interface_name;
-    uint8_t mac = CSP_NODE_MAC;
-    if (!PyArg_ParseTuple(args, "bbs|b", &node, &mask, &interface_name, &mac)) {
+    uint8_t via = CSP_NO_VIA_ADDRESS;
+    if (!PyArg_ParseTuple(args, "bbs|b", &node, &mask, &interface_name, &via)) {
         return NULL; // TypeError is thrown
     }
 
     return Py_BuildValue("i", csp_rtable_set(node,
                                              mask,
                                              csp_iflist_get_by_name(interface_name),
-                                             mac));
+                                             via));
 }
 
 /*
@@ -637,15 +636,15 @@ static PyObject* pycsp_cmp_route_set(PyObject *self, PyObject *args) {
     uint8_t node;
     uint32_t timeout = 500;
     uint8_t addr;
-    uint8_t mac;
+    uint8_t via;
     char* ifstr;
-    if (!PyArg_ParseTuple(args, "bibbs", &node, &timeout, &addr, &mac, &ifstr)) {
+    if (!PyArg_ParseTuple(args, "bibbs", &node, &timeout, &addr, &via, &ifstr)) {
         return NULL; // TypeError is thrown
     }
 
     struct csp_cmp_message msg;
     msg.route_set.dest_node = addr;
-    msg.route_set.next_hop_mac = mac;
+    msg.route_set.next_hop_via = via;
     strncpy(msg.route_set.interface, ifstr, CSP_CMP_ROUTE_IFACE_LEN);
     int rc = csp_cmp_route_set(node, timeout, &msg);
     return Py_BuildValue("i",
@@ -1000,6 +999,7 @@ PyMODINIT_FUNC PyInit_libcsp_py3(void) {
          * csp/rtable.h
          */
         PyModule_AddIntConstant(m, "CSP_NODE_MAC", CSP_NODE_MAC);
+        PyModule_AddIntConstant(m, "CSP_NO_VIA_ADDRESS", CSP_NO_VIA_ADDRESS);
 
 #if (PY_MAJOR_VERSION == 3)
         return m;

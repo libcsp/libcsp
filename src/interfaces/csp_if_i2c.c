@@ -27,13 +27,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 CSP_STATIC_ASSERT(offsetof(csp_i2c_frame_t, len) == offsetof(csp_packet_t, length), len_field_misaligned);
 CSP_STATIC_ASSERT(offsetof(csp_i2c_frame_t, data) == offsetof(csp_packet_t, id), data_field_misaligned);
 
-int csp_i2c_tx(const csp_rtable_route_t * ifroute, csp_packet_t * packet, uint32_t timeout) {
+int csp_i2c_tx(const csp_route_t * ifroute, csp_packet_t * packet, uint32_t timeout) {
 
 	/* Cast the CSP packet buffer into an i2c frame */
 	csp_i2c_frame_t * frame = (csp_i2c_frame_t *) packet;
 
 	/* Insert destination node into the i2c destination field */
-	frame->dest = (ifroute->mac != CSP_NODE_MAC) ? ifroute->mac : packet->id.dst;
+	frame->dest = (ifroute->via != CSP_NO_VIA_ADDRESS) ? ifroute->via : packet->id.dst;
 
 	/* Save the outgoing id in the buffer */
 	packet->id.ext = csp_hton32(packet->id.ext);

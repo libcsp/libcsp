@@ -165,7 +165,7 @@ csp_packet_t * csp_read(csp_conn_t * conn, uint32_t timeout) {
 
 }
 
-int csp_send_direct(csp_id_t idout, csp_packet_t * packet, const csp_rtable_route_t * ifroute, uint32_t timeout) {
+int csp_send_direct(csp_id_t idout, csp_packet_t * packet, const csp_route_t * ifroute, uint32_t timeout) {
 
 	if (packet == NULL) {
 		csp_log_error("csp_send_direct called with NULL packet");
@@ -180,7 +180,7 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, const csp_rtable_rout
 	csp_iface_t * ifout = ifroute->iface;
 
 	csp_log_packet("OUT: S %u, D %u, Dp %u, Sp %u, Pr %u, Fl 0x%02X, Sz %u VIA: %s (%u)",
-                       idout.src, idout.dst, idout.dport, idout.sport, idout.pri, idout.flags, packet->length, ifout->name, (ifroute->mac != CSP_NODE_MAC) ? ifroute->mac : idout.dst);
+                       idout.src, idout.dst, idout.dport, idout.sport, idout.pri, idout.flags, packet->length, ifout->name, (ifroute->via != CSP_NO_VIA_ADDRESS) ? ifroute->via : idout.dst);
 
 	/* Copy identifier to packet (before crc, xtea and hmac) */
 	packet->id.ext = idout.ext;

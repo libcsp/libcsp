@@ -60,10 +60,10 @@ int csp_init(const csp_conf_t * conf) {
 	csp_iflist_add(&csp_if_lo);
 
 	/* Register loopback route */
-	csp_route_set(csp_conf.address, &csp_if_lo, CSP_NODE_MAC);
+	csp_route_set(csp_conf.address, &csp_if_lo, CSP_NO_VIA_ADDRESS);
 
 	/* Also register loopback as default, until user redefines default route */
-	csp_route_set(CSP_DEFAULT_ROUTE, &csp_if_lo, CSP_NODE_MAC);
+	csp_route_set(CSP_DEFAULT_ROUTE, &csp_if_lo, CSP_NO_VIA_ADDRESS);
 
 	return CSP_ERR_NONE;
 
