@@ -145,9 +145,9 @@ static inline int csp_rdp_seq_after(uint16_t seq, uint16_t cmp) {
 }
 
 /* Return 1 if time is between start and end (both inclusive) */
-static inline int csp_rdp_time_between(uint32_t time, uint32_t start, uint32_t end) {
-	return (uint32_t)(end - start) >= (uint32_t)(time - start);
-}
+//static inline int csp_rdp_time_between(uint32_t time, uint32_t start, uint32_t end) {
+//	return (uint32_t)(end - start) >= (uint32_t)(time - start);
+//}
 
 /* Return 1 if time is before cmp */
 static inline int csp_rdp_time_before(uint32_t time, uint32_t cmp) {
@@ -386,7 +386,7 @@ static void csp_rdp_flush_eack(csp_conn_t * conn, csp_packet_t * eack_packet) {
 		}
 
 		rdp_header_t * header = csp_rdp_header_ref((csp_packet_t *) packet);
-		csp_log_protocol("RDP %p: EACK compare element, time %"PRIu32", seq %"PRIu16, conn, packet->timestamp, csp_ntoh16(header->seq_nr));
+		csp_log_protocol("RDP %p: EACK compare element, time %"PRIu32", seq %u", conn, packet->timestamp, csp_ntoh16(header->seq_nr));
 
 		/* Look for this element in EACKs */
 		int match = 0;
@@ -762,8 +762,8 @@ bool csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 
 		/* Check sequence number */
 		if (!csp_rdp_seq_between(rx_header->seq_nr, conn->rdp.rcv_cur + 1, conn->rdp.rcv_cur + (conn->rdp.window_size * 2))) {
-			csp_log_protocol("RDP %p: Invalid sequence number! %"PRIu16" not between %"PRIu16" and %"PRIu32,
-				conn, rx_header->seq_nr, conn->rdp.rcv_cur + 1, conn->rdp.rcv_cur + (conn->rdp.window_size * 2));
+			csp_log_protocol("RDP %p: Invalid sequence number! %u not between %u and %"PRIu32,
+				conn, rx_header->seq_nr, conn->rdp.rcv_cur + 1U, conn->rdp.rcv_cur + (conn->rdp.window_size * 2U));
 			/* If duplicate SYN received, send another SYN/ACK */
 			if (conn->rdp.state == RDP_SYN_RCVD)
 				csp_rdp_send_cmp(conn, NULL, RDP_ACK | RDP_SYN, conn->rdp.snd_iss, conn->rdp.rcv_irs);
@@ -1021,7 +1021,7 @@ int csp_rdp_send(csp_conn_t * conn, csp_packet_t * packet, uint32_t timeout) {
 
 }
 
-int csp_rdp_allocate(csp_conn_t * conn) {
+int csp_rdp_init(csp_conn_t * conn) {
 
 	csp_log_protocol("RDP %p: Creating RDP queues", conn);
 
@@ -1055,6 +1055,13 @@ int csp_rdp_allocate(csp_conn_t * conn) {
 
 	return CSP_ERR_NONE;
 
+}
+
+void csp_rdp_free_resources(csp_conn_t * conn) {
+
+	csp_bin_sem_remove(&conn->rdp.tx_wait);
+	csp_queue_remove(conn->rdp.tx_queue);
+	csp_queue_remove(conn->rdp.rx_queue);
 }
 
 /**
@@ -1141,7 +1148,7 @@ void csp_rdp_conn_print(csp_conn_t * conn) {
 	if (conn == NULL)
 		return;
 
-	printf("\tRDP: S:%d (closed by 0x%x), rcv %"PRIu16", snd %"PRIu16", win %"PRIu32"\r\n",
+	printf("\tRDP: S:%d (closed by 0x%x), rcv %u, snd %u, win %"PRIu32"\r\n",
 		conn->rdp.state, conn->rdp.closed_by, conn->rdp.rcv_cur, conn->rdp.snd_una, conn->rdp.window_size);
 
 }

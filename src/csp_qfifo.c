@@ -30,10 +30,9 @@ static csp_queue_handle_t qfifo_events;
 #endif
 
 int csp_qfifo_init(void) {
-	int prio;
 
 	/* Create router fifos for each priority */
-	for (prio = 0; prio < CSP_ROUTE_FIFOS; prio++) {
+	for (int prio = 0; prio < CSP_ROUTE_FIFOS; prio++) {
 		if (qfifo[prio] == NULL) {
 			qfifo[prio] = csp_queue_create(csp_conf.fifo_length, sizeof(csp_qfifo_t));
 			if (!qfifo[prio])
@@ -44,11 +43,30 @@ int csp_qfifo_init(void) {
 #if (CSP_USE_QOS)
 	/* Create QoS fifo notification queue */
 	qfifo_events = csp_queue_create(csp_conf.fifo_length, sizeof(int));
-	if (!qfifo_events)
+	if (!qfifo_events) {
 		return CSP_ERR_NOMEM;
+	}
 #endif
 
 	return CSP_ERR_NONE;
+
+}
+
+void csp_qfifo_free_resources(void) {
+
+	for (int prio = 0; prio < CSP_ROUTE_FIFOS; prio++) {
+		if (qfifo[prio]) {
+			csp_queue_remove(qfifo[prio]);
+			qfifo[prio] = NULL;
+		}
+	}
+
+#if (CSP_USE_QOS)
+	if (qfifo_events) {
+		csp_queue_remove(qfifo_events);
+		qfifo_events = NULL;
+	}
+#endif
 
 }
 

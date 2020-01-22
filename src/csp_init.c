@@ -42,16 +42,19 @@ int csp_init(const csp_conf_t * conf) {
 	memcpy(&csp_conf, conf, sizeof(csp_conf));
 
 	int ret = csp_conn_init();
-	if (ret != CSP_ERR_NONE)
+	if (ret != CSP_ERR_NONE) {
 		return ret;
+	}
 
 	ret = csp_port_init();
-	if (ret != CSP_ERR_NONE)
+	if (ret != CSP_ERR_NONE) {
 		return ret;
+	}
 
 	ret = csp_qfifo_init();
-	if (ret != CSP_ERR_NONE)
+	if (ret != CSP_ERR_NONE) {
 		return ret;
+	}
 
 	/* Loopback */
 	csp_iflist_add(&csp_if_lo);
@@ -68,9 +71,10 @@ int csp_init(const csp_conf_t * conf) {
 
 void csp_free_resources(void) {
 
-	csp_port_free_resources();
 	csp_rtable_free();
-	void csp_buffer_free_resources(void);
+	csp_qfifo_free_resources();
+	csp_port_free_resources();
+	csp_conn_free_resources();
 	csp_buffer_free_resources();
 
 }

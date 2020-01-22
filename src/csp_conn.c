@@ -134,7 +134,7 @@ int csp_conn_init(void) {
 #endif
 
 #if (CSP_USE_RDP)
-		if (csp_rdp_allocate(conn) != CSP_ERR_NONE) {
+		if (csp_rdp_init(conn) != CSP_ERR_NONE) {
 			csp_log_error("csp_rdp_allocate(conn) failed");
 			return CSP_ERR_NOMEM;
 		}
@@ -143,6 +143,43 @@ int csp_conn_init(void) {
 
 	return CSP_ERR_NONE;
 
+}
+
+void csp_conn_free_resources(void) {
+
+    if (arr_conn) {
+
+	for (unsigned int i = 0; i < csp_conf.conn_max; i++) {
+            csp_conn_t * conn = &arr_conn[i];
+
+            for (int prio = 0; prio < CSP_RX_QUEUES; prio++) {
+                if (conn->rx_queue[prio]) {
+                    csp_queue_remove(conn->rx_queue[prio]);
+                }
+            }
+
+#if (CSP_USE_QOS)
+            if (conn->rx_event) {
+                csp_queue_remove(conn->rx_event);
+            }
+#endif
+
+#if (CSP_USE_RDP)
+            csp_rdp_free_resources(conn);
+#endif
+	}
+
+        csp_free(arr_conn);
+        arr_conn = NULL;
+
+        //csp_bin_sem_remove(&conn_lock);
+        memset(&conn_lock, 0, sizeof(conn_lock));
+
+        //csp_bin_sem_remove(&sport_lock);
+        memset(&sport_lock, 0, sizeof(sport_lock));
+
+        sport = 0;
+    }
 }
 
 csp_conn_t * csp_conn_find(uint32_t id, uint32_t mask) {
