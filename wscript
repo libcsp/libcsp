@@ -48,7 +48,7 @@ def options(ctx):
     gr.add_option('--enable-crc32', action='store_true', help='Enable CRC32 support')
     gr.add_option('--enable-hmac', action='store_true', help='Enable HMAC-SHA1 support')
     gr.add_option('--enable-xtea', action='store_true', help='Enable XTEA support')
-    gr.add_option('--enable-bindings', action='store_true', help='Enable Python bindings')
+    gr.add_option('--enable-python2-bindings', action='store_true', help='Enable Python2 bindings')
     gr.add_option('--enable-python3-bindings', action='store_true', help='Enable Python3 bindings')
     gr.add_option('--enable-examples', action='store_true', help='Enable examples')
     gr.add_option('--enable-dedup', action='store_true', help='Enable packet deduplicator')
@@ -149,11 +149,11 @@ def configure(ctx):
     ctx.env.ENABLE_EXAMPLES = ctx.options.enable_examples
 
     # Add Python bindings
-    if ctx.options.enable_bindings:
+    if ctx.options.enable_python2_bindings:
         ctx.env.LIBCSP_PYTHON2 = ctx.check_cfg(package='python2', args='--cflags --libs', atleast_version='2.7',
                                                mandatory=False)
-        if ctx.options.enable_python3_bindings:
-            ctx.env.LIBCSP_PYTHON3 = ctx.check_cfg(package='python3', args='--cflags --libs', atleast_version='3.5',
+    if ctx.options.enable_python3_bindings:
+        ctx.env.LIBCSP_PYTHON3 = ctx.check_cfg(package='python3', args='--cflags --libs', atleast_version='3.5',
                                                    mandatory=False)
 
     # Set defines for enabling features
