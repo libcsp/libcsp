@@ -151,10 +151,10 @@ def configure(ctx):
     # Add Python bindings
     if ctx.options.enable_python2_bindings:
         ctx.env.LIBCSP_PYTHON2 = ctx.check_cfg(package='python2', args='--cflags --libs', atleast_version='2.7',
-                                               mandatory=False)
+                                               mandatory=True)
     if ctx.options.enable_python3_bindings:
         ctx.env.LIBCSP_PYTHON3 = ctx.check_cfg(package='python3', args='--cflags --libs', atleast_version='3.5',
-                                                   mandatory=False)
+                                                   mandatory=True)
 
     # Set defines for enabling features
     ctx.define('CSP_DEBUG', not ctx.options.disable_output)
