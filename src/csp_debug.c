@@ -29,6 +29,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #endif
 
 #include <csp/csp.h>
+#include <csp/arch/csp_clock.h>
 #include <csp/arch/csp_system.h>
 
 #if (CSP_DEBUG) && (CSP_USE_EXTERNAL_DEBUG == 0)
@@ -47,15 +48,13 @@ bool csp_debug_level_enabled[] = {
 	[CSP_LOCK]	= false,
 };
 
-/* Some compilers do not support weak symbols, so this function
- * can be used instead to set a custom debug hook */
-void csp_debug_hook_set(csp_debug_hook_func_t f)
-{
+void csp_debug_hook_set(csp_debug_hook_func_t f) {
+
 	csp_debug_hook_func = f;
 }
 
-void do_csp_debug(csp_debug_level_t level, const char *format, ...)
-{
+void do_csp_debug(csp_debug_level_t level, const char *format, ...) {
+
 	int color = COLOR_RESET;
 	va_list args;
 
@@ -97,6 +96,11 @@ void do_csp_debug(csp_debug_level_t level, const char *format, ...)
 		csp_debug_hook_func(level, format, args);
 	} else {
 		csp_sys_set_color(color);
+#if (CSP_DEBUG_TIMESTAMP)
+                csp_timestamp_t ts;
+                csp_clock_get_time(&ts);
+                printf("%u.%06u ", ts.tv_sec, ts.tv_nsec / 1000U);
+#endif
 #ifdef __AVR__
 		vfprintf_P(stdout, format, args);
 #else
@@ -109,28 +113,26 @@ void do_csp_debug(csp_debug_level_t level, const char *format, ...)
 	va_end(args);
 }
 
-void csp_debug_set_level(csp_debug_level_t level, bool value)
-{
-	if (level > CSP_LOCK)
-		return;
-	csp_debug_level_enabled[level] = value;
-}
+void csp_debug_set_level(csp_debug_level_t level, bool value) {
 
-int csp_debug_get_level(csp_debug_level_t level)
-{
-	if (level > CSP_LOCK)
-		return 0;
-	return csp_debug_level_enabled[level];
-}
-
-void csp_debug_toggle_level(csp_debug_level_t level)
-{
-	if (level > CSP_LOCK) {
-		printf("Max level is 6\r\n");
-		return;
+	if (level <= CSP_LOCK) {
+		csp_debug_level_enabled[level] = value;
 	}
-	csp_debug_level_enabled[level] = (csp_debug_level_enabled[level]) ? false : true;
-	printf("Level %u: value %u\r\n", level, csp_debug_level_enabled[level]);
+}
+
+int csp_debug_get_level(csp_debug_level_t level) {
+
+	if (level <= CSP_LOCK) {
+		return csp_debug_level_enabled[level];
+	}
+	return 0;
+}
+
+void csp_debug_toggle_level(csp_debug_level_t level) {
+
+	if (level <= CSP_LOCK) {
+		csp_debug_level_enabled[level] = (csp_debug_level_enabled[level]) ? false : true;
+	}
 }
 
 #endif // (CSP_DEBUG) && !(CSP_USE_EXTERNAL_DEBUG)

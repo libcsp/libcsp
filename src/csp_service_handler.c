@@ -122,7 +122,7 @@ static int do_cmp_peek(struct csp_cmp_message *cmp) {
 		return CSP_ERR_INVAL;
 
 	/* Dangerous, you better know what you are doing */
-	csp_cmp_memcpy_fnc((csp_memptr_t) (uintptr_t) cmp->peek.data, (csp_memptr_t) (unsigned long) cmp->peek.addr, cmp->peek.len);
+	csp_cmp_memcpy_fnc((csp_memptr_t) (uintptr_t) cmp->peek.data, (csp_memptr_t) (uintptr_t) cmp->peek.addr, cmp->peek.len);
 
 	return CSP_ERR_NONE;
 
@@ -135,7 +135,7 @@ static int do_cmp_poke(struct csp_cmp_message *cmp) {
 		return CSP_ERR_INVAL;
 
 	/* Extremely dangerous, you better know what you are doing */
-	csp_cmp_memcpy_fnc((csp_memptr_t) (unsigned long) cmp->poke.addr, (csp_memptr_t) (uintptr_t) cmp->poke.data, cmp->poke.len);
+	csp_cmp_memcpy_fnc((csp_memptr_t) (uintptr_t) cmp->poke.addr, (csp_memptr_t) (uintptr_t) cmp->poke.data, cmp->poke.len);
 
 	return CSP_ERR_NONE;
 
@@ -147,17 +147,21 @@ static int do_cmp_clock(struct csp_cmp_message *cmp) {
 	clock.tv_sec = csp_ntoh32(cmp->clock.tv_sec);
 	clock.tv_nsec = csp_ntoh32(cmp->clock.tv_nsec);
 
-	if ((clock.tv_sec != 0) && (clock_set_time != NULL)) {
-		clock_set_time(&clock);
+	int res = CSP_ERR_NONE;
+	if (clock.tv_sec != 0) {
+		// set time
+		res = csp_clock_set_time(&clock);
+		if (res != CSP_ERR_NONE) {
+			csp_log_warn("csp_clock_set_time(sec=%"PRIu32", nsec=%"PRIu32") failed, error: %d", clock.tv_sec, clock.tv_nsec, res);
+		}
 	}
 
-	if (clock_get_time != NULL) {
-		clock_get_time(&clock);
-	}
+	csp_clock_get_time(&clock);
 
 	cmp->clock.tv_sec = csp_hton32(clock.tv_sec);
 	cmp->clock.tv_nsec = csp_hton32(clock.tv_nsec);
-	return CSP_ERR_NONE;
+
+	return res;
 
 }
 
@@ -300,8 +304,6 @@ void csp_service_handler(csp_conn_t * conn, csp_packet_t * packet) {
 		} else if (magic_word == CSP_REBOOT_SHUTDOWN_MAGIC) {
 			csp_sys_shutdown();
 		}
-
-
 		
 		csp_buffer_free(packet);
 		return;

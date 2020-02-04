@@ -1,5 +1,8 @@
 libcsp 1.6, DD-MM-YYYY
 ----------------------
+- Renamed (scoped) clock_set_time()/clock_get_time() to csp_clock_set_time()/csp_clock_get_time()
+- Changed csp_sys_reboot()/csp_sys_shutdown() to use callbacks, default POSIX impl. in csp/arch/posix/csp_system.h.
+- Added support for timestamps in logs by setting CSP_DEBUG_TIMESTAMP (uses csp_clock_get_time()).
 - Renamed mac to via (structs, functions, examples and documentation)
 - RDP: Ensure connection is kept in CLOSE_WAIT for period of time. In some cases, the connection would switch to CLOSED immediately.
 - RDP: Fixed connection leak, if a RST segment was received on a closed connecton.

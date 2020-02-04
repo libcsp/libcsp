@@ -18,5 +18,42 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-// Use POSIX implementation
-#include "../posix/csp_queue.c"
+#ifndef _CSP_ARCH_POSIX_CSP_SYSTEM_H_
+#define _CSP_ARCH_POSIX_CSP_SYSTEM_H_
+
+/**
+   @file
+
+   Posix extension to system interface.
+*/
+
+#include <csp/arch/csp_system.h>
+
+#ifdef __cplusplus
+yextern "C" {
+#endif
+
+/**
+   Executes 'system("reboot")' for system reboot.
+*/
+int csp_sys_reboot_using_system(void);
+
+/**
+   Executes 'sync() and reboot(LINUX_REBOOT_CMD_RESTART)' for system reboot.
+*/
+int csp_sys_reboot_using_reboot(void);
+
+/**
+   Executes 'system("halt")' for system shutdown.
+*/
+int csp_sys_shutdown_using_system(void);
+
+/**
+   Executes 'sync() and reboot(LINUX_REBOOT_CMD_HALT)' for system shutdown.
+*/
+int csp_sys_shutdown_using_reboot(void);
+
+#ifdef __cplusplus
+}
+#endif
+#endif

@@ -29,11 +29,13 @@ int csp_sys_tasklist(char * out) {
 
 	strcpy(out, "Tasklist not available on Windows");
 	return CSP_ERR_NONE;
+
 }
 
 int csp_sys_tasklist_size(void) {
 
         return 100;
+
 }
 
 uint32_t csp_sys_memfree(void) {
@@ -44,18 +46,7 @@ uint32_t csp_sys_memfree(void) {
 	DWORDLONG freePhysicalMem = statex.ullAvailPhys;
 	size_t total = (size_t) freePhysicalMem;
 	return (uint32_t)total;
-}
 
-int csp_sys_reboot(void) {
-
-	csp_log_error("%s: not supported", __FUNCTION__);
-	return CSP_ERR_NOTSUP;
-}
-
-int csp_sys_shutdown(void) {
-
-	csp_log_error("%s: not supported", __FUNCTION__);
-	return CSP_ERR_NOTSUP;
 }
 
 void csp_sys_set_color(csp_color_t color) {

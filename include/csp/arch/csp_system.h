@@ -82,16 +82,44 @@ int csp_sys_tasklist_size(void);
 uint32_t csp_sys_memfree(void);
 
 /**
-   Reboot system.
+   Callback function for system reboot request.
+   @return #CSP_ERR_NONE on success (if function returns at all), or error code.
+*/
+typedef int (*csp_sys_reboot_t)(void);
 
-   @return #CSP_ERR_NONE on success.
+/**
+   Set system reboot/reset function.
+   Function will be called by csp_sys_reboot().
+   @param[in] reboot callback.
+   @see csp_sys_reboot_using_system(), csp_sys_reboot_using_reboot()
+*/
+void csp_sys_set_reboot(csp_sys_reboot_t reboot);
+
+/**
+   Reboot/reset system.
+   Reboot/resets the system by calling the function set by csp_sys_set_reboot().
+   @return #CSP_ERR_NONE on success (if function returns at all), or error code.
 */
 int csp_sys_reboot(void);
 
 /**
-   Shutdown system.
+   Callback function for system shutdown request.
+   @return #CSP_ERR_NONE on success (if function returns at all), or error code.
+*/
+typedef int (*csp_sys_shutdown_t)(void);
 
-   @return #CSP_ERR_NONE on success.
+/**
+   Set system shutdown function.
+   Function will be called by csp_sys_shutdown().
+   @param[in] shutdown callback.
+   @see csp_sys_shutdown_using_system(), csp_sys_shutdown_using_reboot()
+*/
+void csp_sys_set_shutdown(csp_sys_shutdown_t shutdown);
+
+/**
+   Shutdown system.
+   Shuts down the system by calling the function set by csp_sys_set_shutdown().
+   @return #CSP_ERR_NONE on success (if function returns at all), or error code.
 */
 int csp_sys_shutdown(void);
 
