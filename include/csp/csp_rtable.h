@@ -67,29 +67,6 @@ struct csp_route_s {
 const csp_route_t * csp_rtable_find_route(uint8_t dest_address);
 
 /**
-   Find outgoing interface for destination address/node.
-   @param[in] dest_address destination address.
-   @return Interface or NULL if not found.
-*/
-csp_iface_t * csp_rtable_find_iface(uint8_t dest_address);
-
-/**
-   Find via address for destination address/node.
-   @param[in] dest_address destination address.
-   @return via via address or #CSP_NO_VIA_ADDRESS if not found.
-*/
-uint8_t csp_rtable_find_via(uint8_t dest_address);
-
-/**
-   Legacy function for finding via (former mac) address for destination address/node.
-   @param[in] dest_address destination address.
-   @return via via address or #CSP_NO_VIA_ADDRESS if not found.
-*/
-static inline uint8_t csp_rtable_find_mac(uint8_t dest_address) {
-    return csp_rtable_find_via(dest_address);
-}
-
-/**
    Set route to destination address/node.
    @param[in] dest_address destination address.
    @param[in] mask number of bits in netmask
