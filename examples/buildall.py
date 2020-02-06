@@ -20,6 +20,7 @@ options += [
     '--enable-xtea',
     '--enable-dedup',
     '--with-loglevel=debug',
+    '--enable-debug-timestamp'
 ]
 
 waf = ['./waf']
@@ -47,8 +48,7 @@ if os in ['windows']:
 waf += ['distclean', 'configure', 'build']
 print("Waf build command:", waf)
 subprocess.check_call(waf + options +
-                      ['--enable-qos', '--enable-init-shutdown', '--with-rtable=cidr', '--disable-stlib',
-                       '--disable-output'])
+                      ['--enable-qos', '--with-rtable=cidr', '--disable-stlib', '--disable-output'])
 if os not in ['windows']:  # TODO fix examples for WIndows
     subprocess.check_call(waf + options +
                           ['--enable-examples'])

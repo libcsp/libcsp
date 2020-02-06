@@ -106,10 +106,10 @@ typedef csp_thread_return_t (* csp_thread_func_t)(void *);
    Create thread (task).
 
    @param[in] func thread function
-   @param[in] name name of thread (not supported on all platforms).
-   @param[in] stack_size stack size, platform specific but typically bytes - except for FreeRTOS where it is words (4 bytes).
+   @param[in] name name of thread, supported on: FreeRTOS.
+   @param[in] stack_size stack size, supported on: posix (bytes), FreeRTOS (words, word = 4 bytes).
    @param[in] parameter parameter for thread function.
-   @param[in] priority thread priority, platform specific - not supported on all platforms.
+   @param[in] priority thread priority, supported on: FreeRTOS.
    @param[out] handle reference to created thread.
    @return #CSP_ERR_NONE on success, otherwise an error code.
 */
