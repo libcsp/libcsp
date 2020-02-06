@@ -33,17 +33,6 @@ extern "C" {
 #endif
 
 /**
-   Initialize buffer system.
-
-   Buffers are dynamic allocated. All buffers are fixed size, sizeof(#csp_packet_t) + data_size.
-
-   @param[in] count Number of buffers to allocate.
-   @param[in] data_size data size in bytes, sizeof #csp_packet_t -> data[..]
-   @return #CSP_ERR_NONE on success, otherwise an error code.
-*/
-int csp_buffer_init(size_t count, size_t data_size);
-
-/**
    Get free buffer from within ISR context.
 
    @param[in] data_size minimum data size of requested buffer.

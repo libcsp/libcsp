@@ -40,10 +40,6 @@ typedef struct csp_skbf_s {
 static csp_queue_handle_t csp_buffers;
 // Chunk of memory allocated for CSP buffers
 static char * csp_buffer_pool;
-// Buffer size = CSP packet overhead + data size
-static size_t buffer_size;
-// Data size of csp_packet_t
-static size_t data_size;
 
 // Ensure the csp_packet is correctly aligned (as it is not packed)
 CSP_STATIC_ASSERT(CSP_HEADER_LENGTH == sizeof(csp_id_t), csp_header_length);
@@ -52,23 +48,21 @@ CSP_STATIC_ASSERT(offsetof(csp_packet_t, length) == 10, length_field_misaligned)
 CSP_STATIC_ASSERT(offsetof(csp_packet_t, id) == 12, csp_id_field_misaligned);
 CSP_STATIC_ASSERT(offsetof(csp_packet_t, data) == 16, data_field_misaligned);
 
-int csp_buffer_init(size_t buf_count, size_t _data_size) {
+int csp_buffer_init(void) {
 
-	data_size = _data_size;
-	buffer_size = data_size + CSP_BUFFER_PACKET_OVERHEAD;
 
 	// calculate total size and ensure correct alignent (int *) for buffers
-	const unsigned int skbfsize = CSP_BUFFER_ALIGN * ((sizeof(csp_skbf_t) + buffer_size + (CSP_BUFFER_ALIGN - 1)) / CSP_BUFFER_ALIGN);
+	const unsigned int skbfsize = CSP_BUFFER_ALIGN * ((sizeof(csp_skbf_t) + csp_buffer_size() + (CSP_BUFFER_ALIGN - 1)) / CSP_BUFFER_ALIGN);
 
-	csp_buffer_pool = csp_calloc(buf_count, skbfsize);
+	csp_buffer_pool = csp_calloc(csp_conf.buffers, skbfsize);
 	if (csp_buffer_pool == NULL)
 		goto fail_malloc;
 
-	csp_buffers = csp_queue_create(buf_count, sizeof(void *));
+	csp_buffers = csp_queue_create(csp_conf.buffers, sizeof(void *));
 	if (!csp_buffers)
 		goto fail_queue;
 
-	for (unsigned int i = 0; i < buf_count; i++) {
+	for (unsigned int i = 0; i < csp_conf.buffers; i++) {
 		csp_skbf_t * buf = (void *) &csp_buffer_pool[i * skbfsize];
 		buf->skbf_addr = buf;
 		csp_queue_enqueue(csp_buffers, &buf, 0);
@@ -91,14 +85,12 @@ void csp_buffer_free_resources(void) {
 	}
 	csp_free(csp_buffer_pool);
 	csp_buffer_pool = NULL;
-	data_size = 0;
-	buffer_size = 0;
 
 }
 
 void *csp_buffer_get_isr(size_t _data_size) {
 
-	if (_data_size > data_size)
+	if (_data_size > csp_conf.buffer_data_size)
 		return NULL;
 
 	csp_skbf_t * buffer = NULL;
@@ -117,8 +109,8 @@ void *csp_buffer_get_isr(size_t _data_size) {
 
 void *csp_buffer_get(size_t _data_size) {
 
-	if (_data_size > data_size) {
-		csp_log_error("GET: Attempt to allocate too large data size %u > max %u", (unsigned int) _data_size, (unsigned int) data_size);
+	if (_data_size > csp_conf.buffer_data_size) {
+		csp_log_error("GET: Attempt to allocate too large data size %u > max %u", (unsigned int) _data_size, (unsigned int) csp_conf.buffer_data_size);
 		return NULL;
 	}
 
@@ -225,9 +217,9 @@ int csp_buffer_remaining(void) {
 }
 
 size_t csp_buffer_size(void) {
-	return buffer_size;
+	return (csp_conf.buffer_data_size + CSP_BUFFER_PACKET_OVERHEAD);
 }
 
 size_t csp_buffer_data_size(void) {
-	return data_size;
+	return csp_conf.buffer_data_size;
 }

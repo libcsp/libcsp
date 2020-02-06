@@ -41,7 +41,12 @@ int csp_init(const csp_conf_t * conf) {
 	 * unless specific get/set functions are made */
 	memcpy(&csp_conf, conf, sizeof(csp_conf));
 
-	int ret = csp_conn_init();
+	int ret = csp_buffer_init();
+	if (ret != CSP_ERR_NONE) {
+		return ret;
+	}
+
+	ret = csp_conn_init();
 	if (ret != CSP_ERR_NONE) {
 		return ret;
 	}
@@ -76,6 +81,7 @@ void csp_free_resources(void) {
 	csp_port_free_resources();
 	csp_conn_free_resources();
 	csp_buffer_free_resources();
+	memset(&csp_conf, 0, sizeof(csp_conf));
 
 }
 
