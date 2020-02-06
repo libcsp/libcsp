@@ -1,5 +1,6 @@
 libcsp 1.6, DD-MM-YYYY
 ----------------------
+- Updated example code to a single csp_server_client.c implementation.
 - Renamed (scoped) clock_set_time()/clock_get_time() to csp_clock_set_time()/csp_clock_get_time()
 - Changed csp_sys_reboot()/csp_sys_shutdown() to use callbacks, default POSIX impl. in csp/arch/posix/csp_system.h.
 - Added support for timestamps in logs by setting CSP_DEBUG_TIMESTAMP (uses csp_clock_get_time()).

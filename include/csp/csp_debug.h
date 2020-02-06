@@ -29,6 +29,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <inttypes.h>
 #include <string.h>
 #include <stdarg.h>
+#include <stdio.h>
 
 #include <csp/csp_types.h>
 
@@ -73,8 +74,8 @@ extern void __attribute__((weak)) csp_assert_fail_action(const char *assertion, 
 /**
    CSP assert.
 */
-#if !defined(NDEBUG)
-#define csp_assert(exp) {										\
+#if (!defined(NDEBUG) || CSP_USE_ASSERT)
+#define csp_assert(exp) {                                       				        \
 		if (!(exp)) {										\
 			const char *assertion = #exp;							\
 			const char *file = BASENAME(__FILE__);						\
