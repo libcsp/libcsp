@@ -121,8 +121,12 @@ static int csp_can_tx_frame(void * driver_data, uint32_t id, const uint8_t * dat
 
 int csp_can_socketcan_open_and_add_interface(const char * device, const char * ifname, int bitrate, bool promisc, csp_iface_t ** return_iface)
 {
-	csp_log_info("%s: device: [%s], interface: [%s], bitrate: %d, promisc: %d",
-			__FUNCTION__, device, ifname, bitrate, promisc);
+	if (ifname == NULL) {
+		ifname = CSP_IF_CAN_DEFAULT_NAME;
+	}
+
+	csp_log_info("INIT %s: device: [%s], bitrate: %d, promisc: %d",
+			ifname, device, bitrate, promisc);
 
 #if (CSP_HAVE_LIBSOCKETCAN)
 	/* Set interface up - this may require increased OS privileges */
@@ -157,7 +161,7 @@ int csp_can_socketcan_open_and_add_interface(const char * device, const char * i
 	struct ifreq ifr;
 	strncpy(ifr.ifr_name, device, IFNAMSIZ - 1);
 	if (ioctl(ctx->socket, SIOCGIFINDEX, &ifr) < 0) {
-		csp_log_error("%s[%s]: ioctl() failed, error: %s", __FUNCTION__, ctx->name, strerror(errno));
+		csp_log_error("%s[%s]: device: [%s], ioctl() failed, error: %s", __FUNCTION__, ctx->name, device, strerror(errno));
 		socketcan_free(ctx);
 		return CSP_ERR_INVAL;
 	}

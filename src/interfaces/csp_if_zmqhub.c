@@ -40,6 +40,7 @@ typedef struct {
 	void * publisher;
 	void * subscriber;
 	csp_bin_sem_handle_t tx_wait;
+	char name[CSP_IFLIST_NAME_MAX + 1];
 	csp_iface_t iface;
 } zmq_driver_t;
 
@@ -77,7 +78,7 @@ CSP_DEFINE_TASK(csp_zmqhub_task) {
 	csp_packet_t * packet;
 	const uint32_t HEADER_SIZE = (sizeof(packet->id) + sizeof(uint8_t));
 
-	csp_log_info("RX %s started", drv->iface.name);
+	//csp_log_info("RX %s started", drv->iface.name);
 
 	while(1) {
 		zmq_msg_t msg;
@@ -134,19 +135,25 @@ int csp_zmqhub_make_endpoint(const char * host, uint16_t port, char * buf, size_
 	return CSP_ERR_NONE;
 }
 
-int csp_zmqhub_init(uint8_t addr, const char * host) {
+int csp_zmqhub_init(uint8_t addr,
+                    const char * host,
+                    uint32_t flags,
+                    csp_iface_t ** return_interface) {
+
 	char pub[100];
 	csp_zmqhub_make_endpoint(host, CSP_ZMQPROXY_SUBSCRIBE_PORT, pub, sizeof(pub));
 
 	char sub[100];
 	csp_zmqhub_make_endpoint(host, CSP_ZMQPROXY_PUBLISH_PORT, sub, sizeof(sub));
 
-	return csp_zmqhub_init_w_endpoints(addr, pub, sub);
+	return csp_zmqhub_init_w_endpoints(addr, pub, sub, flags, return_interface);
 }
 
 int csp_zmqhub_init_w_endpoints(uint8_t addr,
                                 const char * publisher_endpoint,
-				const char * subscriber_endpoint) {
+				const char * subscriber_endpoint,
+                                uint32_t flags,
+                                csp_iface_t ** return_interface) {
 
 	uint8_t * rxfilter = NULL;
 	unsigned int rxfilter_count = 0;
@@ -156,27 +163,30 @@ int csp_zmqhub_init_w_endpoints(uint8_t addr,
 		rxfilter_count = 1;
 	}
 
-	return csp_zmqhub_init_w_name_endpoints_rxfilter(CSP_ZMQHUB_IF_NAME,
+	return csp_zmqhub_init_w_name_endpoints_rxfilter(NULL,
 							 rxfilter, rxfilter_count,
 							 publisher_endpoint,
 							 subscriber_endpoint,
-							 NULL);
+							 flags,
+                                                         return_interface);
 }
 
-int csp_zmqhub_init_w_name_endpoints_rxfilter(const char * name,
+int csp_zmqhub_init_w_name_endpoints_rxfilter(const char * ifname,
                                               const uint8_t rxfilter[], unsigned int rxfilter_count,
                                               const char * publish_endpoint,
                                               const char * subscribe_endpoint,
+                                              uint32_t flags,
                                               csp_iface_t ** return_interface) {
 
-	zmq_driver_t * drv = csp_malloc(sizeof(*drv));
+	zmq_driver_t * drv = csp_calloc(1, sizeof(*drv));
 	assert(drv);
-	memset(drv, 0, sizeof(*drv));
 
-	char * alloc_name = csp_malloc(strlen(name) + 1);
-	drv->iface.name = alloc_name;
-	assert(alloc_name);
-	strcpy(alloc_name, name);
+        if (ifname == NULL) {
+            ifname = CSP_ZMQHUB_IF_NAME;
+        }
+
+	strncpy(drv->name, ifname, sizeof(drv->name) - 1);
+	drv->iface.name = drv->name;
 	drv->iface.driver_data = drv;
 	drv->iface.nexthop = csp_zmqhub_tx;
 	drv->iface.mtu = CSP_ZMQ_MTU; // there is actually no 'max' MTU on ZMQ, but assuming the other end is based on the same code
@@ -196,10 +206,12 @@ int csp_zmqhub_init_w_name_endpoints_rxfilter(const char * name,
 	assert(drv->subscriber);
 
 	if (rxfilter && rxfilter_count) {
+		// subscribe to all 'rx_filters' -> subscribe to all packets, where the first byte (address/via) matches a rx_filter
 		for (unsigned int i = 0; i < rxfilter_count; ++i, ++rxfilter) {
 			assert(zmq_setsockopt(drv->subscriber, ZMQ_SUBSCRIBE, rxfilter, 1) == 0);
 		}
 	} else {
+		// subscribe to all packets - no filter
 		assert(zmq_setsockopt(drv->subscriber, ZMQ_SUBSCRIBE, NULL, 0) == 0);
 	}
 
