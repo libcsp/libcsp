@@ -761,21 +761,18 @@ static PyObject* pycsp_can_socketcan_init(PyObject *self, PyObject *args)
  * int csp_kiss_init(char addr, char * host);
  */
 static PyObject* pycsp_kiss_init(PyObject *self, PyObject *args) {
-	char* device;
-	uint32_t baudrate = 500000;
-	uint32_t mtu = 512;
-	const char* if_name = CSP_IF_KISS_DEFAULT_NAME;
-	if (!PyArg_ParseTuple(args, "s|IIs", &device, &baudrate, &mtu, &if_name)) {
-		return NULL; // TypeError is thrown
-	}
+    char* device;
+    uint32_t baudrate = 500000;
+    uint32_t mtu = 512;
+    const char* if_name = CSP_IF_KISS_DEFAULT_NAME;
+    if (!PyArg_ParseTuple(args, "s|IIs", &device, &baudrate, &mtu, &if_name)) {
+        return NULL; // TypeError is thrown
+    }
 
-	struct usart_conf conf = {.device = device, .baudrate = baudrate};
-        int res = usart_open_and_add_kiss_interface(&conf, if_name, NULL);
-        if (res != CSP_ERR_NONE) {
-		return NULL; // TypeError is thrown
-	}
+    csp_usart_conf_t conf = {.device = device, .baudrate = baudrate};
+    csp_usart_open_and_add_kiss_interface(&conf, if_name, NULL);
 
-	Py_RETURN_NONE;
+    Py_RETURN_NONE;
 }
 
 /**

@@ -24,7 +24,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <pthread.h>
 #include <unistd.h>
 #include <errno.h>
 #include <termios.h>
@@ -32,14 +31,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <sys/time.h>
 
 #include <csp/csp.h>
-#include <csp/interfaces/csp_if_kiss.h>
 #include <csp/arch/csp_malloc.h>
+#include <csp/arch/csp_thread.h>
 
 typedef struct {
-	usart_callback_t rx_callback;
+	csp_usart_callback_t rx_callback;
 	void * user_data;
-	int fd;
-	pthread_t rx_thread;
+	csp_usart_fd_t fd;
+	csp_thread_handle_t rx_thread;
 } usart_context_t;
 
 static void * usart_rx_thread(void * arg) {
@@ -60,6 +59,7 @@ static void * usart_rx_thread(void * arg) {
 	return NULL;
 }
 
+#if (0) // Unused function and no prototype in public heaaders
 int getbaud(int ifd) {
 	struct termios termAttr;
 	int inputSpeed = -1;
@@ -165,8 +165,21 @@ int getbaud(int ifd) {
 	return inputSpeed;
 
 }
+#endif
 
-int usart_open(const usart_conf_t *conf, usart_callback_t rx_callback, void * user_data, int * return_fd) {
+int csp_usart_write(csp_usart_fd_t fd, const void * data, size_t data_length) {
+
+	if (fd >= 0) {
+		int res = write(fd, data, data_length);
+		if (res >= 0) {
+			return res;
+		}
+	}
+	return CSP_ERR_TX; // best matching CSP error code.
+
+}
+
+int csp_usart_open(const csp_usart_conf_t *conf, csp_usart_callback_t rx_callback, void * user_data, csp_usart_fd_t * return_fd) {
 
 	int brate = 0;
 	switch(conf->baudrate) {
@@ -231,23 +244,23 @@ int usart_open(const usart_conf_t *conf, usart_callback_t rx_callback, void * us
 		return CSP_ERR_DRIVER;
 	}
 
-        usart_context_t * ctx = calloc(1, sizeof(*ctx));
-        if (ctx == NULL) {
-		csp_log_error("%s: Error flushing device: [%s], errno: %s", __FUNCTION__, conf->device, strerror(errno));
+	usart_context_t * ctx = calloc(1, sizeof(*ctx));
+	if (ctx == NULL) {
+		csp_log_error("%s: Error allocating context, device: [%s], errno: %s", __FUNCTION__, conf->device, strerror(errno));
 		close(fd);
 		return CSP_ERR_NOMEM;
-        }
-        ctx->rx_callback = rx_callback;
-        ctx->user_data = user_data;
-        ctx->fd = fd;
+	}
+	ctx->rx_callback = rx_callback;
+	ctx->user_data = user_data;
+	ctx->fd = fd;
 
         if (rx_callback) {
-            if (pthread_create(&ctx->rx_thread, NULL, usart_rx_thread, ctx) != 0) {
-		csp_log_error("%s: pthread_create() failed to create Rx thread for device: [%s], errno: %s", __FUNCTION__, conf->device, strerror(errno));
-                free(ctx);
-		close(fd);
-		return CSP_ERR_NOMEM;
-            }
+		if (csp_thread_create(usart_rx_thread, "usart_rx", 0, ctx, 0, &ctx->rx_thread) != CSP_ERR_NONE) {
+			csp_log_error("%s: csp_thread_create() failed to create Rx thread for device: [%s], errno: %s", __FUNCTION__, conf->device, strerror(errno));
+			free(ctx);
+			close(fd);
+			return CSP_ERR_NOMEM;
+		}
 	}
 
         if (return_fd) {
@@ -256,61 +269,3 @@ int usart_open(const usart_conf_t *conf, usart_callback_t rx_callback, void * us
 
 	return CSP_ERR_NONE;
 }
-
-// csp/interfaces/csp_if_kiss.h
-
-typedef struct {
-	char name[CSP_IFLIST_NAME_MAX + 1];
-	csp_iface_t iface;
-	csp_kiss_interface_data_t ifdata;
-	int fd;
-} kiss_context_t;
-
-static int kiss_driver_tx(void *driver_data, const unsigned char * data, size_t data_length) {
-
-	kiss_context_t * ctx = driver_data;
-	if (ctx->fd >= 0) {
-		if (write(ctx->fd, data, data_length) == (int) data_length) {
-			return CSP_ERR_NONE;
-		}
-		return CSP_ERR_TX;
-	}
-	return CSP_ERR_DRIVER;
-}
-
-static void usart_rx_callback(void * user_data, uint8_t * data, size_t data_size, void * pxTaskWoken) {
-
-	kiss_context_t * ctx = user_data;
-	csp_kiss_rx(&ctx->iface, data, data_size, NULL);
-}
-
-int usart_open_and_add_kiss_interface(const usart_conf_t *conf, const char * ifname, csp_iface_t ** return_iface) {
-
-	kiss_context_t * ctx = csp_calloc(1, sizeof(*ctx));
-	if (ctx == NULL) {
-		return CSP_ERR_NOMEM;
-	}
-
-	if (ifname == NULL) {
-		ifname = CSP_IF_KISS_DEFAULT_NAME;
-	}
-
-	strncpy(ctx->name, ifname, sizeof(ctx->name) - 1);
-	ctx->iface.name = ctx->name;
-	ctx->iface.driver_data = ctx;
-	ctx->iface.interface_data = &ctx->ifdata;
-	ctx->ifdata.tx_func = kiss_driver_tx;
-	ctx->fd = -1;
-
-	int res = csp_kiss_add_interface(&ctx->iface);
-	if (res == CSP_ERR_NONE) {
-		res = usart_open(conf, usart_rx_callback, ctx, &ctx->fd);
-	}
-
-	if (return_iface) {
-		*return_iface = &ctx->iface;
-	}
-
-	return res;
-}
-

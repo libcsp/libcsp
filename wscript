@@ -99,7 +99,7 @@ def configure(ctx):
     # Setup CFLAGS
     if (len(ctx.stack_path) <= 1) and (len(ctx.env.CFLAGS) == 0):
         ctx.env.prepend_value('CFLAGS', ["-std=gnu99", "-g", "-Os", "-Wall", "-Wextra", "-Wshadow", "-Wcast-align",
-                                         "-Wwrite-strings", "-Wno-unused-parameter"])
+                                         "-Wwrite-strings", "-Wno-unused-parameter", "-Werror"])
 
     # Setup default include path and any extra defined
     ctx.env.append_unique('INCLUDES_CSP', ['include'] + ctx.options.includes.split(','))
@@ -139,7 +139,8 @@ def configure(ctx):
 
     # Add USART driver
     if ctx.options.with_driver_usart:
-        ctx.env.append_unique('FILES_CSP', 'src/drivers/usart/usart_{0}.c'.format(ctx.options.with_driver_usart))
+        ctx.env.append_unique('FILES_CSP', ['src/drivers/usart/usart_kiss.c',
+                                            'src/drivers/usart/usart_{0}.c'.format(ctx.options.with_driver_usart)])
 
     # Add ZMQ
     if ctx.options.enable_if_zmqhub:
