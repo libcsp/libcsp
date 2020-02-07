@@ -35,7 +35,7 @@ static PyObject* pycsp_service_handler(PyObject *self, PyObject *args) {
     PyObject* conn_capsule;
     PyObject* packet_capsule;
     if (!PyArg_ParseTuple(args, "OO", &conn_capsule, &packet_capsule)) {
-        return NULL; // TypeError is thrownfcsp_init
+        return NULL; // TypeError is thrown
     }
 
     if (!is_capsule_of_type(conn_capsule, "csp_conn_t") ||
