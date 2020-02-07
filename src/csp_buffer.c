@@ -50,11 +50,10 @@ CSP_STATIC_ASSERT(offsetof(csp_packet_t, data) == 16, data_field_misaligned);
 
 int csp_buffer_init(void) {
 
-
-	// calculate total size and ensure correct alignent (int *) for buffers
+	// calculate total size and ensure correct alignment (int *) for buffers
 	const unsigned int skbfsize = CSP_BUFFER_ALIGN * ((sizeof(csp_skbf_t) + csp_buffer_size() + (CSP_BUFFER_ALIGN - 1)) / CSP_BUFFER_ALIGN);
 
-	csp_buffer_pool = csp_calloc(csp_conf.buffers, skbfsize);
+	csp_buffer_pool = csp_malloc(csp_conf.buffers * skbfsize);
 	if (csp_buffer_pool == NULL)
 		goto fail_malloc;
 
@@ -102,7 +101,7 @@ void *csp_buffer_get_isr(size_t _data_size) {
 	if (buffer != buffer->skbf_addr)
 		return NULL;
 
-	buffer->refcount++;
+	buffer->refcount = 1;
 	return buffer->skbf_data;
 
 }
@@ -128,7 +127,7 @@ void *csp_buffer_get(size_t _data_size) {
 
 	csp_log_buffer("GET: %p", buffer);
 
-	buffer->refcount++;
+	buffer->refcount = 1;
 	return buffer->skbf_data;
 }
 
