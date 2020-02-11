@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "csp_promisc.h"
 
+#include <csp/csp.h>
 #include <csp/arch/csp_queue.h>
 
 #if (CSP_USE_PROMISC)

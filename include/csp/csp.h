@@ -33,15 +33,16 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/csp_rtable.h>
 #include <csp/csp_iflist.h>
 #include <csp/csp_sfp.h>
+#include <csp/csp_promisc.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /**
- * CSP configuration.
- * @see csp_init()
- */
+   CSP configuration.
+   @see csp_init()
+*/
 typedef struct csp_conf_s {
 
 	uint8_t address;		/**< CSP address of the system */
@@ -61,8 +62,8 @@ typedef struct csp_conf_s {
 } csp_conf_t;
 
 /**
- * Get default CSP configuration.
- */
+   Get default CSP configuration.
+*/
 static inline void csp_conf_get_defaults(csp_conf_t * conf) {
 	conf->address = 1;
 	conf->hostname = "hostname";
@@ -79,429 +80,404 @@ static inline void csp_conf_get_defaults(csp_conf_t * conf) {
 }
 
 /**
- * Initialize CSP.
- * This will configure/allocate basic structures.
- * @param[in] conf configuration. A shallow copy will be done of the configuration, i.e. only copy references to strings/structers.
- * @return #CSP_ERR_NONE on success, otherwise an error code.
- */
+   Initialize CSP.
+   This will configure/allocate basic structures.
+   @param[in] conf configuration. A shallow copy will be done of the provided configuration, i.e. only copy references to strings/structers.
+   @return #CSP_ERR_NONE on success, otherwise an error code.
+*/
 int csp_init(const csp_conf_t * conf);
 
 /**
- * Free allocated resorces in CSP (for testing).
- * This is only to be called from automatic tests, to satisfy tools like valgrind.
- */
+   Free allocated resorces in CSP.
+   This is intended for testing of CSP, in order to be able re-initialize CSP by calling csp_init() again.
+*/
 void csp_free_resources(void);
 
 /**
- * Get a \a read-only reference to the active CSP configuration.
- * @return Active CSP configuration (read-only).
- */
+   Get a \a read-only reference to the active CSP configuration.
+   @return Active CSP configuration (read-only).
+*/
 const csp_conf_t * csp_get_conf(void);
 
 /**
- * Get the systems own address.
- * @return The current address of the system
- */
+   Get the system's own address.
+   @return system's own address
+*/
 uint8_t csp_get_address(void);
 
 /**
- * Create a CSP socket endpoint.
- * @param[in] opts Socket options.
- * @return Socket on success, NULL on failure
- */
+   Create a CSP socket endpoint.
+   @param[in] opts socket options, see @ref CSP_SOCKET_OPTIONS.
+   @return Socket on success, NULL on failure
+*/
 csp_socket_t *csp_socket(uint32_t opts);
 
 /**
- * Wait for a new connection on a socket created by csp_socket
- * @param socket Socket to accept connections on
- * @param timeout timeout in mS, use #CSP_MAX_TIMEOUT for infinite timeout.
- * @return New connection on success, NULL on failure or timeout.
- */
+   Wait/accept a new connection.
+   @param[in] socket socket to accept connections on, created by calling csp_socket().
+   @param[in] timeout timeout in mS to wait for a connection, use #CSP_MAX_TIMEOUT for infinite timeout.
+   @return New connection on success, NULL on failure or timeout.
+*/
 csp_conn_t *csp_accept(csp_socket_t *socket, uint32_t timeout);
 
 /**
- * Read data from a connection
- * This fuction uses the RX queue of a connection to receive a packet
- * If no packet is available and a timeout has been specified
- * The call will block.
- * Do NOT call this from ISR
- * @param conn pointer to connection
- * @param timeout timeout in mS, use #CSP_MAX_TIMEOUT for infinite timeout.
- * @return Packet or NULL in case of failure or timeout.
- */
+   Read packet from a connection.
+   This fuction will wait on the connection's RX queue for the specified timeout.
+   @param[in] conn connection
+   @param[in] timeout timeout in mS to wait for a packet, use #CSP_MAX_TIMEOUT for infinite timeout.
+   @return Packet or NULL in case of failure or timeout.
+*/
 csp_packet_t *csp_read(csp_conn_t *conn, uint32_t timeout);
 
 /**
- * Send a packet on an already established connection
- * @param conn pointer to connection
- * @param packet pointer to packet,
- * @param timeout a timeout to wait for TX to complete. NOTE: not all underlying drivers supports flow-control.
- * @return returns 1 if successful and 0 otherwise. you MUST free the frame yourself if the transmission was not successful.
- */
+   Send packet on a connection.
+   @param[in] conn connection
+   @param[in] packet packet to send
+   @param[in] timeout unused as of CSP version 1.6
+   @return 1 on success, 0 on failure and the packet must be freed by calling csp_buffer_free()
+*/
 int csp_send(csp_conn_t *conn, csp_packet_t *packet, uint32_t timeout);
 
 /**
- * Send a packet on an already established connection, and change the default priority of the connection
- *
- * @note When using this function, the priority of the connection will change. If you need to change it back
- * use another call to csp_send_prio, or ensure that all packets sent on a given connection is using send_prio call.
- *
- * @param prio csp priority
- * @param conn pointer to connection
- * @param packet pointer to packet,
- * @param timeout a timeout to wait for TX to complete. NOTE: not all underlying drivers supports flow-control.
- * @return returns 1 if successful and 0 otherwise. you MUST free the frame yourself if the transmission was not successful.
+   Change the default priority of the connection and send a packet.
+   @note The priority of the connection will be changed. If you need to change it back, call csp_send_prio() again.
+
+   @param[in] prio priority to set on the connection
+   @param[in] conn connection
+   @param[in] packet packet to send
+   @param[in] timeout unused as of CSP version 1.6
+   @return 1 on success, 0 on failure and the packet must be freed by calling csp_buffer_free()
  */
 int csp_send_prio(uint8_t prio, csp_conn_t *conn, csp_packet_t *packet, uint32_t timeout);
 
 /**
- * Perform an entire request/reply transaction
- * Copies both input buffer and reply to output buffeer.
- * Also makes the connection and closes it again
- * @param prio CSP Prio
- * @param dest CSP Dest
- * @param port CSP Port
- * @param timeout timeout in ms
- * @param outbuf pointer to outgoing data buffer
- * @param outlen length of request to send
- * @param inbuf pointer to incoming data buffer
- * @param inlen length of expected reply, -1 for unknown size (note inbuf MUST be large enough)
- * @param opts Connection options.
- * @return Return 1 or reply size if successful, 0 if error or incoming length does not match or -1 if timeout was reached
- */
-int csp_transaction_w_opts(uint8_t prio, uint8_t dest, uint8_t port, uint32_t timeout, void *outbuf, int outlen, void *inbuf, int inlen, uint32_t opts);
+   Perform an entire request & reply transaction.
+   Creates a connection, send \a outbuf, wait for reply, copy reply to \a inbuf and close the connection.
+   @param[in] prio priority, see #csp_prio_t
+   @param[in] dst destination address
+   @param[in] dst_port destination port
+   @param[in] timeout timeout in mS to wait for a reply
+   @param[in] outbuf outgoing data (request)
+   @param[in] outlen length of data in \a outbuf (request)
+   @param[out] inbuf user provided buffer for receiving data (reply)
+   @param[in] inlen length of expected reply, -1 for unknown size (inbuf MUST be large enough), 0 for no reply.
+   @param[in] opts connection options, see @ref CSP_CONNECTION_OPTIONS.
+   @return 1 or reply size on success, 0 on failure (error, incoming length does not match, timeout)
+*/
+int csp_transaction_w_opts(uint8_t prio, uint8_t dst, uint8_t dst_port, uint32_t timeout, void *outbuf, int outlen, void *inbuf, int inlen, uint32_t opts);
 
 /**
- * Perform an entire request/reply transaction
- * Copies both input buffer and reply to output buffeer.
- * Also makes the connection and closes it again
- * @param prio CSP Prio
- * @param dest CSP Dest
- * @param port CSP Port
- * @param timeout timeout in ms
- * @param outbuf pointer to outgoing data buffer
- * @param outlen length of request to send
- * @param inbuf pointer to incoming data buffer
- * @param inlen length of expected reply, -1 for unknown size (note inbuf MUST be large enough)
- * @return Return 1 or reply size if successful, 0 if error or incoming length does not match or -1 if timeout was reached
- */
+   Perform an entire request & reply transaction.
+   Creates a connection, send \a outbuf, wait for reply, copy reply to \a inbuf and close the connection.
+   @param[in] prio priority, see #csp_prio_t
+   @param[in] dest destination address
+   @param[in] port destination port
+   @param[in] timeout timeout in mS to wait for a reply
+   @param[in] outbuf outgoing data (request)
+   @param[in] outlen length of data in \a outbuf (request)
+   @param[out] inbuf user provided buffer for receiving data (reply)
+   @param[in] inlen length of expected reply, -1 for unknown size (inbuf MUST be large enough), 0 for no reply.
+   @return 1 or reply size on success, 0 on failure (error, incoming length does not match, timeout)
+*/
 static inline int csp_transaction(uint8_t prio, uint8_t dest, uint8_t port, uint32_t timeout, void * outbuf, int outlen, void * inbuf, int inlen) {
 	return csp_transaction_w_opts(prio, dest, port, timeout, outbuf, outlen, inbuf, inlen, 0);
 }
 
 /**
- * Use an existing connection to perform a transaction,
- * This is only possible if the next packet is on the same port and destination!
- * @param conn pointer to connection structure
- * @param timeout timeout in ms
- * @param outbuf pointer to outgoing data buffer
- * @param outlen length of request to send
- * @param inbuf pointer to incoming data buffer
- * @param inlen length of expected reply, -1 for unknown size (note inbuf MUST be large enough)
- * @return
- */
+   Perform an entire request & reply transaction on an existing connection.
+   Send \a outbuf, wait for reply and copy reply to \a inbuf.
+   @param[in] conn connection
+   @param[in] timeout timeout in mS to wait for a reply
+   @param[in] outbuf outgoing data (request)
+   @param[in] outlen length of data in \a outbuf (request)
+   @param[out] inbuf user provided buffer for receiving data (reply)
+   @param[in] inlen length of expected reply, -1 for unknown size (inbuf MUST be large enough), 0 for no reply.
+   @return 1 or reply size on success, 0 on failure (error, incoming length does not match, timeout)
+*/
 int csp_transaction_persistent(csp_conn_t *conn, uint32_t timeout, void *outbuf, int outlen, void *inbuf, int inlen);
 
 /**
- * Read data from a connection-less server socket
- * This fuction uses the socket directly to receive a frame
- * If no packet is available and a timeout has been specified the call will block.
- * Do NOT call this from ISR
- * @param socket connection-less socket.
- * @param timeout timeout in mS, use #CSP_MAX_TIMEOUT for infinite timeout.
- * @return Packet or NULL in case of failure or timeout.
- */
+   Read data from a connection-less server socket.
+   @param[in] socket connection-less socket.
+   @param[in] timeout timeout in mS to wait for a packet, use #CSP_MAX_TIMEOUT for infinite timeout.
+   @return Packet on success, or NULL on failure or timeout.
+*/
 csp_packet_t *csp_recvfrom(csp_socket_t *socket, uint32_t timeout);
 
 /**
- * Send a packet without previously opening a connection
- * @param prio CSP_PRIO_x
- * @param dest destination node
- * @param dport destination port
- * @param src_port source port
- * @param opts CSP_O_x
- * @param packet pointer to packet
- * @param timeout timeout used by interfaces with blocking send
- * @return #CSP_ERR_NONE on success, otherwise an error code and the packet must be freed.
- */
-int csp_sendto(uint8_t prio, uint8_t dest, uint8_t dport, uint8_t src_port, uint32_t opts, csp_packet_t *packet, uint32_t timeout);
+   Send a packet (without connection).
+   @param[in] prio packet priority, see #csp_prio_t
+   @param[in] dst destination address
+   @param[in] dst_port destination port
+   @param[in] src_port source port
+   @param[in] opts connection options, see @ref CSP_CONNECTION_OPTIONS.
+   @param[in] packet packet to send
+   @param[in] timeout unused as of CSP version 1.6
+   @return #CSP_ERR_NONE on success, otherwise an error code and the packet must be freed by calling csp_buffer_free().
+*/
+int csp_sendto(uint8_t prio, uint8_t dst, uint8_t dst_port, uint8_t src_port, uint32_t opts, csp_packet_t *packet, uint32_t timeout);
 
 /**
- * Send a packet as a direct reply to the source of an incoming packet,
- * but still without holding an entire connection
- * @param request_packet pointer to packet to reply to
- * @param reply_packet actual reply data
- * @param opts CSP_O_x
- * @param timeout timeout used by interfaces with blocking send
- * @return #CSP_ERR_NONE on success, otherwise an error code and the reply_packet must be freed.
- */
-int csp_sendto_reply(const csp_packet_t * request_packet, csp_packet_t * reply_packet, uint32_t opts, uint32_t timeout);
+   Send a packet as a reply to a request (without a connection).
+   Calls csp_sendto() with the source address and port from the request.
+   @param[in] request incoming request
+   @param[in] reply reply packet
+   @param[in] opts connection options, see @ref CSP_CONNECTION_OPTIONS.
+   @param[in] timeout unused as of CSP version 1.6
+   @return #CSP_ERR_NONE on success, otherwise an error code and the reply must be freed by calling csp_buffer_free().
+*/
+int csp_sendto_reply(const csp_packet_t * request, csp_packet_t * reply, uint32_t opts, uint32_t timeout);
 
 /**
- * Used to establish outgoing connections
- * This function searches the port table for free slots and finds an unused
- * connection from the connection pool
- * There is no handshake in the CSP protocol
- * @param prio Connection priority.
- * @param dest Destination address.
- * @param dport Destination port.
- * @param timeout Timeout in ms.
- * @param opts Connection options.
- * @return New connectio or NULL on failure.
- */
-csp_conn_t *csp_connect(uint8_t prio, uint8_t dest, uint8_t dport, uint32_t timeout, uint32_t opts);
+   Establish outgoing connection.
+   The call will return immediately, unless it is a RDP connection (#CSP_O_RDP) in which case it will wait until the other
+   end acknowleges the connection (timeout is determined by the current connection timeout set by csp_rdp_set_opt()).
+   @param[in] prio priority, see #csp_prio_t
+   @param[in] dst Destination address
+   @param[in] dst_port Destination port
+   @param[in] timeout unused.
+   @param[in] opts connection options, see @ref CSP_CONNECTION_OPTIONS.
+   @return Established connection or NULL on failure (no free connections, timeout).
+*/
+csp_conn_t *csp_connect(uint8_t prio, uint8_t dst, uint8_t dst_port, uint32_t timeout, uint32_t opts);
 
 /**
- * Closes a given connection and frees buffers used.
- * @param conn pointer to connection structure
- * @return CSP_ERR_NONE if connection was closed. Otherwise, an err code is returned.
- */
+   Close an open connection.
+   Any packets in the RX queue will be freed.
+   @param[in] conn connection. Closing a NULL connection is acceptable.
+   @return #CSP_ERR_NONE on success, otherwise an error code.
+*/
 int csp_close(csp_conn_t *conn);
 
 /**
- * @param conn pointer to connection structure
- * @return destination port of an incoming connection
- */
+   Return destination port of connection.
+   @param[in] conn connection
+   @return destination port of an incoming connection
+*/
 int csp_conn_dport(csp_conn_t *conn);
 
 /**
- * @param conn pointer to connection structure
- * @return source port of an incoming connection
- */
+   Return source port of connection.
+   @param conn connection
+   @return source port of an incoming connection
+*/
 int csp_conn_sport(csp_conn_t *conn);
 
 /**
- * @param conn pointer to connection structure
- * @return destination address of an incoming connection
- */
+   Return destination address of connection.
+   @param[in] conn connection
+   @return destination address of an incoming connection
+*/
 int csp_conn_dst(csp_conn_t *conn);
 
 /**
- * @param conn pointer to connection structure
- * @return source address of an incoming connection
- */
+   Return source address of connection.
+   @param conn connection
+   @return source address of an incoming connection
+*/
 int csp_conn_src(csp_conn_t *conn);
 
 /**
- * @param conn pointer to connection structure
- * @return flags field of an incoming connection
- */
+   Return flags of connection.
+   @param[in] conn connection
+   @return flags of an incoming connection, see @ref CSP_HEADER_FLAGS
+*/
 int csp_conn_flags(csp_conn_t *conn);
 
 /**
- * Set socket to listen for incoming connections
- * @param socket Socket to enable listening on
- * @param backlog Lenght of backlog connection queue. Queue holds incoming connections and returned by csp_accept().
- * @return #CSP_ERR_NONE on success, otherwise an error code.
- */
+   Set socket to listen for incoming connections.
+   @param[in] socket socket
+   @param[in] backlog max length of backlog queue. The backlog queue holds incoming connections, waiting to be returned by call to csp_accept().
+   @return #CSP_ERR_NONE on success, otherwise an error code.
+*/
 int csp_listen(csp_socket_t *socket, size_t backlog);
 
 /**
- * Bind port to socket
- * @param socket Socket to bind port to
- * @param port Port number to bind
- * @return #CSP_ERR_NONE on success, otherwise an error code.
- */
+   Bind port to socket.
+   @param[in] socket socket to bind port to
+   @param[in] port port number to bind, use #CSP_ANY for all ports. Bindnig to a specific will take precedence over #CSP_ANY.
+   @return #CSP_ERR_NONE on success, otherwise an error code.
+*/
 int csp_bind(csp_socket_t *socket, uint8_t port);
 
 /**
- * Start the router task.
- * @param task_stack_size The number of portStackType to allocate. This only affects FreeRTOS systems.
- * @param task_priority The OS task priority of the router
- * @return #CSP_ERR_NONE on success, otherwise an error code.
- */
+   Start the router task.
+   The router task calls csp_route_work() to do the actual work.
+   @param[in] task_stack_size stack size for the task, see csp_thread_create() for details on the stack size parameter.
+   @param[in] task_priority priority for the task, see csp_thread_create() for details on the stack size parameter.
+   @return #CSP_ERR_NONE on success, otherwise an error code.
+*/
 int csp_route_start_task(unsigned int task_stack_size, unsigned int task_priority);
 
 /**
- * Call the router worker function manually (without the router task)
- * This must be run inside a loop or called periodically for the csp router to work.
- * Use this function instead of calling and starting the router task.
- * @param timeout max blocking time
- * @return #CSP_ERR_NONE on success, otherwise an error code.
- */
+   Route packet from the incoming router queue and check RDP timeouts.
+   In order for incoming packets to routed and RDP timeouts to be checked, this function must be called reguarly.
+   If the router task is started by calling csp_route_start_task(), there function should not be called.
+   @param[in] timeout timeout in mS to wait for an incoming packet.
+   @return #CSP_ERR_NONE on success, otherwise an error code.
+*/
 int csp_route_work(uint32_t timeout);
 
 /**
- * Start the bridge task.
- * @param task_stack_size The number of portStackType to allocate. This only affects FreeRTOS systems.
- * @param task_priority The OS task priority of the router
- * @param _if_a pointer to first side
- * @param _if_b pointer to second side
- * @return #CSP_ERR_NONE on success, otherwise an error code.
- */
-int csp_bridge_start(unsigned int task_stack_size, unsigned int task_priority, csp_iface_t * _if_a, csp_iface_t * _if_b);
+   Start the bridge task.
+   The bridge will copy packets between interfaces, i.e. packets received on A will be sent on B, and vice versa.
+   @param[in] task_stack_size stack size for the task, see csp_thread_create() for details on the stack size parameter.
+   @param[in] task_priority priority for the task, see csp_thread_create() for details on the stack size parameter.
+   @param[in] if_a interface/side A
+   @param[in] if_b interface/side B
+   @return #CSP_ERR_NONE on success, otherwise an error code.
+*/
+int csp_bridge_start(unsigned int task_stack_size, unsigned int task_priority, csp_iface_t * if_a, csp_iface_t * if_b);
 
 /**
- * Enable promiscuous mode packet queue
- * This function is used to enable promiscuous mode for the router.
- * If enabled, a copy of all incoming packets are placed in a queue
- * that can be read with csp_promisc_read(). Not all interface drivers
- * support promiscuous mode.
- *
- * @param queue_size Size (max length) of queue for incoming packets
- * @return #CSP_ERR_NONE on success, otherwise an error code.
- */
-int csp_promisc_enable(unsigned int queue_size);
-
-/**
- * Disable promiscuous mode.
- * If the queue was initialised prior to this, it can be re-enabled
- * by calling promisc_enable(0)
- */
-void csp_promisc_disable(void);
-
-/**
- * Get packet from promiscuous packet queue
- * Returns the first packet from the promiscuous packet queue.
- * The queue is FIFO, so the returned packet is the oldest one
- * in the queue.
- *
- * @param timeout Timeout in ms to wait for a new packet
- * @return Packet (free with csp_buffer_free() or re-use packet), NULL on error or timeout.
- */
-csp_packet_t *csp_promisc_read(uint32_t timeout);
-
-/**
- * If the given packet is a service-request (that is uses one of the csp service ports)
- * it will be handled according to the CSP service handler.
- * This function will either use the packet buffer or delete it,
- * so this function is typically called in the last "default" clause of
- * a switch/case statement in a csp_listener task.
- * In order to listen to csp service ports, bind your listener to the CSP_ANY port.
- * This function may only be called from task context.
- * @param conn Pointer to the new connection
- * @param packet Pointer to the first packet, obtained by using csp_read()
- */
+   Handle CSP service request.
+   If the given packet is a service-request (the destination port matches one of CSP service ports #csp_service_port_t),
+   the packet will be processed by the specific CSP service handler.
+   The packet will either process it or free it, so this function is typically called in the last "default" clause of
+   a switch/case statement in a CSP listener task.
+   In order to listen to csp service ports, bind your listener to the specific services ports #csp_service_port_t or
+   use #CSP_ANY to all ports.
+   @param[in] conn connection
+   @param[in] packet first packet, obtained by using csp_read()
+*/
 void csp_service_handler(csp_conn_t *conn, csp_packet_t *packet);
 
 /**
- * Send a single ping/echo packet
- * @param node node id
- * @param timeout timeout in ms
- * @param size size of packet to transmit
- * @param conn_options csp connection options
- * @return >0 = Echo time in ms, -1 = ERR
- */
-int csp_ping(uint8_t node, uint32_t timeout, unsigned int size, uint8_t conn_options);
+   Send a single ping/echo packet.
+   @param[in] node address of subsystem.
+   @param[in] timeout timeout in ms to wait for reply.
+   @param[in] size payload size in bytes.
+   @param[in] opts connection options, see @ref CSP_CONNECTION_OPTIONS.
+   @return >0 = echo time in mS on success, otherwise -1 for error.
+*/
+int csp_ping(uint8_t node, uint32_t timeout, unsigned int size, uint8_t opts);
 
 /**
- * Send a single ping/echo packet without waiting for reply
- * @param node node id
- */
+   Send a single ping/echo packet without waiting for reply.
+   Payload is 1 byte.
+   @param[in] node address of subsystem.
+*/
 void csp_ping_noreply(uint8_t node);
 
 /**
- * Request process list.
- * @note This is only available for FreeRTOS systems
- * @param node node id
- * @param timeout timeout in ms
- */
+   Request process list.
+   @note This is currently only supported on FreeRTOS systems.
+   @param[in] node address of subsystem.
+   @param[in] timeout timeout in mS to wait for replies. The function will not return until the timeout occurrs.
+*/
 void csp_ps(uint8_t node, uint32_t timeout);
 
 /**
- * Request subsystem free memory.
- * @param node address of subsystem.
- * @param timeout timeout in ms
- * @param[out] size free memory.
- * @return #CSP_ERR_NONE on success, otherwise an error code.
- */
+   Request free memory.
+   @param[in] node address of subsystem.
+   @param[in] timeout timeout in mS to wait for reply.
+   @param[out] size free memory on subsystem.
+   @return #CSP_ERR_NONE on success, otherwise an error code.
+*/
 int csp_get_memfree(uint8_t node, uint32_t timeout, uint32_t * size);
 
 /**
- * Request subsystem free memory and print to stdout.
- * @param node address of subsystem.
- * @param timeout timeout in ms
- */
+   Request free memory and print to stdout.
+   @param[in] node address of subsystem.
+   @param[in] timeout timeout in mS to wait for reply.
+*/
 void csp_memfree(uint8_t node, uint32_t timeout);
 
 /**
- * Request subsystem free buffers.
- * @param[in] node address of subsystem.
- * @param[in] timeout timeout in ms
- * @param[out] size free buffers.
- * @return #CSP_ERR_NONE on success, otherwise an error code.
- */
+   Request free buffers.
+   @param[in] node address of subsystem.
+   @param[in] timeout timeout in mS to wait for reply.
+   @param[out] size free buffers.
+   @return #CSP_ERR_NONE on success, otherwise an error code.
+*/
 int csp_get_buf_free(uint8_t node, uint32_t timeout, uint32_t * size);
 
 /**
- * Request subsystem free buffers and print to stdout.
- * @param node address of subsystem.
- * @param timeout timeout in ms
- */
+   Request free buffers and print to stdout.
+   @param[in] node address of subsystem.
+   @param[in] timeout timeout in mS to wait for reply.
+*/
 void csp_buf_free(uint8_t node, uint32_t timeout);
 
 /**
- * Reboot subsystem.
- * @param node address of subsystem.
- */
+   Reboot subsystem.
+   If handled by the standard CSP service handler, the reboot handler set by csp_sys_set_reboot() on the subsystem, will be invoked.
+   @param[in] node address of subsystem.
+*/
 void csp_reboot(uint8_t node);
 
 /**
- * Shutdown subsystem.
- * @param node address of subsystem.
- */
+   Shutdown subsystem.
+   If handled by the standard CSP service handler, the shutdown handler set by csp_sys_set_shutdown() on the subsystem, will be invoked.
+   @param[in] node address of subsystem.
+*/
 void csp_shutdown(uint8_t node);
 
 /**
- * Request subsystem uptime and print to stdout.
- * @param node address of subsystem.
- * @param timeout timeout in ms
- */
+   Request uptime and print to stdout.
+   @param[in] node address of subsystem.
+   @param[in] timeout timeout in mS to wait for reply.
+*/
 void csp_uptime(uint8_t node, uint32_t timeout);
 
 /**
- * Request subsystem uptime
- * @param[in] node address of subsystem.
- * @param[in] timeout timeout in ms
- * @param[out] uptime uptime in seconds.
- * @return #CSP_ERR_NONE on success, otherwise an error code.
- */
+   Request uptime
+   @param[in] node address of subsystem.
+   @param[in] timeout timeout in mS to wait for reply.
+   @param[out] uptime uptime in seconds.
+   @return #CSP_ERR_NONE on success, otherwise an error code.
+*/
 int csp_get_uptime(uint8_t node, uint32_t timeout, uint32_t * uptime);
 
 /**
- * Set RDP options
- * @param window_size Window size
- * @param conn_timeout_ms Connection timeout in ms
- * @param packet_timeout_ms Packet timeout in ms
- * @param delayed_acks Enable/disable delayed acknowledgements
- * @param ack_timeout Acknowledgement timeout when delayed ACKs is enabled
- * @param ack_delay_count Send acknowledgement for every ack_delay_count packets
- */
+   Set RDP options.
+   The RDP options are used from the connecting/client side. When a RDP connection is established, the client tranmits the options to the server.
+   @param[in] window_size window size
+   @param[in] conn_timeout_ms connection timeout in mS
+   @param[in] packet_timeout_ms packet timeout in mS.
+   @param[in] delayed_acks enable/disable delayed acknowledgements.
+   @param[in] ack_timeout acknowledgement timeout when delayed ACKs is enabled
+   @param[in] ack_delay_count send acknowledgement for every ack_delay_count packets.
+*/
 void csp_rdp_set_opt(unsigned int window_size, unsigned int conn_timeout_ms,
 		unsigned int packet_timeout_ms, unsigned int delayed_acks,
 		unsigned int ack_timeout, unsigned int ack_delay_count);
 
 /**
- * Get RDP options
- * @param window_size Window size
- * @param conn_timeout_ms Connection timeout in ms
- * @param packet_timeout_ms Packet timeout in ms
- * @param delayed_acks Enable/disable delayed acknowledgements
- * @param ack_timeout Acknowledgement timeout when delayed ACKs is enabled
- * @param ack_delay_count Send acknowledgement for every ack_delay_count packets
- */
+   Get RDP options.
+   @see csp_rdp_set_opt()
+   @param[out] window_size Window size
+   @param[out] conn_timeout_ms connection timeout in ms
+   @param[out] packet_timeout_ms packet timeout in ms
+   @param[out] delayed_acks enable/disable delayed acknowledgements
+   @param[out] ack_timeout acknowledgement timeout when delayed ACKs is enabled
+   @param[out] ack_delay_count send acknowledgement for every ack_delay_count packets
+*/
 void csp_rdp_get_opt(unsigned int *window_size, unsigned int *conn_timeout_ms,
 		unsigned int *packet_timeout_ms, unsigned int *delayed_acks,
 		unsigned int *ack_timeout, unsigned int *ack_delay_count);
 
 /**
- * Print connection table to stdout.
- */
+   Print connection table to stdout.
+*/
 void csp_conn_print_table(void);
 
 /**
- * Print connection table to string.
- */
+   Print connection table to string.
+*/
 int csp_conn_print_table_str(char * str_buf, int str_size);
 
 /**
- * Print buffer usage table to stdout.
- */
+   Print buffer usage table to stdout.
+*/
 void csp_buffer_print_table(void);
 
 /**
- * Hex dump to stdout
- */
+   Hex dump memory to stdout.
+   @param[in] desc description printed on first line.
+   @param[in] addr memory address.
+   @param[in] len number of bytes to dump, starting from \a addr.
+*/
 void csp_hex_dump(const char *desc, void *addr, int len);
 
 /**

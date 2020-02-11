@@ -54,7 +54,7 @@ extern "C" {
    @param[in] data data to send
    @param[in] datasize size of \a data
    @param[in] mtu maximum transfer unit (bytes), max data chunk to send.
-   @param[in] timeout timeout in ms to wait for csp_send()
+   @param[in] timeout unused as of CSP version 1.6
    @param[in] memcpyfcn memory copy function.
    @return #CSP_ERR_NONE on success, otherwise an error.
 */
@@ -69,7 +69,7 @@ int csp_sfp_send_own_memcpy(csp_conn_t * conn, const void * data, unsigned int d
    @param[in] data data to send
    @param[in] datasize size of \a data
    @param[in] mtu maximum transfer unit (bytes), max data chunk to send.
-   @param[in] timeout timeout in ms to wait for csp_send()
+   @param[in] timeout unused as of CSP version 1.6
    @return #CSP_ERR_NONE on success, otherwise an error.
 */
 static inline int csp_sfp_send(csp_conn_t * conn, const void * data, unsigned int datasize, unsigned int mtu, uint32_t timeout) {

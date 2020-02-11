@@ -122,10 +122,9 @@ extern "C" {
    @param[in] id CAM message id.
    @param[in] data CAN data 
    @param[in] dlc data length of \a data.
-   @param[in] timeout timeout in mS.
    @return #CSP_ERR_NONE on success, otherwise an error code.
 */
-typedef int (*csp_can_driver_tx_f)(void * driver_data, uint32_t id, const uint8_t * data, uint8_t dlc, uint32_t timeout);
+typedef int (*csp_can_driver_tx_f)(void * driver_data, uint32_t id, const uint8_t * data, uint8_t dlc);
 
 /**
    Interface data (state information).
@@ -154,10 +153,9 @@ int csp_can_add_interface(csp_iface_t * iface);
 
    @param[in] ifroute route.
    @param[in] packet CSP packet to send.
-   @param[in] timeout in mS.
    @return #CSP_ERR_NONE on success, otherwise an error code.
 */
-int csp_can_tx(const csp_route_t * ifroute, csp_packet_t *packet, uint32_t timeout);
+int csp_can_tx(const csp_route_t * ifroute, csp_packet_t *packet);
 
 /**
    Process received CAN frame.

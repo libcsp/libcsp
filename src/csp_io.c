@@ -247,7 +247,7 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, const csp_route_t * i
 	if (mtu > 0 && bytes > mtu)
 		goto tx_err;
 
-	if ((*ifout->nexthop)(ifroute, packet, timeout) != CSP_ERR_NONE)
+	if ((*ifout->nexthop)(ifroute, packet) != CSP_ERR_NONE)
 		goto tx_err;
 
 	ifout->tx++;
@@ -270,7 +270,7 @@ int csp_send(csp_conn_t * conn, csp_packet_t * packet, uint32_t timeout) {
 
 #if (CSP_USE_RDP)
 	if (conn->idout.flags & CSP_FRDP) {
-		if (csp_rdp_send(conn, packet, timeout) != CSP_ERR_NONE) {
+		if (csp_rdp_send(conn, packet) != CSP_ERR_NONE) {
 			return 0;
 		}
 	}

@@ -440,7 +440,7 @@ csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport, uint32_t tim
 	if (outgoing_id.flags & CSP_FRDP) {
 		/* If the transport layer has failed to connect
 		 * deallocate connection structure again and return NULL */
-		if (csp_rdp_connect(conn, timeout) != CSP_ERR_NONE) {
+		if (csp_rdp_connect(conn) != CSP_ERR_NONE) {
 			csp_close(conn);
 			return NULL;
 		}

@@ -18,10 +18,14 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef CSP_PROMISC_H_
-#define CSP_PROMISC_H_
+#ifndef _SRC_CSP_PROMISC_H_
+#define _SRC_CSP_PROMISC_H_
 
-#include <csp/csp.h>
+#include <csp/csp_promisc.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * Add packet to promiscuous mode packet queue
@@ -29,4 +33,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 void csp_promisc_add(csp_packet_t * packet);
 
+#ifdef __cplusplus
+}
+#endif
 #endif

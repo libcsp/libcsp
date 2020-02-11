@@ -33,28 +33,28 @@ extern "C" {
 #endif
 
 /**
- * Append CRC32 checksum to packet
- * @param packet CSP packet, must be valid.
- * @param include_header include the CSP header in the CRC32, otherwise just the data part.
- * @return #CSP_ERR_NONE on success, otherwise an error code.
- */
+   Append CRC32 checksum to packet
+   @param[in] packet CSP packet, must be valid.
+   @param[in] include_header include the CSP header in the CRC32, otherwise just the data part.
+   @return #CSP_ERR_NONE on success, otherwise an error code.
+*/
 int csp_crc32_append(csp_packet_t * packet, bool include_header);
 
 /**
- * Verify CRC32 checksum on packet
- * @param packet CSP packet, must be valid.
- * @param include_header include the CSP header in the CRC32, otherwise just the data part.
- * @return #CSP_ERR_NONE on success, otherwise an error code.
- */
+   Verify CRC32 checksum on packet.
+   @param[in] packet CSP packet, must be valid.
+   @param[in] include_header include the CSP header in the CRC32, otherwise just the data part.
+   @return #CSP_ERR_NONE on success, otherwise an error code.
+*/
 int csp_crc32_verify(csp_packet_t * packet, bool include_header);
 
 /**
- * Calculate checksum for a given memory area
- * @param data pointer to memory
- * @param length length of memory to do checksum on
- * @return return checksum
- */
-uint32_t csp_crc32_memory(const uint8_t * data, uint32_t length);
+   Calculate checksum for a given memory area.
+   @param[in] addr memory address
+   @param[in] length length of memory to do checksum on
+   @return checksum
+*/
+uint32_t csp_crc32_memory(const uint8_t * addr, uint32_t length);
 
 #ifdef __cplusplus
 }

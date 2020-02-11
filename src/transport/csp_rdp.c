@@ -902,7 +902,7 @@ accepted_open:
 
 }
 
-int csp_rdp_connect(csp_conn_t * conn, uint32_t timeout) {
+int csp_rdp_connect(csp_conn_t * conn) {
 
 	int retry = 1;
 
@@ -965,7 +965,7 @@ error:
 
 }
 
-int csp_rdp_send(csp_conn_t * conn, csp_packet_t * packet, uint32_t timeout) {
+int csp_rdp_send(csp_conn_t * conn, csp_packet_t * packet) {
 
 	if (conn->rdp.state != RDP_OPEN) {
 		csp_log_error("RDP %p: ERROR cannot send, connection not open (%d)", conn, conn->rdp.state);

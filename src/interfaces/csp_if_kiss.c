@@ -31,7 +31,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #define TFESC 		0xDD
 #define TNC_DATA	0x00
 
-int csp_kiss_tx(const csp_route_t * ifroute, csp_packet_t * packet, uint32_t timeout) {
+int csp_kiss_tx(const csp_route_t * ifroute, csp_packet_t * packet) {
 
 	csp_kiss_interface_data_t * ifdata = ifroute->iface->interface_data;
 	void * driver = ifroute->iface->driver_data;
@@ -40,7 +40,7 @@ int csp_kiss_tx(const csp_route_t * ifroute, csp_packet_t * packet, uint32_t tim
 	csp_crc32_append(packet, false);
 
 	/* Lock */
-	if (csp_mutex_lock(&ifdata->lock, timeout) != CSP_MUTEX_OK) {
+	if (csp_mutex_lock(&ifdata->lock, 1000) != CSP_MUTEX_OK) {
             return CSP_ERR_TIMEDOUT;
         }
 
