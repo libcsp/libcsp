@@ -40,7 +40,7 @@ if os in ['macosx']:
 
 if os in ['windows']:
     options += [
-        # '--with-driver-usart=windows',
+        '--with-driver-usart=windows',
     ]
     waf = ['python', '-x', 'waf']
 
@@ -49,6 +49,4 @@ waf += ['distclean', 'configure', 'build']
 print("Waf build command:", waf)
 subprocess.check_call(waf + options +
                       ['--enable-qos', '--with-rtable=cidr', '--disable-stlib', '--disable-output'])
-if os not in ['windows']:  # TODO fix examples for WIndows
-    subprocess.check_call(waf + options +
-                          ['--enable-examples'])
+subprocess.check_call(waf + options + ['--enable-examples'])

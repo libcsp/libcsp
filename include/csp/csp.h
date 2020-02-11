@@ -27,6 +27,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 #include <csp/csp_platform.h>
+#include <csp/csp_error.h>
 #include <csp/csp_debug.h>
 #include <csp/csp_buffer.h>
 #include <csp/csp_rtable.h>
@@ -51,11 +52,12 @@ typedef struct csp_conf_s {
 
 	uint8_t conn_max;		/**< Max number of connections. A fixed connection array is allocated by csp_init() */
 	uint8_t conn_queue_length;	/**< Max queue length (max queued Rx messages). */
-	uint32_t conn_dfl_so;		/**< Default/minimum connection options. Options will always be or'ed onto new connections, see csp_connect() */
 	uint8_t fifo_length;		/**< Length of incoming message queue, used for handover to router task. */
 	uint8_t port_max_bind;		/**< Max/highest port for use with csp_bind() */
 	uint8_t rdp_max_window;		/**< Max RDP window size */
-
+	uint16_t buffers;		/**< Number of CSP buffers */
+	uint16_t buffer_data_size;	/**< Data size of a CSP buffer. Total size will be sizeof(#csp_packet_t) + data_size. */
+	uint32_t conn_dfl_so;		/**< Default connection options. Options will always be or'ed onto new connections, see csp_connect() */
 } csp_conf_t;
 
 /**
@@ -68,10 +70,12 @@ static inline void csp_conf_get_defaults(csp_conf_t * conf) {
 	conf->revision = "resvision";
 	conf->conn_max = 10;
 	conf->conn_queue_length = 10;
-	conf->conn_dfl_so = CSP_O_NONE;
 	conf->fifo_length = 25;
 	conf->port_max_bind = 24;
 	conf->rdp_max_window = 20;
+	conf->buffers = 10;
+	conf->buffer_data_size = 256;
+	conf->conn_dfl_so = CSP_O_NONE;
 }
 
 /**

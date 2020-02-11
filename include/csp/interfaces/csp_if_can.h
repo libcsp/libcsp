@@ -140,7 +140,7 @@ typedef struct {
 /**
    Add interface.
 
-   If the MTU is not set, it will be set to the maximum value of 2042 (length of data in a #csp_packet_t).
+   If the MTU is not set, it will be set to the maximum value of 2042 bytes (max length when using CFP).
 
    @param[in] iface CSP interface, initialized with name and inteface_data pointing to a valid #csp_can_interface_data_t structure.
    @return #CSP_ERR_NONE on success, otherwise an error code.

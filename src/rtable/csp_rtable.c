@@ -160,24 +160,6 @@ void csp_rtable_clear(void) {
 	csp_rtable_set(csp_conf.address, CSP_ID_HOST_SIZE, &csp_if_lo, CSP_NO_VIA_ADDRESS);
 }
 
-csp_iface_t * csp_rtable_find_iface(uint8_t dest_address)
-{
-    const csp_route_t * route = csp_rtable_find_route(dest_address);
-    if (route) {
-        return route->iface;
-    }
-    return NULL;
-}
-
-uint8_t csp_rtable_find_via(uint8_t dest_address)
-{
-    const csp_route_t * route = csp_rtable_find_route(dest_address);
-    if (route) {
-	return route->via;
-    }
-    return CSP_NO_VIA_ADDRESS;
-}
-
 #if (CSP_DEBUG)
 
 static bool csp_rtable_print_route(void * ctx, uint8_t address, uint8_t mask, const csp_route_t * route)

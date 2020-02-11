@@ -29,17 +29,30 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
    @note This interface implementation only support ONE open UART connection.
 */
 
-#include <csp/csp_types.h>
+#include <csp/interfaces/csp_if_kiss.h>
+
+#if (CSP_WINDOWS)
+#include <Windows.h>
+#endif
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /**
-   Usart configuration.
-   @see usart_open()
+   OS file handle.
 */
-typedef struct usart_conf {
+#if (CSP_WINDOWS)
+    typedef HANDLE csp_usart_fd_t;
+#else
+    typedef int csp_usart_fd_t;
+#endif
+
+/**
+   Usart configuration.
+   @see csp_usart_open()
+*/
+typedef struct csp_usart_conf {
     //! USART device.
     const char *device;
     //! bits per second.
@@ -52,7 +65,7 @@ typedef struct usart_conf {
     uint8_t paritysetting;
     //! Enable parity checking (Windows only).
     uint8_t checkparity;
-} usart_conf_t;
+} csp_usart_conf_t;
 
 /**
    Callback for returning data to application.
@@ -61,7 +74,7 @@ typedef struct usart_conf {
    @param[in] len data length (number of bytes in \a buf).
    @param[out] pxTaskWoken Valid reference if called from ISR, otherwise NULL!
 */
-typedef void (*usart_callback_t) (void * user_data, uint8_t *buf, size_t len, void *pxTaskWoken);
+typedef void (*csp_usart_callback_t) (void * user_data, uint8_t *buf, size_t len, void *pxTaskWoken);
 
 /**
    Opens an UART device.
@@ -76,12 +89,22 @@ typedef void (*usart_callback_t) (void * user_data, uint8_t *buf, size_t len, vo
    @param[out] fd the opened file descriptor.
    @return #CSP_ERR_NONE on success, otherwise an error code.
 */
-int usart_open(const usart_conf_t *conf, usart_callback_t rx_callback, void * user_data, int * fd);
+int csp_usart_open(const csp_usart_conf_t *conf, csp_usart_callback_t rx_callback, void * user_data, csp_usart_fd_t * fd);
+
+/**
+   Write data on open UART.
+
+   @param[in] fd file descriptor.
+   @param[in] data data to write.
+   @param[in] data_length length of \a data.
+   @return number of bytes written on success, a negative value on failure.
+*/
+int csp_usart_write(csp_usart_fd_t fd, const void * data, size_t data_length);
 
 /**
    Opens UART device and add KISS interface.
 
-   This is a convience function for opening an UART devie and adding it as an interface with a given name.
+   This is a convience function for opening an UART device and adding it as an interface with a given name.
 
    @note On read failures, exit() will be called - terminating the process.
 
@@ -90,7 +113,7 @@ int usart_open(const usart_conf_t *conf, usart_callback_t rx_callback, void * us
    @param[out] return_iface the added interface.
    @return #CSP_ERR_NONE on success, otherwise an error code.
 */
-int usart_open_and_add_kiss_interface(const usart_conf_t *conf, const char * ifname, csp_iface_t ** return_iface);
+int csp_usart_open_and_add_kiss_interface(const csp_usart_conf_t *conf, const char * ifname, csp_iface_t ** return_iface);
 
 #ifdef __cplusplus
 }

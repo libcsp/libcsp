@@ -64,11 +64,14 @@ static PyObject* pycsp_init(PyObject *self, PyObject *args) {
 
     csp_conf_t conf;
     csp_conf_get_defaults(&conf);
-    conf.hostname = hostname;
-    conf.model = model;
-    conf.revision = revision;
 
-    return Py_BuildValue("i", csp_init(&conf));
+    if (!PyArg_ParseTuple(args, "bsssHH", &conf.address, &conf.hostname, &conf.model, &conf.revision, &conf.buffers, &conf.buffer_data_size)) {
+        return NULL; // TypeError is thrown
+    }
+
+    csp_init(&conf);
+
+    Py_RETURN_NONE;
 }
 
 /*
@@ -549,19 +552,6 @@ static PyObject* pycsp_rtable_load(PyObject *self, PyObject *args) {
  */
 
 /*
- * int csp_buffer_init(int count, int size);
- */
-static PyObject* pycsp_buffer_init(PyObject *self, PyObject *args) {
-    int count;
-    int size;
-    if (!PyArg_ParseTuple(args, "ii", &count, &size)) {
-        return NULL; // TypeError is thrown
-    }
-
-    return Py_BuildValue("i", csp_buffer_init(count, size));
-}
-
-/*
  * void * csp_buffer_get(size_t size);
  */
 static PyObject* pycsp_buffer_get(PyObject *self, PyObject *args) {
@@ -736,7 +726,9 @@ static PyObject* pycsp_zmqhub_init(PyObject *self, PyObject *args) {
         return NULL; // TypeError is thrown
     }
 
-    return Py_BuildValue("i", csp_zmqhub_init(addr, host));
+    csp_zmqhub_init(addr, host, 0, NULL);
+
+    Py_RETURN_NONE;
 }
 
 /**
@@ -769,21 +761,18 @@ static PyObject* pycsp_can_socketcan_init(PyObject *self, PyObject *args)
  * int csp_kiss_init(char addr, char * host);
  */
 static PyObject* pycsp_kiss_init(PyObject *self, PyObject *args) {
-	char* device;
-	uint32_t baudrate = 500000;
-	uint32_t mtu = 512;
-	const char* if_name = CSP_IF_KISS_DEFAULT_NAME;
-	if (!PyArg_ParseTuple(args, "s|IIs", &device, &baudrate, &mtu, &if_name)) {
-		return NULL; // TypeError is thrown
-	}
+    char* device;
+    uint32_t baudrate = 500000;
+    uint32_t mtu = 512;
+    const char* if_name = CSP_IF_KISS_DEFAULT_NAME;
+    if (!PyArg_ParseTuple(args, "s|IIs", &device, &baudrate, &mtu, &if_name)) {
+        return NULL; // TypeError is thrown
+    }
 
-	struct usart_conf conf = {.device = device, .baudrate = baudrate};
-        int res = usart_open_and_add_kiss_interface(&conf, if_name, NULL);
-        if (res != CSP_ERR_NONE) {
-		return NULL; // TypeError is thrown
-	}
+    csp_usart_conf_t conf = {.device = device, .baudrate = baudrate};
+    csp_usart_open_and_add_kiss_interface(&conf, if_name, NULL);
 
-	Py_RETURN_NONE;
+    Py_RETURN_NONE;
 }
 
 /**
@@ -867,7 +856,6 @@ static PyMethodDef methods[] = {
     {"rtable_load", pycsp_rtable_load, METH_VARARGS, ""},
 
     /* csp/csp_buffer.h */
-    {"buffer_init", pycsp_buffer_init, METH_VARARGS, ""},
     {"buffer_free", pycsp_buffer_free, METH_VARARGS, ""},
     {"buffer_get", pycsp_buffer_get, METH_VARARGS, ""},
     {"buffer_remaining", pycsp_buffer_remaining, METH_NOARGS, ""},

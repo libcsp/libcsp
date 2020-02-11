@@ -99,7 +99,7 @@ def configure(ctx):
     # Setup CFLAGS
     if (len(ctx.stack_path) <= 1) and (len(ctx.env.CFLAGS) == 0):
         ctx.env.prepend_value('CFLAGS', ["-std=gnu99", "-g", "-Os", "-Wall", "-Wextra", "-Wshadow", "-Wcast-align",
-                                         "-Wwrite-strings", "-Wno-unused-parameter"])
+                                         "-Wwrite-strings", "-Wno-unused-parameter", "-Werror"])
 
     # Setup default include path and any extra defined
     ctx.env.append_unique('INCLUDES_CSP', ['include'] + ctx.options.includes.split(','))
@@ -139,7 +139,8 @@ def configure(ctx):
 
     # Add USART driver
     if ctx.options.with_driver_usart:
-        ctx.env.append_unique('FILES_CSP', 'src/drivers/usart/usart_{0}.c'.format(ctx.options.with_driver_usart))
+        ctx.env.append_unique('FILES_CSP', ['src/drivers/usart/usart_kiss.c',
+                                            'src/drivers/usart/usart_{0}.c'.format(ctx.options.with_driver_usart)])
 
     # Add ZMQ
     if ctx.options.enable_if_zmqhub:
@@ -231,32 +232,20 @@ def build(ctx):
                       lib=ctx.env.LIBS)
 
     if ctx.env.ENABLE_EXAMPLES:
-        ctx.program(source='examples/simple.c',
-                    target='simple',
+        ctx.program(source='examples/csp_server_client.c',
+                    target='csp_server_client',
                     lib=ctx.env.LIBS,
                     use='csp')
 
-        if ctx.options.with_driver_usart and (ctx.options.with_driver_usart == 'linux'):
-            ctx.program(source='examples/kiss.c',
-                        target='kiss',
-                        lib=ctx.env.LIBS,
-                        use='csp')
+        ctx.program(source='examples/csp_arch.c',
+                    target='csp_arch',
+                    lib=ctx.env.LIBS,
+                    use='csp')
 
         if ctx.env.CSP_HAVE_LIBZMQ:
             ctx.program(source='examples/zmqproxy.c',
                         target='zmqproxy',
                         lib=ctx.env.LIBS,
-                        use='csp')
-
-        if 'posix' in ctx.env.OS:
-            ctx.program(source='examples/csp_if_fifo.c',
-                        target='fifo',
-                        lib=ctx.env.LIBS,
-                        use=['csp'])
-
-        if 'windows' in ctx.env.OS:
-            ctx.program(source='examples/csp_if_fifo_windows.c',
-                        target='csp_if_fifo',
                         use='csp')
 
 
