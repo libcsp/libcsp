@@ -27,7 +27,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 CSP_STATIC_ASSERT(offsetof(csp_i2c_frame_t, len) == offsetof(csp_packet_t, length), len_field_misaligned);
 CSP_STATIC_ASSERT(offsetof(csp_i2c_frame_t, data) == offsetof(csp_packet_t, id), data_field_misaligned);
 
-int csp_i2c_tx(const csp_route_t * ifroute, csp_packet_t * packet, uint32_t timeout) {
+int csp_i2c_tx(const csp_route_t * ifroute, csp_packet_t * packet) {
 
 	/* Cast the CSP packet buffer into an i2c frame */
 	csp_i2c_frame_t * frame = (csp_i2c_frame_t *) packet;
@@ -50,7 +50,7 @@ int csp_i2c_tx(const csp_route_t * ifroute, csp_packet_t * packet, uint32_t time
 
 	/* send frame */
         csp_i2c_interface_data_t * ifdata = ifroute->iface->interface_data;
-	return (ifdata->tx_func)(ifroute->iface->driver_data, frame, timeout);
+	return (ifdata->tx_func)(ifroute->iface->driver_data, frame);
 
 }
 

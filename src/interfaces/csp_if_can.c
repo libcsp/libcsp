@@ -176,7 +176,7 @@ int csp_can_rx(csp_iface_t *iface, uint32_t id, const uint8_t *data, uint8_t dlc
 	return CSP_ERR_NONE;
 }
 
-int csp_can_tx(const csp_route_t * ifroute, csp_packet_t *packet, uint32_t timeout)
+int csp_can_tx(const csp_route_t * ifroute, csp_packet_t *packet)
 {
         csp_iface_t * iface = ifroute->iface;
         csp_can_interface_data_t * ifdata = iface->interface_data;
@@ -218,7 +218,7 @@ int csp_can_tx(const csp_route_t * ifroute, csp_packet_t *packet, uint32_t timeo
         const csp_can_driver_tx_f tx_func = ifdata->tx_func;
 
 	/* Send first frame */
-	if ((tx_func)(iface->driver_data, id, frame_buf, CFP_OVERHEAD + bytes, timeout) != CSP_ERR_NONE) {
+	if ((tx_func)(iface->driver_data, id, frame_buf, CFP_OVERHEAD + bytes) != CSP_ERR_NONE) {
 		//csp_log_warn("Failed to send CAN frame in csp_tx_can");
 		iface->tx_error++;
 		return CSP_ERR_DRIVER;
@@ -240,7 +240,7 @@ int csp_can_tx(const csp_route_t * ifroute, csp_packet_t *packet, uint32_t timeo
 		tx_count += bytes;
 
 		/* Send frame */
-		if ((tx_func)(iface->driver_data, id, packet->data + tx_count - bytes, bytes, timeout) != CSP_ERR_NONE) {
+		if ((tx_func)(iface->driver_data, id, packet->data + tx_count - bytes, bytes) != CSP_ERR_NONE) {
 			//csp_log_warn("Failed to send CAN frame in Tx callback");
 			iface->tx_error++;
 			return CSP_ERR_DRIVER;

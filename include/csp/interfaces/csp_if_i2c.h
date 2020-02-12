@@ -68,10 +68,9 @@ typedef struct i2c_frame_s {
 
    @param[in] driver_data driver data from #csp_iface_t
    @param[in] frame destination, length and data. This is actually a #csp_packet_t buffer, casted to #csp_i2c_frame_t.
-   @param[in] timeout timeout in mS
    @return #CSP_ERR_NONE on success, or an error code.
 */
-typedef int (*csp_i2c_driver_tx_f)(void * driver_data, csp_i2c_frame_t * frame, uint32_t timeout);
+typedef int (*csp_i2c_driver_tx_f)(void * driver_data, csp_i2c_frame_t * frame);
 
 /**
    Interface data (state information).
@@ -94,10 +93,9 @@ int csp_i2c_add_interface(csp_iface_t * iface);
 
    @param[in] ifroute route.
    @param[in] packet CSP packet to send.
-   @param[in] timeout timeout in mS.
    @return #CSP_ERR_NONE on success, otherwise an error code.
 */
-int csp_i2c_tx(const csp_route_t * ifroute, csp_packet_t * packet, uint32_t timeout);
+int csp_i2c_tx(const csp_route_t * ifroute, csp_packet_t * packet);
 
 /**
    Process received I2C frame.

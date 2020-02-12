@@ -1,5 +1,6 @@
 libcsp 1.6, DD-MM-YYYY
 ----------------------
+- Removed timeout for send (internally only) and interface tx functions - the timeout was only used on I2C interface.
 - Updated example code to a single csp_server_client.c implementation.
 - Renamed (scoped) clock_set_time()/clock_get_time() to csp_clock_set_time()/csp_clock_get_time()
 - Changed csp_sys_reboot()/csp_sys_shutdown() to use callbacks, default POSIX impl. in csp/arch/posix/csp_system.h.
@@ -12,7 +13,6 @@ libcsp 1.6, DD-MM-YYYY
 - RDP: Fixed issue "Possible bug in RDP TX timeout" (#109), see issue on github for further details.
 - new: Added Travis-CI support on Github, builds Linux, Mac and Windows.
 - code: Changed #ifdef/ifndef to single #if in order to support forced disabling and alignment with log macro's.
-- bug: Check message length when receiving CRC32.
 - api: Updated thread API, documentation, aligned implementation
 - refactored all CSP interfaces.
    - Accept csp_route_t, instead of csp_iface_t.

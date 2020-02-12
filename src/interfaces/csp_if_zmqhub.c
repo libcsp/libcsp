@@ -47,10 +47,9 @@ typedef struct {
 /**
  * Interface transmit function
  * @param packet Packet to transmit
- * @param timeout Timeout in ms
  * @return 1 if packet was successfully transmitted, 0 on error
  */
-int csp_zmqhub_tx(const csp_route_t * route, csp_packet_t * packet, uint32_t timeout) {
+int csp_zmqhub_tx(const csp_route_t * route, csp_packet_t * packet) {
 
 	zmq_driver_t * drv = route->iface->driver_data;
 
@@ -59,7 +58,7 @@ int csp_zmqhub_tx(const csp_route_t * route, csp_packet_t * packet, uint32_t tim
 	uint16_t length = packet->length;
 	uint8_t * destptr = ((uint8_t *) &packet->id) - sizeof(dest);
 	memcpy(destptr, &dest, sizeof(dest));
-	csp_bin_sem_wait(&drv->tx_wait, CSP_MAX_TIMEOUT); /* Using ZMQ in thread safe manner*/
+	csp_bin_sem_wait(&drv->tx_wait, 1000); /* Using ZMQ in thread safe manner*/
 	int result = zmq_send(drv->publisher, destptr, length + sizeof(packet->id) + sizeof(dest), 0);
 	csp_bin_sem_post(&drv->tx_wait); /* Release tx semaphore */
 	if (result < 0) {

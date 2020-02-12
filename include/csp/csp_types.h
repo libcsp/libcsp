@@ -42,19 +42,21 @@ extern "C" {
 #endif
 
 /**
-   Reserved ports for services.
+   Reserved ports for CSP services.
 */
-enum csp_reserved_ports_e {
+typedef enum {
 	CSP_CMP				= 0,   //!< CSP management, e.g. memory, routes, stats
 	CSP_PING			= 1,   //!< Ping - return ping
 	CSP_PS				= 2,   //!< Current process list
 	CSP_MEMFREE			= 3,   //!< Free memory
 	CSP_REBOOT			= 4,   //!< Reboot, see #CSP_REBOOT_MAGIC and #CSP_REBOOT_SHUTDOWN_MAGIC
-	CSP_BUF_FREE			= 5,   //!< Free CSP buffers/packets.
+	CSP_BUF_FREE			= 5,   //!< Free CSP buffers
 	CSP_UPTIME			= 6,   //!< Uptime
-	CSP_ANY				= 255, //!< Listen on any port
-};
+} csp_service_port_t;
 
+/** Listen on all ports, primarily used with csp_bind() */
+#define CSP_ANY				255
+    
 /**
    Message priority.
 */
@@ -119,17 +121,17 @@ typedef enum {
    This union is sent directly on the wire, hence the big/little endian definitions
 */
 typedef union {
-    //! Entire identifier.
+    /** Entire identifier. */
     uint32_t ext;
-    //! Individual fields.
+    /** Individual fields. */
     struct __attribute__((__packed__)) {
-#if (CSP_BIG_ENDIAN)
-        unsigned int pri   : CSP_ID_PRIO_SIZE;  //< Priority
-        unsigned int src   : CSP_ID_HOST_SIZE;  //< Source address
-        unsigned int dst   : CSP_ID_HOST_SIZE;  //< Destination address
-        unsigned int dport : CSP_ID_PORT_SIZE;  //< Destination port
-        unsigned int sport : CSP_ID_PORT_SIZE;  //< Source port
-        unsigned int flags : CSP_ID_FLAGS_SIZE; //< Flags, see @ref CSP_HEADER_FLAGS
+#if (CSP_BIG_ENDIAN || __DOXYGEN__)
+        unsigned int pri   : CSP_ID_PRIO_SIZE;  //!< Priority
+        unsigned int src   : CSP_ID_HOST_SIZE;  //!< Source address
+        unsigned int dst   : CSP_ID_HOST_SIZE;  //!< Destination address
+        unsigned int dport : CSP_ID_PORT_SIZE;  //!< Destination port
+        unsigned int sport : CSP_ID_PORT_SIZE;  //!< Source port
+        unsigned int flags : CSP_ID_FLAGS_SIZE; //!< Flags, see @ref CSP_HEADER_FLAGS
 #elif (CSP_LITTLE_ENDIAN)
         unsigned int flags : CSP_ID_FLAGS_SIZE;
         unsigned int sport : CSP_ID_PORT_SIZE;
@@ -179,7 +181,7 @@ typedef union {
 /**@}*/
 
 /**
-   @defgroup CSP_CONNECT_OPTIONS CSP Connect options.
+   @defgroup CSP_CONNECTION_OPTIONS CSP Connect options.
    @{
 */
 #define CSP_O_NONE			CSP_SO_NONE        //!< No connection options
