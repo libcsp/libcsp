@@ -99,7 +99,7 @@ void csp_kiss_rx(csp_iface_t * interface, uint8_t * buf, int len, void * pxTaskW
 		unsigned char inputbyte = *buf++;
 
 		/* If packet was too long */
-		if (driver->rx_length > interface->mtu + 8) {
+		if (driver->rx_length > interface->mtu + 4) {
 			csp_log_warn("KISS RX overflow");
 			interface->rx_error++;
 			driver->rx_mode = KISS_MODE_NOT_STARTED;
