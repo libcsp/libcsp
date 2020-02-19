@@ -24,6 +24,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/csp_endian.h>
 #include <csp/csp_interface.h>
 #include <csp/arch/csp_thread.h>
+#include <csp/interfaces/csp_if_udp.h>
 
 struct sockaddr_in peer_addr = {0};
 
@@ -118,6 +119,4 @@ void csp_if_udp_init(csp_iface_t * iface, char * host) {
 	iface->name = "UDP",
 	iface->nexthop = csp_if_udp_tx,
 	csp_iflist_add(iface);
-
 }
-
