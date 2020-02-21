@@ -1,0 +1,38 @@
+#!/bin/bash
+
+# NOTE --privileged allows to access the devices on the host, for instance a jtag ;)
+# NOTE --group-add=plugdev is necessary for the USB devices to be accessible by the user.
+
+PWD=$(printf "%q\n" "${PWD}")
+APP=${@:-/bin/bash}
+
+DOCKER_BASHRC=/tmp/.docker_${USER}_bashrc
+
+rm -rf ${DOCKER_BASHRC} 2>/dev/null
+cp ${HOME}/.bashrc ${DOCKER_BASHRC} 2>/dev/null
+echo "PS1=\"(docker) \$PS1\"" >> ${DOCKER_BASHRC}
+
+REPO_PATH=$(printf "%q\n" "`git rev-parse --show-toplevel`")
+
+DOCKER_CMD="docker run \
+    -v ${HOME}:${HOME} \
+    -v /etc/passwd:/etc/passwd:ro \
+    -v /etc/shadow:/etc/shadow:ro \
+    -v /etc/group:/etc/group:ro \
+    -v /tmp:/tmp \
+    -v ${DOCKER_BASHRC}:${HOME}/.bashrc \
+    -v /usr/share/git/completion:/usr/share/git/completion \
+    --privileged \
+    --hostname libcsp-dev \
+    -i -t -w $PWD -u $(id -u):$(id -g) --rm \
+    -e DISPLAY=$DISPLAY \
+    -e LANG=C.UTF-8 -e LC_ALL=C.UTF-8 \
+    -e TZ=$(cat /etc/timezone) \
+    libcsp:latest \
+    $APP"
+
+# Without the 'script' indirection, git's pre-commit hook does not work.
+# The line that calls tools/dockershell tools/platform_indent.sh yells:
+#      the input device is not a TTY
+script -qec "${DOCKER_CMD}" /dev/null
+
