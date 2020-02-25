@@ -26,7 +26,6 @@ options += [
 waf = ['./waf']
 if os in ['posix']:
     options += [
-        '--enable-bindings',
         '--enable-python3-bindings',
         '--enable-can-socketcan',
         '--with-driver-usart=linux',

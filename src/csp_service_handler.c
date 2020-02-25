@@ -318,7 +318,7 @@ void csp_service_handler(csp_conn_t * conn, csp_packet_t * packet) {
 	}
 
 	case CSP_UPTIME: {
-		uint32_t time = csp_get_s();
+		uint32_t time = csp_get_uptime_s();
 		time = csp_hton32(time);
 		memcpy(packet->data, &time, sizeof(time));
 		packet->length = sizeof(time);
