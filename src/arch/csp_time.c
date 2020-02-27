@@ -18,56 +18,15 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef _CSP_TIME_H_
-#define _CSP_TIME_H_
+#include <csp/arch/csp_time.h>
 
-/**
-   @file
+static uint32_t uptime_s_offset = 0;
 
-   Relative time interface.
+uint32_t csp_get_uptime_s(void) {
 
-   @note The returned values will eventually wrap.
-*/
-
-#include <csp/csp_platform.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-/**
-   Return uptime in seconds.
-   The function uses csp_get_s() for relative time. First time the function is called (by csp_init()), it saves an offset
-   in case the platform doesn't start from 0, e.g. Linux.
-   @return uptime in seconds.
-*/
-uint32_t csp_get_uptime_s(void);
-
-/**
-   Return current time in mS.
-   @return mS.
-*/
-uint32_t csp_get_ms(void);
-
-/**
-   Return current time in mS (from ISR).
-   @return mS.
-*/
-uint32_t csp_get_ms_isr(void);
-
-/**
-   Return current time in seconds.
-   @return seconds.
-*/
-uint32_t csp_get_s(void);
-
-/**
-   Return current time in seconds (from ISR).
-   @return seconds.
-*/
-uint32_t csp_get_s_isr(void);
-
-#ifdef __cplusplus
+	uint32_t seconds = csp_get_s();
+	if (uptime_s_offset == 0) {
+		uptime_s_offset = seconds;
+	}
+	return (seconds - uptime_s_offset);
 }
-#endif
-#endif

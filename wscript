@@ -48,7 +48,6 @@ def options(ctx):
     gr.add_option('--enable-crc32', action='store_true', help='Enable CRC32 support')
     gr.add_option('--enable-hmac', action='store_true', help='Enable HMAC-SHA1 support')
     gr.add_option('--enable-xtea', action='store_true', help='Enable XTEA support')
-    gr.add_option('--enable-bindings', action='store_true', help='Enable Python bindings')
     gr.add_option('--enable-python3-bindings', action='store_true', help='Enable Python3 bindings')
     gr.add_option('--enable-examples', action='store_true', help='Enable examples')
     gr.add_option('--enable-dedup', action='store_true', help='Enable packet deduplicator')
@@ -151,12 +150,9 @@ def configure(ctx):
     ctx.env.ENABLE_EXAMPLES = ctx.options.enable_examples
 
     # Add Python bindings
-    if ctx.options.enable_bindings:
-        ctx.env.LIBCSP_PYTHON2 = ctx.check_cfg(package='python2', args='--cflags --libs', atleast_version='2.7',
-                                               mandatory=False)
-        if ctx.options.enable_python3_bindings:
-            ctx.env.LIBCSP_PYTHON3 = ctx.check_cfg(package='python3', args='--cflags --libs', atleast_version='3.5',
-                                                   mandatory=False)
+    if ctx.options.enable_python3_bindings:
+        ctx.env.LIBCSP_PYTHON3 = ctx.check_cfg(package='python3', args='--cflags --libs', atleast_version='3.5',
+                                               mandatory=True)
 
     # Set defines for enabling features
     ctx.define('CSP_DEBUG', not ctx.options.disable_output)
@@ -207,29 +203,20 @@ def build(ctx):
         use=['csp_h', 'freertos_h', 'util'],
         install_path=install_path)
 
-    # Build shared library for Python bindings
-    if ctx.env.LIBCSP_PYTHON2 or ctx.env.LIBCSP_PYTHON3:
+    # Build shared library and Python bindings
+    if ctx.env.LIBCSP_PYTHON3:
         ctx.shlib(source=ctx.path.ant_glob(ctx.env.FILES_CSP),
                   name='csp_shlib',
                   target='csp',
                   use=['csp_h', 'util_shlib'],
                   lib=ctx.env.LIBS)
 
-        # python3 bindings
-        if ctx.env.LIBCSP_PYTHON3:
-            ctx.shlib(source=['src/bindings/python/pycsp.c'],
-                      target='csp_py3',
-                      includes=ctx.env.INCLUDES_PYTHON3,
-                      use=['csp_shlib'],
-                      lib=ctx.env.LIBS)
-
-        # python2 bindings
-        if ctx.env.LIBCSP_PYTHON2:
-            ctx.shlib(source=['src/bindings/python/pycsp.c'],
-                      target='csp_py2',
-                      includes=ctx.env.INCLUDES_PYTHON2,
-                      use=['csp_shlib'],
-                      lib=ctx.env.LIBS)
+        ctx.shlib(source=ctx.path.ant_glob('src/bindings/python/**/*.c'),
+                  target='csp_py3',
+                  includes=ctx.env.INCLUDES_PYTHON3,
+                  use=['csp_shlib'],
+                  lib=ctx.env.LIBS,
+                  pytest_path=[ctx.path.get_bld()])
 
     if ctx.env.ENABLE_EXAMPLES:
         ctx.program(source='examples/csp_server_client.c',

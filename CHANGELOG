@@ -1,5 +1,6 @@
 libcsp 1.6, DD-MM-YYYY
 ----------------------
+- Updated Python bindings, removed Python2 support.
 - Removed timeout for send (internally only) and interface tx functions - the timeout was only used on I2C interface.
 - Updated example code to a single csp_server_client.c implementation.
 - Renamed (scoped) clock_set_time()/clock_get_time() to csp_clock_set_time()/csp_clock_get_time()
