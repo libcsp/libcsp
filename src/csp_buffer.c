@@ -222,3 +222,7 @@ int csp_buffer_remaining(void) {
 int csp_buffer_size(void) {
 	return size;
 }
+
+int csp_buffer_datasize(void) {
+	return size - CSP_BUFFER_PACKET_OVERHEAD;
+}

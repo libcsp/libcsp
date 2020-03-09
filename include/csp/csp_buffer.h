@@ -85,6 +85,12 @@ int csp_buffer_remaining(void);
  */
 int csp_buffer_size(void);
 
+/**
+ * Return the payload (data-size) of the CSP buffers not including the csp header
+ * @return
+ */
+int csp_buffer_size(void);
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
