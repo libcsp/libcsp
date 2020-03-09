@@ -1,0 +1,16 @@
+version: '3.4'
+
+services:
+  server:
+    image: libcsp:latest
+    build: 
+      context: .
+    hostname: udp_server
+    command: /opt/libcsp/install/bin/csp_if_udp_server
+
+  client:
+    image: libcsp:latest
+    build: 
+      context: .
+    hostname: udp_client
+    command: /opt/libcsp/install/bin/csp_if_udp_client
