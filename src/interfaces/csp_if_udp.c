@@ -26,6 +26,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/arch/csp_thread.h>
 
 struct sockaddr_in peer_addr = {0};
+static int lport = 9600;
+static int rport = 9600;
 
 static int csp_if_udp_tx(csp_iface_t * interface, csp_packet_t * packet, uint32_t timeout) {
 	int sockfd;
@@ -37,7 +39,7 @@ static int csp_if_udp_tx(csp_iface_t * interface, csp_packet_t * packet, uint32_
 	packet->id.ext = csp_hton32(packet->id.ext);
 
 	peer_addr.sin_family = AF_INET;
-	peer_addr.sin_port = htons(9600);
+	peer_addr.sin_port = htons(rport);
 	sendto(sockfd, (void *) &packet->id, packet->length + 4, MSG_CONFIRM, (struct sockaddr *) &peer_addr, sizeof(peer_addr));
 	csp_buffer_free(packet);
 
@@ -49,10 +51,11 @@ static int csp_if_udp_tx(csp_iface_t * interface, csp_packet_t * packet, uint32_
 CSP_DEFINE_TASK(csp_if_udp_rx_task) {
 
 	int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+
 	struct sockaddr_in server_addr = {0};
 	server_addr.sin_family = AF_INET;
 	server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-	server_addr.sin_port = htons(9600);
+	server_addr.sin_port = htons(lport);
 
 	csp_iface_t * iface = param;
 
@@ -98,13 +101,16 @@ CSP_DEFINE_TASK(csp_if_udp_rx_task) {
 
 }
 
-void csp_if_udp_init(csp_iface_t * iface, char * host) {
+void csp_if_udp_init(csp_iface_t * iface, char * host, int _lport, int _rport) {
 
 	if (inet_aton(host, &peer_addr.sin_addr) == 0) {
 		printf("Unknown peer address %s\n", host);
 	}
 
-	printf("UDP peer address: %s\n", inet_ntoa(peer_addr.sin_addr));
+	lport = _lport;
+	rport = _rport;
+
+	printf("UDP peer address: %s:%d (listening on port %d)\n", inet_ntoa(peer_addr.sin_addr), rport, lport);
 
 	/* Start server thread */
 	static csp_thread_handle_t handle_server;
