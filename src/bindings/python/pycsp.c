@@ -32,7 +32,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #define CONNECTION_CAPSULE  "csp_conn_t"
 #define PACKET_CAPSULE      "csp_packet_t"
 
-static PyObject *CSPError = NULL;
+static PyObject *Error = NULL;
 
 static int CSP_POINTER_HAS_BEEN_FREED = 0; // used to indicate pointer has been freed, because a NULL pointer can't be set.
 
@@ -69,8 +69,8 @@ static csp_socket_t * get_obj_as_socket(PyObject* obj, bool allow_null) {
     return get_capsule_pointer(obj, SOCKET_CAPSULE, allow_null);
 }
 
-static PyObject* PyErr_CSPError(const char * message, int error) {
-    PyErr_Format(CSPError, "%s, result/error: %d", message, error); // should set error as member
+static PyObject* PyErr_Error(const char * message, int error) {
+    PyErr_Format(Error, "%s, result/error: %d", message, error); // should set error as member
     return NULL;
 }
 
@@ -149,7 +149,7 @@ static PyObject* pycsp_init(PyObject *self, PyObject *args) {
     
     int res = csp_init(&conf);
     if (res != CSP_ERR_NONE) {
-        return PyErr_CSPError("csp_init()", res);
+        return PyErr_Error("csp_init()", res);
     }
 
     Py_RETURN_NONE;
@@ -175,7 +175,7 @@ static PyObject* pycsp_socket(PyObject *self, PyObject *args) {
 
     csp_socket_t * socket = csp_socket(opts);
     if (socket == NULL) {
-        return PyErr_CSPError("csp_socket() - no free sockets/connections", CSP_ERR_NOBUFS);
+        return PyErr_Error("csp_socket() - no free sockets/connections", CSP_ERR_NOBUFS);
     }
     return PyCapsule_New(socket, SOCKET_CAPSULE, pycsp_free_csp_socket);
 }
@@ -243,7 +243,7 @@ static PyObject* pycsp_send(PyObject *self, PyObject *args) {
     res = csp_send(conn, packet, timeout);
     Py_END_ALLOW_THREADS;
     if (res != 1) {
-        return PyErr_CSPError("csp_send()", res);
+        return PyErr_Error("csp_send()", res);
     }
     PyCapsule_SetPointer(packet_capsule, &CSP_POINTER_HAS_BEEN_FREED);
 
@@ -266,7 +266,7 @@ static PyObject* pycsp_transaction(PyObject *self, PyObject *args) {
     res = csp_transaction(prio, dest, port, timeout, outbuf.buf, outbuf.len, inbuf.buf, inbuf.len);
     Py_END_ALLOW_THREADS;
     if (res < 1) {
-        return PyErr_CSPError("csp_transaction()", res);
+        return PyErr_Error("csp_transaction()", res);
     }
 
     return Py_BuildValue("i", res);
@@ -293,7 +293,7 @@ static PyObject* pycsp_sendto(PyObject *self, PyObject *args) {
     res = csp_sendto(prio, dest, dport, src_port, opts, packet, timeout);
     Py_END_ALLOW_THREADS;
     if (res != CSP_ERR_NONE) {
-        return PyErr_CSPError("csp_sendto()", res);
+        return PyErr_Error("csp_sendto()", res);
     }
     PyCapsule_SetPointer(packet_capsule, &CSP_POINTER_HAS_BEEN_FREED);
 
@@ -322,7 +322,7 @@ static PyObject* pycsp_sendto_reply(PyObject *self, PyObject *args) {
     res = csp_sendto_reply(request, reply, opts, timeout);
     Py_END_ALLOW_THREADS;
     if (res != CSP_ERR_NONE) {
-        return PyErr_CSPError("csp_sendto_reply()", res);
+        return PyErr_Error("csp_sendto_reply()", res);
     }
 
     PyCapsule_SetPointer(reply_packet_capsule, &CSP_POINTER_HAS_BEEN_FREED);
@@ -344,7 +344,7 @@ static PyObject* pycsp_connect(PyObject *self, PyObject *args) {
     conn = csp_connect(prio, dest, dport, timeout, opts);
     Py_END_ALLOW_THREADS;
     if (conn == NULL) {
-        return PyErr_CSPError("csp_connect() timeout or failed", CSP_ERR_TIMEDOUT);
+        return PyErr_Error("csp_connect() timeout or failed", CSP_ERR_TIMEDOUT);
     }
 
     return PyCapsule_New(conn, CONNECTION_CAPSULE, pycsp_free_csp_conn);
@@ -406,7 +406,7 @@ static PyObject* pycsp_listen(PyObject *self, PyObject *args) {
 
     int res = csp_listen(sock, conn_queue_len);
     if (res != CSP_ERR_NONE) {
-        return PyErr_CSPError("csp_listen()", res);
+        return PyErr_Error("csp_listen()", res);
     }
 
     Py_RETURN_NONE;
@@ -426,7 +426,7 @@ static PyObject* pycsp_bind(PyObject *self, PyObject *args) {
 
     int res = csp_bind(sock, port);
     if (res != CSP_ERR_NONE) {
-        return PyErr_CSPError("csp_bind()", res);
+        return PyErr_Error("csp_bind()", res);
     }
 
     Py_RETURN_NONE;
@@ -440,7 +440,7 @@ static PyObject* pycsp_route_start_task(PyObject *self, PyObject *args) {
 
     int res = csp_route_start_task(0, priority);
     if (res != CSP_ERR_NONE) {
-        return PyErr_CSPError("csp_route_start_task()", res);
+        return PyErr_Error("csp_route_start_task()", res);
     }
 
     Py_RETURN_NONE;
@@ -461,7 +461,7 @@ static PyObject* pycsp_ping(PyObject *self, PyObject *args) {
     Py_END_ALLOW_THREADS;
 
     if (res < 0) {
-        return PyErr_CSPError("csp_ping()", res);
+        return PyErr_Error("csp_ping()", res);
     }
 
     return Py_BuildValue("i", res);
@@ -540,7 +540,7 @@ static PyObject* pycsp_xtea_set_key(PyObject *self, PyObject *args) {
 
     int res = csp_xtea_set_key(key, keylen);
     if (res != CSP_ERR_NONE) {
-        return PyErr_CSPError("csp_xtea_set_key()", res);
+        return PyErr_Error("csp_xtea_set_key()", res);
     }
 
     Py_RETURN_NONE;
@@ -557,7 +557,7 @@ static PyObject* pycsp_rtable_set(PyObject *self, PyObject *args) {
 
     int res = csp_rtable_set(node, mask, csp_iflist_get_by_name(interface_name), via);
     if (res != CSP_ERR_NONE) {
-        return PyErr_CSPError("csp_rtable_set()", res);
+        return PyErr_Error("csp_rtable_set()", res);
     }
 
     Py_RETURN_NONE;
@@ -576,7 +576,7 @@ static PyObject* pycsp_rtable_check(PyObject *self, PyObject *args) {
 
     int res = csp_rtable_check(buffer);
     if (res <= 0) {
-        return PyErr_CSPError("csp_rtable_check()", res);
+        return PyErr_Error("csp_rtable_check()", res);
     }
     return Py_BuildValue("i", res);
 }
@@ -589,7 +589,7 @@ static PyObject* pycsp_rtable_load(PyObject *self, PyObject *args) {
 
     int res = csp_rtable_load(buffer);
     if (res <= 0) {
-        return PyErr_CSPError("csp_rtable_load()", res);
+        return PyErr_Error("csp_rtable_load()", res);
     }
     return Py_BuildValue("i", res);
 }
@@ -602,7 +602,7 @@ static PyObject* pycsp_buffer_get(PyObject *self, PyObject *args) {
 
     void* packet = csp_buffer_get(size);
     if (packet == NULL) {
-        return PyErr_CSPError("csp_buffer_get() - no free buffers or data overrun", CSP_ERR_NOMEM);
+        return PyErr_Error("csp_buffer_get() - no free buffers or data overrun", CSP_ERR_NOMEM);
     }
 
     return PyCapsule_New(packet, PACKET_CAPSULE, pycsp_free_csp_buffer);
@@ -640,7 +640,7 @@ static PyObject* pycsp_cmp_ident(PyObject *self, PyObject *args) {
     res = csp_cmp_ident(node, timeout, &msg);
     Py_END_ALLOW_THREADS;
     if (res != CSP_ERR_NONE) {
-        return PyErr_CSPError("csp_cmp_ident()", res);
+        return PyErr_Error("csp_cmp_ident()", res);
     }
     return Py_BuildValue("isssss",
                          res,
@@ -672,7 +672,7 @@ static PyObject* pycsp_cmp_route_set(PyObject *self, PyObject *args) {
     res = csp_cmp_route_set(node, timeout, &msg);
     Py_END_ALLOW_THREADS;
     if (res != CSP_ERR_NONE) {
-        return PyErr_CSPError("csp_cmp_route_set()", res);
+        return PyErr_Error("csp_cmp_route_set()", res);
     }
 
     Py_RETURN_NONE;
@@ -689,7 +689,7 @@ static PyObject* pycsp_cmp_peek(PyObject *self, PyObject *args) {
     }
 
     if ((len > CSP_CMP_PEEK_MAX_LEN) || (len > outbuf.len)) {
-        return PyErr_CSPError("csp_cmp_peek() - exceeding max size", CSP_ERR_INVAL);
+        return PyErr_Error("csp_cmp_peek() - exceeding max size", CSP_ERR_INVAL);
     }
 
     struct csp_cmp_message msg;
@@ -702,7 +702,7 @@ static PyObject* pycsp_cmp_peek(PyObject *self, PyObject *args) {
     res = csp_cmp_peek(node, timeout, &msg);
     Py_END_ALLOW_THREADS;
     if (res != CSP_ERR_NONE) {
-        return PyErr_CSPError("csp_cmp_peek()", res);
+        return PyErr_Error("csp_cmp_peek()", res);
     }
     memcpy(outbuf.buf, msg.peek.data, len);
     outbuf.len = len;
@@ -722,7 +722,7 @@ static PyObject* pycsp_cmp_poke(PyObject *self, PyObject *args) {
     }
 
     if (len > CSP_CMP_POKE_MAX_LEN) {
-        return PyErr_CSPError("csp_cmp_poke() - exceeding max size", CSP_ERR_INVAL);
+        return PyErr_Error("csp_cmp_poke() - exceeding max size", CSP_ERR_INVAL);
     }
     struct csp_cmp_message msg;
     msg.poke.addr = csp_hton32(addr);
@@ -734,7 +734,7 @@ static PyObject* pycsp_cmp_poke(PyObject *self, PyObject *args) {
     res = csp_cmp_poke(node, timeout, &msg);
     Py_END_ALLOW_THREADS;
     if (res != CSP_ERR_NONE) {
-        return PyErr_CSPError("csp_cmp_poke()", res);
+        return PyErr_Error("csp_cmp_poke()", res);
     }
 
     Py_RETURN_NONE;
@@ -750,7 +750,7 @@ static PyObject* pycsp_cmp_clock_set(PyObject *self, PyObject *args) {
     }
 
     if (sec == 0) {
-        return PyErr_CSPError("csp_cmp_clock(set) - seconds are 0", CSP_ERR_INVAL);
+        return PyErr_Error("csp_cmp_clock(set) - seconds are 0", CSP_ERR_INVAL);
     }
 
     struct csp_cmp_message msg;
@@ -763,7 +763,7 @@ static PyObject* pycsp_cmp_clock_set(PyObject *self, PyObject *args) {
     res = csp_cmp_clock(node, timeout, &msg);
     Py_END_ALLOW_THREADS;
     if (res != CSP_ERR_NONE) {
-        return PyErr_CSPError("csp_cmp_clock(set)", res);
+        return PyErr_Error("csp_cmp_clock(set)", res);
     }
 
     Py_RETURN_NONE;
@@ -784,7 +784,7 @@ static PyObject* pycsp_cmp_clock_get(PyObject *self, PyObject *args) {
     res = csp_cmp_clock(node, timeout, &msg);
     Py_END_ALLOW_THREADS;
     if (res != CSP_ERR_NONE) {
-        return PyErr_CSPError("csp_cmp_clock(get)", res);
+        return PyErr_Error("csp_cmp_clock(get)", res);
     }
 
     return Py_BuildValue("II",
@@ -801,7 +801,7 @@ static PyObject* pycsp_zmqhub_init(PyObject *self, PyObject *args) {
 
     int res = csp_zmqhub_init(addr, host, 0, NULL);
     if (res != CSP_ERR_NONE) {
-        return PyErr_CSPError("csp_zmqhub_init()", res);
+        return PyErr_Error("csp_zmqhub_init()", res);
     }
 
     Py_RETURN_NONE;
@@ -817,7 +817,7 @@ static PyObject* pycsp_can_socketcan_init(PyObject *self, PyObject *args) {
 
     int res = csp_can_socketcan_open_and_add_interface(ifc, CSP_IF_CAN_DEFAULT_NAME, bitrate, promisc, NULL);
     if (res != CSP_ERR_NONE) {
-        return PyErr_CSPError("csp_can_socketcan_open_and_add_interface()", res);
+        return PyErr_Error("csp_can_socketcan_open_and_add_interface()", res);
     }
 
     Py_RETURN_NONE;
@@ -835,7 +835,7 @@ static PyObject* pycsp_kiss_init(PyObject *self, PyObject *args) {
     csp_usart_conf_t conf = {.device = device, .baudrate = baudrate};
     int res = csp_usart_open_and_add_kiss_interface(&conf, if_name, NULL);
     if (res != CSP_ERR_NONE) {
-        return PyErr_CSPError("csp_usart_open_and_add_kiss_interface()", res);
+        return PyErr_Error("csp_usart_open_and_add_kiss_interface()", res);
     }
 
     Py_RETURN_NONE;
@@ -853,7 +853,7 @@ static PyObject* pycsp_packet_set_data(PyObject *self, PyObject *args) {
         return NULL; // TypeError is thrown
     }
     if (data.len > (int)csp_buffer_data_size()) {
-        return PyErr_CSPError("packet_set_data() - exceeding data size", CSP_ERR_INVAL);
+        return PyErr_Error("packet_set_data() - exceeding data size", CSP_ERR_INVAL);
     }
 
     memcpy(packet->data, data.buf, data.len);
@@ -982,10 +982,11 @@ PyMODINIT_FUNC PyInit_libcsp_py3(void) {
     PyObject * m = PyModule_Create(&moduledef);
 
     /* Exceptions */
-    CSPError = PyErr_NewException((char*)"csp.CSPError", NULL, NULL);
+    Error = PyErr_NewException((char*)"csp.Error", NULL, NULL);
+    Py_INCREF(Error);
 
     /* Add exception object to your module */
-    PyModule_AddObject(m, "CSPError", CSPError);
+    PyModule_AddObject(m, "Error", Error);
 
     /* RESERVED PORTS */
     PyModule_AddIntConstant(m, "CSP_CMP", CSP_CMP);

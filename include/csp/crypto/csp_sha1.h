@@ -52,13 +52,13 @@ typedef struct {
 	uint32_t curlen;
         //! Internal SHA1 state.
 	uint8_t  buf[CSP_SHA1_BLOCKSIZE];
-} csp_sha1_state;
+} csp_sha1_state_t;
 
 /**
    Initialize the hash state
    @param[in] state hash state.
 */
-void csp_sha1_init(csp_sha1_state * state);
+void csp_sha1_init(csp_sha1_state_t * state);
 
 /**
    Process a block of memory through the hash.
@@ -66,14 +66,14 @@ void csp_sha1_init(csp_sha1_state * state);
    @param[in] data data.
    @param[in] length length of \a data.
 */
-void csp_sha1_process(csp_sha1_state * state, const void * data, uint32_t length);
+void csp_sha1_process(csp_sha1_state_t * state, const void * data, uint32_t length);
 
 /**
    Terminate the hash calculation and get the SHA1.
    @param[in] state hash state
    @param[out] sha1 user supplied buffer of minimum #CSP_SHA1_DIGESTSIZE bytes.
 */
-void csp_sha1_done(csp_sha1_state * state, uint8_t * sha1);
+void csp_sha1_done(csp_sha1_state_t * state, uint8_t * sha1);
 
 /**
    Calculate SHA1 hash of block of memory.
