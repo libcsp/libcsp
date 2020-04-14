@@ -12,7 +12,7 @@ CubeSat Space Protocol
    ../README
    history
    structure
-   interfaces
+   basic
    memory
    protocolstack
    topology
