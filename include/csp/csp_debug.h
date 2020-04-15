@@ -217,8 +217,10 @@ typedef void (*csp_debug_hook_func_t)(csp_debug_level_t level, const char *forma
  */
 void csp_debug_hook_set(csp_debug_hook_func_t f);
 
-#endif // CSP_USE_EXTERNAL_DEBUG
 #ifdef __cplusplus
 }
 #endif
-#endif
+
+#endif // CSP_USE_EXTERNAL_DEBUG
+
+#endif // _CSP_DEBUG_H_
