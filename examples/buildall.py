@@ -29,7 +29,8 @@ if os in ['posix']:
         '--enable-python3-bindings',
         '--enable-can-socketcan',
         '--with-driver-usart=linux',
-        '--enable-if-zmqhub'
+        '--enable-if-zmqhub',
+        '--enable-shlib'
     ]
 
 if os in ['macosx']:

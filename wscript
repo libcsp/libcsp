@@ -41,6 +41,7 @@ def options(ctx):
 
     gr.add_option('--disable-output', action='store_true', help='Disable CSP output')
     gr.add_option('--disable-stlib', action='store_true', help='Build objects only')
+    gr.add_option('--enable-shlib', action='store_true', help='Build shared library')
     gr.add_option('--enable-rdp', action='store_true', help='Enable RDP support')
     gr.add_option('--enable-rdp-fast-close', action='store_true', help='Enable fast close of RDP connections')
     gr.add_option('--enable-qos', action='store_true', help='Enable Quality of Service support')
@@ -94,6 +95,8 @@ def configure(ctx):
     ctx.env.FEATURES = ['c']
     if not ctx.options.disable_stlib:
         ctx.env.FEATURES += ['cstlib']
+
+    ctx.env.LIBCSP_SHLIB = ctx.options.enable_shlib
 
     # Setup CFLAGS
     if (len(ctx.stack_path) <= 1) and (len(ctx.env.CFLAGS) == 0):
@@ -203,14 +206,16 @@ def build(ctx):
         use=['csp_h', 'freertos_h', 'util'],
         install_path=install_path)
 
-    # Build shared library and Python bindings
-    if ctx.env.LIBCSP_PYTHON3:
+    # Build shared library
+    if ctx.env.LIBCSP_SHLIB or ctx.env.LIBCSP_PYTHON3:
         ctx.shlib(source=ctx.path.ant_glob(ctx.env.FILES_CSP),
                   name='csp_shlib',
                   target='csp',
                   use=['csp_h', 'util_shlib'],
                   lib=ctx.env.LIBS)
 
+    # Build Python bindings
+    if ctx.env.LIBCSP_PYTHON3:
         ctx.shlib(source=ctx.path.ant_glob('src/bindings/python/**/*.c'),
                   target='csp_py3',
                   includes=ctx.env.INCLUDES_PYTHON3,
