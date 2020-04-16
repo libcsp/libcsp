@@ -16,53 +16,31 @@ Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
-*/
-
-#ifndef _CAN_H_
-#define _CAN_H_
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#include <stdint.h>
-
-#include <csp/csp.h>
-#include <csp/interfaces/csp_if_can.h>
-
-/* The can_frame_t and can_id_t types intentionally matches the
- * can_frame struct and can_id types in include/linux/can.h
  */
 
-/** CAN Identifier */
-typedef uint32_t can_id_t;
+#ifndef LIB_CSP_SRC_INTERFACES_CSP_IF_CAN_PBUF_H_
+#define LIB_CSP_SRC_INTERFACES_CSP_IF_CAN_PBUF_H_
 
-/** CAN Frame */
-typedef struct {
-	/** 32 bit CAN identifier */
-	can_id_t id;
-	/** Data Length Code */
-	uint8_t dlc;
-	/**< Frame Data - 0 to 8 bytes */
-	union __attribute__((aligned(8))) {
-		uint8_t data[8];
-		uint16_t data16[4];
-		uint32_t data32[2];
-	};
-} can_frame_t;
+#include <csp/csp_platform.h>
 
+/* Packet buffers */
 typedef enum {
-	CAN_ERROR = 0,
-	CAN_NO_ERROR = 1,
-} can_error_t;
+	BUF_FREE = 0,			/* Buffer element free */
+	BUF_USED = 1,			/* Buffer element used */
+} csp_can_pbuf_state_t;
 
-int can_init(uint32_t id, uint32_t mask, struct csp_can_config *conf);
-int can_send(can_id_t id, uint8_t * data, uint8_t dlc);
+typedef struct {
+	uint16_t rx_count;		/* Received bytes */
+	uint32_t remain;		/* Remaining packets */
+	uint32_t cfpid;			/* Connection CFP identification number */
+	csp_packet_t *packet;		/* Pointer to packet buffer */
+	csp_can_pbuf_state_t state;	/* Element state */
+	uint32_t last_used;		/* Timestamp in ms for last use of buffer */
+} csp_can_pbuf_element_t;
 
-int csp_can_rx_frame(can_frame_t *frame, CSP_BASE_TYPE *task_woken);
+int csp_can_pbuf_free(csp_can_pbuf_element_t *buf, CSP_BASE_TYPE *task_woken);
+csp_can_pbuf_element_t *csp_can_pbuf_new(uint32_t id, CSP_BASE_TYPE *task_woken);
+csp_can_pbuf_element_t *csp_can_pbuf_find(uint32_t id, uint32_t mask, CSP_BASE_TYPE *task_woken);
+void csp_can_pbuf_cleanup(CSP_BASE_TYPE *task_woken);
 
-#ifdef __cplusplus
-} /* extern "C" */
 #endif
-
-#endif /* _CAN_H_ */

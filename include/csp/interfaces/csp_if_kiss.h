@@ -18,86 +18,99 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef _CSP_IF_KISS_H_
-#define _CSP_IF_KISS_H_
+#ifndef CSP_INTERFACES_CSP_IF_KISS_H
+#define CSP_INTERFACES_CSP_IF_KISS_H
+
+/**
+   @file
+
+   KISS interface (serial).
+*/
+
+#include <csp/csp_interface.h>
+#include <csp/arch/csp_semaphore.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include <stdint.h>
-
-#include <csp/csp.h>
-#include <csp/csp_interface.h>
+/**
+   Default name of KISS interface.
+*/
+#define CSP_IF_KISS_DEFAULT_NAME "KISS"
 
 /**
- * The KISS interface relies on the USART callback in order to parse incoming
- * messaged from the serial interface. The USART callback however does not
- * support passing the handle number of the responding USART, so you need to implement
- * a USART callback for each handle and then call kiss_rx subsequently.
- *
- * In order to initialize the KISS interface. Fist call kiss_init() and then
- * setup your usart to call csp_kiss_rx when new data is available.
- *
- * When a byte is not a part of a kiss packet, it will be returned to your
- * usart driver using the usart_insert funtion that you provide.
- *
- * @param csp_iface pointer to interface
- * @param buf pointer to incoming data
- * @param len length of incoming data
- * @param pxTaskWoken NULL if task context, pointer to variable if ISR
- */
-void csp_kiss_rx(csp_iface_t * interface, uint8_t *buf, int len, void *pxTaskWoken);
+   Send KISS frame (implemented by driver).
+
+   @param[in] driver_data driver data from #csp_iface_t
+   @param[in] data data to send
+   @param[in] len length of \a data.
+   @return #CSP_ERR_NONE on success, otherwise an error code.
+*/
+typedef int (*csp_kiss_driver_tx_t)(void *driver_data, const uint8_t * data, size_t len);
 
 /**
- * The putc function is used by the kiss interface to send
- * a string of data to the serial port. This function must
- * be implemented by the user, and passed to the kiss
- * interface through the kiss_init function.
- * @param buf byte to push
- */
-typedef void (*csp_kiss_putc_f)(char buf);
-
-/**
- * The characters not accepted by the kiss interface, are discarded
- * using this function, which must be implemented by the user
- * and passed through the kiss_init function.
- *
- * This reject function is typically used to display ASCII strings
- * sent over the serial port, which are not in KISS format. Such as
- * debugging information.
- *
- * @param c rejected character
- * @param pxTaskWoken NULL if task context, pointer to variable if ISR
- */
-typedef void (*csp_kiss_discard_f)(char c, void *pxTaskWoken);
-
+   KISS Rx mode/state.
+*/
 typedef enum {
-	KISS_MODE_NOT_STARTED,
-	KISS_MODE_STARTED,
-	KISS_MODE_ESCAPED,
-	KISS_MODE_SKIP_FRAME,
-} kiss_mode_e;
+	KISS_MODE_NOT_STARTED,  //!< No start detected
+	KISS_MODE_STARTED,      //!< Started on a KISS frame
+	KISS_MODE_ESCAPED,      //!< Rx escape character 
+	KISS_MODE_SKIP_FRAME,   //!< Skip remaining frame, wait for end character
+} csp_kiss_mode_t;
 
 /**
- * This structure should be statically allocated by the user
- * and passed to the kiss interface during the init function
- * no member information should be changed
- */
-typedef struct csp_kiss_handle_s {
-	csp_kiss_putc_f kiss_putc;
-	csp_kiss_discard_f kiss_discard;
+   KISS interface data (state information).
+*/
+typedef struct {
+	/** Max Rx length */
+	unsigned int max_rx_length;
+	/** Tx function */
+	csp_kiss_driver_tx_t tx_func;
+	/** Tx lock. Current implementation doesn't transfer data to driver in a single 'write', hence locking is necessary. */
+	csp_mutex_t lock;
+	/** Rx mode/state. */
+	csp_kiss_mode_t rx_mode;
+	/** Rx length */
 	unsigned int rx_length;
-	kiss_mode_e rx_mode;
-	unsigned int rx_first;
-	volatile unsigned char *rx_cbuf;
+	/** Rx first - if set, waiting for first character (== TNC_DATA) after start */
+	bool rx_first;
+	/** CSP packet for storing Rx data. */
 	csp_packet_t * rx_packet;
-} csp_kiss_handle_t;
+} csp_kiss_interface_data_t;
 
-void csp_kiss_init(csp_iface_t * csp_iface, csp_kiss_handle_t * csp_kiss_handle, csp_kiss_putc_f kiss_putc_f, csp_kiss_discard_f kiss_discard_f, const char * name);
+/**
+   Add interface.
+
+   If the MTU is not set, it will be set to the csp_buffer_data_size() - sizeof(uint32_t), to make room for the CRC32 added to the packet.
+
+   @param[in] iface CSP interface, initialized with name and inteface_data pointing to a valid #csp_kiss_interface_data_t.
+   @return #CSP_ERR_NONE on success, otherwise an error code.
+*/
+int csp_kiss_add_interface(csp_iface_t * iface);
+
+/**
+   Send CSP packet over KISS (nexthop).
+
+   @param[in] ifroute route.
+   @param[in] packet CSP packet to send.
+   @return #CSP_ERR_NONE on success, otherwise an error code.
+*/
+int csp_kiss_tx(const csp_route_t * ifroute, csp_packet_t * packet);
+
+/**
+   Process received CAN frame.
+
+   Called from driver when a chunk of data has been received. Once a complete frame has been received, the CSP packet will be routed on.
+
+   @param[in] iface incoming interface.
+   @param[in] buf reveived data.
+   @param[in] len length of \a buf.
+   @param[out] pxTaskWoken Valid reference if called from ISR, otherwise NULL!
+*/
+void csp_kiss_rx(csp_iface_t * iface, const uint8_t * buf, size_t len, void * pxTaskWoken);
 
 #ifdef __cplusplus
-} /* extern "C" */
+}
 #endif
-
-#endif /* _CSP_IF_KISS_H_ */
+#endif

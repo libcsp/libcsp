@@ -18,21 +18,31 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <FreeRTOS.h>
-#include <task.h>
-
-/* CSP includes */
-#include <csp/csp.h>
-
 #include <csp/arch/csp_thread.h>
 
-int csp_thread_create(csp_thread_return_t (* routine)(void *), const char * const thread_name, unsigned short stack_depth, void * parameters, unsigned int priority, csp_thread_handle_t * handle) {
-#if (FREERTOS_VERSION >= 8)
-	portBASE_TYPE ret = xTaskCreate(routine, thread_name, stack_depth, parameters, priority, handle);
+int csp_thread_create(csp_thread_func_t routine, const char * const thread_name, unsigned int stack_size, void * parameters, unsigned int priority, csp_thread_handle_t * return_handle) {
+
+	csp_thread_handle_t handle;
+#if (tskKERNEL_VERSION_MAJOR >= 8)
+	portBASE_TYPE ret = xTaskCreate(routine, thread_name, stack_size, parameters, priority, &handle);
 #else
-	portBASE_TYPE ret = xTaskCreate(routine, (signed char *) thread_name, stack_depth, parameters, priority, handle);
+	portBASE_TYPE ret = xTaskCreate(routine, (signed char *) thread_name, stack_size, parameters, priority, &handle);
 #endif
-	if (ret != pdTRUE)
+	if (ret != pdTRUE) {
 		return CSP_ERR_NOMEM;
+	}
+	if (return_handle) {
+		*return_handle = handle;
+	}
 	return CSP_ERR_NONE;
+}
+
+void csp_thread_exit(void) {
+
+	vTaskDelete(NULL);  // Function must exist, otherwise code wont behave the same on all platforms.
+}
+
+void csp_sleep_ms(unsigned int time_ms) {
+
+	vTaskDelay(time_ms / portTICK_RATE_MS);
 }

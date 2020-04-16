@@ -21,18 +21,29 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef _CSP_IF_LO_H_
 #define _CSP_IF_LO_H_
 
+/**
+   @file
+
+   Loopback interface.
+*/
+
+#include <csp/csp_interface.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/* CSP includes */
-#include <csp/csp.h>
-#include <csp/csp_interface.h>
+/**
+   Name of loopback interface.
+*/
+#define CSP_IF_LOOPBACK_NAME "LOOP"
 
+/**
+   Loopback interface.
+*/
 extern csp_iface_t csp_if_lo;
 
 #ifdef __cplusplus
-} /* extern "C" */
+}
 #endif
-
-#endif // _CSP_IF_LO_H_
+#endif

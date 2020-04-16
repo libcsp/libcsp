@@ -24,21 +24,42 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <pthread.h>
 #include <unistd.h>
 #include <errno.h>
 #include <termios.h>
 #include <fcntl.h>
-
-#include <csp/csp.h>
 #include <sys/time.h>
 
-int usart_stdio_id = 0;
-int fd;
-usart_callback_t usart_callback = NULL;
+#include <csp/csp.h>
+#include <csp/arch/csp_malloc.h>
+#include <csp/arch/csp_thread.h>
 
-static void *serial_rx_thread(void *vptr_args);
+typedef struct {
+	csp_usart_callback_t rx_callback;
+	void * user_data;
+	csp_usart_fd_t fd;
+	csp_thread_handle_t rx_thread;
+} usart_context_t;
 
+static void * usart_rx_thread(void * arg) {
+
+	usart_context_t * ctx = arg;
+	const unsigned int CBUF_SIZE = 400;
+	uint8_t * cbuf = malloc(CBUF_SIZE);
+
+	// Receive loop
+	while (1) {
+		int length = read(ctx->fd, cbuf, CBUF_SIZE);
+		if (length <= 0) {
+			csp_log_error("%s: read() failed, returned: %d", __FUNCTION__, length);
+			exit(1);
+		}
+                ctx->rx_callback(ctx->user_data, cbuf, length, NULL);
+	}
+	return NULL;
+}
+
+#if (0) // Unused function and no prototype in public heaaders
 int getbaud(int ifd) {
 	struct termios termAttr;
 	int inputSpeed = -1;
@@ -101,7 +122,7 @@ int getbaud(int ifd) {
 	case B230400:
 		inputSpeed = 230400;
 		break;
-#ifndef CSP_MACOSX
+#if (CSP_MACOSX == 0)
 	case B460800:
 		inputSpeed = 460800;
 		break;
@@ -144,48 +165,57 @@ int getbaud(int ifd) {
 	return inputSpeed;
 
 }
+#endif
 
-void usart_init(struct usart_conf * conf) {
+int csp_usart_write(csp_usart_fd_t fd, const void * data, size_t data_length) {
 
-	struct termios options;
-	pthread_t rx_thread;
-
-	fd = open(conf->device, O_RDWR | O_NOCTTY | O_NONBLOCK);
-
-	if (fd < 0) {
-		printf("Failed to open %s: %s\r\n", conf->device, strerror(errno));
-		return;
+	if (fd >= 0) {
+		int res = write(fd, data, data_length);
+		if (res >= 0) {
+			return res;
+		}
 	}
+	return CSP_ERR_TX; // best matching CSP error code.
+
+}
+
+int csp_usart_open(const csp_usart_conf_t *conf, csp_usart_callback_t rx_callback, void * user_data, csp_usart_fd_t * return_fd) {
 
 	int brate = 0;
-    switch(conf->baudrate) {
-    case 4800:    brate=B4800;    break;
-    case 9600:    brate=B9600;    break;
-    case 19200:   brate=B19200;   break;
-    case 38400:   brate=B38400;   break;
-    case 57600:   brate=B57600;   break;
-    case 115200:  brate=B115200;  break;
-    case 230400:  brate=B230400;  break;
-#ifndef CSP_MACOSX
-    case 460800:  brate=B460800;  break;
-    case 500000:  brate=B500000;  break;
-    case 576000:  brate=B576000;  break;
-    case 921600:  brate=B921600;  break;
-    case 1000000: brate=B1000000; break;
-    case 1152000: brate=B1152000; break;
-    case 1500000: brate=B1500000; break;
-    case 2000000: brate=B2000000; break;
-    case 2500000: brate=B2500000; break;
-    case 3000000: brate=B3000000; break;
-    case 3500000: brate=B3500000; break;
-    case 4000000: brate=B4000000; break;
+	switch(conf->baudrate) {
+		case 4800:    brate=B4800;    break;
+		case 9600:    brate=B9600;    break;
+		case 19200:   brate=B19200;   break;
+		case 38400:   brate=B38400;   break;
+		case 57600:   brate=B57600;   break;
+		case 115200:  brate=B115200;  break;
+		case 230400:  brate=B230400;  break;
+#if (CSP_MACOSX == 0)
+		case 460800:  brate=B460800;  break;
+		case 500000:  brate=B500000;  break;
+		case 576000:  brate=B576000;  break;
+		case 921600:  brate=B921600;  break;
+		case 1000000: brate=B1000000; break;
+		case 1152000: brate=B1152000; break;
+		case 1500000: brate=B1500000; break;
+		case 2000000: brate=B2000000; break;
+		case 2500000: brate=B2500000; break;
+		case 3000000: brate=B3000000; break;
+		case 3500000: brate=B3500000; break;
+		case 4000000: brate=B4000000; break;
 #endif
-    default:
-      printf("Unsupported baudrate requested, defaulting to 500000, requested baudrate=%u\n", conf->baudrate);
-      brate=B500000;
-      break;
-    }
+		default:
+			csp_log_error("%s: Unsupported baudrate: %u", __FUNCTION__, conf->baudrate);
+			return CSP_ERR_INVAL;
+	}
 
+	int fd = open(conf->device, O_RDWR | O_NOCTTY | O_NONBLOCK);
+	if (fd < 0) {
+		csp_log_error("%s: failed to open device: [%s], errno: %s", __FUNCTION__, conf->device, strerror(errno));
+		return CSP_ERR_INVAL;
+	}
+
+	struct termios options;
 	tcgetattr(fd, &options);
 	cfsetispeed(&options, brate);
 	cfsetospeed(&options, brate);
@@ -199,68 +229,43 @@ void usart_init(struct usart_conf * conf) {
 	options.c_oflag &= ~(OCRNL | ONLCR | ONLRET | ONOCR | OFILL | OPOST);
 	options.c_cc[VTIME] = 0;
 	options.c_cc[VMIN] = 1;
-	tcsetattr(fd, TCSANOW, &options);
-	if (tcgetattr(fd, &options) == -1)
-		perror("error setting options");
+	/* tcsetattr() succeeds if just one attribute was changed, should read back attributes and check all has been changed */
+	if (tcsetattr(fd, TCSANOW, &options) != 0) {
+		csp_log_error("%s: Failed to set attributes on device: [%s], errno: %s", __FUNCTION__, conf->device, strerror(errno));
+		close(fd);
+		return CSP_ERR_DRIVER;
+	}
 	fcntl(fd, F_SETFL, 0);
 
 	/* Flush old transmissions */
-	if (tcflush(fd, TCIOFLUSH) == -1)
-		printf("Error flushing serial port - %s(%d).\n", strerror(errno), errno);
-
-	if (pthread_create(&rx_thread, NULL, serial_rx_thread, NULL) != 0)
-		return;
-
-}
-
-void usart_set_callback(usart_callback_t callback) {
-	usart_callback = callback;
-}
-
-void usart_insert(char c, void * pxTaskWoken) {
-	printf("%c", c);
-}
-
-void usart_putstr(char * buf, int len) {
-	if (write(fd, buf, len) != len)
-		return;
-}
-
-void usart_putc(char c) {
-	if (write(fd, &c, 1) != 1)
-		return;
-}
-
-char usart_getc(void) {
-	char c;
-	if (read(fd, &c, 1) != 1) return 0;
-	return c;
-}
-
-int usart_messages_waiting(int handle) {
-  struct timeval tv;
-  fd_set fds;
-  tv.tv_sec = 0;
-  tv.tv_usec = 0;
-  FD_ZERO(&fds);
-  FD_SET(STDIN_FILENO, &fds);
-  select(STDIN_FILENO+1, &fds, NULL, NULL, &tv);
-  return (FD_ISSET(0, &fds));
-}
-
-static void *serial_rx_thread(void *vptr_args) {
-	int length;
-	uint8_t * cbuf = malloc(100000);
-
-	// Receive loop
-	while (1) {
-		length = read(fd, cbuf, 300);
-		if (length <= 0) {
-			perror("Error: ");
-			exit(1);
-		}
-		if (usart_callback)
-			usart_callback(cbuf, length, NULL);
+	if (tcflush(fd, TCIOFLUSH) != 0) {
+		csp_log_error("%s: Error flushing device: [%s], errno: %s", __FUNCTION__, conf->device, strerror(errno));
+		close(fd);
+		return CSP_ERR_DRIVER;
 	}
-	return NULL;
+
+	usart_context_t * ctx = calloc(1, sizeof(*ctx));
+	if (ctx == NULL) {
+		csp_log_error("%s: Error allocating context, device: [%s], errno: %s", __FUNCTION__, conf->device, strerror(errno));
+		close(fd);
+		return CSP_ERR_NOMEM;
+	}
+	ctx->rx_callback = rx_callback;
+	ctx->user_data = user_data;
+	ctx->fd = fd;
+
+        if (rx_callback) {
+		if (csp_thread_create(usart_rx_thread, "usart_rx", 0, ctx, 0, &ctx->rx_thread) != CSP_ERR_NONE) {
+			csp_log_error("%s: csp_thread_create() failed to create Rx thread for device: [%s], errno: %s", __FUNCTION__, conf->device, strerror(errno));
+			free(ctx);
+			close(fd);
+			return CSP_ERR_NOMEM;
+		}
+	}
+
+        if (return_fd) {
+            *return_fd = fd;
+	}
+
+	return CSP_ERR_NONE;
 }

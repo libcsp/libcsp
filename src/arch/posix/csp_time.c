@@ -18,37 +18,40 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <pthread.h>
-#include <time.h>
-#include <sys/time.h>
-
-/* CSP includes */
-#include <csp/csp.h>
-
 #include <csp/arch/csp_time.h>
 
-uint32_t csp_get_ms(void) {
-	struct timespec ts;
+#include <time.h>
+#include <sys/time.h>
+#include <limits.h>
 
-	if (clock_gettime(CLOCK_MONOTONIC, &ts) == 0)
-		return (uint32_t)(ts.tv_sec*1000+ts.tv_nsec/1000000);
-	else
-		return 0;
+uint32_t csp_get_ms(void) {
+
+	struct timespec ts;
+	if (clock_gettime(CLOCK_MONOTONIC, &ts) == 0) {
+		return (uint32_t)((ts.tv_sec*1000) + (ts.tv_nsec/1000000));
+	}
+	return 0;
+
 }
 
 uint32_t csp_get_ms_isr(void) {
+
 	return csp_get_ms();
+
 }
 
 uint32_t csp_get_s(void) {
-	struct timespec ts;
 
-	if (clock_gettime(CLOCK_MONOTONIC, &ts) == 0)
+	struct timespec ts;
+	if (clock_gettime(CLOCK_MONOTONIC, &ts) == 0) {
 		return (uint32_t)ts.tv_sec;
-	else
-		return 0;
+	}
+	return 0;
+
 }
 
 uint32_t csp_get_s_isr(void) {
+
 	return csp_get_s();
+
 }

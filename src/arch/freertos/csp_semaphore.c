@@ -18,19 +18,8 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <stdio.h>
-#include <stdint.h>
-
-/* FreeRTOS includes */
-#include <FreeRTOS.h>
-#include <semphr.h>
-
-/* CSP includes */
-#include <csp/csp.h>
-
-#include <csp/arch/csp_malloc.h>
 #include <csp/arch/csp_semaphore.h>
-#include <csp/arch/csp_queue.h>
+#include <csp/csp_debug.h>
 
 int csp_mutex_create(csp_mutex_t * mutex) {
 	*mutex = xSemaphoreCreateMutex();
@@ -60,34 +49,33 @@ int csp_bin_sem_create(csp_bin_sem_handle_t * sem) {
 
 int csp_bin_sem_remove(csp_bin_sem_handle_t * sem) {
 	if ((sem != NULL) && (*sem != NULL)) {
-		csp_queue_remove(*sem);
+		vSemaphoreDelete(*sem);
 	}
 	return CSP_SEMAPHORE_OK;
 }
 
 int csp_bin_sem_wait(csp_bin_sem_handle_t * sem, uint32_t timeout) {
 	csp_log_lock("Wait: %p", sem);
-	if (timeout != CSP_MAX_DELAY)
+	if (timeout != CSP_MAX_TIMEOUT) {
 		timeout = timeout / portTICK_RATE_MS;
+	}
 	if (xSemaphoreTake(*sem, timeout) == pdPASS) {
 		return CSP_SEMAPHORE_OK;
-	} else {
-		return CSP_SEMAPHORE_ERROR;
 	}
+	return CSP_SEMAPHORE_ERROR;
 }
 
 int csp_bin_sem_post(csp_bin_sem_handle_t * sem) {
 	csp_log_lock("Post: %p", sem);
 	if (xSemaphoreGive(*sem) == pdPASS) {
 		return CSP_SEMAPHORE_OK;
-	} else {
-		return CSP_SEMAPHORE_ERROR;
 	}
+	return CSP_SEMAPHORE_ERROR;
 }
 
-int csp_bin_sem_post_isr(csp_bin_sem_handle_t * sem, CSP_BASE_TYPE * task_woken) {
+int csp_bin_sem_post_isr(csp_bin_sem_handle_t * sem, CSP_BASE_TYPE * pxTaskWoken) {
 	csp_log_lock("Post: %p", sem);
-	if (xSemaphoreGiveFromISR(*sem, (signed CSP_BASE_TYPE *)task_woken) == pdPASS) {
+	if (xSemaphoreGiveFromISR(*sem, pxTaskWoken) == pdPASS) {
 		return CSP_SEMAPHORE_OK;
 	} else {
 		return CSP_SEMAPHORE_ERROR;

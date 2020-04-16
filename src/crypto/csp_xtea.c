@@ -20,17 +20,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 /* Simple implementation of XTEA in CTR mode */
 
-#include <stdint.h>
+#include <csp/crypto/csp_xtea.h>
+
 #include <string.h>
+#include <stdlib.h>
 
-/* CSP includes */
-#include <csp/csp.h>
 #include <csp/csp_endian.h>
-
-#include "csp_sha1.h"
-#include "csp_xtea.h"
-
-#ifdef CSP_USE_XTEA
+#include <csp/csp_buffer.h>
+#include <csp/crypto/csp_sha1.h>
 
 #define XTEA_BLOCKSIZE 	8
 #define XTEA_ROUNDS 	32
@@ -81,11 +78,11 @@ static inline void csp_xtea_xor_byte(uint8_t * dst, uint8_t * src, uint32_t len)
 
 }
 
-int csp_xtea_set_key(char * key, uint32_t keylen) {
+int csp_xtea_set_key(const void * key, uint32_t keylen) {
 
 	/* Use SHA1 as KDF */
-	uint8_t hash[SHA1_DIGESTSIZE];
-	csp_sha1_memory((uint8_t *)key, keylen, hash);
+	uint8_t hash[CSP_SHA1_DIGESTSIZE];
+	csp_sha1_memory(key, keylen, hash);
 
 	/* Copy key */
 	memcpy(csp_xtea_key, hash, XTEA_KEY_LENGTH);
@@ -94,7 +91,7 @@ int csp_xtea_set_key(char * key, uint32_t keylen) {
 
 }
 
-int csp_xtea_encrypt(uint8_t * plain, const uint32_t len, uint32_t iv[2]) {
+int csp_xtea_encrypt(void * plain, const uint32_t len, uint32_t iv[2]) {
 
 	unsigned int i;
 	uint32_t stream[2];
@@ -114,7 +111,7 @@ int csp_xtea_encrypt(uint8_t * plain, const uint32_t len, uint32_t iv[2]) {
 		remain = len - i * XTEA_BLOCKSIZE;
 
 		/* XOR plain text with stream to generate cipher text */
-		csp_xtea_xor_byte(&plain[len - remain], (uint8_t *)stream, remain < XTEA_BLOCKSIZE ? remain : XTEA_BLOCKSIZE);
+		csp_xtea_xor_byte(&((uint8_t*)plain)[len - remain], (uint8_t *)stream, remain < XTEA_BLOCKSIZE ? remain : XTEA_BLOCKSIZE);
 
 		/* Increment counter */
 		stream[0] = csp_htobe32(iv[0]);
@@ -125,11 +122,60 @@ int csp_xtea_encrypt(uint8_t * plain, const uint32_t len, uint32_t iv[2]) {
 
 }
 
-int csp_xtea_decrypt(uint8_t * cipher, const uint32_t len, uint32_t iv[2]) {
+int csp_xtea_encrypt_packet(csp_packet_t * packet) {
+
+	/* Create nonce */
+	const uint32_t nonce = (uint32_t)rand();
+	const uint32_t nonce_n = csp_hton32(nonce);
+
+	if ((packet->length + sizeof(nonce_n)) > csp_buffer_data_size()) {
+		return CSP_ERR_NOMEM;
+	}
+
+	/* Create initialization vector */
+	uint32_t iv[2] = {nonce, 1};
+
+	/* Encrypt data */
+	if (csp_xtea_encrypt(packet->data, packet->length, iv) != CSP_ERR_NONE) {
+		return CSP_ERR_XTEA;
+        }
+
+	memcpy(&packet->data[packet->length], &nonce_n, sizeof(nonce_n));
+	packet->length += sizeof(nonce_n);
+
+	return CSP_ERR_NONE;
+
+}
+
+int csp_xtea_decrypt(void * cipher, const uint32_t len, uint32_t iv[2]) {
 
 	/* Since we use counter mode, we can reuse the encryption function */
 	return csp_xtea_encrypt(cipher, len, iv);
 
 }
 
-#endif // CSP_USE_XTEA
+int csp_xtea_decrypt_packet(csp_packet_t * packet) {
+
+	/* Read nonce */
+	uint32_t nonce;
+
+	if (packet->length < sizeof(nonce)) {
+		return CSP_ERR_XTEA;
+	}
+
+        memcpy(&nonce, &packet->data[packet->length - sizeof(nonce)], sizeof(nonce));
+	nonce = csp_ntoh32(nonce);
+
+	/* Create initialization vector */
+	uint32_t iv[2] = {nonce, 1};
+
+	/* Decrypt data */
+	if (csp_xtea_decrypt(packet->data, packet->length, iv) != CSP_ERR_NONE) {
+		return CSP_ERR_XTEA;
+	}
+
+	packet->length -= sizeof(nonce);
+
+	return CSP_ERR_NONE;
+
+}

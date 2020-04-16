@@ -18,15 +18,11 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <stdint.h>
-
-/* CSP includes */
-#include <csp/csp.h>
 #include <csp/csp_endian.h>
 
 /* Convert 16-bit number from host byte order to network byte order */
 inline uint16_t __attribute__ ((__const__)) csp_hton16(uint16_t h16) {
-#ifdef CSP_BIG_ENDIAN
+#if (CSP_BIG_ENDIAN)
 	return h16;
 #else
 	return (((h16 & 0xff00) >> 8) |
@@ -41,7 +37,7 @@ inline uint16_t __attribute__ ((__const__)) csp_ntoh16(uint16_t n16) {
 
 /* Convert 32-bit number from host byte order to network byte order */
 inline uint32_t __attribute__ ((__const__)) csp_hton32(uint32_t h32) {
-#ifdef CSP_BIG_ENDIAN
+#if (CSP_BIG_ENDIAN)
 	return h32;
 #else
 	return (((h32 & 0xff000000) >> 24) |
@@ -58,7 +54,7 @@ inline uint32_t __attribute__ ((__const__)) csp_ntoh32(uint32_t n32) {
 
 /* Convert 64-bit number from host byte order to network byte order */
 inline uint64_t __attribute__ ((__const__)) csp_hton64(uint64_t h64) {
-#ifdef CSP_BIG_ENDIAN
+#if (CSP_BIG_ENDIAN)
 	return h64;
 #else
 	return (((h64 & 0xff00000000000000LL) >> 56) |
@@ -84,7 +80,7 @@ inline uint16_t __attribute__ ((__const__)) csp_htobe16(uint16_t h16) {
 
 /* Convert 16-bit number from host byte order to little endian byte order */
 inline uint16_t __attribute__ ((__const__)) csp_htole16(uint16_t h16) {
-#ifdef CSP_LITTLE_ENDIAN
+#if (CSP_LITTLE_ENDIAN)
 	return h16;
 #else
 	return (((h16 & 0xff00) >> 8) |
@@ -109,7 +105,7 @@ inline uint32_t __attribute__ ((__const__)) csp_htobe32(uint32_t h32) {
 
 /* Convert 32-bit number from little endian byte order to host byte order */
 inline uint32_t __attribute__ ((__const__)) csp_htole32(uint32_t h32) {
-#ifdef CSP_LITTLE_ENDIAN
+#if (CSP_LITTLE_ENDIAN)
 	return h32;
 #else
 	return (((h32 & 0xff000000) >> 24) |
@@ -136,7 +132,7 @@ inline uint64_t __attribute__ ((__const__)) csp_htobe64(uint64_t h64) {
 
 /* Convert 64-bit number from host byte order to little endian byte order */
 inline uint64_t __attribute__ ((__const__)) csp_htole64(uint64_t h64) {
-#ifdef CSP_LITTLE_ENDIAN
+#if (CSP_LITTLE_ENDIAN)
 	return h64;
 #else
 	return (((h64 & 0xff00000000000000LL) >> 56) |
@@ -163,7 +159,7 @@ inline uint64_t __attribute__ ((__const__)) csp_letoh64(uint64_t le64) {
 
 /* Convert float from host byte order to network byte order */
 inline float __attribute__ ((__const__)) csp_htonflt(float f) {
-#ifdef CSP_BIG_ENDIAN
+#if (CSP_BIG_ENDIAN)
 	return f;
 #else
 	union v {
@@ -184,7 +180,7 @@ inline float __attribute__ ((__const__)) csp_ntohflt(float f) {
 
 /* Convert double from host byte order to network byte order */
 inline double __attribute__ ((__const__)) csp_htondbl(double d) {
-#ifdef CSP_BIG_ENDIAN
+#if (CSP_BIG_ENDIAN)
 	return d;
 #else
 	union v {

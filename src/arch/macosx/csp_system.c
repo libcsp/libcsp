@@ -18,42 +18,30 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+#include <csp/arch/csp_system.h>
+
 #include <stdio.h>
-#include <stdint.h>
 #include <string.h>
 
 #include <csp/csp.h>
-#include <csp/csp_error.h>
-
-#include <csp/arch/csp_system.h>
 
 int csp_sys_tasklist(char * out) {
+
 	strcpy(out, "Tasklist not available on OSX");
 	return CSP_ERR_NONE;
+
 }
 
 int csp_sys_tasklist_size(void) {
+
         return 100;
+
 }
 
 uint32_t csp_sys_memfree(void) {
-	/* TODO: Fix memory free on OSX */
-	uint32_t total = 0;
-	return total;
-}
 
-int csp_sys_reboot(void) {
-	/* TODO: Fix reboot on OSX */
-	csp_log_error("Failed to reboot");
+	return 0; // not implemented
 
-	return CSP_ERR_INVAL;
-}
-
-int csp_sys_shutdown(void) {
-	/* TODO: Fix shutdown on OSX */
-	csp_log_error("Failed to shutdown");
-
-	return CSP_ERR_INVAL;
 }
 
 void csp_sys_set_color(csp_color_t color) {
