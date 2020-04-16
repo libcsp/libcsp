@@ -30,7 +30,7 @@ The following diagram shows a conceptual overview of the different blocks in CSP
                                             csp_can_tx_frame()       socketcan_rx_thread()
 					            (drivers/can/can_socketcan.c)
 
-   
+
 Buffer
 ------
 
