@@ -24,6 +24,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
    @file
 
    Socket CAN driver (Linux).
+
+   This driver requires the libsocketcan library.
 */
 
 #include <csp/interfaces/csp_if_can.h>

@@ -215,7 +215,7 @@ int csp_can_tx(const csp_route_t * ifroute, csp_packet_t *packet)
 	/* Increment tx counter */
 	uint16_t tx_count = bytes;
 
-        const csp_can_driver_tx_f tx_func = ifdata->tx_func;
+        const csp_can_driver_tx_t tx_func = ifdata->tx_func;
 
 	/* Send first frame */
 	if ((tx_func)(iface->driver_data, id, frame_buf, CFP_OVERHEAD + bytes) != CSP_ERR_NONE) {

@@ -47,7 +47,7 @@ extern "C" {
    @param[in] len length of \a data.
    @return #CSP_ERR_NONE on success, otherwise an error code.
 */
-typedef int (*csp_kiss_driver_tx_f)(void *driver_data, const uint8_t * data, size_t len);
+typedef int (*csp_kiss_driver_tx_t)(void *driver_data, const uint8_t * data, size_t len);
 
 /**
    KISS Rx mode/state.
@@ -57,7 +57,7 @@ typedef enum {
 	KISS_MODE_STARTED,      //!< Started on a KISS frame
 	KISS_MODE_ESCAPED,      //!< Rx escape character 
 	KISS_MODE_SKIP_FRAME,   //!< Skip remaining frame, wait for end character
-} kiss_mode_e;
+} csp_kiss_mode_t;
 
 /**
    KISS interface data (state information).
@@ -66,11 +66,11 @@ typedef struct {
 	/** Max Rx length */
 	unsigned int max_rx_length;
 	/** Tx function */
-	csp_kiss_driver_tx_f tx_func;
+	csp_kiss_driver_tx_t tx_func;
 	/** Tx lock. Current implementation doesn't transfer data to driver in a single 'write', hence locking is necessary. */
 	csp_mutex_t lock;
 	/** Rx mode/state. */
-	kiss_mode_e rx_mode;
+	csp_kiss_mode_t rx_mode;
 	/** Rx length */
 	unsigned int rx_length;
 	/** Rx first - if set, waiting for first character (== TNC_DATA) after start */

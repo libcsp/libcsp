@@ -1,17 +1,21 @@
 #!/usr/bin/python3
 
-# libcsp must be build with at least these options to run this example server:
-# ./waf distclean configure build --enable-bindings --enable-crc32 --enable-rdp --enable-if-zmq
-#                                 --enable-can-socketcan --enable-examples
-# Can be run from root of libcsp like this:
-# LD_LIBRARY_PATH=build PYTHONPATH=bindings/python:build python3 examples/python_bindings_example_server.py
+# Build required code:
+# $ ./examples/buildall.py
+#
+# Start zmqproxy (only one instance)
+# $ ./build/zmqproxy
+#
+# Run server, default enabling ZMQ interface:
+# $ LD_LIBRARY_PATH=build PYTHONPATH=build python3 examples/python_bindings_example_server.py
 #
 
 import os
 import time
 import sys
-import libcsp
 import threading
+
+import libcsp_py3 as libcsp
 
 
 def csp_server():

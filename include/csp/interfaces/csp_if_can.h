@@ -124,7 +124,7 @@ extern "C" {
    @param[in] dlc data length of \a data.
    @return #CSP_ERR_NONE on success, otherwise an error code.
 */
-typedef int (*csp_can_driver_tx_f)(void * driver_data, uint32_t id, const uint8_t * data, uint8_t dlc);
+typedef int (*csp_can_driver_tx_t)(void * driver_data, uint32_t id, const uint8_t * data, uint8_t dlc);
 
 /**
    Interface data (state information).
@@ -133,7 +133,7 @@ typedef struct {
     /** CFP Identification number - same number on all fragments from same CSP packet. */
     uint32_t cfp_frame_id;
     /** Tx function */
-    csp_can_driver_tx_f tx_func;
+    csp_can_driver_tx_t tx_func;
 } csp_can_interface_data_t;
 
 /**

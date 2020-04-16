@@ -60,7 +60,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #define FF_2(a, b, c, d, e, i) do {e = (ROL(a, 5) + F2(b,c,d) + e + W[i] + 0x8f1bbcdcUL); b = ROL(b, 30);} while (0)
 #define FF_3(a, b, c, d, e, i) do {e = (ROL(a, 5) + F3(b,c,d) + e + W[i] + 0xca62c1d6UL); b = ROL(b, 30);} while (0)
 
-static void csp_sha1_compress(csp_sha1_state * sha1, const uint8_t * buf) {
+static void csp_sha1_compress(csp_sha1_state_t * sha1, const uint8_t * buf) {
 
 	uint32_t a, b, c, d, e, W[80], i;
 
@@ -127,7 +127,7 @@ static void csp_sha1_compress(csp_sha1_state * sha1, const uint8_t * buf) {
 
 }
 
-void csp_sha1_init(csp_sha1_state * sha1) {
+void csp_sha1_init(csp_sha1_state_t * sha1) {
 
    sha1->state[0] = 0x67452301UL;
    sha1->state[1] = 0xefcdab89UL;
@@ -139,7 +139,7 @@ void csp_sha1_init(csp_sha1_state * sha1) {
 
 }
 
-void csp_sha1_process(csp_sha1_state * sha1, const void * data, uint32_t inlen) {
+void csp_sha1_process(csp_sha1_state_t * sha1, const void * data, uint32_t inlen) {
 
 	const uint8_t * in = data;
 	uint32_t n;
@@ -165,7 +165,7 @@ void csp_sha1_process(csp_sha1_state * sha1, const void * data, uint32_t inlen) 
 
 }
 
-void csp_sha1_done(csp_sha1_state * sha1, uint8_t * out) {
+void csp_sha1_done(csp_sha1_state_t * sha1, uint8_t * out) {
 
 	uint32_t i;
 
@@ -202,7 +202,7 @@ void csp_sha1_done(csp_sha1_state * sha1, uint8_t * out) {
 
 void csp_sha1_memory(const void * msg, uint32_t len, uint8_t * hash) {
 
-	csp_sha1_state md;
+	csp_sha1_state_t md;
 	csp_sha1_init(&md);
 	csp_sha1_process(&md, msg, len);
 	csp_sha1_done(&md, hash);

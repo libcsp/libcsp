@@ -1,18 +1,21 @@
 #!/usr/bin/python3
 
-# libcsp must be build with at least these options to run this example client:
-# ./waf distclean configure build --enable-bindings --enable-crc32 --enable-rdp --enable-if-zmq
-#                                 --with-driver-usart=linux --enable-if-kiss --enable-xtea --enable-if-can
-#                                 --enable-can-socketcan --enable-hmac --enable-examples
-# Can be run from root of libcsp like this:
-# LD_LIBRARY_PATH=build PYTHONPATH=bindings/python:build python3 examples/python_bindings_example_client.py
+# Build required code:
+# $ ./examples/buildall.py
+#
+# Start zmqproxy (only one instance)
+# $ ./build/zmqproxy
+#
+# Run client against server using ZMQ:
+# $ LD_LIBRARY_PATH=build PYTHONPATH=build python3 examples/python_bindings_example_client.py -z localhost
 #
 
 import os
 import time
-import libcsp as csp
 import sys
 import argparse
+
+import libcsp_py3 as libcsp
 
 
 def getOptions():
@@ -29,31 +32,32 @@ if __name__ == "__main__":
 
     options = getOptions()
 
-    csp.init(options.address, "host", "model", "1.2.3", 10, 300)
+    libcsp.init(options.address, "host", "model", "1.2.3", 10, 300)
 
     if options.can:
-        csp.can_socketcan_init(options.can)
+        libcsp.can_socketcan_init(options.can)
     if options.zmq:
-        csp.zmqhub_init(options.address, options.zmq)
+        libcsp.zmqhub_init(options.address, options.zmq)
+        libcsp.rtable_load("0/0 ZMQHUB")
     if options.routing_table:
-        csp.rtable_load(options.routing_table)
+        libcsp.rtable_load(options.routing_table)
 
-    csp.route_start_task()
+    libcsp.route_start_task()
     time.sleep(0.2)  # allow router task startup
 
     print("Connections:")
-    csp.print_connections()
+    libcsp.print_connections()
 
     print("Routes:")
-    csp.print_routes()
+    libcsp.print_routes()
 
-    print("CMP ident:", csp.cmp_ident(options.server_address))
+    print("CMP ident:", libcsp.cmp_ident(options.server_address))
 
-    print("Ping: %d mS" % csp.ping(options.server_address))
+    print("Ping: %d mS" % libcsp.ping(options.server_address))
 
     # transaction
     outbuf = bytearray().fromhex('01')
     inbuf = bytearray(1)
     print ("Exchange data with server using csp_transaction ...")
-    csp.transaction(0, options.server_address, 10, 1000, outbuf, inbuf)
+    libcsp.transaction(0, options.server_address, 10, 1000, outbuf, inbuf)
     print ("  got reply from server [%s]" % (''.join('{:02x}'.format(x) for x in inbuf)))
