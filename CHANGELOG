@@ -1,3 +1,53 @@
+libcsp 1.6, 16-04-2020
+----------------------
+- Updated documentation.
+- Updated Python bindings, removed Python2 support.
+- Removed timeout for send (internally only) and interface tx functions - the timeout was only used on I2C interface.
+- Updated example code to a single csp_server_client.c implementation.
+- Renamed (scoped) clock_set_time()/clock_get_time() to csp_clock_set_time()/csp_clock_get_time()
+- Changed csp_sys_reboot()/csp_sys_shutdown() to use callbacks, default POSIX impl. in csp/arch/posix/csp_system.h.
+- Added support for timestamps in logs by setting CSP_DEBUG_TIMESTAMP (uses csp_clock_get_time()).
+- Renamed mac to via (structs, functions, examples and documentation)
+- RDP: Ensure connection is kept in CLOSE_WAIT for period of time. In some cases, the connection would switch to CLOSED immediately.
+- RDP: Fixed connection leak, if a RST segment was received on a closed connecton.
+- RDP: Ensure connection is closed from both userspace and protocol, before closing completely (preventing undetermined behaviour).
+- RDP: Added support for fast close of a connection (skipping the CLOSE_WAIT period), but only if both ends agree on close.
+- RDP: Fixed issue "Possible bug in RDP TX timeout" (#109), see issue on github for further details.
+- Added Travis-CI support on Github, build: Linux, Mac and Windows.
+- Changed #ifdef/ifndef to single #if in order to support forced disabling and alignment with log macro's.
+- Updated thread API, documentation, aligned implementation
+- Refactored all CSP interfaces.
+   - Accept csp_route_t, instead of csp_iface_t.
+   - No static members -> multiple interfaces of all types.
+      - Added csp_iface_t.interface_data for interface data.
+      - Added csp_iface_t.driver_data for driver data (unknown to interface level).
+   - Check for buffer overrun
+   - Set MTU if not already set, and it make sense on the respective interface.
+   - Driver Tx function is now a callback, must be set by the application (in the interface data).
+- csp_packet_t (and other structs) are no longer packed (increases performance), padding is increased from 8->10 bytes for alignment.
+- Refactored rtable CIDR/static implementation:
+   - Use same format for storing table (text).
+   - Added csp_route_t to hold route entry, e.g. interface and via.
+   - Replaced csp_rtable_find_iface()/csp_rtable_find_mac() with csp_rtable_find_route()
+- Added csp_get_memfree()/csp_get_buf_free()/csp_get_uptime(), which returns an error code.
+- Improved logging, check level before doing the actual call. Added support for external log macros.
+- Removed unused defines/functions: csp_conn_lock, csp_conn_unlock, CSP_PROMISC
+- Replaced CSP_MAX_DELAY and CSP_INFINITY with CSP_MAX_TIMEOUT (same value).
+- Added csp_calloc(), csp/arch/csp_malloc.h
+- Added csp_buffer_data_size(), csp/csp_buffer.h
+- Updated header documentation (doxygen).
+- Restructured header includes.
+- api: Added const for read-only pointers.
+- api: Changed a number of uint8_t pointers to void to avoid cast.
+
+libcsp 1.5-internal, 21-08-2018
+-------------------------------
+- Internal release.
+- New python bindings with examples and python3 support.
+- Introduced csp_conf_t, which replaces a number of compile options. This has broken csp_init().
+- Refactored CAN interface.
+- Bug fixes.
+
 libcsp 1.4, 07-05-2015
 ----------------------
 - new: General rtable interface with support for STATIC or CIDR format

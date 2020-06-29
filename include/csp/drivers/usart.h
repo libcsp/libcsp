@@ -18,81 +18,104 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/**
- * @file usart.h
- * Common USART interface,
- * This file is derived from the Gomspace USART driver,
- * the main difference is the assumption that only one USART will be present on a PC
- */
-
-#ifndef USART_H_
-#define USART_H_
-
-#include <stdint.h>
+#ifndef CSP_DRIVERS_USART_H
+#define CSP_DRIVERS_USART_H
 
 /**
- * Usart configuration, to be used with the usart_init call.
- */
-struct usart_conf {
-	const char *device;
-	uint32_t baudrate;
-	uint8_t databits;
-	uint8_t stopbits;
-	uint8_t paritysetting;
-	uint8_t checkparity;
-};
+   @file
+
+   USART driver.
+
+   @note This interface implementation only support ONE open UART connection.
+*/
+
+#include <csp/interfaces/csp_if_kiss.h>
+
+#if (CSP_WINDOWS)
+#include <Windows.h>
+#endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
- * Initialise UART with the usart_conf data structure
- * @param usart_conf full configuration structure
- */
-void usart_init(struct usart_conf *conf);
+   OS file handle.
+*/
+#if (CSP_WINDOWS)
+    typedef HANDLE csp_usart_fd_t;
+#else
+    typedef int csp_usart_fd_t;
+#endif
 
 /**
- * In order to catch incoming chars use the callback.
- * Only one callback per interface.
- * @param handle usart[0,1,2,3]
- * @param callback function pointer
- */
-typedef void (*usart_callback_t) (uint8_t *buf, int len, void *pxTaskWoken);
-void usart_set_callback(usart_callback_t callback);
+   Usart configuration.
+   @see csp_usart_open()
+*/
+typedef struct csp_usart_conf {
+    //! USART device.
+    const char *device;
+    //! bits per second.
+    uint32_t baudrate;
+    //! Number of data bits.
+    uint8_t databits;
+    //! Number of stop bits.
+    uint8_t stopbits;
+    //! Parity setting.
+    uint8_t paritysetting;
+    //! Enable parity checking (Windows only).
+    uint8_t checkparity;
+} csp_usart_conf_t;
 
 /**
- * Insert a character to the RX buffer of a usart
- * @param handle usart[0,1,2,3]
- * @param c Character to insert
- */
-void usart_insert(char c, void *pxTaskWoken);
+   Callback for returning data to application.
+
+   @param[in] buf data received.
+   @param[in] len data length (number of bytes in \a buf).
+   @param[out] pxTaskWoken Valid reference if called from ISR, otherwise NULL!
+*/
+typedef void (*csp_usart_callback_t) (void * user_data, uint8_t *buf, size_t len, void *pxTaskWoken);
 
 /**
- * Polling putchar
- *
- * @param handle usart[0,1,2,3]
- * @param c Character to transmit
- */
-void usart_putc(char c);
+   Opens an UART device.
+
+   Opens the UART device and creates a thread for reading/returning data to the application.
+
+   @note On read failure, exit() will be called - terminating the process.
+
+   @param[in] conf UART configuration.
+   @param[in] rx_callback receive data callback.
+   @param[in] user_data reference forwarded to the \a rx_callback function.
+   @param[out] fd the opened file descriptor.
+   @return #CSP_ERR_NONE on success, otherwise an error code.
+*/
+int csp_usart_open(const csp_usart_conf_t *conf, csp_usart_callback_t rx_callback, void * user_data, csp_usart_fd_t * fd);
 
 /**
- * Send char buffer on UART
- *
- * @param handle usart[0,1,2,3]
- * @param buf Pointer to data
- * @param len Length of data
- */
-void usart_putstr(char *buf, int len);
+   Write data on open UART.
+
+   @param[in] fd file descriptor.
+   @param[in] data data to write.
+   @param[in] data_length length of \a data.
+   @return number of bytes written on success, a negative value on failure.
+*/
+int csp_usart_write(csp_usart_fd_t fd, const void * data, size_t data_length);
 
 /**
- * Buffered getchar
- *
- * @param handle usart[0,1,2,3]
- * @return Character received
- */
-char usart_getc(void);
+   Opens UART device and add KISS interface.
 
-int usart_messages_waiting(int handle);
+   This is a convience function for opening an UART device and adding it as an interface with a given name.
 
-static inline int usart_stdio_msgwaiting(void) {
-	return usart_messages_waiting(0);
+   @note On read failures, exit() will be called - terminating the process.
+
+   @param[in] conf UART configuration.
+   @param[in] ifname internface name (will be copied), or use NULL for default name.
+   @param[out] return_iface the added interface.
+   @return #CSP_ERR_NONE on success, otherwise an error code.
+*/
+int csp_usart_open_and_add_kiss_interface(const csp_usart_conf_t *conf, const char * ifname, csp_iface_t ** return_iface);
+
+#ifdef __cplusplus
 }
-
-#endif /* USART_H_ */
+#endif
+#endif

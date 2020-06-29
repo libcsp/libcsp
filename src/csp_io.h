@@ -21,27 +21,24 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef _CSP_IO_H_
 #define _CSP_IO_H_
 
+#include <csp/csp.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include <stdint.h>
-
-#include <csp/csp.h>
-
 /**
- * Function to transmit a frame without an existing connection structure.
- * This function is used for stateless transmissions
- * @param idout 32bit CSP identifier
- * @param packet pointer to packet,
- * @param ifout pointer to output interface
- * @param timeout a timeout to wait for TX to complete. NOTE: not all underlying drivers supports flow-control.
- * @return returns 1 if successful and 0 otherwise. you MUST free the frame yourself if the transmission was not successful.
- */
-int csp_send_direct(csp_id_t idout, csp_packet_t * packet, csp_iface_t * ifout, uint32_t timeout);
+   Send CSP packet via route (no existing connection).
+
+   @param idout 32bit CSP identifier
+   @param packet packet to send - this will not be freed.
+   @param ifroute route to destination
+   @param timeout timeout to wait for TX to complete. NOTE: not all underlying drivers supports flow-control.
+   @return #CSP_ERR_NONE on success, otherwise an error code.
+*/
+int csp_send_direct(csp_id_t idout, csp_packet_t * packet, const csp_route_t * ifroute, uint32_t timeout);
 
 #ifdef __cplusplus
-} /* extern "C" */
+}
 #endif
-
-#endif // _CSP_IO_H_
+#endif

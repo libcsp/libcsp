@@ -21,6 +21,18 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef LIB_CSP_SRC_CSP_INIT_H_
 #define LIB_CSP_SRC_CSP_INIT_H_
 
+#include <csp/csp.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern csp_conf_t csp_conf;
 
-#endif /* LIB_CSP_SRC_CSP_INIT_H_ */
+int csp_buffer_init(void);
+void csp_buffer_free_resources(void);
+
+#ifdef __cplusplus
+}
+#endif
+#endif

@@ -18,35 +18,61 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef _CSP_XTEA_H_
-#define _CSP_XTEA_H_
+#ifndef _CSP_CRYPTO_XTEA_H_
+#define _CSP_CRYPTO_XTEA_H_
+
+/**
+   @file
+   XTEA support.
+*/
+
+#include <csp/csp_types.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include <stdint.h>
-
-#define CSP_XTEA_IV_LENGTH	8
+/**
+   Set XTEA key
+   @param[in] key XTEA key
+   @param[in] keylen length of key
+   @return #CSP_ERR_NONE on success, otherwise an error code.
+*/
+int csp_xtea_set_key(const void * key, uint32_t keylen);
 
 /**
- * XTEA encrypt byte array
- * @param plain Pointer to plain text
- * @param len Length of plain text
- * @param iv Initialization vector
- */
-int csp_xtea_encrypt(uint8_t * plain, const uint32_t len, uint32_t iv[2]);
+   XTEA encrypt byte array
+   @param[in] data data to be encrypted.
+   @param[in] len Length of \a data.
+   @param[in] iv Initialization vector
+   @return #CSP_ERR_NONE on success, otherwise an error code.
+*/
+int csp_xtea_encrypt(void * data, uint32_t len, uint32_t iv[2]);
 
 /**
- * Decrypt XTEA encrypted byte array
- * @param cipher Pointer to cipher text
- * @param len Length of plain text
- * @param iv Initialization vector
- */
-int csp_xtea_decrypt(uint8_t * cipher, const uint32_t len, uint32_t iv[2]);
+   XTEA encrypt message.
+   @param packet CSP packet, must be valid.
+   @return #CSP_ERR_NONE on success, otherwise an error code.
+*/
+int csp_xtea_encrypt_packet(csp_packet_t * packet);
 
+/**
+   Decrypt XTEA encrypted byte array.
+   @param[in,out] encrypted data be decrypted.
+   @param[in] len length of \a encrypted data.
+   @param[in] iv Initialization vector.
+   @return #CSP_ERR_NONE on success, otherwise an error code.
+*/
+int csp_xtea_decrypt(void * encrypted, uint32_t len, uint32_t iv[2]);
+
+/**
+   XTEA decrypt message.
+   @param packet CSP packet, must be valid.
+   @return #CSP_ERR_NONE on success, otherwise an error code.
+*/
+int csp_xtea_decrypt_packet(csp_packet_t * packet);
+    
 #ifdef __cplusplus
-} /* extern "C" */
+}
 #endif
-
-#endif // _CSP_XTEA_H_
+#endif
