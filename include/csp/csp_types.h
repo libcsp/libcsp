@@ -30,6 +30,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <stddef.h>
 #include <stdbool.h>
 
+
+//#define CSP_2
+
 #include <csp_autoconfig.h> // -> CSP_X defines (compile configuration)
 #include <csp/csp_error.h>
 
@@ -82,7 +85,9 @@ typedef enum {
    @{
 */
 #define CSP_ID_PRIO_SIZE		2 //!< Bits for priority, see #csp_prio_t
+
 #define CSP_ID_HOST_SIZE		5 //!< Bits for host (destination/source address)
+
 #define CSP_ID_PORT_SIZE		6 //!< Bits for port (destination/source port)
 #define CSP_ID_FLAGS_SIZE		8 //!< Bits for flags, see @ref CSP_HEADER_FLAGS
 
@@ -120,6 +125,24 @@ typedef enum {
    CSP identifier/header.
    This union is sent directly on the wire, hence the big/little endian definitions
 */
+#ifdef CSP_2
+/**
+   CSP identifier/header.
+   This union is sent directly on the wire, hence the big/little endian definitions
+*/
+typedef union {
+	uint64_t ext;
+	struct {
+		uint8_t pri;
+		uint8_t flags;
+		uint16_t src;
+		uint16_t dst;
+		uint8_t dport;
+		uint8_t sport;
+	};
+} csp_id_t;
+
+#else
 typedef union {
     /** Entire identifier. */
     uint32_t ext;
@@ -143,11 +166,10 @@ typedef union {
     };
 } csp_id_t;
 
+#endif
+
 /** Broadcast address */
 #define CSP_BROADCAST_ADDR		CSP_ID_HOST_MAX
-
-/** Default routing address */
-#define CSP_DEFAULT_ROUTE		(CSP_ID_HOST_MAX + 1)
 
 /**
    @defgroup CSP_HEADER_FLAGS CSP header flags.

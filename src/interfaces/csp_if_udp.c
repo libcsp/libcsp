@@ -37,11 +37,15 @@ static int csp_if_udp_tx(const csp_route_t * ifroute, csp_packet_t * packet) {
 		return CSP_ERR_BUSY;
 	}
 
+#ifdef CSP_2
+	packet->id.ext = csp_hton64(packet->id.ext);
+#else
 	packet->id.ext = csp_hton32(packet->id.ext);
+#endif
 
 	peer_addr.sin_family = AF_INET;
 	peer_addr.sin_port = htons(rport);
-	sendto(sockfd, (void *) &packet->id, packet->length + 4, MSG_CONFIRM, (struct sockaddr *) &peer_addr, sizeof(peer_addr));
+	sendto(sockfd, (void *) &packet->id, packet->length + sizeof(csp_id_t), MSG_CONFIRM, (struct sockaddr *) &peer_addr, sizeof(peer_addr));
 	csp_buffer_free(packet);
 
 	close(sockfd);
@@ -70,12 +74,12 @@ CSP_DEFINE_TASK(csp_if_udp_rx_task) {
 
 		while(1) {
 
-			char buffer[iface->mtu + 4];
+			char buffer[iface->mtu + sizeof(csp_id_t)];
 			unsigned int peer_addr_len = sizeof(peer_addr);
-			int received_len = recvfrom(sockfd, (char *)buffer, iface->mtu + 4, MSG_WAITALL, (struct sockaddr *) &peer_addr, &peer_addr_len);
+			int received_len = recvfrom(sockfd, (char *)buffer, iface->mtu + sizeof(csp_id_t), MSG_WAITALL, (struct sockaddr *) &peer_addr, &peer_addr_len);
 
 			/* Check for short */
-			if (received_len < 4) {
+			if (received_len < sizeof(csp_id_t)) {
 				csp_log_error("Too short UDP packet");
 				continue;
 			}
@@ -87,9 +91,13 @@ CSP_DEFINE_TASK(csp_if_udp_rx_task) {
 				continue;
 
 			memcpy(&packet->id, buffer, received_len);
-			packet->length = received_len - 4;
+			packet->length = received_len - sizeof(csp_id_t);
 
+#ifdef CSP_2
+			packet->id.ext = csp_ntoh64(packet->id.ext);
+#else
 			packet->id.ext = csp_ntoh32(packet->id.ext);
+#endif
 
 			csp_qfifo_write(packet, iface, NULL);
 

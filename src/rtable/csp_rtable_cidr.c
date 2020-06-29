@@ -26,25 +26,27 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 /* Definition of routing table */
 typedef struct csp_rtable_s {
     csp_route_t route;
-    uint8_t address;
-    uint8_t netmask;
+    uint16_t address;
+    uint16_t netmask;
     struct csp_rtable_s * next;
 } csp_rtable_t;
 
 /* Routing table (linked list) */
 static csp_rtable_t * rtable = NULL;
 
-static csp_rtable_t * csp_rtable_find(uint8_t addr, uint8_t netmask, uint8_t exact) {
+static csp_rtable_t * csp_rtable_find(uint16_t addr, uint16_t netmask, uint16_t exact) {
 
 	/* Remember best result */
 	csp_rtable_t * best_result = NULL;
-	uint8_t best_result_mask = 0;
+	uint16_t best_result_mask = 0;
 
 	/* Start search */
 	csp_rtable_t * i = rtable;
 	while(i) {
 
-		/* Look for exact match */
+		/* Look for exact match:
+		 * Note this is looking for a match of the netmask, used primarily for route table insert
+		 * TODO: Split this search function into two, one serching for addr/mask, and one for destination node only */
 		if (i->address == addr && i->netmask == netmask) {
 			best_result = i;
 			break;
@@ -52,14 +54,14 @@ static csp_rtable_t * csp_rtable_find(uint8_t addr, uint8_t netmask, uint8_t exa
 
 		/* Try a CIDR netmask match */
 		if (!exact) {
-			uint8_t hostbits = (1 << (CSP_ID_HOST_SIZE - i->netmask)) - 1;
-			uint8_t netbits = ~hostbits;
+			uint16_t hostbits = (1 << (16 - i->netmask)) - 1;
+			uint16_t netbits = ~hostbits;
 			//printf("Netbits %x Hostbits %x\r\n", netbits, hostbits);
 
 			/* Match network addresses */
-			uint8_t net_a = i->address & netbits;
-			uint8_t net_b = addr & netbits;
-			//printf("A: %hhx, B: %hhx\r\n", net_a, net_b);
+			uint16_t net_a = i->address & netbits;
+			uint16_t net_b = addr & netbits;
+			//printf("A: %hx, B: %hx\r\n", net_a, net_b);
 
 			/* We have a match */
 			if (net_a == net_b) {
@@ -85,16 +87,16 @@ static csp_rtable_t * csp_rtable_find(uint8_t addr, uint8_t netmask, uint8_t exa
 
 }
 
-const csp_route_t * csp_rtable_find_route(uint8_t dest_address)
+const csp_route_t * csp_rtable_find_route(uint16_t dest_address)
 {
-    csp_rtable_t * entry = csp_rtable_find(dest_address, CSP_ID_HOST_SIZE, 0);
+    csp_rtable_t * entry = csp_rtable_find(dest_address, CSP_RTABLE_MAX_BITS, 0);
     if (entry) {
 	return &entry->route;
     }
     return NULL;
 }
 
-int csp_rtable_set_internal(uint8_t address, uint8_t netmask, csp_iface_t *ifc, uint8_t via) {
+int csp_rtable_set_internal(uint16_t address, uint16_t netmask, csp_iface_t *ifc, uint16_t via) {
 
 	/* First see if the entry exists */
 	csp_rtable_t * entry = csp_rtable_find(address, netmask, 1);

@@ -337,7 +337,7 @@ int csp_conn_close(csp_conn_t * conn, uint8_t closed_by) {
 	return CSP_ERR_NONE;
 }
 
-csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport, uint32_t timeout, uint32_t opts) {
+csp_conn_t * csp_connect(uint8_t prio, uint16_t dest, uint8_t dport, uint32_t timeout, uint32_t opts) {
 
 	/* Force options on all connections */
 	opts |= csp_conf.conn_dfl_so;

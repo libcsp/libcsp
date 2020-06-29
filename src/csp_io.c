@@ -178,7 +178,7 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, const csp_route_t * i
 	}
 
 	if (ifroute == NULL) {
-		csp_log_error("No route to host: %u (0x%08"PRIx32")", idout.dst, idout.ext);
+		csp_log_error("No route to host: %u", idout.dst);
 		goto err;
 	}
 
@@ -193,6 +193,7 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, const csp_route_t * i
 #if (CSP_USE_PROMISC)
 	/* Loopback traffic is added to promisc queue by the router */
 	if (idout.dst != csp_get_address() && idout.src == csp_get_address()) {
+
 		packet->id.ext = idout.ext;
 		csp_promisc_add(packet);
 	}
@@ -330,7 +331,7 @@ int csp_transaction_persistent(csp_conn_t * conn, uint32_t timeout, void * outbu
 
 }
 
-int csp_transaction_w_opts(uint8_t prio, uint8_t dest, uint8_t port, uint32_t timeout, void * outbuf, int outlen, void * inbuf, int inlen, uint32_t opts) {
+int csp_transaction_w_opts(uint8_t prio, uint16_t dest, uint8_t port, uint32_t timeout, void * outbuf, int outlen, void * inbuf, int inlen, uint32_t opts) {
 
 	csp_conn_t * conn = csp_connect(prio, dest, port, 0, opts);
 	if (conn == NULL)
@@ -356,7 +357,7 @@ csp_packet_t * csp_recvfrom(csp_socket_t * socket, uint32_t timeout) {
 
 }
 
-int csp_sendto(uint8_t prio, uint8_t dest, uint8_t dport, uint8_t src_port, uint32_t opts, csp_packet_t * packet, uint32_t timeout) {
+int csp_sendto(uint8_t prio, uint16_t dest, uint8_t dport, uint8_t src_port, uint32_t opts, csp_packet_t * packet, uint32_t timeout) {
 
 	if (!(opts & CSP_O_SAME))
 		packet->id.flags = 0;
