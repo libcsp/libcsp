@@ -19,67 +19,69 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 #include <csp/csp.h>
+
 #include <csp/csp_interface.h>
+#include <csp/interfaces/csp_if_zmqhub.h>
 #include <csp/arch/csp_thread.h>
-#include "csp_route.h"
 #include "csp_qfifo.h"
 #include "csp_io.h"
 #include "csp_promisc.h"
 
-static csp_iface_t* if_a = NULL;
-static csp_iface_t* if_b = NULL;
+typedef struct {
+	csp_iface_t* iface;
+} bridge_interface_t;
+
+static bridge_interface_t bif_a;
+static bridge_interface_t bif_b;
 
 static CSP_DEFINE_TASK(csp_bridge) {
-
-	csp_qfifo_t input;
-	csp_packet_t * packet;
 
 	/* Here there be bridging */
 	while (1) {
 
 		/* Get next packet to route */
-		if (csp_qfifo_read(&input) != CSP_ERR_NONE)
+		csp_qfifo_t input;
+		if (csp_qfifo_read(&input) != CSP_ERR_NONE) {
 			continue;
+		}
 
-		packet = input.packet;
+		csp_packet_t * packet = input.packet;
 
 		csp_log_packet("Input: Src %u, Dst %u, Dport %u, Sport %u, Pri %u, Flags 0x%02X, Size %"PRIu16,
 				packet->id.src, packet->id.dst, packet->id.dport,
 				packet->id.sport, packet->id.pri, packet->id.flags, packet->length);
 
 		/* Here there be promiscuous mode */
-#ifdef CSP_USE_PROMISC
+#if (CSP_USE_PROMISC)
 		csp_promisc_add(packet);
 #endif
 
 		/* Find the opposing interface */
-		csp_iface_t * ifout;
-		if (input.interface == if_a) {
-			ifout = if_b;
+		csp_route_t route;
+		if (input.iface == bif_a.iface) {
+			route.iface = bif_b.iface;
+			route.via = CSP_NO_VIA_ADDRESS;
 		} else {
-			ifout = if_a;
+			route.iface = bif_a.iface;
+			route.via = CSP_NO_VIA_ADDRESS;
 		}
 
 		/* Send to the interface directly, no hassle */
-		if (csp_send_direct(packet->id, packet, ifout, 0) != CSP_ERR_NONE) {
+		if (csp_send_direct(packet->id, packet, &route, 0) != CSP_ERR_NONE) {
 			csp_log_warn("Router failed to send");
 			csp_buffer_free(packet);
 		}
-
-		/* Next message, please */
-		continue;
-
 	}
 
 	return CSP_TASK_RETURN;
 
 }
 
-int csp_bridge_start(unsigned int task_stack_size, unsigned int task_priority, csp_iface_t * _if_a, csp_iface_t * _if_b) {
+int csp_bridge_start(unsigned int task_stack_size, unsigned int task_priority, csp_iface_t * if_a, csp_iface_t * if_b) {
 
 	/* Set static references to A/B side of bridge */
-	if_a = _if_a;
-	if_b = _if_b;
+	bif_a.iface = if_a;
+	bif_b.iface = if_b;
 
 	static csp_thread_handle_t handle;
 	int ret = csp_thread_create(csp_bridge, "BRIDGE", task_stack_size, NULL, task_priority, &handle);

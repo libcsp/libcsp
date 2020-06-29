@@ -2,8 +2,10 @@ cc = meson.get_compiler('c')
 
 socketcan_dep = dependency('libsocketcan', required: false)
 if socketcan_dep.found()
-	conf.set('CSP_HAVE_LIBSOCKETCAN', true)
+	conf.set('CSP_HAVE_LIBSOCKETCAN', 1)
 	csp_deps += socketcan_dep
+else
+	conf.set('CSP_HAVE_LIBSOCKETCAN', 0)
 endif
 
 if host_machine.system() == 'linux'

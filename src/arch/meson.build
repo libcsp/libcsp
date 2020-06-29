@@ -14,3 +14,5 @@ else
 	error('invalid system @0@'.format(host_machine.system()))
 endif
 
+csp_sources += files('csp_time.c')
+csp_sources += files('csp_system.c')

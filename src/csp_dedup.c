@@ -18,16 +18,12 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <stdlib.h>
-#include <stddef.h>
-#include <stdio.h>
-#include <inttypes.h>
+#include "csp_dedup.h"
 
-#include <csp/csp.h>
+#include <stdlib.h>
+
 #include <csp/arch/csp_time.h>
 #include <csp/csp_crc32.h>
-
-#include "csp_dedup.h"
 
 /* Check the last CSP_DEDUP_COUNT packets for duplicates */
 #define CSP_DEDUP_COUNT		16

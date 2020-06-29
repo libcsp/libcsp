@@ -21,13 +21,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef _CSP_PORT_H_
 #define _CSP_PORT_H_
 
+#include <csp/csp.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include <stdint.h>
-
-#include <csp/csp.h>
 
 /** @brief Port states */
 typedef enum {
@@ -46,10 +44,14 @@ typedef struct {
  */
 int csp_port_init(void);
 
+/**
+ * Free all allocatged resources (testing)
+ */
+void csp_port_free_resources(void);
+
 csp_socket_t * csp_port_get_socket(unsigned int dport);
 
 #ifdef __cplusplus
-} /* extern "C" */
+}
 #endif
-
-#endif // _CSP_PORT_H_
+#endif

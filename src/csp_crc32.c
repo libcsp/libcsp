@@ -18,16 +18,9 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <stdint.h>
-#include <string.h>
-#include <inttypes.h>
-
-#include <csp/csp.h>
-#include <csp/csp_endian.h>
-
 #include <csp/csp_crc32.h>
 
-#ifdef CSP_USE_CRC32
+#include <csp/csp_endian.h>
 
 #ifdef __AVR__
 #include <avr/pgmspace.h>
@@ -40,18 +33,18 @@ static const uint32_t crc_tab[256] = {
 		0x105EC76F, 0xE235446C, 0xF165B798, 0x030E349B, 0xD7C45070, 0x25AFD373, 0x36FF2087, 0xC494A384,
 		0x9A879FA0, 0x68EC1CA3, 0x7BBCEF57, 0x89D76C54, 0x5D1D08BF, 0xAF768BBC, 0xBC267848, 0x4E4DFB4B,
 		0x20BD8EDE, 0xD2D60DDD, 0xC186FE29, 0x33ED7D2A, 0xE72719C1, 0x154C9AC2, 0x061C6936, 0xF477EA35,
-		0xAA64D611,	0x580F5512, 0x4B5FA6E6, 0xB93425E5, 0x6DFE410E, 0x9F95C20D, 0x8CC531F9, 0x7EAEB2FA,
-		0x30E349B1,	0xC288CAB2, 0xD1D83946, 0x23B3BA45, 0xF779DEAE, 0x05125DAD, 0x1642AE59, 0xE4292D5A,
-		0xBA3A117E,	0x4851927D, 0x5B016189, 0xA96AE28A, 0x7DA08661, 0x8FCB0562, 0x9C9BF696, 0x6EF07595,
-		0x417B1DBC,	0xB3109EBF, 0xA0406D4B, 0x522BEE48, 0x86E18AA3, 0x748A09A0, 0x67DAFA54, 0x95B17957,
-		0xCBA24573,	0x39C9C670, 0x2A993584, 0xD8F2B687, 0x0C38D26C, 0xFE53516F, 0xED03A29B, 0x1F682198,
-		0x5125DAD3,	0xA34E59D0, 0xB01EAA24, 0x42752927, 0x96BF4DCC, 0x64D4CECF, 0x77843D3B, 0x85EFBE38,
-		0xDBFC821C,	0x2997011F, 0x3AC7F2EB, 0xC8AC71E8, 0x1C661503, 0xEE0D9600, 0xFD5D65F4, 0x0F36E6F7,
-		0x61C69362,	0x93AD1061, 0x80FDE395, 0x72966096, 0xA65C047D, 0x5437877E, 0x4767748A, 0xB50CF789,
-		0xEB1FCBAD,	0x197448AE, 0x0A24BB5A, 0xF84F3859, 0x2C855CB2, 0xDEEEDFB1, 0xCDBE2C45, 0x3FD5AF46,
-		0x7198540D,	0x83F3D70E, 0x90A324FA, 0x62C8A7F9, 0xB602C312, 0x44694011, 0x5739B3E5, 0xA55230E6,
-		0xFB410CC2,	0x092A8FC1, 0x1A7A7C35, 0xE811FF36, 0x3CDB9BDD, 0xCEB018DE, 0xDDE0EB2A, 0x2F8B6829,
-		0x82F63B78,	0x709DB87B, 0x63CD4B8F, 0x91A6C88C, 0x456CAC67, 0xB7072F64, 0xA457DC90, 0x563C5F93,
+		0xAA64D611, 0x580F5512, 0x4B5FA6E6, 0xB93425E5, 0x6DFE410E, 0x9F95C20D, 0x8CC531F9, 0x7EAEB2FA,
+		0x30E349B1, 0xC288CAB2, 0xD1D83946, 0x23B3BA45, 0xF779DEAE, 0x05125DAD, 0x1642AE59, 0xE4292D5A,
+		0xBA3A117E, 0x4851927D, 0x5B016189, 0xA96AE28A, 0x7DA08661, 0x8FCB0562, 0x9C9BF696, 0x6EF07595,
+		0x417B1DBC, 0xB3109EBF, 0xA0406D4B, 0x522BEE48, 0x86E18AA3, 0x748A09A0, 0x67DAFA54, 0x95B17957,
+		0xCBA24573, 0x39C9C670, 0x2A993584, 0xD8F2B687, 0x0C38D26C, 0xFE53516F, 0xED03A29B, 0x1F682198,
+		0x5125DAD3, 0xA34E59D0, 0xB01EAA24, 0x42752927, 0x96BF4DCC, 0x64D4CECF, 0x77843D3B, 0x85EFBE38,
+		0xDBFC821C, 0x2997011F, 0x3AC7F2EB, 0xC8AC71E8, 0x1C661503, 0xEE0D9600, 0xFD5D65F4, 0x0F36E6F7,
+		0x61C69362, 0x93AD1061, 0x80FDE395, 0x72966096, 0xA65C047D, 0x5437877E, 0x4767748A, 0xB50CF789,
+		0xEB1FCBAD, 0x197448AE, 0x0A24BB5A, 0xF84F3859, 0x2C855CB2, 0xDEEEDFB1, 0xCDBE2C45, 0x3FD5AF46,
+		0x7198540D, 0x83F3D70E, 0x90A324FA, 0x62C8A7F9, 0xB602C312, 0x44694011, 0x5739B3E5, 0xA55230E6,
+		0xFB410CC2, 0x092A8FC1, 0x1A7A7C35, 0xE811FF36, 0x3CDB9BDD, 0xCEB018DE, 0xDDE0EB2A, 0x2F8B6829,
+		0x82F63B78, 0x709DB87B, 0x63CD4B8F, 0x91A6C88C, 0x456CAC67, 0xB7072F64, 0xA457DC90, 0x563C5F93,
 		0x082F63B7, 0xFA44E0B4, 0xE9141340, 0x1B7F9043, 0xCFB5F4A8, 0x3DDE77AB, 0x2E8E845F, 0xDCE5075C,
 		0x92A8FC17, 0x60C37F14, 0x73938CE0, 0x81F80FE3, 0x55326B08, 0xA759E80B, 0xB4091BFF, 0x466298FC,
 		0x1871A4D8, 0xEA1A27DB, 0xF94AD42F, 0x0B21572C, 0xDFEB33C7, 0x2D80B0C4, 0x3ED04330, 0xCCBBC033,
@@ -86,9 +79,9 @@ int csp_crc32_append(csp_packet_t * packet, bool include_header) {
 
 	uint32_t crc;
 
-	/* NULL pointer check */
-	if (packet == NULL)
-		return CSP_ERR_INVAL;
+	if ((packet->length + sizeof(crc)) > csp_buffer_data_size()) {
+		return CSP_ERR_NOMEM;
+	}
 
 	/* Calculate CRC32, convert to network byte order */
 	if (include_header) {
@@ -96,11 +89,12 @@ int csp_crc32_append(csp_packet_t * packet, bool include_header) {
 	} else {
 		crc = csp_crc32_memory(packet->data, packet->length);
 	}
+	/* Convert to network byte order */
 	crc = csp_hton32(crc);
 
 	/* Copy checksum to packet */
-	memcpy(&packet->data[packet->length], &crc, sizeof(uint32_t));
-	packet->length += sizeof(uint32_t);
+	memcpy(&packet->data[packet->length], &crc, sizeof(crc));
+	packet->length += sizeof(crc);
 
 	return CSP_ERR_NONE;
 
@@ -110,31 +104,27 @@ int csp_crc32_verify(csp_packet_t * packet, bool include_header) {
 
 	uint32_t crc;
 
-	/* NULL pointer check */
-	if (packet == NULL)
-		return CSP_ERR_INVAL;
-
-	if (packet->length < sizeof(uint32_t))
-		return CSP_ERR_INVAL;
+	if (packet->length < sizeof(crc)) {
+		return CSP_ERR_CRC32;
+	}
 
 	/* Calculate CRC32, convert to network byte order */
 	if (include_header) {
-		crc = csp_crc32_memory((uint8_t *) &packet->id, packet->length + sizeof(packet->id) - sizeof(uint32_t));
+		crc = csp_crc32_memory((uint8_t *) &packet->id, packet->length + sizeof(packet->id) - sizeof(crc));
 	} else {
-		crc = csp_crc32_memory(packet->data, packet->length - sizeof(uint32_t));
+		crc = csp_crc32_memory(packet->data, packet->length - sizeof(crc));
 	}
 	crc = csp_hton32(crc);
 
 	/* Compare calculated checksum with packet header */
-	if (memcmp(&packet->data[packet->length] - sizeof(uint32_t), &crc, sizeof(uint32_t)) != 0) {
+	if (memcmp(&packet->data[packet->length] - sizeof(crc), &crc, sizeof(crc)) != 0) {
 		/* CRC32 failed */
-		return CSP_ERR_INVAL;
-	} else {
-		/* Strip CRC32 */
-		packet->length -= sizeof(uint32_t);
-		return CSP_ERR_NONE;
+		return CSP_ERR_CRC32;
 	}
+
+	/* Strip CRC32 */
+	packet->length -= sizeof(crc);
+	return CSP_ERR_NONE;
 
 }
 
-#endif // CSP_USE_CRC32

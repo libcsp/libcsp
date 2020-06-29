@@ -1,6 +1,37 @@
+/*
+Cubesat Space Protocol - A small network-layer protocol designed for Cubesats
+Copyright (C) 2012 Gomspace ApS (http://www.gomspace.com)
+Copyright (C) 2012 AAUSAT3 Project (http://aausat3.space.aau.dk) 
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
 #include "windows_queue.h"
-#include "windows_glue.h"
 #include <Windows.h>
+#include <synchapi.h>
+
+struct windows_queue_s {
+    void * buffer;
+    int size;
+    int item_size;
+    int items;
+    int head_idx;
+    CRITICAL_SECTION mutex;
+    CONDITION_VARIABLE cond_full;
+    CONDITION_VARIABLE cond_empty;
+};
 
 static int queueFull(windows_queue_t * queue) {
 	return queue->items == queue->size;
@@ -11,6 +42,7 @@ static int queueEmpty(windows_queue_t * queue) {
 }
 
 windows_queue_t * windows_queue_create(int length, size_t item_size) {
+
 	windows_queue_t *queue = (windows_queue_t*)malloc(sizeof(windows_queue_t));
 	if(queue == NULL)
 		goto queue_malloc_failed;
@@ -38,13 +70,15 @@ queue_init_success:
 }
 
 void windows_queue_delete(windows_queue_t * q) {
+
 	if(q==NULL) return;
 	DeleteCriticalSection(&(q->mutex));
 	free(q->buffer);
 	free(q);
 }
 
-int windows_queue_enqueue(windows_queue_t * queue, void * value, int timeout) {
+int windows_queue_enqueue(windows_queue_t * queue, const void * value, int timeout) {
+
 	int offset;
 	EnterCriticalSection(&(queue->mutex));
 	while(queueFull(queue)) {
@@ -64,6 +98,7 @@ int windows_queue_enqueue(windows_queue_t * queue, void * value, int timeout) {
 }
 
 int windows_queue_dequeue(windows_queue_t * queue, void * buf, int timeout) {
+
 	EnterCriticalSection(&(queue->mutex));
 	while(queueEmpty(queue)) {
 		int ret = SleepConditionVariableCS(&(queue->cond_empty), &(queue->mutex), timeout);
@@ -82,6 +117,7 @@ int windows_queue_dequeue(windows_queue_t * queue, void * buf, int timeout) {
 }
 
 int windows_queue_items(windows_queue_t * queue) {
+
 	int items;
 	EnterCriticalSection(&(queue->mutex));
 	items = queue->items;

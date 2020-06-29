@@ -18,74 +18,78 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+#include <csp/arch/posix/csp_system.h>
+
 #include <stdio.h>
-#include <stdint.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 #include <errno.h>
 #include <sys/sysinfo.h>
 #include <sys/reboot.h>
 #include <linux/reboot.h>
 
-#include <csp/csp.h>
-#include <csp/csp_error.h>
-
-#include <csp/arch/csp_system.h>
+#include <csp/csp_debug.h>
 
 int csp_sys_tasklist(char * out) {
+
 	strcpy(out, "Tasklist not available on POSIX");
 	return CSP_ERR_NONE;
+
 }
 
 int csp_sys_tasklist_size(void) {
+
 	return 100;
+
 }
 
 uint32_t csp_sys_memfree(void) {
+
 	uint32_t total = 0;
 	struct sysinfo info;
 	sysinfo(&info);
 	total = info.freeram * info.mem_unit;
 	return total;
+
 }
 
-int csp_sys_reboot(void) {
-#ifdef CSP_USE_INIT_SHUTDOWN
-	/* Let init(1) handle the reboot */
-	int ret = system("reboot");
-	(void) ret; /* Silence warning */
-#else
-	int magic = LINUX_REBOOT_CMD_RESTART;
+// helper for doing log and mapping result to CSP_ERR
+static int csp_sys_log_and_return(const char * function, int res) {
 
-	/* Sync filesystem before reboot */
-	sync();
-	reboot(magic);
-#endif
+	if (res != 0) {
+		csp_log_warn("%s: failed to execute, returned error: %d, errno: %d", function, res, errno);
+		return CSP_ERR_INVAL; // no real suitable error code
+	}
+	csp_log_info("%s: executed", function);
+	return CSP_ERR_NONE;
 
-	/* If reboot(2) returns, it is an error */
-	csp_log_error("Failed to reboot: %s", strerror(errno));
-
-	return CSP_ERR_INVAL;
 }
 
-int csp_sys_shutdown(void) {
-#ifdef CSP_USE_INIT_SHUTDOWN
-	/* Let init(1) handle the shutdown */
-	int ret = system("halt");
-	(void) ret; /* Silence warning */
-#else
-	int magic = LINUX_REBOOT_CMD_HALT;
+int csp_sys_reboot_using_system(void) {
 
-	/* Sync filesystem before reboot */
-	sync();
-	reboot(magic);
-#endif
+	return csp_sys_log_and_return(__FUNCTION__, system("reboot"));
 
-	/* If reboot(2) returns, it is an error */
-	csp_log_error("Failed to shutdown: %s", strerror(errno));
+}
 
-	return CSP_ERR_INVAL;
+int csp_sys_reboot_using_reboot(void) {
+
+	sync(); // Sync filesystem
+	return csp_sys_log_and_return(__FUNCTION__, reboot(LINUX_REBOOT_CMD_RESTART));
+
+}
+
+int csp_sys_shutdown_using_system(void) {
+
+	return csp_sys_log_and_return(__FUNCTION__, system("halt"));
+
+}
+
+int csp_sys_shutdown_using_reboot(void) {
+
+	sync(); // Sync filesystem
+	return csp_sys_log_and_return(__FUNCTION__, reboot(LINUX_REBOOT_CMD_HALT));
+
 }
 
 void csp_sys_set_color(csp_color_t color) {
@@ -112,7 +116,7 @@ void csp_sys_set_color(csp_color_t color) {
 		default:
 			color_code = 0; break;
 	}
-	
+
 	switch (color & COLOR_MASK_MODIFIER) {
 		case COLOR_BOLD:
 			modifier_code = 1; break;

@@ -21,26 +21,28 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef _CSP_TRANSPORT_H_
 #define _CSP_TRANSPORT_H_
 
+#include <csp/csp_types.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /** ARRIVING SEGMENT */
 void csp_udp_new_packet(csp_conn_t * conn, csp_packet_t * packet);
-void csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet);
+bool csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet);
 
 /** RDP: USER REQUESTS */
-int csp_rdp_connect(csp_conn_t * conn, uint32_t timeout);
-int csp_rdp_allocate(csp_conn_t * conn);
-int csp_rdp_close(csp_conn_t * conn);
+int csp_rdp_connect(csp_conn_t * conn);
+int csp_rdp_init(csp_conn_t * conn);
+int csp_rdp_close(csp_conn_t * conn, uint8_t closed_by);
 void csp_rdp_conn_print(csp_conn_t * conn);
-int csp_rdp_send(csp_conn_t * conn, csp_packet_t * packet, uint32_t timeout);
+int csp_rdp_send(csp_conn_t * conn, csp_packet_t * packet);
 int csp_rdp_check_ack(csp_conn_t * conn);
 void csp_rdp_check_timeouts(csp_conn_t * conn);
 void csp_rdp_flush_all(csp_conn_t * conn);
+void csp_rdp_free_resources(csp_conn_t * conn);
 
 #ifdef __cplusplus
-} /* extern "C" */
+}
 #endif
-
-#endif /* _CSP_TRANSPORT_H_ */
+#endif

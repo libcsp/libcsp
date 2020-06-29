@@ -18,95 +18,69 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/* CAN frames contains at most 8 bytes of data, so in order to transmit CSP
- * packets larger than this, a fragmentation protocol is required. The CAN
- * Fragmentation Protocol (CFP) header is designed to match the 29 bit CAN
- * identifier.
- *
- * The CAN identifier is divided in these fields:
- * src:          5 bits
- * dst:          5 bits
- * type:         1 bit
- * remain:       8 bits
- * identifier:   10 bits
- *
- * Source and Destination addresses must match the CSP packet. The type field
- * is used to distinguish the first and subsequent frames in a fragmented CSP
- * packet. Type is BEGIN (0) for the first fragment and MORE (1) for all other
- * fragments. Remain indicates number of remaining fragments, and must be
- * decremented by one for each fragment sent. The identifier field serves the
- * same purpose as in the Internet Protocol, and should be an auto incrementing
- * integer to uniquely separate sessions.
- */
-
-#include <stdint.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <inttypes.h>
-
-#include <csp/csp.h>
-#include <csp/csp_interface.h>
-#include <csp/csp_endian.h>
 #include <csp/interfaces/csp_if_can.h>
 
+#include <string.h>
+#include <stdlib.h>
+
+#include <csp/csp.h>
+#include <csp/csp_endian.h>
 #include <csp/arch/csp_semaphore.h>
-#include <csp/arch/csp_time.h>
-#include <csp/arch/csp_queue.h>
-#include <csp/arch/csp_thread.h>
 
 #include "csp_if_can_pbuf.h"
 
-/* CFP Frame Types */
+/* Max number of bytes per CAN frame */
+#define MAX_BYTES_IN_CAN_FRAME 8
+#define CFP_OVERHEAD           (sizeof(csp_id_t) + sizeof(uint16_t))
+#define MAX_CAN_DATA_SIZE      (((1 << CFP_REMAIN_SIZE) * MAX_BYTES_IN_CAN_FRAME) - CFP_OVERHEAD)
+
+/* CFP type */
 enum cfp_frame_t {
+	/* First CFP fragment of a CSP packet */
 	CFP_BEGIN = 0,
+	/* Remaining CFP fragment(s) of a CSP packet */
 	CFP_MORE = 1
 };
 
-int csp_can_rx(csp_iface_t *interface, uint32_t id, uint8_t *data, uint8_t dlc, CSP_BASE_TYPE *task_woken)
+int csp_can_rx(csp_iface_t *iface, uint32_t id, const uint8_t *data, uint8_t dlc, CSP_BASE_TYPE *task_woken)
 {
-	csp_can_pbuf_element_t *buf;
-	uint8_t offset;
-
-	/* Random packet loss */
-#if 0
-	int random = rand();
-	if (random < RAND_MAX * 0.00005) {
-		csp_log_warn("Dropping frame");
-		return;
+	/* Test: random packet loss */
+        if (0) {
+		int random = rand();
+		if (random < RAND_MAX * 0.00005) {
+			csp_log_warn("Dropping frame");
+			return CSP_ERR_DRIVER;
+		}
 	}
-#endif
 
 	/* Bind incoming frame to a packet buffer */
-	buf = csp_can_pbuf_find(id, CFP_ID_CONN_MASK);
-
-	/* Check returned buffer */
+	csp_can_pbuf_element_t * buf = csp_can_pbuf_find(id, CFP_ID_CONN_MASK, task_woken);
 	if (buf == NULL) {
 		if (CFP_TYPE(id) == CFP_BEGIN) {
 			buf = csp_can_pbuf_new(id, task_woken);
 			if (buf == NULL) {
 				//csp_log_warn("No available packet buffer for CAN");
-				interface->rx_error++;
+				iface->rx_error++;
 				return CSP_ERR_NOMEM;
 			}
 		} else {
 			//csp_log_warn("Out of order id 0x%X remain %u", CFP_ID(id), CFP_REMAIN(id));
-			interface->frame++;
+			iface->frame++;
 			return CSP_ERR_INVAL;
 		}
 	}
 
 	/* Reset frame data offset */
-	offset = 0;
+	uint8_t offset = 0;
 
 	switch (CFP_TYPE(id)) {
 
 	case CFP_BEGIN:
 
 		/* Discard packet if DLC is less than CSP id + CSP length fields */
-		if (dlc < sizeof(csp_id_t) + sizeof(uint16_t)) {
+		if (dlc < (sizeof(csp_id_t) + sizeof(uint16_t))) {
 			//csp_log_warn("Short BEGIN frame received");
-			interface->frame++;
+			iface->frame++;
 			csp_can_pbuf_free(buf, task_woken);
 			break;
 		}
@@ -115,31 +89,36 @@ int csp_can_rx(csp_iface_t *interface, uint32_t id, uint8_t *data, uint8_t dlc, 
 		if (buf->packet != NULL) {
 			/* Reuse the buffer */
 			//csp_log_warn("Incomplete frame");
-			interface->frame++;
+			iface->frame++;
 		} else {
-			/* Allocate memory for frame */
-			if (task_woken == NULL) {
-				buf->packet = csp_buffer_get(interface->mtu);
-			} else {
-				buf->packet = csp_buffer_get_isr(interface->mtu);
-			}
+			/* Get free buffer for frame */
+			buf->packet = task_woken ? csp_buffer_get_isr(0) : csp_buffer_get(0); // CSP only supports one size
 			if (buf->packet == NULL) {
 				//csp_log_error("Failed to get buffer for CSP_BEGIN packet");
-				interface->frame++;
+				iface->frame++;
 				csp_can_pbuf_free(buf, task_woken);
 				break;
 			}
 		}
 
-		/* Copy CSP identifier and length*/
-		memcpy(&(buf->packet->id), data, sizeof(csp_id_t));
+		/* Copy CSP identifier (header) */
+		memcpy(&(buf->packet->id), data, sizeof(buf->packet->id));
 		buf->packet->id.ext = csp_ntoh32(buf->packet->id.ext);
-		memcpy(&(buf->packet->length), data + sizeof(csp_id_t), sizeof(uint16_t));
+
+		/* Copy CSP length (of data) */
+		memcpy(&(buf->packet->length), data + sizeof(csp_id_t), sizeof(buf->packet->length));
 		buf->packet->length = csp_ntoh16(buf->packet->length);
 
 		/* Check if frame exceeds MTU */
-		if (buf->packet->length > interface->mtu) {
-			interface->rx_error++;
+		if (buf->packet->length > iface->mtu) {
+			iface->rx_error++;
+			csp_can_pbuf_free(buf, task_woken);
+			break;
+		}
+
+		/* Check length against max */
+		if ((buf->packet->length > MAX_CAN_DATA_SIZE) || (buf->packet->length > csp_buffer_data_size())) {
+			iface->rx_error++;
 			csp_can_pbuf_free(buf, task_woken);
 			break;
 		}
@@ -161,7 +140,7 @@ int csp_can_rx(csp_iface_t *interface, uint32_t id, uint8_t *data, uint8_t dlc, 
 		if (CFP_REMAIN(id) != buf->remain - 1) {
 			//csp_log_error("CAN frame lost in CSP packet");
 			csp_can_pbuf_free(buf, task_woken);
-			interface->frame++;
+			iface->frame++;
 			break;
 		}
 
@@ -171,7 +150,7 @@ int csp_can_rx(csp_iface_t *interface, uint32_t id, uint8_t *data, uint8_t dlc, 
 		/* Check for overflow */
 		if ((buf->rx_count + dlc - offset) > buf->packet->length) {
 			//csp_log_error("RX buffer overflow");
-			interface->frame++;
+			iface->frame++;
 			csp_can_pbuf_free(buf, task_woken);
 			break;
 		}
@@ -185,7 +164,7 @@ int csp_can_rx(csp_iface_t *interface, uint32_t id, uint8_t *data, uint8_t dlc, 
 			break;
 
 		/* Data is available */
-		csp_new_packet(buf->packet, interface, task_woken);
+		csp_qfifo_write(buf->packet, iface, task_woken);
 
 		/* Drop packet buffer reference */
 		buf->packet = NULL;
@@ -199,83 +178,78 @@ int csp_can_rx(csp_iface_t *interface, uint32_t id, uint8_t *data, uint8_t dlc, 
 		//csp_log_warn("Received unknown CFP message type");
 		csp_can_pbuf_free(buf, task_woken);
 		break;
-
 	}
 
 	return CSP_ERR_NONE;
 }
 
-int csp_can_tx(csp_iface_t *interface, csp_packet_t *packet, uint32_t timeout)
+int csp_can_tx(const csp_route_t * ifroute, csp_packet_t *packet)
 {
+        csp_iface_t * iface = ifroute->iface;
+        csp_can_interface_data_t * ifdata = iface->interface_data;
 
-	/* CFP Identification number */
-	static volatile int csp_can_frame_id = 0;
+	/* Get an unique CFP id - this should be locked to prevent access from multiple tasks */
+	const uint32_t ident = ifdata->cfp_frame_id++;
 
-	/* Get local copy of the static frameid */
-	int ident = csp_can_frame_id++;
+	/* Check protocol's max length - limit is 1 (first) frame + as many frames that can be specified in 'remain' */
+        if (packet->length > MAX_CAN_DATA_SIZE) {
+		return CSP_ERR_TX;
+        }
 
-	uint16_t tx_count;
-	uint8_t bytes, overhead, avail, dest;
-	uint8_t frame_buf[8];
-
-	/* Calculate overhead */
-	overhead = sizeof(csp_id_t) + sizeof(uint16_t);
-
-	/* Insert destination node mac address into the CFP destination field */
-	dest = csp_rtable_find_mac(packet->id.dst);
-	if (dest == CSP_NODE_MAC)
-		dest = packet->id.dst;
+	/* Insert destination node/via address into the CFP destination field */
+	const uint8_t dest = (ifroute->via != CSP_NO_VIA_ADDRESS) ? ifroute->via : packet->id.dst;
 
 	/* Create CAN identifier */
-	uint32_t id = 0;
-	id |= CFP_MAKE_SRC(packet->id.src);
-	id |= CFP_MAKE_DST(dest);
-	id |= CFP_MAKE_ID(ident);
-	id |= CFP_MAKE_TYPE(CFP_BEGIN);
-	id |= CFP_MAKE_REMAIN((packet->length + overhead - 1) / 8);
+	uint32_t id = (CFP_MAKE_SRC(packet->id.src) |
+                       CFP_MAKE_DST(dest) |
+                       CFP_MAKE_ID(ident) |
+                       CFP_MAKE_TYPE(CFP_BEGIN) |
+                       CFP_MAKE_REMAIN((packet->length + CFP_OVERHEAD - 1) / MAX_BYTES_IN_CAN_FRAME));
 
 	/* Calculate first frame data bytes */
-	avail = 8 - overhead;
-	bytes = (packet->length <= avail) ? packet->length : avail;
+	const uint8_t avail = MAX_BYTES_IN_CAN_FRAME - CFP_OVERHEAD;
+	uint8_t bytes = (packet->length <= avail) ? packet->length : avail;
 
 	/* Copy CSP headers and data */
-	uint32_t csp_id_be = csp_hton32(packet->id.ext);
-	uint16_t csp_length_be = csp_hton16(packet->length);
+	const uint32_t csp_id_be = csp_hton32(packet->id.ext);
+	const uint16_t csp_length_be = csp_hton16(packet->length);
 
+	uint8_t frame_buf[MAX_BYTES_IN_CAN_FRAME];
 	memcpy(frame_buf, &csp_id_be, sizeof(csp_id_be));
 	memcpy(frame_buf + sizeof(csp_id_be), &csp_length_be, sizeof(csp_length_be));
-	memcpy(frame_buf + overhead, packet->data, bytes);
+	memcpy(frame_buf + CFP_OVERHEAD, packet->data, bytes);
 
 	/* Increment tx counter */
-	tx_count = bytes;
+	uint16_t tx_count = bytes;
+
+        const csp_can_driver_tx_t tx_func = ifdata->tx_func;
 
 	/* Send first frame */
-	if (csp_can_tx_frame(interface, id, frame_buf, overhead + bytes)) {
+	if ((tx_func)(iface->driver_data, id, frame_buf, CFP_OVERHEAD + bytes) != CSP_ERR_NONE) {
 		//csp_log_warn("Failed to send CAN frame in csp_tx_can");
-		interface->tx_error++;
+		iface->tx_error++;
 		return CSP_ERR_DRIVER;
 	}
 
 	/* Send next frames if not complete */
 	while (tx_count < packet->length) {
 		/* Calculate frame data bytes */
-		bytes = (packet->length - tx_count >= 8) ? 8 : packet->length - tx_count;
+		bytes = (packet->length - tx_count >= MAX_BYTES_IN_CAN_FRAME) ? MAX_BYTES_IN_CAN_FRAME : packet->length - tx_count;
 
 		/* Prepare identifier */
-		uint32_t id = 0;
-		id |= CFP_MAKE_SRC(packet->id.src);
-		id |= CFP_MAKE_DST(dest);
-		id |= CFP_MAKE_ID(ident);
-		id |= CFP_MAKE_TYPE(CFP_MORE);
-		id |= CFP_MAKE_REMAIN((packet->length - tx_count - bytes + 7) / 8);
+		id = (CFP_MAKE_SRC(packet->id.src) |
+                      CFP_MAKE_DST(dest) |
+                      CFP_MAKE_ID(ident) |
+                      CFP_MAKE_TYPE(CFP_MORE) |
+                      CFP_MAKE_REMAIN((packet->length - tx_count - bytes + MAX_BYTES_IN_CAN_FRAME - 1) / MAX_BYTES_IN_CAN_FRAME));
 
 		/* Increment tx counter */
 		tx_count += bytes;
 
 		/* Send frame */
-		if (csp_can_tx_frame(interface, id, packet->data + tx_count - bytes, bytes)) {
+		if ((tx_func)(iface->driver_data, id, packet->data + tx_count - bytes, bytes) != CSP_ERR_NONE) {
 			//csp_log_warn("Failed to send CAN frame in Tx callback");
-			interface->tx_error++;
+			iface->tx_error++;
 			return CSP_ERR_DRIVER;
 		}
 	}
@@ -283,4 +257,26 @@ int csp_can_tx(csp_iface_t *interface, csp_packet_t *packet, uint32_t timeout)
 	csp_buffer_free(packet);
 
 	return CSP_ERR_NONE;
+}
+
+int csp_can_add_interface(csp_iface_t * iface) {
+
+	if ((iface == NULL) || (iface->name == NULL) || (iface->interface_data == NULL)) {
+		return CSP_ERR_INVAL;
+	}
+
+        csp_can_interface_data_t * ifdata = iface->interface_data;
+	if (ifdata->tx_func == NULL) {
+		return CSP_ERR_INVAL;
+	}
+
+        if ((iface->mtu == 0) || (iface->mtu > MAX_CAN_DATA_SIZE)) {
+            iface->mtu = MAX_CAN_DATA_SIZE;
+        }
+
+        ifdata->cfp_frame_id = 0;
+
+	iface->nexthop = csp_can_tx;
+
+	return csp_iflist_add(iface);
 }

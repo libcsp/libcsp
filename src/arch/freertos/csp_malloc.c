@@ -18,14 +18,23 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <stdint.h>
 #include <csp/arch/csp_malloc.h>
 
-/* FreeRTOS includes */
+#include <string.h>
+
 #include <FreeRTOS.h>
 
 void * csp_malloc(size_t size) {
 	return pvPortMalloc(size);
+}
+
+void * csp_calloc(size_t nmemb, size_t size) {
+	size = (nmemb * size); 
+	void * ptr = csp_malloc(size);
+	if (ptr) {
+		memset(ptr, 0, size);
+	}
+	return ptr;
 }
 
 void csp_free(void *ptr) {

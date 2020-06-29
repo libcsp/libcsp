@@ -18,57 +18,72 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef _CSP_SHA1_H_
-#define _CSP_SHA1_H_
+#ifndef _CSP_CRYPTO_SHA1_H_
+#define _CSP_CRYPTO_SHA1_H_
+
+/**
+   @file
+   SHA1 support.
+
+   Code originally from Python's SHA1 Module, who based it on libtom.org.
+*/
+
+#include <csp/csp_types.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include <stdint.h>
+/** The SHA1 block size in bytes */
+#define CSP_SHA1_BLOCKSIZE	64
 
-/* The SHA1 block and message digest size in bytes */
-#define SHA1_BLOCKSIZE	64
-#define SHA1_DIGESTSIZE	20
+/** The SHA1 digest (hash) size in bytes */
+#define CSP_SHA1_DIGESTSIZE	20
 
-/* SHA1 state structure */
+/**
+   SHA1 state.
+*/
 typedef struct {
+        //! Internal SHA1 state.
 	uint64_t length;
-	uint32_t state[5], curlen;
-	uint8_t buf[SHA1_BLOCKSIZE];
-} csp_sha1_state;
+        //! Internal SHA1 state.
+	uint32_t state[5];
+        //! Internal SHA1 state.
+	uint32_t curlen;
+        //! Internal SHA1 state.
+	uint8_t  buf[CSP_SHA1_BLOCKSIZE];
+} csp_sha1_state_t;
 
 /**
- * Initialize the hash state
- * @param sha1   The hash state you wish to initialize
- */
-void csp_sha1_init(csp_sha1_state * sha1);
+   Initialize the hash state
+   @param[in] state hash state.
+*/
+void csp_sha1_init(csp_sha1_state_t * state);
 
 /**
- * Process a block of memory though the hash
- * @param sha1   The hash state
- * @param in	 The data to hash
- * @param inlen  The length of the data (octets)
- */
-void csp_sha1_process(csp_sha1_state * sha1, const uint8_t * in, uint32_t inlen);
+   Process a block of memory through the hash.
+   @param[in] state hash state
+   @param[in] data data.
+   @param[in] length length of \a data.
+*/
+void csp_sha1_process(csp_sha1_state_t * state, const void * data, uint32_t length);
 
 /**
- * Terminate the hash to get the digest
- * @param sha1  The hash state
- * @param out [out] The destination of the hash (20 bytes)
- */
-void csp_sha1_done(csp_sha1_state * sha1, uint8_t * out);
+   Terminate the hash calculation and get the SHA1.
+   @param[in] state hash state
+   @param[out] sha1 user supplied buffer of minimum #CSP_SHA1_DIGESTSIZE bytes.
+*/
+void csp_sha1_done(csp_sha1_state_t * state, uint8_t * sha1);
 
 /**
- * Calculate SHA1 hash of block of memory.
- * @param msg   Pointer to message buffer
- * @param len   Length of message
- * @param sha1  Pointer to SHA1 output buffer. Must be 20 bytes or more!
- */
-void csp_sha1_memory(const uint8_t * msg, uint32_t len, uint8_t * hash);
+   Calculate SHA1 hash of block of memory.
+   @param[in] data data.
+   @param[in] length length of \a data.
+   @param[out] sha1 user supplied buffer of minimum #CSP_SHA1_DIGESTSIZE bytes.
+*/
+void csp_sha1_memory(const void * data, uint32_t length, uint8_t * sha1);
 
 #ifdef __cplusplus
-} /* extern "C" */
+}
 #endif
-
-#endif // _CSP_SHA1_H_
+#endif
