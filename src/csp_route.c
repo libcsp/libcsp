@@ -186,8 +186,8 @@ int csp_route_work(uint32_t timeout) {
 #endif
 
 	/* Count the message */
-	input.interface->rx++;
-	input.interface->rxbytes += packet->length;
+	input.iface->rx++;
+	input.iface->rxbytes += packet->length;
 
 #if (CSP_USE_DEDUP)
 	/* Check for duplicates */
@@ -237,11 +237,22 @@ int csp_route_work(uint32_t timeout) {
 			csp_buffer_free(packet);
 			return CSP_ERR_NONE;
 		}
-		if (csp_queue_enqueue(socket->socket, &packet, 0) != CSP_QUEUE_OK) {
-			csp_log_error("Conn-less socket queue full");
-			csp_buffer_free(packet);
-			return 0;
+
+		/* If the socket uses callback */
+		if (socket->opts & CSP_SO_CONN_LESS) {
+			((void (*)(csp_packet_t *packet)) socket->socket)(packet);
+
+		/* Otherwise, it uses a queue */
+		} else {
+
+			if (csp_queue_enqueue(socket->socket, &packet, 0) != CSP_QUEUE_OK) {
+				csp_log_error("Conn-less socket queue full");
+				csp_buffer_free(packet);
+				return 0;
+			}
+
 		}
+
 		return CSP_ERR_NONE;
 	}
 

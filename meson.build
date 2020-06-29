@@ -10,15 +10,15 @@ conf.set('CSP_LOG_LEVEL_INFO', 1)
 conf.set('CSP_LOG_LEVEL_WARN', 1)
 conf.set('CSP_LOG_LEVEL_ERROR', 1)
 
-conf.set('CSP_USE_RDP', get_option('use_rdp'))
-conf.set('CSP_USE_CRC32', get_option('use_crc32'))
-conf.set('CSP_USE_HMAC', get_option('use_hmac'))
-conf.set('CSP_USE_XTEA', get_option('use_xtea'))
-conf.set('CSP_USE_PROMISC', get_option('use_promisc'))
-conf.set('CSP_USE_QOS', get_option('use_qos'))
-conf.set('CSP_USE_DEDUP', get_option('use_dedup'))
+conf.set('CSP_USE_RDP', get_option('use_rdp') == true ? 1 : 0)
+conf.set('CSP_USE_CRC32', get_option('use_crc32') == true ? 1 : 0)
+conf.set('CSP_USE_HMAC', get_option('use_hmac') == true ? 1 : 0)
+conf.set('CSP_USE_XTEA', get_option('use_xtea') == true ? 1 : 0)
+conf.set('CSP_USE_PROMISC', get_option('use_promisc') == true ? 1 : 0)
+conf.set('CSP_USE_QOS', get_option('use_qos') == true ? 1 : 0)
+conf.set('CSP_USE_DEDUP', get_option('use_dedup') == true ? 1 : 0)
 
-conf.set('CSP_HAVE_STDBOOL_H', cc.has_header('stdbool.h'))
+conf.set('CSP_HAVE_STDBOOL_H', cc.has_header('stdbool.h') == true ? 1 : 0)
 
 if host_machine.endian() == 'little'
 	conf.set('CSP_LITTLE_ENDIAN', 1)
@@ -57,7 +57,7 @@ subdir('src/arch')
 subdir('src/drivers')
 subdir('src/interfaces')
 
-csp_config_h = configure_file(output: 'csp_config.h', configuration: conf)
+csp_config_h = configure_file(output: 'csp_autoconfig.h', configuration: conf, install: true, install_dir: 'csp/')
 
 csp_inc = include_directories(['.', 'include'])
 install_subdir('include', install_dir : '.')

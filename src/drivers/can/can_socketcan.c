@@ -204,15 +204,6 @@ int csp_can_socketcan_open_and_add_interface(const char * device, const char * i
 		return CSP_ERR_NOMEM;
 	}
 
-	/* The MTU is configured run-time, since the buffer size can be configured externally
-	 * however, it must not exceed 2042 due to the CFP_REMAIN field limitation
-	 * CFP_REMAIN gives possibility of 255 * 8 bytes = 2040
-	 * CSP_BEGIN frame, has two additional bytes, in total 2042 */
-	socketcan[0].interface.mtu = csp_buffer_datasize();
-	if (socketcan[0].interface.mtu > 2042) {
-		socketcan[0].interface.mtu = 2042;
-	}
-
 	if (return_iface) {
 		*return_iface = &ctx->iface;
 	}

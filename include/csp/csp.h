@@ -339,10 +339,9 @@ int csp_bridge_start(unsigned int task_stack_size, unsigned int task_priority, c
    a switch/case statement in a CSP listener task.
    In order to listen to csp service ports, bind your listener to the specific services ports #csp_service_port_t or
    use #CSP_ANY to all ports.
-   @param[in] conn connection
    @param[in] packet first packet, obtained by using csp_read()
 */
-void csp_service_handler(csp_conn_t *conn, csp_packet_t *packet);
+void csp_service_handler(csp_packet_t *packet);
 
 /**
    Send a single ping/echo packet.

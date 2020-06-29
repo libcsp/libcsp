@@ -222,7 +222,3 @@ size_t csp_buffer_size(void) {
 size_t csp_buffer_data_size(void) {
 	return csp_conf.buffer_data_size;
 }
-
-int csp_buffer_datasize(void) {
-	return size - CSP_BUFFER_PACKET_OVERHEAD;
-}

@@ -30,7 +30,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <stddef.h>
 #include <stdbool.h>
 
-#include <csp/csp_autoconfig.h> // -> CSP_X defines (compile configuration)
+#include <csp_autoconfig.h> // -> CSP_X defines (compile configuration)
 #include <csp/csp_error.h>
 
 #ifdef __cplusplus

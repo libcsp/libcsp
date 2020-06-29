@@ -110,8 +110,8 @@ int csp_can_rx(csp_iface_t *iface, uint32_t id, const uint8_t *data, uint8_t dlc
 		buf->packet->length = csp_ntoh16(buf->packet->length);
 
 		/* Check if frame exceeds MTU */
-		if (buf->packet->length > interface->mtu) {
-			interface->rx_error++;
+		if (buf->packet->length > iface->mtu) {
+			iface->rx_error++;
 			csp_can_pbuf_free(buf, task_woken);
 			break;
 		}

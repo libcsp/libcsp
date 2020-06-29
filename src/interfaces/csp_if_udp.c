@@ -17,6 +17,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 #include <stdio.h>
+#include <unistd.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 
@@ -27,7 +28,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 struct sockaddr_in peer_addr = {0};
 
-static int csp_if_udp_tx(csp_iface_t * interface, csp_packet_t * packet, uint32_t timeout) {
+static int csp_if_udp_tx(const csp_route_t * ifroute, csp_packet_t * packet) {
 	int sockfd;
 	if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {
 		perror("socket creation failed");
@@ -87,7 +88,7 @@ CSP_DEFINE_TASK(csp_if_udp_rx_task) {
 
 			packet->id.ext = csp_ntoh32(packet->id.ext);
 
-			csp_new_packet(packet, iface, NULL);
+			csp_qfifo_write(packet, iface, NULL);
 
 
 		}
@@ -112,7 +113,7 @@ void csp_if_udp_init(csp_iface_t * iface, char * host) {
 	csp_log_info("csp_if_udp_rx_task start %d\r\n", ret);
 
 	/* MTU is datasize */
-	iface->mtu = csp_buffer_datasize();
+	iface->mtu = csp_buffer_data_size();
 
 	/* Regsiter interface */
 	iface->name = "UDP",

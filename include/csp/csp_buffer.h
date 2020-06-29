@@ -82,10 +82,11 @@ int csp_buffer_remaining(void);
 size_t csp_buffer_size(void);
 
 /**
- * Return the payload (data-size) of the CSP buffers not including the csp header
- * @return
- */
-int csp_buffer_datasize(void);
+   Return the data size of a CSP buffer.
+   The data size is set by csp_init().
+   @return data size of a CSP buffer
+*/
+size_t csp_buffer_data_size(void);
 
 #ifdef __cplusplus
 }
