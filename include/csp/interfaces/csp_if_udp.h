@@ -32,6 +32,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  * TX peer:
  *   Outgoing CSP packets will be transferred to the peer specified by the host argument
  */
-void csp_if_udp_init(csp_iface_t * iface, char * host);
+void csp_if_udp_init(csp_iface_t * iface, char * host, int _lport, int _rport);
 
 #endif /* CSP_IF_UDP_H_ */
