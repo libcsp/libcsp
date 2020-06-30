@@ -25,6 +25,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/csp_endian.h>
 #include <csp/csp_interface.h>
 #include <csp/arch/csp_thread.h>
+#include "../csp_id.h"
 
 struct sockaddr_in peer_addr;
 static int lport = 9600;
@@ -37,15 +38,11 @@ static int csp_if_udp_tx(const csp_route_t * ifroute, csp_packet_t * packet) {
 		return CSP_ERR_BUSY;
 	}
 
-#ifdef CSP_2
-	packet->id.ext = csp_hton64(packet->id.ext);
-#else
-	packet->id.ext = csp_hton32(packet->id.ext);
-#endif
+	csp_id_prepend(packet);
 
 	peer_addr.sin_family = AF_INET;
 	peer_addr.sin_port = htons(rport);
-	sendto(sockfd, (void *) &packet->id, packet->length + sizeof(csp_id_t), MSG_CONFIRM, (struct sockaddr *) &peer_addr, sizeof(peer_addr));
+	sendto(sockfd, packet->frame_begin, packet->frame_length, MSG_CONFIRM, (struct sockaddr *) &peer_addr, sizeof(peer_addr));
 	csp_buffer_free(packet);
 
 	close(sockfd);
@@ -78,26 +75,24 @@ CSP_DEFINE_TASK(csp_if_udp_rx_task) {
 			unsigned int peer_addr_len = sizeof(peer_addr);
 			int received_len = recvfrom(sockfd, (char *)buffer, iface->mtu + sizeof(csp_id_t), MSG_WAITALL, (struct sockaddr *) &peer_addr, &peer_addr_len);
 
-			/* Check for short */
-			if (received_len < sizeof(csp_id_t)) {
-				csp_log_error("Too short UDP packet");
-				continue;
-			}
-
 			csp_log_info("UDP peer address: %s", inet_ntoa(peer_addr.sin_addr));
 
 			csp_packet_t * packet = csp_buffer_get(iface->mtu);
 			if (packet == NULL)
 				continue;
 
-			memcpy(&packet->id, buffer, received_len);
-			packet->length = received_len - sizeof(csp_id_t);
+			/* Setup RX frane to point to ID */
+			csp_id_setup_rx(packet);
 
-#ifdef CSP_2
-			packet->id.ext = csp_ntoh64(packet->id.ext);
-#else
-			packet->id.ext = csp_ntoh32(packet->id.ext);
-#endif
+			memcpy(packet->frame_begin, buffer, received_len);
+			packet->frame_length = received_len;
+
+			/* Parse the frame and strip the ID field */
+			if (csp_id_strip(packet) != 0) {
+				iface->rx_error++;
+				csp_buffer_free(packet);
+				continue;
+			}
 
 			csp_qfifo_write(packet, iface, NULL);
 

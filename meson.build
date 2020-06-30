@@ -48,6 +48,7 @@ csp_sources = files([
 	'src/csp_route.c',
 	'src/csp_service_handler.c',
 	'src/csp_services.c',
+	'src/csp_id.c',
 ])
 
 csp_deps = []

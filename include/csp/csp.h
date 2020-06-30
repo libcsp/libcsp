@@ -105,6 +105,12 @@ const csp_conf_t * csp_get_conf(void);
 */
 uint8_t csp_get_address(void);
 
+
+/**
+ * Copy csp id fields from source to target object
+ */
+void csp_id_copy(csp_id_t * target, csp_id_t * source);
+
 /**
    Create a CSP socket endpoint.
    @param[in] opts socket options, see @ref CSP_SOCKET_OPTIONS.

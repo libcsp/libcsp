@@ -102,8 +102,11 @@ int csp_can_rx(csp_iface_t *iface, uint32_t id, const uint8_t *data, uint8_t dlc
 		}
 
 		/* Copy CSP identifier (header) */
+// TODO CSP 2.0
+#if 0
 		memcpy(&(buf->packet->id), data, sizeof(buf->packet->id));
 		buf->packet->id.ext = csp_ntoh32(buf->packet->id.ext);
+#endif
 
 		/* Copy CSP length (of data) */
 		memcpy(&(buf->packet->length), data + sizeof(csp_id_t), sizeof(buf->packet->length));
@@ -211,13 +214,20 @@ int csp_can_tx(const csp_route_t * ifroute, csp_packet_t *packet)
 	uint8_t bytes = (packet->length <= avail) ? packet->length : avail;
 
 	/* Copy CSP headers and data */
+// TODO CSP 2.0
+#if 0
 	const uint32_t csp_id_be = csp_hton32(packet->id.ext);
 	const uint16_t csp_length_be = csp_hton16(packet->length);
+#endif
 
 	uint8_t frame_buf[MAX_BYTES_IN_CAN_FRAME];
+
+// TODO CSP 2.0
+#if 0
 	memcpy(frame_buf, &csp_id_be, sizeof(csp_id_be));
 	memcpy(frame_buf + sizeof(csp_id_be), &csp_length_be, sizeof(csp_length_be));
 	memcpy(frame_buf + CFP_OVERHEAD, packet->data, bytes);
+#endif
 
 	/* Increment tx counter */
 	uint16_t tx_count = bytes;

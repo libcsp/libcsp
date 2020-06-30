@@ -53,7 +53,7 @@ typedef enum {
 	CSP_PS				= 2,   //!< Current process list
 	CSP_MEMFREE			= 3,   //!< Free memory
 	CSP_REBOOT			= 4,   //!< Reboot, see #CSP_REBOOT_MAGIC and #CSP_REBOOT_SHUTDOWN_MAGIC
-	CSP_BUF_FREE			= 5,   //!< Free CSP buffers
+	CSP_BUF_FREE		= 5,   //!< Free CSP buffers
 	CSP_UPTIME			= 6,   //!< Uptime
 } csp_service_port_t;
 
@@ -101,48 +101,14 @@ typedef enum {
    CSP identifier/header.
    This union is sent directly on the wire, hence the big/little endian definitions
 */
-#ifdef CSP_2
-/**
-   CSP identifier/header.
-   This union is sent directly on the wire, hence the big/little endian definitions
-*/
-typedef union {
-	uint64_t ext;
-	struct {
-		uint8_t pri;
-		uint8_t flags;
-		uint16_t src;
-		uint16_t dst;
-		uint8_t dport;
-		uint8_t sport;
-	};
+typedef struct {
+	uint8_t pri;
+	uint8_t flags;
+	uint16_t src;
+	uint16_t dst;
+	uint8_t dport;
+	uint8_t sport;
 } csp_id_t;
-
-#else
-typedef union {
-    /** Entire identifier. */
-    uint32_t ext;
-    /** Individual fields. */
-    struct __attribute__((__packed__)) {
-#if (CSP_BIG_ENDIAN || __DOXYGEN__)
-        unsigned int pri   : CSP_ID_PRIO_SIZE;  //!< Priority
-        unsigned int src   : CSP_ID_HOST_SIZE;  //!< Source address
-        unsigned int dst   : CSP_ID_HOST_SIZE;  //!< Destination address
-        unsigned int dport : CSP_ID_PORT_SIZE;  //!< Destination port
-        unsigned int sport : CSP_ID_PORT_SIZE;  //!< Source port
-        unsigned int flags : CSP_ID_FLAGS_SIZE; //!< Flags, see @ref CSP_HEADER_FLAGS
-#elif (CSP_LITTLE_ENDIAN)
-        unsigned int flags : CSP_ID_FLAGS_SIZE;
-        unsigned int sport : CSP_ID_PORT_SIZE;
-        unsigned int dport : CSP_ID_PORT_SIZE;
-        unsigned int dst   : CSP_ID_HOST_SIZE;
-        unsigned int src   : CSP_ID_HOST_SIZE;
-        unsigned int pri   : CSP_ID_PRIO_SIZE;
-#endif
-    };
-} csp_id_t;
-
-#endif
 
 /** Broadcast address */
 #define CSP_BROADCAST_ADDR		CSP_ID_HOST_MAX
@@ -194,9 +160,9 @@ typedef union {
 #define CSP_O_SAME			CSP_SO_SAME
 
 /**
-   Padding size in #csp_packet_t.
-   10 bytes ensure correct aligned \a id and \a data in #csp_packet_t.
-*/
+ * Padding size in #csp_packet_t.
+ * 10 bytes ensure correct aligned \a id and \a data in #csp_packet_t.
+ */
 #define CSP_PADDING_BYTES		10
 
 //doc-begin:csp_packet_t
@@ -211,21 +177,22 @@ typedef union {
    the CSP id to different endian (e.g. I2C), etc.
 */
 typedef struct {
+	uint32_t rdp_quarantine;	// EACK quarantine period
+	uint32_t timestamp_tx;		// Time the message was sent
+	uint32_t timestamp_rx;		// Time the message was received
+
+	uint16_t length;			// Data length
+	csp_id_t id;				// CSP id (unpacked version CPU readable)
+
+	uint8_t * frame_begin;
+	uint16_t frame_length;
+
+	uint8_t header[8];  // Additional header bytes, to prepend packed data before transmission
 	/**
-           Padding. These bytes are intended for use by protocols, which want to prepend
-           data before sending it, without having to copy/reorganize the entire message.
-        */
-        uint8_t padding[CSP_PADDING_BYTES];
-        /** Data length. Must be just before CSP ID.*/
-	uint16_t length;
-	/** CSP id. Must be just before data, as it allows the interface to id and data
-            in a single operation. */
-	csp_id_t id;
-	/**
-           Data part of packet.
-           When using the csp_buffer API, the size of the data part is set by
-           csp_buffer_init(), and can later be accessed by csp_buffer_data_size()
-        */
+	 * Data part of packet.
+	 * When using the csp_buffer API, the size of the data part is set by
+	 * csp_buffer_init(), and can later be accessed by csp_buffer_data_size()
+	 */
 	union {
 		/** Access data as uint8_t. */
 		uint8_t data[0];
@@ -234,6 +201,7 @@ typedef struct {
 		/** Access data as uint32_t */
 		uint32_t data32[0];
 	};
+
 } csp_packet_t;
 //doc-end:csp_packet_t
 

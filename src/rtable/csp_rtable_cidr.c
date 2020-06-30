@@ -46,7 +46,7 @@ static csp_rtable_t * csp_rtable_find(uint16_t addr, uint16_t netmask, uint16_t 
 
 		/* Look for exact match:
 		 * Note this is looking for a match of the netmask, used primarily for route table insert
-		 * TODO: Split this search function into two, one serching for addr/mask, and one for destination node only */
+		 * Idea: Split this search function into two, one serching for addr/mask, and one for destination node only */
 		if (i->address == addr && i->netmask == netmask) {
 			best_result = i;
 			break;

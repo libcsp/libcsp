@@ -45,14 +45,18 @@ int csp_kiss_tx(const csp_route_t * ifroute, csp_packet_t * packet) {
         }
 
 	/* Save the outgoing id in the buffer */
+
+// TODO CSP 2.0
+#if 0
 	packet->id.ext = csp_hton32(packet->id.ext);
 	packet->length += sizeof(packet->id.ext);
+#endif
 
 	/* Transmit data */
         const unsigned char start[] = {FEND, TNC_DATA};
         const unsigned char esc_end[] = {FESC, TFEND};
         const unsigned char esc_esc[] = {FESC, TFESC};
-        const unsigned char * data = (unsigned char *) &packet->id.ext;
+        const unsigned char * data = (unsigned char *) &packet->id;
         ifdata->tx_func(driver, start, sizeof(start));
 	for (unsigned int i = 0; i < packet->length; i++, ++data) {
 		if (*data == FEND) {
@@ -152,7 +156,10 @@ void csp_kiss_rx(csp_iface_t * iface, const uint8_t * buf, size_t len, void * px
 					ifdata->rx_packet->length = ifdata->rx_length - CSP_HEADER_LENGTH;
 
 					/* Convert the packet from network to host order */
+// TODO CSP 2.0
+#if 0
 					ifdata->rx_packet->id.ext = csp_ntoh32(ifdata->rx_packet->id.ext);
+#endif
 
 					/* Validate CRC */
 					if (csp_crc32_verify(ifdata->rx_packet, false) != CSP_ERR_NONE) {
@@ -181,12 +188,16 @@ void csp_kiss_rx(csp_iface_t * iface, const uint8_t * buf, size_t len, void * px
 			}
 
 			/* Valid data char */
+// TODO CSP 2.0
+#if 0
 			((char *) &ifdata->rx_packet->id.ext)[ifdata->rx_length++] = inputbyte;
+#endif
 
 			break;
 
 		case KISS_MODE_ESCAPED:
-
+// TODO CSP 2.0
+#if 0
 			/* Escaped escape char */
 			if (inputbyte == TFESC)
 				((char *) &ifdata->rx_packet->id.ext)[ifdata->rx_length++] = FESC;
@@ -194,6 +205,7 @@ void csp_kiss_rx(csp_iface_t * iface, const uint8_t * buf, size_t len, void * px
 			/* Escaped fend char */
 			if (inputbyte == TFEND)
 				((char *) &ifdata->rx_packet->id.ext)[ifdata->rx_length++] = FEND;
+#endif
 
 			/* Go back to started mode */
 			ifdata->rx_mode = KISS_MODE_STARTED;

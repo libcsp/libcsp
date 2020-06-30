@@ -247,8 +247,6 @@ csp_conn_t * csp_conn_allocate(csp_conn_type_t type) {
 	}
 
 	if (conn && (conn->state == CONN_CLOSED)) {
-		conn->idin.ext = 0;
-		conn->idout.ext = 0;
 		conn->socket = NULL;
 		conn->timestamp = 0;
 		conn->type = type;
@@ -277,8 +275,9 @@ csp_conn_t * csp_conn_new(csp_id_t idin, csp_id_t idout) {
 	if (conn) {
 		/* No lock is needed here, because nobody else *
 		 * has a reference to this connection yet.     */
-		conn->idin.ext = idin.ext;
-		conn->idout.ext = idout.ext;
+		csp_id_copy(&conn->idin, &idin);
+		csp_id_copy(&conn->idout, &idout);
+
 		conn->timestamp = csp_get_ms();
 
 		/* Ensure connection queue is empty */
