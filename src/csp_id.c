@@ -6,6 +6,11 @@
  */
 
 #include <csp/csp.h>
+#include "csp_init.h"
+
+/**
+ * CSP 1.x
+ */
 
 #define CSP_ID1_PRIO_SIZE		2
 #define CSP_ID1_HOST_SIZE		5
@@ -30,29 +35,6 @@ typedef struct __attribute__((__packed__)) {
 #endif
 } csp_id1_t;
 
-#define CSP_ID2_PRIO_SIZE		2
-#define CSP_ID2_HOST_SIZE		14
-#define CSP_ID2_PORT_SIZE		6
-#define CSP_ID2_FLAGS_SIZE		6
-
-typedef struct __attribute__((__packed__)) {
-#if (CSP_BIG_ENDIAN || __DOXYGEN__)
-        unsigned int pri   : CSP_ID2_PRIO_SIZE;
-        unsigned int src   : CSP_ID2_HOST_SIZE;
-        unsigned int dst   : CSP_ID2_HOST_SIZE;
-        unsigned int dport : CSP_ID2_PORT_SIZE;
-        unsigned int sport : CSP_ID2_PORT_SIZE;
-        unsigned int flags : CSP_ID2_FLAGS_SIZE;
-#elif (CSP_LITTLE_ENDIAN)
-        unsigned int flags : CSP_ID2_FLAGS_SIZE;
-        unsigned int sport : CSP_ID2_PORT_SIZE;
-        unsigned int dport : CSP_ID2_PORT_SIZE;
-        unsigned int dst   : CSP_ID2_HOST_SIZE;
-        unsigned int src   : CSP_ID2_HOST_SIZE;
-        unsigned int pri   : CSP_ID2_PRIO_SIZE;
-#endif
-} csp_id2_t;
-
 void csp_id1_prepend(csp_packet_t * packet) {
 
 	csp_hex_dump("Before prepend 1", packet, 64);
@@ -76,7 +58,7 @@ void csp_id1_prepend(csp_packet_t * packet) {
 
 int csp_id1_strip(csp_packet_t * packet) {
 
-	if (packet->frame_length < sizeof(csp_id2_t)) {
+	if (packet->frame_length < sizeof(csp_id1_t)) {
 		printf("Too short frame\n");
 		return -1;
 	}
@@ -101,6 +83,34 @@ void csp_id1_setup_rx(csp_packet_t * packet) {
 	packet->frame_begin = packet->data - sizeof(csp_id1_t);
 	packet->frame_length = 0;
 }
+
+/**
+ * CSP 2.x
+ */
+
+#define CSP_ID2_PRIO_SIZE		2
+#define CSP_ID2_HOST_SIZE		14
+#define CSP_ID2_PORT_SIZE		6
+#define CSP_ID2_FLAGS_SIZE		6
+
+typedef struct __attribute__((__packed__)) {
+#if (CSP_BIG_ENDIAN || __DOXYGEN__)
+        unsigned int pri   : CSP_ID2_PRIO_SIZE;
+        unsigned int src   : CSP_ID2_HOST_SIZE;
+        unsigned int dst   : CSP_ID2_HOST_SIZE;
+        unsigned int dport : CSP_ID2_PORT_SIZE;
+        unsigned int sport : CSP_ID2_PORT_SIZE;
+        unsigned int flags : CSP_ID2_FLAGS_SIZE;
+#elif (CSP_LITTLE_ENDIAN)
+        unsigned int flags : CSP_ID2_FLAGS_SIZE;
+        unsigned int sport : CSP_ID2_PORT_SIZE;
+        unsigned int dport : CSP_ID2_PORT_SIZE;
+        unsigned int dst   : CSP_ID2_HOST_SIZE;
+        unsigned int src   : CSP_ID2_HOST_SIZE;
+        unsigned int pri   : CSP_ID2_PRIO_SIZE;
+#endif
+} csp_id2_t;
+
 
 void csp_id2_prepend(csp_packet_t * packet) {
 
@@ -152,14 +162,51 @@ void csp_id2_setup_rx(csp_packet_t * packet) {
 	packet->frame_length = 0;
 }
 
+/**
+ * Runtime dispatch between version 1 and 2
+ */
+
+
 void csp_id_prepend(csp_packet_t * packet) {
-	csp_id2_prepend(packet);
+	if (csp_conf.version == 2) {
+		csp_id2_prepend(packet);
+	} else {
+		csp_id1_prepend(packet);
+	}
 }
 
 int csp_id_strip(csp_packet_t * packet) {
-	return csp_id2_strip(packet);
+	if (csp_conf.version == 2) {
+		return csp_id2_strip(packet);
+	} else {
+		return csp_id1_strip(packet);
+	}
 }
 
 void csp_id_setup_rx(csp_packet_t * packet) {
-	csp_id2_setup_rx(packet);
+	if (csp_conf.version == 2) {
+		csp_id2_setup_rx(packet);
+	} else {
+		csp_id1_setup_rx(packet);
+	}
+}
+
+int csp_id_get_host_bits(void) {
+	if (csp_conf.version == 2) {
+		return CSP_ID2_HOST_SIZE;
+	} else {
+		return CSP_ID1_HOST_SIZE;
+	}
+}
+
+int csp_id_get_max_nodeid(void) {
+	if (csp_conf.version == 2) {
+		return (1 << CSP_ID2_HOST_SIZE) - 1;
+	} else {
+		return (1 << CSP_ID1_HOST_SIZE) - 1;
+	}
+}
+
+int csp_id_get_max_port(void){
+	return ((1 << (CSP_ID2_PORT_SIZE)) - 1);
 }

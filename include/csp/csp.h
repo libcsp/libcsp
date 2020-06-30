@@ -59,12 +59,15 @@ typedef struct csp_conf_s {
 	uint16_t buffers;		/**< Number of CSP buffers */
 	uint16_t buffer_data_size;	/**< Data size of a CSP buffer. Total size will be sizeof(#csp_packet_t) + data_size. */
 	uint32_t conn_dfl_so;		/**< Default connection options. Options will always be or'ed onto new connections, see csp_connect() */
+
+	uint8_t version;        /**< Protocol version to use (either 1 or 2) */
 } csp_conf_t;
 
 /**
    Get default CSP configuration.
 */
 static inline void csp_conf_get_defaults(csp_conf_t * conf) {
+	conf->version = 2;
 	conf->address = 1;
 	conf->hostname = "hostname";
 	conf->model = "model";

@@ -30,9 +30,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <stddef.h>
 #include <stdbool.h>
 
-
-//#define CSP_2
-
 #include <csp_autoconfig.h> // -> CSP_X defines (compile configuration)
 #include <csp/csp_error.h>
 
@@ -59,7 +56,7 @@ typedef enum {
 
 /** Listen on all ports, primarily used with csp_bind() */
 #define CSP_ANY				255
-    
+
 /**
    Message priority.
 */
@@ -70,32 +67,7 @@ typedef enum {
 	CSP_PRIO_LOW			= 3, //!< Low
 } csp_prio_t;
 
-#define CSP_PRIORITIES			(1 << CSP_ID_PRIO_SIZE) //!< Number of CSP message priorities.
-
 #define CSP_ROUTE_FIFOS			1
-#define CSP_RX_QUEUES			1
-
-/**
-   @defgroup CSP_HEADER_DEF CSP header definition.
-   @{
-*/
-#define CSP_ID_PRIO_SIZE		2 //!< Bits for priority, see #csp_prio_t
-#define CSP_ID_HOST_SIZE		5 //!< Bits for host (destination/source address)
-#define CSP_ID_PORT_SIZE		6 //!< Bits for port (destination/source port)
-#define CSP_ID_FLAGS_SIZE		8 //!< Bits for flags, see @ref CSP_HEADER_FLAGS
-
-/** Number of bits in CSP header */
-#define CSP_HEADER_BITS			(CSP_ID_PRIO_SIZE + (2 * CSP_ID_HOST_SIZE) + (2 * CSP_ID_PORT_SIZE) + CSP_ID_FLAGS_SIZE)
-
-/** CSP header size in bytes */
-#define CSP_HEADER_LENGTH		4
-
-#define CSP_ID_PRIO_MAX			((1 << (CSP_ID_PRIO_SIZE)) - 1)  //!< Max priority value in header
-#define CSP_ID_HOST_MAX			((1 << (CSP_ID_HOST_SIZE)) - 1)  //!< Max host value in header
-#define CSP_ID_PORT_MAX			((1 << (CSP_ID_PORT_SIZE)) - 1)  //!< Max port value in header
-#define CSP_ID_FLAGS_MAX		((1 << (CSP_ID_FLAGS_SIZE)) - 1) //!< Max flag(s) value in header
-
-/**@}*/
 
 /**
    CSP identifier/header.
@@ -109,9 +81,6 @@ typedef struct {
 	uint8_t dport;
 	uint8_t sport;
 } csp_id_t;
-
-/** Broadcast address */
-#define CSP_BROADCAST_ADDR		CSP_ID_HOST_MAX
 
 /**
    @defgroup CSP_HEADER_FLAGS CSP header flags.
@@ -158,12 +127,6 @@ typedef struct {
 #define CSP_O_CRC32			CSP_SO_CRC32REQ    //!< Enable CRC32
 #define CSP_O_NOCRC32			CSP_SO_CRC32PROHIB //!< Disable CRC32
 #define CSP_O_SAME			CSP_SO_SAME
-
-/**
- * Padding size in #csp_packet_t.
- * 10 bytes ensure correct aligned \a id and \a data in #csp_packet_t.
- */
-#define CSP_PADDING_BYTES		10
 
 //doc-begin:csp_packet_t
 /**

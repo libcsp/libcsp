@@ -141,6 +141,8 @@ void csp_kiss_rx(csp_iface_t * iface, const uint8_t * buf, size_t len, void * px
 				/* Accept message */
 				if (ifdata->rx_length > 0) {
 
+// TODO CSP 2.0
+#if 0
 					/* Check for valid length */
 					if (ifdata->rx_length < CSP_HEADER_LENGTH + sizeof(uint32_t)) {
 						//csp_log_warn("KISS short frame skipped, len: %u", ifdata->rx_length);
@@ -148,12 +150,16 @@ void csp_kiss_rx(csp_iface_t * iface, const uint8_t * buf, size_t len, void * px
 						ifdata->rx_mode = KISS_MODE_NOT_STARTED;
 						break;
 					}
+#endif
 
 					/* Count received frame */
 					iface->frame++;
 
+// TODO CSP 2.0
+#if 0
 					/* The CSP packet length is without the header */
 					ifdata->rx_packet->length = ifdata->rx_length - CSP_HEADER_LENGTH;
+#endif
 
 					/* Convert the packet from network to host order */
 // TODO CSP 2.0
@@ -240,7 +246,10 @@ int csp_kiss_add_interface(csp_iface_t * iface) {
 		return CSP_ERR_NOMEM;
         }
 
+// TODO CSP 2.0
+#if 0
 	ifdata->max_rx_length = CSP_HEADER_LENGTH + csp_buffer_data_size(); // CSP header + CSP data
+#endif
 	ifdata->rx_length = 0;
 	ifdata->rx_mode = KISS_MODE_NOT_STARTED;
 	ifdata->rx_first = false;

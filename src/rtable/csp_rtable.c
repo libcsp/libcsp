@@ -27,6 +27,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/interfaces/csp_if_lo.h>
 
 #include "../csp_init.h"
+#include "../csp_id.h"
 
 static int csp_rtable_parse(const char * rtable, int dry_run) {
 
@@ -48,9 +49,9 @@ static int csp_rtable_parse(const char * rtable, int dry_run) {
 		} else if (sscanf(str, "%u/%u %14s", &address, &netmask, name) == 3) {
 			via = CSP_NO_VIA_ADDRESS;
 		} else if (sscanf(str, "%u %14s %u", &address, name, &via) == 3) {
-			netmask = CSP_ID_HOST_SIZE;
+			netmask = csp_id_get_host_bits();
 		} else if (sscanf(str, "%u %14s", &address, name) == 2) {
-			netmask = CSP_ID_HOST_SIZE;
+			netmask = csp_id_get_host_bits();
 			via = CSP_NO_VIA_ADDRESS;
 		} else {
 			// invalid entry
@@ -59,7 +60,7 @@ static int csp_rtable_parse(const char * rtable, int dry_run) {
 		name[sizeof(name) - 1] = 0;
 
 		csp_iface_t * ifc = csp_iflist_get_by_name(name);
-		if ((address > CSP_ID_HOST_MAX) || (netmask > CSP_ID_HOST_SIZE) || (via > UINT8_MAX) || (ifc == NULL))  {
+		if ((address > csp_id_get_max_nodeid()) || (netmask > csp_id_get_host_bits()) || (via > UINT8_MAX) || (ifc == NULL))  {
 			csp_log_error("%s: invalid entry [%s]", __FUNCTION__, str);
 			return CSP_ERR_INVAL;
 		}
@@ -117,7 +118,7 @@ static bool csp_rtable_save_route(void * vctx, uint16_t address, uint16_t mask, 
     const char * sep = (ctx->len == 0) ? "" : ",";
 
     char mask_str[10];
-    if (mask != CSP_ID_HOST_SIZE) {
+    if (mask != csp_id_get_host_bits()) {
         snprintf(mask_str, sizeof(mask_str), "/%u", mask);
     } else {
         mask_str[0] = 0;

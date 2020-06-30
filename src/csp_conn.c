@@ -29,6 +29,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/arch/csp_malloc.h>
 #include <csp/arch/csp_time.h>
 #include "csp_init.h"
+#include "csp_id.h"
 #include "transport/csp_transport.h"
 
 /* Connection pool */
@@ -83,7 +84,7 @@ int csp_conn_init(void) {
 
 	/* Initialize source port */
 	unsigned int seed = csp_get_ms();
-	sport = (rand_r(&seed) % (CSP_ID_PORT_MAX - csp_conf.port_max_bind)) + (csp_conf.port_max_bind + 1);
+	sport = (rand_r(&seed) % (csp_id_get_max_port() - csp_conf.port_max_bind)) + (csp_conf.port_max_bind + 1);
 
 	if (csp_bin_sem_create(&sport_lock) != CSP_SEMAPHORE_OK) {
 		csp_log_error("csp_bin_sem_create(&sport_lock) failed");
@@ -416,7 +417,7 @@ csp_conn_t * csp_connect(uint8_t prio, uint16_t dest, uint8_t dport, uint32_t ti
 	/* Loop through available source ports */
 	const uint8_t start = sport;
 	while (++sport != start) {
-		if (sport > CSP_ID_PORT_MAX)
+		if (sport > csp_id_get_max_port())
 			sport = csp_conf.port_max_bind + 1;
 
 		/* Search for ephemeral outgoing port */
