@@ -37,8 +37,6 @@ typedef struct __attribute__((__packed__)) {
 
 void csp_id1_prepend(csp_packet_t * packet) {
 
-	csp_hex_dump("Before prepend 1", packet, 64);
-
 	csp_id1_t id1;
 	id1.pri = packet->id.pri;
 	id1.dst = packet->id.dst;
@@ -52,18 +50,13 @@ void csp_id1_prepend(csp_packet_t * packet) {
 
 	memcpy(packet->frame_begin, &id1, sizeof(csp_id1_t));
 
-	csp_hex_dump("After prepend 1 ", packet, 64);
-
 }
 
 int csp_id1_strip(csp_packet_t * packet) {
 
 	if (packet->frame_length < sizeof(csp_id1_t)) {
-		printf("Too short frame\n");
 		return -1;
 	}
-
-	printf("Strip 1 %p %p\n", packet, packet->frame_begin);
 
 	csp_id1_t id1;
 	memcpy(&id1, packet->frame_begin, sizeof(csp_id1_t));
@@ -114,9 +107,6 @@ typedef struct __attribute__((__packed__)) {
 
 void csp_id2_prepend(csp_packet_t * packet) {
 
-	csp_hex_dump("Before prepend 2", packet, 64);
-	printf("Sizeof id2 %lu\n", sizeof(csp_id2_t));
-
 	csp_id2_t id2;
 	id2.pri = packet->id.pri;
 	id2.dst = packet->id.dst;
@@ -130,18 +120,13 @@ void csp_id2_prepend(csp_packet_t * packet) {
 
 	memcpy(packet->frame_begin, &id2, sizeof(csp_id2_t));
 
-	csp_hex_dump("After prepend 2", packet, 64);
-
 }
 
 int csp_id2_strip(csp_packet_t * packet) {
 
 	if (packet->frame_length < sizeof(csp_id2_t)) {
-		printf("Too short frame\n");
 		return -1;
 	}
-
-	printf("Strip 2 %p %p\n", packet, packet->frame_begin);
 
 	csp_id2_t id2;
 	memcpy(&id2, packet->frame_begin, sizeof(csp_id2_t));
@@ -163,9 +148,12 @@ void csp_id2_setup_rx(csp_packet_t * packet) {
 }
 
 /**
- * Runtime dispatch between version 1 and 2
+ * Simple runtime dispatch between version 1 and 2:
+ * This could have been done other ways, by registering functions into the csp config structure
+ * to avoid a runtime comparison. But that would also clutter the configuration and expose this
+ * to the user. An alternative would be a set of global but non exported function pointers.
+ * That would actually be nicer, but it can be done later, it works for now.
  */
-
 
 void csp_id_prepend(csp_packet_t * packet) {
 	if (csp_conf.version == 2) {

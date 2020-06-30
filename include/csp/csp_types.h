@@ -67,8 +67,6 @@ typedef enum {
 	CSP_PRIO_LOW			= 3, //!< Low
 } csp_prio_t;
 
-#define CSP_ROUTE_FIFOS			1
-
 /**
    CSP identifier/header.
    This union is sent directly on the wire, hence the big/little endian definitions
