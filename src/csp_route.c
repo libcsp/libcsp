@@ -257,7 +257,7 @@ int csp_route_work(uint32_t timeout) {
 	}
 
 	/* Search for an existing connection */
-	conn = csp_conn_find(packet->id.ext, CSP_ID_CONN_MASK);
+	conn = csp_conn_find_existing(&packet->id);
 
 	/* If this is an incoming packet on a new connection */
 	if (conn == NULL) {

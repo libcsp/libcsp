@@ -182,15 +182,72 @@ void csp_conn_free_resources(void) {
     }
 }
 
-csp_conn_t * csp_conn_find(uint32_t id, uint32_t mask) {
+csp_conn_t * csp_conn_find_dport(unsigned int dport) {
 
-	/* Search for matching connection */
-	id = (id & mask);
 	for (int i = 0; i < csp_conf.conn_max; i++) {
 		csp_conn_t * conn = &arr_conn[i];
-		if ((conn->state == CONN_OPEN) && (conn->type == CONN_CLIENT) && ((conn->idin.ext & mask) == id)) {
-			return conn;
-		}
+
+		/* Connection must match dport */
+		if (conn->idin.dport != dport)
+			continue;
+
+		/* Connection must be open */
+		if (conn->state != CONN_OPEN)
+			continue;
+
+		/* Connection must be client */
+		if (conn->type != CONN_CLIENT)
+			continue;
+
+		/* All conditions found! */
+		return conn;
+
+	}
+
+	return NULL;
+
+}
+
+csp_conn_t * csp_conn_find_existing(csp_id_t * id) {
+
+	for (int i = 0; i < csp_conf.conn_max; i++) {
+		csp_conn_t * conn = &arr_conn[i];
+
+		/**
+		 * This search looks verbose, Instead of a big if statement, it is written out as
+		 * conditions. This has been done for clarity. The least likely check is put first
+		 * for runtime speed improvement.
+		 * Also this is written using explicit fields, not bitmasks, in order to improve
+		 * portability and dual use between different header formats.
+		 */
+
+		/* Connection must match dport */
+		if (conn->idin.dport != id->dport)
+			continue;
+
+		/* Connection must match sport */
+		if (conn->idin.sport != id->sport)
+			continue;
+
+		/* Connection must match destination */
+		if (conn->idin.dst != id->dst)
+			continue;
+
+		/* Connection must match source */
+		if (conn->idin.src != id->src)
+			continue;
+
+		/* Connection must be open */
+		if (conn->state != CONN_OPEN)
+			continue;
+
+		/* Connection must be client */
+		if (conn->type != CONN_CLIENT)
+			continue;
+
+		/* All conditions found! */
+		return conn;
+
 	}
 	
 	return NULL;
@@ -408,21 +465,25 @@ csp_conn_t * csp_connect(uint8_t prio, uint16_t dest, uint8_t dport, uint32_t ti
 		return NULL;
 	}
 
+	/* Loop through available source ports */
 	const uint8_t start = sport;
 	while (++sport != start) {
 		if (sport > CSP_ID_PORT_MAX)
 			sport = csp_conf.port_max_bind + 1;
 
-		outgoing_id.sport = sport;
-		incoming_id.dport = sport;
+		/* Search for ephemeral outgoing port */
+		if (csp_conn_find_dport(sport) == NULL) {
 
-		/* Match on destination port of _incoming_ identifier */
-		if (csp_conn_find(incoming_id.ext, CSP_ID_DPORT_MASK) == NULL) {
-			/* Break - we found an unused ephemeral port
-                           allocate connection while locked to mark port in use */
+			/* We found an unused ephemeral port
+			 * allocate connection while locked to mark port in use */
+
+			outgoing_id.sport = sport;
+			incoming_id.dport = sport;
+
 			conn = csp_conn_new(incoming_id, outgoing_id);
 			break;
 		}
+
 	}
 
 	/* Post sport lock */

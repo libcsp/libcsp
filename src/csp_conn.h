@@ -104,7 +104,10 @@ struct csp_conn_s {
 int csp_conn_enqueue_packet(csp_conn_t * conn, csp_packet_t * packet);
 int csp_conn_init(void);
 csp_conn_t * csp_conn_allocate(csp_conn_type_t type);
-csp_conn_t * csp_conn_find(uint32_t id, uint32_t mask);
+
+csp_conn_t * csp_conn_find_existing(csp_id_t * id);
+csp_conn_t * csp_conn_find_dport(unsigned int dport);
+
 csp_conn_t * csp_conn_new(csp_id_t idin, csp_id_t idout);
 void csp_conn_check_timeouts(void);
 int csp_conn_get_rxq(int prio);

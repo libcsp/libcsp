@@ -85,40 +85,21 @@ typedef enum {
    @{
 */
 #define CSP_ID_PRIO_SIZE		2 //!< Bits for priority, see #csp_prio_t
-
 #define CSP_ID_HOST_SIZE		5 //!< Bits for host (destination/source address)
-
 #define CSP_ID_PORT_SIZE		6 //!< Bits for port (destination/source port)
 #define CSP_ID_FLAGS_SIZE		8 //!< Bits for flags, see @ref CSP_HEADER_FLAGS
 
 /** Number of bits in CSP header */
 #define CSP_HEADER_BITS			(CSP_ID_PRIO_SIZE + (2 * CSP_ID_HOST_SIZE) + (2 * CSP_ID_PORT_SIZE) + CSP_ID_FLAGS_SIZE)
-/** CSP header size in bytes */
-#define CSP_HEADER_LENGTH		(CSP_HEADER_BITS / 8)
 
-#if CSP_HEADER_BITS != 32 && __GNUC__
-#error "Header length must be 32 bits"
-#endif
+/** CSP header size in bytes */
+#define CSP_HEADER_LENGTH		4
 
 #define CSP_ID_PRIO_MAX			((1 << (CSP_ID_PRIO_SIZE)) - 1)  //!< Max priority value in header
 #define CSP_ID_HOST_MAX			((1 << (CSP_ID_HOST_SIZE)) - 1)  //!< Max host value in header
 #define CSP_ID_PORT_MAX			((1 << (CSP_ID_PORT_SIZE)) - 1)  //!< Max port value in header
 #define CSP_ID_FLAGS_MAX		((1 << (CSP_ID_FLAGS_SIZE)) - 1) //!< Max flag(s) value in header
 
-/** CSP identifier/header - priority mask */
-#define CSP_ID_PRIO_MASK		((uint32_t) CSP_ID_PRIO_MAX  << (CSP_ID_FLAGS_SIZE + (2 * CSP_ID_PORT_SIZE) + (2 * CSP_ID_HOST_SIZE)))
-/** CSP identifier/header - source address mask */
-#define CSP_ID_SRC_MASK	 		((uint32_t) CSP_ID_HOST_MAX  << (CSP_ID_FLAGS_SIZE + (2 * CSP_ID_PORT_SIZE) + (1 * CSP_ID_HOST_SIZE)))
-/** CSP identifier/header - destination address mask */
-#define CSP_ID_DST_MASK	 		((uint32_t) CSP_ID_HOST_MAX  << (CSP_ID_FLAGS_SIZE + (2 * CSP_ID_PORT_SIZE)))
-/** CSP identifier/header - destination port mask */
-#define CSP_ID_DPORT_MASK   		((uint32_t) CSP_ID_PORT_MAX  << (CSP_ID_FLAGS_SIZE + (1 * CSP_ID_PORT_SIZE)))
-/** CSP identifier/header - source port mask */
-#define CSP_ID_SPORT_MASK   		((uint32_t) CSP_ID_PORT_MAX  << (CSP_ID_FLAGS_SIZE))
-/** CSP identifier/header - flag mask */
-#define CSP_ID_FLAGS_MASK		((uint32_t) CSP_ID_FLAGS_MAX << (0))
-/** CSP identifier/header - connection mask (source & destination address + source & destination ports) */
-#define CSP_ID_CONN_MASK		(CSP_ID_SRC_MASK | CSP_ID_DST_MASK | CSP_ID_DPORT_MASK | CSP_ID_SPORT_MASK)
 /**@}*/
 
 /**
