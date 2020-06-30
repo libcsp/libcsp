@@ -72,13 +72,8 @@ typedef enum {
 
 #define CSP_PRIORITIES			(1 << CSP_ID_PRIO_SIZE) //!< Number of CSP message priorities.
 
-#if (CSP_USE_QOS || __DOXYGEN__)
-#define CSP_ROUTE_FIFOS			CSP_PRIORITIES //!< Number of fifos for incoming messages (handover to router)
-#define CSP_RX_QUEUES			CSP_PRIORITIES //!< Number of fifos for incoming message per message-queue
-#else
 #define CSP_ROUTE_FIFOS			1
 #define CSP_RX_QUEUES			1
-#endif
 
 /**
    @defgroup CSP_HEADER_DEF CSP header definition.

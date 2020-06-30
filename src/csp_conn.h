@@ -89,10 +89,7 @@ struct csp_conn_s {
 	csp_conn_state_t state;		/* Connection state (CONN_OPEN or CONN_CLOSED) */
 	csp_id_t idin;			/* Identifier received */
 	csp_id_t idout;			/* Identifier transmitted */
-#if (CSP_USE_QOS)
-	csp_queue_handle_t rx_event;	/* Event queue for RX packets */
-#endif
-	csp_queue_handle_t rx_queue[CSP_RX_QUEUES]; /* Queue for RX packets */
+	csp_queue_handle_t rx_queue; /* Queue for RX packets */
 	csp_queue_handle_t socket;	/* Socket to be "woken" when first packet is ready */
 	uint32_t timestamp;		/* Time the connection was opened */
 	uint32_t opts;			/* Connection or socket options */

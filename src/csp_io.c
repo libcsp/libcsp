@@ -142,22 +142,9 @@ csp_packet_t * csp_read(csp_conn_t * conn, uint32_t timeout) {
         }
 #endif
 
-#if (CSP_USE_QOS)
-	int event;
-	if (csp_queue_dequeue(conn->rx_event, &event, timeout) != CSP_QUEUE_OK) {
+	if (csp_queue_dequeue(conn->rx_queue, &packet, timeout) != CSP_QUEUE_OK) {
 		return NULL;
 	}
-
-	for (int prio = 0; prio < CSP_RX_QUEUES; prio++) {
-		if (csp_queue_dequeue(conn->rx_queue[prio], &packet, 0) == CSP_QUEUE_OK) {
-			break;
-		}
-	}
-#else
-	if (csp_queue_dequeue(conn->rx_queue[0], &packet, timeout) != CSP_QUEUE_OK) {
-		return NULL;
-	}
-#endif
 
 #if (CSP_USE_RDP)
 	/* Packet read could trigger ACK transmission */
