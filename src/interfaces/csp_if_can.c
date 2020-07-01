@@ -190,10 +190,6 @@ int csp_can1_rx(csp_iface_t *iface, uint32_t id, const uint8_t *data, uint8_t dl
 	return CSP_ERR_NONE;
 }
 
-int csp_can2_rx(csp_iface_t *iface, uint32_t id, const uint8_t *data, uint8_t dlc, CSP_BASE_TYPE *task_woken) {
-	return CSP_ERR_NONE;
-}
-
 int csp_can1_tx(const csp_route_t * ifroute, csp_packet_t *packet) {
 
 	csp_iface_t * iface = ifroute->iface;
@@ -291,36 +287,54 @@ int csp_can1_tx(const csp_route_t * ifroute, csp_packet_t *packet) {
  * CFP 2.0
  *
  * PRIO: 2
- * DST: 6
- * SRC: 6
- * Source counter: 2
+ * DST: 14
+ * Sender id: 6
+ * Sender counter: 2
  * Fragment counter: 3
  * Begin: 1
  * End: 1
- * Data: 8
  */
 
 #define CFP2_PRIO_MASK 0x3
 #define CFP2_PRIO_OFFSET 27
-#define CFP2_DST_SIZE 6
-#define CFP2_DST_MASK 0x1F
-#define CFP2_DST_OFFSET 21
-#define CFP2_SRC_SIZE 6
-#define CFP2_SRC_MASK 0x1F
-#define CFP2_SRC_OFFSET 15
-#define CFP2_SC_MASK 0x3
-#define CFP2_SC_OFFSET 13
-#define CFP2_FC_MASK 0x7
-#define CFP2_FC_OFFSET 10
-#define CFP2_BEGIN_MASK 0x1
-#define CFP2_BEGIN_OFFSET 9
-#define CFP2_END_MASK 0x1
-#define CFP2_END_OFFSET 8
-#define CFP2_DATA_MASK 0xFF
-#define CFP2_DATA_OFFSET 0
 
-#define CFP2_FC_BEGIN_SHORT 0
-#define CFP2_FC_BEGIN_LONG 1
+#define CFP2_DST_SIZE 14
+#define CFP2_DST_MASK 0x3FF
+#define CFP2_DST_OFFSET 13
+
+#define CFP2_SENDER_SIZE 6
+#define CFP2_SENDER_MASK 0x1F
+#define CFP2_SENDER_OFFSET 7
+
+#define CFP2_SC_MASK 0x3
+#define CFP2_SC_OFFSET 5
+
+#define CFP2_FC_MASK 0x7
+#define CFP2_FC_OFFSET 2
+
+#define CFP2_BEGIN_MASK 0x1
+#define CFP2_BEGIN_OFFSET 1
+
+#define CFP2_END_MASK 0x1
+#define CFP2_END_OFFSET 0
+
+#define CFP2_SRC_SIZE 14
+#define CFP2_SRC_MASK 0x3FF
+#define CFP2_SRC_OFFSET 18
+
+#define CFP2_DPORT_MASK 0x3F
+#define CFP2_DPORT_OFFSET 12
+
+#define CFP2_SPORT_MASK 0x3F
+#define CFP2_SPORT_OFFSET 6
+
+#define CFP2_FLAGS_MASK 0x3F
+#define CFP2_FLAGS_OFFSET 0
+
+
+int csp_can2_rx(csp_iface_t *iface, uint32_t id, const uint8_t *data, uint8_t dlc, CSP_BASE_TYPE *task_woken) {
+	return CSP_ERR_NONE;
+}
 
 int csp_can2_tx(const csp_route_t * ifroute, csp_packet_t *packet) {
 
@@ -328,7 +342,7 @@ int csp_can2_tx(const csp_route_t * ifroute, csp_packet_t *packet) {
 	csp_can_interface_data_t * ifdata = iface->interface_data;
 
 	/* Setup counters */
-	int source_count = ifdata->cfp_packet_counter++;
+	int sender_count = ifdata->cfp_packet_counter++;
 	int tx_count = 0;
 
 	uint32_t can_id = 0;
@@ -336,39 +350,24 @@ int csp_can2_tx(const csp_route_t * ifroute, csp_packet_t *packet) {
 	uint8_t frame_buf_inp = 0;
 	uint8_t frame_buf_avail = CAN_FRAME_SIZE;
 
-	/* Determine short or long frame format */
-	uint8_t short_frame = 0;
-	if ((packet->id.dst & 0x3FC0) == (packet->id.src & 0x3FC0)) {
-		short_frame = 1;
-	}
-
 	/* Pack mandatory fields of header */
 	can_id = (((packet->id.pri & CFP2_PRIO_MASK) << CFP2_PRIO_OFFSET) |
 	          ((packet->id.dst & CFP2_DST_MASK) << CFP2_DST_OFFSET) |
-	          ((packet->id.src & CFP2_SRC_MASK) << CFP2_SRC_OFFSET) |
-	          ((source_count & CFP2_SC_MASK) << CFP2_SC_OFFSET));
+	          ((csp_conf.address & CFP2_SENDER_MASK) << CFP2_SENDER_OFFSET) |
+	          ((sender_count & CFP2_SC_MASK) << CFP2_SC_OFFSET) |
+			  ((1 & CFP2_BEGIN_MASK) << CFP2_BEGIN_OFFSET));
 
-	/* Pack the rest of the data depending on format */
-	if (short_frame) {
-		can_id |= (CFP2_FC_BEGIN_SHORT & CFP2_FC_MASK) << CFP2_FC_OFFSET;
-		can_id |= (packet->id.dport & CFP2_DATA_MASK) << CFP2_DATA_OFFSET;
-		frame_buf[0] = packet->id.sport;
-		frame_buf[1] = packet->id.flags;
-		frame_buf_inp += 2;
-		frame_buf_avail -= 2;
-	} else {
-		can_id |= (CFP2_FC_BEGIN_LONG & CFP2_FC_MASK) << CFP2_FC_OFFSET;
-		can_id |= ((packet->id.dst >> CFP2_DST_SIZE) & CFP2_DATA_MASK) << CFP2_DATA_OFFSET;
-		frame_buf[0] = packet->id.src >> CFP2_SRC_SIZE;
-		frame_buf[1] = packet->id.dport;
-		frame_buf[2] = packet->id.sport;
-		frame_buf[3] = packet->id.flags;
-		frame_buf_inp += 4;
-		frame_buf_avail -= 2;
-	}
+	/* Pack the rest of the CSP header in the first 32-bit of data */
+	((uint32_t *)frame_buf)[0] = (((packet->id.src & CFP2_SRC_MASK) << CFP2_SRC_OFFSET) |
+	                              ((packet->id.dport & CFP2_DPORT_MASK) << CFP2_DPORT_OFFSET) |
+								  ((packet->id.sport & CFP2_SPORT_MASK) << CFP2_SPORT_OFFSET) |
+								  ((packet->id.flags & CFP2_FLAGS_MASK) << CFP2_FLAGS_OFFSET));
 
-	/* Copy first bytes of data field */
-	int data_bytes = (packet->length >= frame_buf_avail) ? frame_buf_avail : packet->length;
+	frame_buf_inp += 4;
+	frame_buf_avail -= 4;
+
+	/* Copy first bytes of data field (max 4) */
+	int data_bytes = (packet->length >= 4) ? 4 : packet->length;
 	memcpy(frame_buf + frame_buf_inp, packet->data, data_bytes);
 	frame_buf_inp += data_bytes;
 	tx_count = data_bytes;
@@ -382,24 +381,24 @@ int csp_can2_tx(const csp_route_t * ifroute, csp_packet_t *packet) {
 	if ((ifdata->tx_func)(iface->driver_data, can_id, frame_buf, frame_buf_inp) != CSP_ERR_NONE) {
 		iface->tx_error++;
 		/* Does not free on return */
-		return CSP_ERR_DRIVER;
+		//return CSP_ERR_DRIVER;
 	}
 
 	/* Send next fragments if not complete */
 	int fragment_count = 0;
 	while (tx_count < packet->length) {
 
-		/* Calculate frame data bytes */
-		data_bytes = (packet->length - tx_count >= CAN_FRAME_SIZE) ? CAN_FRAME_SIZE : packet->length - tx_count;
-
 		/* Pack mandatory fields of header */
 		can_id = (((packet->id.pri & CFP2_PRIO_MASK) << CFP2_PRIO_OFFSET) |
 				  ((packet->id.dst & CFP2_DST_MASK) << CFP2_DST_OFFSET) |
 				  ((packet->id.src & CFP2_SRC_MASK) << CFP2_SRC_OFFSET) |
-				  ((source_count & CFP2_SC_MASK) << CFP2_SC_OFFSET));
+				  ((sender_count & CFP2_SC_MASK) << CFP2_SC_OFFSET));
 
 		/* Set and increment fragment count */
 		can_id |= (fragment_count++ & CFP2_FC_MASK) << CFP2_FC_OFFSET;
+
+		/* Calculate frame data bytes */
+		data_bytes = (packet->length - tx_count >= CAN_FRAME_SIZE) ? CAN_FRAME_SIZE : packet->length - tx_count;
 
 		/* Check for end condition */
 		if (tx_count + data_bytes == packet->length) {
@@ -411,7 +410,7 @@ int csp_can2_tx(const csp_route_t * ifroute, csp_packet_t *packet) {
 			//csp_log_warn("Failed to send CAN frame in Tx callback");
 			iface->tx_error++;
 			/* Does not free on return */
-			return CSP_ERR_DRIVER;
+			//return CSP_ERR_DRIVER;
 		}
 
 		/* Increment tx counter */
