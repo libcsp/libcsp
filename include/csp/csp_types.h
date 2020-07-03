@@ -69,7 +69,6 @@ typedef enum {
 
 /**
    CSP identifier/header.
-   This union is sent directly on the wire, hence the big/little endian definitions
 */
 typedef struct {
 	uint8_t pri;
