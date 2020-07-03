@@ -94,19 +94,19 @@ static void * socketcan_rx_thread(void * arg)
 	pthread_exit(NULL);
 }
 
-
-static int csp_can_tx_frame(void * driver_data, uint32_t id, const uint8_t * data, uint8_t dlc)
-{
+static int csp_can_tx_frame(void *driver_data, uint32_t id, const uint8_t *data, uint8_t dlc) {
 	if (dlc > 8) {
 		return CSP_ERR_INVAL;
 	}
 
-	struct can_frame frame = {.can_id = id | CAN_EFF_FLAG,
-                                  .can_dlc = dlc};
-        memcpy(frame.data, data, dlc);
+	csp_hex_dump("ID", &id, 4);
+	csp_hex_dump("DATA", data, dlc);
+
+	struct can_frame frame = { .can_id = id | CAN_EFF_FLAG, .can_dlc = dlc };
+	memcpy(frame.data, data, dlc);
 
 	uint32_t elapsed_ms = 0;
-        can_context_t * ctx = driver_data;
+	can_context_t *ctx = driver_data;
 	while (write(ctx->socket, &frame, sizeof(frame)) != sizeof(frame)) {
 		if ((errno != ENOBUFS) || (elapsed_ms >= 1000)) {
 			csp_log_warn("%s[%s]: write() failed, errno %d: %s", __FUNCTION__, ctx->name, errno, strerror(errno));
@@ -150,6 +150,7 @@ int csp_can_socketcan_open_and_add_interface(const char * device, const char * i
 	ctx->iface.driver_data = ctx;
 	ctx->ifdata.tx_func = csp_can_tx_frame;
 
+#if 0
 	/* Create socket */
 	if ((ctx->socket = socket(PF_CAN, SOCK_RAW, CAN_RAW)) < 0) {
 		csp_log_error("%s[%s]: socket() failed, error: %s", __FUNCTION__, ctx->name, strerror(errno));
@@ -188,6 +189,7 @@ int csp_can_socketcan_open_and_add_interface(const char * device, const char * i
 			return CSP_ERR_INVAL;
 		}
 	}
+#endif
 
 	/* Add interface to CSP */
         int res = csp_can_add_interface(&ctx->iface);
@@ -197,12 +199,14 @@ int csp_can_socketcan_open_and_add_interface(const char * device, const char * i
 		return res;
 	}
 
+#if 0
 	/* Create receive thread */
 	if (pthread_create(&ctx->rx_thread, NULL, socketcan_rx_thread, ctx) != 0) {
 		csp_log_error("%s[%s]: pthread_create() failed, error: %s", __FUNCTION__, ctx->name, strerror(errno));
 		//socketcan_free(ctx); // we already added it to CSP (no way to remove it)
 		return CSP_ERR_NOMEM;
 	}
+#endif
 
 	if (return_iface) {
 		*return_iface = &ctx->iface;

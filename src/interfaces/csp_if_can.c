@@ -112,15 +112,16 @@ int csp_can1_rx(csp_iface_t *iface, uint32_t id, const uint8_t *data, uint8_t dl
 			}
 		}
 
+		csp_id1_setup_rx(buf->packet);
+
 		/* Copy CSP identifier (header) */
-// TODO CSP 2.0
-#if 0
-		memcpy(&(buf->packet->id), data, sizeof(buf->packet->id));
-		buf->packet->id.ext = csp_ntoh32(buf->packet->id.ext);
-#endif
+		memcpy(&(buf->packet->frame_begin), data, sizeof(uint32_t));
+		buf->packet->frame_length += sizeof(uint32_t);
+
+		csp_id1_strip(buf->packet);
 
 		/* Copy CSP length (of data) */
-		memcpy(&(buf->packet->length), data + sizeof(csp_id_t), sizeof(buf->packet->length));
+		memcpy(&(buf->packet->length), data + sizeof(uint32_t), sizeof(buf->packet->length));
 		buf->packet->length = csp_ntoh16(buf->packet->length);
 
 		/* Check if frame exceeds MTU */
@@ -319,7 +320,7 @@ int csp_can1_tx(const csp_route_t * ifroute, csp_packet_t *packet) {
 #define CFP2_END_OFFSET 0
 
 #define CFP2_SRC_SIZE 14
-#define CFP2_SRC_MASK 0x3FF
+#define CFP2_SRC_MASK 0x3FFF
 #define CFP2_SRC_OFFSET 18
 
 #define CFP2_DPORT_MASK 0x3F
@@ -331,9 +332,130 @@ int csp_can1_tx(const csp_route_t * ifroute, csp_packet_t *packet) {
 #define CFP2_FLAGS_MASK 0x3F
 #define CFP2_FLAGS_OFFSET 0
 
+/**
+ * Fields used to uniquely define a CSP packet within each fragment header
+ */
+#define CFP2_ID_CONN_MASK ((CFP2_DST_MASK << CFP2_DST_OFFSET) | \
+                           (CFP2_SENDER_MASK << CFP2_SENDER_OFFSET) | \
+						   (CFP2_PRIO_MASK << CFP2_PRIO_OFFSET) | \
+                           (CFP2_SC_MASK << CFP2_SC_OFFSET))
 
 int csp_can2_rx(csp_iface_t *iface, uint32_t id, const uint8_t *data, uint8_t dlc, CSP_BASE_TYPE *task_woken) {
+
+	/* Bind incoming frame to a packet buffer */
+	csp_can_pbuf_element_t * buf = csp_can_pbuf_find(id, CFP2_ID_CONN_MASK, task_woken);
+	if (buf == NULL) {
+		if (id & CFP2_BEGIN_MASK) {
+			buf = csp_can_pbuf_new(id, task_woken);
+			if (buf == NULL) {
+				//csp_log_warn("No available packet buffer for CAN");
+				iface->rx_error++;
+				return CSP_ERR_NOMEM;
+			}
+		} else {
+			//csp_log_warn("Out of order id 0x%X remain %u", CFP_ID(id), CFP_REMAIN(id));
+			iface->frame++;
+			return CSP_ERR_INVAL;
+		}
+	}
+
+	/* BEGIN */
+	if (id & CFP2_BEGIN_MASK) {
+
+		/* Discard packet if DLC is less than CSP id + CSP length fields */
+		if (dlc < 4) {
+			//csp_log_warn("Short BEGIN frame received");
+			iface->frame++;
+			csp_can_pbuf_free(buf, task_woken);
+			return CSP_ERR_INVAL;
+		}
+
+		/* Check for incomplete frame */
+		if (buf->packet != NULL) {
+			/* Reuse the buffer */
+			//csp_log_warn("Incomplete frame");
+			iface->frame++;
+		} else {
+			/* Get free buffer for frame */
+			buf->packet = task_woken ? csp_buffer_get_isr(0) : csp_buffer_get(0); // CSP only supports one size
+			if (buf->packet == NULL) {
+				//csp_log_error("Failed to get buffer for CSP_BEGIN packet");
+				iface->frame++;
+				csp_can_pbuf_free(buf, task_woken);
+				return CSP_ERR_NOBUFS;
+			}
+		}
+
+		csp_id2_setup_rx(buf->packet);
+
+		/* Copy first 2 bytes from CFP 2.0 header */
+		uint16_t first_two = id >> CFP2_DST_OFFSET;
+		buf->packet->frame_begin[0] = first_two && 0xFF;
+		buf->packet->frame_begin[1] = first_two >> 8;
+
+		/* Copy next 4 from data */
+		memcpy(&buf->packet->frame_begin[2], data, 4);
+
+		buf->packet->frame_length = 6;
+		buf->packet->length = 0;
+
+		/* Move RX offset for incoming data */
+		data += 4;
+		dlc -= 4;
+
+		/* Set next expected fragment counter to be 1 */
+		buf->rx_count = 1;
+
+	/* FRAGMENT */
+	} else {
+
+		/* Check fragment counter is increasing:
+		 * We abuse / reuse the rx_count pbuf field
+		 * (Note this could be done using csp buffers instead) */
+		if ((buf->rx_count) != ((id & CFP2_FC_MASK) >> CFP2_FC_OFFSET)) {
+			//csp_log_error("CAN frame lost in CSP packet");
+			csp_can_pbuf_free(buf, task_woken);
+			iface->frame++;
+			return CSP_ERR_INVAL;
+		}
+
+		/* Increment expected next fragment counter:
+		 * and with the mask in order to wrap around */
+		buf->rx_count = (buf->rx_count + 1) & CFP2_FC_MASK;
+
+	}
+
+	/* Check for overflow */
+	if (buf->packet->length + dlc > iface->mtu) {
+		//csp_log_error("RX buffer overflow");
+		iface->frame++;
+		csp_can_pbuf_free(buf, task_woken);
+		return CSP_ERR_INVAL;
+	}
+
+	/* Copy dlc bytes into buffer */
+	memcpy(&buf->packet->data[buf->packet->length], data, dlc);
+	buf->packet->length += dlc;
+
+	/* END */
+	if (id & CFP2_BEGIN_MASK) {
+
+		/* Parse CSP header into csp_id type */
+		csp_id2_strip(buf->packet);
+
+		/* Data is available */
+		csp_qfifo_write(buf->packet, iface, task_woken);
+
+		/* Drop packet buffer reference */
+		buf->packet = NULL;
+
+		/* Free packet buffer */
+		csp_can_pbuf_free(buf, task_woken);
+
+	}
+
 	return CSP_ERR_NONE;
+
 }
 
 int csp_can2_tx(const csp_route_t * ifroute, csp_packet_t *packet) {
@@ -355,13 +477,18 @@ int csp_can2_tx(const csp_route_t * ifroute, csp_packet_t *packet) {
 	          ((packet->id.dst & CFP2_DST_MASK) << CFP2_DST_OFFSET) |
 	          ((csp_conf.address & CFP2_SENDER_MASK) << CFP2_SENDER_OFFSET) |
 	          ((sender_count & CFP2_SC_MASK) << CFP2_SC_OFFSET) |
-			  ((1 & CFP2_BEGIN_MASK) << CFP2_BEGIN_OFFSET));
+	          ((1 & CFP2_BEGIN_MASK) << CFP2_BEGIN_OFFSET));
 
 	/* Pack the rest of the CSP header in the first 32-bit of data */
-	((uint32_t *)frame_buf)[0] = (((packet->id.src & CFP2_SRC_MASK) << CFP2_SRC_OFFSET) |
-	                              ((packet->id.dport & CFP2_DPORT_MASK) << CFP2_DPORT_OFFSET) |
-								  ((packet->id.sport & CFP2_SPORT_MASK) << CFP2_SPORT_OFFSET) |
-								  ((packet->id.flags & CFP2_FLAGS_MASK) << CFP2_FLAGS_OFFSET));
+	uint32_t * header_extension = (uint32_t *) frame_buf;
+
+	*header_extension = (((packet->id.src & CFP2_SRC_MASK) << CFP2_SRC_OFFSET) |
+	                     ((packet->id.dport & CFP2_DPORT_MASK) << CFP2_DPORT_OFFSET) |
+	                     ((packet->id.sport & CFP2_SPORT_MASK) << CFP2_SPORT_OFFSET) |
+	                     ((packet->id.flags & CFP2_FLAGS_MASK) << CFP2_FLAGS_OFFSET));
+
+	/* Convert to network byte order */
+	*header_extension = csp_hton32(*header_extension);
 
 	frame_buf_inp += 4;
 	frame_buf_avail -= 4;
