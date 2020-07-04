@@ -203,11 +203,13 @@ int csp_id_strip(csp_packet_t * packet) {
 	}
 }
 
-void csp_id_setup_rx(csp_packet_t * packet) {
+int csp_id_setup_rx(csp_packet_t * packet) {
 	if (csp_conf.version == 2) {
 		csp_id2_setup_rx(packet);
+		return CSP_ID2_HEADER_SIZE;
 	} else {
 		csp_id1_setup_rx(packet);
+		return CSP_ID1_HEADER_SIZE;
 	}
 }
 

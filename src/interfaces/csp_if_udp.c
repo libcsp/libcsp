@@ -71,21 +71,20 @@ CSP_DEFINE_TASK(csp_if_udp_rx_task) {
 
 		while(1) {
 
-			char buffer[iface->mtu + sizeof(csp_id_t)];
-			unsigned int peer_addr_len = sizeof(peer_addr);
-			int received_len = recvfrom(sockfd, (char *)buffer, iface->mtu + sizeof(csp_id_t), MSG_WAITALL, (struct sockaddr *) &peer_addr, &peer_addr_len);
-
-			csp_log_info("UDP peer address: %s", inet_ntoa(peer_addr.sin_addr));
-
 			csp_packet_t * packet = csp_buffer_get(iface->mtu);
-			if (packet == NULL)
+			if (packet == NULL) {
+				csp_sleep_ms(10);
 				continue;
+			}
 
 			/* Setup RX frane to point to ID */
-			csp_id_setup_rx(packet);
+			int header_size = csp_id_setup_rx(packet);
 
-			memcpy(packet->frame_begin, buffer, received_len);
+			unsigned int peer_addr_len = sizeof(peer_addr);
+			int received_len = recvfrom(sockfd, (char *) packet->frame_begin, iface->mtu + header_size, MSG_WAITALL, (struct sockaddr *) &peer_addr, &peer_addr_len);
 			packet->frame_length = received_len;
+
+			csp_log_info("UDP peer address: %s", inet_ntoa(peer_addr.sin_addr));
 
 			/* Parse the frame and strip the ID field */
 			if (csp_id_strip(packet) != 0) {
