@@ -104,9 +104,68 @@ extern "C" {
 /** @} */
 
 /** Mask to uniquely separate connections */
-#define CFP_ID_CONN_MASK	(CFP_MAKE_SRC((uint32_t)(1 << CFP_HOST_SIZE) - 1) | \
-				 CFP_MAKE_DST((uint32_t)(1 << CFP_HOST_SIZE) - 1) | \
-				 CFP_MAKE_ID((uint32_t)(1 << CFP_ID_SIZE) - 1))
+#define CFP_ID_CONN_MASK   (CFP_MAKE_SRC((uint32_t)(1 << CFP_HOST_SIZE) - 1) | \
+             CFP_MAKE_DST((uint32_t)(1 << CFP_HOST_SIZE) - 1) | \
+             CFP_MAKE_ID((uint32_t)(1 << CFP_ID_SIZE) - 1))
+
+
+/**
+ * CFP 2.0
+ *
+ * PRIO: 2
+ * DST: 14
+ * Sender id: 6
+ * Sender counter: 2
+ * Fragment counter: 3
+ * Begin: 1
+ * End: 1
+ */
+
+#define CFP2_PRIO_MASK 0x3
+#define CFP2_PRIO_OFFSET 27
+
+#define CFP2_DST_SIZE 14
+#define CFP2_DST_MASK 0x3FF
+#define CFP2_DST_OFFSET 13
+
+#define CFP2_SENDER_SIZE 6
+#define CFP2_SENDER_MASK 0x1F
+#define CFP2_SENDER_OFFSET 7
+
+#define CFP2_SC_MASK 0x3
+#define CFP2_SC_OFFSET 5
+
+#define CFP2_FC_MASK 0x7
+#define CFP2_FC_OFFSET 2
+
+#define CFP2_BEGIN_MASK 0x1
+#define CFP2_BEGIN_OFFSET 1
+
+#define CFP2_END_MASK 0x1
+#define CFP2_END_OFFSET 0
+
+#define CFP2_SRC_SIZE 14
+#define CFP2_SRC_MASK 0x3FFF
+#define CFP2_SRC_OFFSET 18
+
+#define CFP2_DPORT_MASK 0x3F
+#define CFP2_DPORT_OFFSET 12
+
+#define CFP2_SPORT_MASK 0x3F
+#define CFP2_SPORT_OFFSET 6
+
+#define CFP2_FLAGS_MASK 0x3F
+#define CFP2_FLAGS_OFFSET 0
+
+
+/**
+ * Fields used to uniquely define a CSP packet within each fragment header
+ */
+#define CFP2_ID_CONN_MASK ((CFP2_DST_MASK << CFP2_DST_OFFSET) | \
+                           (CFP2_SENDER_MASK << CFP2_SENDER_OFFSET) | \
+                     (CFP2_PRIO_MASK << CFP2_PRIO_OFFSET) | \
+                           (CFP2_SC_MASK << CFP2_SC_OFFSET))
+
 
 /**
    Default interface name.
