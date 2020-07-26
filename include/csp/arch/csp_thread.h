@@ -90,6 +90,9 @@ typedef csp_thread_return_t (* csp_thread_func_t)(void *) __attribute__((stdcall
 */
 #if (CSP_FREERTOS)
 
+#include <FreeRTOS.h>
+#include <task.h>
+
 typedef void * csp_thread_handle_t;
 typedef void csp_thread_return_t;
 typedef csp_thread_return_t (* csp_thread_func_t)(void *);

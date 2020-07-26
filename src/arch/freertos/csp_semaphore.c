@@ -20,6 +20,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <csp/arch/csp_semaphore.h>
 #include <csp/csp_debug.h>
+#include <FreeRTOS.h>
+#include <semphr.h>
 
 int csp_mutex_create(csp_mutex_t * mutex) {
 	*mutex = xSemaphoreCreateMutex();
