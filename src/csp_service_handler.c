@@ -260,24 +260,22 @@ void csp_service_handler(csp_packet_t * packet) {
 		while(i < pslen) {
 
 			/* Allocate packet buffer, if need be */
-			if (packet == NULL)
-				packet = csp_buffer_get(CSP_RPS_MTU);
-			if (packet == NULL)
+			csp_packet_t *rpacket = csp_buffer_get(CSP_RPS_MTU);
+			if (rpacket == NULL)
 				break;
 
 			/* Calculate length, either full MTU or the remainder */
-			packet->length = (pslen - i > CSP_RPS_MTU) ? CSP_RPS_MTU : (pslen - i);
+			rpacket->length = (pslen - i > CSP_RPS_MTU) ? CSP_RPS_MTU : (pslen - i);
 
 			/* Send out the data */
-			memcpy(packet->data, &pslist[i], packet->length);
-			i += packet->length;
-			if (csp_sendto_reply(packet, packet, CSP_O_SAME, 0) != CSP_ERR_NONE)
-				csp_buffer_free(packet);
+			memcpy(rpacket->data, &pslist[i], rpacket->length);
+			i += rpacket->length;
+			if (csp_sendto_reply(packet, rpacket, CSP_O_SAME, 0) != CSP_ERR_NONE)
+				csp_buffer_free(rpacket);
 
 			/* Clear the packet reference when sent */
-			packet = NULL;
-
 		}
+		csp_buffer_free(packet);
 		csp_free(pslist);
 		break;
 	}
