@@ -106,7 +106,7 @@ const csp_conf_t * csp_get_conf(void);
    Get the system's own address.
    @return system's own address
 */
-uint8_t csp_get_address(void);
+uint16_t csp_get_address(void);
 
 
 /**
