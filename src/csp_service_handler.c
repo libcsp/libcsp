@@ -277,6 +277,7 @@ void csp_service_handler(csp_packet_t * packet) {
 		}
 		csp_buffer_free(packet);
 		csp_free(pslist);
+		packet = NULL;
 		break;
 	}
 

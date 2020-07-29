@@ -125,7 +125,7 @@ extern "C" {
 #define CFP2_PRIO_OFFSET 27
 
 #define CFP2_DST_SIZE 14
-#define CFP2_DST_MASK 0x3FF
+#define CFP2_DST_MASK 0x3FFF
 #define CFP2_DST_OFFSET 13
 
 #define CFP2_SENDER_SIZE 6
