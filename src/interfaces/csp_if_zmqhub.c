@@ -95,8 +95,6 @@ CSP_DEFINE_TASK(csp_zmqhub_task) {
 			continue;
 		}
 
-		csp_log_info("RX %s: %d", drv->iface.name, datalen);
-
 		// Create new csp packet
 		packet = csp_buffer_get(datalen);
 		if (packet == NULL) {
@@ -108,7 +106,7 @@ CSP_DEFINE_TASK(csp_zmqhub_task) {
 		// Copy the data from zmq to csp
 		const uint8_t * rx_data = zmq_msg_data(&msg);
 
-		// int header_size = csp_id_setup_rx(packet);
+		csp_id_setup_rx(packet);
 
 		memcpy(packet->frame_begin, rx_data, datalen);
 		packet->frame_length = datalen;
