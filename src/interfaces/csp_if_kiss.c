@@ -98,7 +98,7 @@ void csp_kiss_rx(csp_iface_t * iface, const uint8_t * buf, size_t len, void * px
 		uint8_t inputbyte = *buf++;
 
 		/* If packet was too long */
-		if (ifdata->rx_length > ifdata->max_rx_length) {
+		if (ifdata->rx_length >= ifdata->max_rx_length) {
 			//csp_log_warn("KISS RX overflow");
 			iface->rx_error++;
 			ifdata->rx_mode = KISS_MODE_NOT_STARTED;
@@ -230,7 +230,7 @@ int csp_kiss_add_interface(csp_iface_t *iface) {
 		return CSP_ERR_NOMEM;
 	}
 
-	ifdata->max_rx_length = csp_buffer_size();
+	ifdata->max_rx_length = csp_buffer_data_size();
 	ifdata->rx_length = 0;
 	ifdata->rx_mode = KISS_MODE_NOT_STARTED;
 	ifdata->rx_first = false;
