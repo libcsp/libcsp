@@ -67,7 +67,7 @@ typedef struct csp_conf_s {
    Get default CSP configuration.
 */
 static inline void csp_conf_get_defaults(csp_conf_t * conf) {
-	conf->version = 2;
+	conf->version = CSP_VERSION;
 	conf->address = 1;
 	conf->hostname = "hostname";
 	conf->model = "model";
