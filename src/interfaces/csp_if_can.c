@@ -63,7 +63,7 @@ enum cfp_frame_t {
 	CFP_MORE = 1
 };
 
-int csp_can1_rx(csp_iface_t *iface, uint32_t id, const uint8_t *data, uint8_t dlc, CSP_BASE_TYPE *task_woken)
+int csp_can1_rx(csp_iface_t *iface, uint32_t id, const uint8_t *data, uint8_t dlc, int *task_woken)
 {
 	/* Test: random packet loss */
     if (0) {
@@ -294,7 +294,7 @@ int csp_can1_tx(const csp_route_t * ifroute, csp_packet_t *packet) {
 	return CSP_ERR_NONE;
 }
 
-int csp_can2_rx(csp_iface_t *iface, uint32_t id, const uint8_t *data, uint8_t dlc, CSP_BASE_TYPE *task_woken) {
+int csp_can2_rx(csp_iface_t *iface, uint32_t id, const uint8_t *data, uint8_t dlc, int *task_woken) {
 
 	/* Bind incoming frame to a packet buffer */
 	csp_can_pbuf_element_t * buf = csp_can_pbuf_find(id, CFP2_ID_CONN_MASK, task_woken);
@@ -537,7 +537,7 @@ int csp_can_add_interface(csp_iface_t * iface) {
 	return csp_iflist_add(iface);
 }
 
-int csp_can_rx(csp_iface_t *iface, uint32_t id, const uint8_t *data, uint8_t dlc, CSP_BASE_TYPE *task_woken) {
+int csp_can_rx(csp_iface_t *iface, uint32_t id, const uint8_t *data, uint8_t dlc, int *task_woken) {
 	if (csp_conf.version == 1) {
 		return csp_can1_rx(iface, id, data, dlc, task_woken);
 	} else {

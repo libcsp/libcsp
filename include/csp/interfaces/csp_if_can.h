@@ -229,7 +229,7 @@ int csp_can_tx(const csp_route_t * ifroute, csp_packet_t *packet);
    @param[out] pxTaskWoken Valid reference if called from ISR, otherwise NULL!
    @return #CSP_ERR_NONE on success, otherwise an error code.
 */
-int csp_can_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t dlc, long *pxTaskWoken);
+int csp_can_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t dlc, int *pxTaskWoken);
 
 #ifdef __cplusplus
 }
