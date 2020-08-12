@@ -39,7 +39,7 @@ int csp_queue_enqueue(csp_queue_handle_t handle, const void * value, uint32_t ti
 }
 
 int csp_queue_enqueue_isr(csp_queue_handle_t handle, const void * value, int * task_woken) {
-	return xQueueSendToBackFromISR(handle, value, task_woken);
+	return xQueueSendToBackFromISR(handle, value, (portBASE_TYPE *) task_woken);
 }
 
 int csp_queue_dequeue(csp_queue_handle_t handle, void * buf, uint32_t timeout) {
@@ -49,7 +49,7 @@ int csp_queue_dequeue(csp_queue_handle_t handle, void * buf, uint32_t timeout) {
 }
 
 int csp_queue_dequeue_isr(csp_queue_handle_t handle, void * buf, int * task_woken) {
-	return xQueueReceiveFromISR(handle, buf, task_woken);
+	return xQueueReceiveFromISR(handle, buf, (portBASE_TYPE *) task_woken);
 }
 
 int csp_queue_size(csp_queue_handle_t handle) {

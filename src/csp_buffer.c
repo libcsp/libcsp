@@ -149,7 +149,7 @@ void csp_buffer_free_isr(void *packet) {
 		return;
 	}
 
-	long task_woken = 0;
+	int task_woken = 0;
 	csp_queue_enqueue_isr(csp_buffers, &buf, &task_woken);
 
 }
