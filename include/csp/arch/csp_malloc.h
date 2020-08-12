@@ -27,7 +27,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
    Memory interface.
 */
 
-#include <csp/csp_platform.h>
+#include <stddef.h>
 
 #ifdef __cplusplus
 extern "C" {

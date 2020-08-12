@@ -58,7 +58,7 @@ static uint32_t csp_rdp_ack_timeout = 1000 / 4;
 static uint32_t csp_rdp_ack_delay_count = 4 / 2;
 
 /* Used for queue calls */
-static CSP_BASE_TYPE pdTrue = 1;
+static int pdTrue = 1;
 
 typedef struct __attribute__((__packed__)) {
 	union __attribute__((__packed__)) {

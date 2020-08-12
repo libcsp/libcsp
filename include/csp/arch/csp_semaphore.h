@@ -21,13 +21,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef _CSP_SEMAPHORE_H_
 #define _CSP_SEMAPHORE_H_
 
+#include <csp/csp_types.h>
 /**
    @file
 
    Semaphore and Mutex interface.
 */
-
-#include <csp/csp_platform.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -195,7 +194,7 @@ int csp_bin_sem_post(csp_bin_sem_handle_t * sem);
    @param[out] pxTaskWoken Valid reference if called from ISR, otherwise NULL!
    @return #CSP_MUTEX_OK on success, otherwise #CSP_MUTEX_ERROR*
 */
-int csp_bin_sem_post_isr(csp_bin_sem_handle_t * sem, CSP_BASE_TYPE * pxTaskWoken);
+int csp_bin_sem_post_isr(csp_bin_sem_handle_t * sem, int * pxTaskWoken);
 
 #ifdef __cplusplus
 }
