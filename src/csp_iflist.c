@@ -21,7 +21,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/csp_iflist.h>
 
 #include <stdio.h>
-#include <string.h>
+#include <strings.h>
 
 #include <csp/csp_debug.h>
 

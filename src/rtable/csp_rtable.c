@@ -28,6 +28,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "../csp_init.h"
 
+#include <strings.h>
+
 static int csp_rtable_parse(const char * rtable, int dry_run) {
 
 	int valid_entries = 0;
@@ -164,6 +166,7 @@ void csp_rtable_clear(void) {
 
 static bool csp_rtable_print_route(void * ctx, uint8_t address, uint8_t mask, const csp_route_t * route)
 {
+	(void)ctx;
     if (route->via == CSP_NO_VIA_ADDRESS) {
         printf("%u/%u %s\r\n", address, mask, route->iface->name);
     } else {

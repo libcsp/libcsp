@@ -154,7 +154,7 @@ static inline int csp_route_set(uint8_t dest_address, csp_iface_t *ifc, uint8_t 
    Print routing table.
    @deprecated Use csp_rtable_print() instead.
 */
-static inline void csp_route_print_table() {
+static inline void csp_route_print_table(void) {
     csp_rtable_print();
 }
 
