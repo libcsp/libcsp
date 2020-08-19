@@ -33,6 +33,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "csp/csp_debug.h"
 #include "errno.h"
 
+#include "string.h"
+
 static char thread_stack[THREAD_STACKSIZE_MAIN];
 
 //This is a standard CAN transceiver and will work with most models
@@ -46,6 +48,7 @@ typedef struct {
 	csp_iface_t iface;
 	csp_can_interface_data_t ifdata;
 	kernel_pid_t rx_thread;
+	int ifnum;
 } can_context_t;
 
 static int csp_can_tx_frame(void * driver_data, uint32_t id, const uint8_t * data, uint8_t dlc)
@@ -62,7 +65,7 @@ static int csp_can_tx_frame(void * driver_data, uint32_t id, const uint8_t * dat
 
 	can_context_t *ctx = driver_data;
 	conn_can_raw_t conn;
-    conn_can_raw_create(&conn, NULL, 0, 0, 0);
+    conn_can_raw_create(&conn, NULL, 0, ctx->ifnum, 0);
     int ret = conn_can_raw_send(&conn, &frame, 0);
     if (ret < 0) {
         csp_log_warn("%s[%s]: write() failed, errno %d", __FUNCTION__, ctx->name, ret);
@@ -83,7 +86,7 @@ static void *socketcan_rx_thread(void * arg)
 	struct can_filter filters[1];
 	filters[0].can_id = 0;
 	filters[0].can_mask = 0;
-    conn_can_raw_create(&conn, filters, 1, 0, 0);
+    conn_can_raw_create(&conn, filters, 1, ctx->ifnum, 0);
 
 	while (1) {
 		int nbytes = conn_can_raw_recv(&conn, &frame, 0);
@@ -95,6 +98,26 @@ static void *socketcan_rx_thread(void * arg)
 			csp_log_warn("%s[%s]: Read incomplete CAN frame, size: %d, expected: %u bytes", __FUNCTION__, ctx->name, nbytes, (unsigned int) sizeof(frame));
 			continue;
 		}
+		
+		if (nbytes != sizeof(frame)) {
+			csp_log_warn("%s[%s]: Read incomplete CAN frame, size: %d, expected: %u bytes", __FUNCTION__, ctx->name, nbytes, (unsigned int) sizeof(frame));
+			continue;
+		}
+
+		/* Drop frames with standard id (CSP uses extended) */
+		if (!(frame.can_id & CAN_EFF_FLAG)) {
+			continue;
+		}
+
+		/* Drop error and remote frames */
+		if (frame.can_id & (CAN_ERR_FLAG | CAN_RTR_FLAG)) {
+			csp_log_warn("%s[%s]: discarding ERR/RTR/SFF frame", __FUNCTION__, ctx->name);
+			continue;
+		}
+
+		/* Strip flags */
+		frame.can_id &= CAN_EFF_MASK;
+
 		//Call RX callbacsp_can_rx_frameck 
 		csp_can_rx(&ctx->iface, frame.can_id, frame.data, frame.can_dlc, NULL);
 	}
@@ -122,6 +145,17 @@ int csp_can_socketcan_open_and_add_interface(const char * device, const char * i
 	can_context_t * ctx = calloc(1, sizeof(*ctx));
 	if (ctx == NULL) {
 		return CSP_ERR_NOMEM;
+	}
+
+	if(strcmp(device, "can0") == 0) {
+		ctx->ifnum = 0;
+	} else if(strcmp(device, "can1") == 0) {
+		ctx->ifnum = 1;
+	} else if(strcmp(device, "can2") == 0) {
+		ctx->ifnum = 2;
+	} else {
+		csp_log_error("%s[%s]: unknow device: %s   must be can0, can1, or can2", __FUNCTION__, ifname, device);
+        return CSP_ERR_DRIVER;
 	}
 
 	strncpy(ctx->name, ifname, sizeof(ctx->name) - 1);

@@ -57,7 +57,7 @@ def options(ctx):
 
     # Drivers and interfaces (requires external dependencies)
     gr.add_option('--enable-if-zmqhub', action='store_true', help='Enable ZMQ interface')
-    gr.add_option('--with-driver-can', default=None, metavar='DRIVER', help='Enable can driver [socket, riotos]')
+    gr.add_option('--with-driver-can', default=None, metavar='DRIVER', help='Enable can driver [linux, riotos]')
     gr.add_option('--with-driver-usart', default=None, metavar='DRIVER',
                   help='Build USART driver. [windows, linux, None]')
 
