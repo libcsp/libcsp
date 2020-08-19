@@ -57,7 +57,7 @@ def options(ctx):
 
     # Drivers and interfaces (requires external dependencies)
     gr.add_option('--enable-if-zmqhub', action='store_true', help='Enable ZMQ interface')
-    gr.add_option('--enable-can-socketcan', action='store_true', help='Enable Linux socketcan driver')
+    gr.add_option('--with-driver-can', default=None, metavar='DRIVER', help='Enable can driver [socket, riotos]')
     gr.add_option('--with-driver-usart', default=None, metavar='DRIVER',
                   help='Build USART driver. [windows, linux, None]')
 
@@ -135,10 +135,11 @@ def configure(ctx):
                                         'src/rtable/csp_rtable_{0}.c'.format(ctx.options.with_rtable)])
 
     # Add socketcan
-    if ctx.options.enable_can_socketcan:
-        ctx.env.append_unique('FILES_CSP', 'src/drivers/can/can_socketcan.c')
-        ctx.check_cfg(package='libsocketcan', args='--cflags --libs', define_name='CSP_HAVE_LIBSOCKETCAN')
-        ctx.env.append_unique('LIBS', ctx.env.LIB_LIBSOCKETCAN)
+    if ctx.options.with_driver_can:
+        ctx.env.append_unique('FILES_CSP', 'src/drivers/can/can_{0}.c'.format(ctx.options.with_driver_can))
+        if ctx.options.with_driver_can == 'socket':
+            ctx.check_cfg(package='libsocketcan', args='--cflags --libs', define_name='CSP_HAVE_LIBSOCKETCAN')
+            ctx.env.append_unique('LIBS', ctx.env.LIB_LIBSOCKETCAN)
 
     # Add USART driver
     if ctx.options.with_driver_usart:

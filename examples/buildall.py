@@ -27,7 +27,7 @@ waf = ['./waf']
 if os in ['posix']:
     options += [
         '--enable-python3-bindings',
-        '--enable-can-socketcan',
+        '--with-driver-can=linux',
         '--with-driver-usart=linux',
         '--enable-if-zmqhub',
         '--enable-shlib'
@@ -43,6 +43,11 @@ if os in ['windows']:
         '--with-driver-usart=windows',
     ]
     waf = ['python', '-x', 'waf']
+
+if os in ['riotos']:
+    options += [
+        '--with-driver-can=riotos',
+    ]
 
 # Build
 waf += ['distclean', 'configure', 'build']
