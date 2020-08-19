@@ -238,6 +238,8 @@ static int csp_rdp_send_eack(csp_conn_t * conn) {
 	int i, count;
 	csp_packet_t * packet;
 	count = csp_queue_size(conn->rdp.rx_queue);
+	unsigned int space_available =  100 - (packet_eack->length + sizeof(rdp_header_t));
+
 	for (i = 0; i < count; i++) {
 
 		if (csp_queue_dequeue_isr(conn->rdp.rx_queue, &packet, &pdTrue) != CSP_QUEUE_OK) {
@@ -247,9 +249,14 @@ static int csp_rdp_send_eack(csp_conn_t * conn) {
 
 		/* Add seq nr to EACK packet */
 		rdp_header_t * header = csp_rdp_header_ref(packet);
-		packet_eack->data16[packet_eack->length/sizeof(uint16_t)] = csp_hton16(header->seq_nr);
-		packet_eack->length += sizeof(uint16_t);
-		csp_log_protocol("RDP %p: Added EACK nr %u", conn, header->seq_nr);
+		if (space_available >= sizeof(uint16_t)) {
+			packet_eack->data16[packet_eack->length/sizeof(uint16_t)] = csp_hton16(header->seq_nr);
+			packet_eack->length += sizeof(uint16_t);
+			space_available -= sizeof(uint16_t);
+			csp_log_protocol("RDP %p: Added EACK nr %u", conn, header->seq_nr);
+		} else {
+			csp_log_protocol("RDP %p: Skipping EACK nr %u", conn, header->seq_nr);
+		}
 
 		/* Requeue */
 		csp_queue_enqueue_isr(conn->rdp.rx_queue, &packet, &pdTrue);
