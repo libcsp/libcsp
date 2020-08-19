@@ -107,6 +107,20 @@ typedef xSemaphoreHandle csp_mutex_t;
 
 #endif // CSP_FREERTOS
 
+/* RIOTOS interface */
+#if (CSP_RIOTOS)
+
+#include "sema.h"
+#include "mutex.h"
+
+#define CSP_SEMAPHORE_OK 	 SEMA_OK
+#define CSP_SEMAPHORE_ERROR SEMA_DESTROY
+
+typedef sema_t csp_bin_sem_handle_t;
+typedef mutex_t csp_mutex_t;
+
+#endif // CSP_RIOTOS
+
 /**
    Mutex call OK.
 

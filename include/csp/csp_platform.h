@@ -54,8 +54,15 @@ extern "C" {
 	#define CSP_INIT_CRITICAL(lock) ({CSP_ERR_NONE;})
 	#define CSP_ENTER_CRITICAL(lock) do { portENTER_CRITICAL(); } while (0)
 	#define CSP_EXIT_CRITICAL(lock) do { portEXIT_CRITICAL(); } while (0)
+#elif (CSP_RIOTOS)
+	#define CSP_BASE_TYPE uint32_t
+	#define CSP_MAX_TIMEOUT (UINT32_MAX)
+	#define CSP_DEFINE_CRITICAL(lock) static csp_bin_sem_handle_t lock
+	#define CSP_INIT_CRITICAL(lock) ({(csp_bin_sem_create(&lock) == CSP_SEMAPHORE_OK) ? CSP_ERR_NONE : CSP_ERR_NOMEM;})
+	#define CSP_ENTER_CRITICAL(lock) do { csp_bin_sem_wait(&lock, CSP_MAX_DELAY); } while(0)
+	#define CSP_EXIT_CRITICAL(lock) do { csp_bin_sem_post(&lock); } while(0)
 #else
-	#error "OS must be either CSP_POSIX, CSP_MACOSX, CSP_FREERTOS or CSP_WINDOWS"
+	#error "OS must be either CSP_POSIX, CSP_MACOSX, CSP_FREERTOS, CSP_RIOTOS or CSP_WINDOWS"
 #endif
 
 /** Legacy definition for #CSP_MAX_TIMEOUT. */

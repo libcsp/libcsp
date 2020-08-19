@@ -102,6 +102,23 @@ typedef csp_thread_return_t (* csp_thread_func_t)(void *);
 
 #endif // CSP_FREERTOS
 
+/*
+  RIOTOS interface
+*/
+#if (CSP_RIOTOS)
+
+#include "thread.h"
+
+
+typedef kernel_pid_t csp_thread_handle_t;
+typedef void *csp_thread_return_t;
+typedef thread_task_func_t csp_thread_func_t;
+
+#define CSP_DEFINE_TASK(task_name) csp_thread_return_t task_name(void *arg)
+#define CSP_TASK_RETURN NULL
+
+#endif // CSP_RIOTOS
+
 /**
    Create thread (task).
 

@@ -24,7 +24,7 @@ import os
 APPNAME = 'libcsp'
 VERSION = '1.6'
 
-valid_os = ['posix', 'windows', 'freertos', 'macosx']
+valid_os = ['posix', 'windows', 'freertos', 'macosx', 'riotos']
 valid_loglevel = ['error', 'warn', 'info', 'debug']
 
 
@@ -117,6 +117,7 @@ def configure(ctx):
     elif ctx.options.with_os == 'windows':
         ctx.env.append_unique('CFLAGS', ['-D_WIN32_WINNT=0x0600'])
 
+    ctx.define_cond('CSP_RIOTOS', ctx.options.with_os == 'riotos')
     ctx.define_cond('CSP_FREERTOS', ctx.options.with_os == 'freertos')
     ctx.define_cond('CSP_POSIX', ctx.options.with_os == 'posix')
     ctx.define_cond('CSP_WINDOWS', ctx.options.with_os == 'windows')
