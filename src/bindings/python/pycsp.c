@@ -113,7 +113,7 @@ static PyObject* pycsp_service_handler(PyObject *self, PyObject *args) {
         return NULL;
     }
 
-    csp_service_handler(conn, packet);
+    csp_service_handler(packet);
     PyCapsule_SetPointer(packet_capsule, &CSP_POINTER_HAS_BEEN_FREED);
     Py_RETURN_NONE;
 }

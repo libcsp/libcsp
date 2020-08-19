@@ -44,5 +44,5 @@ void csp_thread_exit(void) {
 
 void csp_sleep_ms(unsigned int time_ms) {
 
-	vTaskDelay(time_ms / portTICK_RATE_MS);
+	vTaskDelay(time_ms / portTICK_PERIOD_MS);
 }

@@ -52,28 +52,28 @@ csp_socket_t * csp_socket(uint32_t opts) {
 	/* Validate socket options */
 #if (CSP_USE_RDP == 0)
 	if (opts & CSP_SO_RDPREQ) {
-		csp_log_error("Attempt to create socket that requires RDP, but CSP was compiled without RDP support");
+		csp_log_error("No RDP support");
 		return NULL;
 	}
 #endif
 
 #if (CSP_USE_XTEA == 0)
 	if (opts & CSP_SO_XTEAREQ) {
-		csp_log_error("Attempt to create socket that requires XTEA, but CSP was compiled without XTEA support");
+		csp_log_error("No XTEA support");
 		return NULL;
 	}
 #endif
 
 #if (CSP_USE_HMAC == 0)
 	if (opts & CSP_SO_HMACREQ) {
-		csp_log_error("Attempt to create socket that requires HMAC, but CSP was compiled without HMAC support");
+		csp_log_error("No HMAC support");
 		return NULL;
 	} 
 #endif
 
 #if (CSP_USE_CRC32 == 0)
 	if (opts & CSP_SO_CRC32REQ) {
-		csp_log_error("Attempt to create socket that requires CRC32, but CSP was compiled without CRC32 support");
+		csp_log_error("No CRC32 support");
 		return NULL;
 	} 
 #endif
@@ -104,6 +104,11 @@ csp_socket_t * csp_socket(uint32_t opts) {
 
 	return sock;
 
+}
+
+void csp_socket_set_callback(csp_socket_t * socket, void (*callback)(csp_packet_t * packet)) {
+	socket->opts |= (CSP_SO_CONN_LESS | CSP_SO_CONN_LESS_CALLBACK);
+	socket->socket = callback;
 }
 
 csp_conn_t * csp_accept(csp_socket_t * sock, uint32_t timeout) {
@@ -205,7 +210,7 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, const csp_route_t * i
 				goto tx_err;
 			}
 #else
-			csp_log_warn("Attempt to send packet with HMAC, but CSP was compiled without HMAC support. Discarding packet");
+			csp_log_warn("No HMAC Discarding packet");
 			goto tx_err;
 #endif
 		}
@@ -220,7 +225,7 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, const csp_route_t * i
 				goto tx_err;
 			}
 #else
-			csp_log_warn("Attempt to send packet with CRC32, but CSP was compiled without CRC32 support. Sending without CRC32r");
+			csp_log_warn("Sending without CRC32");
 			idout.flags &= ~(CSP_FCRC32);
 #endif
 		}
@@ -234,7 +239,7 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, const csp_route_t * i
 				goto tx_err;
 			}
 #else
-			csp_log_warn("Attempt to send XTEA encrypted packet, but CSP was compiled without XTEA support. Discarding packet");
+			csp_log_warn("No XTEA Discarding packet");
 			goto tx_err;
 #endif
 		}
@@ -353,10 +358,11 @@ csp_packet_t * csp_recvfrom(csp_socket_t * socket, uint32_t timeout) {
 
 int csp_sendto(uint8_t prio, uint8_t dest, uint8_t dport, uint8_t src_port, uint32_t opts, csp_packet_t * packet, uint32_t timeout) {
 
-	packet->id.flags = 0;
+	if (!(opts & CSP_O_SAME))
+		packet->id.flags = 0;
 
 	if (opts & CSP_O_RDP) {
-		csp_log_error("Attempt to create RDP packet on connection-less socket");
+		csp_log_error("RDP packet on connection-less socket");
 		return CSP_ERR_INVAL;
 	}
 
@@ -364,7 +370,7 @@ int csp_sendto(uint8_t prio, uint8_t dest, uint8_t dport, uint8_t src_port, uint
 #if (CSP_USE_HMAC)
 		packet->id.flags |= CSP_FHMAC;
 #else
-		csp_log_error("Attempt to create HMAC authenticated packet, but CSP was compiled without HMAC support");
+		csp_log_error("No HMAC support");
 		return CSP_ERR_NOTSUP;
 #endif
 	}
@@ -373,7 +379,7 @@ int csp_sendto(uint8_t prio, uint8_t dest, uint8_t dport, uint8_t src_port, uint
 #if (CSP_USE_XTEA)
 		packet->id.flags |= CSP_FXTEA;
 #else
-		csp_log_error("Attempt to create XTEA encrypted packet, but CSP was compiled without XTEA support");
+		csp_log_error("No XTEA support");
 		return CSP_ERR_NOTSUP;
 #endif
 	}
@@ -382,7 +388,7 @@ int csp_sendto(uint8_t prio, uint8_t dest, uint8_t dport, uint8_t src_port, uint
 #if (CSP_USE_CRC32)
 		packet->id.flags |= CSP_FCRC32;
 #else
-		csp_log_error("Attempt to create CRC32 validated packet, but CSP was compiled without CRC32 support");
+		csp_log_error("No CRC32 support");
 		return CSP_ERR_NOTSUP;
 #endif
 	}
@@ -403,6 +409,10 @@ int csp_sendto(uint8_t prio, uint8_t dest, uint8_t dport, uint8_t src_port, uint
 int csp_sendto_reply(const csp_packet_t * request_packet, csp_packet_t * reply_packet, uint32_t opts, uint32_t timeout) {
 	if (request_packet == NULL)
 		return CSP_ERR_INVAL;
+
+	if (opts & CSP_O_SAME) {
+		reply_packet->id.flags = request_packet->id.flags;
+	}
 
 	return csp_sendto(request_packet->id.pri, request_packet->id.src, request_packet->id.sport, request_packet->id.dport, opts, reply_packet, timeout);
 }

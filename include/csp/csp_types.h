@@ -30,7 +30,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <stddef.h>
 #include <stdbool.h>
 
-#include <csp/csp_autoconfig.h> // -> CSP_X defines (compile configuration)
+#include <csp_autoconfig.h> // -> CSP_X defines (compile configuration)
 #include <csp/csp_error.h>
 
 #ifdef __cplusplus
@@ -178,12 +178,12 @@ typedef union {
 #define CSP_SO_CRC32PROHIB		0x0080 //!< Prohibit CRC32
 #define CSP_SO_CONN_LESS		0x0100 //!< Enable Connection Less mode
 #define CSP_SO_INTERNAL_LISTEN          0x1000 //!< Internal flag: listen called on socket
+#define CSP_SO_CONN_LESS_CALLBACK 	0x0200 // Enable Callbacks directly in router task
+#define CSP_SO_SAME			0x8000 // Copy opts from incoming packet only apllies to csp_sendto_reply()
+
 /**@}*/
 
-/**
-   @defgroup CSP_CONNECTION_OPTIONS CSP Connect options.
-   @{
-*/
+/** CSP Connect options */
 #define CSP_O_NONE			CSP_SO_NONE        //!< No connection options
 #define CSP_O_RDP			CSP_SO_RDPREQ      //!< Enable RDP
 #define CSP_O_NORDP			CSP_SO_RDPPROHIB   //!< Disable RDP
@@ -193,7 +193,7 @@ typedef union {
 #define CSP_O_NOXTEA			CSP_SO_XTEAPROHIB  //!< Disable XTEA
 #define CSP_O_CRC32			CSP_SO_CRC32REQ    //!< Enable CRC32
 #define CSP_O_NOCRC32			CSP_SO_CRC32PROHIB //!< Disable CRC32
-/**@}*/
+#define CSP_O_SAME			CSP_SO_SAME
 
 /**
    Padding size in #csp_packet_t.

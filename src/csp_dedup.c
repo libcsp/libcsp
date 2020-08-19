@@ -29,7 +29,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #define CSP_DEDUP_COUNT		16
 
 /* Only consider packet a duplicate if received under CSP_DEDUP_WINDOW_MS ago */
-#define CSP_DEDUP_WINDOW_MS	1000
+#define CSP_DEDUP_WINDOW_MS	100
 
 /* Store packet CRC's in a ringbuffer */
 static uint32_t csp_dedup_array[CSP_DEDUP_COUNT] = {};

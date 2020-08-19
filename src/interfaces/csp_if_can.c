@@ -109,6 +109,13 @@ int csp_can_rx(csp_iface_t *iface, uint32_t id, const uint8_t *data, uint8_t dlc
 		memcpy(&(buf->packet->length), data + sizeof(csp_id_t), sizeof(buf->packet->length));
 		buf->packet->length = csp_ntoh16(buf->packet->length);
 
+		/* Check if frame exceeds MTU */
+		if (buf->packet->length > iface->mtu) {
+			iface->rx_error++;
+			csp_can_pbuf_free(buf, task_woken);
+			break;
+		}
+
 		/* Check length against max */
 		if ((buf->packet->length > MAX_CAN_DATA_SIZE) || (buf->packet->length > csp_buffer_data_size())) {
 			iface->rx_error++;

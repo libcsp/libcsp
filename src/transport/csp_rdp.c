@@ -668,7 +668,8 @@ bool csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 		csp_log_protocol("RDP %p: SYN-Received", conn);
 
 		/* Setup TX seq. */
-		conn->rdp.snd_iss = (uint16_t)rand();
+		unsigned int seed = csp_get_ms();
+		conn->rdp.snd_iss = (uint16_t)rand_r(&seed);
 		conn->rdp.snd_nxt = conn->rdp.snd_iss + 1;
 		conn->rdp.snd_una = conn->rdp.snd_iss;
 
@@ -930,7 +931,8 @@ retry:
 	}
 
 	/* Randomize ISS */
-	conn->rdp.snd_iss = (uint16_t)rand();
+	unsigned int seed = csp_get_ms();
+	conn->rdp.snd_iss = (uint16_t)rand_r(&seed);
 	conn->rdp.snd_nxt = conn->rdp.snd_iss + 1;
 	conn->rdp.snd_una = conn->rdp.snd_iss;
 

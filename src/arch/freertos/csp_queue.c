@@ -33,7 +33,7 @@ void csp_queue_remove(csp_queue_handle_t queue) {
 
 int csp_queue_enqueue(csp_queue_handle_t handle, const void * value, uint32_t timeout) {
 	if (timeout != CSP_MAX_TIMEOUT)
-		timeout = timeout / portTICK_RATE_MS;
+		timeout = timeout / portTICK_PERIOD_MS;
 	return xQueueSendToBack(handle, value, timeout);
 }
 
@@ -43,7 +43,7 @@ int csp_queue_enqueue_isr(csp_queue_handle_t handle, const void * value, CSP_BAS
 
 int csp_queue_dequeue(csp_queue_handle_t handle, void * buf, uint32_t timeout) {
 	if (timeout != CSP_MAX_TIMEOUT)
-		timeout = timeout / portTICK_RATE_MS;
+		timeout = timeout / portTICK_PERIOD_MS;
 	return xQueueReceive(handle, buf, timeout);
 }
 

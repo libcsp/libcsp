@@ -76,7 +76,7 @@ CSP_DEFINE_TASK(task_server) {
 
 			default:
 				/* Call the default CSP service handler, handle pings, buffer use, etc. */
-				csp_service_handler(conn, packet);
+				csp_service_handler(packet);
 				break;
 			}
 		}

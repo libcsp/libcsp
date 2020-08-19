@@ -30,16 +30,10 @@ void csp_hex_dump(const char *desc, void *addr, int len)
 
 	// Output description if given.
 	if (desc != NULL)
-		printf ("%s:\r\n", desc);
+		printf ("%s\n", desc);
 
-	if (len == 0) {
-		printf("  ZERO LENGTH\r\n");
+	if (!(len > 0))
 		return;
-	}
-	if (len < 0) {
-		printf("  NEGATIVE LENGTH: %i\r\n",len);
-		return;
-	}
 
 	// Process every byte in the data.
 	for (i = 0; i < len; i++) {
@@ -48,7 +42,7 @@ void csp_hex_dump(const char *desc, void *addr, int len)
 		if ((i % 16) == 0) {
 			// Just don't print ASCII for the zeroth line.
 			if (i != 0)
-				printf ("  %s\r\n", buff);
+				printf ("  %s\n", buff);
 
 			// Output the offset.
 			printf ("  %p ", ((uint8_t*)addr) + i);
@@ -72,5 +66,5 @@ void csp_hex_dump(const char *desc, void *addr, int len)
 	}
 
 	// And print the final ASCII bit.
-	printf ("  %s\r\n", buff);
+	printf ("  %s\n", buff);
 }
