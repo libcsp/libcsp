@@ -26,7 +26,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
    CSP.
 */
 
-#include <csp/csp_platform.h>
 #include <csp/csp_error.h>
 #include <csp/csp_debug.h>
 #include <csp/csp_buffer.h>
@@ -34,6 +33,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/csp_iflist.h>
 #include <csp/csp_sfp.h>
 #include <csp/csp_promisc.h>
+
+/** Max timeout */
+#define CSP_MAX_TIMEOUT (UINT32_MAX)
+#define CSP_MAX_DELAY CSP_MAX_TIMEOUT
+#define CSP_INFINITY CSP_MAX_TIMEOUT
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -45,7 +50,7 @@ extern "C" {
 */
 typedef struct csp_conf_s {
 
-	uint8_t address;		/**< CSP address of the system */
+	uint16_t address;		/**< CSP address of the system */
 
 	const char *hostname;		/**< Host name, returned by the #CSP_CMP_IDENT request */
 	const char *model;		/**< Model, returned by the #CSP_CMP_IDENT request */
@@ -59,16 +64,19 @@ typedef struct csp_conf_s {
 	uint16_t buffers;		/**< Number of CSP buffers */
 	uint16_t buffer_data_size;	/**< Data size of a CSP buffer. Total size will be sizeof(#csp_packet_t) + data_size. */
 	uint32_t conn_dfl_so;		/**< Default connection options. Options will always be or'ed onto new connections, see csp_connect() */
+
+	uint8_t version;        /**< Protocol version to use (either 1 or 2) */
 } csp_conf_t;
 
 /**
    Get default CSP configuration.
 */
 static inline void csp_conf_get_defaults(csp_conf_t * conf) {
+	conf->version = CSP_VERSION;
 	conf->address = 1;
 	conf->hostname = "hostname";
 	conf->model = "model";
-	conf->revision = "resvision";
+	conf->revision = "revision";
 	conf->conn_max = 10;
 	conf->conn_queue_length = 10;
 	conf->fifo_length = 25;
@@ -103,7 +111,13 @@ const csp_conf_t * csp_get_conf(void);
    Get the system's own address.
    @return system's own address
 */
-uint8_t csp_get_address(void);
+uint16_t csp_get_address(void);
+
+
+/**
+ * Copy csp id fields from source to target object
+ */
+void csp_id_copy(csp_id_t * target, csp_id_t * source);
 
 /**
    Create a CSP socket endpoint.
@@ -166,7 +180,7 @@ int csp_send_prio(uint8_t prio, csp_conn_t *conn, csp_packet_t *packet, uint32_t
    @param[in] opts connection options, see @ref CSP_CONNECTION_OPTIONS.
    @return 1 or reply size on success, 0 on failure (error, incoming length does not match, timeout)
 */
-int csp_transaction_w_opts(uint8_t prio, uint8_t dst, uint8_t dst_port, uint32_t timeout, void *outbuf, int outlen, void *inbuf, int inlen, uint32_t opts);
+int csp_transaction_w_opts(uint8_t prio, uint16_t dst, uint8_t dst_port, uint32_t timeout, void *outbuf, int outlen, void *inbuf, int inlen, uint32_t opts);
 
 /**
    Perform an entire request & reply transaction.
@@ -181,7 +195,7 @@ int csp_transaction_w_opts(uint8_t prio, uint8_t dst, uint8_t dst_port, uint32_t
    @param[in] inlen length of expected reply, -1 for unknown size (inbuf MUST be large enough), 0 for no reply.
    @return 1 or reply size on success, 0 on failure (error, incoming length does not match, timeout)
 */
-static inline int csp_transaction(uint8_t prio, uint8_t dest, uint8_t port, uint32_t timeout, void * outbuf, int outlen, void * inbuf, int inlen) {
+static inline int csp_transaction(uint8_t prio, uint16_t dest, uint8_t port, uint32_t timeout, void * outbuf, int outlen, void * inbuf, int inlen) {
 	return csp_transaction_w_opts(prio, dest, port, timeout, outbuf, outlen, inbuf, inlen, 0);
 }
 
@@ -217,7 +231,7 @@ csp_packet_t *csp_recvfrom(csp_socket_t *socket, uint32_t timeout);
    @param[in] timeout unused as of CSP version 1.6
    @return #CSP_ERR_NONE on success, otherwise an error code and the packet must be freed by calling csp_buffer_free().
 */
-int csp_sendto(uint8_t prio, uint8_t dst, uint8_t dst_port, uint8_t src_port, uint32_t opts, csp_packet_t *packet, uint32_t timeout);
+int csp_sendto(uint8_t prio, uint16_t dst, uint8_t dst_port, uint8_t src_port, uint32_t opts, csp_packet_t *packet, uint32_t timeout);
 
 /**
    Send a packet as a reply to a request (without a connection).
@@ -241,7 +255,7 @@ int csp_sendto_reply(const csp_packet_t * request, csp_packet_t * reply, uint32_
    @param[in] opts connection options, see @ref CSP_CONNECTION_OPTIONS.
    @return Established connection or NULL on failure (no free connections, timeout).
 */
-csp_conn_t *csp_connect(uint8_t prio, uint8_t dst, uint8_t dst_port, uint32_t timeout, uint32_t opts);
+csp_conn_t *csp_connect(uint8_t prio, uint16_t dst, uint8_t dst_port, uint32_t timeout, uint32_t opts);
 
 /**
    Close an open connection.
@@ -351,14 +365,14 @@ void csp_service_handler(csp_packet_t *packet);
    @param[in] opts connection options, see @ref CSP_CONNECTION_OPTIONS.
    @return >0 = echo time in mS on success, otherwise -1 for error.
 */
-int csp_ping(uint8_t node, uint32_t timeout, unsigned int size, uint8_t opts);
+int csp_ping(uint16_t node, uint32_t timeout, unsigned int size, uint8_t opts);
 
 /**
    Send a single ping/echo packet without waiting for reply.
    Payload is 1 byte.
    @param[in] node address of subsystem.
 */
-void csp_ping_noreply(uint8_t node);
+void csp_ping_noreply(uint16_t node);
 
 /**
    Request process list.
@@ -366,7 +380,7 @@ void csp_ping_noreply(uint8_t node);
    @param[in] node address of subsystem.
    @param[in] timeout timeout in mS to wait for replies. The function will not return until the timeout occurrs.
 */
-void csp_ps(uint8_t node, uint32_t timeout);
+void csp_ps(uint16_t node, uint32_t timeout);
 
 /**
    Request free memory.
@@ -375,14 +389,14 @@ void csp_ps(uint8_t node, uint32_t timeout);
    @param[out] size free memory on subsystem.
    @return #CSP_ERR_NONE on success, otherwise an error code.
 */
-int csp_get_memfree(uint8_t node, uint32_t timeout, uint32_t * size);
+int csp_get_memfree(uint16_t node, uint32_t timeout, uint32_t * size);
 
 /**
    Request free memory and print to stdout.
    @param[in] node address of subsystem.
    @param[in] timeout timeout in mS to wait for reply.
 */
-void csp_memfree(uint8_t node, uint32_t timeout);
+void csp_memfree(uint16_t node, uint32_t timeout);
 
 /**
    Request free buffers.
@@ -391,35 +405,35 @@ void csp_memfree(uint8_t node, uint32_t timeout);
    @param[out] size free buffers.
    @return #CSP_ERR_NONE on success, otherwise an error code.
 */
-int csp_get_buf_free(uint8_t node, uint32_t timeout, uint32_t * size);
+int csp_get_buf_free(uint16_t node, uint32_t timeout, uint32_t * size);
 
 /**
    Request free buffers and print to stdout.
    @param[in] node address of subsystem.
    @param[in] timeout timeout in mS to wait for reply.
 */
-void csp_buf_free(uint8_t node, uint32_t timeout);
+void csp_buf_free(uint16_t node, uint32_t timeout);
 
 /**
    Reboot subsystem.
    If handled by the standard CSP service handler, the reboot handler set by csp_sys_set_reboot() on the subsystem, will be invoked.
    @param[in] node address of subsystem.
 */
-void csp_reboot(uint8_t node);
+void csp_reboot(uint16_t node);
 
 /**
    Shutdown subsystem.
    If handled by the standard CSP service handler, the shutdown handler set by csp_sys_set_shutdown() on the subsystem, will be invoked.
    @param[in] node address of subsystem.
 */
-void csp_shutdown(uint8_t node);
+void csp_shutdown(uint16_t node);
 
 /**
    Request uptime and print to stdout.
    @param[in] node address of subsystem.
    @param[in] timeout timeout in mS to wait for reply.
 */
-void csp_uptime(uint8_t node, uint32_t timeout);
+void csp_uptime(uint16_t node, uint32_t timeout);
 
 /**
    Request uptime
@@ -428,7 +442,7 @@ void csp_uptime(uint8_t node, uint32_t timeout);
    @param[out] uptime uptime in seconds.
    @return #CSP_ERR_NONE on success, otherwise an error code.
 */
-int csp_get_uptime(uint8_t node, uint32_t timeout, uint32_t * uptime);
+int csp_get_uptime(uint16_t node, uint32_t timeout, uint32_t * uptime);
 
 /**
    Set RDP options.

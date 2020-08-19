@@ -547,10 +547,10 @@ static PyObject* pycsp_xtea_set_key(PyObject *self, PyObject *args) {
 }
 
 static PyObject* pycsp_rtable_set(PyObject *self, PyObject *args) {
-    uint8_t node;
-    uint8_t mask;
+    uint16_t node;
+    uint16_t mask;
     char* interface_name;
-    uint8_t via = CSP_NO_VIA_ADDRESS;
+    uint16_t via = CSP_NO_VIA_ADDRESS;
     if (!PyArg_ParseTuple(args, "bbs|b", &node, &mask, &interface_name, &via)) {
         return NULL; // TypeError is thrown
     }

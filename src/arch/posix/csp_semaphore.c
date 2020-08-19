@@ -19,6 +19,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 #include <csp/arch/csp_semaphore.h>
+#include <csp/csp.h>
 #include <csp/csp_debug.h>
 
 int csp_mutex_create(csp_mutex_t * mutex) {
@@ -131,7 +132,7 @@ int csp_bin_sem_wait(csp_bin_sem_handle_t * sem, uint32_t timeout) {
 	return CSP_SEMAPHORE_OK;
 }
 
-int csp_bin_sem_post_isr(csp_bin_sem_handle_t * sem, CSP_BASE_TYPE * task_woken) {
+int csp_bin_sem_post_isr(csp_bin_sem_handle_t * sem, int * task_woken) {
 	if (task_woken) {
 		*task_woken = 0;
 	}

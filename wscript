@@ -44,7 +44,6 @@ def options(ctx):
     gr.add_option('--enable-shlib', action='store_true', help='Build shared library')
     gr.add_option('--enable-rdp', action='store_true', help='Enable RDP support')
     gr.add_option('--enable-rdp-fast-close', action='store_true', help='Enable fast close of RDP connections')
-    gr.add_option('--enable-qos', action='store_true', help='Enable Quality of Service support')
     gr.add_option('--enable-promisc', action='store_true', help='Enable promiscuous support')
     gr.add_option('--enable-crc32', action='store_true', help='Enable CRC32 support')
     gr.add_option('--enable-hmac', action='store_true', help='Enable HMAC-SHA1 support')
@@ -166,7 +165,6 @@ def configure(ctx):
     ctx.define('CSP_USE_HMAC', ctx.options.enable_hmac)
     ctx.define('CSP_USE_XTEA', ctx.options.enable_xtea)
     ctx.define('CSP_USE_PROMISC', ctx.options.enable_promisc)
-    ctx.define('CSP_USE_QOS', ctx.options.enable_qos)
     ctx.define('CSP_USE_DEDUP', ctx.options.enable_dedup)
     ctx.define('CSP_USE_EXTERNAL_DEBUG', ctx.options.enable_external_debug)
 

@@ -18,7 +18,14 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+/**
+ * Testing:
+ * Use the following linux tool to setup loopback port to test with:
+ * socat -d -d pty,raw,echo=0 pty,raw,echo=0
+ */
+
 #include <csp/interfaces/csp_if_kiss.h>
+#include "../csp_id.h"
 
 #include <string.h>
 
@@ -31,42 +38,43 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #define TFESC 		0xDD
 #define TNC_DATA	0x00
 
-int csp_kiss_tx(const csp_route_t * ifroute, csp_packet_t * packet) {
+int csp_kiss_tx(const csp_route_t *ifroute, csp_packet_t *packet) {
 
-	csp_kiss_interface_data_t * ifdata = ifroute->iface->interface_data;
-	void * driver = ifroute->iface->driver_data;
+	csp_kiss_interface_data_t *ifdata = ifroute->iface->interface_data;
+	void *driver = ifroute->iface->driver_data;
 
 	/* Add CRC32 checksum - the MTU setting ensures there are space */
 	csp_crc32_append(packet, false);
 
 	/* Lock */
 	if (csp_mutex_lock(&ifdata->lock, 1000) != CSP_MUTEX_OK) {
-            return CSP_ERR_TIMEDOUT;
-        }
+		return CSP_ERR_TIMEDOUT;
+	}
 
 	/* Save the outgoing id in the buffer */
-	packet->id.ext = csp_hton32(packet->id.ext);
-	packet->length += sizeof(packet->id.ext);
+	csp_id_prepend(packet);
 
 	/* Transmit data */
-        const unsigned char start[] = {FEND, TNC_DATA};
-        const unsigned char esc_end[] = {FESC, TFEND};
-        const unsigned char esc_esc[] = {FESC, TFESC};
-        const unsigned char * data = (unsigned char *) &packet->id.ext;
-        ifdata->tx_func(driver, start, sizeof(start));
-	for (unsigned int i = 0; i < packet->length; i++, ++data) {
+	const unsigned char start[] = { FEND, TNC_DATA };
+	const unsigned char esc_end[] = { FESC, TFEND };
+	const unsigned char esc_esc[] = { FESC, TFESC };
+	const unsigned char *data = packet->frame_begin;
+
+	ifdata->tx_func(driver, start, sizeof(start));
+
+	for (unsigned int i = 0; i < packet->frame_length; i++, ++data) {
 		if (*data == FEND) {
-                    ifdata->tx_func(driver, esc_end, sizeof(esc_end));
-                    continue;
+			ifdata->tx_func(driver, esc_end, sizeof(esc_end));
+			continue;
 		}
-                if (*data == FESC) {
-                    ifdata->tx_func(driver, esc_esc, sizeof(esc_esc));
-                    continue;
+		if (*data == FESC) {
+			ifdata->tx_func(driver, esc_esc, sizeof(esc_esc));
+			continue;
 		}
 		ifdata->tx_func(driver, data, 1);
 	}
-        const unsigned char stop[] = {FEND};
-        ifdata->tx_func(driver, stop, sizeof(stop));
+	const unsigned char stop[] = { FEND };
+	ifdata->tx_func(driver, stop, sizeof(stop));
 
 	/* Free data */
 	csp_buffer_free(packet);
@@ -90,7 +98,7 @@ void csp_kiss_rx(csp_iface_t * iface, const uint8_t * buf, size_t len, void * px
 		uint8_t inputbyte = *buf++;
 
 		/* If packet was too long */
-		if (ifdata->rx_length > ifdata->max_rx_length) {
+		if (ifdata->rx_length >= ifdata->max_rx_length) {
 			//csp_log_warn("KISS RX overflow");
 			iface->rx_error++;
 			ifdata->rx_mode = KISS_MODE_NOT_STARTED;
@@ -118,6 +126,7 @@ void csp_kiss_rx(csp_iface_t * iface, const uint8_t * buf, size_t len, void * px
 			}
 
 			/* Start transfer */
+			csp_id_setup_rx(ifdata->rx_packet);
 			ifdata->rx_length = 0;
 			ifdata->rx_mode = KISS_MODE_STARTED;
 			ifdata->rx_first = true;
@@ -137,9 +146,8 @@ void csp_kiss_rx(csp_iface_t * iface, const uint8_t * buf, size_t len, void * px
 				/* Accept message */
 				if (ifdata->rx_length > 0) {
 
-					/* Check for valid length */
-					if (ifdata->rx_length < CSP_HEADER_LENGTH + sizeof(uint32_t)) {
-						//csp_log_warn("KISS short frame skipped, len: %u", ifdata->rx_length);
+					ifdata->rx_packet->frame_length = ifdata->rx_length;
+					if (csp_id_strip(ifdata->rx_packet) < 0) {
 						iface->rx_error++;
 						ifdata->rx_mode = KISS_MODE_NOT_STARTED;
 						break;
@@ -147,12 +155,6 @@ void csp_kiss_rx(csp_iface_t * iface, const uint8_t * buf, size_t len, void * px
 
 					/* Count received frame */
 					iface->frame++;
-
-					/* The CSP packet length is without the header */
-					ifdata->rx_packet->length = ifdata->rx_length - CSP_HEADER_LENGTH;
-
-					/* Convert the packet from network to host order */
-					ifdata->rx_packet->id.ext = csp_ntoh32(ifdata->rx_packet->id.ext);
 
 					/* Validate CRC */
 					if (csp_crc32_verify(ifdata->rx_packet, false) != CSP_ERR_NONE) {
@@ -181,7 +183,7 @@ void csp_kiss_rx(csp_iface_t * iface, const uint8_t * buf, size_t len, void * px
 			}
 
 			/* Valid data char */
-			((char *) &ifdata->rx_packet->id.ext)[ifdata->rx_length++] = inputbyte;
+			ifdata->rx_packet->frame_begin[ifdata->rx_length++] = inputbyte;
 
 			break;
 
@@ -189,11 +191,11 @@ void csp_kiss_rx(csp_iface_t * iface, const uint8_t * buf, size_t len, void * px
 
 			/* Escaped escape char */
 			if (inputbyte == TFESC)
-				((char *) &ifdata->rx_packet->id.ext)[ifdata->rx_length++] = FESC;
+				ifdata->rx_packet->frame_begin[ifdata->rx_length++] = FESC;
 
 			/* Escaped fend char */
 			if (inputbyte == TFEND)
-				((char *) &ifdata->rx_packet->id.ext)[ifdata->rx_length++] = FEND;
+				ifdata->rx_packet->frame_begin[ifdata->rx_length++] = FEND;
 
 			/* Go back to started mode */
 			ifdata->rx_mode = KISS_MODE_STARTED;
@@ -213,31 +215,31 @@ void csp_kiss_rx(csp_iface_t * iface, const uint8_t * buf, size_t len, void * px
 
 }
 
-int csp_kiss_add_interface(csp_iface_t * iface) {
+int csp_kiss_add_interface(csp_iface_t *iface) {
 
 	if ((iface == NULL) || (iface->name == NULL) || (iface->interface_data == NULL)) {
 		return CSP_ERR_INVAL;
 	}
 
-        csp_kiss_interface_data_t * ifdata = iface->interface_data;
+	csp_kiss_interface_data_t *ifdata = iface->interface_data;
 	if (ifdata->tx_func == NULL) {
 		return CSP_ERR_INVAL;
 	}
 
 	if (csp_mutex_create(&ifdata->lock) != CSP_MUTEX_OK) {
 		return CSP_ERR_NOMEM;
-        }
+	}
 
-	ifdata->max_rx_length = CSP_HEADER_LENGTH + csp_buffer_data_size(); // CSP header + CSP data
+	ifdata->max_rx_length = csp_buffer_data_size();
 	ifdata->rx_length = 0;
 	ifdata->rx_mode = KISS_MODE_NOT_STARTED;
 	ifdata->rx_first = false;
 	ifdata->rx_packet = NULL;
 
-        const unsigned int max_data_size = csp_buffer_data_size() - sizeof(uint32_t); // compensate for the added CRC32
-        if ((iface->mtu == 0) || (iface->mtu > max_data_size)) {
-            iface->mtu = max_data_size;
-        }
+	const unsigned int max_data_size = csp_buffer_data_size() - sizeof(uint32_t); // compensate for the added CRC32
+	if ((iface->mtu == 0) || (iface->mtu > max_data_size)) {
+		iface->mtu = max_data_size;
+	}
 
 	iface->nexthop = csp_kiss_tx;
 

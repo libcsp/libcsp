@@ -25,9 +25,11 @@ http://code.google.com/p/c-pthread-queue/
 
 #include <csp/arch/posix/pthread_queue.h>
 
+
 #include <errno.h>
 #include <string.h>
 
+#include <csp/csp.h>
 #include <csp/arch/csp_malloc.h>
 
 static inline int get_deadline(struct timespec *ts, uint32_t timeout_ms)

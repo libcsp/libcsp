@@ -36,6 +36,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "csp_promisc.h"
 #include "csp_qfifo.h"
 #include "csp_dedup.h"
+#include "csp_id.h"
 #include "transport/csp_transport.h"
 
 /**
@@ -201,7 +202,7 @@ int csp_route_work(uint32_t timeout) {
 #endif
 
 	/* If the message is not to me, route the message to the correct interface */
-	if ((packet->id.dst != csp_conf.address) && (packet->id.dst != CSP_BROADCAST_ADDR)) {
+	if ((packet->id.dst != csp_conf.address) && (packet->id.dst != csp_id_get_max_nodeid())) {
 
 		/* Find the destination interface */
 		const csp_route_t * ifroute = csp_rtable_find_route(packet->id.dst);
@@ -257,7 +258,7 @@ int csp_route_work(uint32_t timeout) {
 	}
 
 	/* Search for an existing connection */
-	conn = csp_conn_find(packet->id.ext, CSP_ID_CONN_MASK);
+	conn = csp_conn_find_existing(&packet->id);
 
 	/* If this is an incoming packet on a new connection */
 	if (conn == NULL) {

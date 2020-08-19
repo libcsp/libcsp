@@ -26,7 +26,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/csp_endian.h>
 #include <csp/arch/csp_time.h>
 
-int csp_ping(uint8_t node, uint32_t timeout, unsigned int size, uint8_t conn_options) {
+int csp_ping(uint16_t node, uint32_t timeout, unsigned int size, uint8_t conn_options) {
 
 	unsigned int i;
 	uint32_t start, time, status = 0;
@@ -81,7 +81,7 @@ out:
 	return -1;
 }
 
-void csp_ping_noreply(uint8_t node) {
+void csp_ping_noreply(uint16_t node) {
 
 	/* Prepare data */
 	csp_packet_t * packet = csp_buffer_get(1);
@@ -108,17 +108,17 @@ void csp_ping_noreply(uint8_t node) {
 
 }
 
-void csp_reboot(uint8_t node) {
+void csp_reboot(uint16_t node) {
 	uint32_t magic_word = csp_hton32(CSP_REBOOT_MAGIC);
 	csp_transaction(CSP_PRIO_NORM, node, CSP_REBOOT, 0, &magic_word, sizeof(magic_word), NULL, 0);
 }
 
-void csp_shutdown(uint8_t node) {
+void csp_shutdown(uint16_t node) {
 	uint32_t magic_word = csp_hton32(CSP_REBOOT_SHUTDOWN_MAGIC);
 	csp_transaction(CSP_PRIO_NORM, node, CSP_REBOOT, 0, &magic_word, sizeof(magic_word), NULL, 0);
 }
 
-void csp_ps(uint8_t node, uint32_t timeout) {
+void csp_ps(uint16_t node, uint32_t timeout) {
 
 	/* Open connection */
 	csp_conn_t * conn = csp_connect(CSP_PRIO_NORM, node, CSP_PS, 0, 0);
@@ -170,7 +170,7 @@ out:
 
 }
 
-int csp_get_memfree(uint8_t node, uint32_t timeout, uint32_t * size) {
+int csp_get_memfree(uint16_t node, uint32_t timeout, uint32_t * size) {
 
 	int status = csp_transaction(CSP_PRIO_NORM, node, CSP_MEMFREE, timeout, NULL, 0, size, sizeof(*size));
 	if (status == sizeof(*size)) {
@@ -182,7 +182,7 @@ int csp_get_memfree(uint8_t node, uint32_t timeout, uint32_t * size) {
 
 }
 
-void csp_memfree(uint8_t node, uint32_t timeout) {
+void csp_memfree(uint16_t node, uint32_t timeout) {
 
 	uint32_t memfree;
         int err = csp_get_memfree(node, timeout, &memfree);
@@ -194,7 +194,7 @@ void csp_memfree(uint8_t node, uint32_t timeout) {
 
 }
 
-int csp_get_buf_free(uint8_t node, uint32_t timeout, uint32_t * size) {
+int csp_get_buf_free(uint16_t node, uint32_t timeout, uint32_t * size) {
 
 	int status = csp_transaction(CSP_PRIO_NORM, node, CSP_BUF_FREE, timeout, NULL, 0, size, sizeof(*size));
 	if (status == sizeof(*size)) {
@@ -206,7 +206,7 @@ int csp_get_buf_free(uint8_t node, uint32_t timeout, uint32_t * size) {
 
 }
 
-void csp_buf_free(uint8_t node, uint32_t timeout) {
+void csp_buf_free(uint16_t node, uint32_t timeout) {
 
 	uint32_t size;
 	int err = csp_get_buf_free(node, timeout, &size);
@@ -218,7 +218,7 @@ void csp_buf_free(uint8_t node, uint32_t timeout) {
 
 }
 
-int csp_get_uptime(uint8_t node, uint32_t timeout, uint32_t * uptime) {
+int csp_get_uptime(uint16_t node, uint32_t timeout, uint32_t * uptime) {
 
 	int status = csp_transaction(CSP_PRIO_NORM, node, CSP_UPTIME, timeout, NULL, 0, uptime, sizeof(*uptime));
 	if (status == sizeof(*uptime)) {
@@ -229,7 +229,7 @@ int csp_get_uptime(uint8_t node, uint32_t timeout, uint32_t * uptime) {
 	return CSP_ERR_TIMEDOUT;
 }
 
-void csp_uptime(uint8_t node, uint32_t timeout) {
+void csp_uptime(uint16_t node, uint32_t timeout) {
 
 	uint32_t uptime;
 	int err = csp_get_uptime(node, timeout, &uptime);
@@ -241,7 +241,7 @@ void csp_uptime(uint8_t node, uint32_t timeout) {
 
 }
 
-int csp_cmp(uint8_t node, uint32_t timeout, uint8_t code, int msg_size, struct csp_cmp_message * msg) {
+int csp_cmp(uint16_t node, uint32_t timeout, uint8_t code, int msg_size, struct csp_cmp_message * msg) {
 	msg->type = CSP_CMP_REQUEST;
 	msg->code = code;
 	int status = csp_transaction(CSP_PRIO_NORM, node, CSP_CMP, timeout, msg, msg_size, msg, msg_size);

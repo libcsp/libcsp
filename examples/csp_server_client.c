@@ -270,7 +270,7 @@ int main(int argc, char * argv[]) {
             exit(1);
         }
     } else if (default_iface) {
-        csp_rtable_set(CSP_DEFAULT_ROUTE, 0, default_iface, CSP_NO_VIA_ADDRESS);
+        csp_rtable_set(0, 0, default_iface, CSP_NO_VIA_ADDRESS);
     } else {
         /* no interfaces configured - run server and client in process, using loopback interface */
         server_address = address;

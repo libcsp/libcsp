@@ -27,7 +27,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
    Thread (task) interface.
 */
 
-#include <csp/csp_platform.h>
+#include <csp/csp_types.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -89,6 +89,9 @@ typedef csp_thread_return_t (* csp_thread_func_t)(void *) __attribute__((stdcall
   FreeRTOS interface
 */
 #if (CSP_FREERTOS)
+
+// #include <FreeRTOS.h>
+// #include <task.h>
 
 typedef void * csp_thread_handle_t;
 typedef void csp_thread_return_t;

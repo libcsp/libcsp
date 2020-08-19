@@ -142,22 +142,9 @@ csp_packet_t * csp_read(csp_conn_t * conn, uint32_t timeout) {
         }
 #endif
 
-#if (CSP_USE_QOS)
-	int event;
-	if (csp_queue_dequeue(conn->rx_event, &event, timeout) != CSP_QUEUE_OK) {
+	if (csp_queue_dequeue(conn->rx_queue, &packet, timeout) != CSP_QUEUE_OK) {
 		return NULL;
 	}
-
-	for (int prio = 0; prio < CSP_RX_QUEUES; prio++) {
-		if (csp_queue_dequeue(conn->rx_queue[prio], &packet, 0) == CSP_QUEUE_OK) {
-			break;
-		}
-	}
-#else
-	if (csp_queue_dequeue(conn->rx_queue[0], &packet, timeout) != CSP_QUEUE_OK) {
-		return NULL;
-	}
-#endif
 
 #if (CSP_USE_RDP)
 	/* Packet read could trigger ACK transmission */
@@ -170,6 +157,16 @@ csp_packet_t * csp_read(csp_conn_t * conn, uint32_t timeout) {
 
 }
 
+/* Provide a safe method to copy type safe, between two csp ids */
+void csp_id_copy(csp_id_t * target, csp_id_t * source) {
+	target->pri = source->pri;
+	target->dst = source->dst;
+	target->src = source->src;
+	target->dport = source->dport;
+	target->sport = source->sport;
+	target->flags = source->flags;
+}
+
 int csp_send_direct(csp_id_t idout, csp_packet_t * packet, const csp_route_t * ifroute, uint32_t timeout) {
 
 	if (packet == NULL) {
@@ -178,7 +175,7 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, const csp_route_t * i
 	}
 
 	if (ifroute == NULL) {
-		csp_log_error("No route to host: %u (0x%08"PRIx32")", idout.dst, idout.ext);
+		csp_log_error("No route to host: %u", idout.dst);
 		goto err;
 	}
 
@@ -188,12 +185,11 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, const csp_route_t * i
                        idout.src, idout.dst, idout.dport, idout.sport, idout.pri, idout.flags, packet->length, ifout->name, (ifroute->via != CSP_NO_VIA_ADDRESS) ? ifroute->via : idout.dst);
 
 	/* Copy identifier to packet (before crc, xtea and hmac) */
-	packet->id.ext = idout.ext;
+	csp_id_copy(&packet->id, &idout);
 
 #if (CSP_USE_PROMISC)
 	/* Loopback traffic is added to promisc queue by the router */
 	if (idout.dst != csp_get_address() && idout.src == csp_get_address()) {
-		packet->id.ext = idout.ext;
 		csp_promisc_add(packet);
 	}
 #endif
@@ -330,7 +326,7 @@ int csp_transaction_persistent(csp_conn_t * conn, uint32_t timeout, void * outbu
 
 }
 
-int csp_transaction_w_opts(uint8_t prio, uint8_t dest, uint8_t port, uint32_t timeout, void * outbuf, int outlen, void * inbuf, int inlen, uint32_t opts) {
+int csp_transaction_w_opts(uint8_t prio, uint16_t dest, uint8_t port, uint32_t timeout, void * outbuf, int outlen, void * inbuf, int inlen, uint32_t opts) {
 
 	csp_conn_t * conn = csp_connect(prio, dest, port, 0, opts);
 	if (conn == NULL)
@@ -356,7 +352,7 @@ csp_packet_t * csp_recvfrom(csp_socket_t * socket, uint32_t timeout) {
 
 }
 
-int csp_sendto(uint8_t prio, uint8_t dest, uint8_t dport, uint8_t src_port, uint32_t opts, csp_packet_t * packet, uint32_t timeout) {
+int csp_sendto(uint8_t prio, uint16_t dest, uint8_t dport, uint8_t src_port, uint32_t opts, csp_packet_t * packet, uint32_t timeout) {
 
 	if (!(opts & CSP_O_SAME))
 		packet->id.flags = 0;
