@@ -20,6 +20,22 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #define CSP_IF_UDP_H_
 
 #include <csp/csp.h>
+#include <csp/arch/csp_thread.h>
+
+#include <arpa/inet.h>
+
+typedef struct {
+
+	/* Should be set before calling if_udp_init */
+	char * host;
+	int lport;
+	int rport;
+
+	/* Internal parameters */
+	csp_thread_handle_t server_handle;
+	struct sockaddr_in peer_addr;
+
+} csp_if_udp_conf_t;
 
 /**
  * Setup UDP peer
@@ -32,6 +48,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  * TX peer:
  *   Outgoing CSP packets will be transferred to the peer specified by the host argument
  */
-void csp_if_udp_init(csp_iface_t * iface, char * host, int _lport, int _rport);
+void csp_if_udp_init(csp_iface_t * iface, csp_if_udp_conf_t * ifconf);
 
 #endif /* CSP_IF_UDP_H_ */
