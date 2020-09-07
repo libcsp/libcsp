@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "csp_rtable_internal.h"
 
+#include "../csp_id.h"
 #include <csp/csp_debug.h>
 #include <csp/arch/csp_malloc.h>
 
@@ -54,14 +55,14 @@ static csp_rtable_t * csp_rtable_find(uint16_t addr, uint16_t netmask, uint16_t 
 
 		/* Try a CIDR netmask match */
 		if (!exact) {
-			uint16_t hostbits = (1 << (16 - i->netmask)) - 1;
+			uint16_t hostbits = (1 << (csp_id_get_host_bits() - i->netmask)) - 1;
 			uint16_t netbits = ~hostbits;
 			//printf("Netbits %x Hostbits %x\r\n", netbits, hostbits);
 
 			/* Match network addresses */
 			uint16_t net_a = i->address & netbits;
 			uint16_t net_b = addr & netbits;
-			//printf("A: %hx, B: %hx\r\n", net_a, net_b);
+			//printf("route %u A: %hx, B: %hx\r\n", i->address, net_a, net_b);
 
 			/* We have a match */
 			if (net_a == net_b) {
@@ -79,9 +80,8 @@ static csp_rtable_t * csp_rtable_find(uint16_t addr, uint16_t netmask, uint16_t 
 	}
 
 	if (0 && best_result) {
-		csp_log_packet("Using routing entry: %u/%u if %s mtu %u",
-				best_result->address, best_result->netmask, best_result->route.iface->name, best_result->route.via);
-        }
+		csp_log_warn("Using routing entry: %u/%u if %s mtu %u",best_result->address, best_result->netmask, best_result->route.iface->name, best_result->route.via);
+    }
 
 	return best_result;
 

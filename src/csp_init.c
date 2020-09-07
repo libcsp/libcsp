@@ -25,6 +25,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "csp_conn.h"
 #include "csp_qfifo.h"
 #include "csp_port.h"
+#include "csp_id.h"
 
 csp_conf_t csp_conf;
 
@@ -68,7 +69,7 @@ int csp_init(const csp_conf_t * conf) {
 	csp_iflist_add(&csp_if_lo);
 
 	/* Register loopback route */
-	csp_rtable_set(csp_conf.address, CSP_RTABLE_MAX_BITS, &csp_if_lo, CSP_NO_VIA_ADDRESS);
+	csp_rtable_set(csp_conf.address, csp_id_get_host_bits(), &csp_if_lo, CSP_NO_VIA_ADDRESS);
 
 	/* Also register loopback as default, until user redefines default route */
 	csp_rtable_set(0, 0, &csp_if_lo, CSP_NO_VIA_ADDRESS);
