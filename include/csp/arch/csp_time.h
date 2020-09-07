@@ -29,7 +29,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
    @note The returned values will eventually wrap.
 */
 
-#include <csp/csp_platform.h>
+#include <csp/csp_types.h>
 
 #ifdef __cplusplus
 extern "C" {

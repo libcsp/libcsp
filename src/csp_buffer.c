@@ -86,7 +86,7 @@ void *csp_buffer_get_isr(size_t _data_size) {
 		return NULL;
 
 	csp_skbf_t * buffer = NULL;
-	CSP_BASE_TYPE task_woken = 0;
+	int task_woken = 0;
 	csp_queue_dequeue_isr(csp_buffers, &buffer, &task_woken);
 	if (buffer == NULL)
 		return NULL;
@@ -149,7 +149,7 @@ void csp_buffer_free_isr(void *packet) {
 		return;
 	}
 
-	CSP_BASE_TYPE task_woken = 0;
+	int task_woken = 0;
 	csp_queue_enqueue_isr(csp_buffers, &buf, &task_woken);
 
 }

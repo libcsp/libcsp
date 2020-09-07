@@ -63,10 +63,10 @@ enum cfp_frame_t {
 	CFP_MORE = 1
 };
 
-int csp_can1_rx(csp_iface_t *iface, uint32_t id, const uint8_t *data, uint8_t dlc, CSP_BASE_TYPE *task_woken)
+int csp_can1_rx(csp_iface_t *iface, uint32_t id, const uint8_t *data, uint8_t dlc, int *task_woken)
 {
 	/* Test: random packet loss */
-        if (0) {
+    if (0) {
 		int random = rand();
 		if (random < RAND_MAX * 0.00005) {
 			//csp_log_warn("Dropping frame");
@@ -294,63 +294,7 @@ int csp_can1_tx(const csp_route_t * ifroute, csp_packet_t *packet) {
 	return CSP_ERR_NONE;
 }
 
-/**
- * CFP 2.0
- *
- * PRIO: 2
- * DST: 14
- * Sender id: 6
- * Sender counter: 2
- * Fragment counter: 3
- * Begin: 1
- * End: 1
- */
-
-#define CFP2_PRIO_MASK 0x3
-#define CFP2_PRIO_OFFSET 27
-
-#define CFP2_DST_SIZE 14
-#define CFP2_DST_MASK 0x3FF
-#define CFP2_DST_OFFSET 13
-
-#define CFP2_SENDER_SIZE 6
-#define CFP2_SENDER_MASK 0x1F
-#define CFP2_SENDER_OFFSET 7
-
-#define CFP2_SC_MASK 0x3
-#define CFP2_SC_OFFSET 5
-
-#define CFP2_FC_MASK 0x7
-#define CFP2_FC_OFFSET 2
-
-#define CFP2_BEGIN_MASK 0x1
-#define CFP2_BEGIN_OFFSET 1
-
-#define CFP2_END_MASK 0x1
-#define CFP2_END_OFFSET 0
-
-#define CFP2_SRC_SIZE 14
-#define CFP2_SRC_MASK 0x3FFF
-#define CFP2_SRC_OFFSET 18
-
-#define CFP2_DPORT_MASK 0x3F
-#define CFP2_DPORT_OFFSET 12
-
-#define CFP2_SPORT_MASK 0x3F
-#define CFP2_SPORT_OFFSET 6
-
-#define CFP2_FLAGS_MASK 0x3F
-#define CFP2_FLAGS_OFFSET 0
-
-/**
- * Fields used to uniquely define a CSP packet within each fragment header
- */
-#define CFP2_ID_CONN_MASK ((CFP2_DST_MASK << CFP2_DST_OFFSET) | \
-                           (CFP2_SENDER_MASK << CFP2_SENDER_OFFSET) | \
-						   (CFP2_PRIO_MASK << CFP2_PRIO_OFFSET) | \
-                           (CFP2_SC_MASK << CFP2_SC_OFFSET))
-
-int csp_can2_rx(csp_iface_t *iface, uint32_t id, const uint8_t *data, uint8_t dlc, CSP_BASE_TYPE *task_woken) {
+int csp_can2_rx(csp_iface_t *iface, uint32_t id, const uint8_t *data, uint8_t dlc, int *task_woken) {
 
 	/* Bind incoming frame to a packet buffer */
 	csp_can_pbuf_element_t * buf = csp_can_pbuf_find(id, CFP2_ID_CONN_MASK, task_woken);
@@ -593,7 +537,7 @@ int csp_can_add_interface(csp_iface_t * iface) {
 	return csp_iflist_add(iface);
 }
 
-int csp_can_rx(csp_iface_t *iface, uint32_t id, const uint8_t *data, uint8_t dlc, CSP_BASE_TYPE *task_woken) {
+int csp_can_rx(csp_iface_t *iface, uint32_t id, const uint8_t *data, uint8_t dlc, int *task_woken) {
 	if (csp_conf.version == 1) {
 		return csp_can1_rx(iface, id, data, dlc, task_woken);
 	} else {

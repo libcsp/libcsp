@@ -26,7 +26,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
    CSP.
 */
 
-#include <csp/csp_platform.h>
 #include <csp/csp_error.h>
 #include <csp/csp_debug.h>
 #include <csp/csp_buffer.h>
@@ -34,6 +33,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/csp_iflist.h>
 #include <csp/csp_sfp.h>
 #include <csp/csp_promisc.h>
+
+/** Max timeout */
+#define CSP_MAX_TIMEOUT (UINT32_MAX)
+#define CSP_MAX_DELAY CSP_MAX_TIMEOUT
+#define CSP_INFINITY CSP_MAX_TIMEOUT
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -67,11 +72,11 @@ typedef struct csp_conf_s {
    Get default CSP configuration.
 */
 static inline void csp_conf_get_defaults(csp_conf_t * conf) {
-	conf->version = 2;
+	conf->version = CSP_VERSION;
 	conf->address = 1;
 	conf->hostname = "hostname";
 	conf->model = "model";
-	conf->revision = "resvision";
+	conf->revision = "revision";
 	conf->conn_max = 10;
 	conf->conn_queue_length = 10;
 	conf->fifo_length = 25;
@@ -106,7 +111,7 @@ const csp_conf_t * csp_get_conf(void);
    Get the system's own address.
    @return system's own address
 */
-uint8_t csp_get_address(void);
+uint16_t csp_get_address(void);
 
 
 /**

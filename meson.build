@@ -10,6 +10,8 @@ conf.set('CSP_LOG_LEVEL_INFO', 1)
 conf.set('CSP_LOG_LEVEL_WARN', 1)
 conf.set('CSP_LOG_LEVEL_ERROR', 1)
 
+conf.set('CSP_VERSION', get_option('version'))
+
 conf.set('CSP_USE_RDP', get_option('use_rdp') == true ? 1 : 0)
 conf.set('CSP_USE_CRC32', get_option('use_crc32') == true ? 1 : 0)
 conf.set('CSP_USE_HMAC', get_option('use_hmac') == true ? 1 : 0)
@@ -18,6 +20,11 @@ conf.set('CSP_USE_PROMISC', get_option('use_promisc') == true ? 1 : 0)
 conf.set('CSP_USE_DEDUP', get_option('use_dedup') == true ? 1 : 0)
 
 conf.set('CSP_HAVE_STDBOOL_H', cc.has_header('stdbool.h') == true ? 1 : 0)
+
+zmq_dep = dependency('libzmq', version: '>4.0', required: false)
+if zmq_dep.found()
+	conf.set('CSP_HAVE_LIBZMQ', 1)
+endif
 
 if host_machine.endian() == 'little'
 	conf.set('CSP_LITTLE_ENDIAN', 1)
@@ -62,6 +69,8 @@ csp_config_h = configure_file(output: 'csp_autoconfig.h', configuration: conf, i
 csp_inc = include_directories(['.', 'include'])
 install_subdir('include', install_dir : '.')
 install_headers(csp_config_h, install_dir : 'include/csp')
+
+csp_deps += dependency('freertos', required: false)
 
 csp_lib = static_library('csp',
 	sources: [csp_sources, csp_config_h],

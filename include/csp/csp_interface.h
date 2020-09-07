@@ -26,7 +26,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
    Interface.
 */
 
-#include <csp/csp_platform.h>
+#include <csp/csp_types.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -86,7 +86,7 @@ struct csp_iface_s {
    @param[in] iface A pointer to the incoming interface TX function.
    @param[out] pxTaskWoken Valid reference if called from ISR, otherwise NULL!
 */
-void csp_qfifo_write(csp_packet_t *packet, csp_iface_t *iface, CSP_BASE_TYPE *pxTaskWoken);
+void csp_qfifo_write(csp_packet_t *packet, csp_iface_t *iface, void * pxTaskWoken);
 
 #ifdef __cplusplus
 }

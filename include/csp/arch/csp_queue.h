@@ -27,7 +27,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
    Queue interface.
 */
 
-#include <csp/csp_platform.h>
+#include <csp/csp_types.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -86,7 +86,7 @@ int csp_queue_enqueue(csp_queue_handle_t handle, const void *value, uint32_t tim
    @param[out] pxTaskWoken Valid reference if called from ISR, otherwise NULL!
    @return #CSP_QUEUE_OK on success, otherwise a queue error code.
 */
-int csp_queue_enqueue_isr(csp_queue_handle_t handle, const void * value, CSP_BASE_TYPE * pxTaskWoken);
+int csp_queue_enqueue_isr(csp_queue_handle_t handle, const void * value, int * pxTaskWoken);
 
 /**
    Dequeue value (front).
@@ -104,7 +104,7 @@ int csp_queue_dequeue(csp_queue_handle_t handle, void *buf, uint32_t timeout);
    @param[out] pxTaskWoken Valid reference if called from ISR, otherwise NULL!
    @return #CSP_QUEUE_OK on success, otherwise a queue error code.
 */
-int csp_queue_dequeue_isr(csp_queue_handle_t handle, void * buf, CSP_BASE_TYPE * pxTaskWoken);
+int csp_queue_dequeue_isr(csp_queue_handle_t handle, void * buf, int * pxTaskWoken);
 
 /**
    Queue size.

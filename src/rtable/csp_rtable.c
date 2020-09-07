@@ -49,9 +49,9 @@ static int csp_rtable_parse(const char * rtable, int dry_run) {
 		} else if (sscanf(str, "%u/%u %14s", &address, &netmask, name) == 3) {
 			via = CSP_NO_VIA_ADDRESS;
 		} else if (sscanf(str, "%u %14s %u", &address, name, &via) == 3) {
-			netmask = csp_id_get_host_bits();
+			netmask = CSP_RTABLE_MAX_BITS;
 		} else if (sscanf(str, "%u %14s", &address, name) == 2) {
-			netmask = csp_id_get_host_bits();
+			netmask = CSP_RTABLE_MAX_BITS;
 			via = CSP_NO_VIA_ADDRESS;
 		} else {
 			// invalid entry
@@ -60,7 +60,7 @@ static int csp_rtable_parse(const char * rtable, int dry_run) {
 		name[sizeof(name) - 1] = 0;
 
 		csp_iface_t * ifc = csp_iflist_get_by_name(name);
-		if ((address > csp_id_get_max_nodeid()) || (netmask > csp_id_get_host_bits()) || (via > UINT8_MAX) || (ifc == NULL))  {
+		if ((address > csp_id_get_max_nodeid()) || (netmask > CSP_RTABLE_MAX_BITS) || (via > UINT8_MAX) || (ifc == NULL))  {
 			csp_log_error("%s: invalid entry [%s]", __FUNCTION__, str);
 			return CSP_ERR_INVAL;
 		}

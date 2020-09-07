@@ -25,7 +25,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <csp/csp_cmp.h>
 #include <csp/csp_endian.h>
-#include <csp/csp_platform.h>
+#include <csp/csp_types.h>
 #include <csp/csp_rtable.h>
 #include <csp/arch/csp_time.h>
 #include <csp/arch/csp_clock.h>
@@ -260,25 +260,24 @@ void csp_service_handler(csp_packet_t * packet) {
 		while(i < pslen) {
 
 			/* Allocate packet buffer, if need be */
-			if (packet == NULL)
-				packet = csp_buffer_get(CSP_RPS_MTU);
-			if (packet == NULL)
+			csp_packet_t *rpacket = csp_buffer_get(CSP_RPS_MTU);
+			if (rpacket == NULL)
 				break;
 
 			/* Calculate length, either full MTU or the remainder */
-			packet->length = (pslen - i > CSP_RPS_MTU) ? CSP_RPS_MTU : (pslen - i);
+			rpacket->length = (pslen - i > CSP_RPS_MTU) ? CSP_RPS_MTU : (pslen - i);
 
 			/* Send out the data */
-			memcpy(packet->data, &pslist[i], packet->length);
-			i += packet->length;
-			if (csp_sendto_reply(packet, packet, CSP_O_SAME, 0) != CSP_ERR_NONE)
-				csp_buffer_free(packet);
+			memcpy(rpacket->data, &pslist[i], rpacket->length);
+			i += rpacket->length;
+			if (csp_sendto_reply(packet, rpacket, CSP_O_SAME, 0) != CSP_ERR_NONE)
+				csp_buffer_free(rpacket);
 
 			/* Clear the packet reference when sent */
-			packet = NULL;
-
 		}
+		csp_buffer_free(packet);
 		csp_free(pslist);
+		packet = NULL;
 		break;
 	}
 
@@ -318,7 +317,7 @@ void csp_service_handler(csp_packet_t * packet) {
 	}
 
 	case CSP_UPTIME: {
-		uint32_t time = csp_get_uptime_s();
+		uint32_t time = csp_get_s();
 		time = csp_hton32(time);
 		memcpy(packet->data, &time, sizeof(time));
 		packet->length = sizeof(time);

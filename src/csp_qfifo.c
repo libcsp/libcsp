@@ -57,7 +57,7 @@ int csp_qfifo_read(csp_qfifo_t * input) {
 
 }
 
-void csp_qfifo_write(csp_packet_t * packet, csp_iface_t * iface, CSP_BASE_TYPE * pxTaskWoken) {
+void csp_qfifo_write(csp_packet_t * packet, csp_iface_t * iface, void * pxTaskWoken) {
 
 	int result;
 
