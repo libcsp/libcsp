@@ -125,6 +125,10 @@ typedef struct {
 #define CSP_O_NOCRC32			CSP_SO_CRC32PROHIB //!< Disable CRC32
 #define CSP_O_SAME			CSP_SO_SAME
 
+#ifndef CSP_PACKET_PADDING_BYTES
+#define CSP_PACKET_PADDING_BYTES 8
+#endif
+
 //doc-begin:csp_packet_t
 /**
    CSP Packet.
@@ -147,7 +151,15 @@ typedef struct {
 	uint8_t * frame_begin;
 	uint16_t frame_length;
 
-	uint8_t header[8];  // Additional header bytes, to prepend packed data before transmission
+	/* Additional header bytes, to prepend packed data before transmission
+	 * This must be minimum 6 bytes to accomodate CSP 2.0. But some implementations
+	 * require much more scratch working area for encryption for example.
+	 *
+	 * Ultimately after csp_id_pack() this area will be filled with the CSP header
+	 */
+
+	uint8_t header[CSP_PACKET_PADDING_BYTES];
+
 	/**
 	 * Data part of packet.
 	 * When using the csp_buffer API, the size of the data part is set by
