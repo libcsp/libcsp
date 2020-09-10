@@ -43,15 +43,16 @@ static int csp_rtable_parse(const char * rtable, int dry_run) {
 	char * saveptr;
 	char * str = strtok_r(rtable_copy, ",", &saveptr);
 	while ((str) && (strlen(str) > 1)) {
-		unsigned int address, netmask, via;
+		unsigned int address, via;
+		int netmask;
 		char name[15];
-		if (sscanf(str, "%u/%u %14s %u", &address, &netmask, name, &via) == 4) {
-		} else if (sscanf(str, "%u/%u %14s", &address, &netmask, name) == 3) {
+		if (sscanf(str, "%u/%d %14s %u", &address, &netmask, name, &via) == 4) {
+		} else if (sscanf(str, "%u/%d %14s", &address, &netmask, name) == 3) {
 			via = CSP_NO_VIA_ADDRESS;
 		} else if (sscanf(str, "%u %14s %u", &address, name, &via) == 3) {
-			netmask = CSP_RTABLE_MAX_BITS;
+			netmask = csp_id_get_host_bits();
 		} else if (sscanf(str, "%u %14s", &address, name) == 2) {
-			netmask = CSP_RTABLE_MAX_BITS;
+			netmask = csp_id_get_host_bits();
 			via = CSP_NO_VIA_ADDRESS;
 		} else {
 			// invalid entry
@@ -60,8 +61,8 @@ static int csp_rtable_parse(const char * rtable, int dry_run) {
 		name[sizeof(name) - 1] = 0;
 
 		csp_iface_t * ifc = csp_iflist_get_by_name(name);
-		if ((address > csp_id_get_max_nodeid()) || (netmask > CSP_RTABLE_MAX_BITS) || (via > UINT8_MAX) || (ifc == NULL))  {
-			csp_log_error("%s: invalid entry [%s]", __FUNCTION__, str);
+		if ((address > csp_id_get_max_nodeid()) || (netmask > csp_id_get_host_bits()) || (ifc == NULL))  {
+			csp_log_error("%s: invalid entry [%s] addr: %u, netmask %d", __FUNCTION__, str, address, netmask);
 			return CSP_ERR_INVAL;
 		}
 
@@ -87,10 +88,14 @@ int csp_rtable_check(const char * rtable) {
 	return csp_rtable_parse(rtable, 1);
 }
 
-int csp_rtable_set(uint16_t address, uint16_t netmask, csp_iface_t *ifc, uint16_t via) {
+int csp_rtable_set(uint16_t address, int netmask, csp_iface_t *ifc, uint16_t via) {
+
+	if ((netmask < 0) || (netmask > csp_id_get_max_nodeid())) {
+		netmask = csp_id_get_max_nodeid();
+	}
 
 	/* Validates options */
-	if ((ifc == NULL) || (netmask > CSP_RTABLE_MAX_BITS)) {
+	if ((ifc == NULL) || (netmask > csp_id_get_max_nodeid())) {
 		csp_log_error("%s: invalid route: address %u, netmask %u, interface %p (%s), via %u",
                               __FUNCTION__, address, netmask, ifc, (ifc != NULL) ? ifc->name : "", via);
 		return CSP_ERR_INVAL;
@@ -152,7 +157,7 @@ void csp_rtable_clear(void) {
 	csp_rtable_free();
 
 	/* Set loopback up again */
-	csp_rtable_set(csp_conf.address, CSP_RTABLE_MAX_BITS, &csp_if_lo, CSP_NO_VIA_ADDRESS);
+	csp_rtable_set(csp_conf.address, -1, &csp_if_lo, CSP_NO_VIA_ADDRESS);
 }
 
 #if (CSP_DEBUG)

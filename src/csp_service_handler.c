@@ -87,7 +87,7 @@ static int do_cmp_route_set(struct csp_cmp_message *cmp) {
 		return CSP_ERR_INVAL;
 	}
 
-	if (csp_route_set(cmp->route_set.dest_node, ifc, cmp->route_set.next_hop_via) != CSP_ERR_NONE) {
+	if (csp_rtable_set(cmp->route_set.dest_node, cmp->route_set.netmask, ifc, cmp->route_set.next_hop_via) != CSP_ERR_NONE) {
 		return CSP_ERR_INVAL;
 	}
 
