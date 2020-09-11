@@ -90,18 +90,19 @@ int csp_rtable_check(const char * rtable) {
 
 int csp_rtable_set(uint16_t address, int netmask, csp_iface_t *ifc, uint16_t via) {
 
-	if ((netmask < 0) || (netmask > csp_id_get_max_nodeid())) {
-		netmask = csp_id_get_max_nodeid();
+	if ((netmask < 0) || (netmask > csp_id_get_host_bits())) {
+		netmask = csp_id_get_host_bits();
 	}
 
 	/* Validates options */
-	if ((ifc == NULL) || (netmask > csp_id_get_max_nodeid())) {
+	if ((ifc == NULL) || (netmask > csp_id_get_host_bits())) {
 		csp_log_error("%s: invalid route: address %u, netmask %u, interface %p (%s), via %u",
                               __FUNCTION__, address, netmask, ifc, (ifc != NULL) ? ifc->name : "", via);
 		return CSP_ERR_INVAL;
 	}
 
-        return csp_rtable_set_internal(address, netmask, ifc, via);
+    return csp_rtable_set_internal(address, netmask, ifc, via);
+
 }
 
 typedef struct {
@@ -158,6 +159,7 @@ void csp_rtable_clear(void) {
 
 	/* Set loopback up again */
 	csp_rtable_set(csp_conf.address, -1, &csp_if_lo, CSP_NO_VIA_ADDRESS);
+	//csp_rtable_set(csp_conf.address, csp_id_get_host_bits(), &csp_if_lo, CSP_NO_VIA_ADDRESS);
 }
 
 #if (CSP_DEBUG)
