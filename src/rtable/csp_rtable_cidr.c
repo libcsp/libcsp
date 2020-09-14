@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "csp_rtable_internal.h"
 
+#include "../csp_id.h"
 #include <csp/csp_debug.h>
 #include <csp/arch/csp_malloc.h>
 
@@ -34,7 +35,22 @@ typedef struct csp_rtable_s {
 /* Routing table (linked list) */
 static csp_rtable_t * rtable = NULL;
 
-static csp_rtable_t * csp_rtable_find(uint16_t addr, uint16_t netmask, uint16_t exact) {
+static csp_rtable_t * csp_rtable_find_exact(uint16_t addr, uint16_t netmask) {
+
+	/* Start search */
+	csp_rtable_t * i = rtable;
+	while(i) {
+		if (i->address == addr && i->netmask == netmask) {
+			return i;
+		}
+		i = i->next;
+	}
+
+	return NULL;
+
+}
+
+const csp_route_t * csp_rtable_find_route(uint16_t addr) {
 
 	/* Remember best result */
 	csp_rtable_t * best_result = NULL;
@@ -44,62 +60,39 @@ static csp_rtable_t * csp_rtable_find(uint16_t addr, uint16_t netmask, uint16_t 
 	csp_rtable_t * i = rtable;
 	while(i) {
 
-		/* Look for exact match:
-		 * Note this is looking for a match of the netmask, used primarily for route table insert
-		 * Idea: Split this search function into two, one serching for addr/mask, and one for destination node only */
-		if (i->address == addr && i->netmask == netmask) {
-			best_result = i;
-			break;
-		}
+		uint16_t hostbits = (1 << (csp_id_get_host_bits() - i->netmask)) - 1;
+		uint16_t netbits = ~hostbits;
 
-		/* Try a CIDR netmask match */
-		if (!exact) {
-			uint16_t hostbits = (1 << (16 - i->netmask)) - 1;
-			uint16_t netbits = ~hostbits;
-			//printf("Netbits %x Hostbits %x\r\n", netbits, hostbits);
+		/* Match network addresses */
+		uint16_t net_a = i->address & netbits;
+		uint16_t net_b = addr & netbits;
+		//printf("route %u/%u %s, netbits %x, hostbits %x, (A & netbits): %hu, (B & netbits): %hu\r\n", i->address, i->netmask, i->route.iface->name, netbits, hostbits, net_a, net_b);
 
-			/* Match network addresses */
-			uint16_t net_a = i->address & netbits;
-			uint16_t net_b = addr & netbits;
-			//printf("A: %hx, B: %hx\r\n", net_a, net_b);
-
-			/* We have a match */
-			if (net_a == net_b) {
-				if (i->netmask >= best_result_mask) {
-					//printf("Match best result %u %u\r\n", best_result_mask, i->netmask);
-					best_result = i;
-					best_result_mask = i->netmask;
-				}
+		/* We have a match */
+		if (net_a == net_b) {
+			if (i->netmask >= best_result_mask) {
+				best_result = i;
+				best_result_mask = i->netmask;
 			}
-
 		}
 
 		i = i->next;
 
 	}
 
-	if (0 && best_result) {
-		csp_log_packet("Using routing entry: %u/%u if %s mtu %u",
-				best_result->address, best_result->netmask, best_result->route.iface->name, best_result->route.via);
-        }
+	if (best_result) {
+		//csp_log_info("Using routing entry: %u/%u if %s via %u",best_result->address, best_result->netmask, best_result->route.iface->name, best_result->route.via);
+		return &best_result->route;
+	}
 
-	return best_result;
+	return NULL;
 
-}
-
-const csp_route_t * csp_rtable_find_route(uint16_t dest_address)
-{
-    csp_rtable_t * entry = csp_rtable_find(dest_address, CSP_RTABLE_MAX_BITS, 0);
-    if (entry) {
-	return &entry->route;
-    }
-    return NULL;
 }
 
 int csp_rtable_set_internal(uint16_t address, uint16_t netmask, csp_iface_t *ifc, uint16_t via) {
 
 	/* First see if the entry exists */
-	csp_rtable_t * entry = csp_rtable_find(address, netmask, 1);
+	csp_rtable_t * entry = csp_rtable_find_exact(address, netmask);
 
 	/* If not, create a new one */
 	if (!entry) {

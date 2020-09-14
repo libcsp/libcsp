@@ -8,3 +8,4 @@ option('use_promisc', type: 'boolean', value: true, description: 'Promiscious mo
 option('use_dedup', type: 'boolean', value: true, description: 'Packet deduplication')
 
 option('version', type: 'integer', value: 1, description: 'Which version of CSP to use.')
+option('packet_padding_bytes', type: 'integer', value: 8, description: 'Number of bytes to include before the packet data (must be minimum 8)')
