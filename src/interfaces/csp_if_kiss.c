@@ -25,12 +25,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 #include <csp/interfaces/csp_if_kiss.h>
-#include "../csp_id.h"
-
 #include <string.h>
 
 #include <csp/csp_endian.h>
 #include <csp/csp_crc32.h>
+#include <csp/csp_id.h>
 
 #define FEND  		0xC0
 #define FESC  		0xDB

@@ -5,8 +5,8 @@
  *      Author: johan
  */
 
-#ifndef LIB_CSP_SRC_CSP_ID_H_
-#define LIB_CSP_SRC_CSP_ID_H_
+#ifndef LIB_CSP_INCLUDE_CSP_CSP_ID_H_
+#define LIB_CSP_INCLUDE_CSP_CSP_ID_H_
 
 void csp_id1_prepend(csp_packet_t * packet);
 int csp_id1_strip(csp_packet_t * packet);
@@ -24,4 +24,4 @@ int csp_id_get_max_nodeid(void);
 int csp_id_get_max_port(void);
 
 
-#endif /* LIB_CSP_SRC_CSP_ID_H_ */
+#endif /* LIB_CSP_INCLUDE_CSP_CSP_ID_H_ */

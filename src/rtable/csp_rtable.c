@@ -23,11 +23,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <stdio.h>
 
 #include <csp/csp.h>
+#include <csp/csp_id.h>
 #include <csp/csp_iflist.h>
 #include <csp/interfaces/csp_if_lo.h>
 
 #include "../csp_init.h"
-#include "../csp_id.h"
 
 static int csp_rtable_parse(const char * rtable, int dry_run) {
 

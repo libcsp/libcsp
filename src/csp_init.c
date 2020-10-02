@@ -22,10 +22,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <csp/interfaces/csp_if_lo.h>
 #include <csp/arch/csp_time.h>
+#include <csp/csp_id.h>
 #include "csp_conn.h"
 #include "csp_qfifo.h"
 #include "csp_port.h"
-#include "csp_id.h"
 
 csp_conf_t csp_conf;
 

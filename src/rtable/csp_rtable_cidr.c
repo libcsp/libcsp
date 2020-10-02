@@ -20,9 +20,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "csp_rtable_internal.h"
 
-#include "../csp_id.h"
 #include <csp/csp_debug.h>
 #include <csp/arch/csp_malloc.h>
+#include <csp/csp_id.h>
 
 /* Definition of routing table */
 typedef struct csp_rtable_s {
