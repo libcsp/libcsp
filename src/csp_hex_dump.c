@@ -22,8 +22,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <stdio.h>
 
-void csp_hex_dump(const char *desc, void *addr, int len)
-{
+void csp_hex_dump_format(const char *desc, void *addr, int len, int format) {
 	int i;
 	unsigned char buff[17];
 	unsigned char *pc = (unsigned char*)addr;
@@ -45,11 +44,15 @@ void csp_hex_dump(const char *desc, void *addr, int len)
 				printf ("  %s\n", buff);
 
 			// Output the offset.
-			printf ("  %p ", ((uint8_t*)addr) + i);
+			if (format & 0x1) {
+			    printf("  %p ", ((uint8_t*)addr) + i);
+			} else {
+			    printf("        ");
+			}
 		}
 
-		// Now the hex code for the specific character.
-		printf (" %02x", pc[i]);
+	    // Now the hex code for the specific character.
+	    printf (" %02x", pc[i]);
 
 		// And store a printable ASCII character for later.
 		if ((pc[i] < 0x20) || (pc[i] > 0x7e))
@@ -67,4 +70,8 @@ void csp_hex_dump(const char *desc, void *addr, int len)
 
 	// And print the final ASCII bit.
 	printf ("  %s\n", buff);
+}
+
+void csp_hex_dump(const char *desc, void *addr, int len) {
+    csp_hex_dump_format(desc, addr, len, 0);
 }
