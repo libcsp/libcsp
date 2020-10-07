@@ -31,7 +31,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/arch/csp_malloc.h>
 #include <csp/arch/csp_semaphore.h>
 
-#include "../csp_id.h"
+#include <csp/csp_id.h>
 
 #define CSP_ZMQ_MTU   1024   // max payload data, see documentation
 
