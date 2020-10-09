@@ -25,7 +25,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/arch/csp_time.h>
 
 /* Number of packet buffer elements */
-#define PBUF_ELEMENTS		5
+#define PBUF_ELEMENTS		20
 
 /* Buffer element timeout in ms */
 #define PBUF_TIMEOUT_MS		1000
