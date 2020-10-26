@@ -190,19 +190,23 @@ int csp_route_work(uint32_t timeout) {
 	input.iface->rx++;
 	input.iface->rxbytes += packet->length;
 
-#if (CSP_USE_DEDUP)
-	/* Check for duplicates */
-	if (csp_dedup_is_duplicate(packet)) {
-		/* Discard packet */
-		csp_log_packet("Duplicate packet discarded");
-		input.iface->drop++;
-		csp_buffer_free(packet);
-		return CSP_ERR_NONE;
+	int is_to_me = ((packet->id.dst == csp_conf.address) && (packet->id.dst == csp_id_get_max_nodeid()));
+
+	/* Deduplication */
+	if ((csp_conf.dedup == CSP_DEDUP_ALL) ||
+		((is_to_me) && (csp_conf.dedup == CSP_DEDUP_INCOMING)) ||
+		((!is_to_me) && (csp_conf.dedup == CSP_DEDUP_FWD))) {
+		if (csp_dedup_is_duplicate(packet)) {
+			/* Discard packet */
+			csp_log_packet("Duplicate packet discarded");
+			input.iface->drop++;
+			csp_buffer_free(packet);
+			return CSP_ERR_NONE;
+		}
 	}
-#endif
 
 	/* If the message is not to me, route the message to the correct interface */
-	if ((packet->id.dst != csp_conf.address) && (packet->id.dst != csp_id_get_max_nodeid())) {
+	if (!is_to_me) {
 
 		/* Find the destination interface */
 		const csp_route_t * ifroute = csp_rtable_find_route(packet->id.dst);

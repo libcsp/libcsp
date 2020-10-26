@@ -5,7 +5,5 @@ option('use_crc32', type: 'boolean', value: true, description: 'Cyclic redundanc
 option('use_hmac', type: 'boolean', value: true, description: 'Hash-based message authentication code')
 option('use_xtea', type: 'boolean', value: true, description: 'eXtended TEA block cipher')
 option('use_promisc', type: 'boolean', value: true, description: 'Promiscious mode')
-option('use_dedup', type: 'boolean', value: true, description: 'Packet deduplication')
 
-option('version', type: 'integer', value: 1, description: 'Which version of CSP to use.')
 option('packet_padding_bytes', type: 'integer', value: 8, description: 'Number of bytes to include before the packet data (must be minimum 8)')
