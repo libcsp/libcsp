@@ -190,7 +190,7 @@ int csp_route_work(uint32_t timeout) {
 	input.iface->rx++;
 	input.iface->rxbytes += packet->length;
 
-	int is_to_me = ((packet->id.dst == csp_conf.address) && (packet->id.dst == csp_id_get_max_nodeid()));
+	int is_to_me = ((packet->id.dst == csp_conf.address) || (packet->id.dst == csp_id_get_max_nodeid()));
 
 	/* Deduplication */
 	if ((csp_conf.dedup == CSP_DEDUP_ALL) ||
