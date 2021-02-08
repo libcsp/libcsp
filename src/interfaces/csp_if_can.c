@@ -384,7 +384,7 @@ int csp_can2_rx(csp_iface_t *iface, uint32_t id, const uint8_t *data, uint8_t dl
 	}
 
 	/* Check for overflow */
-	if (buf->packet->length + dlc > iface->mtu) {
+	if (buf->packet->frame_length + dlc > iface->mtu) {
 		//csp_log_error("RX buffer overflow");
 		iface->frame++;
 		csp_can_pbuf_free(buf, task_woken);
