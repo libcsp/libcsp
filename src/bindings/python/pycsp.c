@@ -257,13 +257,16 @@ static PyObject* pycsp_transaction(PyObject *self, PyObject *args) {
     uint32_t timeout;
     Py_buffer inbuf;
     Py_buffer outbuf;
-    if (!PyArg_ParseTuple(args, "bbbIw*w*", &prio, &dest, &port, &timeout, &outbuf, &inbuf)) {
-        return NULL; // TypeError is thrown
+    int allow_any_incoming_length = 0;
+    if (!PyArg_ParseTuple(args, "bbbIw*w*|i", &prio, &dest, &port, &timeout, &outbuf, &inbuf, &allow_any_incoming_length)) {
+            return NULL; // TypeError is thrown
     }
+
+    int incoming_buffer_len = allow_any_incoming_length ? -1 : inbuf.len;
 
     int res;
     Py_BEGIN_ALLOW_THREADS;
-    res = csp_transaction(prio, dest, port, timeout, outbuf.buf, outbuf.len, inbuf.buf, inbuf.len);
+    res = csp_transaction(prio, dest, port, timeout, outbuf.buf, outbuf.len, inbuf.buf, incoming_buffer_len);
     Py_END_ALLOW_THREADS;
     if (res < 1) {
         return PyErr_Error("csp_transaction()", res);

@@ -99,17 +99,6 @@ int csp_rtable_save(char * buffer, size_t buffer_size);
 int csp_rtable_load(const char * rtable);
 
 /**
-   Load routing table from a string.
-   Table will be loaded on-top of existing routes, possibly overwriting existing entries.
-   Format: \<address\>[/mask] \<interface\> [via][, next entry]
-   Example: "0/0 CAN, 8 KISS, 10 I2C 10", same as "0/0 CAN, 8/5 KISS, 10/5 I2C 10".
-   @see csp_rtable_save(), csp_rtable_clear(), csp_rtable_free()
-   @param[in] rtable routing table (nul terminated)
-   @return @ref CSP_ERR or number of entries.
-*/
-int csp_rtable_load(const char * rtable);
-
-/**
    Check string for valid routing elements.
    @param[in] rtable routing table (nul terminated)
    @return @ref CSP_ERR or number of entries.
