@@ -66,8 +66,10 @@ subdir('src/interfaces')
 csp_config_h = configure_file(output: 'csp_autoconfig.h', configuration: conf, install: true, install_dir: 'csp/')
 
 csp_inc = include_directories(['.', 'include'])
-install_subdir('include', install_dir : '.')
-install_headers(csp_config_h, install_dir : 'include/csp')
+if not meson.is_subproject() 
+  install_subdir('include', install_dir : '.')
+  install_headers(csp_config_h, install_dir : 'include/csp')
+endif
 
 csp_deps += dependency('picolibc', fallback: ['picolibc', 'picolibc_dep'], required: false)
 
