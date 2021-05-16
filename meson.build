@@ -70,7 +70,6 @@ if not meson.is_subproject()
   install_subdir('include', install_dir : '.')
   install_headers(csp_config_h, install_dir : 'include/csp')
 endif
-<<<<<<< HEAD
 
 clib = meson.get_compiler('c').find_library('c', required: false)
 if not clib.found()
@@ -78,10 +77,6 @@ if not clib.found()
 endif
 
 csp_deps += clib
-=======
-
-csp_deps += dependency('picolibc', fallback: ['picolibc', 'picolibc_dep'], required: false)
->>>>>>> 722bdf9f54cfb7e5b3123e154c058d5e2c196bd5
 
 csp_lib = static_library('csp',
 	sources: [csp_sources, csp_config_h],
