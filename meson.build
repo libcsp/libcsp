@@ -66,10 +66,17 @@ subdir('src/interfaces')
 csp_config_h = configure_file(output: 'csp_autoconfig.h', configuration: conf, install: true, install_dir: 'csp/')
 
 csp_inc = include_directories(['.', 'include'])
-install_subdir('include', install_dir : '.')
-install_headers(csp_config_h, install_dir : 'include/csp')
+if not meson.is_subproject() 
+  install_subdir('include', install_dir : '.')
+  install_headers(csp_config_h, install_dir : 'include/csp')
+endif
 
-csp_deps += dependency('freertos', required: false)
+clib = meson.get_compiler('c').find_library('c', required: false)
+if not clib.found()
+	clib = dependency('libc', fallback: ['picolibc', 'picolibc_dep'], required: true)
+endif
+
+csp_deps += clib
 
 csp_lib = static_library('csp',
 	sources: [csp_sources, csp_config_h],
