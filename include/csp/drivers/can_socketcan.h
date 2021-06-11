@@ -67,6 +67,8 @@ csp_iface_t * csp_can_socketcan_init(const char * device, int bitrate, bool prom
 */
 int csp_can_socketcan_stop(csp_iface_t * iface);
 
+int csp_can_socketcan_set_promisc(const bool promisc, int *socket);
+
 #ifdef __cplusplus
 }
 #endif
