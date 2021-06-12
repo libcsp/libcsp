@@ -303,6 +303,27 @@ static PyObject* pycsp_sendto(PyObject *self, PyObject *args) {
     Py_RETURN_NONE;
 }
 
+static PyObject* pycsp_recvfrom(PyObject *self, PyObject *args) {
+    PyObject* socket_capsule;
+    uint32_t timeout = 500;
+    if (!PyArg_ParseTuple(args, "O|I", &socket_capsule, &timeout)) {
+        return NULL;
+    }
+    csp_socket_t *socket = get_obj_as_socket(socket_capsule, false);
+    if (socket == NULL) {
+        return NULL;
+    }
+    csp_packet_t *packet = NULL;
+    Py_BEGIN_ALLOW_THREADS;
+    packet = csp_recvfrom(socket, timeout);
+    Py_END_ALLOW_THREADS;
+    if (packet == NULL) {
+        Py_RETURN_NONE;
+    }
+
+    return PyCapsule_New(packet, PACKET_CAPSULE, pycsp_free_csp_buffer);
+}
+
 static PyObject* pycsp_sendto_reply(PyObject *self, PyObject *args) {
     PyObject* request_packet_capsule;
     PyObject* reply_packet_capsule;
@@ -914,6 +935,7 @@ static PyMethodDef methods[] = {
     {"transaction",         pycsp_transaction,         METH_VARARGS, ""},
     {"sendto_reply",        pycsp_sendto_reply,        METH_VARARGS, ""},
     {"sendto",              pycsp_sendto,              METH_VARARGS, ""},
+    {"recvfrom",            pycsp_recvfrom,            METH_VARARGS, ""},
     {"connect",             pycsp_connect,             METH_VARARGS, ""},
     {"close",               pycsp_close,               METH_O,       ""},
     {"conn_dport",          pycsp_conn_dport,          METH_O,       ""},
