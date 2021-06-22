@@ -252,7 +252,7 @@ static PyObject* pycsp_send(PyObject *self, PyObject *args) {
 
 static PyObject* pycsp_sfp_send(PyObject *self, PyObject *args) {
     PyObject* conn_capsule;
-    Py_Buffer data;
+    Py_buffer data;
     unsigned int mtu;
     uint32_t timeout = 1000;
     if (!PyArg_ParseTuple(args, "Ow*II|I", &conn_capsule, &data, &mtu, &timeout)) {
@@ -961,6 +961,8 @@ static PyMethodDef methods[] = {
     {"accept",              pycsp_accept,              METH_VARARGS, ""},
     {"read",                pycsp_read,                METH_VARARGS, ""},
     {"send",                pycsp_send,                METH_VARARGS, ""},
+    {"sfp_send",            pycsp_sfp_send,            METH_VARARGS, ""},
+    {"sfp_recv",            pycsp_sfp_recv,            METH_VARARGS, ""},
     {"transaction",         pycsp_transaction,         METH_VARARGS, ""},
     {"sendto_reply",        pycsp_sendto_reply,        METH_VARARGS, ""},
     {"sendto",              pycsp_sendto,              METH_VARARGS, ""},
