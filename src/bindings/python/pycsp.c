@@ -268,7 +268,7 @@ static PyObject* pycsp_sfp_send(PyObject *self, PyObject *args) {
     Py_BEGIN_ALLOW_THREADS;
     res = csp_sfp_send(conn, data.buf, data.len, mtu, timeout);
     Py_END_ALLOW_THREADS;
-    if (res < 1) {
+    if (res != CSP_ERR_NONE) {
         return PyErr_Error("sfp_send()", res);
     }
 
@@ -296,7 +296,7 @@ static PyObject* pycsp_sfp_recv(PyObject *self, PyObject *args) {
         Py_RETURN_NONE;
     }
 
-    if (res < 1) {
+    if (res != CSP_ERR_NONE) {
         return PyErr_Error("sfp_recv()", res);
     }
 
