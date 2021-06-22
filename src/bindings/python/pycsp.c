@@ -250,6 +250,59 @@ static PyObject* pycsp_send(PyObject *self, PyObject *args) {
     Py_RETURN_NONE;
 }
 
+static PyObject* pycsp_sfp_send(PyObject *self, PyObject *args) {
+    PyObject* conn_capsule;
+    Py_Buffer data;
+    unsigned int mtu;
+    uint32_t timeout = 1000;
+    if (!PyArg_ParseTuple(args, "Ow*II|I", &conn_capsule, &data, &mtu, &timeout)) {
+        return NULL;
+    }
+
+    csp_conn_t* conn = get_obj_as_conn(conn_capsule, false);
+    if (conn == NULL) {
+        return NULL;
+    }
+
+    int res;
+    Py_BEGIN_ALLOW_THREADS;
+    res = csp_sfp_send(conn, data.buf, data.len, mtu, timeout);
+    Py_END_ALLOW_THREADS;
+    if (res < 1) {
+        return PyErr_Error("sfp_send()", res);
+    }
+
+    return Py_BuildValue("i", res);
+}
+
+static PyObject* pycsp_sfp_recv(PyObject *self, PyObject *args) {
+    PyObject* conn_capsule;
+    uint32_t timeout = 500;
+    if (!PyArg_ParseTuple(args, "O|I", &conn_capsule, &timeout)) {
+        return NULL; // TypeError is thrown
+    }
+    csp_conn_t* conn = get_obj_as_conn(conn_capsule, false);
+    if (conn == NULL) {
+        return NULL;
+    }
+    void *dataout = NULL;
+    int return_datasize = 0;
+    int res;
+    Py_BEGIN_ALLOW_THREADS;
+    res = csp_sfp_recv(conn, &dataout, &return_datasize, timeout);
+    Py_END_ALLOW_THREADS;
+
+    if (dataout == NULL) {
+        Py_RETURN_NONE;
+    }
+
+    if (res < 1) {
+        return PyErr_Error("sfp_recv()", res);
+    }
+
+    return PyCapsule_New(dataout, PACKET_CAPSULE, pycsp_free_csp_buffer);
+}
+
 static PyObject* pycsp_transaction(PyObject *self, PyObject *args) {
     uint8_t prio;
     uint8_t dest;
