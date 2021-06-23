@@ -1,7 +1,5 @@
 /*
 Cubesat Space Protocol - A small network-layer protocol designed for Cubesats
-Copyright (C) 2012 GomSpace ApS (http://www.gomspace.com)
-Copyright (C) 2012 AAUSAT3 Project (http://aausat3.space.aau.dk)
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -18,7 +16,22 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <csp/csp_rtable.h>
+#ifndef CSP_IF_UDP_H_
+#define CSP_IF_UDP_H_
 
-/* Internal set route - after common validation by csp_rtable_set(...) */
-int csp_rtable_set_internal(uint16_t address, uint16_t netmask, csp_iface_t *ifc, uint16_t via);
+#include <csp/csp.h>
+
+/**
+ * Setup UDP peer
+ *
+ * RX task:
+ *   A server task will attempt at binding to ip 0.0.0.0 port 9600
+ *   If this fails, it is because another udp server is already running.
+ *   The server task will continue attemting the bind and will not exit before the application is closed.
+ *
+ * TX peer:
+ *   Outgoing CSP packets will be transferred to the peer specified by the host argument
+ */
+void csp_if_udp_init(csp_iface_t * iface, char * host, int _lport, int _rport);
+
+#endif /* CSP_IF_UDP_H_ */

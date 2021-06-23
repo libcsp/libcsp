@@ -25,7 +25,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <csp/csp_cmp.h>
 #include <csp/csp_endian.h>
-#include <csp/csp_platform.h>
+#include <csp/csp_types.h>
 #include <csp/csp_rtable.h>
 #include <csp/arch/csp_time.h>
 #include <csp/arch/csp_clock.h>
@@ -166,7 +166,7 @@ static int do_cmp_clock(struct csp_cmp_message *cmp) {
 }
 
 /* CSP Management Protocol handler */
-static int csp_cmp_handler(csp_conn_t * conn, csp_packet_t * packet) {
+static int csp_cmp_handler(csp_packet_t * packet) {
 
 	int ret = CSP_ERR_INVAL;
 	struct csp_cmp_message * cmp = (struct csp_cmp_message *) packet->data;
@@ -213,13 +213,13 @@ static int csp_cmp_handler(csp_conn_t * conn, csp_packet_t * packet) {
 	return ret;
 }
 
-void csp_service_handler(csp_conn_t * conn, csp_packet_t * packet) {
+void csp_service_handler(csp_packet_t * packet) {
 
-	switch (csp_conn_dport(conn)) {
+	switch (packet->id.dport) {
 
 	case CSP_CMP:
 		/* Pass to CMP handler */
-		if (csp_cmp_handler(conn, packet) != CSP_ERR_NONE) {
+		if (csp_cmp_handler(packet) != CSP_ERR_NONE) {
 			csp_buffer_free(packet);
 			return;
 		}
@@ -260,25 +260,24 @@ void csp_service_handler(csp_conn_t * conn, csp_packet_t * packet) {
 		while(i < pslen) {
 
 			/* Allocate packet buffer, if need be */
-			if (packet == NULL)
-				packet = csp_buffer_get(CSP_RPS_MTU);
-			if (packet == NULL)
+			csp_packet_t *rpacket = csp_buffer_get(CSP_RPS_MTU);
+			if (rpacket == NULL)
 				break;
 
 			/* Calculate length, either full MTU or the remainder */
-			packet->length = (pslen - i > CSP_RPS_MTU) ? CSP_RPS_MTU : (pslen - i);
+			rpacket->length = (pslen - i > CSP_RPS_MTU) ? CSP_RPS_MTU : (pslen - i);
 
 			/* Send out the data */
-			memcpy(packet->data, &pslist[i], packet->length);
-			i += packet->length;
-			if (!csp_send(conn, packet, 0))
-				csp_buffer_free(packet);
+			memcpy(rpacket->data, &pslist[i], rpacket->length);
+			i += rpacket->length;
+			if (csp_sendto_reply(packet, rpacket, CSP_O_SAME, 0) != CSP_ERR_NONE)
+				csp_buffer_free(rpacket);
 
 			/* Clear the packet reference when sent */
-			packet = NULL;
-
 		}
+		csp_buffer_free(packet);
 		csp_free(pslist);
+		packet = NULL;
 		break;
 	}
 
@@ -331,7 +330,7 @@ void csp_service_handler(csp_conn_t * conn, csp_packet_t * packet) {
 	}
 
 	if (packet != NULL) {
-		if (!csp_send(conn, packet, 0))
+		if (csp_sendto_reply(packet, packet, CSP_O_SAME, 0) != CSP_ERR_NONE)
 			csp_buffer_free(packet);
 	}
 

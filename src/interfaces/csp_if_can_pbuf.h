@@ -21,7 +21,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef LIB_CSP_SRC_INTERFACES_CSP_IF_CAN_PBUF_H_
 #define LIB_CSP_SRC_INTERFACES_CSP_IF_CAN_PBUF_H_
 
-#include <csp/csp_platform.h>
+#include <csp/csp_types.h>
 
 /* Packet buffers */
 typedef enum {
@@ -38,9 +38,9 @@ typedef struct {
 	uint32_t last_used;		/* Timestamp in ms for last use of buffer */
 } csp_can_pbuf_element_t;
 
-int csp_can_pbuf_free(csp_can_pbuf_element_t *buf, CSP_BASE_TYPE *task_woken);
-csp_can_pbuf_element_t *csp_can_pbuf_new(uint32_t id, CSP_BASE_TYPE *task_woken);
-csp_can_pbuf_element_t *csp_can_pbuf_find(uint32_t id, uint32_t mask, CSP_BASE_TYPE *task_woken);
-void csp_can_pbuf_cleanup(CSP_BASE_TYPE *task_woken);
+int csp_can_pbuf_free(csp_can_pbuf_element_t *buf, int *task_woken);
+csp_can_pbuf_element_t *csp_can_pbuf_new(uint32_t id, int *task_woken);
+csp_can_pbuf_element_t *csp_can_pbuf_find(uint32_t id, uint32_t mask, int *task_woken);
+void csp_can_pbuf_cleanup(int *task_woken);
 
 #endif

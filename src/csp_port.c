@@ -55,13 +55,14 @@ csp_socket_t * csp_port_get_socket(unsigned int port) {
 
 int csp_port_init(void) {
 
-	ports = csp_calloc(csp_conf.port_max_bind + 2, sizeof(*ports)); // +2 for max port and CSP_ANY
-	if (ports == NULL) {
+	int size = sizeof(csp_port_t) * (csp_conf.port_max_bind + 2);
+	ports = csp_malloc(size);
+	if (ports == NULL)
 		return CSP_ERR_NOMEM;
-	}
+
+	memset(ports, 0, size);
 
 	return CSP_ERR_NONE;
-
 }
 
 void csp_port_free_resources(void) {
@@ -90,6 +91,9 @@ int csp_bind(csp_socket_t * socket, uint8_t port) {
 	if (socket == NULL)
 		return CSP_ERR_INVAL;
 
+	if (ports == NULL)
+		return CSP_ERR_NOMEM;
+
 	if (port == CSP_ANY) {
 		port = csp_conf.port_max_bind + 1;
 	} else if (port > csp_conf.port_max_bind) {
@@ -98,7 +102,7 @@ int csp_bind(csp_socket_t * socket, uint8_t port) {
 	}
 
 	if (ports[port].state != PORT_CLOSED) {
-		csp_log_error("Port %d is already in use", port);
+		csp_log_error("Port %d is already in use, state %u", port, ports[port].state);
 		return CSP_ERR_USED;
 	}
 

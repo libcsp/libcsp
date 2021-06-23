@@ -27,6 +27,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/interfaces/csp_if_lo.h>
 
 #include "../csp_init.h"
+#include "../csp_id.h"
 
 static int csp_rtable_parse(const char * rtable, int dry_run) {
 
@@ -48,9 +49,9 @@ static int csp_rtable_parse(const char * rtable, int dry_run) {
 		} else if (sscanf(str, "%u/%u %14s", &address, &netmask, name) == 3) {
 			via = CSP_NO_VIA_ADDRESS;
 		} else if (sscanf(str, "%u %14s %u", &address, name, &via) == 3) {
-			netmask = CSP_ID_HOST_SIZE;
+			netmask = CSP_RTABLE_MAX_BITS;
 		} else if (sscanf(str, "%u %14s", &address, name) == 2) {
-			netmask = CSP_ID_HOST_SIZE;
+			netmask = CSP_RTABLE_MAX_BITS;
 			via = CSP_NO_VIA_ADDRESS;
 		} else {
 			// invalid entry
@@ -59,7 +60,7 @@ static int csp_rtable_parse(const char * rtable, int dry_run) {
 		name[sizeof(name) - 1] = 0;
 
 		csp_iface_t * ifc = csp_iflist_get_by_name(name);
-		if ((address > CSP_ID_HOST_MAX) || (netmask > CSP_ID_HOST_SIZE) || (via > UINT8_MAX) || (ifc == NULL))  {
+		if ((address > csp_id_get_max_nodeid()) || (netmask > CSP_RTABLE_MAX_BITS) || (via > UINT8_MAX) || (ifc == NULL))  {
 			csp_log_error("%s: invalid entry [%s]", __FUNCTION__, str);
 			return CSP_ERR_INVAL;
 		}
@@ -86,16 +87,10 @@ int csp_rtable_check(const char * rtable) {
 	return csp_rtable_parse(rtable, 1);
 }
 
-int csp_rtable_set(uint8_t address, uint8_t netmask, csp_iface_t *ifc, uint8_t via) {
-
-	/* Legacy reference to default route (the old way) */
-	if (address == CSP_DEFAULT_ROUTE) {
-		netmask = 0;
-		address = 0;
-	}
+int csp_rtable_set(uint16_t address, uint16_t netmask, csp_iface_t *ifc, uint16_t via) {
 
 	/* Validates options */
-	if (((address > CSP_ID_HOST_MAX) && (address != 255)) || (ifc == NULL) || (netmask > CSP_ID_HOST_SIZE)) {
+	if ((ifc == NULL) || (netmask > CSP_RTABLE_MAX_BITS)) {
 		csp_log_error("%s: invalid route: address %u, netmask %u, interface %p (%s), via %u",
                               __FUNCTION__, address, netmask, ifc, (ifc != NULL) ? ifc->name : "", via);
 		return CSP_ERR_INVAL;
@@ -111,7 +106,7 @@ typedef struct {
     int error;
 } csp_rtable_save_ctx_t;
 
-static bool csp_rtable_save_route(void * vctx, uint8_t address, uint8_t mask, const csp_route_t * route)
+static bool csp_rtable_save_route(void * vctx, uint16_t address, uint16_t mask, const csp_route_t * route)
 {
     csp_rtable_save_ctx_t * ctx = vctx;
 
@@ -123,7 +118,7 @@ static bool csp_rtable_save_route(void * vctx, uint8_t address, uint8_t mask, co
     const char * sep = (ctx->len == 0) ? "" : ",";
 
     char mask_str[10];
-    if (mask != CSP_ID_HOST_SIZE) {
+    if (mask != csp_id_get_host_bits()) {
         snprintf(mask_str, sizeof(mask_str), "/%u", mask);
     } else {
         mask_str[0] = 0;
@@ -157,12 +152,12 @@ void csp_rtable_clear(void) {
 	csp_rtable_free();
 
 	/* Set loopback up again */
-	csp_rtable_set(csp_conf.address, CSP_ID_HOST_SIZE, &csp_if_lo, CSP_NO_VIA_ADDRESS);
+	csp_rtable_set(csp_conf.address, CSP_RTABLE_MAX_BITS, &csp_if_lo, CSP_NO_VIA_ADDRESS);
 }
 
 #if (CSP_DEBUG)
 
-static bool csp_rtable_print_route(void * ctx, uint8_t address, uint8_t mask, const csp_route_t * route)
+static bool csp_rtable_print_route(void * ctx, uint16_t address, uint16_t mask, const csp_route_t * route)
 {
     if (route->via == CSP_NO_VIA_ADDRESS) {
         printf("%u/%u %s\r\n", address, mask, route->iface->name);

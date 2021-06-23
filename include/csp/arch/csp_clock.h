@@ -27,7 +27,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
    Clock interface.
 */
 
-#include <csp/csp_platform.h>
+#include <csp/csp_types.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -63,6 +63,10 @@ void csp_clock_get_time(csp_timestamp_t * time);
    @return #CSP_ERR_NONE on success.
 */
 int csp_clock_set_time(const csp_timestamp_t * time);
+
+/* Additional functions for 64-bit nanosecond type */
+__attribute__((weak)) extern uint64_t clock_get_time64(void);
+__attribute__((weak)) extern void clock_set_time64(uint64_t time);
 
 #ifdef __cplusplus
 }

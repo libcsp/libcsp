@@ -31,6 +31,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/arch/csp_malloc.h>
 #include <csp/arch/csp_semaphore.h>
 
+#include "../csp_id.h"
+
 #define CSP_ZMQ_MTU   1024   // max payload data, see documentation
 
 /* ZMQ driver & interface */
@@ -53,13 +55,10 @@ int csp_zmqhub_tx(const csp_route_t * route, csp_packet_t * packet) {
 
 	zmq_driver_t * drv = route->iface->driver_data;
 
-	const uint8_t dest = (route->via != CSP_NO_VIA_ADDRESS) ? route->via : packet->id.dst;
+	csp_id_prepend(packet);
 
-	uint16_t length = packet->length;
-	uint8_t * destptr = ((uint8_t *) &packet->id) - sizeof(dest);
-	memcpy(destptr, &dest, sizeof(dest));
 	csp_bin_sem_wait(&drv->tx_wait, 1000); /* Using ZMQ in thread safe manner*/
-	int result = zmq_send(drv->publisher, destptr, length + sizeof(packet->id) + sizeof(dest), 0);
+	int result = zmq_send(drv->publisher, packet->frame_begin, packet->frame_length, 0);
 	csp_bin_sem_post(&drv->tx_wait); /* Release tx semaphore */
 	if (result < 0) {
 		csp_log_error("ZMQ send error: %u %s\r\n", result, zmq_strerror(zmq_errno()));
@@ -75,7 +74,7 @@ CSP_DEFINE_TASK(csp_zmqhub_task) {
 
 	zmq_driver_t * drv = param;
 	csp_packet_t * packet;
-	const uint32_t HEADER_SIZE = (sizeof(packet->id) + sizeof(uint8_t));
+	const uint32_t HEADER_SIZE = 4;
 
 	//csp_log_info("RX %s started", drv->iface.name);
 
@@ -97,7 +96,7 @@ CSP_DEFINE_TASK(csp_zmqhub_task) {
 		}
 
 		// Create new csp packet
-		packet = csp_buffer_get(datalen - HEADER_SIZE);
+		packet = csp_buffer_get(datalen);
 		if (packet == NULL) {
 			csp_log_warn("RX %s: Failed to get csp_buffer(%u)", drv->iface.name, datalen);
 			zmq_msg_close(&msg);
@@ -107,13 +106,17 @@ CSP_DEFINE_TASK(csp_zmqhub_task) {
 		// Copy the data from zmq to csp
 		const uint8_t * rx_data = zmq_msg_data(&msg);
 
-		// First byte is the "via" address
-		++rx_data;
-		--datalen;
+		csp_id_setup_rx(packet);
 
-		// Remaining is CSP header and payload
-		memcpy(&packet->id, rx_data, datalen);
-		packet->length = (datalen - sizeof(packet->id));
+		memcpy(packet->frame_begin, rx_data, datalen);
+		packet->frame_length = datalen;
+
+		/* Parse the frame and strip the ID field */
+		if (csp_id_strip(packet) != 0) {
+			drv->iface.rx_error++;
+			csp_buffer_free(packet);
+			continue;
+		}
 
 		// Route packet
 		csp_qfifo_write(packet, &drv->iface, NULL);
@@ -134,7 +137,7 @@ int csp_zmqhub_make_endpoint(const char * host, uint16_t port, char * buf, size_
 	return CSP_ERR_NONE;
 }
 
-int csp_zmqhub_init(uint8_t addr,
+int csp_zmqhub_init(uint16_t addr,
                     const char * host,
                     uint32_t flags,
                     csp_iface_t ** return_interface) {
@@ -148,19 +151,14 @@ int csp_zmqhub_init(uint8_t addr,
 	return csp_zmqhub_init_w_endpoints(addr, pub, sub, flags, return_interface);
 }
 
-int csp_zmqhub_init_w_endpoints(uint8_t addr,
+int csp_zmqhub_init_w_endpoints(uint16_t addr,
                                 const char * publisher_endpoint,
 				const char * subscriber_endpoint,
                                 uint32_t flags,
                                 csp_iface_t ** return_interface) {
 
-	uint8_t * rxfilter = NULL;
+	uint16_t * rxfilter = NULL;
 	unsigned int rxfilter_count = 0;
-
-	if (addr != CSP_NO_VIA_ADDRESS) { // != 255
-		rxfilter = &addr;
-		rxfilter_count = 1;
-	}
 
 	return csp_zmqhub_init_w_name_endpoints_rxfilter(NULL,
 							 rxfilter, rxfilter_count,
@@ -171,7 +169,7 @@ int csp_zmqhub_init_w_endpoints(uint8_t addr,
 }
 
 int csp_zmqhub_init_w_name_endpoints_rxfilter(const char * ifname,
-                                              const uint8_t rxfilter[], unsigned int rxfilter_count,
+                                              const uint16_t rxfilter[], unsigned int rxfilter_count,
                                               const char * publish_endpoint,
                                               const char * subscribe_endpoint,
                                               uint32_t flags,
@@ -204,15 +202,8 @@ int csp_zmqhub_init_w_name_endpoints_rxfilter(const char * ifname,
 	drv->subscriber = zmq_socket(drv->context, ZMQ_SUB);
 	assert(drv->subscriber);
 
-	if (rxfilter && rxfilter_count) {
-		// subscribe to all 'rx_filters' -> subscribe to all packets, where the first byte (address/via) matches a rx_filter
-		for (unsigned int i = 0; i < rxfilter_count; ++i, ++rxfilter) {
-			assert(zmq_setsockopt(drv->subscriber, ZMQ_SUBSCRIBE, rxfilter, 1) == 0);
-		}
-	} else {
-		// subscribe to all packets - no filter
-		assert(zmq_setsockopt(drv->subscriber, ZMQ_SUBSCRIBE, NULL, 0) == 0);
-	}
+	// subscribe to all packets - no filter
+	assert(zmq_setsockopt(drv->subscriber, ZMQ_SUBSCRIBE, NULL, 0) == 0);
 
 	/* Connect to server */
 	assert(zmq_connect(drv->publisher, publish_endpoint) == 0);

@@ -19,9 +19,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 #include <csp/arch/csp_queue.h>
+#include <csp/csp.h>
 
 #include <FreeRTOS.h>
-#include <queue.h> // FreeRTOS
+#include <queue.h>
 
 csp_queue_handle_t csp_queue_create(int length, size_t item_size) {
 	return xQueueCreate(length, item_size);
@@ -33,22 +34,22 @@ void csp_queue_remove(csp_queue_handle_t queue) {
 
 int csp_queue_enqueue(csp_queue_handle_t handle, const void * value, uint32_t timeout) {
 	if (timeout != CSP_MAX_TIMEOUT)
-		timeout = timeout / portTICK_RATE_MS;
+		timeout = timeout / portTICK_PERIOD_MS;
 	return xQueueSendToBack(handle, value, timeout);
 }
 
-int csp_queue_enqueue_isr(csp_queue_handle_t handle, const void * value, CSP_BASE_TYPE * task_woken) {
-	return xQueueSendToBackFromISR(handle, value, task_woken);
+int csp_queue_enqueue_isr(csp_queue_handle_t handle, const void * value, int * task_woken) {
+	return xQueueSendToBackFromISR(handle, value, (portBASE_TYPE *) task_woken);
 }
 
 int csp_queue_dequeue(csp_queue_handle_t handle, void * buf, uint32_t timeout) {
 	if (timeout != CSP_MAX_TIMEOUT)
-		timeout = timeout / portTICK_RATE_MS;
+		timeout = timeout / portTICK_PERIOD_MS;
 	return xQueueReceive(handle, buf, timeout);
 }
 
-int csp_queue_dequeue_isr(csp_queue_handle_t handle, void * buf, CSP_BASE_TYPE * task_woken) {
-	return xQueueReceiveFromISR(handle, buf, task_woken);
+int csp_queue_dequeue_isr(csp_queue_handle_t handle, void * buf, int * task_woken) {
+	return xQueueReceiveFromISR(handle, buf, (portBASE_TYPE *) task_woken);
 }
 
 int csp_queue_size(csp_queue_handle_t handle) {

@@ -35,6 +35,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/csp.h>
 #include <csp/arch/csp_thread.h>
 
+#include "../../csp_init.h"
+
 // CAN interface data, state, etc.
 typedef struct {
 	char name[CSP_IFLIST_NAME_MAX + 1];
@@ -216,14 +218,22 @@ int csp_can_socketcan_set_promisc(const bool promisc, int *socket) {
 	}
 
 	if (promisc == false) {
-		struct can_filter filter = {.can_id = CFP_MAKE_DST(csp_get_address()),
-					.can_mask = CFP_MAKE_DST((1 << CFP_HOST_SIZE) - 1)};
+		uint32_t can_id = 0;
+		uint32_t can_mask = 0;
+		if (csp_conf.version == 1) {
+			can_id = CFP_MAKE_DST(csp_get_address());
+			can_mask = CFP_MAKE_DST((1 << CFP_HOST_SIZE) - 1);
+		} else {
+			can_id = csp_get_address() << CFP2_DST_OFFSET;
+			can_mask = CFP2_DST_MASK << CFP2_DST_OFFSET;
+		}
+		struct can_filter filter = {.can_id = can_id, .can_mask = can_mask};
 
-		if (setsockopt(*socket, SOL_CAN_RAW, CAN_RAW_FILTER, &filter, sizeof(filter)) < 0) {
-			csp_log_error("%s: setsockopt() failed, error: %s", __FUNCTION__, strerror(errno));
+		if (setsockopt(ctx->socket, SOL_CAN_RAW, CAN_RAW_FILTER, &filter, sizeof(filter)) < 0) {
+			csp_log_error("%s[%s]: setsockopt() failed, error: %s", __FUNCTION__, ctx->name, strerror(errno));
+			socketcan_free(ctx);
 			return CSP_ERR_INVAL;
 		}
-
 	} else {
 		struct can_filter filter = {.can_id = CFP_MAKE_DST(csp_get_address()),
 					.can_mask = 0x0000}; // receive anything

@@ -89,10 +89,7 @@ struct csp_conn_s {
 	csp_conn_state_t state;		/* Connection state (CONN_OPEN or CONN_CLOSED) */
 	csp_id_t idin;			/* Identifier received */
 	csp_id_t idout;			/* Identifier transmitted */
-#if (CSP_USE_QOS)
-	csp_queue_handle_t rx_event;	/* Event queue for RX packets */
-#endif
-	csp_queue_handle_t rx_queue[CSP_RX_QUEUES]; /* Queue for RX packets */
+	csp_queue_handle_t rx_queue; /* Queue for RX packets */
 	csp_queue_handle_t socket;	/* Socket to be "woken" when first packet is ready */
 	uint32_t timestamp;		/* Time the connection was opened */
 	uint32_t opts;			/* Connection or socket options */
@@ -104,7 +101,10 @@ struct csp_conn_s {
 int csp_conn_enqueue_packet(csp_conn_t * conn, csp_packet_t * packet);
 int csp_conn_init(void);
 csp_conn_t * csp_conn_allocate(csp_conn_type_t type);
-csp_conn_t * csp_conn_find(uint32_t id, uint32_t mask);
+
+csp_conn_t * csp_conn_find_existing(csp_id_t * id);
+csp_conn_t * csp_conn_find_dport(unsigned int dport);
+
 csp_conn_t * csp_conn_new(csp_id_t idin, csp_id_t idout);
 void csp_conn_check_timeouts(void);
 int csp_conn_get_rxq(int prio);

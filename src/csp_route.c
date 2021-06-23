@@ -36,6 +36,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "csp_promisc.h"
 #include "csp_qfifo.h"
 #include "csp_dedup.h"
+#include "csp_id.h"
 #include "transport/csp_transport.h"
 
 /**
@@ -185,6 +186,10 @@ int csp_route_work(uint32_t timeout) {
 	csp_promisc_add(packet);
 #endif
 
+	/* Count the message */
+	input.iface->rx++;
+	input.iface->rxbytes += packet->length;
+
 #if (CSP_USE_DEDUP)
 	/* Check for duplicates */
 	if (csp_dedup_is_duplicate(packet)) {
@@ -196,12 +201,8 @@ int csp_route_work(uint32_t timeout) {
 	}
 #endif
 
-	/* Now we count the message (since its deduplicated) */
-	input.iface->rx++;
-	input.iface->rxbytes += packet->length;
-
 	/* If the message is not to me, route the message to the correct interface */
-	if ((packet->id.dst != csp_conf.address) && (packet->id.dst != CSP_BROADCAST_ADDR)) {
+	if ((packet->id.dst != csp_conf.address) && (packet->id.dst != csp_id_get_max_nodeid())) {
 
 		/* Find the destination interface */
 		const csp_route_t * ifroute = csp_rtable_find_route(packet->id.dst);
@@ -237,16 +238,27 @@ int csp_route_work(uint32_t timeout) {
 			csp_buffer_free(packet);
 			return CSP_ERR_NONE;
 		}
-		if (csp_queue_enqueue(socket->socket, &packet, 0) != CSP_QUEUE_OK) {
-			csp_log_error("Conn-less socket queue full");
-			csp_buffer_free(packet);
-			return CSP_ERR_NONE;
+
+		/* If the socket uses callback */
+		if (socket->opts & CSP_SO_CONN_LESS) {
+			((void (*)(csp_packet_t *packet)) socket->socket)(packet);
+
+		/* Otherwise, it uses a queue */
+		} else {
+
+			if (csp_queue_enqueue(socket->socket, &packet, 0) != CSP_QUEUE_OK) {
+				csp_log_error("Conn-less socket queue full");
+				csp_buffer_free(packet);
+				return 0;
+			}
+
 		}
+
 		return CSP_ERR_NONE;
 	}
 
 	/* Search for an existing connection */
-	conn = csp_conn_find(packet->id.ext, CSP_ID_CONN_MASK);
+	conn = csp_conn_find_existing(&packet->id);
 
 	/* If this is an incoming packet on a new connection */
 	if (conn == NULL) {
@@ -313,7 +325,7 @@ int csp_route_work(uint32_t timeout) {
 	return CSP_ERR_NONE;
 }
 
-static CSP_DEFINE_TASK(csp_task_router) {
+CSP_DEFINE_TASK(csp_task_router) {
 
 	/* Here there be routing */
 	while (1) {

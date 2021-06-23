@@ -29,6 +29,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/arch/csp_malloc.h>
 #include <csp/arch/csp_time.h>
 #include "csp_init.h"
+#include "csp_id.h"
 #include "transport/csp_transport.h"
 
 /* Connection pool */
@@ -55,40 +56,15 @@ void csp_conn_check_timeouts(void) {
 #endif
 }
 
-int csp_conn_get_rxq(int prio) {
-
-#if (CSP_USE_QOS)
-	return prio;
-#else
-	return 0;
-#endif
-
-}
-
 int csp_conn_enqueue_packet(csp_conn_t * conn, csp_packet_t * packet) {
 
 	if (!conn)
 		return CSP_ERR_INVAL;
 
-	int rxq;
-	if (packet != NULL) {
-		rxq = csp_conn_get_rxq(packet->id.pri);
-	} else {
-		rxq = CSP_RX_QUEUES - 1;
-	}
-
-	if (csp_queue_enqueue(conn->rx_queue[rxq], &packet, 0) != CSP_QUEUE_OK) {
-		csp_log_error("RX queue %p full with %u items", conn->rx_queue[rxq], csp_queue_size(conn->rx_queue[rxq]));
+	if (csp_queue_enqueue(conn->rx_queue, &packet, 0) != CSP_QUEUE_OK) {
+		csp_log_error("RX queue %p full with %u items", conn->rx_queue, csp_queue_size(conn->rx_queue));
 		return CSP_ERR_NOMEM;
 	}
-
-#if (CSP_USE_QOS)
-	int event = 0;
-	if (csp_queue_enqueue(conn->rx_event, &event, 0) != CSP_QUEUE_OK) {
-		csp_log_error("QOS event queue full");
-		return CSP_ERR_NOMEM;
-	}
-#endif
 
 	return CSP_ERR_NONE;
 }
@@ -107,8 +83,8 @@ int csp_conn_init(void) {
 	}
 
 	/* Initialize source port */
-	srand(csp_get_ms());
-	sport = (rand() % (CSP_ID_PORT_MAX - csp_conf.port_max_bind)) + (csp_conf.port_max_bind + 1);
+	unsigned int seed = csp_get_ms();
+	sport = (rand_r(&seed) % (csp_id_get_max_port() - csp_conf.port_max_bind)) + (csp_conf.port_max_bind + 1);
 
 	if (csp_bin_sem_create(&sport_lock) != CSP_SEMAPHORE_OK) {
 		csp_log_error("csp_bin_sem_create(&sport_lock) failed");
@@ -117,21 +93,11 @@ int csp_conn_init(void) {
 
 	for (int i = 0; i < csp_conf.conn_max; i++) {
 		csp_conn_t * conn = &arr_conn[i];
-		for (int prio = 0; prio < CSP_RX_QUEUES; prio++) {
-			conn->rx_queue[prio] = csp_queue_create(csp_conf.conn_queue_length, sizeof(csp_packet_t *));
-			if (conn->rx_queue[prio] == NULL) {
-				csp_log_error("rx_queue = csp_queue_create() failed");
-				return CSP_ERR_NOMEM;
-			}
-		}
-
-#if (CSP_USE_QOS)
-		conn->rx_event = csp_queue_create(csp_conf.conn_queue_length, sizeof(int));
-		if (conn->rx_event == NULL) {
-			csp_log_error("rx_event = csp_queue_create() failed");
+		conn->rx_queue = csp_queue_create(csp_conf.conn_queue_length, sizeof(csp_packet_t *));
+		if (conn->rx_queue == NULL) {
+			csp_log_error("rx_queue = csp_queue_create() failed");
 			return CSP_ERR_NOMEM;
 		}
-#endif
 
 #if (CSP_USE_RDP)
 		if (csp_rdp_init(conn) != CSP_ERR_NONE) {
@@ -147,50 +113,99 @@ int csp_conn_init(void) {
 
 void csp_conn_free_resources(void) {
 
-    if (arr_conn) {
+	if (arr_conn) {
 
-	for (unsigned int i = 0; i < csp_conf.conn_max; i++) {
-            csp_conn_t * conn = &arr_conn[i];
+		for (unsigned int i = 0; i < csp_conf.conn_max; i++) {
+			csp_conn_t *conn = &arr_conn[i];
 
-            for (int prio = 0; prio < CSP_RX_QUEUES; prio++) {
-                if (conn->rx_queue[prio]) {
-                    csp_queue_remove(conn->rx_queue[prio]);
-                }
-            }
-
-#if (CSP_USE_QOS)
-            if (conn->rx_event) {
-                csp_queue_remove(conn->rx_event);
-            }
-#endif
+			if (conn->rx_queue) {
+				csp_queue_remove(conn->rx_queue);
+			}
 
 #if (CSP_USE_RDP)
-            csp_rdp_free_resources(conn);
+			csp_rdp_free_resources(conn);
 #endif
+		}
+
+		csp_free(arr_conn);
+		arr_conn = NULL;
+
+		//csp_bin_sem_remove(&conn_lock);
+		memset(&conn_lock, 0, sizeof(conn_lock));
+
+		//csp_bin_sem_remove(&sport_lock);
+		memset(&sport_lock, 0, sizeof(sport_lock));
+
+		sport = 0;
 	}
-
-        csp_free(arr_conn);
-        arr_conn = NULL;
-
-        //csp_bin_sem_remove(&conn_lock);
-        memset(&conn_lock, 0, sizeof(conn_lock));
-
-        //csp_bin_sem_remove(&sport_lock);
-        memset(&sport_lock, 0, sizeof(sport_lock));
-
-        sport = 0;
-    }
 }
 
-csp_conn_t * csp_conn_find(uint32_t id, uint32_t mask) {
+csp_conn_t * csp_conn_find_dport(unsigned int dport) {
 
-	/* Search for matching connection */
-	id = (id & mask);
 	for (int i = 0; i < csp_conf.conn_max; i++) {
 		csp_conn_t * conn = &arr_conn[i];
-		if ((conn->state == CONN_OPEN) && (conn->type == CONN_CLIENT) && ((conn->idin.ext & mask) == id)) {
-			return conn;
-		}
+
+		/* Connection must match dport */
+		if (conn->idin.dport != dport)
+			continue;
+
+		/* Connection must be open */
+		if (conn->state != CONN_OPEN)
+			continue;
+
+		/* Connection must be client */
+		if (conn->type != CONN_CLIENT)
+			continue;
+
+		/* All conditions found! */
+		return conn;
+
+	}
+
+	return NULL;
+
+}
+
+csp_conn_t * csp_conn_find_existing(csp_id_t * id) {
+
+	for (int i = 0; i < csp_conf.conn_max; i++) {
+		csp_conn_t * conn = &arr_conn[i];
+
+		/**
+		 * This search looks verbose, Instead of a big if statement, it is written out as
+		 * conditions. This has been done for clarity. The least likely check is put first
+		 * for runtime speed improvement.
+		 * Also this is written using explicit fields, not bitmasks, in order to improve
+		 * portability and dual use between different header formats.
+		 */
+
+		/* Connection must match dport */
+		if (conn->idin.dport != id->dport)
+			continue;
+
+		/* Connection must match sport */
+		if (conn->idin.sport != id->sport)
+			continue;
+
+		/* Connection must match destination */
+		if (conn->idin.dst != id->dst)
+			continue;
+
+		/* Connection must match source */
+		if (conn->idin.src != id->src)
+			continue;
+
+		/* Connection must be open */
+		if (conn->state != CONN_OPEN)
+			continue;
+
+		/* Connection must be client */
+		if (conn->type != CONN_CLIENT)
+			continue;
+
+		/* All conditions found! */
+		return conn;
+
 	}
 	
 	return NULL;
@@ -201,20 +216,12 @@ static int csp_conn_flush_rx_queue(csp_conn_t * conn) {
 
 	csp_packet_t * packet;
 
-	int prio;
-
 	/* Flush packet queues */
-	for (prio = 0; prio < CSP_RX_QUEUES; prio++) {
-		while (csp_queue_dequeue(conn->rx_queue[prio], &packet, 0) == CSP_QUEUE_OK)
-			if (packet != NULL)
-				csp_buffer_free(packet);
+	while (csp_queue_dequeue(conn->rx_queue, &packet, 0) == CSP_QUEUE_OK) {
+		if (packet != NULL) {
+			csp_buffer_free(packet);
+		}
 	}
-
-	/* Flush event queue */
-#if (CSP_USE_QOS)
-	int event;
-	while (csp_queue_dequeue(conn->rx_event, &event, 0) == CSP_QUEUE_OK);
-#endif
 
 	return CSP_ERR_NONE;
 
@@ -241,8 +248,6 @@ csp_conn_t * csp_conn_allocate(csp_conn_type_t type) {
 	}
 
 	if (conn && (conn->state == CONN_CLOSED)) {
-		conn->idin.ext = 0;
-		conn->idout.ext = 0;
 		conn->socket = NULL;
 		conn->timestamp = 0;
 		conn->type = type;
@@ -271,8 +276,9 @@ csp_conn_t * csp_conn_new(csp_id_t idin, csp_id_t idout) {
 	if (conn) {
 		/* No lock is needed here, because nobody else *
 		 * has a reference to this connection yet.     */
-		conn->idin.ext = idin.ext;
-		conn->idout.ext = idout.ext;
+		csp_id_copy(&conn->idin, &idin);
+		csp_id_copy(&conn->idout, &idout);
+
 		conn->timestamp = csp_get_ms();
 
 		/* Ensure connection queue is empty */
@@ -337,7 +343,7 @@ int csp_conn_close(csp_conn_t * conn, uint8_t closed_by) {
 	return CSP_ERR_NONE;
 }
 
-csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport, uint32_t timeout, uint32_t opts) {
+csp_conn_t * csp_connect(uint8_t prio, uint16_t dest, uint8_t dport, uint32_t timeout, uint32_t opts) {
 
 	/* Force options on all connections */
 	opts |= csp_conf.conn_dfl_so;
@@ -365,7 +371,7 @@ csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport, uint32_t tim
 		incoming_id.flags |= CSP_FRDP;
 		outgoing_id.flags |= CSP_FRDP;
 #else
-		csp_log_error("Attempt to create RDP connection, but CSP was compiled without RDP support");
+		csp_log_error("No RDP support");
 		return NULL;
 #endif
 	}
@@ -375,7 +381,7 @@ csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport, uint32_t tim
 		outgoing_id.flags |= CSP_FHMAC;
 		incoming_id.flags |= CSP_FHMAC;
 #else
-		csp_log_error("Attempt to create HMAC authenticated connection, but CSP was compiled without HMAC support");
+		csp_log_error("No HMAC support");
 		return NULL;
 #endif
 	}
@@ -385,7 +391,7 @@ csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport, uint32_t tim
 		outgoing_id.flags |= CSP_FXTEA;
 		incoming_id.flags |= CSP_FXTEA;
 #else
-		csp_log_error("Attempt to create XTEA encrypted connection, but CSP was compiled without XTEA support");
+		csp_log_error("No XTEA support");
 		return NULL;
 #endif
 	}
@@ -395,7 +401,7 @@ csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport, uint32_t tim
 		outgoing_id.flags |= CSP_FCRC32;
 		incoming_id.flags |= CSP_FCRC32;
 #else
-		csp_log_error("Attempt to create CRC32 validated connection, but CSP was compiled without CRC32 support");
+		csp_log_error("No CRC32 support");
 		return NULL;
 #endif
 	}
@@ -408,21 +414,25 @@ csp_conn_t * csp_connect(uint8_t prio, uint8_t dest, uint8_t dport, uint32_t tim
 		return NULL;
 	}
 
+	/* Loop through available source ports */
 	const uint8_t start = sport;
 	while (++sport != start) {
-		if (sport > CSP_ID_PORT_MAX)
+		if (sport > csp_id_get_max_port())
 			sport = csp_conf.port_max_bind + 1;
 
-		outgoing_id.sport = sport;
-		incoming_id.dport = sport;
+		/* Search for ephemeral outgoing port */
+		if (csp_conn_find_dport(sport) == NULL) {
 
-		/* Match on destination port of _incoming_ identifier */
-		if (csp_conn_find(incoming_id.ext, CSP_ID_DPORT_MASK) == NULL) {
-			/* Break - we found an unused ephemeral port
-                           allocate connection while locked to mark port in use */
+			/* We found an unused ephemeral port
+			 * allocate connection while locked to mark port in use */
+
+			outgoing_id.sport = sport;
+			incoming_id.dport = sport;
+
 			conn = csp_conn_new(incoming_id, outgoing_id);
 			break;
 		}
+
 	}
 
 	/* Post sport lock */

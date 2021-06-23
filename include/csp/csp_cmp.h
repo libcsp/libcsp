@@ -125,8 +125,8 @@ struct csp_cmp_message {
 			char time[CSP_CMP_IDENT_TIME_LEN];
 		} ident;
 		struct {
-			uint8_t dest_node;
-			uint8_t next_hop_via;
+			uint16_t dest_node;
+			uint16_t next_hop_via;
 			char interface[CSP_CMP_ROUTE_IFACE_LEN];
 		} route_set;
 		struct __attribute__((__packed__)) {
@@ -170,13 +170,13 @@ struct csp_cmp_message {
    @param[in,out] msg data.
    @return #CSP_ERR_NONE on success, otherwise an error code.
 */
-int csp_cmp(uint8_t node, uint32_t timeout, uint8_t code, int msg_size, struct csp_cmp_message *msg);
+int csp_cmp(uint16_t node, uint32_t timeout, uint8_t code, int msg_size, struct csp_cmp_message *msg);
 
 /**
    Macro for defining management handling function.
 */
 #define CMP_MESSAGE(_code, _memb) \
-static inline int csp_cmp_##_memb(uint8_t node, uint32_t timeout, struct csp_cmp_message *msg) { \
+static inline int csp_cmp_##_memb(uint16_t node, uint32_t timeout, struct csp_cmp_message *msg) { \
 	return csp_cmp(node, timeout, _code, CMP_SIZE(_memb), msg); \
 }
 

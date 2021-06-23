@@ -66,14 +66,14 @@ void csp_i2c_rx(csp_iface_t * iface, csp_i2c_frame_t * frame, void * pxTaskWoken
 		return;
 	}
 
-	if (frame->len < sizeof(csp_id_t)) {
+	if (frame->len < sizeof(uint32_t)) {
 		iface->frame++;
 		(pxTaskWoken != NULL) ? csp_buffer_free_isr(frame) : csp_buffer_free(frame);
 		return;
 	}
 
 	/* Strip the CSP header off the length field before converting to CSP packet */
-	frame->len -= sizeof(csp_id_t);
+	frame->len -= sizeof(uint32_t);
 
 	if (frame->len > csp_buffer_data_size()) { // consistency check, should never happen
 		iface->rx_error++;

@@ -74,7 +74,7 @@ int csp_zmqhub_make_endpoint(const char * host, uint16_t port, char * buf, size_
    @param[out] return_interface created CSP interface.
    @return #CSP_ERR_NONE on succcess - else assert.
 */
-int csp_zmqhub_init(uint8_t addr,
+int csp_zmqhub_init(uint16_t addr,
                     const char * host,
                     uint32_t flags,
                     csp_iface_t ** return_interface);
@@ -88,7 +88,7 @@ int csp_zmqhub_init(uint8_t addr,
    @param[out] return_interface created CSP interface.
    @return #CSP_ERR_NONE on succcess - else assert.
 */
-int csp_zmqhub_init_w_endpoints(uint8_t addr,
+int csp_zmqhub_init_w_endpoints(uint16_t addr,
                                 const char * publish_endpoint,
                                 const char * subscribe_endpoint,
                                 uint32_t flags,
@@ -106,7 +106,7 @@ int csp_zmqhub_init_w_endpoints(uint8_t addr,
    @return #CSP_ERR_NONE on succcess - else assert.
 */
 int csp_zmqhub_init_w_name_endpoints_rxfilter(const char * ifname,
-                                              const uint8_t rx_filter[], unsigned int rx_filter_count,
+                                              const uint16_t rx_filter[], unsigned int rx_filter_count,
                                               const char * publish_endpoint,
                                               const char * subscribe_endpoint,
                                               uint32_t flags,

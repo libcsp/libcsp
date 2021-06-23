@@ -1,0 +1,18 @@
+if host_machine.system() == 'linux'
+	subdir('posix')
+	conf.set('CSP_POSIX', 1)
+elif host_machine.system() == 'windows'
+	subdir('windows')
+	conf.set('CSP_WINDOWS', 1)
+elif host_machine.system() == 'macosx'
+	subdir('macosx')
+	conf.set('CSP_MACOSX', 1)
+elif host_machine.system() == 'freertos'
+	subdir('freertos')
+	conf.set('CSP_FREERTOS', 1)
+else
+	error('invalid system @0@'.format(host_machine.system()))
+endif
+
+csp_sources += files('csp_time.c')
+csp_sources += files('csp_system.c')

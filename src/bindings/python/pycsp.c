@@ -113,7 +113,7 @@ static PyObject* pycsp_service_handler(PyObject *self, PyObject *args) {
         return NULL;
     }
 
-    csp_service_handler(conn, packet);
+    csp_service_handler(packet);
     PyCapsule_SetPointer(packet_capsule, &CSP_POINTER_HAS_BEEN_FREED);
     Py_RETURN_NONE;
 }
@@ -257,13 +257,16 @@ static PyObject* pycsp_transaction(PyObject *self, PyObject *args) {
     uint32_t timeout;
     Py_buffer inbuf;
     Py_buffer outbuf;
-    if (!PyArg_ParseTuple(args, "bbbIw*w*", &prio, &dest, &port, &timeout, &outbuf, &inbuf)) {
-        return NULL; // TypeError is thrown
+    int allow_any_incoming_length = 0;
+    if (!PyArg_ParseTuple(args, "bbbIw*w*|i", &prio, &dest, &port, &timeout, &outbuf, &inbuf, &allow_any_incoming_length)) {
+            return NULL; // TypeError is thrown
     }
+
+    int incoming_buffer_len = allow_any_incoming_length ? -1 : inbuf.len;
 
     int res;
     Py_BEGIN_ALLOW_THREADS;
-    res = csp_transaction(prio, dest, port, timeout, outbuf.buf, outbuf.len, inbuf.buf, inbuf.len);
+    res = csp_transaction(prio, dest, port, timeout, outbuf.buf, outbuf.len, inbuf.buf, incoming_buffer_len);
     Py_END_ALLOW_THREADS;
     if (res < 1) {
         return PyErr_Error("csp_transaction()", res);
@@ -298,6 +301,27 @@ static PyObject* pycsp_sendto(PyObject *self, PyObject *args) {
     PyCapsule_SetPointer(packet_capsule, &CSP_POINTER_HAS_BEEN_FREED);
 
     Py_RETURN_NONE;
+}
+
+static PyObject* pycsp_recvfrom(PyObject *self, PyObject *args) {
+    PyObject* socket_capsule;
+    uint32_t timeout = 500;
+    if (!PyArg_ParseTuple(args, "O|I", &socket_capsule, &timeout)) {
+        return NULL;
+    }
+    csp_socket_t *socket = get_obj_as_socket(socket_capsule, false);
+    if (socket == NULL) {
+        return NULL;
+    }
+    csp_packet_t *packet = NULL;
+    Py_BEGIN_ALLOW_THREADS;
+    packet = csp_recvfrom(socket, timeout);
+    Py_END_ALLOW_THREADS;
+    if (packet == NULL) {
+        Py_RETURN_NONE;
+    }
+
+    return PyCapsule_New(packet, PACKET_CAPSULE, pycsp_free_csp_buffer);
 }
 
 static PyObject* pycsp_sendto_reply(PyObject *self, PyObject *args) {
@@ -547,10 +571,10 @@ static PyObject* pycsp_xtea_set_key(PyObject *self, PyObject *args) {
 }
 
 static PyObject* pycsp_rtable_set(PyObject *self, PyObject *args) {
-    uint8_t node;
-    uint8_t mask;
+    uint16_t node;
+    uint16_t mask;
     char* interface_name;
-    uint8_t via = CSP_NO_VIA_ADDRESS;
+    uint16_t via = CSP_NO_VIA_ADDRESS;
     if (!PyArg_ParseTuple(args, "bbs|b", &node, &mask, &interface_name, &via)) {
         return NULL; // TypeError is thrown
     }
@@ -911,6 +935,7 @@ static PyMethodDef methods[] = {
     {"transaction",         pycsp_transaction,         METH_VARARGS, ""},
     {"sendto_reply",        pycsp_sendto_reply,        METH_VARARGS, ""},
     {"sendto",              pycsp_sendto,              METH_VARARGS, ""},
+    {"recvfrom",            pycsp_recvfrom,            METH_VARARGS, ""},
     {"connect",             pycsp_connect,             METH_VARARGS, ""},
     {"close",               pycsp_close,               METH_O,       ""},
     {"conn_dport",          pycsp_conn_dport,          METH_O,       ""},

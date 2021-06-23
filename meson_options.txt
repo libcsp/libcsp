@@ -1,0 +1,10 @@
+option('with_rtable', type: 'combo', value: 'cidr', choices: ['cidr', 'static'], description: 'Select routing table')
+
+option('use_rdp', type: 'boolean', value: true, description: 'Reliable Datagram Protocol')
+option('use_crc32', type: 'boolean', value: true, description: 'Cyclic redundancy check')
+option('use_hmac', type: 'boolean', value: true, description: 'Hash-based message authentication code')
+option('use_xtea', type: 'boolean', value: true, description: 'eXtended TEA block cipher')
+option('use_promisc', type: 'boolean', value: true, description: 'Promiscious mode')
+option('use_dedup', type: 'boolean', value: true, description: 'Packet deduplication')
+
+option('version', type: 'integer', value: 1, description: 'Which version of CSP to use.')

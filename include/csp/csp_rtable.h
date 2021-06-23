@@ -47,6 +47,8 @@ extern "C" {
    Legacy definition for #CSP_NO_VIA_ADDRESS.
 */
 #define CSP_NODE_MAC	CSP_NO_VIA_ADDRESS
+
+#define CSP_RTABLE_MAX_BITS	16
     
 /**
    Route entry.
@@ -56,7 +58,7 @@ struct csp_route_s {
     /** Which interface to route packet on */
     csp_iface_t * iface;
     /** If different from #CSP_NO_VIA_ADDRESS, send packet to this address, instead of the destination address in the CSP header. */
-    uint8_t via;
+    uint16_t via;
 };
 
 /**
@@ -64,7 +66,7 @@ struct csp_route_s {
    @param[in] dest_address destination address.
    @return Route or NULL if no route found.
 */
-const csp_route_t * csp_rtable_find_route(uint8_t dest_address);
+const csp_route_t * csp_rtable_find_route(uint16_t dest_address);
 
 /**
    Set route to destination address/node.
@@ -74,7 +76,7 @@ const csp_route_t * csp_rtable_find_route(uint8_t dest_address);
    @param[in] via assosicated via address.
    @return #CSP_ERR_NONE on success, or an error code.
 */
-int csp_rtable_set(uint8_t dest_address, uint8_t mask, csp_iface_t *ifc, uint8_t via);
+int csp_rtable_set(uint16_t dest_address, uint16_t mask, csp_iface_t *ifc, uint16_t via);
 
 /**
    Save routing table as a string (readable format).
@@ -120,7 +122,7 @@ void csp_rtable_free(void);
 void csp_rtable_print(void);
 
 /** Iterator for looping through the routing table. */
-typedef bool (*csp_rtable_iterator_t)(void * ctx, uint8_t address, uint8_t mask, const csp_route_t * route);
+typedef bool (*csp_rtable_iterator_t)(void * ctx, uint16_t address, uint16_t mask, const csp_route_t * route);
 
 /**
    Iterate routing table.
@@ -135,8 +137,8 @@ void csp_rtable_iterate(csp_rtable_iterator_t iter, void * ctx);
    @param[in] via assosicated via address.
    @return #CSP_ERR_NONE on success, or an error code.
 */
-static inline int csp_route_set(uint8_t dest_address, csp_iface_t *ifc, uint8_t via) {
-    return csp_rtable_set(dest_address, CSP_ID_HOST_SIZE, ifc, via);
+static inline int csp_route_set(uint16_t dest_address, csp_iface_t *ifc, uint16_t via) {
+    return csp_rtable_set(dest_address, CSP_RTABLE_MAX_BITS, ifc, via);
 }
 
 /**

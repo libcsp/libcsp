@@ -18,11 +18,17 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+#include <FreeRTOS.h>
+#include <task.h>
+
 #include <csp/arch/csp_thread.h>
+
+#include <FreeRTOS.h>
+#include <task.h>
 
 int csp_thread_create(csp_thread_func_t routine, const char * const thread_name, unsigned int stack_size, void * parameters, unsigned int priority, csp_thread_handle_t * return_handle) {
 
-	csp_thread_handle_t handle;
+    TaskHandle_t handle;
 #if (tskKERNEL_VERSION_MAJOR >= 8)
 	portBASE_TYPE ret = xTaskCreate(routine, thread_name, stack_size, parameters, priority, &handle);
 #else
@@ -44,5 +50,5 @@ void csp_thread_exit(void) {
 
 void csp_sleep_ms(unsigned int time_ms) {
 
-	vTaskDelay(time_ms / portTICK_RATE_MS);
+	vTaskDelay(time_ms / portTICK_PERIOD_MS);
 }

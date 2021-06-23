@@ -33,7 +33,7 @@ int csp_queue_enqueue(csp_queue_handle_t handle, const void *value, uint32_t tim
 	return pthread_queue_enqueue(handle, value, timeout);
 }
 
-int csp_queue_enqueue_isr(csp_queue_handle_t handle, const void * value, CSP_BASE_TYPE * task_woken) {
+int csp_queue_enqueue_isr(csp_queue_handle_t handle, const void * value, int * task_woken) {
 	if (task_woken != NULL) {
 		*task_woken = 0;
 	}
@@ -44,7 +44,7 @@ int csp_queue_dequeue(csp_queue_handle_t handle, void *buf, uint32_t timeout) {
 	return pthread_queue_dequeue(handle, buf, timeout);
 }
 
-int csp_queue_dequeue_isr(csp_queue_handle_t handle, void *buf, CSP_BASE_TYPE * task_woken) {
+int csp_queue_dequeue_isr(csp_queue_handle_t handle, void *buf, int * task_woken) {
 	if (task_woken != NULL) {
 		*task_woken = 0;
 	}

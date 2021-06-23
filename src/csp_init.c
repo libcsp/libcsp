@@ -28,7 +28,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 csp_conf_t csp_conf;
 
-uint8_t csp_get_address(void) {
+uint16_t csp_get_address(void) {
 
 	return csp_conf.address;
 }
@@ -68,10 +68,10 @@ int csp_init(const csp_conf_t * conf) {
 	csp_iflist_add(&csp_if_lo);
 
 	/* Register loopback route */
-	csp_route_set(csp_conf.address, &csp_if_lo, CSP_NO_VIA_ADDRESS);
+	csp_rtable_set(csp_conf.address, CSP_RTABLE_MAX_BITS, &csp_if_lo, CSP_NO_VIA_ADDRESS);
 
 	/* Also register loopback as default, until user redefines default route */
-	csp_route_set(CSP_DEFAULT_ROUTE, &csp_if_lo, CSP_NO_VIA_ADDRESS);
+	csp_rtable_set(0, 0, &csp_if_lo, CSP_NO_VIA_ADDRESS);
 
 	return CSP_ERR_NONE;
 
