@@ -69,6 +69,7 @@ def options(ctx):
                   help='Set minimum compile time log level. Must be one of: ' + str(valid_loglevel))
     gr.add_option('--with-rtable', metavar='TABLE', default='static',
                   help='Set routing table type: \'static\' or \'cidr\'')
+    gr.add_option('--version2', action='store_true', help='Build CSP version 2')
 
 
 def configure(ctx):
@@ -120,6 +121,11 @@ def configure(ctx):
     ctx.define_cond('CSP_POSIX', ctx.options.with_os == 'posix')
     ctx.define_cond('CSP_WINDOWS', ctx.options.with_os == 'windows')
     ctx.define_cond('CSP_MACOSX', ctx.options.with_os == 'macosx')
+
+    if ctx.options.version2:
+        ctx.define('CSP_VERSION', 2)
+    else:
+        ctx.define('CSP_VERSION', 1)
 
     # Add files
     ctx.env.append_unique('FILES_CSP', ['src/*.c',
