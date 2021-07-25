@@ -19,9 +19,9 @@ void csp_id2_setup_rx(csp_packet_t * packet);
 void csp_id_prepend(csp_packet_t * packet);
 int csp_id_strip(csp_packet_t * packet);
 int csp_id_setup_rx(csp_packet_t * packet);
-int csp_id_get_host_bits(void);
-int csp_id_get_max_nodeid(void);
-int csp_id_get_max_port(void);
+unsigned int csp_id_get_host_bits(void);
+unsigned int csp_id_get_max_nodeid(void);
+unsigned int csp_id_get_max_port(void);
 
 
 #endif /* LIB_CSP_SRC_CSP_ID_H_ */
