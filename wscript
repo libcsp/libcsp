@@ -132,7 +132,11 @@ def configure(ctx):
                                         'src/external/**/*.c',
                                         'src/transport/**/*.c',
                                         'src/crypto/**/*.c',
-                                        'src/interfaces/**/*.c',
+                                        'src/interfaces/csp_if_lo.c',
+                                        'src/interfaces/csp_if_can.c',
+                                        'src/interfaces/csp_if_can_pbuf.c',
+                                        'src/interfaces/csp_if_kiss.c',
+                                        'src/interfaces/csp_if_udp.c',
                                         'src/arch/*.c',
                                         'src/arch/{0}/**/*.c'.format(ctx.options.with_os),
                                         'src/rtable/csp_rtable.c',
@@ -153,6 +157,7 @@ def configure(ctx):
     if ctx.options.enable_if_zmqhub:
         ctx.check_cfg(package='libzmq', args='--cflags --libs', define_name='CSP_HAVE_LIBZMQ')
         ctx.env.append_unique('LIBS', ctx.env.LIB_LIBZMQ)
+        ctx.env.append_unique('FILES_CSP', 'src/interfaces/csp_if_zmqhub.c')
 
     # Store configuration options
     ctx.env.ENABLE_EXAMPLES = ctx.options.enable_examples
