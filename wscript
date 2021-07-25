@@ -67,7 +67,7 @@ def options(ctx):
     # Options
     gr.add_option('--with-loglevel', metavar='LEVEL', default='debug',
                   help='Set minimum compile time log level. Must be one of: ' + str(valid_loglevel))
-    gr.add_option('--with-rtable', metavar='TABLE', default='static',
+    gr.add_option('--with-rtable', metavar='TABLE', default='cidr',
                   help='Set routing table type: \'static\' or \'cidr\'')
     gr.add_option('--version2', action='store_true', help='Build CSP version 2')
 
