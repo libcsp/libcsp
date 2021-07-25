@@ -18,3 +18,4 @@ tags
 *.html
 builddir
 .settings
+*~
