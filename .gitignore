@@ -19,3 +19,6 @@ tags
 builddir
 .settings
 *~
+GPATH
+GRTAGS
+GTAGS
