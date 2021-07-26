@@ -426,7 +426,7 @@ int csp_can2_tx(const csp_route_t * ifroute, csp_packet_t *packet) {
 	int tx_count = 0;
 
 	uint32_t can_id = 0;
-	uint8_t frame_buf[CAN_FRAME_SIZE];
+	uint8_t frame_buf[CAN_FRAME_SIZE] __attribute__((aligned(sizeof(uint32_t))));
 	uint8_t frame_buf_inp = 0;
 	uint8_t frame_buf_avail = CAN_FRAME_SIZE;
 
