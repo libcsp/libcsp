@@ -48,5 +48,5 @@ if os in ['windows']:
 waf += ['distclean', 'configure', 'build']
 print("Waf build command:", waf)
 subprocess.check_call(waf + options +
-                      ['--enable-qos', '--with-rtable=cidr', '--disable-stlib', '--disable-output'])
+                      ['--with-rtable=cidr', '--disable-stlib', '--disable-output'])
 subprocess.check_call(waf + options + ['--enable-examples'])
