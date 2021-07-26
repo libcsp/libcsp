@@ -114,6 +114,8 @@ def configure(ctx):
         ctx.env.append_unique('LIBS', ['rt', 'pthread', 'util'])
     elif ctx.options.with_os == 'macosx':
         ctx.env.append_unique('LIBS', ['pthread'])
+        if ctx.env.CC_VERSION[0] == '9':
+            ctx.env.append_unique('CFLAGS', ['-Wno-missing-field-initializers'])
     elif ctx.options.with_os == 'windows':
         ctx.env.append_unique('CFLAGS', ['-D_WIN32_WINNT=0x0600'])
 
