@@ -1,4 +1,8 @@
-project('csp', 'c', version: '1.5.0', license: 'LGPL')
+project('csp', 'c', version: '1.5.0', license: 'LGPL',
+	default_options : ['c_std=gnu99',
+			   'optimization=s',
+			   'warning_level=2',
+			   'werror=true'])
 
 cc = meson.get_compiler('c')
 
@@ -76,6 +80,10 @@ csp_lib = static_library('csp',
 	sources: [csp_sources, csp_config_h],
 	include_directories : csp_inc,
 	dependencies : csp_deps,
+	c_args : ['-Wshadow',
+		  '-Wcast-align',
+		  '-Wwrite-strings',
+		  '-Wno-unused-parameter']
 )
 
 csp_dep = declare_dependency(

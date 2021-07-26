@@ -18,3 +18,7 @@ tags
 *.html
 builddir
 .settings
+*~
+GPATH
+GRTAGS
+GTAGS

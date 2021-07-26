@@ -67,8 +67,9 @@ def options(ctx):
     # Options
     gr.add_option('--with-loglevel', metavar='LEVEL', default='debug',
                   help='Set minimum compile time log level. Must be one of: ' + str(valid_loglevel))
-    gr.add_option('--with-rtable', metavar='TABLE', default='static',
+    gr.add_option('--with-rtable', metavar='TABLE', default='cidr',
                   help='Set routing table type: \'static\' or \'cidr\'')
+    gr.add_option('--version2', action='store_true', help='Build CSP version 2')
 
 
 def configure(ctx):
@@ -113,6 +114,8 @@ def configure(ctx):
         ctx.env.append_unique('LIBS', ['rt', 'pthread', 'util'])
     elif ctx.options.with_os == 'macosx':
         ctx.env.append_unique('LIBS', ['pthread'])
+        if ctx.env.CC_VERSION[0] == '9':
+            ctx.env.append_unique('CFLAGS', ['-Wno-missing-field-initializers'])
     elif ctx.options.with_os == 'windows':
         ctx.env.append_unique('CFLAGS', ['-D_WIN32_WINNT=0x0600'])
 
@@ -121,12 +124,21 @@ def configure(ctx):
     ctx.define_cond('CSP_WINDOWS', ctx.options.with_os == 'windows')
     ctx.define_cond('CSP_MACOSX', ctx.options.with_os == 'macosx')
 
+    if ctx.options.version2:
+        ctx.define('CSP_VERSION', 2)
+    else:
+        ctx.define('CSP_VERSION', 1)
+
     # Add files
     ctx.env.append_unique('FILES_CSP', ['src/*.c',
                                         'src/external/**/*.c',
                                         'src/transport/**/*.c',
                                         'src/crypto/**/*.c',
-                                        'src/interfaces/**/*.c',
+                                        'src/interfaces/csp_if_lo.c',
+                                        'src/interfaces/csp_if_can.c',
+                                        'src/interfaces/csp_if_can_pbuf.c',
+                                        'src/interfaces/csp_if_kiss.c',
+                                        'src/interfaces/csp_if_udp.c',
                                         'src/arch/*.c',
                                         'src/arch/{0}/**/*.c'.format(ctx.options.with_os),
                                         'src/rtable/csp_rtable.c',
@@ -147,6 +159,7 @@ def configure(ctx):
     if ctx.options.enable_if_zmqhub:
         ctx.check_cfg(package='libzmq', args='--cflags --libs', define_name='CSP_HAVE_LIBZMQ')
         ctx.env.append_unique('LIBS', ctx.env.LIB_LIBZMQ)
+        ctx.env.append_unique('FILES_CSP', 'src/interfaces/csp_if_zmqhub.c')
 
     # Store configuration options
     ctx.env.ENABLE_EXAMPLES = ctx.options.enable_examples

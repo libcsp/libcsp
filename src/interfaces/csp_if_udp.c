@@ -27,6 +27,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/arch/csp_thread.h>
 #include "../csp_id.h"
 
+#ifndef MSG_CONFIRM
+#define MSG_CONFIRM (0)
+#endif
+
 struct sockaddr_in peer_addr;
 static int lport = 9600;
 static int rport = 9600;
