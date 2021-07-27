@@ -229,9 +229,8 @@ int csp_can_socketcan_set_promisc(const bool promisc, int *socket) {
 		}
 		struct can_filter filter = {.can_id = can_id, .can_mask = can_mask};
 
-		if (setsockopt(ctx->socket, SOL_CAN_RAW, CAN_RAW_FILTER, &filter, sizeof(filter)) < 0) {
-			csp_log_error("%s[%s]: setsockopt() failed, error: %s", __FUNCTION__, ctx->name, strerror(errno));
-			socketcan_free(ctx);
+		if (setsockopt(*socket, SOL_CAN_RAW, CAN_RAW_FILTER, &filter, sizeof(filter)) < 0) {
+			csp_log_error("%s: setsockopt() failed, error: %s", __FUNCTION__, strerror(errno));
 			return CSP_ERR_INVAL;
 		}
 	} else {
