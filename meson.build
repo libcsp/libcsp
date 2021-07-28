@@ -74,16 +74,18 @@ csp_inc = include_directories(['.', 'include'])
 install_subdir('include', install_dir : '.')
 install_headers(csp_config_h, install_dir : 'include/csp')
 
+csp_c_args = ['-Wshadow',
+	      '-Wcast-align',
+	      '-Wwrite-strings',
+	      '-Wno-unused-parameter']
+
 csp_deps += dependency('freertos', required: false)
 
 csp_lib = static_library('csp',
 	sources: [csp_sources, csp_config_h],
 	include_directories : csp_inc,
 	dependencies : csp_deps,
-	c_args : ['-Wshadow',
-		  '-Wcast-align',
-		  '-Wwrite-strings',
-		  '-Wno-unused-parameter']
+	c_args : csp_c_args,
 )
 
 csp_dep = declare_dependency(
