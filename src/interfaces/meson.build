@@ -4,6 +4,7 @@ csp_sources += files('csp_if_kiss.c')
 
 zmq_dep = dependency('libzmq', version: '>4.0', required: false)
 if zmq_dep.found()
+	conf.set('CSP_HAVE_LIBZMQ', 1)
 	csp_sources += files('csp_if_zmqhub.c')
 	csp_deps += zmq_dep
 endif
