@@ -5,14 +5,14 @@ import subprocess
 import sys
 
 
-os = 'posix'  # default OS
+target_os = 'posix'  # default OS
 options = sys.argv[1:]
 if (len(options) > 0) and not options[0].startswith('--'):
-    os = options[0]
+    target_os = options[0]
     options = options[1:]
 
 options += [
-    '--with-os=' + os,
+    '--with-os=' + target_os,
     '--enable-rdp',
     '--enable-promisc',
     '--enable-crc32',
@@ -24,7 +24,7 @@ options += [
 ]
 
 waf = ['./waf']
-if os in ['posix']:
+if target_os in ['posix']:
     options += [
         '--enable-python3-bindings',
         '--enable-can-socketcan',
@@ -33,12 +33,12 @@ if os in ['posix']:
         '--enable-shlib'
     ]
 
-if os in ['macosx']:
+if target_os in ['macosx']:
     options += [
         '--with-driver-usart=linux',
     ]
 
-if os in ['windows']:
+if target_os in ['windows']:
     options += [
         '--with-driver-usart=windows',
     ]
