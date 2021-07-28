@@ -58,6 +58,7 @@ jobs:
         - ./build/csp_arch
         - ./build/csp_server_client -t
 
+  exclude:
     - name: Windows Server 10 (version 1803), MinGW GCC
       os: windows
       before_install:
