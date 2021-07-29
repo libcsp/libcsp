@@ -24,6 +24,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <stdio.h>
 
 #include <csp/csp.h>
+#include <csp/csp_util.h>
 #include <csp/arch/csp_queue.h>
 #include <csp/arch/csp_semaphore.h>
 #include <csp/arch/csp_malloc.h>
@@ -45,15 +46,15 @@ static uint8_t sport;
 static csp_bin_sem_handle_t sport_lock;
 
 void csp_conn_check_timeouts(void) {
-#if (CSP_USE_RDP)
-	for (int i = 0; i < csp_conf.conn_max; i++) {
-		if (arr_conn[i].state == CONN_OPEN) {
-			if (arr_conn[i].idin.flags & CSP_FRDP) {
-				csp_rdp_check_timeouts(&arr_conn[i]);
+	if (IS_ENABLED(CSP_USE_RDP)) {
+		for (int i = 0; i < csp_conf.conn_max; i++) {
+			if (arr_conn[i].state == CONN_OPEN) {
+				if (arr_conn[i].idin.flags & CSP_FRDP) {
+					csp_rdp_check_timeouts(&arr_conn[i]);
+				}
 			}
 		}
 	}
-#endif
 }
 
 int csp_conn_enqueue_packet(csp_conn_t * conn, csp_packet_t * packet) {
@@ -99,12 +100,12 @@ int csp_conn_init(void) {
 			return CSP_ERR_NOMEM;
 		}
 
-#if (CSP_USE_RDP)
-		if (csp_rdp_init(conn) != CSP_ERR_NONE) {
-			csp_log_error("csp_rdp_allocate(conn) failed");
-			return CSP_ERR_NOMEM;
+		if (IS_ENABLED(CSP_USE_RDP)) {
+			if (csp_rdp_init(conn) != CSP_ERR_NONE) {
+				csp_log_error("csp_rdp_allocate(conn) failed");
+				return CSP_ERR_NOMEM;
+			}
 		}
-#endif
 	}
 
 	return CSP_ERR_NONE;
@@ -122,9 +123,9 @@ void csp_conn_free_resources(void) {
 				csp_queue_remove(conn->rx_queue);
 			}
 
-#if (CSP_USE_RDP)
-			csp_rdp_free_resources(conn);
-#endif
+			if (IS_ENABLED(CSP_USE_RDP)) {
+				csp_rdp_free_resources(conn);
+			}
 		}
 
 		csp_free(arr_conn);
@@ -207,7 +208,7 @@ csp_conn_t * csp_conn_find_existing(csp_id_t * id) {
 		return conn;
 
 	}
-	
+
 	return NULL;
 
 }
@@ -304,14 +305,14 @@ int csp_conn_close(csp_conn_t * conn, uint8_t closed_by) {
 		return CSP_ERR_NONE;
 	}
 
-#if (CSP_USE_RDP)
-	/* Ensure RDP knows this connection is closing */
-	if ((conn->idin.flags & CSP_FRDP) || (conn->idout.flags & CSP_FRDP)) {
-		if (csp_rdp_close(conn, closed_by) == CSP_ERR_AGAIN) {
-			return CSP_ERR_NONE;
+	if (IS_ENABLED(CSP_USE_RDP)) {
+		/* Ensure RDP knows this connection is closing */
+		if ((conn->idin.flags & CSP_FRDP) || (conn->idout.flags & CSP_FRDP)) {
+			if (csp_rdp_close(conn, closed_by) == CSP_ERR_AGAIN) {
+				return CSP_ERR_NONE;
+			}
 		}
 	}
-#endif
 
 	/* Lock connection array while closing connection */
 	if (csp_bin_sem_wait(&conn_lock, CSP_MAX_TIMEOUT) != CSP_SEMAPHORE_OK) {
@@ -331,11 +332,11 @@ int csp_conn_close(csp_conn_t * conn, uint8_t closed_by) {
         }
 
 	/* Reset RDP state */
-#if (CSP_USE_RDP)
-	if (conn->idin.flags & CSP_FRDP) {
-		csp_rdp_flush_all(conn);
+	if (IS_ENABLED(CSP_USE_RDP)) {
+		if (conn->idin.flags & CSP_FRDP) {
+			csp_rdp_flush_all(conn);
+		}
 	}
-#endif
 
 	/* Unlock connection array */
 	csp_bin_sem_post(&conn_lock);
@@ -367,43 +368,43 @@ csp_conn_t * csp_connect(uint8_t prio, uint16_t dest, uint8_t dport, uint32_t ti
 	}
 
 	if (opts & CSP_O_RDP) {
-#if (CSP_USE_RDP)
-		incoming_id.flags |= CSP_FRDP;
-		outgoing_id.flags |= CSP_FRDP;
-#else
-		csp_log_error("No RDP support");
-		return NULL;
-#endif
+		if (IS_ENABLED(CSP_USE_RDP)) {
+			incoming_id.flags |= CSP_FRDP;
+			outgoing_id.flags |= CSP_FRDP;
+		} else {
+			csp_log_error("No RDP support");
+			return NULL;
+		}
 	}
 
 	if (opts & CSP_O_HMAC) {
-#if (CSP_USE_HMAC)
-		outgoing_id.flags |= CSP_FHMAC;
-		incoming_id.flags |= CSP_FHMAC;
-#else
-		csp_log_error("No HMAC support");
-		return NULL;
-#endif
+		if (IS_ENABLED(CSP_USE_HMAC)) {
+			outgoing_id.flags |= CSP_FHMAC;
+			incoming_id.flags |= CSP_FHMAC;
+		} else {
+			csp_log_error("No HMAC support");
+			return NULL;
+		}
 	}
 
 	if (opts & CSP_O_XTEA) {
-#if (CSP_USE_XTEA)
-		outgoing_id.flags |= CSP_FXTEA;
-		incoming_id.flags |= CSP_FXTEA;
-#else
-		csp_log_error("No XTEA support");
-		return NULL;
-#endif
+		if (IS_ENABLED(CSP_USE_XTEA)) {
+			outgoing_id.flags |= CSP_FXTEA;
+			incoming_id.flags |= CSP_FXTEA;
+		} else {
+			csp_log_error("No XTEA support");
+			return NULL;
+		}
 	}
 
 	if (opts & CSP_O_CRC32) {
-#if (CSP_USE_CRC32)
-		outgoing_id.flags |= CSP_FCRC32;
-		incoming_id.flags |= CSP_FCRC32;
-#else
-		csp_log_error("No CRC32 support");
-		return NULL;
-#endif
+		if (IS_ENABLED(CSP_USE_CRC32)) {
+			outgoing_id.flags |= CSP_FCRC32;
+			incoming_id.flags |= CSP_FCRC32;
+		} else {
+			csp_log_error("No CRC32 support");
+			return NULL;
+		}
 	}
 
 	/* Find an unused ephemeral port */
@@ -445,17 +446,17 @@ csp_conn_t * csp_connect(uint8_t prio, uint16_t dest, uint8_t dport, uint32_t ti
 	/* Set connection options */
 	conn->opts = opts;
 
-#if (CSP_USE_RDP)
-	/* Call Transport Layer connect */
-	if (outgoing_id.flags & CSP_FRDP) {
-		/* If the transport layer has failed to connect
-		 * deallocate connection structure again and return NULL */
-		if (csp_rdp_connect(conn) != CSP_ERR_NONE) {
-			csp_close(conn);
-			return NULL;
+	if (IS_ENABLED(CSP_USE_RDP)) {
+		/* Call Transport Layer connect */
+		if (outgoing_id.flags & CSP_FRDP) {
+			/* If the transport layer has failed to connect
+			 * deallocate connection structure again and return NULL */
+			if (csp_rdp_connect(conn) != CSP_ERR_NONE) {
+				csp_close(conn);
+				return NULL;
+			}
 		}
 	}
-#endif
 
 	/* We have a successful connection */
 	return conn;
@@ -500,11 +501,11 @@ void csp_conn_print_table(void) {
 		printf("[%02u %p] S:%u, %u -> %u, %u -> %u, sock: %p\r\n",
 				i, conn, conn->state, conn->idin.src, conn->idin.dst,
 				conn->idin.dport, conn->idin.sport, conn->socket);
-#if (CSP_USE_RDP)
-		if (conn->idin.flags & CSP_FRDP) {
-			csp_rdp_conn_print(conn);
+		if (IS_ENABLED(CSP_USE_RDP)) {
+			if (conn->idin.flags & CSP_FRDP) {
+				csp_rdp_conn_print(conn);
+			}
 		}
-#endif
 	}
 }
 
