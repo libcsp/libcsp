@@ -23,8 +23,6 @@ conf.set10('CSP_USE_XTEA', get_option('use_xtea'))
 conf.set10('CSP_USE_PROMISC', get_option('use_promisc'))
 conf.set10('CSP_USE_DEDUP', get_option('use_dedup'))
 
-conf.set('CSP_HAVE_STDBOOL_H', cc.has_header('stdbool.h') == true ? 1 : 0)
-
 if host_machine.endian() == 'little'
 	conf.set('CSP_LITTLE_ENDIAN', 1)
 else
