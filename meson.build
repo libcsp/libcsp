@@ -16,12 +16,12 @@ conf.set('CSP_LOG_LEVEL_ERROR', 1)
 
 conf.set('CSP_VERSION', get_option('version'))
 
-conf.set('CSP_USE_RDP', get_option('use_rdp') == true ? 1 : 0)
-conf.set('CSP_USE_CRC32', get_option('use_crc32') == true ? 1 : 0)
-conf.set('CSP_USE_HMAC', get_option('use_hmac') == true ? 1 : 0)
-conf.set('CSP_USE_XTEA', get_option('use_xtea') == true ? 1 : 0)
-conf.set('CSP_USE_PROMISC', get_option('use_promisc') == true ? 1 : 0)
-conf.set('CSP_USE_DEDUP', get_option('use_dedup') == true ? 1 : 0)
+conf.set10('CSP_USE_RDP', get_option('use_rdp'))
+conf.set10('CSP_USE_CRC32', get_option('use_crc32'))
+conf.set10('CSP_USE_HMAC', get_option('use_hmac'))
+conf.set10('CSP_USE_XTEA', get_option('use_xtea'))
+conf.set10('CSP_USE_PROMISC', get_option('use_promisc'))
+conf.set10('CSP_USE_DEDUP', get_option('use_dedup'))
 
 conf.set('CSP_HAVE_STDBOOL_H', cc.has_header('stdbool.h') == true ? 1 : 0)
 
