@@ -9,10 +9,14 @@ cc = meson.get_compiler('c')
 conf = configuration_data()
 
 conf.set('CSP_DEBUG', 1)
-conf.set('CSP_LOG_LEVEL_DEBUG', 1)
-conf.set('CSP_LOG_LEVEL_INFO', 1)
-conf.set('CSP_LOG_LEVEL_WARN', 1)
-conf.set('CSP_LOG_LEVEL_ERROR', 1)
+
+log_levels = {'none' : 0, 'error' : 1, 'warn'  : 2, 'info'  : 3, 'debug' : 4}
+log_level = log_levels.get(get_option('log-level'), 3)
+
+conf.set10('CSP_LOG_LEVEL_ERROR', log_level >= 1)
+conf.set10('CSP_LOG_LEVEL_WARN',  log_level >= 2)
+conf.set10('CSP_LOG_LEVEL_INFO',  log_level >= 3)
+conf.set10('CSP_LOG_LEVEL_DEBUG', log_level >= 4)
 
 conf.set('CSP_VERSION', get_option('version'))
 

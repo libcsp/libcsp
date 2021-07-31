@@ -8,3 +8,6 @@ option('use_promisc', type: 'boolean', value: true, description: 'Promiscious mo
 option('use_dedup', type: 'boolean', value: true, description: 'Packet deduplication')
 
 option('version', type: 'integer', value: 1, description: 'Which version of CSP to use.')
+
+option('log-level', type: 'combo', choices: ['none', 'error', 'warning', 'info', 'debug'],
+       value: 'debug', description: 'Select debug log level')
