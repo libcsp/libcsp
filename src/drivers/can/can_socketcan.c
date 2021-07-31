@@ -206,7 +206,13 @@ int csp_can_socketcan_open_and_add_interface(const char * device, const char * i
 	return CSP_ERR_NONE;
 }
 
-int csp_can_socketcan_set_promisc(const bool promisc, int *socket) {
+int csp_can_socketcan_set_promisc(const bool promisc, int *socket)
+{
+	struct can_filter filter = {
+		.can_id = CFP_MAKE_DST(csp_get_address()),
+		.can_mask = 0x0000, /* receive anything */
+	};
+
 	static int *s_socket = NULL;
 	if (socket != NULL) {
 		s_socket = socket;
@@ -217,30 +223,19 @@ int csp_can_socketcan_set_promisc(const bool promisc, int *socket) {
 		return CSP_ERR_INVAL;
 	}
 
-	if (promisc == false) {
-		uint32_t can_id = 0;
-		uint32_t can_mask = 0;
+	if (!promisc) {
 		if (csp_conf.version == 1) {
-			can_id = CFP_MAKE_DST(csp_get_address());
-			can_mask = CFP_MAKE_DST((1 << CFP_HOST_SIZE) - 1);
+			filter.can_id = CFP_MAKE_DST(csp_get_address());
+			filter.can_mask = CFP_MAKE_DST((1 << CFP_HOST_SIZE) - 1);
 		} else {
-			can_id = csp_get_address() << CFP2_DST_OFFSET;
-			can_mask = CFP2_DST_MASK << CFP2_DST_OFFSET;
+			filter.can_id = csp_get_address() << CFP2_DST_OFFSET;
+			filter.can_mask = CFP2_DST_MASK << CFP2_DST_OFFSET;
 		}
-		struct can_filter filter = {.can_id = can_id, .can_mask = can_mask};
+	}
 
-		if (setsockopt(*socket, SOL_CAN_RAW, CAN_RAW_FILTER, &filter, sizeof(filter)) < 0) {
-			csp_log_error("%s: setsockopt() failed, error: %s", __FUNCTION__, strerror(errno));
-			return CSP_ERR_INVAL;
-		}
-	} else {
-		struct can_filter filter = {.can_id = CFP_MAKE_DST(csp_get_address()),
-					.can_mask = 0x0000}; // receive anything
-
-		if (setsockopt(*socket, SOL_CAN_RAW, CAN_RAW_FILTER, &filter, sizeof(filter)) < 0) {
-			csp_log_error("%s: setsockopt() failed, error: %s", __FUNCTION__, strerror(errno));
-			return CSP_ERR_INVAL;
-		}
+	if (setsockopt(*socket, SOL_CAN_RAW, CAN_RAW_FILTER, &filter, sizeof(filter)) < 0) {
+		csp_log_error("%s: setsockopt() failed, error: %s", __FUNCTION__, strerror(errno));
+		return CSP_ERR_INVAL;
 	}
 
 	return CSP_ERR_NONE;
