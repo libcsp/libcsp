@@ -83,12 +83,9 @@ csp_lib = static_library('csp',
 
 subdir('examples')
 
+# The following dependency variable is for parent projects to link
+# against libcsp. https://mesonbuild.com/Subprojects.html
 csp_dep = declare_dependency(
 	include_directories : csp_inc,
 	link_with : csp_lib,
-)
-
-csp_dep_whole = declare_dependency(
-	include_directories : csp_inc,
-	link_whole : csp_lib,
 )
