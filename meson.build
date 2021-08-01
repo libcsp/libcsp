@@ -25,11 +25,6 @@ conf.set('CSP_USE_DEDUP', get_option('use_dedup') == true ? 1 : 0)
 
 conf.set('CSP_HAVE_STDBOOL_H', cc.has_header('stdbool.h') == true ? 1 : 0)
 
-zmq_dep = dependency('libzmq', version: '>4.0', required: false)
-if zmq_dep.found()
-	conf.set('CSP_HAVE_LIBZMQ', 1)
-endif
-
 if host_machine.endian() == 'little'
 	conf.set('CSP_LITTLE_ENDIAN', 1)
 else
@@ -74,17 +69,21 @@ csp_inc = include_directories(['.', 'include'])
 install_subdir('include', install_dir : '.')
 install_headers(csp_config_h, install_dir : 'include/csp')
 
+csp_c_args = ['-Wshadow',
+	      '-Wcast-align',
+	      '-Wwrite-strings',
+	      '-Wno-unused-parameter']
+
 csp_deps += dependency('freertos', required: false)
 
 csp_lib = static_library('csp',
 	sources: [csp_sources, csp_config_h],
 	include_directories : csp_inc,
 	dependencies : csp_deps,
-	c_args : ['-Wshadow',
-		  '-Wcast-align',
-		  '-Wwrite-strings',
-		  '-Wno-unused-parameter']
+	c_args : csp_c_args,
 )
+
+subdir('examples')
 
 csp_dep = declare_dependency(
 	include_directories : csp_inc,
