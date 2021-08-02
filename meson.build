@@ -9,21 +9,23 @@ cc = meson.get_compiler('c')
 conf = configuration_data()
 
 conf.set('CSP_DEBUG', 1)
-conf.set('CSP_LOG_LEVEL_DEBUG', 1)
-conf.set('CSP_LOG_LEVEL_INFO', 1)
-conf.set('CSP_LOG_LEVEL_WARN', 1)
-conf.set('CSP_LOG_LEVEL_ERROR', 1)
+
+log_levels = {'none' : 0, 'error' : 1, 'warn'  : 2, 'info'  : 3, 'debug' : 4}
+log_level = log_levels.get(get_option('log-level'), 3)
+
+conf.set10('CSP_LOG_LEVEL_ERROR', log_level >= 1)
+conf.set10('CSP_LOG_LEVEL_WARN',  log_level >= 2)
+conf.set10('CSP_LOG_LEVEL_INFO',  log_level >= 3)
+conf.set10('CSP_LOG_LEVEL_DEBUG', log_level >= 4)
 
 conf.set('CSP_VERSION', get_option('version'))
 
-conf.set('CSP_USE_RDP', get_option('use_rdp') == true ? 1 : 0)
-conf.set('CSP_USE_CRC32', get_option('use_crc32') == true ? 1 : 0)
-conf.set('CSP_USE_HMAC', get_option('use_hmac') == true ? 1 : 0)
-conf.set('CSP_USE_XTEA', get_option('use_xtea') == true ? 1 : 0)
-conf.set('CSP_USE_PROMISC', get_option('use_promisc') == true ? 1 : 0)
-conf.set('CSP_USE_DEDUP', get_option('use_dedup') == true ? 1 : 0)
-
-conf.set('CSP_HAVE_STDBOOL_H', cc.has_header('stdbool.h') == true ? 1 : 0)
+conf.set10('CSP_USE_RDP', get_option('use_rdp'))
+conf.set10('CSP_USE_CRC32', get_option('use_crc32'))
+conf.set10('CSP_USE_HMAC', get_option('use_hmac'))
+conf.set10('CSP_USE_XTEA', get_option('use_xtea'))
+conf.set10('CSP_USE_PROMISC', get_option('use_promisc'))
+conf.set10('CSP_USE_DEDUP', get_option('use_dedup'))
 
 if host_machine.endian() == 'little'
 	conf.set('CSP_LITTLE_ENDIAN', 1)
@@ -85,12 +87,9 @@ csp_lib = static_library('csp',
 
 subdir('examples')
 
+# The following dependency variable is for parent projects to link
+# against libcsp. https://mesonbuild.com/Subprojects.html
 csp_dep = declare_dependency(
 	include_directories : csp_inc,
 	link_with : csp_lib,
-)
-
-csp_dep_whole = declare_dependency(
-	include_directories : csp_inc,
-	link_whole : csp_lib,
 )

@@ -25,7 +25,7 @@ APPNAME = 'libcsp'
 VERSION = '1.6'
 
 valid_os = ['posix', 'windows', 'freertos', 'macosx']
-valid_loglevel = ['error', 'warn', 'info', 'debug']
+valid_loglevel = ['none', 'error', 'warn', 'info', 'debug']
 
 
 def options(ctx):
