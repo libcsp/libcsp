@@ -27,6 +27,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/drivers/usart.h>
 #include <csp/drivers/can_socketcan.h>
 #include <csp/csp_endian.h>
+#include <csp/arch/csp_malloc.h>
 
 #define SOCKET_CAPSULE      "csp_socket_t"
 #define CONNECTION_CAPSULE  "csp_conn_t"
@@ -72,6 +73,15 @@ static csp_socket_t * get_obj_as_socket(PyObject* obj, bool allow_null) {
 static PyObject* PyErr_Error(const char * message, int error) {
     PyErr_Format(Error, "%s, result/error: %d", message, error); // should set error as member
     return NULL;
+}
+
+static void pycsp_free_csp_sfp_buffer(PyObject *obj) {
+    void * sfp_packet = get_obj_as_packet(obj, true);
+    if (sfp_packet) {
+        csp_free(sfp_packet);
+    }
+
+    PyCapsule_SetPointer(obj, &CSP_POINTER_HAS_BEEN_FREED);
 }
 
 static void pycsp_free_csp_buffer(PyObject *obj) {
@@ -300,7 +310,7 @@ static PyObject* pycsp_sfp_recv(PyObject *self, PyObject *args) {
         return PyErr_Error("sfp_recv()", res);
     }
 
-    return PyCapsule_New(dataout, PACKET_CAPSULE, pycsp_free_csp_buffer);
+    return PyCapsule_New(dataout, PACKET_CAPSULE, pycsp_free_csp_sfp_buffer);
 }
 
 static PyObject* pycsp_transaction(PyObject *self, PyObject *args) {
