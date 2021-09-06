@@ -71,6 +71,9 @@ int csp_sfp_send_own_memcpy(csp_conn_t * conn, const void * data, unsigned int t
 		return CSP_ERR_INVAL;
 	}
 
+	/* Add the csp packet to the total size */
+	totalsize += sizeof(csp_packet_t);
+
 	unsigned int count = 0;
 	while(count < totalsize) {
 
