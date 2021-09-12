@@ -244,13 +244,13 @@ int csp_route_work(uint32_t timeout) {
 		}
 
 		/* If the socket uses callback */
-		if (socket->opts & CSP_SO_CONN_LESS) {
-			((void (*)(csp_packet_t *packet)) socket->socket)(packet);
+		if (socket->opts & CSP_SO_CONN_LESS_CALLBACK) {
+			socket->callback(packet);
 
 		/* Otherwise, it uses a queue */
 		} else {
 
-			if (csp_queue_enqueue(socket->socket, &packet, 0) != CSP_QUEUE_OK) {
+			if (csp_queue_enqueue(socket->rx_queue, &packet, 0) != CSP_QUEUE_OK) {
 				csp_log_error("Conn-less socket queue full");
 				csp_buffer_free(packet);
 				return 0;
@@ -299,7 +299,7 @@ int csp_route_work(uint32_t timeout) {
 		}
 
 		/* Store the socket queue and options */
-		conn->socket = socket->socket;
+		conn->dest_socket = socket;
 		conn->opts = socket->opts;
 
 	/* Packet to existing connection */

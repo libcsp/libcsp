@@ -66,8 +66,7 @@ typedef struct csp_conf_s {
 	uint8_t conn_max;           /**< Max number of connections. A fixed connection array is allocated by csp_init() */
 	uint8_t conn_queue_length;  /**< Max queue length (max queued Rx messages). */
 
-	uint8_t fifo_length;        /**< Length of incoming message queue, used for handover to router task. */
-   char * fifo_buffer;         /**< Pointer to incoming message queue buffer. Must be fifo_length * sizeof(csp_qfifo_t) or NULL for dynamic */
+	uint8_t fifo_length;        /**< DEPRECATED: This is now compile time define */
 
 	uint8_t port_max_bind;      /**< Max/highest port for use with csp_bind() */
    char * port_buffer;         /**< Must be sizeof(csp_port_t) * (port_max_bind + 2) or NULL if dynamic */
@@ -92,7 +91,6 @@ static inline void csp_conf_get_defaults(csp_conf_t * conf) {
 	conf->revision = "revision";
 	conf->conn_max = 10;
 	conf->conn_queue_length = 10;
-	conf->fifo_length = 25;
 	conf->port_max_bind = 24;
 	conf->rdp_max_window = 20;
 	conf->buffers = 10;

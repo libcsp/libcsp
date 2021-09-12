@@ -90,8 +90,14 @@ struct csp_conn_s {
 	csp_conn_state_t state;		/* Connection state (CONN_OPEN or CONN_CLOSED) */
 	csp_id_t idin;			/* Identifier received */
 	csp_id_t idout;			/* Identifier transmitted */
+
 	csp_queue_handle_t rx_queue; /* Queue for RX packets */
-	csp_queue_handle_t socket;	/* Socket to be "woken" when first packet is ready */
+	csp_static_queue_t rx_queue_static; /* Static storage for rx queue */
+	char rx_queue_static_data[sizeof(csp_packet_t *) * CSP_CONN_RXQUEUE_LEN];
+
+	void (*callback)(csp_packet_t * packet); 
+
+	csp_socket_t * dest_socket; /* incoming connections destination socket */
 	uint32_t timestamp;		/* Time the connection was opened */
 	uint32_t opts;			/* Connection or socket options */
 #if (CSP_USE_RDP)

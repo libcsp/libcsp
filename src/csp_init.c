@@ -55,11 +55,6 @@ int csp_init(const csp_conf_t * conf) {
 		return ret;
 	}
 
-	ret = csp_port_init(conf->port_buffer);
-	if (ret != CSP_ERR_NONE) {
-		return ret;
-	}
-
 	csp_qfifo_init();
 
 	/* Loopback */
@@ -78,7 +73,6 @@ int csp_init(const csp_conf_t * conf) {
 void csp_free_resources(void) {
 
 	csp_rtable_free();
-	csp_port_free_resources();
 	csp_conn_free_resources();
 	csp_buffer_free_resources();
 	memset(&csp_conf, 0, sizeof(csp_conf));

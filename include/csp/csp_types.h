@@ -107,7 +107,6 @@ typedef struct {
 #define CSP_SO_CRC32REQ			0x0040 //!< Require CRC32
 #define CSP_SO_CRC32PROHIB		0x0080 //!< Prohibit CRC32
 #define CSP_SO_CONN_LESS		0x0100 //!< Enable Connection Less mode
-#define CSP_SO_INTERNAL_LISTEN          0x1000 //!< Internal flag: listen called on socket
 #define CSP_SO_CONN_LESS_CALLBACK 	0x0200 // Enable Callbacks directly in router task
 #define CSP_SO_SAME			0x8000 // Copy opts from incoming packet only apllies to csp_sendto_reply()
 
