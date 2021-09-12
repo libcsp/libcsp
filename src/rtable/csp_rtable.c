@@ -18,9 +18,9 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "csp_rtable_internal.h"
 
 #include <stdio.h>
+#include <inttypes.h>
 
 #include <csp/csp.h>
 #include <csp/csp_id.h>
@@ -28,6 +28,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/interfaces/csp_if_lo.h>
 
 #include "../csp_init.h"
+
+int csp_rtable_set_internal(uint16_t address, uint16_t netmask, csp_iface_t *ifc, uint16_t via);
 
 static int csp_rtable_parse(const char * rtable, int dry_run) {
 

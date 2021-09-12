@@ -18,8 +18,8 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "csp_rtable_internal.h"
-
+#include <inttypes.h>
+#include <csp/csp_rtable.h>
 #include <csp/csp_debug.h>
 #include <csp/arch/csp_malloc.h>
 #include <csp/csp_id.h>
