@@ -21,8 +21,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/csp.h>
 
 #include <stdio.h>
+#include <alloca.h>
 #include <string.h>
-#include <malloc.h>
 
 #include <csp/csp_cmp.h>
 #include <csp/csp_endian.h>
@@ -240,7 +240,7 @@ void csp_service_handler(csp_packet_t * packet) {
 		}
 		/* Start by allocating just the right amount of memory */
 		int task_list_size = csp_sys_tasklist_size();
-		char * pslist = malloc(task_list_size);
+		char * pslist = alloca(task_list_size);
 		/* Check for malloc fail */
 		if (pslist == NULL) {
 			/* Send out the data */
@@ -275,7 +275,6 @@ void csp_service_handler(csp_packet_t * packet) {
 			/* Clear the packet reference when sent */
 		}
 		csp_buffer_free(packet);
-		free(pslist);
 		packet = NULL;
 		break;
 	}
