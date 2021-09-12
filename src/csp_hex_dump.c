@@ -18,8 +18,6 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <csp/csp.h>
-
 #include <stdio.h>
 
 void csp_hex_dump_format(const char *desc, void *addr, int len, int format) {

@@ -29,9 +29,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <termios.h>
 #include <fcntl.h>
 #include <sys/time.h>
+#include <malloc.h>
 
 #include <csp/csp.h>
-#include <csp/arch/csp_malloc.h>
 #include <csp/arch/csp_thread.h>
 
 typedef struct {

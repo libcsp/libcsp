@@ -18,8 +18,6 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "csp_init.h"
-
 #include <csp/interfaces/csp_if_lo.h>
 #include <csp/arch/csp_time.h>
 #include <csp/csp_id.h>
@@ -27,23 +25,24 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "csp_qfifo.h"
 #include "csp_port.h"
 
-csp_conf_t csp_conf;
+csp_conf_t csp_conf = {
+	.version = 2,
+	.address = 1,
+	.hostname = "",
+	.model = "",
+	.revision = "",
+	.conn_dfl_so = CSP_O_NONE,
+	.dedup = CSP_DEDUP_OFF
+};
 
 uint16_t csp_get_address(void) {
-
 	return csp_conf.address;
 }
 
-int csp_init(const csp_conf_t * conf) {
+void csp_init(void) {
 
 	/* make offset first time, so uptime is counted from process/task boot */
 	csp_get_uptime_s();
-
-	/* Make a copy of the configuration
-	 * The copy is kept hidden for the user in csp_init.h
-	 * Configuration cannot be changed after calling init
-	 * unless specific get/set functions are made */
-	memcpy(&csp_conf, conf, sizeof(csp_conf));
 
 	csp_buffer_init();
 	csp_conn_init();
@@ -58,8 +57,6 @@ int csp_init(const csp_conf_t * conf) {
 	/* Also register loopback as default, until user redefines default route */
 	csp_rtable_set(0, 0, &csp_if_lo, CSP_NO_VIA_ADDRESS);
 
-	return CSP_ERR_NONE;
-
 }
 
 void csp_free_resources(void) {
@@ -69,7 +66,5 @@ void csp_free_resources(void) {
 }
 
 const csp_conf_t * csp_get_conf(void) {
-
 	return &csp_conf;
-
 }

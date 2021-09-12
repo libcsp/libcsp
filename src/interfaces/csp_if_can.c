@@ -29,7 +29,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/csp_id.h>
 
 #include "csp_if_can_pbuf.h"
-#include "../csp_init.h"
 
 /**
  * TESTING:

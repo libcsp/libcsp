@@ -26,11 +26,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <csp/csp.h>
 #include <csp/arch/csp_queue.h>
-#include <csp/arch/csp_malloc.h>
 #include <csp_autoconfig.h>
 
 #include "csp_conn.h"
-#include "csp_init.h"
 
 typedef enum {
 	PORT_CLOSED = 0,

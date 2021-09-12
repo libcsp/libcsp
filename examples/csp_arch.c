@@ -24,7 +24,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/arch/csp_thread.h>
 #include <csp/arch/csp_clock.h>
 #include <csp/arch/csp_time.h>
-#include <csp/arch/csp_malloc.h>
 #include <csp/arch/csp_queue.h>
 #include <csp/arch/csp_semaphore.h>
 
@@ -82,17 +81,7 @@ int main(int argc, char * argv[]) {
     csp_assert(csp_get_s() >= (sec1 + 1));
     csp_assert(csp_get_s_isr() >= (sec2 + 1));
 
-    // malloc
-    uint32_t * ptr = csp_malloc(sizeof(*ptr));
-    csp_assert(ptr != NULL);
-    ptr[0] = 10;
-    csp_free(ptr);
-    ptr = csp_calloc(1, sizeof(*ptr));
-    csp_assert(ptr != NULL);
-    csp_assert(*ptr == 0);
-    ptr[0] = 20;
-    csp_free(ptr);
-    
+
     // check thread actually executed
     csp_assert(thread_executed != false);
 

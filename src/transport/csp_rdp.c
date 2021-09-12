@@ -35,13 +35,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/csp_error.h>
 #include <csp/arch/csp_queue.h>
 #include <csp/arch/csp_semaphore.h>
-#include <csp/arch/csp_malloc.h>
 #include <csp/arch/csp_time.h>
 
 #include "../csp_port.h"
 #include "../csp_conn.h"
 #include "../csp_io.h"
-#include "../csp_init.h"
 
 #define RDP_SYN	0x01
 #define RDP_ACK 0x02

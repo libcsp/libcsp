@@ -36,7 +36,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/crypto/csp_hmac.h>
 #include <csp/crypto/csp_xtea.h>
 
-#include "csp_init.h"
 #include "csp_port.h"
 #include "csp_conn.h"
 #include "csp_promisc.h"

@@ -82,7 +82,7 @@ static inline int csp_sfp_send(csp_conn_t * conn, const void * data, unsigned in
    This is the counterpart to the csp_sfp_send() and csp_sfp_send_own_memcpy().
 
    @param[in] conn established connection for receiving SFP packets.
-   @param[out] dataout received data on success. Allocated with csp_malloc(), so should be freed with csp_free(). The pointer will be NULL on failure.
+   @param[out] dataout received data on success. Allocated with malloc(), so should be freed with free(). The pointer will be NULL on failure.
    @param[out] datasize size of received data.
    @param[in] timeout timeout in ms to wait for csp_read()
    @param[in] first_packet First packet of a SFP transfer. Use NULL to receive first packet on the connection.
@@ -96,7 +96,7 @@ int csp_sfp_recv_fp(csp_conn_t * conn, void ** dataout, int * datasize, uint32_t
    This is the counterpart to the csp_sfp_send() and csp_sfp_send_own_memcpy().
 
    @param[in] conn established connection for receiving SFP packets.
-   @param[out] dataout received data on success. Allocated with csp_malloc(), so should be freed with csp_free(). The pointer will be NULL on failure.
+   @param[out] dataout received data on success. Allocated with malloc(), so should be freed with free(). The pointer will be NULL on failure.
    @param[out] datasize size of received data.
    @param[in] timeout timeout in ms to wait for csp_read()
    @return #CSP_ERR_NONE on success, otherwise an error.

@@ -24,11 +24,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <zmq.h>
 #include <assert.h>
+#include <malloc.h>
 
 #include <csp/csp.h>
 #include <csp/csp_debug.h>
 #include <csp/arch/csp_thread.h>
-#include <csp/arch/csp_malloc.h>
 #include <csp/arch/csp_semaphore.h>
 
 #include <csp/csp_id.h>
@@ -176,7 +176,7 @@ int csp_zmqhub_init_w_name_endpoints_rxfilter(const char * ifname,
                                               uint32_t flags,
                                               csp_iface_t ** return_interface) {
 
-	zmq_driver_t * drv = csp_calloc(1, sizeof(*drv));
+	zmq_driver_t * drv = calloc(1, sizeof(*drv));
 	assert(drv);
 
         if (ifname == NULL) {

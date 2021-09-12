@@ -21,10 +21,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/interfaces/csp_if_kiss.h>
 
 #include <stdio.h>
+#include <malloc.h>
 
 #include <csp/csp.h>
 #include <csp/drivers/usart.h>
-#include <csp/arch/csp_malloc.h>
 
 typedef struct {
 	char name[CSP_IFLIST_NAME_MAX + 1];
@@ -56,7 +56,7 @@ int csp_usart_open_and_add_kiss_interface(const csp_usart_conf_t *conf, const ch
 
 	csp_log_info("INIT %s: device: [%s], bitrate: %d", ifname, conf->device, conf->baudrate);
 
-	kiss_context_t * ctx = csp_calloc(1, sizeof(*ctx));
+	kiss_context_t * ctx = calloc(1, sizeof(*ctx));
 	if (ctx == NULL) {
 		return CSP_ERR_NOMEM;
 	}

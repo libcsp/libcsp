@@ -19,9 +19,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 #include <inttypes.h>
+#include <malloc.h>
+
 #include <csp/csp_rtable.h>
 #include <csp/csp_debug.h>
-#include <csp/arch/csp_malloc.h>
 #include <csp/csp_id.h>
 
 /* Definition of routing table */
@@ -96,7 +97,7 @@ int csp_rtable_set_internal(uint16_t address, uint16_t netmask, csp_iface_t *ifc
 
 	/* If not, create a new one */
 	if (!entry) {
-		entry = csp_malloc(sizeof(*entry));
+		entry = malloc(sizeof(*entry));
 		if (entry == NULL) {
 			return CSP_ERR_NOMEM;
 		}
@@ -129,7 +130,7 @@ void csp_rtable_free(void) {
 	for (csp_rtable_t * i = rtable; (i);) {
 		void * freeme = i;
 		i = i->next;
-		csp_free(freeme);
+		free(freeme);
 	}
 	rtable = NULL;
 }

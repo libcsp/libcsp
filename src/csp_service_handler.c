@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <stdio.h>
 #include <string.h>
+#include <malloc.h>
 
 #include <csp/csp_cmp.h>
 #include <csp/csp_endian.h>
@@ -29,10 +30,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/csp_rtable.h>
 #include <csp/arch/csp_time.h>
 #include <csp/arch/csp_clock.h>
-#include <csp/arch/csp_malloc.h>
 #include <csp/arch/csp_system.h>
 
-#include "csp_init.h"
 
 #define CSP_RPS_MTU	196
 
@@ -241,7 +240,7 @@ void csp_service_handler(csp_packet_t * packet) {
 		}
 		/* Start by allocating just the right amount of memory */
 		int task_list_size = csp_sys_tasklist_size();
-		char * pslist = csp_malloc(task_list_size);
+		char * pslist = malloc(task_list_size);
 		/* Check for malloc fail */
 		if (pslist == NULL) {
 			/* Send out the data */
@@ -276,7 +275,7 @@ void csp_service_handler(csp_packet_t * packet) {
 			/* Clear the packet reference when sent */
 		}
 		csp_buffer_free(packet);
-		csp_free(pslist);
+		free(pslist);
 		packet = NULL;
 		break;
 	}

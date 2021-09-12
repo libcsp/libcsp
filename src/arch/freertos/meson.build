@@ -1,5 +1,4 @@
 csp_sources += files([
-	'csp_malloc.c',
 	'csp_queue.c',
 	'csp_semaphore.c',
 	'csp_system.c',

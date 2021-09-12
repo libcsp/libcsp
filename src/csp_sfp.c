@@ -20,10 +20,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <csp/csp_sfp.h>
 
+#include <malloc.h>
+
 #include <csp/csp_buffer.h>
 #include <csp/csp_debug.h>
 #include <csp/csp_endian.h>
-#include <csp/arch/csp_malloc.h>
 
 #include "csp_conn.h"
 
@@ -171,9 +172,9 @@ int csp_sfp_recv_fp(csp_conn_t * conn, void ** return_data, int * return_datasiz
 		/* Allocate memory */
 		if (data == NULL) {
                         datasize = sfp_header->totalsize;
-			data = csp_malloc(datasize);
+			data = malloc(datasize);
 			if (data == NULL) {
-				csp_log_warn("%s: %u:%u, csp_malloc(%"PRIu32") failed",
+				csp_log_warn("%s: %u:%u, malloc(%"PRIu32") failed",
 					__FUNCTION__, packet->id.src, packet->id.sport,
 					datasize);
 				csp_buffer_free(packet);
@@ -223,7 +224,7 @@ int csp_sfp_recv_fp(csp_conn_t * conn, void ** return_data, int * return_datasiz
 	} while((packet = csp_read(conn, timeout)) != NULL);
 
 error:
-	csp_free(data);
+	free(data);
         return error;
 
 }

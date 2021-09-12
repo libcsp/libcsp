@@ -23,13 +23,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <stdlib.h>
 #include <stdio.h>
 
-#include <csp/csp.h>
 #include <csp/arch/csp_queue.h>
 #include <csp/arch/csp_semaphore.h>
 #include <csp/arch/csp_time.h>
 #include <csp/csp_id.h>
 #include <csp_autoconfig.h>
-#include "csp_init.h"
 #include "transport/csp_transport.h"
 
 /* Connection pool */

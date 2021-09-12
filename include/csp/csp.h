@@ -53,7 +53,6 @@ enum csp_dedup_types {
 
 /**
    CSP configuration.
-   @see csp_init()
 */
 typedef struct csp_conf_s {
 	uint8_t version;            /**< Protocol version to use (either 1 or 2) */
@@ -65,26 +64,13 @@ typedef struct csp_conf_s {
 	uint8_t dedup;              /**< Enable CSP deduplication. 0 = off, 1 = always on, 2 = only on forwarded packets,  */
 } csp_conf_t;
 
-/**
-   Get default CSP configuration.
-*/
-static inline void csp_conf_get_defaults(csp_conf_t * conf) {
-	conf->version = 2;
-	conf->address = 1;
-	conf->hostname = "hostname";
-	conf->model = "model";
-	conf->revision = "revision";
-	conf->conn_dfl_so = CSP_O_NONE;
-	conf->dedup = CSP_DEDUP_OFF;
-}
+extern csp_conf_t csp_conf;
 
 /**
-   Initialize CSP.
-   This will configure/allocate basic structures.
-   @param[in] conf configuration. A shallow copy will be done of the provided configuration, i.e. only copy references to strings/structers.
-   @return #CSP_ERR_NONE on success, otherwise an error code.
-*/
-int csp_init(const csp_conf_t * conf);
+ * Initialize CSP.
+ * This will configure basic structures.
+ */
+void csp_init(void);
 
 /**
    Free allocated resorces in CSP.
