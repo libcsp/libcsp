@@ -60,7 +60,7 @@ int csp_init(const csp_conf_t * conf) {
 		return ret;
 	}
 
-	ret = csp_qfifo_init();
+	ret = csp_qfifo_init(conf->fifo_length, conf->fifo_buffer);
 	if (ret != CSP_ERR_NONE) {
 		return ret;
 	}

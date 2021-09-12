@@ -26,17 +26,20 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 static csp_queue_handle_t qfifo;
 
-int csp_qfifo_init(void) {
+int csp_qfifo_init(int fifo_length, char * fifo_buffer) {
 
-	/* Create router fifos for each priority */
-	if (qfifo == NULL) {
-		qfifo = csp_queue_create(csp_conf.fifo_length, sizeof(csp_qfifo_t));
-		if (!qfifo)
-			return CSP_ERR_NOMEM;
+	if (fifo_buffer == NULL) {
+		if (qfifo == NULL) {
+			qfifo = csp_queue_create(fifo_length, sizeof(csp_qfifo_t));
+			if (!qfifo)
+				return CSP_ERR_NOMEM;
+		}
+	} else {
+		static csp_static_queue_t queue;
+		qfifo = csp_queue_create_static(fifo_length, sizeof(csp_qfifo_t), fifo_buffer, &queue);
 	}
 
 	return CSP_ERR_NONE;
-
 }
 
 void csp_qfifo_free_resources(void) {

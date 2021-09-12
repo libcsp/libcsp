@@ -31,9 +31,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 /**
  * Init FIFO/QOS queues
+ * @param fifo_length Number of packets to make room for in input fifo
+ * @param fifo_buffer pointer to data (len * sizeof(csp_qfifo_t)) or NULL if dynamic
  * @return CSP_ERR type
  */
-int csp_qfifo_init(void);
+int csp_qfifo_init(int fifo_length, char * fifo_buffer);
 
 void csp_qfifo_free_resources(void);
 
