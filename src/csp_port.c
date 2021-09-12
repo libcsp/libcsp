@@ -53,22 +53,29 @@ csp_socket_t * csp_port_get_socket(unsigned int port) {
 
 }
 
-int csp_port_init(void) {
+int csp_port_init(char * port_buffer) {
 
-	int size = sizeof(csp_port_t) * (csp_conf.port_max_bind + 2);
-	ports = csp_malloc(size);
-	if (ports == NULL)
-		return CSP_ERR_NOMEM;
+	if (port_buffer == NULL) {
+		int size = sizeof(csp_port_t) * (csp_conf.port_max_bind + 2);
+		ports = csp_malloc(size);
+		if (ports == NULL)
+			return CSP_ERR_NOMEM;
 
-	memset(ports, 0, size);
+		memset(ports, 0, size);
+	} else {
+		ports = (void *) port_buffer;
+	}
 
 	return CSP_ERR_NONE;
 }
 
 void csp_port_free_resources(void) {
 
-	csp_free(ports);
+	if (csp_conf.port_buffer == NULL) {
+		csp_free(ports);
+	}
 	ports = NULL;
+	
 }
 
 int csp_listen(csp_socket_t * socket, size_t backlog) {

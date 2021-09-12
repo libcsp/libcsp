@@ -55,7 +55,7 @@ int csp_init(const csp_conf_t * conf) {
 		return ret;
 	}
 
-	ret = csp_port_init();
+	ret = csp_port_init(conf->port_buffer);
 	if (ret != CSP_ERR_NONE) {
 		return ret;
 	}

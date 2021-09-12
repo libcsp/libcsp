@@ -44,7 +44,7 @@ int csp_qfifo_init(int fifo_length, char * fifo_buffer) {
 
 void csp_qfifo_free_resources(void) {
 
-	if (qfifo) {
+	if ((qfifo) && (csp_conf.fifo_buffer == NULL)) {
 		csp_queue_remove(qfifo);
 		qfifo = NULL;
 	}

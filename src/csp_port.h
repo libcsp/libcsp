@@ -41,8 +41,9 @@ typedef struct {
 
 /**
  * Init ports array
+ * @param port_buffer must be sizeof(csp_port_t) * (port_max_bind + 2) or NULL if dynamic
  */
-int csp_port_init(void);
+int csp_port_init(char * port_buffer);
 
 /**
  * Free all allocatged resources (testing)
