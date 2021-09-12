@@ -37,12 +37,14 @@ static csp_conn_t * arr_conn;
 
 /* Connection pool lock */
 static csp_bin_sem_handle_t conn_lock;
+static csp_bin_sem_t conn_lock_buf;
 
 /* Last used 'source' port */
 static uint8_t sport;
 
 /* Source port lock */
 static csp_bin_sem_handle_t sport_lock;
+static csp_bin_sem_t sport_lock_buf;
 
 void csp_conn_check_timeouts(void) {
 #if (CSP_USE_RDP)
@@ -77,19 +79,13 @@ int csp_conn_init(void) {
 		return CSP_ERR_NOMEM;
 	}
 
-	if (csp_bin_sem_create(&conn_lock) != CSP_SEMAPHORE_OK) {
-		csp_log_error("csp_bin_sem_create(&conn_lock) failed");
-		return CSP_ERR_NOMEM;
-	}
+	csp_bin_sem_create_static(&conn_lock, &conn_lock_buf);
 
 	/* Initialize source port */
 	unsigned int seed = csp_get_ms();
 	sport = (rand_r(&seed) % (csp_id_get_max_port() - csp_conf.port_max_bind)) + (csp_conf.port_max_bind + 1);
 
-	if (csp_bin_sem_create(&sport_lock) != CSP_SEMAPHORE_OK) {
-		csp_log_error("csp_bin_sem_create(&sport_lock) failed");
-		return CSP_ERR_NOMEM;
-	}
+	csp_bin_sem_create_static(&sport_lock, &sport_lock_buf);
 
 	for (int i = 0; i < csp_conf.conn_max; i++) {
 		csp_conn_t * conn = &arr_conn[i];

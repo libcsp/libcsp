@@ -136,7 +136,7 @@ int csp_mutex_create(csp_mutex_t * mutex);
    @param[in] mutex mutex handle pointer
    @param buffer pointer to mutex storage
 */
-void csp_mutex_create_satic(csp_mutex_t * handle, csp_mutex_buffer_t * buffer);
+void csp_mutex_create_static(csp_mutex_t * handle, csp_mutex_buffer_t * buffer);
 
 /**
    Free a mutex.

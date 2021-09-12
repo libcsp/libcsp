@@ -1014,10 +1014,7 @@ int csp_rdp_init(csp_conn_t * conn) {
 	conn->rdp.packet_timeout = csp_rdp_packet_timeout;
 
 	/* Create a binary semaphore to wait on for tasks */
-	if (csp_bin_sem_create(&conn->rdp.tx_wait) != CSP_SEMAPHORE_OK) {
-		csp_log_error("RDP %p: Failed to initialize semaphore", conn);
-		return CSP_ERR_NOMEM;
-	}
+	csp_bin_sem_create_static(&conn->rdp.tx_wait, &conn->rdp.tx_wait_buf);
 
 	/* Create TX queue */
 	conn->rdp.tx_queue = csp_queue_create(csp_conf.rdp_max_window, sizeof(csp_packet_t *));

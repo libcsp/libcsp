@@ -34,7 +34,7 @@ int csp_mutex_create(csp_mutex_t * mutex) {
 	}
 }
 
-void csp_mutex_create_satic(csp_mutex_t * handle, csp_mutex_buffer_t * buffer) {
+void csp_mutex_create_static(csp_mutex_t * handle, csp_mutex_buffer_t * buffer) {
 	*handle = xSemaphoreCreateMutexStatic(buffer);
 }
 

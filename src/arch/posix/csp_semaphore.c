@@ -31,7 +31,7 @@ int csp_mutex_create(csp_mutex_t * mutex) {
 	return CSP_SEMAPHORE_ERROR;
 }
 
-void csp_mutex_create_satic(csp_mutex_t * handle, csp_mutex_buffer_t * buffer) {
+void csp_mutex_create_static(csp_mutex_t * handle, csp_mutex_buffer_t * buffer) {
 	csp_mutex_create(handle);
 }
 
