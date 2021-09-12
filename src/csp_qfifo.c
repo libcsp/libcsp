@@ -21,39 +21,23 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "csp_qfifo.h"
 
 #include <csp/arch/csp_queue.h>
+#include <csp/csp_debug.h>
+#include <csp/csp_buffer.h>
+#include <csp_autoconfig.h>
 
-#include "csp_init.h"
+#define QFIFO_LEN 10
 
-static csp_queue_handle_t qfifo;
+static csp_static_queue_t qfifo_queue;
+static csp_queue_handle_t qfifo_queue_handle;
+char qfifo_queue_buffer[sizeof(csp_qfifo_t) * QFIFO_LEN];
 
-int csp_qfifo_init(int fifo_length, char * fifo_buffer) {
-
-	if (fifo_buffer == NULL) {
-		if (qfifo == NULL) {
-			qfifo = csp_queue_create(fifo_length, sizeof(csp_qfifo_t));
-			if (!qfifo)
-				return CSP_ERR_NOMEM;
-		}
-	} else {
-		static csp_static_queue_t queue;
-		qfifo = csp_queue_create_static(fifo_length, sizeof(csp_qfifo_t), fifo_buffer, &queue);
-	}
-
-	return CSP_ERR_NONE;
-}
-
-void csp_qfifo_free_resources(void) {
-
-	if ((qfifo) && (csp_conf.fifo_buffer == NULL)) {
-		csp_queue_remove(qfifo);
-		qfifo = NULL;
-	}
-
+void csp_qfifo_init(void) {
+	qfifo_queue_handle = csp_queue_create_static(QFIFO_LEN, sizeof(csp_qfifo_t), qfifo_queue_buffer, &qfifo_queue);
 }
 
 int csp_qfifo_read(csp_qfifo_t * input) {
 
-	if (csp_queue_dequeue(qfifo, input, FIFO_TIMEOUT) != CSP_QUEUE_OK)
+	if (csp_queue_dequeue(qfifo_queue_handle, input, FIFO_TIMEOUT) != CSP_QUEUE_OK)
 		return CSP_ERR_TIMEDOUT;
 
 	return CSP_ERR_NONE;
@@ -87,9 +71,9 @@ void csp_qfifo_write(csp_packet_t * packet, csp_iface_t * iface, void * pxTaskWo
 	queue_element.packet = packet;
 
 	if (pxTaskWoken == NULL)
-		result = csp_queue_enqueue(qfifo, &queue_element, 0);
+		result = csp_queue_enqueue(qfifo_queue_handle, &queue_element, 0);
 	else
-		result = csp_queue_enqueue_isr(qfifo, &queue_element, pxTaskWoken);
+		result = csp_queue_enqueue_isr(qfifo_queue_handle, &queue_element, pxTaskWoken);
 
 	if (result != CSP_QUEUE_OK) {
 		if (pxTaskWoken == NULL) { // Only do logging in non-ISR context
@@ -106,5 +90,5 @@ void csp_qfifo_write(csp_packet_t * packet, csp_iface_t * iface, void * pxTaskWo
 
 void csp_qfifo_wake_up(void) {
 	const csp_qfifo_t queue_element = {.iface = NULL, .packet = NULL};
-	csp_queue_enqueue(qfifo, &queue_element, 0);
+	csp_queue_enqueue(qfifo_queue_handle, &queue_element, 0);
 }

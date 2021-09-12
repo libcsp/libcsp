@@ -7,3 +7,5 @@ option('use_xtea', type: 'boolean', value: true, description: 'eXtended TEA bloc
 option('use_promisc', type: 'boolean', value: true, description: 'Promiscious mode')
 
 option('packet_padding_bytes', type: 'integer', value: 8, description: 'Number of bytes to include before the packet data (must be minimum 8)')
+
+option('qfifo_len', type: 'integer', value: 15, description: 'Length of incoming queue for router task')

@@ -60,10 +60,7 @@ int csp_init(const csp_conf_t * conf) {
 		return ret;
 	}
 
-	ret = csp_qfifo_init(conf->fifo_length, conf->fifo_buffer);
-	if (ret != CSP_ERR_NONE) {
-		return ret;
-	}
+	csp_qfifo_init();
 
 	/* Loopback */
 	csp_iflist_add(&csp_if_lo);
@@ -81,7 +78,6 @@ int csp_init(const csp_conf_t * conf) {
 void csp_free_resources(void) {
 
 	csp_rtable_free();
-	csp_qfifo_free_resources();
 	csp_port_free_resources();
 	csp_conn_free_resources();
 	csp_buffer_free_resources();

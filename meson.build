@@ -20,6 +20,8 @@ conf.set('CSP_USE_PROMISC', get_option('use_promisc') == true ? 1 : 0)
 
 conf.set('CSP_HAVE_STDBOOL_H', cc.has_header('stdbool.h') == true ? 1 : 0)
 
+conf.set('CSP_QFIFO_LEN', get_option('qfifo_len'))
+
 zmq_dep = dependency('libzmq', version: '>4.0', required: false)
 if zmq_dep.found()
 	conf.set('CSP_HAVE_LIBZMQ', 1)
