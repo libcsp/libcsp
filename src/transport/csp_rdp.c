@@ -453,7 +453,7 @@ void csp_rdp_flush_all(csp_conn_t * conn) {
 int csp_rdp_check_ack(csp_conn_t * conn) {
 
 	/* Check RX queue for spare capacity */
-	if (csp_conf.conn_queue_length - csp_queue_size(conn->rx_queue) <= 2 * (int32_t)conn->rdp.window_size) {
+	if (CSP_CONN_RXQUEUE_LEN - csp_queue_size(conn->rx_queue) <= 2 * (int32_t)conn->rdp.window_size) {
 		return CSP_ERR_NONE;
 	}
 
@@ -1017,7 +1017,7 @@ int csp_rdp_init(csp_conn_t * conn) {
 	csp_bin_sem_create_static(&conn->rdp.tx_wait, &conn->rdp.tx_wait_buf);
 
 	/* Create TX queue */
-	conn->rdp.tx_queue = csp_queue_create(csp_conf.rdp_max_window, sizeof(csp_packet_t *));
+	conn->rdp.tx_queue = csp_queue_create(CSP_RDP_MAX_WINDOW, sizeof(csp_packet_t *));
 	if (conn->rdp.tx_queue == NULL) {
 		csp_log_error("RDP %p: Failed to create TX queue for conn", conn);
 		csp_bin_sem_remove(&conn->rdp.tx_wait);
@@ -1025,7 +1025,7 @@ int csp_rdp_init(csp_conn_t * conn) {
 	}
 
 	/* Create RX queue */
-	conn->rdp.rx_queue = csp_queue_create(csp_conf.rdp_max_window * 2, sizeof(csp_packet_t *));
+	conn->rdp.rx_queue = csp_queue_create(CSP_RDP_MAX_WINDOW * 2, sizeof(csp_packet_t *));
 	if (conn->rdp.rx_queue == NULL) {
 		csp_log_error("RDP %p: Failed to create RX queue for conn", conn);
 		csp_bin_sem_remove(&conn->rdp.tx_wait);

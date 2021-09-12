@@ -46,7 +46,7 @@ static csp_port_t ports[CSP_PORT_MAX_BIND + 2];
 
 csp_socket_t * csp_port_get_socket(unsigned int port) {
 
-	if (port > csp_conf.port_max_bind) {
+	if (port > CSP_PORT_MAX_BIND) {
 		return NULL;
 	}
 
@@ -55,8 +55,8 @@ csp_socket_t * csp_port_get_socket(unsigned int port) {
 		return ports[port].socket;
 	}
 
-	if (ports[csp_conf.port_max_bind + 1].state == PORT_OPEN) {
-		return ports[csp_conf.port_max_bind + 1].socket;
+	if (ports[CSP_PORT_MAX_BIND + 1].state == PORT_OPEN) {
+		return ports[CSP_PORT_MAX_BIND + 1].socket;
 	}
 
 	return NULL;
@@ -73,14 +73,14 @@ int csp_bind(csp_socket_t * socket, uint8_t port) {
 		return CSP_ERR_INVAL;
 
 	if (port == CSP_ANY) {
-		port = csp_conf.port_max_bind + 1;
-	} else if (port > csp_conf.port_max_bind) {
-		csp_log_error("csp_bind: invalid port %u, only ports from 0-%u (+ CSP_ANY for default) are available for incoming ports", port, csp_conf.port_max_bind);
+		port = CSP_PORT_MAX_BIND + 1;
+	} else if (port > CSP_PORT_MAX_BIND) {
+		csp_log_error("csp_bind: invalid port %u", port);
 		return CSP_ERR_INVAL;
 	}
 
 	if (ports[port].state != PORT_CLOSED) {
-		csp_log_error("Port %d is already in use, state %u", port, ports[port].state);
+		csp_log_error("Port %d is already in use", port);
 		return CSP_ERR_USED;
 	}
 

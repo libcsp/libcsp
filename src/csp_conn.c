@@ -26,7 +26,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/csp.h>
 #include <csp/arch/csp_queue.h>
 #include <csp/arch/csp_semaphore.h>
-#include <csp/arch/csp_malloc.h>
 #include <csp/arch/csp_time.h>
 #include <csp/csp_id.h>
 #include <csp_autoconfig.h>
@@ -73,7 +72,7 @@ int csp_conn_enqueue_packet(csp_conn_t * conn, csp_packet_t * packet) {
 	return CSP_ERR_NONE;
 }
 
-int csp_conn_init(void) {
+void csp_conn_init(void) {
 
 	csp_bin_sem_create_static(&conn_lock, &conn_lock_buf);
 	csp_bin_sem_create_static(&sport_lock, &sport_lock_buf);
@@ -89,16 +88,11 @@ int csp_conn_init(void) {
 
 		conn->rx_queue = csp_queue_create_static(CSP_CONN_RXQUEUE_LEN, sizeof(csp_packet_t *), conn->rx_queue_static_data, &conn->rx_queue_static);
 		
-
 #if (CSP_USE_RDP)
-		if (csp_rdp_init(conn) != CSP_ERR_NONE) {
-			csp_log_error("csp_rdp_allocate(conn) failed");
-			return CSP_ERR_NOMEM;
-		}
+		csp_rdp_init(conn);
 #endif
-	}
 
-	return CSP_ERR_NONE;
+	}
 
 }
 
@@ -376,7 +370,7 @@ csp_conn_t * csp_connect(uint8_t prio, uint16_t dest, uint8_t dport, uint32_t ti
 	const uint8_t start = sport;
 	while (++sport != start) {
 		if (sport > csp_id_get_max_port())
-			sport = csp_conf.port_max_bind + 1;
+			sport = CSP_PORT_MAX_BIND + 1;
 
 		/* Search for ephemeral outgoing port */
 		if (csp_conn_find_dport(sport) == NULL) {

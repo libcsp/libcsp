@@ -56,28 +56,13 @@ enum csp_dedup_types {
    @see csp_init()
 */
 typedef struct csp_conf_s {
-
+	uint8_t version;            /**< Protocol version to use (either 1 or 2) */
 	uint16_t address;           /**< CSP address of the system */
-
 	const char *hostname;       /**< Host name, returned by the #CSP_CMP_IDENT request */
 	const char *model;          /**< Model, returned by the #CSP_CMP_IDENT request */
 	const char *revision;       /**< Revision, returned by the #CSP_CMP_IDENT request */
-
-	uint8_t conn_max;           /**< Max number of connections. A fixed connection array is allocated by csp_init() */
-	uint8_t conn_queue_length;  /**< Max queue length (max queued Rx messages). */
-
-	uint8_t fifo_length;        /**< DEPRECATED: This is now compile time define */
-
-	uint8_t port_max_bind;      /**< Max/highest port for use with csp_bind() */
-   char * port_buffer;         /**< Must be sizeof(csp_port_t) * (port_max_bind + 2) or NULL if dynamic */
-   
-	uint8_t rdp_max_window;     /**< Max RDP window size */
-	uint16_t buffers;           /**< Number of CSP buffers */
-	uint16_t buffer_data_size;  /**< Data size of a CSP buffer. Total size will be sizeof(#csp_packet_t) + data_size. */
 	uint32_t conn_dfl_so;       /**< Default connection options. Options will always be or'ed onto new connections, see csp_connect() */
 	uint8_t dedup;              /**< Enable CSP deduplication. 0 = off, 1 = always on, 2 = only on forwarded packets,  */
-
-	uint8_t version;            /**< Protocol version to use (either 1 or 2) */
 } csp_conf_t;
 
 /**
@@ -89,12 +74,6 @@ static inline void csp_conf_get_defaults(csp_conf_t * conf) {
 	conf->hostname = "hostname";
 	conf->model = "model";
 	conf->revision = "revision";
-	conf->conn_max = 10;
-	conf->conn_queue_length = 10;
-	conf->port_max_bind = 24;
-	conf->rdp_max_window = 20;
-	conf->buffers = 10;
-	conf->buffer_data_size = 256;
 	conf->conn_dfl_so = CSP_O_NONE;
 	conf->dedup = CSP_DEDUP_OFF;
 }

@@ -29,9 +29,6 @@ extern "C" {
 
 extern csp_conf_t csp_conf;
 
-int csp_buffer_init(void);
-void csp_buffer_free_resources(void);
-
 #ifdef __cplusplus
 }
 #endif

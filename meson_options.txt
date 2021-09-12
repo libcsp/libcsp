@@ -15,4 +15,6 @@ option('qfifo_len', type: 'integer', value: 15, description: 'Length of incoming
 option('port_max_bind', type: 'integer', value: 16, description: 'Length of incoming queue for router task')
 option('conn_rxqueue_len', type: 'integer', value: 15, description: 'Number of packets in connection queue')
 option('conn_max', type: 'integer', value: 10, description: 'Number of new connections on socket queue')
-
+option('buffer_size', type: 'integer', value: 256, description: 'Bytes in each packet buffer')
+option('buffer_count', type: 'integer', value: 15, description: 'Number of total packet buffers')
+option('rdp_max_window', type: 'integer', value: 20, description: 'Max window size for RDP')

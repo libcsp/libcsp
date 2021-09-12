@@ -106,7 +106,7 @@ struct csp_conn_s {
 };
 
 int csp_conn_enqueue_packet(csp_conn_t * conn, csp_packet_t * packet);
-int csp_conn_init(void);
+void csp_conn_init(void);
 csp_conn_t * csp_conn_allocate(csp_conn_type_t type);
 
 csp_conn_t * csp_conn_find_existing(csp_id_t * id);
@@ -118,7 +118,6 @@ int csp_conn_get_rxq(int prio);
 int csp_conn_close(csp_conn_t * conn, uint8_t closed_by);
 
 const csp_conn_t * csp_conn_get_array(size_t * size); // for test purposes only!
-void csp_conn_free_resources(void);
 
 #ifdef __cplusplus
 }
