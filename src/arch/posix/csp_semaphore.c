@@ -31,6 +31,10 @@ int csp_mutex_create(csp_mutex_t * mutex) {
 	return CSP_SEMAPHORE_ERROR;
 }
 
+void csp_mutex_create_satic(csp_mutex_t * handle, csp_mutex_buffer_t * buffer) {
+	csp_mutex_create(handle);
+}
+
 int csp_mutex_remove(csp_mutex_t * mutex) {
 	if (pthread_mutex_destroy(mutex) == 0) {
 		return CSP_SEMAPHORE_OK;
@@ -88,6 +92,13 @@ int csp_bin_sem_create(csp_bin_sem_handle_t * sem) {
 	}
 
 	return CSP_SEMAPHORE_ERROR;
+}
+
+void csp_bin_sem_create_static(csp_bin_sem_handle_t * handle, csp_bin_sem_t * buffer) {
+	csp_log_lock("Semaphore init: %p", handle);
+
+	/* Ignore static allocation for now on posix */
+	sem_init(handle, 0, 1);
 }
 
 int csp_bin_sem_remove(csp_bin_sem_handle_t * sem) {

@@ -34,6 +34,10 @@ int csp_mutex_create(csp_mutex_t * mutex) {
 	}
 }
 
+void csp_mutex_create_satic(csp_mutex_t * handle, csp_mutex_buffer_t * buffer) {
+	*handle = xSemaphoreCreateMutexStatic(buffer);
+}
+
 int csp_mutex_remove(csp_mutex_t * mutex) {
 	return csp_bin_sem_remove(mutex);
 }
@@ -51,8 +55,14 @@ int csp_bin_sem_create(csp_bin_sem_handle_t * sem) {
 	return CSP_SEMAPHORE_OK;
 }
 
+void csp_bin_sem_create_static(csp_bin_sem_handle_t * handle, csp_bin_sem_t * buffer) {
+	*handle = xSemaphoreCreateBinaryStatic(buffer);
+}
+
 int csp_bin_sem_remove(csp_bin_sem_handle_t * sem) {
 	if ((sem != NULL) && (*sem != NULL)) {
+		/* It is safe to call on static allocated types,
+		   freertos remembers which type of allocation was used */
 		vSemaphoreDelete(*sem);
 	}
 	return CSP_SEMAPHORE_OK;
