@@ -27,6 +27,9 @@ conf.set('CSP_CONN_MAX', get_option('conn_max'))
 conf.set('CSP_BUFFER_SIZE', get_option('buffer_size'))
 conf.set('CSP_BUFFER_COUNT', get_option('buffer_count'))
 conf.set('CSP_RDP_MAX_WINDOW', get_option('rdp_max_window'))
+conf.set('CSP_RTABLE_SIZE', get_option('rtable_size'))
+
+
 
 
 zmq_dep = dependency('libzmq', version: '>4.0', required: false)

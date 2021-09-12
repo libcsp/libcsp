@@ -18,3 +18,5 @@ option('conn_max', type: 'integer', value: 8, description: 'Number of new connec
 option('buffer_size', type: 'integer', value: 256, description: 'Bytes in each packet buffer')
 option('buffer_count', type: 'integer', value: 15, description: 'Number of total packet buffers')
 option('rdp_max_window', type: 'integer', value: 10, description: 'Max window size for RDP')
+option('rtable_size', type: 'integer', value: 10, description: 'Number of elements in routing table')
+
