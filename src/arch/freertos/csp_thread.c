@@ -26,6 +26,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <FreeRTOS.h>
 #include <task.h>
 
+#if (configSUPPORT_DYNAMIC_ALLOCATION == 1)
 int csp_thread_create(csp_thread_func_t routine, const char * const thread_name, unsigned int stack_size, void * parameters, unsigned int priority, csp_thread_handle_t * return_handle) {
 
     TaskHandle_t handle;
@@ -42,6 +43,9 @@ int csp_thread_create(csp_thread_func_t routine, const char * const thread_name,
 	}
 	return CSP_ERR_NONE;
 }
+#endif
+
+// TODO xTaskCreateStatic
 
 void csp_thread_exit(void) {
 
