@@ -29,6 +29,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <csp/csp_types.h>
 
+#if (CSP_FREERTOS)
+#include <FreeRTOS.h>
+#include <queue.h>
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -63,6 +68,14 @@ typedef void * csp_queue_handle_t;
    @return Create queue on success, otherwise NULL.
 */
 csp_queue_handle_t csp_queue_create(int length, size_t item_size);
+
+#if (CSP_FREERTOS)
+typedef StaticQueue_t csp_static_queue_t;
+#else
+typedef void * csp_static_queue_t;
+#endif
+
+csp_queue_handle_t csp_queue_create_static(int length, size_t item_size, char * buffer, csp_static_queue_t * queue);
 
 /**
    Remove/delete queue.
