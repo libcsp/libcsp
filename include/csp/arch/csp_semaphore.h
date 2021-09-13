@@ -38,31 +38,13 @@ extern "C" {
 #include <pthread.h>
 #include <semaphore.h>
 
-/**
-   Semaphore (or mutex) call OK.
-
-   @note Platform specific (this is Posix) and differs from standard CSP error codes.
-*/
 #define CSP_SEMAPHORE_OK 	1
-/**
-   Semaphore (or mutex) call failed.
-
-   @note Platform specific (this is Posix) and differs from standard CSP error codes.
-*/
 #define CSP_SEMAPHORE_ERROR	2
 
-/**
-   Semaphore handle.
-
-   @note Platform specific (this is Posix)
-*/
 typedef sem_t csp_bin_sem_handle_t;
-/**
-   Mutex handle.
-
-   @note Platform specific (this is Posix)
-*/
 typedef pthread_mutex_t csp_mutex_t;
+typedef void * csp_bin_sem_t;          // These are not used (static allocation)
+typedef void * csp_mutex_buffer_t;     // These are not used (static allocation)
 
 #endif // CSP_POSIX
 
