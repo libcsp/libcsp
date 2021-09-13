@@ -35,7 +35,7 @@ typedef struct csp_skbf_s {
 	char skbf_data[]; // -> csp_packet_t
 } csp_skbf_t;
 
-#define SKBUF_SIZE CSP_BUFFER_ALIGN * ((sizeof(csp_skbf_t) + CSP_BUFFER_SIZE + (CSP_BUFFER_ALIGN - 1)) / CSP_BUFFER_ALIGN)
+#define SKBUF_SIZE CSP_BUFFER_ALIGN * ((sizeof(csp_skbf_t) + CSP_BUFFER_SIZE + CSP_BUFFER_PACKET_OVERHEAD + (CSP_BUFFER_ALIGN - 1)) / CSP_BUFFER_ALIGN)
 
 // Queue of free CSP buffers
 static csp_queue_handle_t csp_buffers;
