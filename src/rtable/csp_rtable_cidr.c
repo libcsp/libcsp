@@ -37,7 +37,7 @@ static int rtable_inptr = 0;
 static struct csp_rtable_s * csp_rtable_find_exact(uint16_t addr, uint16_t netmask) {
 
 	/* Start search */
-	for (int i = 0; i < CSP_RTABLE_SIZE; i++) {
+	for (int i = 0; i < rtable_inptr; i++) {
 		if (rtable[i].address == addr && rtable[i].netmask == netmask) {
 			return &rtable[i];
 		}
@@ -54,7 +54,7 @@ const csp_route_t * csp_rtable_find_route(uint16_t addr) {
 	uint16_t best_result_mask = 0;
 
 	/* Start search */
-	for (int i = 0; i < CSP_RTABLE_SIZE; i++) {
+	for (int i = 0; i < rtable_inptr; i++) {
 
 		uint16_t hostbits = (1 << (csp_id_get_host_bits() - rtable[i].netmask)) - 1;
 		uint16_t netbits = ~hostbits;
@@ -107,7 +107,7 @@ void csp_rtable_free(void) {
 }
 
 void csp_rtable_iterate(csp_rtable_iterator_t iter, void * ctx) {
-	for (int i = 0; i < CSP_RTABLE_SIZE; i++) {
+	for (int i = 0; i < rtable_inptr; i++) {
 		iter(ctx, rtable[i].address, rtable[i].netmask, &rtable[i].route);
 	}
 }

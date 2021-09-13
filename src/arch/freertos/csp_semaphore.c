@@ -70,6 +70,7 @@ int csp_bin_sem_remove(csp_bin_sem_handle_t * sem) {
 
 void csp_bin_sem_create_static(csp_bin_sem_handle_t * handle, csp_bin_sem_t * buffer) {
 	*handle = xSemaphoreCreateBinaryStatic(buffer);
+	xSemaphoreGive(*handle);
 }
 
 int csp_bin_sem_wait(csp_bin_sem_handle_t * sem, uint32_t timeout) {
