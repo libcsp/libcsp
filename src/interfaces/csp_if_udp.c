@@ -29,6 +29,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/arch/csp_thread.h>
 #include <csp/csp_id.h>
 
+#ifndef MSG_CONFIRM
+#define MSG_CONFIRM (0)
+#endif
+
 static int csp_if_udp_tx(const csp_route_t * ifroute, csp_packet_t * packet) {
 
 	csp_if_udp_conf_t * ifconf = ifroute->iface->driver_data;

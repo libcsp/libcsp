@@ -212,7 +212,7 @@ int csp_id_setup_rx(csp_packet_t * packet) {
 	}
 }
 
-int csp_id_get_host_bits(void) {
+unsigned int csp_id_get_host_bits(void) {
 	if (csp_conf.version == 2) {
 		return CSP_ID2_HOST_SIZE;
 	} else {
@@ -220,7 +220,7 @@ int csp_id_get_host_bits(void) {
 	}
 }
 
-int csp_id_get_max_nodeid(void) {
+unsigned int csp_id_get_max_nodeid(void) {
 	if (csp_conf.version == 2) {
 		return (1 << CSP_ID2_HOST_SIZE) - 1;
 	} else {
@@ -228,6 +228,6 @@ int csp_id_get_max_nodeid(void) {
 	}
 }
 
-int csp_id_get_max_port(void){
+unsigned int csp_id_get_max_port(void){
 	return ((1 << (CSP_ID2_PORT_SIZE)) - 1);
 }

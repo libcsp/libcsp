@@ -1,5 +1,3 @@
-cc = meson.get_compiler('c')
-
 socketcan_dep = dependency('libsocketcan', required: false)
 if socketcan_dep.found()
 	conf.set('CSP_HAVE_LIBSOCKETCAN', 1)

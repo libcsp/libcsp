@@ -1,24 +1,24 @@
-project('csp', 'c', version: '1.5.0', license: 'LGPL')
+project('csp', 'c', version: '1.5.0', license: 'LGPL',
+	default_options : ['c_std=gnu99',
+			   'optimization=s',
+			   'warning_level=2',
+			   'werror=true'])
 
 cc = meson.get_compiler('c')
 
 conf = configuration_data()
 
 conf.set('CSP_DEBUG', 1)
-conf.set('CSP_LOG_LEVEL_DEBUG', 1)
-conf.set('CSP_LOG_LEVEL_INFO', 1)
-conf.set('CSP_LOG_LEVEL_WARN', 1)
-conf.set('CSP_LOG_LEVEL_ERROR', 1)
 
-conf.set('CSP_PACKET_PADDING_BYTES', get_option('packet_padding_bytes'))
+log_levels = {'none' : 0, 'error' : 1, 'warn'  : 2, 'info'  : 3, 'debug' : 4}
+log_level = log_levels.get(get_option('log-level'), 3)
 
-conf.set('CSP_USE_RDP', get_option('use_rdp') == true ? 1 : 0)
-conf.set('CSP_USE_CRC32', get_option('use_crc32') == true ? 1 : 0)
-conf.set('CSP_USE_HMAC', get_option('use_hmac') == true ? 1 : 0)
-conf.set('CSP_USE_XTEA', get_option('use_xtea') == true ? 1 : 0)
-conf.set('CSP_USE_PROMISC', get_option('use_promisc') == true ? 1 : 0)
+conf.set10('CSP_LOG_LEVEL_ERROR', log_level >= 1)
+conf.set10('CSP_LOG_LEVEL_WARN',  log_level >= 2)
+conf.set10('CSP_LOG_LEVEL_INFO',  log_level >= 3)
+conf.set10('CSP_LOG_LEVEL_DEBUG', log_level >= 4)
 
-conf.set('CSP_HAVE_STDBOOL_H', cc.has_header('stdbool.h') == true ? 1 : 0)
+conf.set('CSP_VERSION', get_option('version'))
 
 conf.set('CSP_QFIFO_LEN', get_option('qfifo_len'))
 conf.set('CSP_PORT_MAX_BIND', get_option('port_max_bind'))
@@ -30,7 +30,12 @@ conf.set('CSP_RDP_MAX_WINDOW', get_option('rdp_max_window'))
 conf.set('CSP_RTABLE_SIZE', get_option('rtable_size'))
 
 
-
+conf.set10('CSP_USE_RDP', get_option('use_rdp'))
+conf.set10('CSP_USE_CRC32', get_option('use_crc32'))
+conf.set10('CSP_USE_HMAC', get_option('use_hmac'))
+conf.set10('CSP_USE_XTEA', get_option('use_xtea'))
+conf.set10('CSP_USE_PROMISC', get_option('use_promisc'))
+conf.set10('CSP_USE_DEDUP', get_option('use_dedup'))
 
 zmq_dep = dependency('libzmq', version: '>4.0', required: false)
 if zmq_dep.found()
@@ -83,6 +88,11 @@ if not meson.is_subproject()
   install_headers(csp_config_h, install_dir : 'include/csp')
 endif
 
+csp_c_args = ['-Wshadow',
+	      '-Wcast-align',
+	      '-Wwrite-strings',
+	      '-Wno-unused-parameter']
+
 clib = meson.get_compiler('c').find_library('c', required: false)
 if not clib.found()
 	clib = dependency('libc', fallback: ['picolibc', 'picolibc_dep'], required: true)
@@ -94,14 +104,14 @@ csp_lib = static_library('csp',
 	sources: [csp_sources, csp_config_h],
 	include_directories : csp_inc,
 	dependencies : csp_deps,
+	c_args : csp_c_args,
 )
 
+subdir('examples')
+
+# The following dependency variable is for parent projects to link
+# against libcsp. https://mesonbuild.com/Subprojects.html
 csp_dep = declare_dependency(
 	include_directories : csp_inc,
 	link_with : csp_lib,
-)
-
-csp_dep_whole = declare_dependency(
-	include_directories : csp_inc,
-	link_whole : csp_lib,
 )

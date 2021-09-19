@@ -37,5 +37,14 @@ Features
 
 LGPL Software license
 ---------------------
-The source code is available under an LGPL 2.1 license. See COPYING for the license text.
+The source code is available under an LGPL 2.1 license. See COPYING
+for the license text.
 
+As a special exception, the copyright holders of libcsp gives you
+permission to use macros or inline functions, or to link libcsp with
+independent modules that communicate with libcsp solely through the
+libcsp API interface, regardless of the license terms of these
+independent modules, and to copy and distribute the resulting combined
+work under terms of your choice.  However the source code for libcsp
+must still be made available in accordance with the GNU Lesser General
+Public License version 2.1.

@@ -250,6 +250,59 @@ static PyObject* pycsp_send(PyObject *self, PyObject *args) {
     Py_RETURN_NONE;
 }
 
+static PyObject* pycsp_sfp_send(PyObject *self, PyObject *args) {
+    PyObject* conn_capsule;
+    Py_buffer data;
+    unsigned int mtu;
+    uint32_t timeout = 1000;
+    if (!PyArg_ParseTuple(args, "Ow*II|I", &conn_capsule, &data, &mtu, &timeout)) {
+        return NULL;
+    }
+
+    csp_conn_t* conn = get_obj_as_conn(conn_capsule, false);
+    if (conn == NULL) {
+        return NULL;
+    }
+
+    int res;
+    Py_BEGIN_ALLOW_THREADS;
+    res = csp_sfp_send(conn, data.buf, data.len, mtu, timeout);
+    Py_END_ALLOW_THREADS;
+    if (res != CSP_ERR_NONE) {
+        return PyErr_Error("sfp_send()", res);
+    }
+
+    return Py_BuildValue("i", res);
+}
+
+static PyObject* pycsp_sfp_recv(PyObject *self, PyObject *args) {
+    PyObject* conn_capsule;
+    uint32_t timeout = 500;
+    if (!PyArg_ParseTuple(args, "O|I", &conn_capsule, &timeout)) {
+        return NULL; // TypeError is thrown
+    }
+    csp_conn_t* conn = get_obj_as_conn(conn_capsule, false);
+    if (conn == NULL) {
+        return NULL;
+    }
+    void *dataout = NULL;
+    int return_datasize = 0;
+    int res;
+    Py_BEGIN_ALLOW_THREADS;
+    res = csp_sfp_recv(conn, &dataout, &return_datasize, timeout);
+    Py_END_ALLOW_THREADS;
+
+    if (dataout == NULL) {
+        Py_RETURN_NONE;
+    }
+
+    if (res != CSP_ERR_NONE) {
+        return PyErr_Error("sfp_recv()", res);
+    }
+
+    return PyCapsule_New(dataout, PACKET_CAPSULE, pycsp_free_csp_buffer);
+}
+
 static PyObject* pycsp_transaction(PyObject *self, PyObject *args) {
     uint8_t prio;
     uint8_t dest;
@@ -257,13 +310,16 @@ static PyObject* pycsp_transaction(PyObject *self, PyObject *args) {
     uint32_t timeout;
     Py_buffer inbuf;
     Py_buffer outbuf;
-    if (!PyArg_ParseTuple(args, "bbbIw*w*", &prio, &dest, &port, &timeout, &outbuf, &inbuf)) {
-        return NULL; // TypeError is thrown
+    int allow_any_incoming_length = 0;
+    if (!PyArg_ParseTuple(args, "bbbIw*w*|i", &prio, &dest, &port, &timeout, &outbuf, &inbuf, &allow_any_incoming_length)) {
+            return NULL; // TypeError is thrown
     }
+
+    int incoming_buffer_len = allow_any_incoming_length ? -1 : inbuf.len;
 
     int res;
     Py_BEGIN_ALLOW_THREADS;
-    res = csp_transaction(prio, dest, port, timeout, outbuf.buf, outbuf.len, inbuf.buf, inbuf.len);
+    res = csp_transaction(prio, dest, port, timeout, outbuf.buf, outbuf.len, inbuf.buf, incoming_buffer_len);
     Py_END_ALLOW_THREADS;
     if (res < 1) {
         return PyErr_Error("csp_transaction()", res);
@@ -298,6 +354,27 @@ static PyObject* pycsp_sendto(PyObject *self, PyObject *args) {
     PyCapsule_SetPointer(packet_capsule, &CSP_POINTER_HAS_BEEN_FREED);
 
     Py_RETURN_NONE;
+}
+
+static PyObject* pycsp_recvfrom(PyObject *self, PyObject *args) {
+    PyObject* socket_capsule;
+    uint32_t timeout = 500;
+    if (!PyArg_ParseTuple(args, "O|I", &socket_capsule, &timeout)) {
+        return NULL;
+    }
+    csp_socket_t *socket = get_obj_as_socket(socket_capsule, false);
+    if (socket == NULL) {
+        return NULL;
+    }
+    csp_packet_t *packet = NULL;
+    Py_BEGIN_ALLOW_THREADS;
+    packet = csp_recvfrom(socket, timeout);
+    Py_END_ALLOW_THREADS;
+    if (packet == NULL) {
+        Py_RETURN_NONE;
+    }
+
+    return PyCapsule_New(packet, PACKET_CAPSULE, pycsp_free_csp_buffer);
 }
 
 static PyObject* pycsp_sendto_reply(PyObject *self, PyObject *args) {
@@ -908,9 +985,12 @@ static PyMethodDef methods[] = {
     {"accept",              pycsp_accept,              METH_VARARGS, ""},
     {"read",                pycsp_read,                METH_VARARGS, ""},
     {"send",                pycsp_send,                METH_VARARGS, ""},
+    {"sfp_send",            pycsp_sfp_send,            METH_VARARGS, ""},
+    {"sfp_recv",            pycsp_sfp_recv,            METH_VARARGS, ""},
     {"transaction",         pycsp_transaction,         METH_VARARGS, ""},
     {"sendto_reply",        pycsp_sendto_reply,        METH_VARARGS, ""},
     {"sendto",              pycsp_sendto,              METH_VARARGS, ""},
+    {"recvfrom",            pycsp_recvfrom,            METH_VARARGS, ""},
     {"connect",             pycsp_connect,             METH_VARARGS, ""},
     {"close",               pycsp_close,               METH_O,       ""},
     {"conn_dport",          pycsp_conn_dport,          METH_O,       ""},

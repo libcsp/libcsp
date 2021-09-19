@@ -67,6 +67,8 @@ static void * task_capture(void *ctx) {
 
         zmq_msg_close(&msg);
     }
+
+    return NULL;
 }
 
 int main(int argc, char ** argv) {
