@@ -25,7 +25,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <string.h>
 
 #include <csp/csp_cmp.h>
-#include <csp/csp_endian.h>
+#include <sys/types.h>
 #include <csp/csp_types.h>
 #include <csp/csp_rtable.h>
 #include <csp/arch/csp_time.h>
@@ -100,23 +100,23 @@ static int do_cmp_if_stats(struct csp_cmp_message *cmp) {
 	if (ifc == NULL)
 		return CSP_ERR_INVAL;
 
-	cmp->if_stats.tx =       csp_hton32(ifc->tx);
-	cmp->if_stats.rx =       csp_hton32(ifc->rx);
-	cmp->if_stats.tx_error = csp_hton32(ifc->tx_error);
-	cmp->if_stats.rx_error = csp_hton32(ifc->rx_error);
-	cmp->if_stats.drop =     csp_hton32(ifc->drop);
-	cmp->if_stats.autherr =  csp_hton32(ifc->autherr);
-	cmp->if_stats.frame =    csp_hton32(ifc->frame);
-	cmp->if_stats.txbytes =  csp_hton32(ifc->txbytes);
-	cmp->if_stats.rxbytes =  csp_hton32(ifc->rxbytes);
-	cmp->if_stats.irq = 	 csp_hton32(ifc->irq);
+	cmp->if_stats.tx =       htobe32(ifc->tx);
+	cmp->if_stats.rx =       htobe32(ifc->rx);
+	cmp->if_stats.tx_error = htobe32(ifc->tx_error);
+	cmp->if_stats.rx_error = htobe32(ifc->rx_error);
+	cmp->if_stats.drop =     htobe32(ifc->drop);
+	cmp->if_stats.autherr =  htobe32(ifc->autherr);
+	cmp->if_stats.frame =    htobe32(ifc->frame);
+	cmp->if_stats.txbytes =  htobe32(ifc->txbytes);
+	cmp->if_stats.rxbytes =  htobe32(ifc->rxbytes);
+	cmp->if_stats.irq = 	 htobe32(ifc->irq);
 
 	return CSP_ERR_NONE;
 }
 
 static int do_cmp_peek(struct csp_cmp_message *cmp) {
 
-	cmp->peek.addr = csp_hton32(cmp->peek.addr);
+	cmp->peek.addr = htobe32(cmp->peek.addr);
 	if (cmp->peek.len > CSP_CMP_PEEK_MAX_LEN)
 		return CSP_ERR_INVAL;
 
@@ -129,7 +129,7 @@ static int do_cmp_peek(struct csp_cmp_message *cmp) {
 
 static int do_cmp_poke(struct csp_cmp_message *cmp) {
 
-	cmp->poke.addr = csp_hton32(cmp->poke.addr);
+	cmp->poke.addr = htobe32(cmp->poke.addr);
 	if (cmp->poke.len > CSP_CMP_POKE_MAX_LEN)
 		return CSP_ERR_INVAL;
 
@@ -143,8 +143,8 @@ static int do_cmp_poke(struct csp_cmp_message *cmp) {
 static int do_cmp_clock(struct csp_cmp_message *cmp) {
 
 	csp_timestamp_t clock;
-	clock.tv_sec = csp_ntoh32(cmp->clock.tv_sec);
-	clock.tv_nsec = csp_ntoh32(cmp->clock.tv_nsec);
+	clock.tv_sec = be32toh(cmp->clock.tv_sec);
+	clock.tv_nsec = be32toh(cmp->clock.tv_nsec);
 
 	int res = CSP_ERR_NONE;
 	if (clock.tv_sec != 0) {
@@ -157,8 +157,8 @@ static int do_cmp_clock(struct csp_cmp_message *cmp) {
 
 	csp_clock_get_time(&clock);
 
-	cmp->clock.tv_sec = csp_hton32(clock.tv_sec);
-	cmp->clock.tv_nsec = csp_hton32(clock.tv_nsec);
+	cmp->clock.tv_sec = htobe32(clock.tv_sec);
+	cmp->clock.tv_nsec = htobe32(clock.tv_nsec);
 
 	return res;
 
@@ -282,7 +282,7 @@ void csp_service_handler(csp_packet_t * packet) {
 	case CSP_MEMFREE: {
 		uint32_t total = csp_sys_memfree();
 
-		total = csp_hton32(total);
+		total = htobe32(total);
 		memcpy(packet->data, &total, sizeof(total));
 		packet->length = sizeof(total);
 
@@ -293,7 +293,7 @@ void csp_service_handler(csp_packet_t * packet) {
 		uint32_t magic_word;
 		memcpy(&magic_word, packet->data, sizeof(magic_word));
 
-		magic_word = csp_ntoh32(magic_word);
+		magic_word = be32toh(magic_word);
 
 		/* If the magic word is valid, reboot */
 		if (magic_word == CSP_REBOOT_MAGIC) {
@@ -308,7 +308,7 @@ void csp_service_handler(csp_packet_t * packet) {
 
 	case CSP_BUF_FREE: {
 		uint32_t size = csp_buffer_remaining();
-		size = csp_hton32(size);
+		size = htobe32(size);
 		memcpy(packet->data, &size, sizeof(size));
 		packet->length = sizeof(size);
 		break;
@@ -316,7 +316,7 @@ void csp_service_handler(csp_packet_t * packet) {
 
 	case CSP_UPTIME: {
 		uint32_t time = csp_get_s();
-		time = csp_hton32(time);
+		time = htobe32(time);
 		memcpy(packet->data, &time, sizeof(time));
 		packet->length = sizeof(time);
 		break;

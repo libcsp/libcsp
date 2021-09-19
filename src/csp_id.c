@@ -5,7 +5,7 @@
  *      Author: johan
  */
 
-#include <csp/csp_endian.h>
+#include <sys/types.h>
 #include <csp/csp.h>
 
 /**
@@ -50,7 +50,7 @@ void csp_id1_prepend(csp_packet_t * packet) {
 	                (packet->id.flags << CSP_ID1_FLAGS_OFFSET));
 
 	/* Convert to big / network endian */
-	id1 = csp_hton32(id1);
+	id1 = htobe32(id1);
 
 	packet->frame_begin = packet->data - CSP_ID1_HEADER_SIZE;
 	packet->frame_length = packet->length + CSP_ID1_HEADER_SIZE;
@@ -71,7 +71,7 @@ int csp_id1_strip(csp_packet_t * packet) {
 	packet->length = packet->frame_length - CSP_ID1_HEADER_SIZE;
 
 	/* Convert to host order */
-	id1 = csp_ntoh32(id1);
+	id1 = be32toh(id1);
 
 	/* Parse header:
 	 * Now in easy to work with in 32 bit register */
@@ -134,7 +134,7 @@ void csp_id2_prepend(csp_packet_t * packet) {
 
 	/* Convert to big / network endian:
 	 * We first shift up the 48 bit header to most significant end of the 64-bit */
-	id2 = csp_hton64(id2 << 16);
+	id2 = htobe64(id2 << 16);
 
 	packet->frame_begin = packet->data - CSP_ID2_HEADER_SIZE;
 	packet->frame_length = packet->length + CSP_ID2_HEADER_SIZE;
@@ -158,7 +158,7 @@ int csp_id2_strip(csp_packet_t * packet) {
 	/* Convert to host order:
 	 * Most significant byte ends in byte 7, we then shift down
 	 * to get MSB into byte 5 */
-	id2 = csp_ntoh64(id2) >> 16;
+	id2 = be64toh(id2) >> 16;
 
 	/* Parse header:
 	 * Now in easy to work with in 32 bit register */

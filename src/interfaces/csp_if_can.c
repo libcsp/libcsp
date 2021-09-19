@@ -22,9 +22,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <string.h>
 #include <stdlib.h>
+#include <sys/types.h>
 
 #include <csp/csp.h>
-#include <csp/csp_endian.h>
 #include <csp/arch/csp_semaphore.h>
 #include <csp/csp_id.h>
 
@@ -131,7 +131,7 @@ int csp_can1_rx(csp_iface_t *iface, uint32_t id, const uint8_t *data, uint8_t dl
 
 		/* Copy CSP length (of data) */
 		memcpy(&(buf->packet->length), data + sizeof(uint32_t), sizeof(buf->packet->length));
-		buf->packet->length = csp_ntoh16(buf->packet->length);
+		buf->packet->length = be16toh(buf->packet->length);
 
 		/* Check if frame exceeds MTU */
 		if (buf->packet->length > iface->mtu) {
@@ -238,7 +238,7 @@ int csp_can1_tx(const csp_route_t * ifroute, csp_packet_t *packet) {
 	memcpy(frame_buf + CFP1_CSP_HEADER_OFFSET, packet->frame_begin, CFP1_CSP_HEADER_SIZE);
 
 	/* Copy length field, always 2 bytes */
-	uint16_t csp_length_be = csp_hton16(packet->length);
+	uint16_t csp_length_be = htobe16(packet->length);
 	memcpy(frame_buf + CFP1_DATA_LEN_OFFSET, &csp_length_be, CFP1_DATA_LEN_SIZE);
 
 	/* Calculate number of data bytes. Max 2 bytes possible */
@@ -345,7 +345,7 @@ int csp_can2_rx(csp_iface_t *iface, uint32_t id, const uint8_t *data, uint8_t dl
 		 * host-order field, extract the first two bytes and convert back to
 		 * network order */
 		uint16_t first_two = id >> CFP2_DST_OFFSET;
-		first_two = csp_hton16(first_two);
+		first_two = htobe16(first_two);
 		memcpy(buf->packet->frame_begin, &first_two, 2);
 
 		/* Copy next 4 from data, the data field is in network order */
@@ -448,7 +448,7 @@ int csp_can2_tx(const csp_route_t * ifroute, csp_packet_t *packet) {
 	                     ((packet->id.flags & CFP2_FLAGS_MASK) << CFP2_FLAGS_OFFSET));
 
 	/* Convert to network byte order */
-	*header_extension = csp_hton32(*header_extension);
+	*header_extension = htobe32(*header_extension);
 
 	frame_buf_inp += 4;
 	frame_buf_avail -= 4;

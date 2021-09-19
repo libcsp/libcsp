@@ -26,7 +26,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/interfaces/csp_if_kiss.h>
 #include <csp/drivers/usart.h>
 #include <csp/drivers/can_socketcan.h>
-#include <csp/csp_endian.h>
+#include <sys/types.h>
 
 #define SOCKET_CAPSULE      "csp_socket_t"
 #define CONNECTION_CAPSULE  "csp_conn_t"
@@ -771,7 +771,7 @@ static PyObject* pycsp_cmp_peek(PyObject *self, PyObject *args) {
 
     struct csp_cmp_message msg;
     memset(&msg, 0, sizeof(msg));
-    msg.peek.addr = csp_hton32(addr);
+    msg.peek.addr = htobe32(addr);
     msg.peek.len = len;
 
     int res;
@@ -802,7 +802,7 @@ static PyObject* pycsp_cmp_poke(PyObject *self, PyObject *args) {
         return PyErr_Error("csp_cmp_poke() - exceeding max size", CSP_ERR_INVAL);
     }
     struct csp_cmp_message msg;
-    msg.poke.addr = csp_hton32(addr);
+    msg.poke.addr = htobe32(addr);
     msg.poke.len = len;
     memcpy(msg.poke.data, inbuf.buf, len);
 
@@ -832,8 +832,8 @@ static PyObject* pycsp_cmp_clock_set(PyObject *self, PyObject *args) {
 
     struct csp_cmp_message msg;
     memset(&msg, 0, sizeof(msg));
-    msg.clock.tv_sec = csp_hton32(sec);
-    msg.clock.tv_nsec = csp_hton32(nsec);
+    msg.clock.tv_sec = htobe32(sec);
+    msg.clock.tv_nsec = htobe32(nsec);
 
     int res;
     Py_BEGIN_ALLOW_THREADS;
@@ -865,8 +865,8 @@ static PyObject* pycsp_cmp_clock_get(PyObject *self, PyObject *args) {
     }
 
     return Py_BuildValue("II",
-                         csp_ntoh32(msg.clock.tv_sec),
-                         csp_ntoh32(msg.clock.tv_nsec));
+                         be32toh(msg.clock.tv_sec),
+                         be32toh(msg.clock.tv_nsec));
 }
 
 static PyObject* pycsp_zmqhub_init(PyObject *self, PyObject *args) {

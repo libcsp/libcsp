@@ -24,7 +24,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <csp/csp_buffer.h>
 #include <csp/csp_debug.h>
-#include <csp/csp_endian.h>
+#include <sys/types.h>
 
 #include "csp_conn.h"
 
@@ -57,8 +57,8 @@ static inline sfp_header_t * csp_sfp_header_remove(csp_packet_t * packet) {
         header = (sfp_header_t *) &packet->data[packet->length - sizeof(*header)];
 	packet->length -= sizeof(*header);
 
-	header->offset = csp_ntoh32(header->offset);
-	header->totalsize = csp_ntoh32(header->totalsize);
+	header->offset = be32toh(header->offset);
+	header->totalsize = be32toh(header->totalsize);
 
 	if (header->offset > header->totalsize) {
 		return NULL;
@@ -103,8 +103,8 @@ int csp_sfp_send_own_memcpy(csp_conn_t * conn, const void * data, unsigned int t
 
 		/* Add SFP header */
 		sfp_header = csp_sfp_header_add(packet); // no check, because buffer was allocated with extra size.
-		sfp_header->totalsize = csp_hton32(totalsize);
-		sfp_header->offset = csp_hton32(count);
+		sfp_header->totalsize = htobe32(totalsize);
+		sfp_header->offset = htobe32(count);
 
 		/* Send data */
 		if (!csp_send(conn, packet, timeout)) {
