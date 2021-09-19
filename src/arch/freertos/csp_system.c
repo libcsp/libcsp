@@ -28,20 +28,23 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 int csp_sys_tasklist(char * out) {
 #if (tskKERNEL_VERSION_MAJOR < 8)
 	vTaskList((signed portCHAR *) out);
-#else
+#elif (configSUPPORT_DYNAMIC_ALLOCATION == 1)
 	vTaskList(out);
 #endif
 	return CSP_ERR_NONE;
 }
 
 int csp_sys_tasklist_size(void) {
-
 	return 40 * uxTaskGetNumberOfTasks();
 }
 
 uint32_t csp_sys_memfree(void) {
 
+#if (configSUPPORT_DYNAMIC_ALLOCATION == 1)
 	return (uint32_t) xPortGetFreeHeapSize();
+#else
+	return 0;
+#endif
 
 }
 

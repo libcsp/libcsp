@@ -79,8 +79,15 @@ typedef struct {
 	uint32_t ack_delay_count;
 	uint32_t ack_timestamp;
 	csp_bin_sem_handle_t tx_wait;
+	csp_bin_sem_t tx_wait_buf;
+
 	csp_queue_handle_t tx_queue;
+	csp_static_queue_t tx_queue_static; /* Static storage for rx queue */
+	char tx_queue_static_data[sizeof(csp_packet_t *) * CSP_RDP_MAX_WINDOW];
+
 	csp_queue_handle_t rx_queue;
+	csp_static_queue_t rx_queue_static; /* Static storage for rx queue */
+	char rx_queue_static_data[sizeof(csp_packet_t *) * CSP_RDP_MAX_WINDOW];
 } csp_rdp_t;
 
 /** @brief Connection struct */
@@ -89,8 +96,14 @@ struct csp_conn_s {
 	csp_conn_state_t state;		/* Connection state (CONN_OPEN or CONN_CLOSED) */
 	csp_id_t idin;			/* Identifier received */
 	csp_id_t idout;			/* Identifier transmitted */
+
 	csp_queue_handle_t rx_queue; /* Queue for RX packets */
-	csp_queue_handle_t socket;	/* Socket to be "woken" when first packet is ready */
+	csp_static_queue_t rx_queue_static; /* Static storage for rx queue */
+	char rx_queue_static_data[sizeof(csp_packet_t *) * CSP_CONN_RXQUEUE_LEN];
+
+	void (*callback)(csp_packet_t * packet); 
+
+	csp_socket_t * dest_socket; /* incoming connections destination socket */
 	uint32_t timestamp;		/* Time the connection was opened */
 	uint32_t opts;			/* Connection or socket options */
 #if (CSP_USE_RDP)
@@ -99,7 +112,7 @@ struct csp_conn_s {
 };
 
 int csp_conn_enqueue_packet(csp_conn_t * conn, csp_packet_t * packet);
-int csp_conn_init(void);
+void csp_conn_init(void);
 csp_conn_t * csp_conn_allocate(csp_conn_type_t type);
 
 csp_conn_t * csp_conn_find_existing(csp_id_t * id);
@@ -111,7 +124,6 @@ int csp_conn_get_rxq(int prio);
 int csp_conn_close(csp_conn_t * conn, uint8_t closed_by);
 
 const csp_conn_t * csp_conn_get_array(size_t * size); // for test purposes only!
-void csp_conn_free_resources(void);
 
 #ifdef __cplusplus
 }

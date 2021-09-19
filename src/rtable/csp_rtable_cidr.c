@@ -18,109 +18,79 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include "csp_rtable_internal.h"
+#include <inttypes.h>
+#include <malloc.h>
+#include <string.h>
 
-#include <csp/csp_debug.h>
-#include <csp/arch/csp_malloc.h>
+#include <csp/csp_rtable.h>
+#include <csp/csp_id.h>
 
 /* Definition of routing table */
-typedef struct csp_rtable_s {
+static struct csp_rtable_s {
     csp_route_t route;
     uint16_t address;
     uint16_t netmask;
-    struct csp_rtable_s * next;
-} csp_rtable_t;
+} rtable[CSP_RTABLE_SIZE] = {0};
 
-/* Routing table (linked list) */
-static csp_rtable_t * rtable = NULL;
+static int rtable_inptr = 0;
 
-static csp_rtable_t * csp_rtable_find(uint16_t addr, uint16_t netmask, uint16_t exact) {
-
-	/* Remember best result */
-	csp_rtable_t * best_result = NULL;
-	uint16_t best_result_mask = 0;
+static struct csp_rtable_s * csp_rtable_find_exact(uint16_t addr, uint16_t netmask) {
 
 	/* Start search */
-	csp_rtable_t * i = rtable;
-	while(i) {
-
-		/* Look for exact match:
-		 * Note this is looking for a match of the netmask, used primarily for route table insert
-		 * Idea: Split this search function into two, one serching for addr/mask, and one for destination node only */
-		if (i->address == addr && i->netmask == netmask) {
-			best_result = i;
-			break;
+	for (int i = 0; i < rtable_inptr; i++) {
+		if (rtable[i].address == addr && rtable[i].netmask == netmask) {
+			return &rtable[i];
 		}
-
-		/* Try a CIDR netmask match */
-		if (!exact) {
-			uint16_t hostbits = (1 << (16 - i->netmask)) - 1;
-			uint16_t netbits = ~hostbits;
-			//printf("Netbits %x Hostbits %x\r\n", netbits, hostbits);
-
-			/* Match network addresses */
-			uint16_t net_a = i->address & netbits;
-			uint16_t net_b = addr & netbits;
-			//printf("A: %hx, B: %hx\r\n", net_a, net_b);
-
-			/* We have a match */
-			if (net_a == net_b) {
-				if (i->netmask >= best_result_mask) {
-					//printf("Match best result %u %u\r\n", best_result_mask, i->netmask);
-					best_result = i;
-					best_result_mask = i->netmask;
-				}
-			}
-
-		}
-
-		i = i->next;
-
 	}
 
-	if (0 && best_result) {
-		csp_log_packet("Using routing entry: %u/%u if %s mtu %u",
-				best_result->address, best_result->netmask, best_result->route.iface->name, best_result->route.via);
-        }
-
-	return best_result;
+	return NULL;
 
 }
 
-const csp_route_t * csp_rtable_find_route(uint16_t dest_address)
-{
-    csp_rtable_t * entry = csp_rtable_find(dest_address, CSP_RTABLE_MAX_BITS, 0);
-    if (entry) {
-	return &entry->route;
-    }
-    return NULL;
+const csp_route_t * csp_rtable_find_route(uint16_t addr) {
+
+	/* Remember best result */
+	int best_result = -1;
+	uint16_t best_result_mask = 0;
+
+	/* Start search */
+	for (int i = 0; i < rtable_inptr; i++) {
+
+		uint16_t hostbits = (1 << (csp_id_get_host_bits() - rtable[i].netmask)) - 1;
+		uint16_t netbits = ~hostbits;
+
+		/* Match network addresses */
+		uint16_t net_a = rtable[i].address & netbits;
+		uint16_t net_b = addr & netbits;
+
+		/* We have a match */
+		if (net_a == net_b) {
+			if (rtable[i].netmask >= best_result_mask) {
+				best_result = i;
+				best_result_mask = rtable[i].netmask;
+			}
+		}
+
+	}
+
+	if (best_result > -1) {
+		return &rtable[best_result].route;
+	}
+
+	return NULL;
+
 }
 
 int csp_rtable_set_internal(uint16_t address, uint16_t netmask, csp_iface_t *ifc, uint16_t via) {
 
 	/* First see if the entry exists */
-	csp_rtable_t * entry = csp_rtable_find(address, netmask, 1);
+	struct csp_rtable_s * entry = csp_rtable_find_exact(address, netmask);
 
 	/* If not, create a new one */
 	if (!entry) {
-		entry = csp_malloc(sizeof(*entry));
-		if (entry == NULL) {
-			return CSP_ERR_NOMEM;
-		}
-
-		entry->next = NULL;
-		/* Add entry to linked-list */
-		if (rtable == NULL) {
-			/* This is the first interface to be added */
-			rtable = entry;
-		} else {
-			/* One or more interfaces were already added */
-			csp_rtable_t * i = rtable;
-			while (i->next) {
-				i = i->next;
-			}
-			i->next = entry;
-		}
+		entry = &rtable[rtable_inptr++];
+		if (rtable_inptr == CSP_RTABLE_SIZE)
+			rtable_inptr = CSP_RTABLE_SIZE;
 	}
 
 	/* Fill in the data */
@@ -133,17 +103,11 @@ int csp_rtable_set_internal(uint16_t address, uint16_t netmask, csp_iface_t *ifc
 }
 
 void csp_rtable_free(void) {
-	for (csp_rtable_t * i = rtable; (i);) {
-		void * freeme = i;
-		i = i->next;
-		csp_free(freeme);
-	}
-	rtable = NULL;
+	memset(rtable, 0, sizeof(rtable));
 }
 
-void csp_rtable_iterate(csp_rtable_iterator_t iter, void * ctx)
-{
-    for (csp_rtable_t * route = rtable;
-         route && iter(ctx, route->address, route->netmask, &route->route);
-         route = route->next);
+void csp_rtable_iterate(csp_rtable_iterator_t iter, void * ctx) {
+	for (int i = 0; i < rtable_inptr; i++) {
+		iter(ctx, rtable[i].address, rtable[i].netmask, &rtable[i].route);
+	}
 }

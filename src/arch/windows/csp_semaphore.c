@@ -32,6 +32,10 @@ int csp_mutex_create(csp_mutex_t * mutex) {
     return CSP_MUTEX_OK;
 }
 
+void csp_mutex_create_static(csp_mutex_t * handle, csp_mutex_buffer_t * buffer) {
+	csp_mutex_create(handle);
+}
+
 int csp_mutex_remove(csp_mutex_t * mutex) {
 
     if( !CloseHandle(*mutex) ) {
@@ -64,6 +68,10 @@ int csp_bin_sem_create(csp_bin_sem_handle_t * sem) {
     }
     *sem = semHandle;
     return CSP_SEMAPHORE_OK;
+}
+
+void csp_bin_sem_create_static(csp_bin_sem_handle_t * handle, csp_bin_sem_t * buffer) {
+	csp_bin_sem_create(handle);
 }
 
 int csp_bin_sem_remove(csp_bin_sem_handle_t * sem) {

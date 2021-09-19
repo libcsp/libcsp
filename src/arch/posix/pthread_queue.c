@@ -28,9 +28,9 @@ http://code.google.com/p/c-pthread-queue/
 
 #include <errno.h>
 #include <string.h>
+#include <malloc.h>
 
 #include <csp/csp.h>
-#include <csp/arch/csp_malloc.h>
 
 static inline int get_deadline(struct timespec *ts, uint32_t timeout_ms)
 {
@@ -74,10 +74,10 @@ static inline int init_cond_clock_monotonic(pthread_cond_t * cond)
 
 pthread_queue_t * pthread_queue_create(int length, size_t item_size) {
 	
-	pthread_queue_t * q = csp_malloc(sizeof(pthread_queue_t));
+	pthread_queue_t * q = malloc(sizeof(pthread_queue_t));
 	
 	if (q != NULL) {
-		q->buffer = csp_malloc(length*item_size);
+		q->buffer = malloc(length*item_size);
 		if (q->buffer != NULL) {
 			q->size = length;
 			q->item_size = item_size;
@@ -85,12 +85,12 @@ pthread_queue_t * pthread_queue_create(int length, size_t item_size) {
 			q->in = 0;
 			q->out = 0;
 			if (pthread_mutex_init(&(q->mutex), NULL) || init_cond_clock_monotonic(&(q->cond_full)) || init_cond_clock_monotonic(&(q->cond_empty))) {
-				csp_free(q->buffer);
-				csp_free(q);
+				free(q->buffer);
+				free(q);
 				q = NULL;
 			}
 		} else {
-			csp_free(q);
+			free(q);
 			q = NULL;
 		}
 	}
@@ -104,8 +104,8 @@ void pthread_queue_delete(pthread_queue_t * q) {
 	if (q == NULL)
 		return;
 
-	csp_free(q->buffer);
-	csp_free(q);
+	free(q->buffer);
+	free(q);
 
 	return;
 

@@ -38,31 +38,13 @@ extern "C" {
 #include <pthread.h>
 #include <semaphore.h>
 
-/**
-   Semaphore (or mutex) call OK.
-
-   @note Platform specific (this is Posix) and differs from standard CSP error codes.
-*/
 #define CSP_SEMAPHORE_OK 	1
-/**
-   Semaphore (or mutex) call failed.
-
-   @note Platform specific (this is Posix) and differs from standard CSP error codes.
-*/
 #define CSP_SEMAPHORE_ERROR	2
 
-/**
-   Semaphore handle.
-
-   @note Platform specific (this is Posix)
-*/
 typedef sem_t csp_bin_sem_handle_t;
-/**
-   Mutex handle.
-
-   @note Platform specific (this is Posix)
-*/
 typedef pthread_mutex_t csp_mutex_t;
+typedef void * csp_bin_sem_t;          // These are not used (static allocation)
+typedef void * csp_mutex_buffer_t;     // These are not used (static allocation)
 
 #endif // CSP_POSIX
 
@@ -95,11 +77,16 @@ typedef HANDLE csp_mutex_t;
 /* FreeRTOS interface */
 #if (CSP_FREERTOS)
 
+#include <FreeRTOS.h>
+#include <semphr.h>
+
 #define CSP_SEMAPHORE_OK 	1
 #define CSP_SEMAPHORE_ERROR	0
 
 typedef void * csp_bin_sem_handle_t;
+typedef StaticSemaphore_t csp_bin_sem_t;
 typedef void * csp_mutex_t;
+typedef StaticSemaphore_t csp_mutex_buffer_t;
 
 #endif // CSP_FREERTOS
 
@@ -124,6 +111,14 @@ typedef void * csp_mutex_t;
    @return #CSP_MUTEX_OK on success, otherwise #CSP_MUTEX_ERROR
 */
 int csp_mutex_create(csp_mutex_t * mutex);
+
+/**
+   Initialize a mutex with static allocation
+
+   @param[in] mutex mutex handle pointer
+   @param buffer pointer to mutex storage
+*/
+void csp_mutex_create_static(csp_mutex_t * handle, csp_mutex_buffer_t * buffer);
 
 /**
    Free a mutex.
@@ -161,6 +156,18 @@ int csp_mutex_unlock(csp_mutex_t * mutex);
    @return #CSP_SEMAPHORE_OK on success, otherwise #CSP_SEMAPHORE_ERROR
 */
 int csp_bin_sem_create(csp_bin_sem_handle_t * sem);
+
+/**
+   initialize a binary semaphore with static storage
+
+   The semaphore is created in state \a unlocked (value 1).
+
+   On platforms supporting max values, the semaphore is created with a max value of 1, hence the naming \a binary.
+
+   @param[in] sem semaphore
+   @param buffer csp_bin_sem_t storage
+*/
+void csp_bin_sem_create_static(csp_bin_sem_handle_t * handle, csp_bin_sem_t * buffer);
 
 /**
    Free a semaphore.

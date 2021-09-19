@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/csp.h>
 
 #include <stdio.h>
+#include <alloca.h>
 #include <string.h>
 
 #include <csp/csp_cmp.h>
@@ -29,10 +30,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/csp_rtable.h>
 #include <csp/arch/csp_time.h>
 #include <csp/arch/csp_clock.h>
-#include <csp/arch/csp_malloc.h>
 #include <csp/arch/csp_system.h>
 
-#include "csp_init.h"
 
 #define CSP_RPS_MTU	196
 
@@ -87,7 +86,7 @@ static int do_cmp_route_set(struct csp_cmp_message *cmp) {
 		return CSP_ERR_INVAL;
 	}
 
-	if (csp_route_set(cmp->route_set.dest_node, ifc, cmp->route_set.next_hop_via) != CSP_ERR_NONE) {
+	if (csp_rtable_set(cmp->route_set.dest_node, cmp->route_set.netmask, ifc, cmp->route_set.next_hop_via) != CSP_ERR_NONE) {
 		return CSP_ERR_INVAL;
 	}
 
@@ -241,7 +240,7 @@ void csp_service_handler(csp_packet_t * packet) {
 		}
 		/* Start by allocating just the right amount of memory */
 		int task_list_size = csp_sys_tasklist_size();
-		char * pslist = csp_malloc(task_list_size);
+		char * pslist = alloca(task_list_size);
 		/* Check for malloc fail */
 		if (pslist == NULL) {
 			/* Send out the data */
@@ -276,7 +275,6 @@ void csp_service_handler(csp_packet_t * packet) {
 			/* Clear the packet reference when sent */
 		}
 		csp_buffer_free(packet);
-		csp_free(pslist);
 		packet = NULL;
 		break;
 	}
@@ -317,7 +315,7 @@ void csp_service_handler(csp_packet_t * packet) {
 	}
 
 	case CSP_UPTIME: {
-		uint32_t time = csp_get_uptime_s();
+		uint32_t time = csp_get_s();
 		time = csp_hton32(time);
 		memcpy(packet->data, &time, sizeof(time));
 		packet->length = sizeof(time);

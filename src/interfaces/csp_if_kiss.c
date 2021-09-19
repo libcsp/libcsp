@@ -25,12 +25,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 #include <csp/interfaces/csp_if_kiss.h>
-#include "../csp_id.h"
-
 #include <string.h>
 
 #include <csp/csp_endian.h>
 #include <csp/csp_crc32.h>
+#include <csp/csp_id.h>
 
 #define FEND  		0xC0
 #define FESC  		0xDB
@@ -226,9 +225,7 @@ int csp_kiss_add_interface(csp_iface_t *iface) {
 		return CSP_ERR_INVAL;
 	}
 
-	if (csp_mutex_create(&ifdata->lock) != CSP_MUTEX_OK) {
-		return CSP_ERR_NOMEM;
-	}
+	csp_mutex_create_static(&ifdata->lock, &ifdata->lock_buf);
 
 	ifdata->max_rx_length = csp_buffer_data_size();
 	ifdata->rx_length = 0;

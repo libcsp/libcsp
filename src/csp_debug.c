@@ -28,7 +28,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <avr/pgmspace.h>
 #endif
 
-#include <csp/csp.h>
 #include <csp/arch/csp_clock.h>
 #include <csp/arch/csp_system.h>
 

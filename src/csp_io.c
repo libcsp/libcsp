@@ -36,7 +36,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/crypto/csp_hmac.h>
 #include <csp/crypto/csp_xtea.h>
 
-#include "csp_init.h"
 #include "csp_port.h"
 #include "csp_conn.h"
 #include "csp_promisc.h"
@@ -89,17 +88,6 @@ csp_socket_t * csp_socket(uint32_t opts) {
 	if (sock == NULL)
 		return NULL;
 
-	/* If connectionless, init the queue to a pre-defined size
-	 * if not, the user must init the queue using csp_listen */
-	if (opts & CSP_SO_CONN_LESS) {
-		sock->socket = csp_queue_create(csp_conf.conn_queue_length, sizeof(csp_packet_t *));
-		if (sock->socket == NULL) {
-			csp_close(sock);
-			return NULL;
-                }
-	} else {
-		sock->socket = NULL;
-	}
 	sock->opts = opts;
 
 	return sock;
@@ -108,7 +96,7 @@ csp_socket_t * csp_socket(uint32_t opts) {
 
 void csp_socket_set_callback(csp_socket_t * socket, void (*callback)(csp_packet_t * packet)) {
 	socket->opts |= (CSP_SO_CONN_LESS | CSP_SO_CONN_LESS_CALLBACK);
-	socket->socket = callback;
+	socket->callback = callback;
 }
 
 csp_conn_t * csp_accept(csp_socket_t * sock, uint32_t timeout) {
@@ -116,11 +104,8 @@ csp_conn_t * csp_accept(csp_socket_t * sock, uint32_t timeout) {
 	if (sock == NULL)
 		return NULL;
 
-	if (sock->socket == NULL)
-		return NULL;
-
 	csp_conn_t * conn;
-	if (csp_queue_dequeue(sock->socket, &conn, timeout) == CSP_QUEUE_OK)
+	if (csp_queue_dequeue(sock->rx_queue, &conn, timeout) == CSP_QUEUE_OK)
 		return conn;
 
 	return NULL;
@@ -346,7 +331,7 @@ csp_packet_t * csp_recvfrom(csp_socket_t * socket, uint32_t timeout) {
 		return NULL;
 
 	csp_packet_t * packet = NULL;
-	csp_queue_dequeue(socket->socket, &packet, timeout);
+	csp_queue_dequeue(socket->rx_queue, &packet, timeout);
 
 	return packet;
 

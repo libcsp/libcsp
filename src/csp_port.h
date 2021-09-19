@@ -18,40 +18,17 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef _CSP_PORT_H_
-#define _CSP_PORT_H_
+#pragma once
 
-#include <csp/csp.h>
+#include <csp/csp_types.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-/** @brief Port states */
-typedef enum {
-	PORT_CLOSED = 0,
-	PORT_OPEN = 1,
-} csp_port_state_t;
-
-/** @brief Port struct */
-typedef struct {
-	csp_port_state_t state;		 // Port state
-	csp_socket_t * socket;		  // New connections are added to this socket's conn queue
-} csp_port_t;
-
-/**
- * Init ports array
- */
-int csp_port_init(void);
-
-/**
- * Free all allocatged resources (testing)
- */
-void csp_port_free_resources(void);
 
 csp_socket_t * csp_port_get_socket(unsigned int dport);
 
 #ifdef __cplusplus
 }
 #endif
-#endif
+

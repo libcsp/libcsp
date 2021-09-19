@@ -35,8 +35,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/csp.h>
 #include <csp/arch/csp_thread.h>
 
-#include "../../csp_init.h"
-
 // CAN interface data, state, etc.
 typedef struct {
 	char name[CSP_IFLIST_NAME_MAX + 1];

@@ -23,9 +23,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <stdio.h>
 #include <Windows.h>
 #include <process.h>
+#include <malloc.h>
 
 #include <csp/csp.h>
-#include <csp/arch/csp_malloc.h>
 #include <csp/arch/csp_thread.h>
 
 typedef struct {
@@ -151,7 +151,7 @@ int csp_usart_open(const csp_usart_conf_t *conf, csp_usart_callback_t rx_callbac
         return res;
     }
 
-    usart_context_t * ctx = csp_calloc(1, sizeof(*ctx));
+    usart_context_t * ctx = calloc(1, sizeof(*ctx));
     if (ctx == NULL) {
         csp_log_error("%s: Error allocating context, device: [%s], errno: %s", __FUNCTION__, conf->device, strerror(errno));
         CloseHandle(fd);

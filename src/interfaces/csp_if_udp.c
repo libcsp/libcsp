@@ -16,6 +16,8 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+#include <csp/interfaces/csp_if_udp.h>
+
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/socket.h>
@@ -25,17 +27,16 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/csp_endian.h>
 #include <csp/csp_interface.h>
 #include <csp/arch/csp_thread.h>
-#include "../csp_id.h"
+#include <csp/csp_id.h>
 
 #ifndef MSG_CONFIRM
 #define MSG_CONFIRM (0)
 #endif
 
-struct sockaddr_in peer_addr;
-static int lport = 9600;
-static int rport = 9600;
-
 static int csp_if_udp_tx(const csp_route_t * ifroute, csp_packet_t * packet) {
+
+	csp_if_udp_conf_t * ifconf = ifroute->iface->driver_data;
+
 	int sockfd;
 	if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {
 		perror("socket creation failed");
@@ -44,9 +45,9 @@ static int csp_if_udp_tx(const csp_route_t * ifroute, csp_packet_t * packet) {
 
 	csp_id_prepend(packet);
 
-	peer_addr.sin_family = AF_INET;
-	peer_addr.sin_port = htons(rport);
-	sendto(sockfd, packet->frame_begin, packet->frame_length, MSG_CONFIRM, (struct sockaddr *) &peer_addr, sizeof(peer_addr));
+	ifconf->peer_addr.sin_family = AF_INET;
+	ifconf->peer_addr.sin_port = htons(ifconf->rport);
+	sendto(sockfd, packet->frame_begin, packet->frame_length, MSG_CONFIRM, (struct sockaddr *) &ifconf->peer_addr, sizeof(ifconf->peer_addr));
 	csp_buffer_free(packet);
 
 	close(sockfd);
@@ -56,19 +57,20 @@ static int csp_if_udp_tx(const csp_route_t * ifroute, csp_packet_t * packet) {
 
 CSP_DEFINE_TASK(csp_if_udp_rx_task) {
 
+	csp_iface_t * iface = param;
+	csp_if_udp_conf_t * ifconf = iface->driver_data;
+
 	int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
 
 	struct sockaddr_in server_addr = {0};
 	server_addr.sin_family = AF_INET;
 	server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-	server_addr.sin_port = htons(lport);
-
-	csp_iface_t * iface = param;
+	server_addr.sin_port = htons(ifconf->lport);
 
 	while(1) {
 
 		if (bind(sockfd, (struct sockaddr *) &server_addr, sizeof(server_addr)) < 0) {
-			printf("UDP server waiting for port 9600\n");
+			printf("UDP server waiting for port %d\n", ifconf->lport);
 			sleep(1);
 			continue;
 		}
@@ -84,11 +86,11 @@ CSP_DEFINE_TASK(csp_if_udp_rx_task) {
 			/* Setup RX frane to point to ID */
 			int header_size = csp_id_setup_rx(packet);
 
-			unsigned int peer_addr_len = sizeof(peer_addr);
-			int received_len = recvfrom(sockfd, (char *) packet->frame_begin, iface->mtu + header_size, MSG_WAITALL, (struct sockaddr *) &peer_addr, &peer_addr_len);
+			unsigned int peer_addr_len = sizeof(ifconf->peer_addr);
+			int received_len = recvfrom(sockfd, (char *) packet->frame_begin, iface->mtu + header_size, MSG_WAITALL, (struct sockaddr *) &ifconf->peer_addr, &peer_addr_len);
 			packet->frame_length = received_len;
 
-			csp_log_info("UDP peer address: %s", inet_ntoa(peer_addr.sin_addr));
+			csp_log_info("UDP peer address: %s", inet_ntoa(ifconf->peer_addr.sin_addr));
 
 			/* Parse the frame and strip the ID field */
 			if (csp_id_strip(packet) != 0) {
@@ -108,20 +110,18 @@ CSP_DEFINE_TASK(csp_if_udp_rx_task) {
 
 }
 
-void csp_if_udp_init(csp_iface_t * iface, char * host, int _lport, int _rport) {
+void csp_if_udp_init(csp_iface_t * iface, csp_if_udp_conf_t * ifconf) {
 
-	if (inet_aton(host, &peer_addr.sin_addr) == 0) {
-		printf("Unknown peer address %s\n", host);
+	iface->driver_data = ifconf;
+
+	if (inet_aton(ifconf->host, &ifconf->peer_addr.sin_addr) == 0) {
+		printf("Unknown peer address %s\n", ifconf->host);
 	}
 
-	lport = _lport;
-	rport = _rport;
-
-	printf("UDP peer address: %s:%d (listening on port %d)\n", inet_ntoa(peer_addr.sin_addr), rport, lport);
+	printf("UDP peer address: %s:%d (listening on port %d)\n", inet_ntoa(ifconf->peer_addr.sin_addr), ifconf->rport, ifconf->lport);
 
 	/* Start server thread */
-	static csp_thread_handle_t handle_server;
-	int ret = csp_thread_create(csp_if_udp_rx_task, "UDPS", 10000, iface, 0, &handle_server);
+	int ret = csp_thread_create(csp_if_udp_rx_task, "UDPS", 10000, iface, 0, &ifconf->server_handle);
 	csp_log_info("csp_if_udp_rx_task start %d\r\n", ret);
 
 	/* MTU is datasize */

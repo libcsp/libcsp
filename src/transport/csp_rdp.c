@@ -35,13 +35,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/csp_error.h>
 #include <csp/arch/csp_queue.h>
 #include <csp/arch/csp_semaphore.h>
-#include <csp/arch/csp_malloc.h>
 #include <csp/arch/csp_time.h>
 
 #include "../csp_port.h"
 #include "../csp_conn.h"
 #include "../csp_io.h"
-#include "../csp_init.h"
 
 #define RDP_SYN	0x01
 #define RDP_ACK 0x02
@@ -460,7 +458,7 @@ void csp_rdp_flush_all(csp_conn_t * conn) {
 int csp_rdp_check_ack(csp_conn_t * conn) {
 
 	/* Check RX queue for spare capacity */
-	if (csp_conf.conn_queue_length - csp_queue_size(conn->rx_queue) <= 2 * (int32_t)conn->rdp.window_size) {
+	if (CSP_CONN_RXQUEUE_LEN - csp_queue_size(conn->rx_queue) <= 2 * (int32_t)conn->rdp.window_size) {
 		return CSP_ERR_NONE;
 	}
 
@@ -496,7 +494,7 @@ void csp_rdp_check_timeouts(csp_conn_t * conn) {
 	 * CONNECTION TIMEOUT:
 	 * Check that connection has not timed out inside the network stack
 	 */
-	if (conn->socket != NULL) {
+	if (conn->dest_socket != NULL) {
 		if (csp_rdp_time_after(time_now, conn->timestamp + conn->rdp.conn_timeout)) {
 			csp_log_warn("RDP %p: Found a lost connection (now: %"PRIu32", ts: %"PRIu32", to: %"PRIu32"), closing",
 				conn, time_now, conn->timestamp, conn->rdp.conn_timeout);
@@ -603,7 +601,7 @@ bool csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 
 		if (conn->rdp.state == RDP_CLOSED) {
 			csp_log_protocol("RDP %p: RST received in CLOSED - ignored", conn);
-			close_connection = (conn->socket != NULL);
+			close_connection = (conn->dest_socket != NULL);
 			goto discard_open;
                 }
 
@@ -781,10 +779,10 @@ bool csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 
 			/* If a socket is set, this message is the first in a new connection
 			 * so the connection must be queued to the socket. */
-			if (conn->socket != NULL) {
+			if (conn->dest_socket != NULL) {
 
 				/* Try queueing */
-				if (csp_queue_enqueue(conn->socket, &conn, 0) == CSP_QUEUE_FULL) {
+				if (csp_queue_enqueue(conn->dest_socket->rx_queue, &conn, 0) == CSP_QUEUE_FULL) {
 					csp_log_error("RDP %p: ERROR socket cannot accept more connections", conn);
 					goto discard_close;
 				}
@@ -792,7 +790,7 @@ bool csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 				/* Ensure that this connection will not be posted to this socket again
 				 * and remember that the connection handle has been passed to userspace
 				 * by setting the socket = NULL */
-				conn->socket = NULL;
+				conn->dest_socket = NULL;
 			}
 
 		}
@@ -876,7 +874,7 @@ bool csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 discard_close:
 	/* If user-space has received the connection handle, wake it up,
 	 * by sending a NULL pointer, user-space must close connection */
-	if (conn->socket == NULL) {
+	if (conn->dest_socket == NULL) {
 		csp_conn_close(conn, closed_by);
 		csp_conn_enqueue_packet(conn, NULL);
 	} else {
@@ -1011,7 +1009,7 @@ int csp_rdp_send(csp_conn_t * conn, csp_packet_t * packet) {
 
 }
 
-int csp_rdp_init(csp_conn_t * conn) {
+void csp_rdp_init(csp_conn_t * conn) {
 
 	csp_log_protocol("RDP %p: Creating RDP queues", conn);
 
@@ -1021,29 +1019,13 @@ int csp_rdp_init(csp_conn_t * conn) {
 	conn->rdp.packet_timeout = csp_rdp_packet_timeout;
 
 	/* Create a binary semaphore to wait on for tasks */
-	if (csp_bin_sem_create(&conn->rdp.tx_wait) != CSP_SEMAPHORE_OK) {
-		csp_log_error("RDP %p: Failed to initialize semaphore", conn);
-		return CSP_ERR_NOMEM;
-	}
+	csp_bin_sem_create_static(&conn->rdp.tx_wait, &conn->rdp.tx_wait_buf);
 
 	/* Create TX queue */
-	conn->rdp.tx_queue = csp_queue_create(csp_conf.rdp_max_window, sizeof(csp_packet_t *));
-	if (conn->rdp.tx_queue == NULL) {
-		csp_log_error("RDP %p: Failed to create TX queue for conn", conn);
-		csp_bin_sem_remove(&conn->rdp.tx_wait);
-		return CSP_ERR_NOMEM;
-	}
+	conn->rdp.tx_queue = csp_queue_create_static(CSP_RDP_MAX_WINDOW * 2, sizeof(csp_packet_t *), conn->rdp.tx_queue_static_data, &conn->rdp.tx_queue_static);
 
 	/* Create RX queue */
-	conn->rdp.rx_queue = csp_queue_create(csp_conf.rdp_max_window * 2, sizeof(csp_packet_t *));
-	if (conn->rdp.rx_queue == NULL) {
-		csp_log_error("RDP %p: Failed to create RX queue for conn", conn);
-		csp_bin_sem_remove(&conn->rdp.tx_wait);
-		csp_queue_remove(conn->rdp.tx_queue);
-		return CSP_ERR_NOMEM;
-	}
-
-	return CSP_ERR_NONE;
+	conn->rdp.rx_queue = csp_queue_create_static(CSP_RDP_MAX_WINDOW * 2, sizeof(csp_packet_t *), conn->rdp.rx_queue_static_data, &conn->rdp.rx_queue_static);
 
 }
 

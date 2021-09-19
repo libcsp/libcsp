@@ -28,15 +28,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/arch/csp_queue.h>
 #include <csp/crypto/csp_hmac.h>
 #include <csp/crypto/csp_xtea.h>
+#include <csp/csp_id.h>
 
-#include "csp_init.h"
 #include "csp_port.h"
 #include "csp_conn.h"
 #include "csp_io.h"
 #include "csp_promisc.h"
 #include "csp_qfifo.h"
 #include "csp_dedup.h"
-#include "csp_id.h"
 #include "transport/csp_transport.h"
 
 /**
@@ -190,19 +189,23 @@ int csp_route_work(uint32_t timeout) {
 	input.iface->rx++;
 	input.iface->rxbytes += packet->length;
 
-#if (CSP_USE_DEDUP)
-	/* Check for duplicates */
-	if (csp_dedup_is_duplicate(packet)) {
-		/* Discard packet */
-		csp_log_packet("Duplicate packet discarded");
-		input.iface->drop++;
-		csp_buffer_free(packet);
-		return CSP_ERR_NONE;
+	int is_to_me = ((packet->id.dst == csp_conf.address) || (packet->id.dst == csp_id_get_max_nodeid()));
+
+	/* Deduplication */
+	if ((csp_conf.dedup == CSP_DEDUP_ALL) ||
+		((is_to_me) && (csp_conf.dedup == CSP_DEDUP_INCOMING)) ||
+		((!is_to_me) && (csp_conf.dedup == CSP_DEDUP_FWD))) {
+		if (csp_dedup_is_duplicate(packet)) {
+			/* Discard packet */
+			csp_log_packet("Duplicate packet discarded");
+			input.iface->drop++;
+			csp_buffer_free(packet);
+			return CSP_ERR_NONE;
+		}
 	}
-#endif
 
 	/* If the message is not to me, route the message to the correct interface */
-	if ((packet->id.dst != csp_conf.address) && (packet->id.dst != csp_id_get_max_nodeid())) {
+	if (!is_to_me) {
 
 		/* Find the destination interface */
 		const csp_route_t * ifroute = csp_rtable_find_route(packet->id.dst);
@@ -240,13 +243,13 @@ int csp_route_work(uint32_t timeout) {
 		}
 
 		/* If the socket uses callback */
-		if (socket->opts & CSP_SO_CONN_LESS) {
-			((void (*)(csp_packet_t *packet)) socket->socket)(packet);
+		if (socket->opts & CSP_SO_CONN_LESS_CALLBACK) {
+			socket->callback(packet);
 
 		/* Otherwise, it uses a queue */
 		} else {
 
-			if (csp_queue_enqueue(socket->socket, &packet, 0) != CSP_QUEUE_OK) {
+			if (csp_queue_enqueue(socket->rx_queue, &packet, 0) != CSP_QUEUE_OK) {
 				csp_log_error("Conn-less socket queue full");
 				csp_buffer_free(packet);
 				return 0;
@@ -295,7 +298,7 @@ int csp_route_work(uint32_t timeout) {
 		}
 
 		/* Store the socket queue and options */
-		conn->socket = socket->socket;
+		conn->dest_socket = socket;
 		conn->opts = socket->opts;
 
 	/* Packet to existing connection */

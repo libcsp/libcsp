@@ -23,30 +23,31 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <stdlib.h>
 #include <stdio.h>
 
-#include <csp/csp.h>
 #include <csp/arch/csp_queue.h>
 #include <csp/arch/csp_semaphore.h>
-#include <csp/arch/csp_malloc.h>
 #include <csp/arch/csp_time.h>
-#include "csp_init.h"
-#include "csp_id.h"
+#include <csp/csp_id.h>
+#include <csp_autoconfig.h>
 #include "transport/csp_transport.h"
 
 /* Connection pool */
-static csp_conn_t * arr_conn;
+static csp_conn_t arr_conn[CSP_CONN_MAX];
 
 /* Connection pool lock */
 static csp_bin_sem_handle_t conn_lock;
+static csp_bin_sem_t conn_lock_buf;
 
 /* Last used 'source' port */
 static uint8_t sport;
 
 /* Source port lock */
 static csp_bin_sem_handle_t sport_lock;
+static csp_bin_sem_t sport_lock_buf;
+
 
 void csp_conn_check_timeouts(void) {
 #if (CSP_USE_RDP)
-	for (int i = 0; i < csp_conf.conn_max; i++) {
+	for (int i = 0; i < CSP_CONN_MAX; i++) {
 		if (arr_conn[i].state == CONN_OPEN) {
 			if (arr_conn[i].idin.flags & CSP_FRDP) {
 				csp_rdp_check_timeouts(&arr_conn[i]);
@@ -69,80 +70,33 @@ int csp_conn_enqueue_packet(csp_conn_t * conn, csp_packet_t * packet) {
 	return CSP_ERR_NONE;
 }
 
-int csp_conn_init(void) {
+void csp_conn_init(void) {
 
-	arr_conn = csp_calloc(csp_conf.conn_max, sizeof(*arr_conn));
-	if (arr_conn == NULL) {
-		csp_log_error("Allocation for %u connections failed", csp_conf.conn_max);
-		return CSP_ERR_NOMEM;
-	}
-
-	if (csp_bin_sem_create(&conn_lock) != CSP_SEMAPHORE_OK) {
-		csp_log_error("csp_bin_sem_create(&conn_lock) failed");
-		return CSP_ERR_NOMEM;
-	}
+	csp_bin_sem_create_static(&conn_lock, &conn_lock_buf);
+	csp_bin_sem_create_static(&sport_lock, &sport_lock_buf);
 
 	/* Initialize source port */
 	unsigned int seed = csp_get_ms();
-	sport = (rand_r(&seed) % (csp_id_get_max_port() - csp_conf.port_max_bind)) + (csp_conf.port_max_bind + 1);
+	sport = (rand_r(&seed) % (csp_id_get_max_port() - CSP_PORT_MAX_BIND)) + (CSP_PORT_MAX_BIND + 1);
 
-	if (csp_bin_sem_create(&sport_lock) != CSP_SEMAPHORE_OK) {
-		csp_log_error("csp_bin_sem_create(&sport_lock) failed");
-		return CSP_ERR_NOMEM;
-	}
 
-	for (int i = 0; i < csp_conf.conn_max; i++) {
+
+	for (int i = 0; i < CSP_CONN_MAX; i++) {
 		csp_conn_t * conn = &arr_conn[i];
-		conn->rx_queue = csp_queue_create(csp_conf.conn_queue_length, sizeof(csp_packet_t *));
-		if (conn->rx_queue == NULL) {
-			csp_log_error("rx_queue = csp_queue_create() failed");
-			return CSP_ERR_NOMEM;
-		}
 
+		conn->rx_queue = csp_queue_create_static(CSP_CONN_RXQUEUE_LEN, sizeof(csp_packet_t *), conn->rx_queue_static_data, &conn->rx_queue_static);
+		
 #if (CSP_USE_RDP)
-		if (csp_rdp_init(conn) != CSP_ERR_NONE) {
-			csp_log_error("csp_rdp_allocate(conn) failed");
-			return CSP_ERR_NOMEM;
-		}
+		csp_rdp_init(conn);
 #endif
+
 	}
 
-	return CSP_ERR_NONE;
-
-}
-
-void csp_conn_free_resources(void) {
-
-	if (arr_conn) {
-
-		for (unsigned int i = 0; i < csp_conf.conn_max; i++) {
-			csp_conn_t *conn = &arr_conn[i];
-
-			if (conn->rx_queue) {
-				csp_queue_remove(conn->rx_queue);
-			}
-
-#if (CSP_USE_RDP)
-			csp_rdp_free_resources(conn);
-#endif
-		}
-
-		csp_free(arr_conn);
-		arr_conn = NULL;
-
-		//csp_bin_sem_remove(&conn_lock);
-		memset(&conn_lock, 0, sizeof(conn_lock));
-
-		//csp_bin_sem_remove(&sport_lock);
-		memset(&sport_lock, 0, sizeof(sport_lock));
-
-		sport = 0;
-	}
 }
 
 csp_conn_t * csp_conn_find_dport(unsigned int dport) {
 
-	for (int i = 0; i < csp_conf.conn_max; i++) {
+	for (int i = 0; i < CSP_CONN_MAX; i++) {
 		csp_conn_t * conn = &arr_conn[i];
 
 		/* Connection must match dport */
@@ -168,7 +122,7 @@ csp_conn_t * csp_conn_find_dport(unsigned int dport) {
 
 csp_conn_t * csp_conn_find_existing(csp_id_t * id) {
 
-	for (int i = 0; i < csp_conf.conn_max; i++) {
+	for (int i = 0; i < CSP_CONN_MAX; i++) {
 		csp_conn_t * conn = &arr_conn[i];
 
 		/**
@@ -239,8 +193,8 @@ csp_conn_t * csp_conn_allocate(csp_conn_type_t type) {
 	/* Search for free connection */
 	csp_conn_t * conn = NULL;
 	int i = csp_conn_last_given;
-	for (int j = 0; j < csp_conf.conn_max; j++) {
-		i = (i + 1) % csp_conf.conn_max;
+	for (int j = 0; j < CSP_CONN_MAX; j++) {
+		i = (i + 1) % CSP_CONN_MAX;
 		conn = &arr_conn[i];
 		if (conn->state == CONN_CLOSED) {
 			break;
@@ -248,7 +202,6 @@ csp_conn_t * csp_conn_allocate(csp_conn_type_t type) {
 	}
 
 	if (conn && (conn->state == CONN_CLOSED)) {
-		conn->socket = NULL;
 		conn->timestamp = 0;
 		conn->type = type;
 		conn->state = CONN_OPEN;
@@ -261,7 +214,7 @@ csp_conn_t * csp_conn_allocate(csp_conn_type_t type) {
 	csp_bin_sem_post(&conn_lock);
 
 	if (conn == NULL) {
-		csp_log_error("No free connections, max %u", csp_conf.conn_max);
+		csp_log_error("No free connections, max %u", CSP_CONN_MAX);
 	}
 
 	return conn;
@@ -325,10 +278,7 @@ int csp_conn_close(csp_conn_t * conn, uint8_t closed_by) {
 	/* Ensure connection queue is empty */
 	csp_conn_flush_rx_queue(conn);
 
-        if (conn->socket && (conn->type == CONN_SERVER) && (conn->opts & (CSP_SO_CONN_LESS | CSP_SO_INTERNAL_LISTEN))) {
-		csp_queue_remove(conn->socket);
-		conn->socket = NULL;
-        }
+
 
 	/* Reset RDP state */
 #if (CSP_USE_RDP)
@@ -418,7 +368,7 @@ csp_conn_t * csp_connect(uint8_t prio, uint16_t dest, uint8_t dport, uint32_t ti
 	const uint8_t start = sport;
 	while (++sport != start) {
 		if (sport > csp_id_get_max_port())
-			sport = csp_conf.port_max_bind + 1;
+			sport = CSP_PORT_MAX_BIND + 1;
 
 		/* Search for ephemeral outgoing port */
 		if (csp_conn_find_dport(sport) == NULL) {
@@ -495,11 +445,11 @@ int csp_conn_flags(csp_conn_t * conn) {
 #if (CSP_DEBUG)
 void csp_conn_print_table(void) {
 
-	for (unsigned int i = 0; i < csp_conf.conn_max; i++) {
+	for (unsigned int i = 0; i < CSP_CONN_MAX; i++) {
 		csp_conn_t * conn = &arr_conn[i];
-		printf("[%02u %p] S:%u, %u -> %u, %u -> %u, sock: %p\r\n",
+		printf("[%02u %p] S:%u, %u -> %u, %u -> %u\r\n",
 				i, conn, conn->state, conn->idin.src, conn->idin.dst,
-				conn->idin.dport, conn->idin.sport, conn->socket);
+				conn->idin.dport, conn->idin.sport);
 #if (CSP_USE_RDP)
 		if (conn->idin.flags & CSP_FRDP) {
 			csp_rdp_conn_print(conn);
@@ -511,14 +461,14 @@ void csp_conn_print_table(void) {
 int csp_conn_print_table_str(char * str_buf, int str_size) {
 
 	/* Display up to 10 connections */
-	unsigned int start = (csp_conf.conn_max > 10) ? (csp_conf.conn_max - 10) : 0;
+	unsigned int start = (CSP_CONN_MAX > 10) ? (CSP_CONN_MAX - 10) : 0;
 
-	for (unsigned int i = start; i < csp_conf.conn_max; i++) {
+	for (unsigned int i = start; i < CSP_CONN_MAX; i++) {
 		csp_conn_t * conn = &arr_conn[i];
 		char buf[100];
-		snprintf(buf, sizeof(buf), "[%02u %p] S:%u, %u -> %u, %u -> %u, sock: %p\n",
+		snprintf(buf, sizeof(buf), "[%02u %p] S:%u, %u -> %u, %u -> %u\n",
 				i, conn, conn->state, conn->idin.src, conn->idin.dst,
-				conn->idin.dport, conn->idin.sport, conn->socket);
+				conn->idin.dport, conn->idin.sport);
 
 		strncat(str_buf, buf, str_size);
 		if ((str_size -= strlen(buf)) <= 0) {
@@ -532,6 +482,6 @@ int csp_conn_print_table_str(char * str_buf, int str_size) {
 
 const csp_conn_t * csp_conn_get_array(size_t * size)
 {
-	*size = csp_conf.conn_max;
+	*size = CSP_CONN_MAX;
 	return arr_conn;
 }

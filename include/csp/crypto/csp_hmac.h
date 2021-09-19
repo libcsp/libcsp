@@ -41,6 +41,7 @@ extern "C" {
 
 /**
  * Append HMAC to packet
+ * If header is included, csp_id_prepend() must be called beforehand
  * @param packet CSP packet, must be valid.
  * @param include_header use header in hmac calculation (this will not modify the flags field)
  * @return #CSP_ERR_NONE on success, otherwise an error code.

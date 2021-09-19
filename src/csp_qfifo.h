@@ -33,9 +33,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  * Init FIFO/QOS queues
  * @return CSP_ERR type
  */
-int csp_qfifo_init(void);
-
-void csp_qfifo_free_resources(void);
+void csp_qfifo_init(void);
 
 typedef struct {
 	csp_iface_t * iface;

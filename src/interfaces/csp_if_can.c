@@ -26,10 +26,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/csp.h>
 #include <csp/csp_endian.h>
 #include <csp/arch/csp_semaphore.h>
+#include <csp/csp_id.h>
 
 #include "csp_if_can_pbuf.h"
-#include "../csp_id.h"
-#include "../csp_init.h"
 
 /**
  * TESTING:
@@ -384,7 +383,7 @@ int csp_can2_rx(csp_iface_t *iface, uint32_t id, const uint8_t *data, uint8_t dl
 	}
 
 	/* Check for overflow */
-	if (buf->packet->length + dlc > iface->mtu) {
+	if (buf->packet->frame_length + dlc > iface->mtu) {
 		//csp_log_error("RX buffer overflow");
 		iface->frame++;
 		csp_can_pbuf_free(buf, task_woken);

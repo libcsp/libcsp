@@ -26,17 +26,25 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <csp/csp.h>
 #include <csp/arch/csp_queue.h>
-#include <csp/arch/csp_malloc.h>
+#include <csp_autoconfig.h>
 
 #include "csp_conn.h"
-#include "csp_init.h"
 
-/* Dynamic allocated port array */
-static csp_port_t * ports;
+typedef enum {
+	PORT_CLOSED = 0,
+	PORT_OPEN = 1,
+} csp_port_state_t;
+
+typedef struct {
+	csp_port_state_t state;
+	csp_socket_t * socket;		  // New connections are added to this socket's conn queue
+} csp_port_t;
+
+static csp_port_t ports[CSP_PORT_MAX_BIND + 2];
 
 csp_socket_t * csp_port_get_socket(unsigned int port) {
 
-	if (port > csp_conf.port_max_bind) {
+	if (port > CSP_PORT_MAX_BIND) {
 		return NULL;
 	}
 
@@ -45,45 +53,16 @@ csp_socket_t * csp_port_get_socket(unsigned int port) {
 		return ports[port].socket;
 	}
 
-	if (ports[csp_conf.port_max_bind + 1].state == PORT_OPEN) {
-		return ports[csp_conf.port_max_bind + 1].socket;
+	if (ports[CSP_PORT_MAX_BIND + 1].state == PORT_OPEN) {
+		return ports[CSP_PORT_MAX_BIND + 1].socket;
 	}
 
 	return NULL;
 
 }
 
-int csp_port_init(void) {
-
-	int size = sizeof(csp_port_t) * (csp_conf.port_max_bind + 2);
-	ports = csp_malloc(size);
-	if (ports == NULL)
-		return CSP_ERR_NOMEM;
-
-	memset(ports, 0, size);
-
-	return CSP_ERR_NONE;
-}
-
-void csp_port_free_resources(void) {
-
-	csp_free(ports);
-	ports = NULL;
-}
-
 int csp_listen(csp_socket_t * socket, size_t backlog) {
-	
-	if (socket == NULL)
-		return CSP_ERR_INVAL;
-
-	socket->socket = csp_queue_create(backlog, sizeof(csp_conn_t *));
-	if (socket->socket == NULL)
-		return CSP_ERR_NOMEM;
-
-        socket->opts |= CSP_SO_INTERNAL_LISTEN;
-
 	return CSP_ERR_NONE;
-
 }
 
 int csp_bind(csp_socket_t * socket, uint8_t port) {
@@ -91,18 +70,15 @@ int csp_bind(csp_socket_t * socket, uint8_t port) {
 	if (socket == NULL)
 		return CSP_ERR_INVAL;
 
-	if (ports == NULL)
-		return CSP_ERR_NOMEM;
-
 	if (port == CSP_ANY) {
-		port = csp_conf.port_max_bind + 1;
-	} else if (port > csp_conf.port_max_bind) {
-		csp_log_error("csp_bind: invalid port %u, only ports from 0-%u (+ CSP_ANY for default) are available for incoming ports", port, csp_conf.port_max_bind);
+		port = CSP_PORT_MAX_BIND + 1;
+	} else if (port > CSP_PORT_MAX_BIND) {
+		csp_log_error("csp_bind: invalid port %u", port);
 		return CSP_ERR_INVAL;
 	}
 
 	if (ports[port].state != PORT_CLOSED) {
-		csp_log_error("Port %d is already in use, state %u", port, ports[port].state);
+		csp_log_error("Port %d is already in use", port);
 		return CSP_ERR_USED;
 	}
 

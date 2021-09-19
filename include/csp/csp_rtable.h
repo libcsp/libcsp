@@ -41,14 +41,12 @@ extern "C" {
 /**
    No via address specified for the route, use CSP header destination.
 */
-#define CSP_NO_VIA_ADDRESS	0xFF
+#define CSP_NO_VIA_ADDRESS	0xFFFF
 
 /**
    Legacy definition for #CSP_NO_VIA_ADDRESS.
 */
 #define CSP_NODE_MAC	CSP_NO_VIA_ADDRESS
-
-#define CSP_RTABLE_MAX_BITS	16
     
 /**
    Route entry.
@@ -71,12 +69,12 @@ const csp_route_t * csp_rtable_find_route(uint16_t dest_address);
 /**
    Set route to destination address/node.
    @param[in] dest_address destination address.
-   @param[in] mask number of bits in netmask
+   @param[in] mask number of bits in netmask (set to -1 for maximum number of bits)
    @param[in] ifc interface.
    @param[in] via assosicated via address.
    @return #CSP_ERR_NONE on success, or an error code.
 */
-int csp_rtable_set(uint16_t dest_address, uint16_t mask, csp_iface_t *ifc, uint16_t via);
+int csp_rtable_set(uint16_t dest_address, int netmask, csp_iface_t *ifc, uint16_t via);
 
 /**
    Save routing table as a string (readable format).
@@ -128,18 +126,6 @@ typedef bool (*csp_rtable_iterator_t)(void * ctx, uint16_t address, uint16_t mas
    Iterate routing table.
 */
 void csp_rtable_iterate(csp_rtable_iterator_t iter, void * ctx);
-
-/**
-   Set route to destination address/node.
-   @deprecated Use csp_rtable_set() instead.
-   @param[in] dest_address destination address.
-   @param[in] ifc interface.
-   @param[in] via assosicated via address.
-   @return #CSP_ERR_NONE on success, or an error code.
-*/
-static inline int csp_route_set(uint16_t dest_address, csp_iface_t *ifc, uint16_t via) {
-    return csp_rtable_set(dest_address, CSP_RTABLE_MAX_BITS, ifc, via);
-}
 
 /**
    Print routing table.

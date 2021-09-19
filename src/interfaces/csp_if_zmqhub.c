@@ -24,14 +24,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <zmq.h>
 #include <assert.h>
+#include <malloc.h>
 
 #include <csp/csp.h>
 #include <csp/csp_debug.h>
 #include <csp/arch/csp_thread.h>
-#include <csp/arch/csp_malloc.h>
 #include <csp/arch/csp_semaphore.h>
 
-#include "../csp_id.h"
+#include <csp/csp_id.h>
 
 #define CSP_ZMQ_MTU   1024   // max payload data, see documentation
 
@@ -42,6 +42,7 @@ typedef struct {
 	void * publisher;
 	void * subscriber;
 	csp_bin_sem_handle_t tx_wait;
+	csp_bin_sem_t tx_wait_buf;
 	char name[CSP_IFLIST_NAME_MAX + 1];
 	csp_iface_t iface;
 } zmq_driver_t;
@@ -175,7 +176,7 @@ int csp_zmqhub_init_w_name_endpoints_rxfilter(const char * ifname,
                                               uint32_t flags,
                                               csp_iface_t ** return_interface) {
 
-	zmq_driver_t * drv = csp_calloc(1, sizeof(*drv));
+	zmq_driver_t * drv = calloc(1, sizeof(*drv));
 	assert(drv);
 
         if (ifname == NULL) {
@@ -210,7 +211,7 @@ int csp_zmqhub_init_w_name_endpoints_rxfilter(const char * ifname,
 	assert(zmq_connect(drv->subscriber, subscribe_endpoint) == 0);
 
 	/* ZMQ isn't thread safe, so we add a binary semaphore to wait on for tx */
-	assert(csp_bin_sem_create(&drv->tx_wait) == CSP_SEMAPHORE_OK);
+	csp_bin_sem_create_static(&drv->tx_wait, &drv->tx_wait_buf);
 
 	/* Start RX thread */
 	assert(csp_thread_create(csp_zmqhub_task, drv->iface.name, 20000, drv, 0, &drv->rx_thread) == 0);
