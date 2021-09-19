@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/arch/csp_thread.h>
 #include "csp_qfifo.h"
 #include "csp_io.h"
+#include "csp_promisc.h"
 
 typedef struct {
 	csp_iface_t* iface;
