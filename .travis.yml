@@ -10,7 +10,7 @@ jobs:
       before_install:
         - sudo apt-get -y install libzmq3-dev libsocketcan-dev libsocketcan2
       script:
-        - python examples/buildall.py
+        - python examples/buildall.py --build-system meson
         - ./build/csp_arch
         - ./build/csp_server_client -t
 
@@ -20,7 +20,7 @@ jobs:
       before_install:
         - sudo apt-get -y install libzmq3-dev libsocketcan-dev libsocketcan2
       script:
-        - python examples/buildall.py
+        - python examples/buildall.py --build-system meson
         - ./build/csp_arch
         - ./build/csp_server_client -t
 
@@ -30,7 +30,7 @@ jobs:
       before_install:
         - sudo apt-get -y install libzmq3-dev libsocketcan-dev libsocketcan2
       script:
-        - python examples/buildall.py
+        - python examples/buildall.py --build-system meson
         - ./build/csp_arch
         - ./build/csp_server_client -t
 
@@ -38,7 +38,7 @@ jobs:
       os: osx
       osx_image: xcode9.4.1
       script:
-        - python examples/buildall.py macosx
+        - python examples/buildall.py macosx --build-system meson
         - ./build/csp_arch
         - ./build/csp_server_client -t
 
@@ -46,7 +46,7 @@ jobs:
       os: osx
       osx_image: xcode10.3
       script:
-        - python examples/buildall.py macosx
+        - python examples/buildall.py macosx --build-system meson
         - ./build/csp_arch
         - ./build/csp_server_client -t
 
