@@ -24,7 +24,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <arpa/inet.h>
 
 #include <csp/csp.h>
-#include <csp/csp_endian.h>
+#include <sys/types.h>
 #include <csp/csp_interface.h>
 #include <csp/arch/csp_thread.h>
 #include <csp/csp_id.h>

@@ -21,7 +21,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/interfaces/csp_if_i2c.h>
 
 #include <csp/csp.h>
-#include <csp/csp_endian.h>
+#include <sys/types.h>
 
 // Ensure certain fields in the csp_i2c_frame_t matches the fields in the csp_packet_t
 CSP_STATIC_ASSERT(offsetof(csp_i2c_frame_t, len) == offsetof(csp_packet_t, length), len_field_misaligned);
@@ -36,7 +36,7 @@ int csp_i2c_tx(const csp_route_t * ifroute, csp_packet_t * packet) {
 	frame->dest = (ifroute->via != CSP_NO_VIA_ADDRESS) ? ifroute->via : packet->id.dst;
 
 	/* Save the outgoing id in the buffer */
-	packet->id.ext = csp_hton32(packet->id.ext);
+	packet->id.ext = htobe32(packet->id.ext);
 
 	/* Add the CSP header to the I2C length field */
 	frame->len += sizeof(packet->id);
@@ -83,7 +83,7 @@ void csp_i2c_rx(csp_iface_t * iface, csp_i2c_frame_t * frame, void * pxTaskWoken
 
 	/* Convert the packet from network to host order */
 	csp_packet_t * packet = (csp_packet_t *) frame;
-	packet->id.ext = csp_ntoh32(packet->id.ext);
+	packet->id.ext = be32toh(packet->id.ext);
 
 	/* Receive the packet in CSP */
 	csp_qfifo_write(packet, iface, pxTaskWoken);
