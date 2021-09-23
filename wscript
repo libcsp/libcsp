@@ -124,11 +124,6 @@ def configure(ctx):
     ctx.define_cond('CSP_WINDOWS', ctx.options.with_os == 'windows')
     ctx.define_cond('CSP_MACOSX', ctx.options.with_os == 'macosx')
 
-    if ctx.options.version2:
-        ctx.define('CSP_VERSION', 2)
-    else:
-        ctx.define('CSP_VERSION', 1)
-
     # Add files
     ctx.env.append_unique('FILES_CSP', ['src/*.c',
                                         'src/external/**/*.c',
@@ -191,8 +186,6 @@ def configure(ctx):
     endianness = ctx.check_endianness()
     ctx.define_cond('CSP_LITTLE_ENDIAN', endianness == 'little')
     ctx.define_cond('CSP_BIG_ENDIAN', endianness == 'big')
-
-    ctx.define('LIBCSP_VERSION', VERSION)
 
     ctx.write_config_header('include/csp_autoconfig.h')
 
