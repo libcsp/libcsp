@@ -21,7 +21,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/interfaces/csp_if_kiss.h>
 
 #include <stdio.h>
-#include <malloc.h>
+#include <stdlib.h>
 
 #include <csp/csp.h>
 #include <csp/drivers/usart.h>
