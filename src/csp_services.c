@@ -23,7 +23,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <stdio.h>
 
 #include <csp/csp_cmp.h>
-#include <csp/csp_endian.h>
+#include <sys/types.h>
 #include <csp/arch/csp_time.h>
 
 int csp_ping(uint16_t node, uint32_t timeout, unsigned int size, uint8_t conn_options) {
@@ -109,12 +109,12 @@ void csp_ping_noreply(uint16_t node) {
 }
 
 void csp_reboot(uint16_t node) {
-	uint32_t magic_word = csp_hton32(CSP_REBOOT_MAGIC);
+	uint32_t magic_word = htobe32(CSP_REBOOT_MAGIC);
 	csp_transaction(CSP_PRIO_NORM, node, CSP_REBOOT, 0, &magic_word, sizeof(magic_word), NULL, 0);
 }
 
 void csp_shutdown(uint16_t node) {
-	uint32_t magic_word = csp_hton32(CSP_REBOOT_SHUTDOWN_MAGIC);
+	uint32_t magic_word = htobe32(CSP_REBOOT_SHUTDOWN_MAGIC);
 	csp_transaction(CSP_PRIO_NORM, node, CSP_REBOOT, 0, &magic_word, sizeof(magic_word), NULL, 0);
 }
 
@@ -174,7 +174,7 @@ int csp_get_memfree(uint16_t node, uint32_t timeout, uint32_t * size) {
 
 	int status = csp_transaction(CSP_PRIO_NORM, node, CSP_MEMFREE, timeout, NULL, 0, size, sizeof(*size));
 	if (status == sizeof(*size)) {
-		*size = csp_ntoh32(*size);
+		*size = be32toh(*size);
 		return CSP_ERR_NONE;
 	}
 	*size = 0;
@@ -198,7 +198,7 @@ int csp_get_buf_free(uint16_t node, uint32_t timeout, uint32_t * size) {
 
 	int status = csp_transaction(CSP_PRIO_NORM, node, CSP_BUF_FREE, timeout, NULL, 0, size, sizeof(*size));
 	if (status == sizeof(*size)) {
-		*size = csp_ntoh32(*size);
+		*size = be32toh(*size);
 		return CSP_ERR_NONE;
 	}
 	*size = 0;
@@ -222,7 +222,7 @@ int csp_get_uptime(uint16_t node, uint32_t timeout, uint32_t * uptime) {
 
 	int status = csp_transaction(CSP_PRIO_NORM, node, CSP_UPTIME, timeout, NULL, 0, uptime, sizeof(*uptime));
 	if (status == sizeof(*uptime)) {
-		*uptime = csp_ntoh32(*uptime);
+		*uptime = be32toh(*uptime);
 		return CSP_ERR_NONE;
 	}
 	*uptime = 0;

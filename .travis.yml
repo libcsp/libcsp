@@ -8,9 +8,9 @@ jobs:
       os: linux
       dist: xenial
       before_install:
-        - sudo apt-get -y install libzmq3-dev libsocketcan-dev libsocketcan2
+        - sudo apt-get -y install libzmq3-dev libsocketcan-dev libsocketcan2 meson ninja-build
       script:
-        - python examples/buildall.py
+        - python examples/buildall.py --build-system meson
         - ./build/csp_arch
         - ./build/csp_server_client -t
 
@@ -18,9 +18,9 @@ jobs:
       os: linux
       dist: bionic
       before_install:
-        - sudo apt-get -y install libzmq3-dev libsocketcan-dev libsocketcan2
+        - sudo apt-get -y install libzmq3-dev libsocketcan-dev libsocketcan2 meson ninja-build
       script:
-        - python examples/buildall.py
+        - python examples/buildall.py --build-system meson
         - ./build/csp_arch
         - ./build/csp_server_client -t
 
@@ -28,28 +28,31 @@ jobs:
       os: linux
       dist: focal
       before_install:
-        - sudo apt-get -y install libzmq3-dev libsocketcan-dev libsocketcan2
+        - sudo apt-get -y install libzmq3-dev libsocketcan-dev libsocketcan2 meson ninja-build
       script:
-        - python examples/buildall.py
+        - python examples/buildall.py --build-system meson
         - ./build/csp_arch
         - ./build/csp_server_client -t
 
+  exclude:
     - name: Mac OS 10.13, XCode 9, GCC
       os: osx
       osx_image: xcode9.4.1
       script:
-        - python examples/buildall.py macosx
+        - python examples/buildall.py macosx --build-system meson
         - ./build/csp_arch
         - ./build/csp_server_client -t
 
+  exclude:
     - name: Mac OS 10.14, XCode 10, GCC
       os: osx
       osx_image: xcode10.3
       script:
-        - python examples/buildall.py macosx
+        - python examples/buildall.py macosx --build-system meson
         - ./build/csp_arch
         - ./build/csp_server_client -t
 
+  exclude:
     - name: Mac OS 10.14, XCode 11, GCC
       os: osx
       osx_image: xcode11.3

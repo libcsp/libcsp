@@ -20,7 +20,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <csp/csp_crc32.h>
 
-#include <csp/csp_endian.h>
+#include <sys/types.h>
 
 #ifdef __AVR__
 #include <avr/pgmspace.h>
@@ -90,7 +90,7 @@ int csp_crc32_append(csp_packet_t * packet, bool include_header) {
 		crc = csp_crc32_memory(packet->data, packet->length);
 	}
 	/* Convert to network byte order */
-	crc = csp_hton32(crc);
+	crc = htobe32(crc);
 
 	/* Copy checksum to packet */
 	memcpy(&packet->data[packet->length], &crc, sizeof(crc));
@@ -114,7 +114,7 @@ int csp_crc32_verify(csp_packet_t * packet, bool include_header) {
 	} else {
 		crc = csp_crc32_memory(packet->data, packet->length - sizeof(crc));
 	}
-	crc = csp_hton32(crc);
+	crc = htobe32(crc);
 
 	/* Compare calculated checksum with packet header */
 	if (memcmp(&packet->data[packet->length] - sizeof(crc), &crc, sizeof(crc)) != 0) {

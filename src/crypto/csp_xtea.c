@@ -22,10 +22,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <csp/crypto/csp_xtea.h>
 
+#include <sys/types.h>
 #include <string.h>
 #include <stdlib.h>
 
-#include <csp/csp_endian.h>
 #include <csp/csp_buffer.h>
 #include <csp/crypto/csp_sha1.h>
 
@@ -100,8 +100,8 @@ int csp_xtea_encrypt(void * plain, const uint32_t len, uint32_t iv[2]) {
 	uint32_t remain;
 
 	/* Initialize stream */
-	stream[0] = csp_htobe32(iv[0]);
-	stream[1] = csp_htobe32(iv[1]);
+	stream[0] = htobe32(iv[0]);
+	stream[1] = htobe32(iv[1]);
 
 	for (i = 0; i < blocks; i++) {
 		/* Create stream */
@@ -114,8 +114,8 @@ int csp_xtea_encrypt(void * plain, const uint32_t len, uint32_t iv[2]) {
 		csp_xtea_xor_byte(&((uint8_t*)plain)[len - remain], (uint8_t *)stream, remain < XTEA_BLOCKSIZE ? remain : XTEA_BLOCKSIZE);
 
 		/* Increment counter */
-		stream[0] = csp_htobe32(iv[0]);
-		stream[1] = csp_htobe32(iv[1]++);
+		stream[0] = htobe32(iv[0]);
+		stream[1] = htobe32(iv[1]++);
 	}
 
 	return CSP_ERR_NONE;
@@ -126,7 +126,7 @@ int csp_xtea_encrypt_packet(csp_packet_t * packet) {
 
 	/* Create nonce */
 	const uint32_t nonce = (uint32_t)rand();
-	const uint32_t nonce_n = csp_hton32(nonce);
+	const uint32_t nonce_n = htobe32(nonce);
 
 	if ((packet->length + sizeof(nonce_n)) > csp_buffer_data_size()) {
 		return CSP_ERR_NOMEM;
@@ -164,7 +164,7 @@ int csp_xtea_decrypt_packet(csp_packet_t * packet) {
 	}
 
         memcpy(&nonce, &packet->data[packet->length - sizeof(nonce)], sizeof(nonce));
-	nonce = csp_ntoh32(nonce);
+	nonce = be32toh(nonce);
 
 	/* Create initialization vector */
 	uint32_t iv[2] = {nonce, 1};

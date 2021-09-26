@@ -216,14 +216,8 @@ int main(int argc, char * argv[]) {
     csp_log_info("Initialising CSP");
 
     /* Init CSP with address and default settings */
-    csp_conf_t csp_conf;
-    csp_conf_get_defaults(&csp_conf);
     csp_conf.address = address;
-    int error = csp_init(&csp_conf);
-    if (error != CSP_ERR_NONE) {
-        csp_log_error("csp_init() failed, error: %d", error);
-        exit(1);
-    }
+    csp_init();
 
     /* Start router task with 10000 bytes of stack (priority is only supported on FreeRTOS) */
     csp_route_start_task(500, 0);
@@ -238,7 +232,7 @@ int main(int argc, char * argv[]) {
             .stopbits = 1,
             .paritysetting = 0,
             .checkparity = 0};
-        error = csp_usart_open_and_add_kiss_interface(&conf, CSP_IF_KISS_DEFAULT_NAME,  &default_iface);
+        int error = csp_usart_open_and_add_kiss_interface(&conf, CSP_IF_KISS_DEFAULT_NAME,  &default_iface);
         if (error != CSP_ERR_NONE) {
             csp_log_error("failed to add KISS interface [%s], error: %d", kiss_device, error);
             exit(1);
@@ -246,7 +240,7 @@ int main(int argc, char * argv[]) {
     }
 #if (CSP_HAVE_LIBSOCKETCAN)
     if (can_device) {
-        error = csp_can_socketcan_open_and_add_interface(can_device, CSP_IF_CAN_DEFAULT_NAME, 0, false, &default_iface);
+        int error = csp_can_socketcan_open_and_add_interface(can_device, CSP_IF_CAN_DEFAULT_NAME, 0, false, &default_iface);
         if (error != CSP_ERR_NONE) {
             csp_log_error("failed to add CAN interface [%s], error: %d", can_device, error);
             exit(1);
@@ -255,7 +249,7 @@ int main(int argc, char * argv[]) {
 #endif
 #if (CSP_HAVE_LIBZMQ)
     if (zmq_device) {
-        error = csp_zmqhub_init(csp_get_address(), zmq_device, 0, &default_iface);
+        int error = csp_zmqhub_init(csp_get_address(), zmq_device, 0, &default_iface);
         if (error != CSP_ERR_NONE) {
             csp_log_error("failed to add ZMQ interface [%s], error: %d", zmq_device, error);
             exit(1);
@@ -264,7 +258,7 @@ int main(int argc, char * argv[]) {
 #endif
 
     if (rtable) {
-        error = csp_rtable_load(rtable);
+        int error = csp_rtable_load(rtable);
         if (error < 1) {
             csp_log_error("csp_rtable_load(%s) failed, error: %d", rtable, error);
             exit(1);
