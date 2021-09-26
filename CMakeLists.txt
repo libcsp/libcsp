@@ -1,0 +1,81 @@
+project(CSP)
+cmake_minimum_required(VERSION 3.20)
+
+add_library(libcsp)
+target_compile_features(libcsp PRIVATE c_std_11)
+target_compile_options(libcsp PRIVATE -Wall -Wextra)
+
+set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS Debug Release MinSizeRel)
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+  message(STATUS "No build type selected, default to MinSizeRel")
+  set(CMAKE_BUILD_TYPE MinSizeRel CACHE STRING "Build Type" FORCE)
+endif()
+
+set(CSP_DEBUG 1)
+set(CSP_LOG_LEVEL info CACHE STRING "CSP logging level.")
+set(LOG_LEVELS none error warning info debug)
+set_property(CACHE CSP_LOG_LEVEL PROPERTY STRINGS ${LOG_LEVELS})
+list(FIND LOG_LEVELS ${CSP_LOG_LEVEL} LOG_LEVEL)
+if(LOG_LEVEL GREATER_EQUAL 1)
+  set(CSP_LOG_LEVEL_ERROR 1)
+endif()
+if(LOG_LEVEL GREATER_EQUAL 2)
+  set(CSP_LOG_LEVEL_WARN 1)
+endif()
+if(LOG_LEVEL GREATER_EQUAL 3)
+  set(CSP_LOG_LEVEL_INFO 1)
+endif()
+if(LOG_LEVEL GREATER_EQUAL 4)
+  set(CSP_LOG_LEVEL_DEBUG 1)
+endif()
+
+set(CSP_QFIFO_LEN 15 CACHE STRING "Length of incoming queue for router task.")
+set(CSP_PORT_MAX_BIND 16 CACHE STRING "Length of incoming queue for router task")
+set(CSP_CONN_RXQUEUE_LEN 16 CACHE STRING "Number of packets in connection queue")
+set(CSP_CONN_MAX 8 CACHE STRING "Number of new connections on socket queue")
+set(CSP_BUFFER_SIZE 256 CACHE STRING "Bytes in each packet buffer")
+set(CSP_BUFFER_COUNT 15 CACHE STRING "Number of total packet buffers")
+set(CSP_RDP_MAX_WINDOW 5 CACHE STRING "Max window size for RDP")
+set(CSP_RTABLE_SIZE 10 CACHE STRING "Number of elements in routing table")
+
+option(CSP_USE_RDP "Reliable Datagram Protocol" ON)
+option(CSP_USE_CRC32 "Cyclic redundancy check" ON)
+option(CSP_USE_HMAC "Hash-based message authentication code" ON)
+option(CSP_USE_XTEA "eXtended TEA block cipher" ON)
+option(CSP_USE_PROMISC "Promiscious mode" ON)
+option(CSP_USE_DEDUP "Packet deduplication" ON)
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  set(CSP_POSIX 1)
+endif()
+
+if(CMAKE_C_BYTE_ORDER STREQUAL "BIG_ENDIAN")
+  set(CSP_BIG_ENDIAN 1)
+else()
+  set(CSP_LITTLE_ENDIAN 1)
+endif()
+
+include(CheckIncludeFiles)
+check_include_files(sys/socket.h HAVE_SYS_SOCKET_H)
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND
+    CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
+  find_package(PkgConfig)
+
+  pkg_search_module(LIBZMQ libzmq)
+  pkg_search_module(LIBSOCKETCAN libsocketcan)
+endif()
+
+file(REAL_PATH include csp_inc)
+list(APPEND csp_inc ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(libcsp PUBLIC ${csp_inc})
+
+if(CSP_POSIX)
+  set(CSP_C_ARGS -Wshadow -Wcast-align -Wwrite-strings -Wno-unused-parameter)
+endif()
+target_compile_options(libcsp PRIVATE ${CSP_C_ARGS})
+
+add_subdirectory(src)
+add_subdirectory(examples)
+
+configure_file(csp_autoconfig.h.in csp_autoconfig.h)
