@@ -31,7 +31,7 @@ static csp_iface_t * interfaces = NULL;
 csp_iface_t * csp_iflist_get_by_name(const char *name) {
 	csp_iface_t *ifc = interfaces;
 	while(ifc) {
-		if (strncasecmp(ifc->name, name, CSP_IFLIST_NAME_MAX) == 0) {
+		if (strncmp(ifc->name, name, CSP_IFLIST_NAME_MAX) == 0) {
 			break;
 		}
 		ifc = ifc->next;
@@ -51,7 +51,7 @@ int csp_iflist_add(csp_iface_t *ifc) {
 		/* Insert interface last if not already in pool */
 		csp_iface_t * last = NULL;
 		for (csp_iface_t * i = interfaces; i != NULL; i = i->next) {
-			if ((i == ifc) || (strncasecmp(ifc->name, i->name, CSP_IFLIST_NAME_MAX) == 0)) {
+			if ((i == ifc) || (strncmp(ifc->name, i->name, CSP_IFLIST_NAME_MAX) == 0)) {
 				return CSP_ERR_ALREADY;
 			}
 			last = i;

@@ -117,7 +117,7 @@ static bool csp_rtable_save_route(void * vctx, uint16_t address, uint16_t mask, 
     csp_rtable_save_ctx_t * ctx = vctx;
 
     // Do not save loop back interface
-    if (strcasecmp(route->iface->name, CSP_IF_LOOPBACK_NAME) == 0) {
+    if (strcmp(route->iface->name, CSP_IF_LOOPBACK_NAME) == 0) {
         return true;
     }
 
