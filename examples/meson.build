@@ -6,6 +6,7 @@ executable('csp_server_client',
 	   c_args : csp_c_args,
 	   cpp_args : '-DNDEBUG',
 	   link_with : csp_lib,
+           dependencies : csp_deps,
 	   build_by_default : false)
 
 executable('csp_arch',
@@ -14,6 +15,7 @@ executable('csp_arch',
 	   c_args : csp_c_args,
 	   cpp_args : '-DNDEBUG',
 	   link_with : csp_lib,
+           dependencies : csp_deps,
 	   build_by_default : false)
 
 executable('zmqproxy',
@@ -21,4 +23,5 @@ executable('zmqproxy',
 	   include_directories : csp_inc,
 	   c_args : csp_c_args,
 	   link_with : csp_lib,
+           dependencies : csp_deps,
 	   build_by_default : false)
