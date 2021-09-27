@@ -15,7 +15,7 @@ def build_with_meson():
                     'zmqproxy']
     builddir = 'build'
 
-    meson_setup = ['meson', 'configure', builddir]
+    meson_setup = ['meson', 'setup', builddir]
     meson_compile = ['meson', 'compile', '-C', builddir]
     subprocess.check_call(meson_setup)
     subprocess.check_call(meson_compile + extra_target)
