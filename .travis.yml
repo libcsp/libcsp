@@ -4,26 +4,6 @@ language: c
 
 jobs:
   include:
-    - name: Linux Ubuntu 16.04, GCC
-      os: linux
-      dist: xenial
-      before_install:
-        - sudo apt-get -y install libzmq3-dev libsocketcan-dev libsocketcan2 meson ninja-build
-      script:
-        - python examples/buildall.py --build-system meson
-        - ./build/csp_arch
-        - ./build/csp_server_client -t
-
-    - name: Linux Ubuntu 18.04, GCC
-      os: linux
-      dist: bionic
-      before_install:
-        - sudo apt-get -y install libzmq3-dev libsocketcan-dev libsocketcan2 meson ninja-build
-      script:
-        - python examples/buildall.py --build-system meson
-        - ./build/csp_arch
-        - ./build/csp_server_client -t
-
     - name: Linux Ubuntu 20.04, GCC
       os: linux
       dist: focal
@@ -31,8 +11,8 @@ jobs:
         - sudo apt-get -y install libzmq3-dev libsocketcan-dev libsocketcan2 meson ninja-build
       script:
         - python examples/buildall.py --build-system meson
-        - ./build/csp_arch
-        - ./build/csp_server_client -t
+        - ./build/examples/csp_arch
+        - ./build/examples/csp_server_client -t
 
   exclude:
     - name: Mac OS 10.13, XCode 9, GCC
