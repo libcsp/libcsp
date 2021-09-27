@@ -43,11 +43,14 @@ static csp_queue_handle_t csp_buffers;
 
 void csp_buffer_init(void) {
 
-	// Chunk of memory allocated for CSP buffers
-	static char csp_buffer_pool[SKBUF_SIZE * CSP_BUFFER_COUNT];
-
-	static csp_static_queue_t csp_buffers_queue;
-	static char csp_buffer_queue_data[CSP_BUFFER_COUNT * sizeof(csp_skbf_t *)];
+	/**
+	 * Chunk of memory allocated for CSP buffers:
+	 * This is marked as .noinit, because csp buffers can never be assumed zeroed out
+	 * Putting this section in a separate non .bss area, saves some boot time */
+	static char csp_buffer_pool[SKBUF_SIZE * CSP_BUFFER_COUNT] __attribute__((section(".noinit")));
+	static csp_static_queue_t csp_buffers_queue  __attribute__((section(".noinit")));
+	static char csp_buffer_queue_data[CSP_BUFFER_COUNT * sizeof(csp_skbf_t *)]  __attribute__((section(".noinit")));
+	
 	csp_buffers = csp_queue_create_static(CSP_BUFFER_COUNT, sizeof(csp_skbf_t *), csp_buffer_queue_data, &csp_buffers_queue);
 
 	for (unsigned int i = 0; i < CSP_BUFFER_COUNT; i++) {

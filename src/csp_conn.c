@@ -32,18 +32,18 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "transport/csp_transport.h"
 
 /* Connection pool */
-static csp_conn_t arr_conn[CSP_CONN_MAX];
+static csp_conn_t arr_conn[CSP_CONN_MAX]  __attribute__((section(".noinit")));
 
 /* Connection pool lock */
-static csp_bin_sem_handle_t conn_lock;
-static csp_bin_sem_t conn_lock_buf;
+static csp_bin_sem_handle_t conn_lock  __attribute__((section(".noinit")));
+static csp_bin_sem_t conn_lock_buf  __attribute__((section(".noinit")));
 
 /* Last used 'source' port */
 static uint8_t sport;
 
 /* Source port lock */
-static csp_bin_sem_handle_t sport_lock;
-static csp_bin_sem_t sport_lock_buf;
+static csp_bin_sem_handle_t sport_lock  __attribute__((section(".noinit")));
+static csp_bin_sem_t sport_lock_buf __attribute__((section(".noinit")));
 
 
 void csp_conn_check_timeouts(void) {

@@ -40,7 +40,8 @@ typedef struct {
 	csp_socket_t * socket;		  // New connections are added to this socket's conn queue
 } csp_port_t;
 
-static csp_port_t ports[CSP_PORT_MAX_BIND + 2];
+/* We rely on the .bss section to clear this, so there is no csp_port_init() function */
+static csp_port_t ports[CSP_PORT_MAX_BIND + 2] = {0};
 
 csp_socket_t * csp_port_get_socket(unsigned int port) {
 

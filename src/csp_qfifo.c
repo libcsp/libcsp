@@ -27,9 +27,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #define QFIFO_LEN 10
 
-static csp_static_queue_t qfifo_queue;
-static csp_queue_handle_t qfifo_queue_handle;
-char qfifo_queue_buffer[sizeof(csp_qfifo_t) * QFIFO_LEN];
+static csp_static_queue_t qfifo_queue  __attribute__((section(".noinit")));
+static csp_queue_handle_t qfifo_queue_handle  __attribute__((section(".noinit")));
+char qfifo_queue_buffer[sizeof(csp_qfifo_t) * QFIFO_LEN]  __attribute__((section(".noinit")));
 
 void csp_qfifo_init(void) {
 	qfifo_queue_handle = csp_queue_create_static(QFIFO_LEN, sizeof(csp_qfifo_t), qfifo_queue_buffer, &qfifo_queue);
