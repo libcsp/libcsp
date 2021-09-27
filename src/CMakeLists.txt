@@ -5,7 +5,6 @@ target_sources(libcsp PRIVATE
   csp_crc32.c
   csp_debug.c
   csp_dedup.c
-  csp_endian.c
   csp_hex_dump.c
   csp_id.c
   csp_iflist.c
