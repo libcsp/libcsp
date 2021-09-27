@@ -1,4 +1,5 @@
 project('csp', 'c', version: '1.5.0', license: 'LGPL',
+        meson_version : '>=0.45.1',
 	default_options : ['c_std=gnu99',
 			   'optimization=s',
 			   'warning_level=2',
@@ -10,8 +11,18 @@ conf = configuration_data()
 
 conf.set('CSP_DEBUG', 1)
 
-log_levels = {'none' : 0, 'error' : 1, 'warn'  : 2, 'info'  : 3, 'debug' : 4}
-log_level = log_levels.get(get_option('log-level'), 3)
+log_str = get_option('log-level')
+if log_str == 'error'
+  log_level = 1
+elif log_str == 'warn'
+  log_level = 2
+elif log_str == 'info'
+  log_level = 3
+elif log_str == 'debug'
+  log_level = 4
+else
+  log_level = 3
+endif
 
 conf.set10('CSP_LOG_LEVEL_ERROR', log_level >= 1)
 conf.set10('CSP_LOG_LEVEL_WARN',  log_level >= 2)
@@ -77,10 +88,10 @@ subdir('src/arch')
 subdir('src/drivers')
 subdir('src/interfaces')
 
-csp_config_h = configure_file(output: 'csp_autoconfig.h', configuration: conf, install: true, install_dir: 'csp/')
+csp_config_h = configure_file(output: 'csp_autoconfig.h', configuration: conf, install_dir: 'csp/')
 
 csp_inc = include_directories(['.', 'include'])
-if not meson.is_subproject() 
+if not meson.is_subproject()
   install_subdir('include', install_dir : '.')
   install_headers(csp_config_h, install_dir : 'include/csp')
 endif
