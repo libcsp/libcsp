@@ -10,15 +10,15 @@ DEFAULT_BUILD_SYSTEM = 'waf'
 
 
 def build_with_meson():
-    extra_target = ['examples/csp_server_client',
-                    'examples/csp_arch',
-                    'examples/zmqproxy']
+    targets = ['csp_server_client',
+                    'csp_arch',
+                    'zmqproxy']
     builddir = 'build'
 
     meson_setup = ['meson', 'setup', builddir]
     meson_compile = ['ninja', '-C', builddir]
     subprocess.check_call(meson_setup)
-    subprocess.check_call(meson_compile + extra_target)
+    subprocess.check_call(meson_compile + targets)
 
 
 def build_with_waf(options):
