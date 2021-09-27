@@ -1,3 +1,41 @@
+libcsp 2.0, xx-yy-zzzz
+----------------------
+- new: CSP Header 2.0. Support for 14-bit network addresses.
+- new: CFP (Can fragmentation protocol) 2.0
+- new: Meson build system
+- new: CMake build system 
+- new: Went back to use more compile time configuration for less runtime checks and simpler memory allocation
+- new: Connection less callbacks. The router now supports executing small services directly using a callback saving memory
+- new: csp_if_udp: New UDP interface for point to point UDP links
+- improvement: Support for 2k packets on CAN, KISS, UDP, ZMQ and others
+- improvement: Uses only static memory allocation
+- improvement: FreeRTOS 8+ support
+- improvement: Decrease csp_dedup timeout from 1s to 100ms to avoid removing duplicate ACK packets in RDP streams
+- improvement: Shorter debug message texts for smaller flash footprint
+- improvement: uart driver linux. enable low latency mode
+- improvement: socketcan: Setup sjw in can driver
+- improvement: Portability. No more use of packed bitfields.
+- deprecated: HMAC and XTEA use a dedicatd encryption library instead
+- removed: csp_endian.h: Use the system provided <endian.h> instead (which is faster and smaller)
+- removed: csp_malloc.h: libcsp no longer uses dynamic allocation
+- removed: Windows Support (moved to contrib, maintainer needed)
+- removed: Mac OSX Support (moved to contrib, maintainer needed)
+- removed: Incoming QoS. This didn't make much sense anyways, so a single fifo is now used
+- api: Interface names are now case sensitive (this is faster and avoids pulling in _ctypes_ and saves 340 bytes of flash)
+- api: csp_init(): Now a void function, because allocation cannot fail
+- fix: router counts incoming packets before deduplication
+- fix: rdp: Fix ack_delay_count off by one error
+- fix: rtable cidr: continue parsing, even if an unknown interface is found
+- fix: Fix buffer overflow in KISS mode if packets are too long
+- fix: Buffer overrun in RDP EACK #157
+
+Todo:
+- improvement: CSP CRC now protects both data and header
+- api: csp_send(): Now always frees the packet and returns void.
+- python bindings: Refreshed to new api, builds with meson and cmake
+- interface: I2C needs to be tested with CSP 2.0
+- waf: 2.0 needs to build with WAF too
+
 libcsp 1.6, 16-04-2020
 ----------------------
 - Updated documentation.
