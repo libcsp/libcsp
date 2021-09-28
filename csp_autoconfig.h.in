@@ -18,3 +18,9 @@
 #cmakedefine CSP_RDP_MAX_WINDOW @CSP_RDP_MAX_WINDOW@
 #cmakedefine CSP_RTABLE_SIZE @CSP_RTABLE_SIZE@
 
+#cmakedefine01 CSP_USE_RDP
+#cmakedefine01 CSP_USE_CRC32
+#cmakedefine01 CSP_USE_HMAC
+#cmakedefine01 CSP_USE_XTEA
+#cmakedefine01 CSP_USE_PROMISC
+#cmakedefine01 CSP_USE_DEDUP
