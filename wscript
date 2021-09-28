@@ -164,6 +164,16 @@ def configure(ctx):
         ctx.env.LIBCSP_PYTHON3 = ctx.check_cfg(package='python3', args='--cflags --libs', atleast_version='3.5',
                                                mandatory=True)
 
+    # Set defines for customizable parameters
+    ctx.define('CSP_QFIFO_LEN', 15)
+    ctx.define('CSP_PORT_MAX_BIND', 16)
+    ctx.define('CSP_CONN_RXQUEUE_LEN', 15)
+    ctx.define('CSP_CONN_MAX', 8)
+    ctx.define('CSP_BUFFER_SIZE', 256)
+    ctx.define('CSP_BUFFER_COUNT', 15)
+    ctx.define('CSP_RDP_MAX_WINDOW', 5)
+    ctx.define('CSP_RTABLE_SIZE', 10)
+
     # Set defines for enabling features
     ctx.define('CSP_DEBUG', not ctx.options.disable_output)
     ctx.define('CSP_DEBUG_TIMESTAMP', ctx.options.enable_debug_timestamp)
@@ -229,18 +239,18 @@ def build(ctx):
 
     if ctx.env.ENABLE_EXAMPLES:
         ctx.program(source='examples/csp_server_client.c',
-                    target='csp_server_client',
+                    target='examples/csp_server_client',
                     lib=ctx.env.LIBS,
                     use='csp')
 
         ctx.program(source='examples/csp_arch.c',
-                    target='csp_arch',
+                    target='examples/csp_arch',
                     lib=ctx.env.LIBS,
                     use='csp')
 
         if ctx.env.CSP_HAVE_LIBZMQ:
             ctx.program(source='examples/zmqproxy.c',
-                        target='zmqproxy',
+                        target='examples/zmqproxy',
                         lib=ctx.env.LIBS,
                         use='csp')
 

@@ -4,7 +4,7 @@ if host_machine.system() == 'linux'
 elif host_machine.system() == 'windows'
 	subdir('windows')
 	conf.set('CSP_WINDOWS', 1)
-elif host_machine.system() == 'macosx'
+elif host_machine.system() == 'darwin'
 	subdir('macosx')
 	conf.set('CSP_MACOSX', 1)
 elif host_machine.system() == 'freertos'
