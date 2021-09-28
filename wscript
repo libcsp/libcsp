@@ -239,18 +239,18 @@ def build(ctx):
 
     if ctx.env.ENABLE_EXAMPLES:
         ctx.program(source='examples/csp_server_client.c',
-                    target='csp_server_client',
+                    target='examples/csp_server_client',
                     lib=ctx.env.LIBS,
                     use='csp')
 
         ctx.program(source='examples/csp_arch.c',
-                    target='csp_arch',
+                    target='examples/csp_arch',
                     lib=ctx.env.LIBS,
                     use='csp')
 
         if ctx.env.CSP_HAVE_LIBZMQ:
             ctx.program(source='examples/zmqproxy.c',
-                        target='zmqproxy',
+                        target='examples/zmqproxy',
                         lib=ctx.env.LIBS,
                         use='csp')
 
