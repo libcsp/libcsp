@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef CSP_QFIFO_H_
 #define CSP_QFIFO_H_
 
+#include <csp/csp.h>
 #include <csp/csp_interface.h>
 
 #if (CSP_USE_RDP)
