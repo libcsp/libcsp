@@ -164,6 +164,16 @@ def configure(ctx):
         ctx.env.LIBCSP_PYTHON3 = ctx.check_cfg(package='python3', args='--cflags --libs', atleast_version='3.5',
                                                mandatory=True)
 
+    # Set defines for customizable parameters
+    ctx.define('CSP_QFIFO_LEN', 15)
+    ctx.define('CSP_PORT_MAX_BIND', 16)
+    ctx.define('CSP_CONN_RXQUEUE_LEN', 15)
+    ctx.define('CSP_CONN_MAX', 8)
+    ctx.define('CSP_BUFFER_SIZE', 256)
+    ctx.define('CSP_BUFFER_COUNT', 15)
+    ctx.define('CSP_RDP_MAX_WINDOW', 5)
+    ctx.define('CSP_RTABLE_SIZE', 10)
+
     # Set defines for enabling features
     ctx.define('CSP_DEBUG', not ctx.options.disable_output)
     ctx.define('CSP_DEBUG_TIMESTAMP', ctx.options.enable_debug_timestamp)
