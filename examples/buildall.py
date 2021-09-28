@@ -42,7 +42,6 @@ def build_with_waf(options):
     waf = ['./waf']
     if target_os in ['posix']:
         options += [
-            '--enable-python3-bindings',
             '--enable-can-socketcan',
             '--with-driver-usart=linux',
             '--enable-if-zmqhub',
