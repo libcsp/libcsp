@@ -21,6 +21,18 @@ def build_with_meson():
     subprocess.check_call(meson_compile + targets)
 
 
+def build_with_cmake():
+    targets = ['examples/csp_server_client',
+               'examples/csp_arch',
+               'examples/zmqproxy']
+    builddir = 'build'
+
+    cmake_setup = ['cmake', '-GNinja', '-B' + builddir]
+    cmake_compile = ['ninja', '-C', builddir]
+    subprocess.check_call(cmake_setup)
+    subprocess.check_call(cmake_compile + targets)
+
+
 def build_with_waf(options):
     target_os = 'posix'  # default OS
     if (len(options) > 0) and not options[0].startswith('--'):
@@ -67,9 +79,11 @@ def build_with_waf(options):
     subprocess.check_call(waf + options + ['--enable-examples'])
 
 
-def main(with_waf, options):
-    if (with_waf):
+def main(build_system, options):
+    if (build_system == 'waf'):
         build_with_waf(options)
+    elif (build_system == 'cmake'):
+        build_with_cmake()
     else:
         build_with_meson()
 
@@ -78,7 +92,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--build-system',
                         default=DEFAULT_BUILD_SYSTEM,
-                        choices=['meson', 'waf'])
+                        choices=['meson', 'cmake', 'waf'])
     args, rest = parser.parse_known_args()
 
-    main(args.build_system == DEFAULT_BUILD_SYSTEM, rest)
+    main(args.build_system, rest)
