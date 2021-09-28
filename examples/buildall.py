@@ -11,8 +11,8 @@ DEFAULT_BUILD_SYSTEM = 'waf'
 
 def build_with_meson():
     targets = ['examples/csp_server_client',
-                    'examples/csp_arch',
-                    'examples/zmqproxy']
+               'examples/csp_arch',
+               'examples/zmqproxy']
     builddir = 'build'
 
     meson_setup = ['meson', 'setup', builddir]
