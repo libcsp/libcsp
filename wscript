@@ -194,8 +194,8 @@ def configure(ctx):
 
     # Check compiler endianness
     endianness = ctx.check_endianness()
-    ctx.define_cond('CSP_LITTLE_ENDIAN', endianness == 'little')
-    ctx.define_cond('CSP_BIG_ENDIAN', endianness == 'big')
+    ctx.define('CSP_LITTLE_ENDIAN', endianness == 'little')
+    ctx.define('CSP_BIG_ENDIAN', endianness == 'big')
 
     ctx.write_config_header('include/csp_autoconfig.h')
 
