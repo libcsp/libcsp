@@ -90,6 +90,24 @@ typedef StaticSemaphore_t csp_mutex_buffer_t;
 
 #endif // CSP_FREERTOS
 
+/* Zephyr RTOS Interface */
+#if (CSP_ZEPHYR)
+
+#include <zephyr.h>
+
+#define CSP_SEMAPHORE_OK 	1
+#define CSP_SEMAPHORE_ERROR	2
+
+typedef struct k_mutex csp_mutex_t;
+typedef struct k_sem csp_bin_sem_handle_t;
+
+/* These types are not used for static API */
+struct csp_empty_t {};
+typedef struct csp_empty_t csp_mutex_buffer_t;
+typedef struct csp_empty_t csp_bin_sem_t;
+
+#endif // CSP_ZEPHYR
+
 /**
    Mutex call OK.
 
