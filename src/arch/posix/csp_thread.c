@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <limits.h>
 #include <unistd.h>
+#include <stdlib.h>
 #include <time.h>
 #include <errno.h>
 
@@ -58,6 +59,23 @@ int csp_thread_create(csp_thread_func_t routine, const char * const thread_name,
 void csp_thread_exit(void) {
 
 	pthread_exit(CSP_TASK_RETURN);
+}
+
+csp_thread_handle_t
+csp_thread_create_static(csp_thread_t *new_thread, const char * const thread_name,
+			 csp_stack_t *stack, unsigned int stack_size,
+			 csp_thread_func_t routine, void *parameter,
+			 unsigned int priority)
+{
+	int ret;
+
+	ret = csp_thread_create(routine, thread_name, stack_size, parameter, priority, new_thread);
+	/* csp_thread_create_static is not allowed to fail */
+	if (ret == 0) {
+		abort();
+	}
+
+	return *new_thread;
 }
 
 void csp_sleep_ms(unsigned int time_ms) {

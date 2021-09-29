@@ -44,6 +44,8 @@ extern "C" {
    Platform specific thread handle.
 */
 typedef pthread_t csp_thread_handle_t;
+typedef pthread_t csp_thread_t;
+typedef struct empty{} csp_stack_t;
 
 /**
    Platform specific thread return type.
