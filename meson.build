@@ -51,11 +51,8 @@ if zmq_dep.found()
 	conf.set('CSP_HAVE_LIBZMQ', 1)
 endif
 
-if host_machine.endian() == 'little'
-	conf.set('CSP_LITTLE_ENDIAN', 1)
-else
-	conf.set('CSP_BIG_ENDIAN', 1)
-endif
+conf.set10('CSP_LITTLE_ENDIAN', host_machine.endian() == 'little')
+conf.set10('CSP_BIG_ENDIAN', host_machine.endian() == 'big')
 
 csp_sources = files([
 	'src/crypto/csp_hmac.c',
