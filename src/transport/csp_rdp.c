@@ -62,18 +62,20 @@ typedef struct __attribute__((__packed__)) {
 	union __attribute__((__packed__)) {
 		uint8_t flags;
 		struct __attribute__((__packed__)) {
-#if (CSP_BIG_ENDIAN)
+#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
 			unsigned int res : 4;
 			unsigned int syn : 1;
 			unsigned int ack : 1;
 			unsigned int eak : 1;
 			unsigned int rst : 1;
-#elif (CSP_LITTLE_ENDIAN)
+#elif __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
 			unsigned int rst : 1;
 			unsigned int eak : 1;
 			unsigned int ack : 1;
 			unsigned int syn : 1;
 			unsigned int res : 4;
+#else
+#error "Your compiler doesn't define __BYTE_ORDER__"
 #endif
 		};
 	};

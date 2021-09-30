@@ -7,9 +7,6 @@
 #cmakedefine01 CSP_LOG_LEVEL_INFO
 #cmakedefine01 CSP_LOG_LEVEL_DEBUG
 
-#cmakedefine01 CSP_BIG_ENDIAN
-#cmakedefine01 CSP_LITTLE_ENDIAN
-
 #cmakedefine CSP_PORT_MAX_BIND @CSP_PORT_MAX_BIND@
 #cmakedefine CSP_CONN_RXQUEUE_LEN @CSP_CONN_RXQUEUE_LEN@
 #cmakedefine CSP_CONN_MAX @CSP_CONN_MAX@

@@ -192,13 +192,7 @@ def configure(ctx):
     ctx.define('CSP_LOG_LEVEL_WARN', ctx.options.with_loglevel in ('debug', 'info', 'warn'))
     ctx.define('CSP_LOG_LEVEL_ERROR', ctx.options.with_loglevel in ('debug', 'info', 'warn', 'error'))
 
-    # Check compiler endianness
-    endianness = ctx.check_endianness()
-    ctx.define('CSP_LITTLE_ENDIAN', endianness == 'little')
-    ctx.define('CSP_BIG_ENDIAN', endianness == 'big')
-
     ctx.write_config_header('csp_autoconfig.h')
-
 
 def build(ctx):
 
