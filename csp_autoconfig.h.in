@@ -1,4 +1,5 @@
 #cmakedefine01 CSP_POSIX
+#cmakedefine01 CSP_ZEPHYR
 
 #cmakedefine01 CSP_DEBUG
 #cmakedefine01 CSP_LOG_LEVEL_ERROR

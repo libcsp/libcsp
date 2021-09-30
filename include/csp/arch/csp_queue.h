@@ -71,6 +71,9 @@ csp_queue_handle_t csp_queue_create(int length, size_t item_size);
 
 #if (CSP_FREERTOS)
 typedef StaticQueue_t csp_static_queue_t;
+#elif (CSP_ZEPHYR)
+#include <zephyr.h>
+typedef struct k_msgq csp_static_queue_t;
 #else
 typedef void * csp_static_queue_t;
 #endif
