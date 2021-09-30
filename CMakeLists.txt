@@ -49,12 +49,6 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   set(CSP_POSIX 1)
 endif()
 
-if(CMAKE_C_BYTE_ORDER STREQUAL "BIG_ENDIAN")
-  set(CSP_BIG_ENDIAN 1)
-else()
-  set(CSP_LITTLE_ENDIAN 1)
-endif()
-
 include(CheckIncludeFiles)
 check_include_files(sys/socket.h HAVE_SYS_SOCKET_H)
 
