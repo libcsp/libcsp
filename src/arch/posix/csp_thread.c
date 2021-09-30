@@ -62,8 +62,8 @@ void csp_thread_exit(void) {
 }
 
 csp_thread_handle_t
-csp_thread_create_static(csp_thread_t *new_thread, const char * const thread_name,
-			 csp_stack_t *stack, unsigned int stack_size,
+csp_thread_create_static(csp_thread_handle_t *new_thread, const char * const thread_name,
+			 char *stack, unsigned int stack_size,
 			 csp_thread_func_t routine, void *parameter,
 			 unsigned int priority)
 {

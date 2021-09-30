@@ -19,9 +19,9 @@
 #include <csp/arch/csp_thread.h>
 
 csp_thread_handle_t
-csp_thread_create_static(csp_thread_t *new_thread,
+csp_thread_create_static(csp_thread_handle_t *new_thread,
 			 const char * const thread_name,
-			 csp_stack_t *stack,
+			 char *stack,
 			 unsigned int stack_size,
 			 csp_thread_func_t entry,
 			 void *param,
