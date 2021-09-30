@@ -47,6 +47,8 @@ option(CSP_USE_DEDUP "Packet deduplication" ON)
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   set(CSP_POSIX 1)
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Zephyr")
+  set(CSP_ZEPHYR 1)
 endif()
 
 if(CMAKE_C_BYTE_ORDER STREQUAL "BIG_ENDIAN")
@@ -72,6 +74,8 @@ target_include_directories(libcsp PUBLIC ${csp_inc})
 
 if(CSP_POSIX)
   set(CSP_C_ARGS -Wshadow -Wcast-align -Wwrite-strings -Wno-unused-parameter)
+elseif(CSP_ZEPHYR)
+  set(CSP_C_ARGS -Wwrite-strings -Wno-unused-parameter)
 endif()
 target_compile_options(libcsp PRIVATE ${CSP_C_ARGS})
 

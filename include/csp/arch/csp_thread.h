@@ -104,6 +104,23 @@ typedef csp_thread_return_t (* csp_thread_func_t)(void *);
 
 #endif // CSP_FREERTOS
 
+/*
+  Zephyr interface
+*/
+#if (CSP_ZEPHYR)
+
+#include <zephyr.h>
+
+typedef k_tid_t csp_thread_handle_t;
+typedef struct k_thread csp_thread_t;
+typedef k_thread_stack_t csp_stack_t;
+typedef k_thread_entry_t csp_thread_func_t;
+
+#define CSP_DEFINE_TASK(task_name) void task_name(void *p1, void *p2, void *p3)
+#define CSP_TASK_RETURN
+
+#endif // CSP_ZEPHYR
+
 /**
    Create thread (task).
 
@@ -116,6 +133,12 @@ typedef csp_thread_return_t (* csp_thread_func_t)(void *);
    @return #CSP_ERR_NONE on success, otherwise an error code.
 */
 int csp_thread_create(csp_thread_func_t func, const char * const name, unsigned int stack_size, void * parameter, unsigned int priority, csp_thread_handle_t * handle);
+
+csp_thread_handle_t
+csp_thread_create_static(csp_thread_t *new_thread, const char * const name,
+			 csp_stack_t *stack, unsigned int stack_size,
+			 csp_thread_func_t func, void * parameter,
+			 unsigned int priority);
 
 /**
    Exit current thread.

@@ -1,9 +1,14 @@
 target_sources(libcsp PRIVATE
   csp_if_lo.c
-  csp_if_can.c
-  csp_if_can_pbuf.c
   csp_if_kiss.c
   )
+
+if(NOT CMAKE_SYSTEM_NAME STREQUAL "Zephyr")
+  target_sources(libcsp PRIVATE
+    csp_if_can.c
+    csp_if_can_pbuf.c
+    )
+endif()
 
 if(LIBZMQ_FOUND)
   add_library(if_zmq OBJECT csp_if_zmqhub.c)
