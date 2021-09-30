@@ -59,8 +59,9 @@ static uint32_t csp_rdp_ack_delay_count = 4 / 2;
 static int pdTrue = 1;
 
 typedef struct __attribute__((__packed__)) {
+	uint8_t flags;
+#if 0
 	union __attribute__((__packed__)) {
-		uint8_t flags;
 		struct __attribute__((__packed__)) {
 #if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
 			unsigned int res : 4;
@@ -79,6 +80,7 @@ typedef struct __attribute__((__packed__)) {
 #endif
 		};
 	};
+#endif
 	uint16_t seq_nr;
 	uint16_t ack_nr;
 } rdp_header_t;
@@ -168,10 +170,7 @@ static int csp_rdp_send_cmp(csp_conn_t * conn, csp_packet_t * packet, int flags,
 	}
 	header->seq_nr = htobe16(seq_nr);
 	header->ack_nr = htobe16(ack_nr);
-	header->ack = (flags & RDP_ACK) ? 1 : 0;
-	header->eak = (flags & RDP_EAK) ? 1 : 0;
-	header->syn = (flags & RDP_SYN) ? 1 : 0;
-	header->rst = (flags & RDP_RST) ? 1 : 0;
+	header->flags = flags;
 
 	/* Send copy to tx_queue, before sending packet to IF */
 	if (flags & RDP_SYN) {
@@ -187,8 +186,8 @@ static int csp_rdp_send_cmp(csp_conn_t * conn, csp_packet_t * packet, int flags,
 	idout.pri = conn->idout.pri < CSP_PRIO_HIGH ? conn->idout.pri : CSP_PRIO_HIGH;
 
 	csp_log_protocol("RDP %p: Send CMP S %u: syn %u, ack %u, eack %u, rst %u, seq_nr %5u, ack_nr %5u, packet_len %u (%u)",
-                         conn, conn->rdp.state, header->syn, header->ack, header->eak,
-                         header->rst, be16toh(header->seq_nr), be16toh(header->ack_nr),
+                         conn, conn->rdp.state, (header->flags & RDP_SYN), (header->flags & RDP_ACK), (header->flags & RDP_EAK),
+                         (header->flags & RDP_RST), be16toh(header->seq_nr), be16toh(header->ack_nr),
                          packet->length, (unsigned int)(packet->length - sizeof(rdp_header_t)));
 
 	/* Send packet to IF */
@@ -585,18 +584,18 @@ bool csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 	rx_header->ack_nr = be16toh(rx_header->ack_nr);
 	rx_header->seq_nr = be16toh(rx_header->seq_nr);
 
-        uint8_t closed_by = CSP_RDP_CLOSED_BY_PROTOCOL;
+    uint8_t closed_by = CSP_RDP_CLOSED_BY_PROTOCOL;
 
 	csp_log_protocol("RDP %p: Received in S %u: syn %u, ack %u, eack %u, "
 			"rst %u, seq_nr %5u, ack_nr %5u, packet_len %u (%u)",
-			conn, conn->rdp.state, rx_header->syn, rx_header->ack, rx_header->eak,
-			rx_header->rst, rx_header->seq_nr, rx_header->ack_nr,
+			conn, conn->rdp.state, (rx_header->flags & RDP_SYN), (rx_header->flags & RDP_ACK), (rx_header->flags & RDP_EAK),
+			(rx_header->flags & RDP_RST), rx_header->seq_nr, rx_header->ack_nr,
 			packet->length, (unsigned int)(packet->length - sizeof(rdp_header_t)));
 
 	/* If a RESET was received. */
-	if (rx_header->rst) {
+	if (rx_header->flags & RDP_RST) {
 
-		if (rx_header->ack) {
+		if (rx_header->flags & RDP_ACK) {
 			/* Store current ack'ed sequence number */
 			conn->rdp.snd_una = rx_header->ack_nr + 1;
 		}
@@ -608,8 +607,8 @@ bool csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
                 }
 
 		if (conn->rdp.state == RDP_CLOSE_WAIT) {
-			csp_log_protocol("RDP %p: RST received in CLOSE_WAIT, ack: %d - closing", conn, rx_header->ack);
-			if (rx_header->ack && CSP_USE_RDP_FAST_CLOSE) {
+			csp_log_protocol("RDP %p: RST received in CLOSE_WAIT, ack: %d - closing", conn, (rx_header->flags & RDP_ACK));
+			if ((rx_header->flags & RDP_ACK) && CSP_USE_RDP_FAST_CLOSE) {
 				// skip timeout - the other end has acknowledged the RST
 				closed_by |= CSP_RDP_CLOSED_BY_TIMEOUT;
 			}
@@ -640,7 +639,7 @@ bool csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 	case RDP_CLOSED: {
 
 		/* No SYN flag set while in closed. Inform by sending back RST */
-		if (!rx_header->syn) {
+		if (!(rx_header->flags & RDP_SYN)) {
 			csp_log_protocol("RDP %p: Not SYN received in CLOSED state. Discarding packet", conn);
 			csp_rdp_send_cmp(conn, NULL, RDP_RST, conn->rdp.snd_nxt, conn->rdp.rcv_cur);
 			goto discard_close;
@@ -687,7 +686,7 @@ bool csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 	case RDP_SYN_SENT: {
 
 		/* First check SYN/ACK */
-		if (rx_header->syn && rx_header->ack) {
+		if ((rx_header->flags & RDP_SYN) && (rx_header->flags & RDP_ACK)) {
 
 			conn->rdp.rcv_cur = rx_header->seq_nr;
 			conn->rdp.rcv_irs = rx_header->seq_nr;
@@ -713,7 +712,7 @@ bool csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 		 * Normally this would be followed up by a new connection attempt, however
 		 * we don't have a method for signaling this to the user space.
 		 */
-		if (rx_header->ack) {
+		if ((rx_header->flags & RDP_ACK)) {
 			csp_log_error("RDP %p: Half-open connection found, send RST and wake Tx task", conn);
 			csp_rdp_send_cmp(conn, NULL, RDP_RST, conn->rdp.snd_nxt, conn->rdp.rcv_cur);
 			csp_bin_sem_post(&conn->rdp.tx_wait);
@@ -739,7 +738,7 @@ bool csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 	{
 
 		/* SYN or !ACK is invalid */
-		if (rx_header->syn || !rx_header->ack) {
+		if ((rx_header->flags & RDP_SYN) || !(rx_header->flags & RDP_ACK)) {
 			if (rx_header->seq_nr != conn->rdp.rcv_irs) {
 				csp_log_error("RDP %p: Invalid SYN or no ACK, resetting!", conn);
 				goto discard_close;
@@ -801,7 +800,7 @@ bool csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 		conn->rdp.snd_una = rx_header->ack_nr + 1;
 
 		/* We have an EACK */
-		if (rx_header->eak) {
+		if ((rx_header->flags & RDP_EAK)) {
 			if (packet->length > sizeof(rdp_header_t))
 				csp_rdp_flush_eack(conn, packet);
 			goto discard_open;
@@ -848,7 +847,7 @@ bool csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 	case RDP_CLOSE_WAIT:
 
 		/* Ignore SYN or !ACK */
-		if (rx_header->syn || !rx_header->ack) {
+		if ((rx_header->flags & RDP_SYN) || !(rx_header->flags & RDP_ACK)) {
 			csp_log_protocol("RDP %p: Invalid SYN or no ACK in CLOSE-WAIT", conn);
 			goto discard_open;
 		}
@@ -983,7 +982,7 @@ int csp_rdp_send(csp_conn_t * conn, csp_packet_t * packet) {
         }
 	tx_header->ack_nr = htobe16(conn->rdp.rcv_cur);
 	tx_header->seq_nr = htobe16(conn->rdp.snd_nxt);
-	tx_header->ack = 1;
+	tx_header->flags |= RDP_ACK;
 
 	/* Send copy to tx_queue */
 	csp_packet_t * rdp_packet = csp_buffer_clone(packet);
@@ -1002,8 +1001,8 @@ int csp_rdp_send(csp_conn_t * conn, csp_packet_t * packet) {
 
 	csp_log_protocol("RDP %p: Sending  in S %u: syn %u, ack %u, eack %u, "
 				"rst %u, seq_nr %5u, ack_nr %5u, packet_len %u (%u)",
-				conn, conn->rdp.state, tx_header->syn, tx_header->ack, tx_header->eak,
-				tx_header->rst, be16toh(tx_header->seq_nr), be16toh(tx_header->ack_nr),
+				conn, conn->rdp.state, (tx_header->flags & RDP_SYN), (tx_header->flags & RDP_ACK), (tx_header->flags & RDP_EAK),
+				(tx_header->flags & RDP_RST), be16toh(tx_header->seq_nr), be16toh(tx_header->ack_nr),
 				packet->length, (unsigned int)(packet->length - sizeof(rdp_header_t)));
 
 	conn->rdp.snd_nxt++;
