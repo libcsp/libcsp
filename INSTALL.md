@@ -4,7 +4,7 @@ CSP supports two build systems, the meson build system
 (<https://mesonbuild.com/>) and the waf build system
 (<https://waf.io/>).
 
-## Using meson
+## Using Meson
 
 In order to compile CSP with `meson`, you
 run the following commands:
@@ -18,7 +18,7 @@ ninja
 You can use `meson configure` to change the
 core options as well as compiler or project options.
 
-## Using waf
+## Using Waf
 
 In order to compile CSP with `waf`, you
 first need to configure the toolchain, what operating system to compile
