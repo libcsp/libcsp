@@ -9,7 +9,7 @@ CSP supports two build systems, the meson build system
 In order to compile CSP with `meson`, you
 run the following commands:
 
-``` bash
+```shell
 meson setup builddir
 cd builddir
 ninja
@@ -29,7 +29,7 @@ To configure CSP to build with the AVR32 toolchain for FreeRTOS and
 output the compiled libcsp.a and header files to the install directory,
 issue:
 
-``` bash
+```shell
 ./waf configure --toolchain=avr32- --with-os=freertos --prefix=install
 ```
 
@@ -48,6 +48,6 @@ configure option `--enable-can-socketcan`.
 To build and copy the library to the location specified with --prefix,
 use:
 
-``` bash
+```shell
 ./waf build install
 ```

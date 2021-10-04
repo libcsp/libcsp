@@ -5,7 +5,7 @@ blocks in CSP. The shown inferface is CAN
 (src/interfaces/csp_if_can.c, driver:
 src/drivers/can/can_socketcan.c).
 
-``` none
+```
     buffer                  connection   send   read/accept
        ^                         |         |         ^
        |                         |         v         |
@@ -50,7 +50,7 @@ preallocated is again a question of speed and safety.
 
 Definition of a buffer element `csp_packet_t`:
 
-``` c
+```c
 /**
    CSP Packet.
 
@@ -113,7 +113,7 @@ The padding bytes are used by the I2C interface, where the
 `csp_i2c_frame_t`, when the interface
 calls the driver Tx function `csp_i2c_driver_tx_t`:
 
-``` c
+```c
 /**
    I2C frame.
    This struct fits on top of a #csp_packet_t, removing the need for copying data.
@@ -262,7 +262,7 @@ The interface typically implements `layer2`, and uses drivers from
 `layer1` to send/receive data. The interface is a generic struct, with
 no knowledge of any specific interface , protocol or driver:
 
-``` c
+```c
 /**
    CSP interface.
 */

@@ -5,7 +5,7 @@ the Internet and the TCP/IP model. A CSP network can be configured for
 several different topologies. The most common topology is to create two
 segments, one for the Satellite and one for the Ground-Station.
 
-``` none
+```
   +-------+-------+-------+-------+       bus: I2C, CAN, KISS
   |       |       |       |       |
 +---+   +---+   +---+   +---+   +---+
