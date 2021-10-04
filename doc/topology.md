@@ -6,19 +6,19 @@ several different topologies. The most common topology is to create two
 segments, one for the Satellite and one for the Ground-Station.
 
 ``` none
-+-------+-------+-------+-------+       bus: I2C, CAN, KISS
-|       |       |       |       |
+  +-------+-------+-------+-------+       bus: I2C, CAN, KISS
+  |       |       |       |       |
 +---+   +---+   +---+   +---+   +---+
 |OBC|   |COM|   |EPS|   |PL1|   |PL2|     Nodes 0 - 15 (Space segment)
 +---+   +---+   +---+   +---+   +---+
-        ^
-        |  Radio
-        v
-      +---+          +----+
-      |TNC|          | PC |             Nodes 16 - 31 (Ground segment)
-      +---+          +----+
-        |               |
-        +---------------+               bus: KISS, ZMQ
+          ^
+          |  Radio
+          v
+        +---+          +----+
+        |TNC|          | PC |             Nodes 16 - 31 (Ground segment)
+        +---+          +----+
+          |               |
+          +---------------+               bus: KISS, ZMQ
 ```
 
 The address range, from 0 to 31, has been segmented into two equal size
