@@ -2,8 +2,8 @@
 
 The following diagram shows a conceptual overview of the different
 blocks in CSP. The shown inferface is CAN
-(src/interfaces/csp\_if\_can.c, driver:
-src/drivers/can/can\_socketcan.c).
+(src/interfaces/csp_if_can.c, driver:
+src/drivers/can/can_socketcan.c).
 
 ``` none
 buffer                  connection   send   read/accept
@@ -42,13 +42,13 @@ store pointers to free buffer elements. First of all, this gives a very
 quick method to get the next free element since the dequeue is an O(1)
 operation. Furthermore, since the queue is a protected operating system
 primitive, it can be accessed from both task-context and
-interrupt-context. The <span class="title-ref">csp\_buffer\_get()</span>
+interrupt-context. The `csp_buffer_get()`
 version is for task-context and
-<span class="title-ref">csp\_buffer\_get\_isr()</span> is for
+`csp_buffer_get_isr()` is for
 interrupt-context. Using fixed size buffer elements that are
 preallocated is again a question of speed and safety.
 
-Definition of a buffer element \`csp\_packet\_t\`:
+Definition of a buffer element `csp_packet_t`:
 
 ``` c
 /**
@@ -101,17 +101,17 @@ typedef struct {
 A basic concept in the buffer system is called Zero-Copy. This means
 that from userspace to the kernel-driver, the buffer is never copied
 from one buffer to another. This is a big deal for a small
-microprocessor, where a call to <span class="title-ref">memcpy()</span>
+microprocessor, where a call to `memcpy()`
 can be very expensive. This is achieved by a number of
-<span class="title-ref">padding</span> bytes in the buffer, allowing for
+`padding` bytes in the buffer, allowing for
 a header to be prepended at the lower layers without copying the actual
 payload. This also means that there is a strict contract between the
 layers, which data can be modified and where.
 
 The padding bytes are used by the I2C interface, where the
-<span class="title-ref">csp\_packet\_t</span> will be casted to a
-<span class="title-ref">csp\_i2c\_frame\_t</span>, when the interface
-calls the driver Tx function \`csp\_i2c\_driver\_tx\_t\`:
+`csp_packet_t` will be casted to a
+`csp_i2c_frame_t`, when the interface
+calls the driver Tx function `csp_i2c_driver_tx_t`:
 
 ``` c
 /**
@@ -147,11 +147,11 @@ application. Here is a list functions, that will allocate a connection
 from the connection pool:
 
 >   - client connection, call to
->     <span class="title-ref">csp\_connect()</span>
+>     `csp_connect()`
 >   - server socket for listening
->     <span class="title-ref">csp\_socket()</span>
+>     `csp_socket()`
 >   - server accepting an incmoing connection
->     <span class="title-ref">csp\_accept()</span>
+>     `csp_accept()`
 
 An applications receive queue is located on the connection and is also
 allocated once during initialization. The length of the queue is the
@@ -163,15 +163,15 @@ The data flow from the application to the driver, can basically be
 broken down into following steps:
 
 > 1.  if using connection-oriented communication, establish a
->     connection\> <span class="title-ref">csp\_connect()</span>,
->     <span class="title-ref">csp\_accept()</span>
+>     connection\> `csp_connect()`,
+>     `csp_accept()`
 > 2.  get packet from the buffer pool:
->     <span class="title-ref">csp\_buffer\_get()</span>
+>     `csp_buffer_get()`
 > 3.  add payload data to the packet
-> 4.  send packet, e.g. <span class="title-ref">csp\_send()</span>,
->     <span class="title-ref">csp\_sendto()</span>
+> 4.  send packet, e.g. `csp_send()`,
+>     `csp_sendto()`
 > 5.  CSP looks up the destination route, using the routing table, and
->     calls <span class="title-ref">nexthop()</span> on the resolved
+>     calls `nexthop()` on the resolved
 >     interface.
 > 6.  The interface (in this case the CAN interface), splits the packet
 >     into a number of CAN frames (8 bytes) and forwards them to the
@@ -185,7 +185,7 @@ broken down into following steps:
 > 1.  the driver layer forwards the raw data frames to the interface, in
 >     this case CAN frames
 > 2.  the interface will aquire a free buffer (e.g.
->     <span class="title-ref">csp\_buffer\_get\_isr()</span>) for
+>     `csp_buffer_get_isr()`) for
 >     assembling the CAN frames into a complete packet
 > 3.  once the interface has successfully assembled a packet, the packet
 >     is queued for routing - primarily to decouple the interface, e.g.
@@ -194,44 +194,44 @@ broken down into following steps:
 >     it on - this can either to a local destination, or another
 >     interface.
 > 5.  the application waits for new packets at its Rx queue, by calling
->     <span class="title-ref">csp\_read()</span> or
->     <span class="title-ref">csp\_accept</span> in case it is a server
+>     `csp_read()` or
+>     `csp_accept` in case it is a server
 >     socket.
 > 6.  the application can now process the packet, and either send it
->     using e.g. <span class="title-ref">csp\_send()</span>, or free the
->     packet using <span class="title-ref">csp\_buffer\_free()</span>.
+>     using e.g. `csp_send()`, or free the
+>     packet using `csp_buffer_free()`.
 
 ## Routing table
 
 When a packet is routed, the destination address is looked up in the
 routing table, which results in a
-<span class="title-ref">csp\_route\_t</span> record. The record contains
-the inteface (<span class="title-ref">csp\_iface\_t</span>) the packet
-is to be send on, and an optional <span class="title-ref">via</span>
-address. The <span class="title-ref">via</span> address is used, when
+`csp_route_t` record. The record contains
+the inteface (`csp_iface_t`) the packet
+is to be send on, and an optional `via`
+address. The `via` address is used, when
 the sender cannot direcly reach the receiver on one of its connected
 networks, e.g. sending a packet from the satellite to the ground - the
-radio will be the <span class="title-ref">via</span> address.
+radio will be the `via` address.
 
 CSP comes with 2 routing table implementations (selected at compile
 time).
 
 >   - static: supports a one-to-one mapping, meaning routes must be
 >     configured per destination address or a single
->     <span class="title-ref">default</span> address. The
->     <span class="title-ref">default</span> address is used, in case
+>     `default` address. The
+>     `default` address is used, in case
 >     there are no routes set for the specific destination address. The
->     <span class="title-ref">static</span> routing table has the
+>     `static` routing table has the
 >     fastest lookup, but requires more setup.
 >   - cidr (Classless Inter-Domain Routing): supports a one-to-many
 >     mapping, meaning routes can be configued for a range of
->     destianation addresses. The <span class="title-ref">cidr</span> is
+>     destianation addresses. The `cidr` is
 >     a bit slower for lookup, but simple to setup.
 
 Routes can be configured using text strings in the format:
 
 > \<address\>\[/mask\] \<interface name\> \[via\]
-> 
+>
 >   - address: is the destination address, the routing table will match
 >     it against the CSP header destination.
 >   - mask (optional): determines how many MSB bits of address are to be
@@ -240,15 +240,15 @@ Routes can be configured using text strings in the format:
 >     by the cidr rtable.
 >   - interface name: name of the interface to route the packet on
 >   - via (optional) address: if different from 255, route the packet to
->     the <span class="title-ref">via</span> address, instead of the
+>     the `via` address, instead of the
 >     address in the CSP header.
 
 Here are some examples:
 
 >   - "10 I2C" route destination address 10 to the "I2C" interface and
->     send it to address 10 (no <span class="title-ref">via</span>).
+>     send it to address 10 (no `via`).
 >   - "10 I2C 30" route destination address 10 to the "I2C" interface
->     and send it to address 30 (<span class="title-ref">via</span>).
+>     and send it to address 30 (`via`).
 >     The original destination address 10 is not changed in the CSP
 >     header of the packet.
 >   - "16/1 CAN 4" (CIDR only) route all destinations addresses 16-31 to
@@ -289,21 +289,21 @@ struct csp_iface_s {
 
 If an interface implementation needs to store data, e.g. state
 information (KISS), it can use the pointer
-<span class="title-ref">interface\_data</span> to reference any data
+`interface_data` to reference any data
 structure needed. The driver implementation can use the pointer
-<span class="title-ref">driver\_data</span> for storing data, e.g.
+`driver_data` for storing data, e.g.
 device number.
 
 See function
-<span class="title-ref">csp\_can\_socketcan\_open\_and\_add\_interface()</span>
-in <span class="title-ref">src/drivers/can/can\_socketcan.c</span> for
+`csp_can_socketcan_open_and_add_interface()`
+in `src/drivers/can/can_socketcan.c` for
 an example of how to implement a CAN driver and hooking it into CSP,
 using the CSP standard CAN interface.
 
 ### Send
 
 When CSP needs to send a packet, it calls
-<span class="title-ref">nexthop</span> on the interface returned by
+`nexthop` on the interface returned by
 route lookup. If the interface succeeds in sending the packet, it must
 free the packet. In case of failure, the packet must not be freed by the
 interface. The original idea was, that the packet could be retried later
@@ -314,8 +314,8 @@ modifies header (endian conversion) or data (adding CRC32).
 ### Receive
 
 When receiving data, the driver calls into the interface with the
-received data, e.g. <span class="title-ref">csp\_can\_rx()</span>. The
+received data, e.g. `csp_can_rx()`. The
 interface will convert/copy the data into a packet (e.g. by assembling
 all CAN frames). Once a complete packet is received, the packet is
 queued for later CSP processing, by calling
-<span class="title-ref">csp\_qfifo\_write()</span>.
+`csp_qfifo_write()`.

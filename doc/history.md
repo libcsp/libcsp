@@ -1,7 +1,7 @@
 # History
 
-The idea was developed by a group of students from Aalborg University in
-2008. In 2009 the main developer started working for GomSpace, and CSP
+The idea was developed by a group of students from Aalborg University
+in 2008. In 2009 the main developer started working for GomSpace, and CSP
 became integrated into the GomSpace products.
 
 The three letter acronym CSP was originally an abbreviation for CAN

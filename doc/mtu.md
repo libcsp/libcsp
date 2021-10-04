@@ -5,8 +5,8 @@ There are two things limiting the MTU of CSP.
 1.  The pre-allocated buffer pool’s allocation size
 2.  The link layer protocol.
 
-So let’s assume that you have made a protocol called KISS with a MTU of
-256. The 256 is the total amount of data that you can put into the
+So let’s assume that you have made a protocol called KISS with a MTU
+of 256. The 256 is the total amount of data that you can put into the
 CSP-packet. However, you need to take the overhead of the link layer
 into account. Typically this could consist of a length field and/or a
 start/stop flag. So the actual frame size on the link layer would for
@@ -45,8 +45,8 @@ But, what if you just want 1000 bytes transmitted, and you don’t care
 about the fragmentation unit, and also don’t want the hassle of writing
 the fragmentation code yourself? - In this case, libcsp provides SFP
 (small fragmentation protocol), designed to work on the application
-layer. For this purpose you will not use csp\_send and csp\_recv, but
-csp\_sfp\_send and csp\_sfp\_recv. This will split your data into chunks
+layer. For this purpose you will not use `csp_send` and `csp_recv`, but
+`csp_sfp_send` and `csp_sfp_recv`. This will split your data into chunks
 of a certain size, enumerate them and transfer over a given connection.
 If a chunk is missing the SFP client will abort the reception, because
 SFP does not provide retransmission. If you wish to also have

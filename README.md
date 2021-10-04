@@ -4,7 +4,7 @@ Cubesat Space Protocol (CSP) is a small protocol stack written in C. CSP
 is designed to ease communication between distributed embedded systems
 in smaller networks, such as Cubesats. The design follows the TCP/IP
 model and includes a transport protocol, a routing protocol and several
-MAC-layer interfaces. The core of <span class="title-ref">libcsp</span>
+MAC-layer interfaces. The core of `libcsp`
 includes a router, a connection oriented socket API and
 message/connection pools.
 
@@ -38,7 +38,7 @@ on many cubesats.
   - Reduces single point of failure: The complexity is moved from a
     single master node to several well defined services on the network
 
-The implementation of <span class="title-ref">libcsp</span> is written
+The implementation of `libcsp` is written
 with simplicity in mind, but it's compile time configuration allows it
 to have some rather advanced features as well:
 

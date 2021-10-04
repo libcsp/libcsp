@@ -6,7 +6,7 @@ CSP supports two build systems, the meson build system
 
 ## Using meson
 
-In order to compile CSP with <span class="title-ref">meson</span>, you
+In order to compile CSP with `meson`, you
 run the following commands:
 
 ``` bash
@@ -15,12 +15,12 @@ cd builddir
 ninja
 ```
 
-You can use <span class="title-ref">meson configure</span> to change the
+You can use `meson configure` to change the
 core options as well as compiler or project options.
 
 ## Using waf
 
-In order to compile CSP with <span class="title-ref">waf</span>, you
+In order to compile CSP with `waf`, you
 first need to configure the toolchain, what operating system to compile
 for, the location of required libraries and whether to enable certain
 optional features.
@@ -34,16 +34,16 @@ issue:
 ```
 
 When compiling for FreeRTOS, the path to the FreeRTOS header files must
-be specified with <span class="title-ref">--includes=PATH</span>.
+be specified with `--includes=PATH`.
 
 A number of optional features can be enabled by from the configure
 script. Support for XTEA encryption can e.g. be enabled with
-<span class="title-ref">--enable-xtea</span>. Run
-<span class="title-ref">./waf configure --help</span> to list the
+`--enable-xtea`. Run
+`./waf configure --help` to list the
 available configure options.
 
 The CAN driver (based on socketcan) can be enabled by appending the
-configure option <span class="title-ref">--enable-can-socketcan</span>.
+configure option `--enable-can-socketcan`.
 
 To build and copy the library to the location specified with --prefix,
 use:

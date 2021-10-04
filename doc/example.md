@@ -1,35 +1,35 @@
 # Client and server example
 
 The example in
-<span class="title-ref">example/csp\_server\_client.c</span> provides a
+`example/csp_server_client.c` provides a
 simple server/client setup, where the client sends a request to the
 server and receives a reply. The code can be compiled to an executable
-using <span class="title-ref">./examples/buildall.py</span>.
+using `./examples/buildall.py`.
 
 The example supports the drivers and interfaces in CSP:
 
-  - ZMQHUB: -z \<host name|ip\>
-    
+  - ZMQHUB: `-z <host name|ip>`
+
     Requires no extra hardware, as it uses standard network. The
     zmqproxy will need to be started.
 
-  - CAN: -c \<can device\>
-    
+  - CAN: `-c <can device>`
+
     Requires a physical CAN interface. There are several CAN dongles on
     the market, for example
     <https://www.peak-system.com/PCAN-USB.199.0.html>.
-    
+
     To achieve best performance and stabilty, following options can be
     set on the CAN device:
-    
+
     ``` none
     linux: sudo ip link set dev can0 down
     linux: sudo ip link set dev can0 up type can bitrate 1000000 restart-ms 100
     linux: sudo ip link set dev can0 txqueuelen 100
     ```
 
-  - KISS: -k \<serial device\>
-    
+  - KISS: `-k <serial device>`
+
     Requires a serial interface, e.g. USB dongle.
 
 ## Running the example
@@ -54,7 +54,7 @@ loopback interface for communication between client and server:
     LOOP       tx: 00000 rx: 00000 txe: 00000 rxe: 00000
                drop: 00000 autherr: 00000 frame: 00000
                txb: 0 (0.0B) rxb: 0 (0.0B) MTU: 0
-    
+
     Route table
     1/5 LOOP
     0/0 LOOP

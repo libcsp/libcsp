@@ -12,18 +12,18 @@ tasks, etc.
 Once the initiallization is complete, there are only a few functions
 that uses dynamic allocation, such as:
 
-  - csp\_sfp\_recv() - sending larger memory chuncks than can fit into a
+  - `csp_sfp_recv()` - sending larger memory chuncks than can fit into a
     single CSP message.
-  - csp\_rtable (cidr only) - adding new elements may allocate memory.
+  - `csp_rtable` (cidr only) - adding new elements may allocate memory.
 
-This means that there are no <span class="title-ref">alloc/free</span>
+This means that there are no `alloc/free`
 after initialization, possibly causing fragmented memory which
 especially can be a problem on small systems with limited memory. It
 also allows for a very simple memory allocator (implementation of
-<span class="title-ref">csp\_malloc()</span>), as
-<span class="title-ref">free</span> can be avoided.
+`csp_malloc()`), as
+`free` can be avoided.
 
 Future versions of libcsp may provide a
-<span class="title-ref">pure</span> static memory layout, since newer
+`pure` static memory layout, since newer
 FreeRTOS versions allows for specifying memory for queues, semaphores,
 tasks, etc.
