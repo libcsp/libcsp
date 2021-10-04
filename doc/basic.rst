@@ -38,20 +38,84 @@ All buffers are allocated once during initialization of CSP, after this the buff
 
 Definition of a buffer element `csp_packet_t`:
 
-.. literalinclude:: ../include/csp/csp_types.h
-   :language: c
-   :start-after: //doc-begin:csp_packet_t
-   :end-before: //doc-end:csp_packet_t
+.. code-block:: c
+
+    /**
+       CSP Packet.
+
+       This structure is constructed to fit with all interface and protocols to prevent the
+       need to copy data (zero copy).
+
+       @note In most cases a CSP packet cannot be reused in case of send failure, because the
+       lower layers may add additional data causing increased length (e.g. CRC32), convert
+       the CSP id to different endian (e.g. I2C), etc.
+    */
+    typedef struct {
+            uint32_t rdp_quarantine;        // EACK quarantine period
+            uint32_t timestamp_tx;          // Time the message was sent
+            uint32_t timestamp_rx;          // Time the message was received
+
+            uint16_t length;                        // Data length
+            csp_id_t id;                            // CSP id (unpacked version CPU readable)
+
+            uint8_t * frame_begin;
+            uint16_t frame_length;
+
+            /* Additional header bytes, to prepend packed data before transmission
+             * This must be minimum 6 bytes to accomodate CSP 2.0. But some implementations
+             * require much more scratch working area for encryption for example.
+             *
+             * Ultimately after csp_id_pack() this area will be filled with the CSP header
+             */
+
+            uint8_t header[CSP_PACKET_PADDING_BYTES];
+
+            /**
+             * Data part of packet.
+             * When using the csp_buffer API, the size of the data part is set by
+             * csp_buffer_init(), and can later be accessed by csp_buffer_data_size()
+             */
+            union {
+                    /** Access data as uint8_t. */
+                    uint8_t data[0];
+                    /** Access data as uint16_t */
+                    uint16_t data16[0];
+                    /** Access data as uint32_t */
+                    uint32_t data32[0];
+            };
+
+    } csp_packet_t;
+
+
 
 A basic concept in the buffer system is called Zero-Copy. This means that from userspace to the kernel-driver, the buffer is never copied from one buffer to another. This is a big deal for a small microprocessor, where a call to `memcpy()` can be very expensive.
 This is achieved by a number of `padding` bytes in the buffer, allowing for a header to be prepended at the lower layers without copying the actual payload. This also means that there is a strict contract between the layers, which data can be modified and where.
 
 The padding bytes are used by the I2C interface, where the `csp_packet_t` will be casted to a `csp_i2c_frame_t`, when the interface calls the driver Tx function `csp_i2c_driver_tx_t`:
 
-.. literalinclude:: ../include/csp/interfaces/csp_if_i2c.h
-   :language: c
-   :start-after: //doc-begin:csp_i2c_frame_t
-   :end-before: //doc-end:csp_i2c_frame_t
+.. code-block::c
+
+    /**
+       I2C frame.
+       This struct fits on top of a #csp_packet_t, removing the need for copying data.
+    */
+    typedef struct i2c_frame_s {
+        //! Not used  (-> csp_packet_t.padding)
+        uint8_t padding[3];
+        //! Cleared before Tx  (-> csp_packet_t.padding)
+        uint8_t retries;
+        //! Not used  (-> csp_packet_t.padding)
+        uint32_t reserved;
+        //! Destination address  (-> csp_packet_t.padding)
+        uint8_t dest;
+        //! Cleared before Tx  (-> csp_packet_t.padding)
+        uint8_t len_rx;
+        //! Length of \a data part  (-> csp_packet_t.length)
+        uint16_t len;
+        //! CSP id + data  (-> csp_packet_t.id)
+        uint8_t data[0];
+    } csp_i2c_frame_t;
+
 
 
 Connection
@@ -130,10 +194,30 @@ Interface
 The interface typically implements :ref:`layer2`, and uses drivers from :ref:`layer1` to send/receive data.
 The interface is a generic struct, with no knowledge of any specific interface , protocol or driver:
 
-.. literalinclude:: ../include/csp/csp_interface.h
-   :language: c
-   :start-after: //doc-begin:csp_iface_s
-   :end-before: //doc-end:csp_iface_s
+.. code-block::c
+
+    /**
+       CSP interface.
+    */
+    struct csp_iface_s {
+        const char *name;          //!< Name, max compare length is #CSP_IFLIST_NAME_MAX
+        void * interface_data;     //!< Interface data, only known/used by the interface layer, e.g. state information.
+        void * driver_data;        //!< Driver data, only known/used by the driver layer, e.g. device/channel references.
+        nexthop_t nexthop;         //!< Next hop (Tx) function
+        uint16_t mtu;              //!< Maximum Transmission Unit of interface
+        uint8_t split_horizon_off; //!< Disable the route-loop prevention
+        uint32_t tx;               //!< Successfully transmitted packets
+        uint32_t rx;               //!< Successfully received packets
+        uint32_t tx_error;         //!< Transmit errors (packets)
+        uint32_t rx_error;         //!< Receive errors, e.g. too large message
+        uint32_t drop;             //!< Dropped packets
+        uint32_t autherr;          //!< Authentication errors (packets)
+        uint32_t frame;            //!< Frame format errors (packets)
+        uint32_t txbytes;          //!< Transmitted bytes
+        uint32_t rxbytes;          //!< Received bytes
+        uint32_t irq;              //!< Interrupts
+        struct csp_iface_s *next;  //!< Internal, interfaces are stored in a linked list
+    };
 
 If an interface implementation needs to store data, e.g. state information (KISS), it can use the pointer `interface_data` to reference any data structure needed. The driver implementation can use the pointer `driver_data` for storing data, e.g. device number.
 
@@ -150,4 +234,3 @@ Receive
 ^^^^^^^
 
 When receiving data, the driver calls into the interface with the received data, e.g. `csp_can_rx()`. The interface will convert/copy the data into a packet (e.g. by assembling all CAN frames). Once a complete packet is received, the packet is  queued for later CSP processing, by calling `csp_qfifo_write()`.
-

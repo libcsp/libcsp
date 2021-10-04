@@ -38,7 +38,7 @@ extern "C" {
 */
 #define CSP_IF_I2C_DEFAULT_NAME "I2C"
 
-//doc-begin:csp_i2c_frame_t
+/* This struct is referenced in documentation.  Update doc when you change this. */
 /**
    I2C frame.
    This struct fits on top of a #csp_packet_t, removing the need for copying data.
@@ -59,7 +59,6 @@ typedef struct i2c_frame_s {
     //! CSP id + data  (-> csp_packet_t.id)
     uint8_t data[0];
 } csp_i2c_frame_t;
-//doc-end:csp_i2c_frame_t
 
 /**
    Send I2C frame (implemented by driver).
