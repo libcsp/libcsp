@@ -6,30 +6,30 @@ blocks in CSP. The shown inferface is CAN
 src/drivers/can/can_socketcan.c).
 
 ``` none
-buffer                  connection   send   read/accept
-   ^                         |         |         ^
-   |                         |         v         |
-   |   +-----------------+   |     +----------------+    +-------------------+
-   |   | connection pool |   |     |    CSP Core    |    | csp_task_router() |
-   |   |  csp_conn.c     |<--+---->| * routing      |<---|    csp_route.c    |
-   |   +-----------------+         | * crypt        |    +-------------------+
-   |                               | * UDP/RDP      |              ^
-   |                  csp_route_t  | * CRC32        |              |
-   v                 +------------>|                |     +----------------+
+    buffer                  connection   send   read/accept
+       ^                         |         |         ^
+       |                         |         v         |
+       |   +-----------------+   |     +----------------+    +-------------------+
+       |   | connection pool |   |     |    CSP Core    |    | csp_task_router() |
+       |   |  csp_conn.c     |<--+---->| * routing      |<---|    csp_route.c    |
+       |   +-----------------+         | * crypt        |    +-------------------+
+       |                               | * UDP/RDP      |              ^
+       |                  csp_route_t  | * CRC32        |              |
+       v                 +------------>|                |     +----------------+
 +--------------+         |             |                |     | incoming queue |
 | buffer pool  |         |             |                |     |     qfifo.c    |
 | csp_buffer.c |  +-------------+      +----------------+     +----------------+
 +--------------+  |routing table|            |                         ^
-   ^          |  rtable.c   |            v                         |
-   |          +-------------+      +------------------------------------+
-   |                               |  (next_hop)                        |
-   |                               |    CAN interface (csp_if_can.c)    |
-   +------------------------------>|                      csp_can_rx()  |
-                                   +------------------------------------+
-                                         |   CAN frame (8 bytes)   ^
-                                         v                         |
-                                 csp_can_tx_frame()       socketcan_rx_thread()
-                     (drivers/can/can_socketcan.c)
+       ^          |  rtable.c   |            v                         |
+       |          +-------------+      +------------------------------------+
+       |                               |  (next_hop)                        |
+       |                               |    CAN interface (csp_if_can.c)    |
+       +------------------------------>|                      csp_can_rx()  |
+                                       +------------------------------------+
+                                             |   CAN frame (8 bytes)   ^
+                                             v                         |
+                                     csp_can_tx_frame()       socketcan_rx_thread()
+                                             (drivers/can/can_socketcan.c)
 ```
 
 ## Buffer
