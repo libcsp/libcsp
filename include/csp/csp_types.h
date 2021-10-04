@@ -124,7 +124,7 @@ typedef struct {
 #define CSP_PACKET_PADDING_BYTES 8
 #endif
 
-//doc-begin:csp_packet_t
+/* This struct is referenced in documentation.  Update doc when you change this. */
 /**
    CSP Packet.
 
@@ -170,7 +170,6 @@ typedef struct {
 	};
 
 } csp_packet_t;
-//doc-end:csp_packet_t
 
 /**
    Size of the packet overhead in #csp_packet_t.

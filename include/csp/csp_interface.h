@@ -1,7 +1,7 @@
 /*
 Cubesat Space Protocol - A small network-layer protocol designed for Cubesats
 Copyright (C) 2012 Gomspace ApS (http://www.gomspace.com)
-Copyright (C) 2012 AAUSAT3 Project (http://aausat3.space.aau.dk) 
+Copyright (C) 2012 AAUSAT3 Project (http://aausat3.space.aau.dk)
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -46,7 +46,7 @@ extern "C" {
 */
 typedef int (*nexthop_t)(const csp_route_t * ifroute, csp_packet_t *packet);
 
-//doc-begin:csp_iface_s
+/* This struct is referenced in documentation.  Update doc when you change this. */
 /**
    CSP interface.
 */
@@ -69,7 +69,6 @@ struct csp_iface_s {
     uint32_t irq;              //!< Interrupts
     struct csp_iface_s *next;  //!< Internal, interfaces are stored in a linked list
 };
-//doc-end:csp_iface_s
 
 /**
    Inputs a new packet into the system.
@@ -92,4 +91,3 @@ void csp_qfifo_write(csp_packet_t *packet, csp_iface_t *iface, void * pxTaskWoke
 }
 #endif
 #endif
-
