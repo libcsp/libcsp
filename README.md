@@ -1,3 +1,5 @@
+![CI Status](https://github.com/libcsp/libcsp/actions/workflows/build-test.yml/badge.svg)
+
 # The Cubesat Space Protocol
 
 Cubesat Space Protocol (CSP) is a small protocol stack written in C. CSP
