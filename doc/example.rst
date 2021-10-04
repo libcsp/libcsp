@@ -5,32 +5,32 @@ The example in `example/csp_server_client.c` provides a simple server/client set
 
 The example supports the drivers and interfaces in CSP:
 
- - ZMQHUB: -z <host name|ip>
+- ZMQHUB: -z <host name|ip>
 
-   Requires no extra hardware, as it uses standard network. The zmqproxy will need to be started.
+  Requires no extra hardware, as it uses standard network. The zmqproxy will need to be started.
 
- - CAN: -c <can device>
+- CAN: -c <can device>
 
-   Requires a physical CAN interface. There are several CAN dongles on the market, for example https://www.peak-system.com/PCAN-USB.199.0.html.
+  Requires a physical CAN interface. There are several CAN dongles on the market, for example https://www.peak-system.com/PCAN-USB.199.0.html.
 
-   To achieve best performance and stabilty, following options can be set on the CAN device:
+  To achieve best performance and stabilty, following options can be set on the CAN device:
 
-      .. code-block:: none
+  .. code-block:: none
 
-	 linux: sudo ip link set dev can0 down
-	 linux: sudo ip link set dev can0 up type can bitrate 1000000 restart-ms 100
-	 linux: sudo ip link set dev can0 txqueuelen 100
+      linux: sudo ip link set dev can0 down
+      linux: sudo ip link set dev can0 up type can bitrate 1000000 restart-ms 100
+      linux: sudo ip link set dev can0 txqueuelen 100
 
- - KISS: -k <serial device>
+- KISS: -k <serial device>
 
-   Requires a serial interface, e.g. USB dongle.
+  Requires a serial interface, e.g. USB dongle.
 
 
 Running the example
 ^^^^^^^^^^^^^^^^^^^
 If the example is started without any interfaces, it will use the loopback interface for communication between client and server::
 
-  ubuntu-18:~/libcsp$ ./build/csp_server_client 
+  ubuntu-18:~/libcsp$ ./build/csp_server_client
   1586816581.410181 Initialising CSP
   Connection table
   [00 0x55a00f7adee0] S:0, 0 -> 0, 0 -> 0, sock: (nil)

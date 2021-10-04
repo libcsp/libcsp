@@ -7,33 +7,33 @@ The protocol is based on a 32-bit header containing both transport and network-l
 
 The idea is to give sub-system developers of cubesats the same features of a TCP/IP stack, but without adding the huge overhead of the IP header. The small footprint and simple implementation allows a small 8-bit system to be fully connected on the network. This allows all subsystems to provide their services on the same network level, without any master node required. Using a service oriented architecture has several advantages compared to the traditional mater/slave topology used on many cubesats.
 
- * Standardised network protocol: All subsystems can communicate with eachother
- * Service loose coupling: Services maintain a relationship that minimizes dependencies between subsystems
- * Service abstraction: Beyond descriptions in the service contract, services hide logic from the outside world
- * Service reusability: Logic is divided into services with the intention of promoting reuse.
- * Service autonomy: Services have control over the logic they encapsulate.
- * Service Redundancy: Easily add redundant services to the bus
- * Reduces single point of failure: The complexity is moved from a single master node to several well defined services on the network
+* Standardised network protocol: All subsystems can communicate with eachother
+* Service loose coupling: Services maintain a relationship that minimizes dependencies between subsystems
+* Service abstraction: Beyond descriptions in the service contract, services hide logic from the outside world
+* Service reusability: Logic is divided into services with the intention of promoting reuse.
+* Service autonomy: Services have control over the logic they encapsulate.
+* Service Redundancy: Easily add redundant services to the bus
+* Reduces single point of failure: The complexity is moved from a single master node to several well defined services on the network
 
 The implementation of `libcsp` is written with simplicity in mind, but it's compile time configuration allows it to have some rather advanced features as well:
 
 Features
 --------
 
- * Thread safe Socket API
- * Router task with Quality of Services
- * Connection-oriented operation (RFC 908 and 1151).
- * Connection-less operation (similar to UDP)
- * ICMP-like requests such as ping and buffer status.
- * Loopback interface
- * Very Small Footprint in regards to code and memory required
- * Zero-copy buffer and queue system
- * Modular network interface system
- * OS abstraction, currently ported to: FreeRTOS, Linux (POSIX), MacOS and Windows
- * Broadcast traffic
- * Promiscuous mode
- * Encrypted packets with XTEA in CTR mode
- * Truncated HMAC-SHA1 Authentication (RFC 2104)
+* Thread safe Socket API
+* Router task with Quality of Services
+* Connection-oriented operation (RFC 908 and 1151).
+* Connection-less operation (similar to UDP)
+* ICMP-like requests such as ping and buffer status.
+* Loopback interface
+* Very Small Footprint in regards to code and memory required
+* Zero-copy buffer and queue system
+* Modular network interface system
+* OS abstraction, currently ported to: FreeRTOS, Linux (POSIX), MacOS and Windows
+* Broadcast traffic
+* Promiscuous mode
+* Encrypted packets with XTEA in CTR mode
+* Truncated HMAC-SHA1 Authentication (RFC 2104)
 
 LGPL Software license
 ---------------------

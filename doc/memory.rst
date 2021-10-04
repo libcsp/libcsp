@@ -7,8 +7,8 @@ The current libcsp implementation primarily uses dynamic memory allocation durin
 
 Once the initiallization is complete, there are only a few functions that uses dynamic allocation, such as:
 
- * csp_sfp_recv() - sending larger memory chuncks than can fit into a single CSP message.
- * csp_rtable (cidr only) - adding new elements may allocate memory.
+* csp_sfp_recv() - sending larger memory chuncks than can fit into a single CSP message.
+* csp_rtable (cidr only) - adding new elements may allocate memory.
 
 This means that there are no `alloc/free` after initialization, possibly causing fragmented memory which especially can be a problem on small systems with limited memory.
 It also allows for a very simple memory allocator (implementation of `csp_malloc()`), as `free` can be avoided.

@@ -10,12 +10,12 @@ Satellites using CSP
 
 Here is a list of some of the known satellites or organisations, that uses CSP:
 
- * GomSpace GATOSS GOMX-1
- * AAUSAT-3
- * EgyCubeSat
- * EuroLuna
- * NUTS
- * Hawaiian Space Flight Laboratory
- * GomSpace GOMX-3, GOMX-4 A & B
+* GomSpace GATOSS GOMX-1
+* AAUSAT-3
+* EgyCubeSat
+* EuroLuna
+* NUTS
+* Hawaiian Space Flight Laboratory
+* GomSpace GOMX-3, GOMX-4 A & B
 
 See list of libcsp fork's here: https://github.com/libcsp/libcsp/network/members

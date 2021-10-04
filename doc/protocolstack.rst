@@ -49,13 +49,12 @@ RDP
 ^^^
 CSP provides a transport layer extension called RDP (reliable datagram protocol) which is an implementation of RFC908 and RFC1151. RDP provides a few additional features:
 
- * Three-way handshake
- * Flow Control
- * Data-buffering
- * Packet re-ordering
- * Retransmission
- * Windowing
- * Extended Acknowledgment
+* Three-way handshake
+* Flow Control
+* Data-buffering
+* Packet re-ordering
+* Retransmission
+* Windowing
+* Extended Acknowledgment
 
 For more information on this, please refer to RFC908 and RFC1151.
-
