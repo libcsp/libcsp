@@ -22,7 +22,7 @@ The example supports the drivers and interfaces in CSP:
     To achieve best performance and stabilty, following options can be
     set on the CAN device:
 
-    ``` none
+    ```
     linux: sudo ip link set dev can0 down
     linux: sudo ip link set dev can0 up type can bitrate 1000000 restart-ms 100
     linux: sudo ip link set dev can0 txqueuelen 100
