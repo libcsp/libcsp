@@ -3,7 +3,7 @@ libcsp 2.0, xx-yy-zzzz
 - new: CSP Header 2.0. Support for 14-bit network addresses.
 - new: CFP (Can fragmentation protocol) 2.0
 - new: Meson build system
-- new: CMake build system 
+- new: CMake build system
 - new: Went back to use more compile time configuration for less runtime checks and simpler memory allocation
 - new: Connection less callbacks. The router now supports executing small services directly using a callback saving memory
 - new: csp_if_udp: New UDP interface for point to point UDP links
@@ -34,7 +34,6 @@ Todo:
 - api: csp_send(): Now always frees the packet and returns void.
 - python bindings: Refreshed to new api, builds with meson and cmake
 - interface: I2C needs to be tested with CSP 2.0
-- waf: 2.0 needs to build with WAF too
 
 libcsp 1.6, 16-04-2020
 ----------------------
@@ -198,4 +197,3 @@ libcsp 1.0, 24-10-2011
 - Features: Python Bindings
 - Features: CAN interface w. drivers for several chips
 - Features: CSP-services (ping, reboot, uptime, memfree, buffree, ident)
-
