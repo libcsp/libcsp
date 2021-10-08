@@ -113,4 +113,5 @@ subdir('examples')
 csp_dep = declare_dependency(
 	include_directories : csp_inc,
 	link_with : csp_lib,
+	dependencies : csp_deps,
 )
