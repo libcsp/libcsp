@@ -43,7 +43,7 @@ static int openPort(const char * device, csp_usart_fd_t * return_fd) {
                              0,
                              NULL,
                              OPEN_EXISTING,
-                             0,
+                             FILE_FLAG_OVERLAPPED,
                              NULL);
     if (*return_fd == INVALID_HANDLE_VALUE) {
         csp_log_error("Failed to open port: [%s], error: %lu", device, GetLastError());
@@ -99,36 +99,132 @@ static int setPortTimeouts(csp_usart_fd_t fd) {
 }
 
 static unsigned WINAPI usart_rx_thread(void* params) {
-
     usart_context_t * ctx = params;
-    DWORD eventStatus;
     uint8_t cbuf[100];
     DWORD bytesRead;
+    DWORD dwErrors;
+    COMSTAT comStat;
+    OVERLAPPED osReader = {0};
     SetCommMask(ctx->fd, EV_RXCHAR);
 
+    // Create the overlapped event. Must be closed before exiting to avoid a handle leak.
+    osReader.hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
     while (ctx->isListening) {
-        WaitCommEvent(ctx->fd, &eventStatus, NULL);
-        if (eventStatus & EV_RXCHAR) {
-            if (ReadFile(ctx->fd, cbuf, sizeof(cbuf), &bytesRead, NULL)) {
+        BOOL fWaitingOnRead = FALSE;
+
+        if (osReader.hEvent == NULL) {
+            csp_log_error("Failed to create overlapped read event\n");
+            exit(1);
+        }
+
+        if (!fWaitingOnRead) {
+            // Issue read operation.
+            if (!ReadFile(ctx->fd, cbuf, 100, &bytesRead, &osReader)) {
+                if (GetLastError() != ERROR_IO_PENDING) {
+                        csp_log_error("ReadFile error\n");
+                        ClearCommError(ctx->fd, &dwErrors, &comStat);
+                } else {
+                    fWaitingOnRead = TRUE;
+                }
+            } else {   
                 ctx->rx_callback(ctx->user_data, cbuf, bytesRead, NULL);
-            } else {
-                csp_log_warn("Error receiving data, error: %lu", GetLastError());
+            }
+        }
+        
+        if (fWaitingOnRead) {
+            DWORD dwRes = WaitForSingleObject(osReader.hEvent, UINT_MAX);
+            switch(dwRes) {
+                // Read completed.
+                case WAIT_OBJECT_0:
+                    if (!GetOverlappedResult(ctx->fd, &osReader, &bytesRead, TRUE)) {
+                        // Error in communications; report it.
+                        csp_log_error("Error in overlapped result\n");
+                        ClearCommError(ctx->fd, &dwErrors, &comStat);
+                    } else {
+                        // Read completed successfully.
+                        ctx->rx_callback(ctx->user_data, cbuf, bytesRead, NULL);
+                    }
+                    //  Reset flag so that another opertion can be issued.
+                    fWaitingOnRead = FALSE;
+                    break;
+
+                case WAIT_TIMEOUT:
+                    csp_log_error("Wait timed out\n");
+                    // Operation isn't complete yet. fWaitingOnRead flag isn't
+                    // changed since I'll loop back around, and I don't want
+                    // to issue another read until the first one finishes.
+                    //
+                    // This is a good time to do some background work.
+                    break;                       
+
+                default:
+                    csp_log_error("Error in waiting for single object\n");
+                    exit(1);
+                    // Error in the WaitForSingleObject; abort.
+                    // This indicates a problem with the OVERLAPPED structure's
+                    // event handle.
+                    break;
             }
         }
     }
+    CloseHandle(osReader.hEvent);
     return 0;
 }
 
 int csp_usart_write(csp_usart_fd_t fd, const void * data, size_t data_length) {
+    OVERLAPPED osWrite = {0};
+    DWORD dwWritten;
+    DWORD dwRes;
+    DWORD dwErrors;
+    COMSTAT comStat;
+    int res;
 
-    DWORD bytesActual;
-    if (!WriteFile(fd, data, data_length, &bytesActual, NULL)) {
-        return CSP_ERR_TX;
+    // Create this write operation's OVERLAPPED structure's hEvent.
+    osWrite.hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
+    if (osWrite.hEvent == NULL) {
+        csp_log_error("Failed to create event handle\n");
+        res = CSP_ERR_TX;
     }
-    if( !FlushFileBuffers(fd) ) {
-        csp_log_warn("Could not flush write buffer. Code: %lu", GetLastError());
+
+    // Issue write.
+    else if (!WriteFile(fd, data, data_length, &dwWritten, &osWrite)) {
+        if (GetLastError() != ERROR_IO_PENDING) { 
+            // WriteFile failed, but isn't delayed. Report error and abort.
+            csp_log_error("WriteFile failed\n");
+            ClearCommError(fd, &dwErrors, &comStat);
+            res = CSP_ERR_TX;
+        } else {
+            // Write is pending.
+            dwRes = WaitForSingleObject(osWrite.hEvent, INFINITE);
+            switch(dwRes) {
+                case WAIT_OBJECT_0:
+                    if (!GetOverlappedResult(fd, &osWrite, &dwWritten, FALSE)) {
+                        csp_log_error("Error in overlapped result\n");
+                        ClearCommError(fd, &dwErrors, &comStat);
+                        res = CSP_ERR_TX;
+                    } else {
+                        // Write operation completed successfully.
+                        res = CSP_ERR_NONE;
+                    }
+                    break;
+            
+                default:
+                    // An error has occurred in WaitForSingleObject.
+                    // This usually indicates a problem with the
+                    // OVERLAPPED structure's event handle.
+                    csp_log_error("Error in overlapped result\n");
+                    ClearCommError(fd, &dwErrors, &comStat);
+                    res = CSP_ERR_TX;
+                    break;
+            }
+        }
+    } else {
+        // WriteFile completed immediately.
+        res = CSP_ERR_NONE;
     }
-    return (int) bytesActual;
+
+    CloseHandle(osWrite.hEvent);
+    return (res == CSP_ERR_NONE) ? (int)dwWritten : res;
 }
 
 int csp_usart_open(const csp_usart_conf_t *conf, csp_usart_callback_t rx_callback, void * user_data, csp_usart_fd_t * return_fd) {
@@ -168,6 +264,10 @@ int csp_usart_open(const csp_usart_conf_t *conf, csp_usart_callback_t rx_callbac
         csp_free(ctx);
         return res;
     }
+
+    if (return_fd) {
+        *return_fd = fd;
+	}
 
     return CSP_ERR_NONE;
 }
