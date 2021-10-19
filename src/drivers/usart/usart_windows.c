@@ -100,7 +100,6 @@ static int setPortTimeouts(csp_usart_fd_t fd) {
 
 static unsigned WINAPI usart_rx_thread(void* params) {
     usart_context_t * ctx = params;
-    DWORD eventStatus;
     uint8_t cbuf[100];
     DWORD bytesRead;
     DWORD dwErrors;

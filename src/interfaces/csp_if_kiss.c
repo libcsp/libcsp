@@ -31,7 +31,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #define TFESC 		0xDD
 #define TNC_DATA	0x00
 
-int csp_kiss_tx(const csp_route_t * ifroute, csp_packet_t * packet) {
+#define TEMP_BUF_LEN 2048
+
+int csp_kiss_tx(const csp_route_t *ifroute, csp_packet_t *packet) {
 
 	csp_kiss_interface_data_t * ifdata = ifroute->iface->interface_data;
 	void * driver = ifroute->iface->driver_data;
@@ -49,24 +51,46 @@ int csp_kiss_tx(const csp_route_t * ifroute, csp_packet_t * packet) {
 	packet->length += sizeof(packet->id.ext);
 
 	/* Transmit data */
-        const unsigned char start[] = {FEND, TNC_DATA};
-        const unsigned char esc_end[] = {FESC, TFEND};
-        const unsigned char esc_esc[] = {FESC, TFESC};
-        const unsigned char * data = (unsigned char *) &packet->id.ext;
-        ifdata->tx_func(driver, start, sizeof(start));
-	for (unsigned int i = 0; i < packet->length; i++, ++data) {
-		if (*data == FEND) {
-                    ifdata->tx_func(driver, esc_end, sizeof(esc_end));
-                    continue;
+	const unsigned char start[] = { FEND, TNC_DATA };
+	const unsigned char esc_end[] = { FESC, TFEND };
+	const unsigned char esc_esc[] = { FESC, TFESC };
+	const unsigned char *data = (unsigned char *) &packet->id.ext;
+
+	ifdata->tx_func(driver, start, sizeof(start));
+
+	unsigned char tmp_buf[TEMP_BUF_LEN];
+	uint16_t j = 0;
+	for (unsigned int i = 0; i < packet->length; i++, j++, ++data) {
+		if (j == TEMP_BUF_LEN) {
+			ifdata->tx_func(driver, (const unsigned char *)tmp_buf, j);
+			j = 0;
 		}
-                if (*data == FESC) {
-                    ifdata->tx_func(driver, esc_esc, sizeof(esc_esc));
-                    continue;
+
+		switch(*data) {
+			case FEND:
+				// printf("FEND cnt %d\r\n", j);
+				tmp_buf[j] = esc_end[0];
+				j++;
+				tmp_buf[j] = esc_end[1];
+				break;
+
+			case FESC:
+				// printf("FESC cnt %d\r\n", j);
+				tmp_buf[j] = esc_esc[0];
+				j++;
+				tmp_buf[j] = esc_esc[1];
+				break;
+
+			default:
+				tmp_buf[j] = (unsigned char)*data;
+				break;
 		}
-		ifdata->tx_func(driver, data, 1);
 	}
-        const unsigned char stop[] = {FEND};
-        ifdata->tx_func(driver, stop, sizeof(stop));
+
+	ifdata->tx_func(driver, (const unsigned char *)tmp_buf, j--);
+
+	const unsigned char stop[] = { FEND };
+	ifdata->tx_func(driver, stop, sizeof(stop));
 
 	/* Free data */
 	csp_buffer_free(packet);
