@@ -37,11 +37,9 @@ if __name__ == "__main__":
         # "host"          - Host name, returned by CSP identity requests
         # "model"         - Model, returned by CSP identity requests
         # "1.2.3"         - Revision, returned by CSP identity requests
-        # 10              - Number of CSP buffers (default=10)
-        # 300             - Data size of a CSP buffer. Total size will be size of csp_packet_t + Data size (default=256)
     # See "include\csp\csp.h" - lines 42-80 for more detail
     # See "src\bindings\python\pycsp.c" - lines 128-156 for more detail
-    libcsp.init(options.address, "host", "model", "1.2.3", 10, 300)
+    libcsp.init(options.address, "host", "model", "1.2.3")
 
     if options.can:
         # add CAN interface
@@ -80,25 +78,35 @@ if __name__ == "__main__":
     # CMP identification request
     print("CMP ident:", libcsp.cmp_ident(options.server_address))
 
-    # Parameters: {address of subsystem}, optional:{timeout ms (default=1000)}, optional:{data size in bytes (default=10)}, optional:{connection options as bit flags (see "src\csp_conn.c")} 
+    # Parameters: {address of subsystem}, optional:{timeout ms (default=1000)}, optional:{data size in bytes (default=10)}, optional:{connection options as bit flags (see "src\csp_conn.c")}
     # Ping message
-    print("Ping: %d mS" % libcsp.ping(options.server_address))
-
+    num_times = 10
+    print(f"\nPinging: {options.server_address} {num_times} times")
+    for _ in range(num_times):
+        print("ping reply in: %d mS" % libcsp.ping(options.server_address))
+    print()  # Newline
 
     # *** more services can be found at "src\csp_services.c" *** #
 
+    number = 0
+    num_times = 10
+    print("Exchange data with server using csp_transaction ...")
+    print(f"Counting from {hex(number)} to {hex(num_times)}:")
+    for _ in range(num_times):
 
-    # transaction
-    outbuf = bytearray().fromhex('01')
-    inbuf = bytearray(1)
-    print ("Exchange data with server using csp_transaction ...")
+        # transaction
+        outbuf = bytearray().fromhex(hex(number)[2:].zfill(2))
+        inbuf = bytearray(1)
 
-    # Perform an entire request & reply transaction w/ params:
-        # 0                       - priority
-        # options.server_address  - dest address
-        # 10                      - dest port 
-        # 1000                    - timeout ms
-        # outbuf                  - outgoing data (request)
-        # inbuf                   - buffer provided for recieving data (reply)      
-    libcsp.transaction(0, options.server_address, 10, 1000, outbuf, inbuf)
-    print ("  got reply from server [%s]" % (''.join('{:02x}'.format(x) for x in inbuf)))
+        # Perform an entire request & reply transaction w/ params:
+            # 0                       - priority
+            # options.server_address  - dest address
+            # 10                      - dest port
+            # 1000                    - timeout ms
+            # outbuf                  - outgoing data (request)
+            # inbuf                   - buffer provided for recieving data (reply)
+
+        libcsp.transaction(0, options.server_address, 10, 1000, outbuf, inbuf)
+        print("  got reply from server [%s]" % (''.join('{:02x}'.format(x) for x in inbuf)))
+        number = inbuf[0]
+        time.sleep(0.1)
