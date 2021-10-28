@@ -1,6 +1,6 @@
 project('csp', 'c', version: '1.5.0', license: 'LGPL',
         meson_version : '>=0.45.1',
-	default_options : ['c_std=gnu99',
+	default_options : ['c_std=gnu11',
 			   'optimization=s',
 			   'warning_level=2',
 			   'werror=true'])
