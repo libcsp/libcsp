@@ -38,13 +38,13 @@ csp_debug_hook_func_t csp_debug_hook_func = NULL;
 
 /* Debug levels */
 bool csp_debug_level_enabled[] = {
-	[CSP_ERROR]	= true,
-	[CSP_WARN]	= true,
-	[CSP_INFO]	= false,
-	[CSP_BUFFER]	= false,
-	[CSP_PACKET]	= false,
-	[CSP_PROTOCOL]	= false,
-	[CSP_LOCK]	= false,
+	[CSP_ERROR] = true,
+	[CSP_WARN] = true,
+	[CSP_INFO] = false,
+	[CSP_BUFFER] = false,
+	[CSP_PACKET] = false,
+	[CSP_PROTOCOL] = false,
+	[CSP_LOCK] = false,
 };
 
 void csp_debug_hook_set(csp_debug_hook_func_t f) {
@@ -52,7 +52,7 @@ void csp_debug_hook_set(csp_debug_hook_func_t f) {
 	csp_debug_hook_func = f;
 }
 
-void do_csp_debug(csp_debug_level_t level, const char *format, ...) {
+void do_csp_debug(csp_debug_level_t level, const char * format, ...) {
 
 	int color = COLOR_RESET;
 	va_list args;
@@ -61,30 +61,30 @@ void do_csp_debug(csp_debug_level_t level, const char *format, ...) {
 	if (level > CSP_LOCK || !csp_debug_level_enabled[level])
 		return;
 
-	switch(level) {
-	case CSP_INFO:
-		color = COLOR_GREEN | COLOR_BOLD;
-		break;
-	case CSP_ERROR:
-		color = COLOR_RED | COLOR_BOLD;
-		break;
-	case CSP_WARN:
-		color = COLOR_YELLOW | COLOR_BOLD;
-		break;
-	case CSP_BUFFER:
-		color = COLOR_MAGENTA;
-		break;
-	case CSP_PACKET:
-		color = COLOR_GREEN;
-		break;
-	case CSP_PROTOCOL:
-		color = COLOR_BLUE;
-		break;
-	case CSP_LOCK:
-		color = COLOR_CYAN;
-		break;
-	default:
-		return;
+	switch (level) {
+		case CSP_INFO:
+			color = COLOR_GREEN | COLOR_BOLD;
+			break;
+		case CSP_ERROR:
+			color = COLOR_RED | COLOR_BOLD;
+			break;
+		case CSP_WARN:
+			color = COLOR_YELLOW | COLOR_BOLD;
+			break;
+		case CSP_BUFFER:
+			color = COLOR_MAGENTA;
+			break;
+		case CSP_PACKET:
+			color = COLOR_GREEN;
+			break;
+		case CSP_PROTOCOL:
+			color = COLOR_BLUE;
+			break;
+		case CSP_LOCK:
+			color = COLOR_CYAN;
+			break;
+		default:
+			return;
 	}
 
 	va_start(args, format);
@@ -96,9 +96,9 @@ void do_csp_debug(csp_debug_level_t level, const char *format, ...) {
 	} else {
 		csp_sys_set_color(color);
 #if (CSP_DEBUG_TIMESTAMP)
-                csp_timestamp_t ts;
-                csp_clock_get_time(&ts);
-                printf("%u.%06u ", ts.tv_sec, ts.tv_nsec / 1000U);
+		csp_timestamp_t ts;
+		csp_clock_get_time(&ts);
+		printf("%u.%06u ", ts.tv_sec, ts.tv_nsec / 1000U);
 #endif
 #ifdef __AVR__
 		vfprintf_P(stdout, format, args);
@@ -134,4 +134,4 @@ void csp_debug_toggle_level(csp_debug_level_t level) {
 	}
 }
 
-#endif // (CSP_DEBUG) && !(CSP_USE_EXTERNAL_DEBUG)
+#endif  // (CSP_DEBUG) && !(CSP_USE_EXTERNAL_DEBUG)

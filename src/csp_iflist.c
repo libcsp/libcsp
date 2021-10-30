@@ -28,9 +28,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 /* Interfaces are stored in a linked list */
 static csp_iface_t * interfaces = NULL;
 
-csp_iface_t * csp_iflist_get_by_name(const char *name) {
-	csp_iface_t *ifc = interfaces;
-	while(ifc) {
+csp_iface_t * csp_iflist_get_by_name(const char * name) {
+	csp_iface_t * ifc = interfaces;
+	while (ifc) {
 		if (strncmp(ifc->name, name, CSP_IFLIST_NAME_MAX) == 0) {
 			break;
 		}
@@ -39,7 +39,7 @@ csp_iface_t * csp_iflist_get_by_name(const char *name) {
 	return ifc;
 }
 
-int csp_iflist_add(csp_iface_t *ifc) {
+int csp_iflist_add(csp_iface_t * ifc) {
 
 	ifc->next = NULL;
 
@@ -63,26 +63,25 @@ int csp_iflist_add(csp_iface_t *ifc) {
 	return CSP_ERR_NONE;
 }
 
-csp_iface_t * csp_iflist_get(void)
-{
-    return interfaces;
+csp_iface_t * csp_iflist_get(void) {
+	return interfaces;
 }
 
 #if (CSP_DEBUG)
-int csp_bytesize(char *buffer, int buffer_len, unsigned long int bytes) {
+int csp_bytesize(char * buffer, int buffer_len, unsigned long int bytes) {
 	char postfix;
 	double size;
 
 	if (bytes >= 1048576) {
-		size = bytes/1048576.0;
+		size = bytes / 1048576.0;
 		postfix = 'M';
 	} else if (bytes >= 1024) {
-		size = bytes/1024.0;
+		size = bytes / 1024.0;
 		postfix = 'K';
 	} else {
 		size = bytes;
 		postfix = 'B';
- 	}
+	}
 
 	return snprintf(buffer, buffer_len, "%.1f%c", size, postfix);
 }
@@ -94,13 +93,14 @@ void csp_iflist_print(void) {
 	while (i) {
 		csp_bytesize(txbuf, sizeof(txbuf), i->txbytes);
 		csp_bytesize(rxbuf, sizeof(rxbuf), i->rxbytes);
-		printf("%-10s tx: %05"PRIu32" rx: %05"PRIu32" txe: %05"PRIu32" rxe: %05"PRIu32"\r\n"
-		       "           drop: %05"PRIu32" autherr: %05"PRIu32 " frame: %05"PRIu32"\r\n"
-		       "           txb: %"PRIu32" (%s) rxb: %"PRIu32" (%s) MTU: %u\r\n\r\n",
-		       i->name, i->tx, i->rx, i->tx_error, i->rx_error, i->drop,
-		       i->autherr, i->frame, i->txbytes, txbuf, i->rxbytes, rxbuf, i->mtu);
+		printf("%-10s tx: %05" PRIu32 " rx: %05" PRIu32 " txe: %05" PRIu32 " rxe: %05" PRIu32
+			   "\r\n"
+			   "           drop: %05" PRIu32 " autherr: %05" PRIu32 " frame: %05" PRIu32
+			   "\r\n"
+			   "           txb: %" PRIu32 " (%s) rxb: %" PRIu32 " (%s) MTU: %u\r\n\r\n",
+			   i->name, i->tx, i->rx, i->tx_error, i->rx_error, i->drop,
+			   i->autherr, i->frame, i->txbytes, txbuf, i->rxbytes, rxbuf, i->mtu);
 		i = i->next;
 	}
 }
 #endif
-

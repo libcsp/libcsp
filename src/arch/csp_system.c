@@ -1,7 +1,7 @@
 /*
 Cubesat Space Protocol - A small network-layer protocol designed for Cubesats
 Copyright (C) 2012 Gomspace ApS (http://www.gomspace.com)
-Copyright (C) 2012 AAUSAT3 Project (http://aausat3.space.aau.dk) 
+Copyright (C) 2012 AAUSAT3 Project (http://aausat3.space.aau.dk)
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -28,7 +28,6 @@ static csp_sys_shutdown_t csp_sys_shutdown_callback = NULL;
 void csp_sys_set_reboot(csp_sys_reboot_t reboot) {
 
 	csp_sys_reboot_callback = reboot;
-
 }
 
 int csp_sys_reboot(void) {
@@ -38,13 +37,11 @@ int csp_sys_reboot(void) {
 	}
 	csp_log_warn("%s not supported - no user function set", __FUNCTION__);
 	return CSP_ERR_NOTSUP;
-
 }
 
 void csp_sys_set_shutdown(csp_sys_shutdown_t shutdown) {
 
 	csp_sys_shutdown_callback = shutdown;
-
 }
 
 int csp_sys_shutdown(void) {
@@ -54,5 +51,4 @@ int csp_sys_shutdown(void) {
 	}
 	csp_log_warn("%s not supported - no user function set", __FUNCTION__);
 	return CSP_ERR_NOTSUP;
-
 }

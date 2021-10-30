@@ -32,8 +32,7 @@ csp_conf_t csp_conf = {
 	.model = "",
 	.revision = "",
 	.conn_dfl_so = CSP_O_NONE,
-	.dedup = CSP_DEDUP_OFF
-};
+	.dedup = CSP_DEDUP_OFF};
 
 uint16_t csp_get_address(void) {
 	return csp_conf.address;
@@ -56,13 +55,11 @@ void csp_init(void) {
 
 	/* Also register loopback as default, until user redefines default route */
 	csp_rtable_set(0, 0, &csp_if_lo, CSP_NO_VIA_ADDRESS);
-
 }
 
 void csp_free_resources(void) {
 
 	csp_rtable_free();
-
 }
 
 const csp_conf_t * csp_get_conf(void) {

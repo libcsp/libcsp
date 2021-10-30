@@ -23,17 +23,15 @@
 LOG_MODULE_DECLARE(libcsp);
 
 csp_queue_handle_t csp_queue_create_static(int length, size_t item_size,
-					   char *buf, csp_static_queue_t *queue)
-{
-	struct k_msgq *q = (struct k_msgq *)queue;
+										   char * buf, csp_static_queue_t * queue) {
+	struct k_msgq * q = (struct k_msgq *)queue;
 
 	k_msgq_init(q, buf, item_size, length);
 
 	return q;
 }
 
-static int csp_errno_zephyr_to_csp(int err)
-{
+static int csp_errno_zephyr_to_csp(int err) {
 	int ret;
 
 	if (err == 0) {
@@ -45,20 +43,18 @@ static int csp_errno_zephyr_to_csp(int err)
 	return ret;
 }
 
-int csp_queue_enqueue(csp_queue_handle_t queue, const void * value, uint32_t timeout)
-{
+int csp_queue_enqueue(csp_queue_handle_t queue, const void * value, uint32_t timeout) {
 	int ret;
-	struct k_msgq *q = (struct k_msgq *)queue;
+	struct k_msgq * q = (struct k_msgq *)queue;
 
 	ret = k_msgq_put(q, value, K_MSEC(timeout));
 
 	return csp_errno_zephyr_to_csp(ret);
 }
 
-int csp_queue_enqueue_isr(csp_queue_handle_t queue, const void *value, int *unused)
-{
+int csp_queue_enqueue_isr(csp_queue_handle_t queue, const void * value, int * unused) {
 	int ret;
-	struct k_msgq *q = (struct k_msgq *)queue;
+	struct k_msgq * q = (struct k_msgq *)queue;
 
 	ARG_UNUSED(unused);
 
@@ -67,20 +63,18 @@ int csp_queue_enqueue_isr(csp_queue_handle_t queue, const void *value, int *unus
 	return csp_errno_zephyr_to_csp(ret);
 }
 
-int csp_queue_dequeue(csp_queue_handle_t queue, void * buf, uint32_t timeout)
-{
+int csp_queue_dequeue(csp_queue_handle_t queue, void * buf, uint32_t timeout) {
 	int ret;
-	struct k_msgq *q = (struct k_msgq *)queue;
+	struct k_msgq * q = (struct k_msgq *)queue;
 
 	ret = k_msgq_get(q, buf, K_MSEC(timeout));
 
 	return csp_errno_zephyr_to_csp(ret);
 }
 
-int csp_queue_dequeue_isr(csp_queue_handle_t queue, void *buf, int *unused)
-{
+int csp_queue_dequeue_isr(csp_queue_handle_t queue, void * buf, int * unused) {
 	int ret;
-	struct k_msgq *q = (struct k_msgq *)queue;
+	struct k_msgq * q = (struct k_msgq *)queue;
 
 	ARG_UNUSED(unused);
 
@@ -89,14 +83,12 @@ int csp_queue_dequeue_isr(csp_queue_handle_t queue, void *buf, int *unused)
 	return csp_errno_zephyr_to_csp(ret);
 }
 
-int csp_queue_size(csp_queue_handle_t queue)
-{
-	struct k_msgq *q = (struct k_msgq *)queue;
+int csp_queue_size(csp_queue_handle_t queue) {
+	struct k_msgq * q = (struct k_msgq *)queue;
 
 	return k_msgq_num_used_get(q);
 }
 
-int csp_queue_size_isr(csp_queue_handle_t queue)
-{
+int csp_queue_size_isr(csp_queue_handle_t queue) {
 	return csp_queue_size(queue);
 }

@@ -25,15 +25,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/arch/csp_time.h>
 
 /* Number of packet buffer elements */
-#define PBUF_ELEMENTS		20
+#define PBUF_ELEMENTS 20
 
 /* Buffer element timeout in ms */
-#define PBUF_TIMEOUT_MS		1000
+#define PBUF_TIMEOUT_MS 1000
 
 static csp_can_pbuf_element_t csp_can_pbuf[PBUF_ELEMENTS] = {};
 
-int csp_can_pbuf_free(csp_can_pbuf_element_t *buf, int *task_woken)
-{
+int csp_can_pbuf_free(csp_can_pbuf_element_t * buf, int * task_woken) {
 	/* Free CSP packet */
 	if (buf->packet != NULL) {
 		if (task_woken == NULL) {
@@ -54,8 +53,7 @@ int csp_can_pbuf_free(csp_can_pbuf_element_t *buf, int *task_woken)
 	return CSP_ERR_NONE;
 }
 
-csp_can_pbuf_element_t *csp_can_pbuf_new(uint32_t id, int *task_woken)
-{
+csp_can_pbuf_element_t * csp_can_pbuf_new(uint32_t id, int * task_woken) {
 	uint32_t now = (task_woken) ? csp_get_ms_isr() : csp_get_ms();
 
 	for (int i = 0; i < PBUF_ELEMENTS; i++) {
@@ -73,15 +71,12 @@ csp_can_pbuf_element_t *csp_can_pbuf_new(uint32_t id, int *task_woken)
 			csp_can_pbuf[i].last_used = now;
 			return &csp_can_pbuf[i];
 		}
-
 	}
 
 	return NULL;
-
 }
 
-csp_can_pbuf_element_t *csp_can_pbuf_find(uint32_t id, uint32_t mask, int *task_woken)
-{
+csp_can_pbuf_element_t * csp_can_pbuf_find(uint32_t id, uint32_t mask, int * task_woken) {
 	for (int i = 0; i < PBUF_ELEMENTS; i++) {
 
 		if (csp_can_pbuf[i].state != BUF_USED)
@@ -94,4 +89,3 @@ csp_can_pbuf_element_t *csp_can_pbuf_find(uint32_t id, uint32_t mask, int *task_
 	}
 	return NULL;
 }
-

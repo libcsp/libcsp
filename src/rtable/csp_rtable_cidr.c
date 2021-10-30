@@ -26,9 +26,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 /* Definition of routing table */
 static struct csp_rtable_s {
-    csp_route_t route;
-    uint16_t address;
-    uint16_t netmask;
+	csp_route_t route;
+	uint16_t address;
+	uint16_t netmask;
 } rtable[CSP_RTABLE_SIZE] = {0};
 
 static int rtable_inptr = 0;
@@ -43,7 +43,6 @@ static struct csp_rtable_s * csp_rtable_find_exact(uint16_t addr, uint16_t netma
 	}
 
 	return NULL;
-
 }
 
 const csp_route_t * csp_rtable_find_route(uint16_t addr) {
@@ -69,7 +68,6 @@ const csp_route_t * csp_rtable_find_route(uint16_t addr) {
 				best_result_mask = rtable[i].netmask;
 			}
 		}
-
 	}
 
 	if (best_result > -1) {
@@ -77,10 +75,9 @@ const csp_route_t * csp_rtable_find_route(uint16_t addr) {
 	}
 
 	return NULL;
-
 }
 
-int csp_rtable_set_internal(uint16_t address, uint16_t netmask, csp_iface_t *ifc, uint16_t via) {
+int csp_rtable_set_internal(uint16_t address, uint16_t netmask, csp_iface_t * ifc, uint16_t via) {
 
 	/* First see if the entry exists */
 	struct csp_rtable_s * entry = csp_rtable_find_exact(address, netmask);

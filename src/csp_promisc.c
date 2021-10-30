@@ -44,7 +44,6 @@ int csp_promisc_enable(unsigned int queue_size) {
 
 	csp_promisc_enabled = 1;
 	return CSP_ERR_NONE;
-
 }
 
 void csp_promisc_disable(void) {
@@ -60,7 +59,6 @@ csp_packet_t * csp_promisc_read(uint32_t timeout) {
 	csp_queue_dequeue(csp_promisc_queue, &packet, timeout);
 
 	return packet;
-
 }
 
 void csp_promisc_add(csp_packet_t * packet) {
@@ -70,7 +68,7 @@ void csp_promisc_add(csp_packet_t * packet) {
 
 	if (csp_promisc_queue != NULL) {
 		/* Make a copy of the message and queue it to the promiscuous task */
-		csp_packet_t *packet_copy = csp_buffer_clone(packet);
+		csp_packet_t * packet_copy = csp_buffer_clone(packet);
 		if (packet_copy != NULL) {
 			if (csp_queue_enqueue(csp_promisc_queue, &packet_copy, 0) != CSP_QUEUE_OK) {
 				csp_log_error("Promiscuous mode input queue full");
@@ -78,7 +76,6 @@ void csp_promisc_add(csp_packet_t * packet) {
 			}
 		}
 	}
-
 }
 
 #endif

@@ -29,25 +29,31 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/csp_buffer.h>
 #include <csp/crypto/csp_sha1.h>
 
-#define XTEA_BLOCKSIZE 	8
-#define XTEA_ROUNDS 	32
-#define XTEA_KEY_LENGTH	16
+#define XTEA_BLOCKSIZE  8
+#define XTEA_ROUNDS     32
+#define XTEA_KEY_LENGTH 16
 
 /* XTEA key */
-static uint32_t csp_xtea_key[XTEA_KEY_LENGTH/sizeof(uint32_t)] __attribute__ ((aligned(sizeof(uint32_t))));
+static uint32_t csp_xtea_key[XTEA_KEY_LENGTH / sizeof(uint32_t)] __attribute__((aligned(sizeof(uint32_t))));
 
-#define STORE32L(x, y) do { (y)[3] = (uint8_t)(((x) >> 24) & 0xff); \
-							(y)[2] = (uint8_t)(((x) >> 16) & 0xff); \
-							(y)[1] = (uint8_t)(((x) >> 8) & 0xff); \
-							(y)[0] = (uint8_t)(((x) >> 0) & 0xff); } while (0)
+#define STORE32L(x, y)                          \
+	do {                                        \
+		(y)[3] = (uint8_t)(((x) >> 24) & 0xff); \
+		(y)[2] = (uint8_t)(((x) >> 16) & 0xff); \
+		(y)[1] = (uint8_t)(((x) >> 8) & 0xff);  \
+		(y)[0] = (uint8_t)(((x) >> 0) & 0xff);  \
+	} while (0)
 
-#define LOAD32L(x, y) do { (x) = ((uint32_t)((y)[3] & 0xff) << 24) | \
-								 ((uint32_t)((y)[2] & 0xff) << 16) | \
-								 ((uint32_t)((y)[1] & 0xff) << 8)  | \
-								 ((uint32_t)((y)[0] & 0xff) << 0); } while (0)
+#define LOAD32L(x, y)                             \
+	do {                                          \
+		(x) = ((uint32_t)((y)[3] & 0xff) << 24) | \
+			  ((uint32_t)((y)[2] & 0xff) << 16) | \
+			  ((uint32_t)((y)[1] & 0xff) << 8) |  \
+			  ((uint32_t)((y)[0] & 0xff) << 0);   \
+	} while (0)
 
 /* This function takes 64 bits of data in block and the 128 bits key in key */
-static inline void csp_xtea_encrypt_block(uint8_t *block, uint8_t const *key) {
+static inline void csp_xtea_encrypt_block(uint8_t * block, uint8_t const * key) {
 
 	uint32_t i, v0, v1, delta = 0x9E3779B9, sum = 0, k[4];
 
@@ -67,7 +73,6 @@ static inline void csp_xtea_encrypt_block(uint8_t *block, uint8_t const *key) {
 
 	STORE32L(v0, &block[0]);
 	STORE32L(v1, &block[4]);
-
 }
 
 static inline void csp_xtea_xor_byte(uint8_t * dst, uint8_t * src, uint32_t len) {
@@ -75,7 +80,6 @@ static inline void csp_xtea_xor_byte(uint8_t * dst, uint8_t * src, uint32_t len)
 	unsigned int i;
 	for (i = 0; i < len; i++)
 		dst[i] ^= src[i];
-
 }
 
 int csp_xtea_set_key(const void * key, uint32_t keylen) {
@@ -88,7 +92,6 @@ int csp_xtea_set_key(const void * key, uint32_t keylen) {
 	memcpy(csp_xtea_key, hash, XTEA_KEY_LENGTH);
 
 	return CSP_ERR_NONE;
-
 }
 
 int csp_xtea_encrypt(void * plain, const uint32_t len, uint32_t iv[2]) {
@@ -96,7 +99,7 @@ int csp_xtea_encrypt(void * plain, const uint32_t len, uint32_t iv[2]) {
 	unsigned int i;
 	uint32_t stream[2];
 
-	uint32_t blocks = (len + XTEA_BLOCKSIZE - 1)/ XTEA_BLOCKSIZE;
+	uint32_t blocks = (len + XTEA_BLOCKSIZE - 1) / XTEA_BLOCKSIZE;
 	uint32_t remain;
 
 	/* Initialize stream */
@@ -111,7 +114,7 @@ int csp_xtea_encrypt(void * plain, const uint32_t len, uint32_t iv[2]) {
 		remain = len - i * XTEA_BLOCKSIZE;
 
 		/* XOR plain text with stream to generate cipher text */
-		csp_xtea_xor_byte(&((uint8_t*)plain)[len - remain], (uint8_t *)stream, remain < XTEA_BLOCKSIZE ? remain : XTEA_BLOCKSIZE);
+		csp_xtea_xor_byte(&((uint8_t *)plain)[len - remain], (uint8_t *)stream, remain < XTEA_BLOCKSIZE ? remain : XTEA_BLOCKSIZE);
 
 		/* Increment counter */
 		stream[0] = htobe32(iv[0]);
@@ -119,7 +122,6 @@ int csp_xtea_encrypt(void * plain, const uint32_t len, uint32_t iv[2]) {
 	}
 
 	return CSP_ERR_NONE;
-
 }
 
 int csp_xtea_encrypt_packet(csp_packet_t * packet) {
@@ -138,20 +140,18 @@ int csp_xtea_encrypt_packet(csp_packet_t * packet) {
 	/* Encrypt data */
 	if (csp_xtea_encrypt(packet->data, packet->length, iv) != CSP_ERR_NONE) {
 		return CSP_ERR_XTEA;
-        }
+	}
 
 	memcpy(&packet->data[packet->length], &nonce_n, sizeof(nonce_n));
 	packet->length += sizeof(nonce_n);
 
 	return CSP_ERR_NONE;
-
 }
 
 int csp_xtea_decrypt(void * cipher, const uint32_t len, uint32_t iv[2]) {
 
 	/* Since we use counter mode, we can reuse the encryption function */
 	return csp_xtea_encrypt(cipher, len, iv);
-
 }
 
 int csp_xtea_decrypt_packet(csp_packet_t * packet) {
@@ -163,7 +163,7 @@ int csp_xtea_decrypt_packet(csp_packet_t * packet) {
 		return CSP_ERR_XTEA;
 	}
 
-        memcpy(&nonce, &packet->data[packet->length - sizeof(nonce)], sizeof(nonce));
+	memcpy(&nonce, &packet->data[packet->length - sizeof(nonce)], sizeof(nonce));
 	nonce = be32toh(nonce);
 
 	/* Create initialization vector */
@@ -177,5 +177,4 @@ int csp_xtea_decrypt_packet(csp_packet_t * packet) {
 	packet->length -= sizeof(nonce);
 
 	return CSP_ERR_NONE;
-
 }

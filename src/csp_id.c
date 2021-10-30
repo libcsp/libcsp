@@ -19,22 +19,22 @@
  *
  */
 
-#define CSP_ID1_PRIO_SIZE		2
-#define CSP_ID1_HOST_SIZE		5
-#define CSP_ID1_PORT_SIZE		6
-#define CSP_ID1_FLAGS_SIZE		8
+#define CSP_ID1_PRIO_SIZE  2
+#define CSP_ID1_HOST_SIZE  5
+#define CSP_ID1_PORT_SIZE  6
+#define CSP_ID1_FLAGS_SIZE 8
 
-#define CSP_ID1_PRIO_MASK 0x3
-#define CSP_ID1_PRIO_OFFSET 30
-#define CSP_ID1_SRC_MASK 0x1F
-#define CSP_ID1_SRC_OFFSET 25
-#define CSP_ID1_DST_MASK 0x1F
-#define CSP_ID1_DST_OFFSET 20
-#define CSP_ID1_DPORT_MASK 0x3F
+#define CSP_ID1_PRIO_MASK    0x3
+#define CSP_ID1_PRIO_OFFSET  30
+#define CSP_ID1_SRC_MASK     0x1F
+#define CSP_ID1_SRC_OFFSET   25
+#define CSP_ID1_DST_MASK     0x1F
+#define CSP_ID1_DST_OFFSET   20
+#define CSP_ID1_DPORT_MASK   0x3F
 #define CSP_ID1_DPORT_OFFSET 14
-#define CSP_ID1_SPORT_MASK 0x3F
+#define CSP_ID1_SPORT_MASK   0x3F
 #define CSP_ID1_SPORT_OFFSET 8
-#define CSP_ID1_FLAGS_MASK 0xFF
+#define CSP_ID1_FLAGS_MASK   0xFF
 #define CSP_ID1_FLAGS_OFFSET 0
 
 #define CSP_ID1_HEADER_SIZE 4
@@ -43,11 +43,11 @@ void csp_id1_prepend(csp_packet_t * packet) {
 
 	/* Pack into 32-bit using host endian */
 	uint32_t id1 = ((packet->id.pri << CSP_ID1_PRIO_OFFSET) |
-	                (packet->id.dst << CSP_ID1_DST_OFFSET) |
-	                (packet->id.src << CSP_ID1_SRC_OFFSET) |
-	                (packet->id.dport << CSP_ID1_DPORT_OFFSET) |
-	                (packet->id.sport << CSP_ID1_SPORT_OFFSET) |
-	                (packet->id.flags << CSP_ID1_FLAGS_OFFSET));
+					(packet->id.dst << CSP_ID1_DST_OFFSET) |
+					(packet->id.src << CSP_ID1_SRC_OFFSET) |
+					(packet->id.dport << CSP_ID1_DPORT_OFFSET) |
+					(packet->id.sport << CSP_ID1_SPORT_OFFSET) |
+					(packet->id.flags << CSP_ID1_FLAGS_OFFSET));
 
 	/* Convert to big / network endian */
 	id1 = htobe32(id1);
@@ -56,7 +56,6 @@ void csp_id1_prepend(csp_packet_t * packet) {
 	packet->frame_length = packet->length + CSP_ID1_HEADER_SIZE;
 
 	memcpy(packet->frame_begin, &id1, CSP_ID1_HEADER_SIZE);
-
 }
 
 int csp_id1_strip(csp_packet_t * packet) {
@@ -83,7 +82,6 @@ int csp_id1_strip(csp_packet_t * packet) {
 	packet->id.flags = (id1 >> CSP_ID1_FLAGS_OFFSET) & CSP_ID1_FLAGS_MASK;
 
 	return 0;
-
 }
 
 void csp_id1_setup_rx(csp_packet_t * packet) {
@@ -102,22 +100,22 @@ void csp_id1_setup_rx(csp_packet_t * packet) {
  *
  */
 
-#define CSP_ID2_PRIO_SIZE		2
-#define CSP_ID2_HOST_SIZE		14
-#define CSP_ID2_PORT_SIZE		6
-#define CSP_ID2_FLAGS_SIZE		6
+#define CSP_ID2_PRIO_SIZE  2
+#define CSP_ID2_HOST_SIZE  14
+#define CSP_ID2_PORT_SIZE  6
+#define CSP_ID2_FLAGS_SIZE 6
 
-#define CSP_ID2_PRIO_MASK 0x3
-#define CSP_ID2_PRIO_OFFSET 46
-#define CSP_ID2_DST_MASK 0x3FFF
-#define CSP_ID2_DST_OFFSET 32
-#define CSP_ID2_SRC_MASK 0x3FFF
-#define CSP_ID2_SRC_OFFSET 18
-#define CSP_ID2_DPORT_MASK 0x3F
+#define CSP_ID2_PRIO_MASK    0x3
+#define CSP_ID2_PRIO_OFFSET  46
+#define CSP_ID2_DST_MASK     0x3FFF
+#define CSP_ID2_DST_OFFSET   32
+#define CSP_ID2_SRC_MASK     0x3FFF
+#define CSP_ID2_SRC_OFFSET   18
+#define CSP_ID2_DPORT_MASK   0x3F
 #define CSP_ID2_DPORT_OFFSET 12
-#define CSP_ID2_SPORT_MASK 0x3F
+#define CSP_ID2_SPORT_MASK   0x3F
 #define CSP_ID2_SPORT_OFFSET 6
-#define CSP_ID2_FLAGS_MASK 0x3F
+#define CSP_ID2_FLAGS_MASK   0x3F
 #define CSP_ID2_FLAGS_OFFSET 0
 
 #define CSP_ID2_HEADER_SIZE 6
@@ -125,12 +123,12 @@ void csp_id1_setup_rx(csp_packet_t * packet) {
 void csp_id2_prepend(csp_packet_t * packet) {
 
 	/* Pack into 64-bit using host endian */
-	uint64_t id2 = ((((uint64_t) packet->id.pri) << CSP_ID2_PRIO_OFFSET) |
-	                (((uint64_t) packet->id.dst) << CSP_ID2_DST_OFFSET) |
-	                (((uint64_t) packet->id.src) << CSP_ID2_SRC_OFFSET) |
-	                (packet->id.dport << CSP_ID2_DPORT_OFFSET) |
-	                (packet->id.sport << CSP_ID2_SPORT_OFFSET) |
-	                (packet->id.flags << CSP_ID2_FLAGS_OFFSET));
+	uint64_t id2 = ((((uint64_t)packet->id.pri) << CSP_ID2_PRIO_OFFSET) |
+					(((uint64_t)packet->id.dst) << CSP_ID2_DST_OFFSET) |
+					(((uint64_t)packet->id.src) << CSP_ID2_SRC_OFFSET) |
+					(packet->id.dport << CSP_ID2_DPORT_OFFSET) |
+					(packet->id.sport << CSP_ID2_SPORT_OFFSET) |
+					(packet->id.flags << CSP_ID2_FLAGS_OFFSET));
 
 	/* Convert to big / network endian:
 	 * We first shift up the 48 bit header to most significant end of the 64-bit */
@@ -140,7 +138,6 @@ void csp_id2_prepend(csp_packet_t * packet) {
 	packet->frame_length = packet->length + CSP_ID2_HEADER_SIZE;
 
 	memcpy(packet->frame_begin, &id2, CSP_ID2_HEADER_SIZE);
-
 }
 
 int csp_id2_strip(csp_packet_t * packet) {
@@ -170,7 +167,6 @@ int csp_id2_strip(csp_packet_t * packet) {
 	packet->id.flags = (id2 >> CSP_ID2_FLAGS_OFFSET) & CSP_ID2_FLAGS_MASK;
 
 	return 0;
-
 }
 
 void csp_id2_setup_rx(csp_packet_t * packet) {
@@ -228,6 +224,6 @@ unsigned int csp_id_get_max_nodeid(void) {
 	}
 }
 
-unsigned int csp_id_get_max_port(void){
+unsigned int csp_id_get_max_port(void) {
 	return ((1 << (CSP_ID2_PORT_SIZE)) - 1);
 }

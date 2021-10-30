@@ -1,7 +1,7 @@
 /*
 Cubesat Space Protocol - A small network-layer protocol designed for Cubesats
 Copyright (C) 2012 GomSpace ApS (http://www.gomspace.com)
-Copyright (C) 2012 AAUSAT3 Project (http://aausat3.space.aau.dk) 
+Copyright (C) 2012 AAUSAT3 Project (http://aausat3.space.aau.dk)
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -23,8 +23,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/csp.h>
 #include <csp/arch/csp_queue.h>
 #include <csp/arch/csp_semaphore.h>
-
-
 
 #ifndef CSP_USE_RDP_FAST_CLOSE
 #define CSP_USE_RDP_FAST_CLOSE 0
@@ -51,23 +49,23 @@ typedef enum {
 	RDP_CLOSE_WAIT,
 } csp_rdp_state_t;
 
-#define CSP_RDP_CLOSED_BY_USERSPACE  0x01
-#define CSP_RDP_CLOSED_BY_PROTOCOL   0x02
-#define CSP_RDP_CLOSED_BY_TIMEOUT    0x04
-#define CSP_RDP_CLOSED_BY_ALL        (CSP_RDP_CLOSED_BY_USERSPACE | CSP_RDP_CLOSED_BY_PROTOCOL | CSP_RDP_CLOSED_BY_TIMEOUT)
+#define CSP_RDP_CLOSED_BY_USERSPACE 0x01
+#define CSP_RDP_CLOSED_BY_PROTOCOL  0x02
+#define CSP_RDP_CLOSED_BY_TIMEOUT   0x04
+#define CSP_RDP_CLOSED_BY_ALL       (CSP_RDP_CLOSED_BY_USERSPACE | CSP_RDP_CLOSED_BY_PROTOCOL | CSP_RDP_CLOSED_BY_TIMEOUT)
 
 /**
  * RDP Connection
  */
 typedef struct {
-	csp_rdp_state_t state;		/**< Connection state */
-	uint8_t closed_by;		/**< Tracks 'who' have closed the RDP connection */
-	uint16_t snd_nxt;		/**< The sequence number of the next segment that is to be sent */
-	uint16_t snd_una;		/**< The sequence number of the oldest unacknowledged segment */
-	uint16_t snd_iss;		/**< The initial send sequence number */
-	uint16_t rcv_cur;		/**< The sequence number of the last segment received correctly and in sequence */
-	uint16_t rcv_irs;		/**< The initial receive sequence number */
-	uint16_t rcv_lsa;		/**< The last sequence number acknowledged by the receiver */
+	csp_rdp_state_t state; /**< Connection state */
+	uint8_t closed_by;     /**< Tracks 'who' have closed the RDP connection */
+	uint16_t snd_nxt;      /**< The sequence number of the next segment that is to be sent */
+	uint16_t snd_una;      /**< The sequence number of the oldest unacknowledged segment */
+	uint16_t snd_iss;      /**< The initial send sequence number */
+	uint16_t rcv_cur;      /**< The sequence number of the last segment received correctly and in sequence */
+	uint16_t rcv_irs;      /**< The initial receive sequence number */
+	uint16_t rcv_lsa;      /**< The last sequence number acknowledged by the receiver */
 	uint32_t window_size;
 	uint32_t conn_timeout;
 	uint32_t packet_timeout;
@@ -89,22 +87,22 @@ typedef struct {
 
 /** @brief Connection struct */
 struct csp_conn_s {
-	csp_conn_type_t type;		/* Connection type (CONN_CLIENT or CONN_SERVER) */
-	csp_conn_state_t state;		/* Connection state (CONN_OPEN or CONN_CLOSED) */
-	csp_id_t idin;			/* Identifier received */
-	csp_id_t idout;			/* Identifier transmitted */
+	csp_conn_type_t type;   /* Connection type (CONN_CLIENT or CONN_SERVER) */
+	csp_conn_state_t state; /* Connection state (CONN_OPEN or CONN_CLOSED) */
+	csp_id_t idin;          /* Identifier received */
+	csp_id_t idout;         /* Identifier transmitted */
 
-	csp_queue_handle_t rx_queue; /* Queue for RX packets */
+	csp_queue_handle_t rx_queue;        /* Queue for RX packets */
 	csp_static_queue_t rx_queue_static; /* Static storage for rx queue */
 	char rx_queue_static_data[sizeof(csp_packet_t *) * CSP_CONN_RXQUEUE_LEN];
 
-	void (*callback)(csp_packet_t * packet); 
+	void (*callback)(csp_packet_t * packet);
 
 	csp_socket_t * dest_socket; /* incoming connections destination socket */
-	uint32_t timestamp;		/* Time the connection was opened */
-	uint32_t opts;			/* Connection or socket options */
+	uint32_t timestamp;         /* Time the connection was opened */
+	uint32_t opts;              /* Connection or socket options */
 #if (CSP_USE_RDP)
-	csp_rdp_t rdp;			/* RDP state */
+	csp_rdp_t rdp; /* RDP state */
 #endif
 };
 
@@ -120,5 +118,4 @@ void csp_conn_check_timeouts(void);
 int csp_conn_get_rxq(int prio);
 int csp_conn_close(csp_conn_t * conn, uint8_t closed_by);
 
-const csp_conn_t * csp_conn_get_array(size_t * size); // for test purposes only!
-
+const csp_conn_t * csp_conn_get_array(size_t * size);  // for test purposes only!

@@ -1,7 +1,7 @@
 /*
 Cubesat Space Protocol - A small network-layer protocol designed for Cubesats
 Copyright (C) 2012 GomSpace ApS (http://www.gomspace.com)
-Copyright (C) 2012 AAUSAT3 Project (http://aausat3.space.aau.dk) 
+Copyright (C) 2012 AAUSAT3 Project (http://aausat3.space.aau.dk)
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -97,11 +97,10 @@ void csp_ping_noreply(uint16_t node) {
 	packet->data[0] = 0x55;
 	packet->length = 1;
 
-	printf("Ping ignore reply node %u.\r\n", (unsigned int) node);
+	printf("Ping ignore reply node %u.\r\n", (unsigned int)node);
 
 	csp_send(conn, packet);
 	csp_close(conn);
-
 }
 
 void csp_reboot(uint16_t node) {
@@ -138,7 +137,7 @@ void csp_ps(uint16_t node, uint32_t timeout) {
 	/* Try to send frame */
 	csp_send(conn, packet);
 
-	while(1) {
+	while (1) {
 
 		/* Read incoming frame */
 		packet = csp_read(conn, timeout);
@@ -161,7 +160,6 @@ void csp_ps(uint16_t node, uint32_t timeout) {
 out:
 	csp_buffer_free(packet);
 	csp_close(conn);
-
 }
 
 int csp_get_memfree(uint16_t node, uint32_t timeout, uint32_t * size) {
@@ -173,19 +171,17 @@ int csp_get_memfree(uint16_t node, uint32_t timeout, uint32_t * size) {
 	}
 	*size = 0;
 	return CSP_ERR_TIMEDOUT;
-
 }
 
 void csp_memfree(uint16_t node, uint32_t timeout) {
 
 	uint32_t memfree;
-        int err = csp_get_memfree(node, timeout, &memfree);
+	int err = csp_get_memfree(node, timeout, &memfree);
 	if (err == CSP_ERR_NONE) {
-		printf("Free Memory at node %u is %"PRIu32" bytes\r\n", node, memfree);
+		printf("Free Memory at node %u is %" PRIu32 " bytes\r\n", node, memfree);
 	} else {
 		printf("Network error\r\n");
 	}
-
 }
 
 int csp_get_buf_free(uint16_t node, uint32_t timeout, uint32_t * size) {
@@ -197,7 +193,6 @@ int csp_get_buf_free(uint16_t node, uint32_t timeout, uint32_t * size) {
 	}
 	*size = 0;
 	return CSP_ERR_TIMEDOUT;
-
 }
 
 void csp_buf_free(uint16_t node, uint32_t timeout) {
@@ -205,11 +200,10 @@ void csp_buf_free(uint16_t node, uint32_t timeout) {
 	uint32_t size;
 	int err = csp_get_buf_free(node, timeout, &size);
 	if (err == CSP_ERR_NONE) {
-		printf("Free buffers at node %u is %"PRIu32"\r\n", node, size);
+		printf("Free buffers at node %u is %" PRIu32 "\r\n", node, size);
 	} else {
 		printf("Network error\r\n");
 	}
-
 }
 
 int csp_get_uptime(uint16_t node, uint32_t timeout, uint32_t * uptime) {
@@ -228,11 +222,10 @@ void csp_uptime(uint16_t node, uint32_t timeout) {
 	uint32_t uptime;
 	int err = csp_get_uptime(node, timeout, &uptime);
 	if (err == CSP_ERR_NONE) {
-		printf("Uptime of node %u is %"PRIu32" s\r\n", node, uptime);
+		printf("Uptime of node %u is %" PRIu32 " s\r\n", node, uptime);
 	} else {
 		printf("Network error\r\n");
 	}
-
 }
 
 int csp_cmp(uint16_t node, uint32_t timeout, uint8_t code, int msg_size, struct csp_cmp_message * msg) {
@@ -245,4 +238,3 @@ int csp_cmp(uint16_t node, uint32_t timeout, uint8_t code, int msg_size, struct 
 
 	return CSP_ERR_NONE;
 }
-

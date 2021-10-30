@@ -1,7 +1,7 @@
 /*
 Cubesat Space Protocol - A small network-layer protocol designed for Cubesats
 Copyright (C) 2012 GomSpace ApS (http://www.gomspace.com)
-Copyright (C) 2012 AAUSAT3 Project (http://aausat3.space.aau.dk) 
+Copyright (C) 2012 AAUSAT3 Project (http://aausat3.space.aau.dk)
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -44,8 +44,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  * @param packet pointer to packet
  * @return CSP_ERR_NONE is all options are supported, CSP_ERR_NOTSUP if not
  */
-static int csp_route_check_options(csp_iface_t *iface, csp_packet_t *packet)
-{
+static int csp_route_check_options(csp_iface_t * iface, csp_packet_t * packet) {
 #if (CSP_USE_XTEA == 0)
 	/* Drop XTEA packets */
 	if (packet->id.flags & CSP_FXTEA) {
@@ -151,7 +150,6 @@ static int csp_route_security_check(uint32_t security_opts, csp_iface_t * iface,
 #endif
 
 	return CSP_ERR_NONE;
-
 }
 
 int csp_route_work(uint32_t timeout) {
@@ -176,9 +174,9 @@ int csp_route_work(uint32_t timeout) {
 		return CSP_ERR_TIMEDOUT;
 	}
 
-	csp_log_packet("INP: S %u, D %u, Dp %u, Sp %u, Pr %u, Fl 0x%02X, Sz %"PRIu16" VIA: %s",
-			packet->id.src, packet->id.dst, packet->id.dport,
-			packet->id.sport, packet->id.pri, packet->id.flags, packet->length, input.iface->name);
+	csp_log_packet("INP: S %u, D %u, Dp %u, Sp %u, Pr %u, Fl 0x%02X, Sz %" PRIu16 " VIA: %s",
+				   packet->id.src, packet->id.dst, packet->id.dport,
+				   packet->id.sport, packet->id.pri, packet->id.flags, packet->length, input.iface->name);
 
 	/* Here there be promiscuous mode */
 #if (CSP_USE_PROMISC)
@@ -246,7 +244,7 @@ int csp_route_work(uint32_t timeout) {
 		if (socket->opts & CSP_SO_CONN_LESS_CALLBACK) {
 			socket->callback(packet);
 
-		/* Otherwise, it uses a queue */
+			/* Otherwise, it uses a queue */
 		} else {
 
 			if (csp_queue_enqueue(socket->rx_queue, &packet, 0) != CSP_QUEUE_OK) {
@@ -254,7 +252,6 @@ int csp_route_work(uint32_t timeout) {
 				csp_buffer_free(packet);
 				return 0;
 			}
-
 		}
 
 		return CSP_ERR_NONE;
@@ -280,10 +277,10 @@ int csp_route_work(uint32_t timeout) {
 
 		/* New incoming connection accepted */
 		csp_id_t idout;
-		idout.pri   = packet->id.pri;
-		idout.src   = csp_conf.address;
+		idout.pri = packet->id.pri;
+		idout.src = csp_conf.address;
 
-		idout.dst   = packet->id.src;
+		idout.dst = packet->id.src;
 		idout.dport = packet->id.sport;
 		idout.sport = packet->id.dport;
 		idout.flags = packet->id.flags;
@@ -301,7 +298,7 @@ int csp_route_work(uint32_t timeout) {
 		conn->dest_socket = socket;
 		conn->opts = socket->opts;
 
-	/* Packet to existing connection */
+		/* Packet to existing connection */
 	} else {
 
 		/* Run security check on incoming packet */
@@ -309,7 +306,6 @@ int csp_route_work(uint32_t timeout) {
 			csp_buffer_free(packet);
 			return CSP_ERR_NONE;
 		}
-
 	}
 
 #if (CSP_USE_RDP)
@@ -336,7 +332,6 @@ CSP_DEFINE_TASK(csp_task_router) {
 	}
 
 	return CSP_TASK_RETURN;
-
 }
 
 int csp_route_start_task(unsigned int task_stack_size, unsigned int task_priority) {
@@ -348,5 +343,4 @@ int csp_route_start_task(unsigned int task_stack_size, unsigned int task_priorit
 	}
 
 	return CSP_ERR_NONE;
-
 }

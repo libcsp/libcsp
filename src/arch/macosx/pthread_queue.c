@@ -38,7 +38,7 @@ pthread_queue_t * pthread_queue_create(int length, size_t item_size) {
 	pthread_queue_t * q = malloc(sizeof(pthread_queue_t));
 
 	if (q != NULL) {
-		q->buffer = malloc(length*item_size);
+		q->buffer = malloc(length * item_size);
 		if (q->buffer != NULL) {
 			q->size = length;
 			q->item_size = item_size;
@@ -57,7 +57,6 @@ pthread_queue_t * pthread_queue_create(int length, size_t item_size) {
 	}
 
 	return q;
-
 }
 
 void pthread_queue_delete(pthread_queue_t * q) {
@@ -69,7 +68,6 @@ void pthread_queue_delete(pthread_queue_t * q) {
 	free(q);
 
 	return;
-
 }
 
 int pthread_queue_enqueue(pthread_queue_t * queue, const void * value, uint32_t timeout) {
@@ -108,7 +106,7 @@ int pthread_queue_enqueue(pthread_queue_t * queue, const void * value, uint32_t 
 	}
 
 	/* Copy object from input buffer */
-	memcpy(queue->buffer+(queue->in * queue->item_size), value, queue->item_size);
+	memcpy(queue->buffer + (queue->in * queue->item_size), value, queue->item_size);
 	queue->items++;
 	queue->in = (queue->in + 1) % queue->size;
 	pthread_mutex_unlock(&(queue->mutex));
@@ -117,7 +115,6 @@ int pthread_queue_enqueue(pthread_queue_t * queue, const void * value, uint32_t 
 	pthread_cond_broadcast(&(queue->cond_empty));
 
 	return PTHREAD_QUEUE_OK;
-
 }
 
 int pthread_queue_dequeue(pthread_queue_t * queue, void * buf, uint32_t timeout) {
@@ -155,7 +152,7 @@ int pthread_queue_dequeue(pthread_queue_t * queue, void * buf, uint32_t timeout)
 	}
 
 	/* Copy object to output buffer */
-	memcpy(buf, queue->buffer+(queue->out * queue->item_size), queue->item_size);
+	memcpy(buf, queue->buffer + (queue->out * queue->item_size), queue->item_size);
 	queue->items--;
 	queue->out = (queue->out + 1) % queue->size;
 	pthread_mutex_unlock(&(queue->mutex));
@@ -164,7 +161,6 @@ int pthread_queue_dequeue(pthread_queue_t * queue, void * buf, uint32_t timeout)
 	pthread_cond_broadcast(&(queue->cond_full));
 
 	return PTHREAD_QUEUE_OK;
-
 }
 
 int pthread_queue_items(pthread_queue_t * queue) {
@@ -174,5 +170,4 @@ int pthread_queue_items(pthread_queue_t * queue) {
 	pthread_mutex_unlock(&(queue->mutex));
 
 	return items;
-
 }

@@ -27,7 +27,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/csp_buffer.h>
 #include <csp/crypto/csp_sha1.h>
 
-#define HMAC_KEY_LENGTH	16
+#define HMAC_KEY_LENGTH 16
 
 /* HMAC key */
 static uint8_t csp_hmac_key[HMAC_KEY_LENGTH];
@@ -35,7 +35,7 @@ static uint8_t csp_hmac_key[HMAC_KEY_LENGTH];
 /* HMAC state structure */
 typedef struct {
 	csp_sha1_state_t md;
-	uint8_t		 key[CSP_SHA1_BLOCKSIZE];
+	uint8_t key[CSP_SHA1_BLOCKSIZE];
 } hmac_state;
 
 static int csp_hmac_init(hmac_state * hmac, const uint8_t * key, uint32_t keylen) {
@@ -47,18 +47,18 @@ static int csp_hmac_init(hmac_state * hmac, const uint8_t * key, uint32_t keylen
 		return CSP_ERR_INVAL;
 
 	/* Make sure we have a large enough key */
-	if(keylen > CSP_SHA1_BLOCKSIZE) {
+	if (keylen > CSP_SHA1_BLOCKSIZE) {
 		csp_sha1_memory(key, keylen, hmac->key);
-		if(CSP_SHA1_DIGESTSIZE < CSP_SHA1_BLOCKSIZE)
+		if (CSP_SHA1_DIGESTSIZE < CSP_SHA1_BLOCKSIZE)
 			memset((hmac->key) + CSP_SHA1_DIGESTSIZE, 0, (CSP_SHA1_BLOCKSIZE - CSP_SHA1_DIGESTSIZE));
 	} else {
 		memcpy(hmac->key, key, keylen);
-		if(keylen < CSP_SHA1_BLOCKSIZE)
+		if (keylen < CSP_SHA1_BLOCKSIZE)
 			memset((hmac->key) + keylen, 0, (CSP_SHA1_BLOCKSIZE - keylen));
 	}
 
 	/* Create the initial vector */
-	for(i = 0; i < CSP_SHA1_BLOCKSIZE; i++) {
+	for (i = 0; i < CSP_SHA1_BLOCKSIZE; i++) {
 		buf[i] = hmac->key[i] ^ 0x36;
 	}
 
@@ -92,7 +92,7 @@ static int csp_hmac_done(hmac_state * hmac, uint8_t * out) {
 
 	/* Create the second HMAC vector vector */
 	uint8_t buf[CSP_SHA1_BLOCKSIZE];
-	for(unsigned int i = 0; i < sizeof(buf); i++) {
+	for (unsigned int i = 0; i < sizeof(buf); i++) {
 		buf[i] = hmac->key[i] ^ 0x5C;
 	}
 
@@ -140,7 +140,6 @@ int csp_hmac_set_key(const void * key, uint32_t keylen) {
 	memcpy(csp_hmac_key, hash, sizeof(csp_hmac_key));
 
 	return CSP_ERR_NONE;
-
 }
 
 int csp_hmac_append(csp_packet_t * packet, bool include_header) {
@@ -154,21 +153,19 @@ int csp_hmac_append(csp_packet_t * packet, bool include_header) {
 
 	if (include_header) {
 
-	    /* If header is included, csp_id_prepend() must be called beforehand */
+		/* If header is included, csp_id_prepend() must be called beforehand */
 		csp_hmac_memory(csp_hmac_key, sizeof(csp_hmac_key), packet->frame_begin, packet->frame_length, hmac);
 		memcpy(&packet->frame_begin[packet->frame_length], hmac, CSP_HMAC_LENGTH);
-        packet->frame_length += CSP_HMAC_LENGTH;
+		packet->frame_length += CSP_HMAC_LENGTH;
 
 	} else {
 
 		csp_hmac_memory(csp_hmac_key, sizeof(csp_hmac_key), packet->data, packet->length, hmac);
 		memcpy(&packet->data[packet->length], hmac, CSP_HMAC_LENGTH);
-        packet->length += CSP_HMAC_LENGTH;
-
+		packet->length += CSP_HMAC_LENGTH;
 	}
 
 	return CSP_ERR_NONE;
-
 }
 
 int csp_hmac_verify(csp_packet_t * packet, bool include_header) {
@@ -185,29 +182,26 @@ int csp_hmac_verify(csp_packet_t * packet, bool include_header) {
 		csp_hmac_memory(csp_hmac_key, sizeof(csp_hmac_key), packet->frame_begin, packet->frame_length - CSP_HMAC_LENGTH, hmac);
 
 		/* Compare calculated HMAC with packet header */
-        if (memcmp(&packet->frame_begin[packet->frame_length] - CSP_HMAC_LENGTH, hmac, CSP_HMAC_LENGTH) != 0) {
-            /* HMAC failed */
-            return CSP_ERR_HMAC;
-        }
+		if (memcmp(&packet->frame_begin[packet->frame_length] - CSP_HMAC_LENGTH, hmac, CSP_HMAC_LENGTH) != 0) {
+			/* HMAC failed */
+			return CSP_ERR_HMAC;
+		}
 
-        /* Strip HMAC */
-        packet->frame_length -= CSP_HMAC_LENGTH;
+		/* Strip HMAC */
+		packet->frame_length -= CSP_HMAC_LENGTH;
 
 	} else {
 		csp_hmac_memory(csp_hmac_key, sizeof(csp_hmac_key), packet->data, packet->length - CSP_HMAC_LENGTH, hmac);
 
 		/* Compare calculated HMAC with packet header */
-        if (memcmp(&packet->data[packet->length] - CSP_HMAC_LENGTH, hmac, CSP_HMAC_LENGTH) != 0) {
-            /* HMAC failed */
-            return CSP_ERR_HMAC;
-        }
+		if (memcmp(&packet->data[packet->length] - CSP_HMAC_LENGTH, hmac, CSP_HMAC_LENGTH) != 0) {
+			/* HMAC failed */
+			return CSP_ERR_HMAC;
+		}
 
-        /* Strip HMAC */
-        packet->length -= CSP_HMAC_LENGTH;
-
+		/* Strip HMAC */
+		packet->length -= CSP_HMAC_LENGTH;
 	}
 
 	return CSP_ERR_NONE;
-
 }
-

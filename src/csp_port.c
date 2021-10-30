@@ -1,7 +1,7 @@
 /*
 Cubesat Space Protocol - A small network-layer protocol designed for Cubesats
 Copyright (C) 2012 GomSpace ApS (http://www.gomspace.com)
-Copyright (C) 2012 AAUSAT3 Project (http://aausat3.space.aau.dk) 
+Copyright (C) 2012 AAUSAT3 Project (http://aausat3.space.aau.dk)
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -37,7 +37,7 @@ typedef enum {
 
 typedef struct {
 	csp_port_state_t state;
-	csp_socket_t * socket;		  // New connections are added to this socket's conn queue
+	csp_socket_t * socket;  // New connections are added to this socket's conn queue
 } csp_port_t;
 
 /* We rely on the .bss section to clear this, so there is no csp_port_init() function */
@@ -59,7 +59,6 @@ csp_socket_t * csp_port_get_socket(unsigned int port) {
 	}
 
 	return NULL;
-
 }
 
 int csp_listen(csp_socket_t * socket, size_t backlog) {
@@ -67,7 +66,7 @@ int csp_listen(csp_socket_t * socket, size_t backlog) {
 }
 
 int csp_bind(csp_socket_t * socket, uint8_t port) {
-	
+
 	if (socket == NULL)
 		return CSP_ERR_INVAL;
 
@@ -90,7 +89,4 @@ int csp_bind(csp_socket_t * socket, uint8_t port) {
 	ports[port].state = PORT_OPEN;
 
 	return CSP_ERR_NONE;
-
 }
-
-

@@ -1,7 +1,7 @@
 /*
 Cubesat Space Protocol - A small network-layer protocol designed for Cubesats
 Copyright (C) 2012 Gomspace ApS (http://www.gomspace.com)
-Copyright (C) 2012 AAUSAT3 Project (http://aausat3.space.aau.dk) 
+Copyright (C) 2012 AAUSAT3 Project (http://aausat3.space.aau.dk)
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -43,7 +43,6 @@ void csp_thread_exit(void) {
 }
 
 void csp_sleep_ms(unsigned int time_ms) {
-
 
 	struct timespec req, rem;
 	req.tv_sec = (time_ms / 1000U);

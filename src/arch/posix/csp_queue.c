@@ -1,7 +1,7 @@
 /*
 Cubesat Space Protocol - A small network-layer protocol designed for Cubesats
 Copyright (C) 2012 Gomspace ApS (http://www.gomspace.com)
-Copyright (C) 2012 AAUSAT3 Project (http://aausat3.space.aau.dk) 
+Copyright (C) 2012 AAUSAT3 Project (http://aausat3.space.aau.dk)
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -34,7 +34,7 @@ void csp_queue_remove(csp_queue_handle_t queue) {
 	return pthread_queue_delete(queue);
 }
 
-int csp_queue_enqueue(csp_queue_handle_t handle, const void *value, uint32_t timeout) {
+int csp_queue_enqueue(csp_queue_handle_t handle, const void * value, uint32_t timeout) {
 	return pthread_queue_enqueue(handle, value, timeout);
 }
 
@@ -45,11 +45,11 @@ int csp_queue_enqueue_isr(csp_queue_handle_t handle, const void * value, int * t
 	return csp_queue_enqueue(handle, value, 0);
 }
 
-int csp_queue_dequeue(csp_queue_handle_t handle, void *buf, uint32_t timeout) {
+int csp_queue_dequeue(csp_queue_handle_t handle, void * buf, uint32_t timeout) {
 	return pthread_queue_dequeue(handle, buf, timeout);
 }
 
-int csp_queue_dequeue_isr(csp_queue_handle_t handle, void *buf, int * task_woken) {
+int csp_queue_dequeue_isr(csp_queue_handle_t handle, void * buf, int * task_woken) {
 	if (task_woken != NULL) {
 		*task_woken = 0;
 	}

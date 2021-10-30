@@ -1,7 +1,7 @@
 /*
 Cubesat Space Protocol - A small network-layer protocol designed for Cubesats
 Copyright (C) 2012 Gomspace ApS (http://www.gomspace.com)
-Copyright (C) 2012 AAUSAT3 Project (http://aausat3.space.aau.dk) 
+Copyright (C) 2012 AAUSAT3 Project (http://aausat3.space.aau.dk)
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -29,13 +29,11 @@ int csp_sys_tasklist(char * out) {
 
 	strcpy(out, "Tasklist not available on Windows");
 	return CSP_ERR_NONE;
-
 }
 
 int csp_sys_tasklist_size(void) {
 
-        return 100;
-
+	return 100;
 }
 
 uint32_t csp_sys_memfree(void) {
@@ -44,9 +42,8 @@ uint32_t csp_sys_memfree(void) {
 	statex.dwLength = sizeof(statex);
 	GlobalMemoryStatusEx(&statex);
 	DWORDLONG freePhysicalMem = statex.ullAvailPhys;
-	size_t total = (size_t) freePhysicalMem;
+	size_t total = (size_t)freePhysicalMem;
 	return (uint32_t)total;
-
 }
 
 void csp_sys_set_color(csp_color_t color) {

@@ -1,7 +1,7 @@
 /*
 Cubesat Space Protocol - A small network-layer protocol designed for Cubesats
 Copyright (C) 2012 Gomspace ApS (http://www.gomspace.com)
-Copyright (C) 2012 AAUSAT3 Project (http://aausat3.space.aau.dk) 
+Copyright (C) 2012 AAUSAT3 Project (http://aausat3.space.aau.dk)
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -29,11 +29,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #if (configSUPPORT_DYNAMIC_ALLOCATION == 1)
 int csp_thread_create(csp_thread_func_t routine, const char * const thread_name, unsigned int stack_size, void * parameters, unsigned int priority, csp_thread_handle_t * return_handle) {
 
-    TaskHandle_t handle;
+	TaskHandle_t handle;
 #if (tskKERNEL_VERSION_MAJOR >= 8)
 	portBASE_TYPE ret = xTaskCreate(routine, thread_name, stack_size, parameters, priority, &handle);
 #else
-	portBASE_TYPE ret = xTaskCreate(routine, (signed char *) thread_name, stack_size, parameters, priority, &handle);
+	portBASE_TYPE ret = xTaskCreate(routine, (signed char *)thread_name, stack_size, parameters, priority, &handle);
 #endif
 	if (ret != pdTRUE) {
 		return CSP_ERR_NOMEM;

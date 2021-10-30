@@ -1,7 +1,7 @@
 /*
 Cubesat Space Protocol - A small network-layer protocol designed for Cubesats
 Copyright (C) 2012 Gomspace ApS (http://www.gomspace.com)
-Copyright (C) 2012 AAUSAT3 Project (http://aausat3.space.aau.dk) 
+Copyright (C) 2012 AAUSAT3 Project (http://aausat3.space.aau.dk)
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -25,15 +25,13 @@ http://code.google.com/p/c-pthread-queue/
 
 #include <csp/arch/posix/pthread_queue.h>
 
-
 #include <errno.h>
 #include <string.h>
 #include <malloc.h>
 
 #include <csp/csp.h>
 
-static inline int get_deadline(struct timespec *ts, uint32_t timeout_ms)
-{
+static inline int get_deadline(struct timespec * ts, uint32_t timeout_ms) {
 	int ret = clock_gettime(CLOCK_MONOTONIC, ts);
 
 	if (ret < 0) {
@@ -54,8 +52,7 @@ static inline int get_deadline(struct timespec *ts, uint32_t timeout_ms)
 	return ret;
 }
 
-static inline int init_cond_clock_monotonic(pthread_cond_t * cond)
-{
+static inline int init_cond_clock_monotonic(pthread_cond_t * cond) {
 
 	int ret;
 	pthread_condattr_t attr;
@@ -69,15 +66,14 @@ static inline int init_cond_clock_monotonic(pthread_cond_t * cond)
 
 	pthread_condattr_destroy(&attr);
 	return ret;
-
 }
 
 pthread_queue_t * pthread_queue_create(int length, size_t item_size) {
-	
+
 	pthread_queue_t * q = malloc(sizeof(pthread_queue_t));
-	
+
 	if (q != NULL) {
-		q->buffer = malloc(length*item_size);
+		q->buffer = malloc(length * item_size);
 		if (q->buffer != NULL) {
 			q->size = length;
 			q->item_size = item_size;
@@ -96,7 +92,6 @@ pthread_queue_t * pthread_queue_create(int length, size_t item_size) {
 	}
 
 	return q;
-	
 }
 
 void pthread_queue_delete(pthread_queue_t * q) {
@@ -108,11 +103,9 @@ void pthread_queue_delete(pthread_queue_t * q) {
 	free(q);
 
 	return;
-
 }
-	
 
-static inline int wait_slot_available(pthread_queue_t * queue, struct timespec *ts) {
+static inline int wait_slot_available(pthread_queue_t * queue, struct timespec * ts) {
 
 	int ret;
 
@@ -125,19 +118,18 @@ static inline int wait_slot_available(pthread_queue_t * queue, struct timespec *
 		}
 
 		if (ret != 0 && errno != EINTR) {
-			return PTHREAD_QUEUE_FULL; //Timeout
+			return PTHREAD_QUEUE_FULL;  // Timeout
 		}
 	}
 
 	return PTHREAD_QUEUE_OK;
-
 }
 
 int pthread_queue_enqueue(pthread_queue_t * queue, const void * value, uint32_t timeout) {
 
 	int ret;
 	struct timespec ts;
-	struct timespec *pts = NULL;
+	struct timespec * pts = NULL;
 
 	/* Calculate timeout */
 	if (timeout != CSP_MAX_TIMEOUT) {
@@ -155,7 +147,7 @@ int pthread_queue_enqueue(pthread_queue_t * queue, const void * value, uint32_t 
 	ret = wait_slot_available(queue, pts);
 	if (ret == PTHREAD_QUEUE_OK) {
 		/* Copy object from input buffer */
-		memcpy(queue->buffer+(queue->in * queue->item_size), value, queue->item_size);
+		memcpy(queue->buffer + (queue->in * queue->item_size), value, queue->item_size);
 		queue->items++;
 		queue->in = (queue->in + 1) % queue->size;
 	}
@@ -168,10 +160,9 @@ int pthread_queue_enqueue(pthread_queue_t * queue, const void * value, uint32_t 
 	}
 
 	return ret;
-
 }
 
-static inline int wait_item_available(pthread_queue_t * queue, struct timespec *ts) {
+static inline int wait_item_available(pthread_queue_t * queue, struct timespec * ts) {
 
 	int ret;
 
@@ -184,19 +175,18 @@ static inline int wait_item_available(pthread_queue_t * queue, struct timespec *
 		}
 
 		if (ret != 0 && errno != EINTR) {
-			return PTHREAD_QUEUE_EMPTY; //Timeout
+			return PTHREAD_QUEUE_EMPTY;  // Timeout
 		}
 	}
 
 	return PTHREAD_QUEUE_OK;
-
 }
 
 int pthread_queue_dequeue(pthread_queue_t * queue, void * buf, uint32_t timeout) {
 
 	int ret;
 	struct timespec ts;
-	struct timespec *pts;
+	struct timespec * pts;
 
 	/* Calculate timeout */
 	if (timeout != CSP_MAX_TIMEOUT) {
@@ -214,7 +204,7 @@ int pthread_queue_dequeue(pthread_queue_t * queue, void * buf, uint32_t timeout)
 	ret = wait_item_available(queue, pts);
 	if (ret == PTHREAD_QUEUE_OK) {
 		/* Coby object to output buffer */
-		memcpy(buf, queue->buffer+(queue->out * queue->item_size), queue->item_size);
+		memcpy(buf, queue->buffer + (queue->out * queue->item_size), queue->item_size);
 		queue->items--;
 		queue->out = (queue->out + 1) % queue->size;
 	}
@@ -227,7 +217,6 @@ int pthread_queue_dequeue(pthread_queue_t * queue, void * buf, uint32_t timeout)
 	}
 
 	return ret;
-
 }
 
 int pthread_queue_items(pthread_queue_t * queue) {
@@ -235,7 +224,6 @@ int pthread_queue_items(pthread_queue_t * queue) {
 	pthread_mutex_lock(&(queue->mutex));
 	int items = queue->items;
 	pthread_mutex_unlock(&(queue->mutex));
-	
+
 	return items;
-	
 }

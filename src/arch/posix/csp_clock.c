@@ -1,7 +1,7 @@
 /*
 Cubesat Space Protocol - A small network-layer protocol designed for Cubesats
 Copyright (C) 2012 Gomspace ApS (http://www.gomspace.com)
-Copyright (C) 2012 AAUSAT3 Project (http://aausat3.space.aau.dk) 
+Copyright (C) 2012 AAUSAT3 Project (http://aausat3.space.aau.dk)
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -40,6 +40,5 @@ __attribute__((weak)) int csp_clock_set_time(const csp_timestamp_t * time) {
 	if (clock_settime(CLOCK_REALTIME, &ts) == 0) {
 		return CSP_ERR_NONE;
 	}
-	return CSP_ERR_INVAL; // CSP doesn't have any matching error codes
-
+	return CSP_ERR_INVAL;  // CSP doesn't have any matching error codes
 }

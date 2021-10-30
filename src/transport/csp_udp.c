@@ -45,6 +45,4 @@ void csp_udp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 		/* Ensure that this connection will not be posted to this socket again */
 		conn->dest_socket = NULL;
 	}
-
 }
-

@@ -38,7 +38,7 @@ static int csp_if_udp_tx(const csp_route_t * ifroute, csp_packet_t * packet) {
 	csp_if_udp_conf_t * ifconf = ifroute->iface->driver_data;
 
 	int sockfd;
-	if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {
+	if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
 		perror("socket creation failed");
 		return CSP_ERR_BUSY;
 	}
@@ -47,7 +47,7 @@ static int csp_if_udp_tx(const csp_route_t * ifroute, csp_packet_t * packet) {
 
 	ifconf->peer_addr.sin_family = AF_INET;
 	ifconf->peer_addr.sin_port = htons(ifconf->rport);
-	sendto(sockfd, packet->frame_begin, packet->frame_length, MSG_CONFIRM, (struct sockaddr *) &ifconf->peer_addr, sizeof(ifconf->peer_addr));
+	sendto(sockfd, packet->frame_begin, packet->frame_length, MSG_CONFIRM, (struct sockaddr *)&ifconf->peer_addr, sizeof(ifconf->peer_addr));
 	csp_buffer_free(packet);
 
 	close(sockfd);
@@ -67,15 +67,15 @@ CSP_DEFINE_TASK(csp_if_udp_rx_task) {
 	server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
 	server_addr.sin_port = htons(ifconf->lport);
 
-	while(1) {
+	while (1) {
 
-		if (bind(sockfd, (struct sockaddr *) &server_addr, sizeof(server_addr)) < 0) {
+		if (bind(sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
 			printf("UDP server waiting for port %d\n", ifconf->lport);
 			sleep(1);
 			continue;
 		}
 
-		while(1) {
+		while (1) {
 
 			csp_packet_t * packet = csp_buffer_get(iface->mtu);
 			if (packet == NULL) {
@@ -87,7 +87,7 @@ CSP_DEFINE_TASK(csp_if_udp_rx_task) {
 			int header_size = csp_id_setup_rx(packet);
 
 			unsigned int peer_addr_len = sizeof(ifconf->peer_addr);
-			int received_len = recvfrom(sockfd, (char *) packet->frame_begin, iface->mtu + header_size, MSG_WAITALL, (struct sockaddr *) &ifconf->peer_addr, &peer_addr_len);
+			int received_len = recvfrom(sockfd, (char *)packet->frame_begin, iface->mtu + header_size, MSG_WAITALL, (struct sockaddr *)&ifconf->peer_addr, &peer_addr_len);
 			packet->frame_length = received_len;
 
 			csp_log_info("UDP peer address: %s", inet_ntoa(ifconf->peer_addr.sin_addr));
@@ -100,14 +100,10 @@ CSP_DEFINE_TASK(csp_if_udp_rx_task) {
 			}
 
 			csp_qfifo_write(packet, iface, NULL);
-
-
 		}
-
 	}
 
 	return CSP_TASK_RETURN;
-
 }
 
 void csp_if_udp_init(csp_iface_t * iface, csp_if_udp_conf_t * ifconf) {
@@ -131,5 +127,4 @@ void csp_if_udp_init(csp_iface_t * iface, csp_if_udp_conf_t * ifconf) {
 	iface->name = "UDP",
 	iface->nexthop = csp_if_udp_tx,
 	csp_iflist_add(iface);
-
 }

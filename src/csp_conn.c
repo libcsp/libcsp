@@ -32,19 +32,18 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "transport/csp_transport.h"
 
 /* Connection pool */
-static csp_conn_t arr_conn[CSP_CONN_MAX]  __attribute__((section(".noinit")));
+static csp_conn_t arr_conn[CSP_CONN_MAX] __attribute__((section(".noinit")));
 
 /* Connection pool lock */
-static csp_bin_sem_handle_t conn_lock  __attribute__((section(".noinit")));
-static csp_bin_sem_t conn_lock_buf  __attribute__((section(".noinit")));
+static csp_bin_sem_handle_t conn_lock __attribute__((section(".noinit")));
+static csp_bin_sem_t conn_lock_buf __attribute__((section(".noinit")));
 
 /* Last used 'source' port */
 static uint8_t sport;
 
 /* Source port lock */
-static csp_bin_sem_handle_t sport_lock  __attribute__((section(".noinit")));
+static csp_bin_sem_handle_t sport_lock __attribute__((section(".noinit")));
 static csp_bin_sem_t sport_lock_buf __attribute__((section(".noinit")));
-
 
 void csp_conn_check_timeouts(void) {
 #if (CSP_USE_RDP)
@@ -80,19 +79,15 @@ void csp_conn_init(void) {
 	unsigned int seed = csp_get_ms();
 	sport = (rand_r(&seed) % (csp_id_get_max_port() - CSP_PORT_MAX_BIND)) + (CSP_PORT_MAX_BIND + 1);
 
-
-
 	for (int i = 0; i < CSP_CONN_MAX; i++) {
 		csp_conn_t * conn = &arr_conn[i];
 
 		conn->rx_queue = csp_queue_create_static(CSP_CONN_RXQUEUE_LEN, sizeof(csp_packet_t *), conn->rx_queue_static_data, &conn->rx_queue_static);
-		
+
 #if (CSP_USE_RDP)
 		csp_rdp_init(conn);
 #endif
-
 	}
-
 }
 
 csp_conn_t * csp_conn_find_dport(unsigned int dport) {
@@ -114,11 +109,9 @@ csp_conn_t * csp_conn_find_dport(unsigned int dport) {
 
 		/* All conditions found! */
 		return conn;
-
 	}
 
 	return NULL;
-
 }
 
 csp_conn_t * csp_conn_find_existing(csp_id_t * id) {
@@ -160,11 +153,9 @@ csp_conn_t * csp_conn_find_existing(csp_id_t * id) {
 
 		/* All conditions found! */
 		return conn;
-
 	}
-	
-	return NULL;
 
+	return NULL;
 }
 
 static int csp_conn_flush_rx_queue(csp_conn_t * conn) {
@@ -179,7 +170,6 @@ static int csp_conn_flush_rx_queue(csp_conn_t * conn) {
 	}
 
 	return CSP_ERR_NONE;
-
 }
 
 csp_conn_t * csp_conn_allocate(csp_conn_type_t type) {
@@ -219,7 +209,6 @@ csp_conn_t * csp_conn_allocate(csp_conn_type_t type) {
 	}
 
 	return conn;
-
 }
 
 csp_conn_t * csp_conn_new(csp_id_t idin, csp_id_t idout) {
@@ -240,11 +229,10 @@ csp_conn_t * csp_conn_new(csp_id_t idin, csp_id_t idout) {
 	}
 
 	return conn;
-
 }
 
 int csp_close(csp_conn_t * conn) {
-    return csp_conn_close(conn, CSP_RDP_CLOSED_BY_USERSPACE);
+	return csp_conn_close(conn, CSP_RDP_CLOSED_BY_USERSPACE);
 }
 
 int csp_conn_close(csp_conn_t * conn, uint8_t closed_by) {
@@ -278,8 +266,6 @@ int csp_conn_close(csp_conn_t * conn, uint8_t closed_by) {
 
 	/* Ensure connection queue is empty */
 	csp_conn_flush_rx_queue(conn);
-
-
 
 	/* Reset RDP state */
 #if (CSP_USE_RDP)
@@ -383,7 +369,6 @@ csp_conn_t * csp_connect(uint8_t prio, uint16_t dest, uint8_t dport, uint32_t ti
 			conn = csp_conn_new(incoming_id, outgoing_id);
 			break;
 		}
-
 	}
 
 	/* Post sport lock */
@@ -410,37 +395,31 @@ csp_conn_t * csp_connect(uint8_t prio, uint16_t dest, uint8_t dport, uint32_t ti
 
 	/* We have a successful connection */
 	return conn;
-
 }
 
 int csp_conn_dport(csp_conn_t * conn) {
 
 	return conn->idin.dport;
-
 }
 
 int csp_conn_sport(csp_conn_t * conn) {
 
 	return conn->idin.sport;
-
 }
 
 int csp_conn_dst(csp_conn_t * conn) {
 
 	return conn->idin.dst;
-
 }
 
 int csp_conn_src(csp_conn_t * conn) {
 
 	return conn->idin.src;
-
 }
 
 int csp_conn_flags(csp_conn_t * conn) {
 
 	return conn->idin.flags;
-
 }
 
 #if (CSP_DEBUG)
@@ -449,8 +428,8 @@ void csp_conn_print_table(void) {
 	for (unsigned int i = 0; i < CSP_CONN_MAX; i++) {
 		csp_conn_t * conn = &arr_conn[i];
 		printf("[%02u %p] S:%u, %u -> %u, %u -> %u\r\n",
-				i, conn, conn->state, conn->idin.src, conn->idin.dst,
-				conn->idin.dport, conn->idin.sport);
+			   i, conn, conn->state, conn->idin.src, conn->idin.dst,
+			   conn->idin.dport, conn->idin.sport);
 #if (CSP_USE_RDP)
 		if (conn->idin.flags & CSP_FRDP) {
 			csp_rdp_conn_print(conn);
@@ -468,8 +447,8 @@ int csp_conn_print_table_str(char * str_buf, int str_size) {
 		csp_conn_t * conn = &arr_conn[i];
 		char buf[100];
 		snprintf(buf, sizeof(buf), "[%02u %p] S:%u, %u -> %u, %u -> %u\n",
-				i, conn, conn->state, conn->idin.src, conn->idin.dst,
-				conn->idin.dport, conn->idin.sport);
+				 i, conn, conn->state, conn->idin.src, conn->idin.dst,
+				 conn->idin.dport, conn->idin.sport);
 
 		strncat(str_buf, buf, str_size);
 		if ((str_size -= strlen(buf)) <= 0) {
@@ -481,8 +460,7 @@ int csp_conn_print_table_str(char * str_buf, int str_size) {
 }
 #endif
 
-const csp_conn_t * csp_conn_get_array(size_t * size)
-{
+const csp_conn_t * csp_conn_get_array(size_t * size) {
 	*size = CSP_CONN_MAX;
 	return arr_conn;
 }

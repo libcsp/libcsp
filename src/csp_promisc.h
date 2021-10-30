@@ -23,13 +23,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <csp/csp_promisc.h>
 
-
-
 /**
  * Add packet to promiscuous mode packet queue
  * @param packet Packet to add to the queue
  */
 void csp_promisc_add(csp_packet_t * packet);
-
 
 #endif

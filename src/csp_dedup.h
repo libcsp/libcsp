@@ -28,6 +28,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  * @param packet pointer to packet
  * @return false if not a duplicate, true if duplicate
  */
-bool csp_dedup_is_duplicate(csp_packet_t *packet);
+bool csp_dedup_is_duplicate(csp_packet_t * packet);
 
 #endif /* CSP_DEDUP_H_ */

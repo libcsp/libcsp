@@ -22,8 +22,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <csp/csp_types.h>
 
-
-
 /** ARRIVING SEGMENT */
 void csp_udp_new_packet(csp_conn_t * conn, csp_packet_t * packet);
 bool csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet);
@@ -38,4 +36,3 @@ int csp_rdp_check_ack(csp_conn_t * conn);
 void csp_rdp_check_timeouts(csp_conn_t * conn);
 void csp_rdp_flush_all(csp_conn_t * conn);
 void csp_rdp_free_resources(csp_conn_t * conn);
-
