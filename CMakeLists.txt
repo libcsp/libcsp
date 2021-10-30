@@ -2,7 +2,8 @@ project(CSP)
 cmake_minimum_required(VERSION 3.20)
 
 add_library(libcsp)
-target_compile_features(libcsp PRIVATE c_std_11)
+set_target_properties(libcsp PROPERTIES C_STANDARD 11)
+set_target_properties(libcsp PROPERTIES C_EXTENSIONS ON)
 target_compile_options(libcsp PRIVATE -Wall -Wextra)
 
 set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS Debug Release MinSizeRel)
