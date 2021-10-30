@@ -201,9 +201,8 @@ csp_packet_t *csp_recvfrom(csp_socket_t *socket, uint32_t timeout);
    @param[in] src_port source port
    @param[in] opts connection options, see @ref CSP_CONNECTION_OPTIONS.
    @param[in] packet packet to send
-   @return #CSP_ERR_NONE on success, otherwise an error code and the packet must be freed by calling csp_buffer_free().
 */
-int csp_sendto(uint8_t prio, uint16_t dst, uint8_t dst_port, uint8_t src_port, uint32_t opts, csp_packet_t *packet);
+void csp_sendto(uint8_t prio, uint16_t dst, uint8_t dst_port, uint8_t src_port, uint32_t opts, csp_packet_t *packet);
 
 /**
    Send a packet as a reply to a request (without a connection).
@@ -211,9 +210,8 @@ int csp_sendto(uint8_t prio, uint16_t dst, uint8_t dst_port, uint8_t src_port, u
    @param[in] request incoming request
    @param[in] reply reply packet
    @param[in] opts connection options, see @ref CSP_CONNECTION_OPTIONS.
-   @return #CSP_ERR_NONE on success, otherwise an error code and the reply must be freed by calling csp_buffer_free().
 */
-int csp_sendto_reply(const csp_packet_t * request, csp_packet_t * reply, uint32_t opts);
+void csp_sendto_reply(const csp_packet_t * request, csp_packet_t * reply, uint32_t opts);
 
 /**
    Establish outgoing connection.

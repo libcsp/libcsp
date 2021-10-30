@@ -275,8 +275,7 @@ void csp_service_handler(csp_packet_t * packet) {
 			/* Send out the data */
 			memcpy(rpacket->data, &pslist[i], rpacket->length);
 			i += rpacket->length;
-			if (csp_sendto_reply(packet, rpacket, CSP_O_SAME) != CSP_ERR_NONE)
-				csp_buffer_free(rpacket);
+			csp_sendto_reply(packet, rpacket, CSP_O_SAME);
 
 			/* Clear the packet reference when sent */
 		}
@@ -334,8 +333,7 @@ void csp_service_handler(csp_packet_t * packet) {
 	}
 
 	if (packet != NULL) {
-		if (csp_sendto_reply(packet, packet, CSP_O_SAME) != CSP_ERR_NONE)
-			csp_buffer_free(packet);
+		csp_sendto_reply(packet, packet, CSP_O_SAME);
 	}
 
 }

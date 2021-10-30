@@ -107,10 +107,7 @@ int csp_sfp_send_own_memcpy(csp_conn_t * conn, const void * data, unsigned int t
 		sfp_header->offset = htobe32(count);
 
 		/* Send data */
-		if (!csp_send(conn, packet, timeout)) {
-			csp_buffer_free(packet);
-			return CSP_ERR_TX;
-		}
+		csp_send(conn, packet);
 
 		/* Increment count */
 		count += size;
