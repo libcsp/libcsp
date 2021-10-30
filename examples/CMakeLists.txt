@@ -9,6 +9,6 @@ target_link_libraries(csp_arch PRIVATE libcsp)
 target_compile_definitions(csp_arch PRIVATE NDEBUG)
 
 add_executable(zmqproxy EXCLUDE_FROM_ALL zmqproxy.c)
-target_include_directories(zmqproxy PRIVATE ${csp_inc})
-target_link_libraries(zmqproxy PRIVATE libcsp)
+target_include_directories(zmqproxy PRIVATE ${csp_inc} ${LIBZMQ_INCLUDE_DIRS})
+target_link_libraries(zmqproxy PRIVATE libcsp Threads::Threads ${LIBZMQ_LIBRARIES})
 target_compile_definitions(zmqproxy PRIVATE NDEBUG)

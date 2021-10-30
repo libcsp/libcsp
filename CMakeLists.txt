@@ -1,6 +1,10 @@
 project(CSP)
 cmake_minimum_required(VERSION 3.20)
 
+if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
+  set(BUILD_SHARED_LIBS ON)
+endif()
+
 add_library(libcsp)
 set_target_properties(libcsp PROPERTIES C_STANDARD 11)
 set_target_properties(libcsp PROPERTIES C_EXTENSIONS ON)
@@ -57,6 +61,7 @@ check_include_files(sys/socket.h HAVE_SYS_SOCKET_H)
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND
     CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
+  find_package(Threads REQUIRED)
   find_package(PkgConfig)
 
   pkg_search_module(LIBZMQ libzmq)
