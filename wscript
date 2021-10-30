@@ -85,7 +85,7 @@ def configure(ctx):
         ctx.env.CC = ctx.options.toolchain + 'gcc'
         ctx.env.AR = ctx.options.toolchain + 'ar'
 
-    ctx.load('compiler_c')
+    ctx.load('compiler_c python')
 
     # Set git revision define
     git_rev = os.popen('git describe --long --always 2> /dev/null || echo unknown').read().strip()
@@ -161,8 +161,8 @@ def configure(ctx):
 
     # Add Python bindings
     if ctx.options.enable_python3_bindings:
-        ctx.env.LIBCSP_PYTHON3 = ctx.check_cfg(package='python3', args='--cflags --libs', atleast_version='3.5',
-                                               mandatory=True)
+        ctx.check_python_version((3,5))
+        ctx.check_python_headers(features='pyext')
 
     # Set defines for customizable parameters
     ctx.define('CSP_QFIFO_LEN', 15)
@@ -215,7 +215,7 @@ def build(ctx):
         install_path=install_path)
 
     # Build shared library
-    if ctx.env.LIBCSP_SHLIB or ctx.env.LIBCSP_PYTHON3:
+    if ctx.env.LIBCSP_SHLIB or ctx.env.HAVE_PYEXT:
         ctx.shlib(source=ctx.path.ant_glob(ctx.env.FILES_CSP),
                   name='csp_shlib',
                   target='csp',
@@ -223,12 +223,11 @@ def build(ctx):
                   lib=ctx.env.LIBS)
 
     # Build Python bindings
-    if ctx.env.LIBCSP_PYTHON3:
+    if ctx.env.HAVE_PYEXT:
         ctx.shlib(source=ctx.path.ant_glob('src/bindings/python/**/*.c'),
-                  target='csp_py3',
-                  includes=ctx.env.INCLUDES_PYTHON3,
+                  target='libcsp_py3',
+                  features='pyext',
                   use=['csp_shlib'],
-                  lib=ctx.env.LIBS,
                   pytest_path=[ctx.path.get_bld()])
 
     if ctx.env.ENABLE_EXAMPLES:
