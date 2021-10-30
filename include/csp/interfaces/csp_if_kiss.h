@@ -30,9 +30,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/csp_interface.h>
 #include <csp/arch/csp_semaphore.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+
 
 /**
    Default name of KISS interface.
@@ -111,7 +109,5 @@ int csp_kiss_tx(const csp_route_t * ifroute, csp_packet_t * packet);
 */
 void csp_kiss_rx(csp_iface_t * iface, const uint8_t * buf, size_t len, void * pxTaskWoken);
 
-#ifdef __cplusplus
-}
-#endif
+
 #endif

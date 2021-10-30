@@ -18,8 +18,7 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef _CSP_INTERFACE_H_
-#define _CSP_INTERFACE_H_
+#pragma once
 
 /**
    @file
@@ -28,9 +27,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <csp/csp_types.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+
 
 /**
    Max unique length of interface name, when matching names.
@@ -87,7 +84,3 @@ struct csp_iface_s {
 */
 void csp_qfifo_write(csp_packet_t *packet, csp_iface_t *iface, void * pxTaskWoken);
 
-#ifdef __cplusplus
-}
-#endif
-#endif

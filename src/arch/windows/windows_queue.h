@@ -23,9 +23,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <csp/arch/csp_queue.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+
 
 #define WINDOWS_QUEUE_ERROR CSP_QUEUE_ERROR
 #define WINDOWS_QUEUE_EMPTY CSP_QUEUE_ERROR
@@ -40,7 +38,5 @@ int windows_queue_enqueue(windows_queue_t * queue, const void * value, int timeo
 int windows_queue_dequeue(windows_queue_t * queue, void * buf, int timeout);
 int windows_queue_items(windows_queue_t * queue);
 
-#ifdef __cplusplus
-}
-#endif
+
 #endif

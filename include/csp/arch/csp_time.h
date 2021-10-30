@@ -18,8 +18,7 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef _CSP_TIME_H_
-#define _CSP_TIME_H_
+#pragma once
 
 /**
    @file
@@ -31,9 +30,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <csp/csp_types.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+
 
 /**
    Return uptime in seconds.
@@ -66,8 +63,3 @@ uint32_t csp_get_s(void);
    @return seconds.
 */
 uint32_t csp_get_s_isr(void);
-
-#ifdef __cplusplus
-}
-#endif
-#endif

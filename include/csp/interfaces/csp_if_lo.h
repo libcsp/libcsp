@@ -18,8 +18,7 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef _CSP_IF_LO_H_
-#define _CSP_IF_LO_H_
+#pragma once
 
 /**
    @file
@@ -29,9 +28,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <csp/csp_interface.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+
 
 /**
    Name of loopback interface.
@@ -42,8 +39,3 @@ extern "C" {
    Loopback interface.
 */
 extern csp_iface_t csp_if_lo;
-
-#ifdef __cplusplus
-}
-#endif
-#endif

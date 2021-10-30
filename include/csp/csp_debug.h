@@ -18,8 +18,7 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef _CSP_DEBUG_H_
-#define _CSP_DEBUG_H_
+#pragma once
 
 /**
    @file
@@ -39,9 +38,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #else 
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /**
    Debug levels.
@@ -217,10 +213,5 @@ typedef void (*csp_debug_hook_func_t)(csp_debug_level_t level, const char *forma
  */
 void csp_debug_hook_set(csp_debug_hook_func_t f);
 
-#ifdef __cplusplus
-}
-#endif
-
 #endif // CSP_USE_EXTERNAL_DEBUG
 
-#endif // _CSP_DEBUG_H_

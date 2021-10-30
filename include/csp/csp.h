@@ -18,8 +18,7 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef _CSP_H_
-#define _CSP_H_
+#pragma once
 
 /**
    @file
@@ -40,9 +39,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #define CSP_INFINITY CSP_MAX_TIMEOUT
 
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+
 
 enum csp_dedup_types {
 	CSP_DEDUP_OFF,              /**< Deduplication off */
@@ -474,7 +471,3 @@ void csp_hex_dump(const char *desc, void *addr, int len);
 */
 void csp_cmp_set_memcpy(csp_memcpy_fnc_t fnc);
 
-#ifdef __cplusplus
-}
-#endif
-#endif

@@ -18,8 +18,7 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef _CSP_ARCH_CLOCK_H_
-#define _CSP_ARCH_CLOCK_H_
+#pragma once
 
 /**
    @file
@@ -29,9 +28,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <csp/csp_types.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+
 
 /**
    Timestamp (cross platform).
@@ -68,7 +65,3 @@ int csp_clock_set_time(const csp_timestamp_t * time);
 __attribute__((weak)) extern uint64_t clock_get_time64(void);
 __attribute__((weak)) extern void clock_set_time64(uint64_t time);
 
-#ifdef __cplusplus
-}
-#endif
-#endif

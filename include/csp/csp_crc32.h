@@ -18,8 +18,7 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef _CSP_CRC32_H_
-#define _CSP_CRC32_H_
+#pragma once
 
 /**
    @file
@@ -27,10 +26,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 #include <csp/csp.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /**
    Append CRC32 checksum to packet
@@ -56,7 +51,3 @@ int csp_crc32_verify(csp_packet_t * packet, bool include_header);
 */
 uint32_t csp_crc32_memory(const uint8_t * addr, uint32_t length);
 
-#ifdef __cplusplus
-}
-#endif
-#endif

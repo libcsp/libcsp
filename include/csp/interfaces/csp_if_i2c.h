@@ -18,8 +18,7 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef _CSP_IF_I2C_H_
-#define _CSP_IF_I2C_H_
+#pragma once
 
 /**
    @file
@@ -29,9 +28,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <csp/csp_interface.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+
 
 /**
    Default name of I2C interface.
@@ -111,7 +108,3 @@ int csp_i2c_tx(const csp_route_t * ifroute, csp_packet_t * packet);
 */
 void csp_i2c_rx(csp_iface_t * iface, csp_i2c_frame_t * frame, void * pxTaskWoken);
 
-#ifdef __cplusplus
-}
-#endif
-#endif

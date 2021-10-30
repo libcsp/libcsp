@@ -18,8 +18,7 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef _CSP_ARCH_POSIX_CSP_SYSTEM_H_
-#define _CSP_ARCH_POSIX_CSP_SYSTEM_H_
+#pragma once
 
 /**
    @file
@@ -52,8 +51,3 @@ int csp_sys_shutdown_using_system(void);
    Executes 'sync() and reboot(LINUX_REBOOT_CMD_HALT)' for system shutdown.
 */
 int csp_sys_shutdown_using_reboot(void);
-
-#ifdef __cplusplus
-}
-#endif
-#endif

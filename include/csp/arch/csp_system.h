@@ -18,8 +18,7 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef _CSP_SYSTEM_H_
-#define _CSP_SYSTEM_H_
+#pragma once
 
 /**
    @file
@@ -29,9 +28,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <csp/csp_types.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+
 
 /** Color mask */
 #define COLOR_MASK_COLOR 	0x0F
@@ -128,8 +125,3 @@ int csp_sys_shutdown(void);
    @param[in] color color.
 */
 void csp_sys_set_color(csp_color_t color);
-
-#ifdef __cplusplus
-}
-#endif
-#endif

@@ -18,8 +18,7 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef _CSP_ARCH_QUEUE_H_
-#define _CSP_ARCH_QUEUE_H_
+#pragma once
 
 /**
    @file
@@ -34,9 +33,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <queue.h>
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+
 
 /**
    No error.
@@ -136,7 +133,3 @@ int csp_queue_size(csp_queue_handle_t handle);
 */
 int csp_queue_size_isr(csp_queue_handle_t handle);
 
-#ifdef __cplusplus
-}
-#endif
-#endif

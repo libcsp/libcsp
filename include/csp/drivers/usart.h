@@ -35,9 +35,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <Windows.h>
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+
 
 /**
    OS file handle.
@@ -115,7 +113,5 @@ int csp_usart_write(csp_usart_fd_t fd, const void * data, size_t data_length);
 */
 int csp_usart_open_and_add_kiss_interface(const csp_usart_conf_t *conf, const char * ifname, csp_iface_t ** return_iface);
 
-#ifdef __cplusplus
-}
-#endif
+
 #endif

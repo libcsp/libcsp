@@ -18,8 +18,7 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef _CSP_SFP_H_
-#define _CSP_SFP_H_
+#pragma once
 
 /**
    @file
@@ -37,9 +36,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <csp/csp_types.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+
 
 /**
    Send data over a CSP connection.
@@ -104,8 +101,3 @@ int csp_sfp_recv_fp(csp_conn_t * conn, void ** dataout, int * datasize, uint32_t
 static inline int csp_sfp_recv(csp_conn_t * conn, void ** dataout, int * datasize, uint32_t timeout) {
     return csp_sfp_recv_fp(conn, dataout, datasize, timeout, NULL);
 }
-
-#ifdef __cplusplus
-}
-#endif
-#endif

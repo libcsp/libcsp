@@ -33,9 +33,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <csp/csp_interface.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+
 
 /**
    zmqproxy default subscribe (rx) port.
@@ -112,7 +110,5 @@ int csp_zmqhub_init_w_name_endpoints_rxfilter(const char * ifname,
                                               uint32_t flags,
                                               csp_iface_t ** return_interface);
 
-#ifdef __cplusplus
-}
-#endif
+
 #endif

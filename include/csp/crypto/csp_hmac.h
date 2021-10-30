@@ -18,8 +18,7 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef _CSP_CRYPTO_HMAC_H_
-#define _CSP_CRYPTO_HMAC_H_
+#pragma once
 
 /**
    @file
@@ -30,9 +29,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <csp/crypto/csp_sha1.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+
 
 /**
    Number of bytes from the HMAC calculation, that is appended to the CSP message.
@@ -76,8 +73,3 @@ int csp_hmac_memory(const void * key, uint32_t keylen, const void * data, uint32
  * @return #CSP_ERR_NONE on success, otherwise an error code.
  */
 int csp_hmac_set_key(const void * key, uint32_t keylen);
-
-#ifdef __cplusplus
-}
-#endif
-#endif

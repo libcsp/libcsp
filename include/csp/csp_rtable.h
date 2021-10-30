@@ -34,9 +34,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <csp/csp_iflist.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+
 
 /**
    No via address specified for the route, use CSP header destination.
@@ -143,7 +141,5 @@ static inline void csp_route_print_interfaces(void) {
     csp_iflist_print();
 }
 
-#ifdef __cplusplus
-}
-#endif
+
 #endif

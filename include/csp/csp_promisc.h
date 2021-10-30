@@ -18,8 +18,7 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef _CSP_CSP_PROMISC_H_
-#define _CSP_CSP_PROMISC_H_
+#pragma once
 
 /**
    #file
@@ -33,9 +32,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <csp/csp_types.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+
 
 /**
    Enable promiscuous packet queue.
@@ -57,8 +54,3 @@ void csp_promisc_disable(void);
    @return Packet (free with csp_buffer_free() or re-use packet), NULL on error or timeout.
 */
 csp_packet_t *csp_promisc_read(uint32_t timeout);
-
-#ifdef __cplusplus
-}
-#endif
-#endif

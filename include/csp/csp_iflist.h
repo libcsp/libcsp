@@ -33,9 +33,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <csp/csp_interface.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+
 
 /**
    Add interface to the list.
@@ -70,7 +68,5 @@ csp_iface_t * csp_iflist_get(void);
 */
 int csp_bytesize(char *buffer, int buffer_len, unsigned long int bytes);
     
-#ifdef __cplusplus
-}
-#endif
+
 #endif

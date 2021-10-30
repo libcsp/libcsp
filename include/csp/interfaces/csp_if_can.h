@@ -49,9 +49,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <csp/csp_interface.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+
 
 /**
    @defgroup CFP_SIZE CAN message id field size.
@@ -231,7 +229,5 @@ int csp_can_tx(const csp_route_t * ifroute, csp_packet_t *packet);
 */
 int csp_can_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t dlc, int *pxTaskWoken);
 
-#ifdef __cplusplus
-}
-#endif
+
 #endif

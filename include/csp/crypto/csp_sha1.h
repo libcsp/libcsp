@@ -18,8 +18,7 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef _CSP_CRYPTO_SHA1_H_
-#define _CSP_CRYPTO_SHA1_H_
+#pragma once
 
 /**
    @file
@@ -30,9 +29,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <csp/csp_types.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+
 
 /** The SHA1 block size in bytes */
 #define CSP_SHA1_BLOCKSIZE	64
@@ -82,8 +79,3 @@ void csp_sha1_done(csp_sha1_state_t * state, uint8_t * sha1);
    @param[out] sha1 user supplied buffer of minimum #CSP_SHA1_DIGESTSIZE bytes.
 */
 void csp_sha1_memory(const void * data, uint32_t length, uint8_t * sha1);
-
-#ifdef __cplusplus
-}
-#endif
-#endif

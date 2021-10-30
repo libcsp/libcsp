@@ -18,8 +18,7 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef _CSP_ERROR_H_
-#define _CSP_ERROR_H_
+#pragma once
 
 /**
    @file
@@ -27,9 +26,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
    Error codes.
 */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+
 
 /**
    @defgroup CSP_ERR CSP error codes.
@@ -53,8 +50,3 @@ extern "C" {
 #define CSP_ERR_CRC32		-102		/**< CRC32 failed */
 #define CSP_ERR_SFP		-103		/**< SFP protocol error or inconsistency */
 /**@}*/
-
-#ifdef __cplusplus
-}
-#endif
-#endif

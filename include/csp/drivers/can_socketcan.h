@@ -30,9 +30,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <csp/interfaces/csp_if_can.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+
 
 /**
    Open CAN socket and add CSP interface.
@@ -69,7 +67,5 @@ int csp_can_socketcan_stop(csp_iface_t * iface);
 
 int csp_can_socketcan_set_promisc(const bool promisc, int *socket);
 
-#ifdef __cplusplus
-}
-#endif
+
 #endif

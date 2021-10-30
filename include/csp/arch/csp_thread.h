@@ -18,8 +18,7 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef _CSP_THREAD_H_
-#define _CSP_THREAD_H_
+#pragma once
 
 /**
    @file
@@ -29,9 +28,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <csp/csp_types.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+
 
 /*
   POSIX interface
@@ -149,8 +146,3 @@ void csp_thread_exit(void);
    @param[in] time_ms mS to sleep.
 */
 void csp_sleep_ms(unsigned int time_ms);
-
-#ifdef __cplusplus
-}
-#endif
-#endif

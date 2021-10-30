@@ -18,8 +18,7 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef _CSP_SEMAPHORE_H_
-#define _CSP_SEMAPHORE_H_
+#pragma once
 
 #include <csp/csp_types.h>
 /**
@@ -28,9 +27,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
    Semaphore and Mutex interface.
 */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+
 
 /* POSIX interface */
 #if (CSP_POSIX || __DOXYGEN__)
@@ -221,7 +218,3 @@ int csp_bin_sem_post(csp_bin_sem_handle_t * sem);
 */
 int csp_bin_sem_post_isr(csp_bin_sem_handle_t * sem, int * pxTaskWoken);
 
-#ifdef __cplusplus
-}
-#endif
-#endif

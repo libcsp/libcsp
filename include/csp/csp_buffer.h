@@ -18,8 +18,7 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef _CSP_BUFFER_H_
-#define _CSP_BUFFER_H_
+#pragma once
 
 /**
    @file
@@ -27,10 +26,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 #include <csp/csp_types.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /**
    Get free buffer (from task context).
@@ -90,7 +85,4 @@ size_t csp_buffer_data_size(void);
 
 void csp_buffer_init(void);
 
-#ifdef __cplusplus
-}
-#endif
-#endif
+

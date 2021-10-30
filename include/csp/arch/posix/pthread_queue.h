@@ -33,9 +33,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <csp/arch/csp_queue.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+
 
 /**
    Queue error codes.
@@ -108,7 +106,5 @@ int pthread_queue_dequeue(pthread_queue_t * queue, void * buf, uint32_t timeout)
 */
 int pthread_queue_items(pthread_queue_t * queue);
 
-#ifdef __cplusplus
-}
-#endif
+
 #endif

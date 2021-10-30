@@ -33,9 +33,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp_autoconfig.h> // -> CSP_X defines (compile configuration)
 #include <csp/csp_error.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+
 
 /**
    Reserved ports for CSP services.
@@ -218,7 +216,5 @@ typedef csp_memptr_t (*csp_memcpy_fnc_t)(csp_memptr_t, csp_const_memptr_t, size_
 */
 #define CSP_STATIC_ASSERT(condition, name)   typedef char name[(condition) ? 1 : -1]
 
-#ifdef __cplusplus
-}
-#endif
+
 #endif /* CSP_TYPES_H_ */

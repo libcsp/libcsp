@@ -18,14 +18,11 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef _CSP_IO_H_
-#define _CSP_IO_H_
+#pragma once
 
 #include <csp/csp.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+
 
 /**
    Send CSP packet via route (no existing connection).
@@ -37,7 +34,3 @@ extern "C" {
 */
 int csp_send_direct(csp_id_t idout, csp_packet_t * packet, const csp_route_t * ifroute);
 
-#ifdef __cplusplus
-}
-#endif
-#endif

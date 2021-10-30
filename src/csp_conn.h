@@ -18,16 +18,13 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef _CSP_CONN_H_
-#define _CSP_CONN_H_
+#pragma once
 
 #include <csp/csp.h>
 #include <csp/arch/csp_queue.h>
 #include <csp/arch/csp_semaphore.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+
 
 #ifndef CSP_USE_RDP_FAST_CLOSE
 #define CSP_USE_RDP_FAST_CLOSE 0
@@ -125,7 +122,3 @@ int csp_conn_close(csp_conn_t * conn, uint8_t closed_by);
 
 const csp_conn_t * csp_conn_get_array(size_t * size); // for test purposes only!
 
-#ifdef __cplusplus
-}
-#endif
-#endif

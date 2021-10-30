@@ -18,14 +18,11 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef _CSP_TRANSPORT_H_
-#define _CSP_TRANSPORT_H_
+#pragma once
 
 #include <csp/csp_types.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+
 
 /** ARRIVING SEGMENT */
 void csp_udp_new_packet(csp_conn_t * conn, csp_packet_t * packet);
@@ -42,7 +39,3 @@ void csp_rdp_check_timeouts(csp_conn_t * conn);
 void csp_rdp_flush_all(csp_conn_t * conn);
 void csp_rdp_free_resources(csp_conn_t * conn);
 
-#ifdef __cplusplus
-}
-#endif
-#endif
