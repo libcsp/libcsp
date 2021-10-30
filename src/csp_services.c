@@ -50,8 +50,7 @@ int csp_ping(uint16_t node, uint32_t timeout, unsigned int size, uint8_t conn_op
 		packet->data[i] = i;
 
 	/* Try to send frame */
-	if (!csp_send(conn, packet, 0))
-		goto out;
+	csp_send(conn, packet);
 
 	/* Read incoming frame */
 	packet = csp_read(conn, timeout);
@@ -100,10 +99,7 @@ void csp_ping_noreply(uint16_t node) {
 
 	printf("Ping ignore reply node %u.\r\n", (unsigned int) node);
 
-	/* Try to send frame */
-	if (!csp_send(conn, packet, 0))
-		csp_buffer_free(packet);
-
+	csp_send(conn, packet);
 	csp_close(conn);
 
 }
@@ -140,9 +136,7 @@ void csp_ps(uint16_t node, uint32_t timeout) {
 	printf("PS node %u: \r\n", node);
 
 	/* Try to send frame */
-	if (!csp_send(conn, packet, 0)) {
-		goto out;
-	}
+	csp_send(conn, packet);
 
 	while(1) {
 

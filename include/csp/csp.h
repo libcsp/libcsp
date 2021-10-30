@@ -124,12 +124,13 @@ csp_packet_t *csp_read(csp_conn_t *conn, uint32_t timeout);
 
 /**
    Send packet on a connection.
+
+   The packet buffer is automatically freed, and cannot be used after the call to csp_send()
+
    @param[in] conn connection
    @param[in] packet packet to send
-   @param[in] timeout unused as of CSP version 1.6
-   @return 1 on success, 0 on failure and the packet must be freed by calling csp_buffer_free()
 */
-int csp_send(csp_conn_t *conn, csp_packet_t *packet, uint32_t timeout);
+void csp_send(csp_conn_t *conn, csp_packet_t *packet);
 
 /**
    Change the default priority of the connection and send a packet.
@@ -138,10 +139,8 @@ int csp_send(csp_conn_t *conn, csp_packet_t *packet, uint32_t timeout);
    @param[in] prio priority to set on the connection
    @param[in] conn connection
    @param[in] packet packet to send
-   @param[in] timeout unused as of CSP version 1.6
-   @return 1 on success, 0 on failure and the packet must be freed by calling csp_buffer_free()
  */
-int csp_send_prio(uint8_t prio, csp_conn_t *conn, csp_packet_t *packet, uint32_t timeout);
+void csp_send_prio(uint8_t prio, csp_conn_t *conn, csp_packet_t *packet);
 
 /**
    Perform an entire request & reply transaction.
@@ -205,10 +204,9 @@ csp_packet_t *csp_recvfrom(csp_socket_t *socket, uint32_t timeout);
    @param[in] src_port source port
    @param[in] opts connection options, see @ref CSP_CONNECTION_OPTIONS.
    @param[in] packet packet to send
-   @param[in] timeout unused as of CSP version 1.6
    @return #CSP_ERR_NONE on success, otherwise an error code and the packet must be freed by calling csp_buffer_free().
 */
-int csp_sendto(uint8_t prio, uint16_t dst, uint8_t dst_port, uint8_t src_port, uint32_t opts, csp_packet_t *packet, uint32_t timeout);
+int csp_sendto(uint8_t prio, uint16_t dst, uint8_t dst_port, uint8_t src_port, uint32_t opts, csp_packet_t *packet);
 
 /**
    Send a packet as a reply to a request (without a connection).
@@ -216,10 +214,9 @@ int csp_sendto(uint8_t prio, uint16_t dst, uint8_t dst_port, uint8_t src_port, u
    @param[in] request incoming request
    @param[in] reply reply packet
    @param[in] opts connection options, see @ref CSP_CONNECTION_OPTIONS.
-   @param[in] timeout unused as of CSP version 1.6
    @return #CSP_ERR_NONE on success, otherwise an error code and the reply must be freed by calling csp_buffer_free().
 */
-int csp_sendto_reply(const csp_packet_t * request, csp_packet_t * reply, uint32_t opts, uint32_t timeout);
+int csp_sendto_reply(const csp_packet_t * request, csp_packet_t * reply, uint32_t opts);
 
 /**
    Establish outgoing connection.

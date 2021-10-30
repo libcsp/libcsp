@@ -135,11 +135,7 @@ CSP_DEFINE_TASK(task_client) {
 		packet->length = (strlen((char *) packet->data) + 1); /* include the 0 termination */
 
 		/* 5. Send packet */
-		if (!csp_send(conn, packet, 1000)) {
-			/* Send failed */
-			csp_log_error("Send failed");
-			csp_buffer_free(packet);
-		}
+		csp_send(conn, packet);
 
 		/* 6. Close connection */
 		csp_close(conn);

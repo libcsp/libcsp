@@ -21,8 +21,10 @@ libcsp 2.0, xx-yy-zzzz
 - removed: Windows Support (moved to contrib, maintainer needed)
 - removed: Mac OSX Support (moved to contrib, maintainer needed)
 - removed: Incoming QoS. This didn't make much sense anyways, so a single fifo is now used
-- api: Interface names are now case sensitive (this is faster and avoids pulling in _ctypes_ and saves 340 bytes of flash)
+- api: csp_send(): Now always frees the packet and returns void.
 - api: csp_init(): Now a void function, because allocation cannot fail
+- api: python bindings: Refreshed to new 2.0 api, builds with meson too
+- api: Interface names are now case sensitive (this is faster and avoids pulling in _ctypes_ and saves 340 bytes of flash)
 - fix: router counts incoming packets before deduplication
 - fix: rdp: Fix ack_delay_count off by one error
 - fix: rtable cidr: continue parsing, even if an unknown interface is found
@@ -31,8 +33,6 @@ libcsp 2.0, xx-yy-zzzz
 
 Todo:
 - improvement: CSP CRC now protects both data and header
-- api: csp_send(): Now always frees the packet and returns void.
-- python bindings: Refreshed to new api, builds with meson and cmake
 - interface: I2C needs to be tested with CSP 2.0
 
 libcsp 1.6, 16-04-2020

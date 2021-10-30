@@ -152,12 +152,7 @@ void csp_id_copy(csp_id_t * target, csp_id_t * source) {
 	target->flags = source->flags;
 }
 
-int csp_send_direct(csp_id_t idout, csp_packet_t * packet, const csp_route_t * ifroute, uint32_t timeout) {
-
-	if (packet == NULL) {
-		csp_log_error("csp_send_direct called with NULL packet");
-		goto err;
-	}
+int csp_send_direct(csp_id_t idout, csp_packet_t * packet, const csp_route_t * ifroute) {
 
 	if (ifroute == NULL) {
 		csp_log_error("No route to host: %u", idout.dst);
@@ -247,30 +242,37 @@ err:
 
 }
 
-int csp_send(csp_conn_t * conn, csp_packet_t * packet, uint32_t timeout) {
+void csp_send(csp_conn_t * conn, csp_packet_t * packet) {
 
-	if ((conn == NULL) || (packet == NULL) || (conn->state != CONN_OPEN)) {
-		csp_log_error("Invalid call to csp_send");
-		return 0;
+	if (packet == NULL) {
+		return;
+	}
+
+	if ((conn == NULL) || (conn->state != CONN_OPEN)) {
+		csp_buffer_free(packet);
+		return;
 	}
 
 #if (CSP_USE_RDP)
 	if (conn->idout.flags & CSP_FRDP) {
 		if (csp_rdp_send(conn, packet) != CSP_ERR_NONE) {
-			return 0;
+			csp_buffer_free(packet);
+			return;
 		}
 	}
 #endif
 
-	int ret = csp_send_direct(conn->idout, packet, csp_rtable_find_route(conn->idout.dst), timeout);
-
-	return (ret == CSP_ERR_NONE) ? 1 : 0;
+	int ret = csp_send_direct(conn->idout, packet, csp_rtable_find_route(conn->idout.dst));
+	if (ret != CSP_ERR_NONE) {
+		csp_buffer_free(packet);
+		return;
+	}
 
 }
 
-int csp_send_prio(uint8_t prio, csp_conn_t * conn, csp_packet_t * packet, uint32_t timeout) {
+void csp_send_prio(uint8_t prio, csp_conn_t * conn, csp_packet_t * packet) {
 	conn->idout.pri = prio;
-	return csp_send(conn, packet, timeout);
+	csp_send(conn, packet);
 }
 
 int csp_transaction_persistent(csp_conn_t * conn, uint32_t timeout, void * outbuf, int outlen, void * inbuf, int inlen) {
@@ -285,10 +287,7 @@ int csp_transaction_persistent(csp_conn_t * conn, uint32_t timeout, void * outbu
 		memcpy(packet->data, outbuf, outlen);
 	packet->length = outlen;
 
-	if (!csp_send(conn, packet, timeout)) {
-		csp_buffer_free(packet);
-		return 0;
-	}
+	csp_send(conn, packet);
 
 	/* If no reply is expected, return now */
 	if (inlen == 0)
@@ -337,7 +336,7 @@ csp_packet_t * csp_recvfrom(csp_socket_t * socket, uint32_t timeout) {
 
 }
 
-int csp_sendto(uint8_t prio, uint16_t dest, uint8_t dport, uint8_t src_port, uint32_t opts, csp_packet_t * packet, uint32_t timeout) {
+int csp_sendto(uint8_t prio, uint16_t dest, uint8_t dport, uint8_t src_port, uint32_t opts, csp_packet_t * packet) {
 
 	if (!(opts & CSP_O_SAME))
 		packet->id.flags = 0;
@@ -380,14 +379,14 @@ int csp_sendto(uint8_t prio, uint16_t dest, uint8_t dport, uint8_t src_port, uin
 	packet->id.sport = src_port;
 	packet->id.pri = prio;
 
-	if (csp_send_direct(packet->id, packet, csp_rtable_find_route(dest), timeout) != CSP_ERR_NONE)
+	if (csp_send_direct(packet->id, packet, csp_rtable_find_route(dest)) != CSP_ERR_NONE)
 		return CSP_ERR_NOTSUP;
 	
 	return CSP_ERR_NONE;
 
 }
 
-int csp_sendto_reply(const csp_packet_t * request_packet, csp_packet_t * reply_packet, uint32_t opts, uint32_t timeout) {
+int csp_sendto_reply(const csp_packet_t * request_packet, csp_packet_t * reply_packet, uint32_t opts) {
 	if (request_packet == NULL)
 		return CSP_ERR_INVAL;
 
@@ -395,5 +394,5 @@ int csp_sendto_reply(const csp_packet_t * request_packet, csp_packet_t * reply_p
 		reply_packet->id.flags = request_packet->id.flags;
 	}
 
-	return csp_sendto(request_packet->id.pri, request_packet->id.src, request_packet->id.sport, request_packet->id.dport, opts, reply_packet, timeout);
+	return csp_sendto(request_packet->id.pri, request_packet->id.src, request_packet->id.sport, request_packet->id.dport, opts, reply_packet);
 }

@@ -217,7 +217,7 @@ int csp_route_work(uint32_t timeout) {
 		}
 
 		/* Otherwise, actually send the message */
-		if (csp_send_direct(packet->id, packet, ifroute, 0) != CSP_ERR_NONE) {
+		if (csp_send_direct(packet->id, packet, ifroute) != CSP_ERR_NONE) {
 			csp_log_warn("Router failed to send");
 			csp_buffer_free(packet);
 		}

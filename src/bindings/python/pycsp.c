@@ -215,13 +215,10 @@ static PyObject* pycsp_send(PyObject *self, PyObject *args) {
         return NULL;
     }
 
-    int res;
     Py_BEGIN_ALLOW_THREADS;
-    res = csp_send(conn, packet, timeout);
+    csp_send(conn, packet);
     Py_END_ALLOW_THREADS;
-    if (res != 1) {
-        return PyErr_Error("csp_send()", res);
-    }
+   
     PyCapsule_SetPointer(packet_capsule, &CSP_POINTER_HAS_BEEN_FREED);
 
     Py_RETURN_NONE;
@@ -314,8 +311,7 @@ static PyObject* pycsp_sendto(PyObject *self, PyObject *args) {
     uint8_t src_port;
     uint32_t opts;
     PyObject* packet_capsule;
-    uint32_t timeout = 1000;
-    if (!PyArg_ParseTuple(args, "bhbbIO|I", &prio, &dest, &dport, &src_port, &opts, &packet_capsule, &timeout)) {
+    if (!PyArg_ParseTuple(args, "bhbbIO", &prio, &dest, &dport, &src_port, &opts, &packet_capsule)) {
         Py_RETURN_NONE;
     }
     csp_packet_t* packet = get_obj_as_packet(packet_capsule, false);
@@ -325,7 +321,7 @@ static PyObject* pycsp_sendto(PyObject *self, PyObject *args) {
 
     int res;
     Py_BEGIN_ALLOW_THREADS;
-    res = csp_sendto(prio, dest, dport, src_port, opts, packet, timeout);
+    res = csp_sendto(prio, dest, dport, src_port, opts, packet);
     Py_END_ALLOW_THREADS;
     if (res != CSP_ERR_NONE) {
         return PyErr_Error("csp_sendto()", res);
@@ -360,8 +356,7 @@ static PyObject* pycsp_sendto_reply(PyObject *self, PyObject *args) {
     PyObject* request_packet_capsule;
     PyObject* reply_packet_capsule;
     uint32_t opts = CSP_O_NONE;
-    uint32_t timeout = 1000;
-    if (!PyArg_ParseTuple(args, "OO|II", &request_packet_capsule, &reply_packet_capsule, &opts, &timeout)) {
+    if (!PyArg_ParseTuple(args, "OO|I", &request_packet_capsule, &reply_packet_capsule, &opts)) {
         return NULL; // TypeError is thrown
     }
     csp_packet_t* request = get_obj_as_packet(request_packet_capsule, false);
@@ -375,7 +370,7 @@ static PyObject* pycsp_sendto_reply(PyObject *self, PyObject *args) {
 
     int res;
     Py_BEGIN_ALLOW_THREADS;
-    res = csp_sendto_reply(request, reply, opts, timeout);
+    res = csp_sendto_reply(request, reply, opts);
     Py_END_ALLOW_THREADS;
     if (res != CSP_ERR_NONE) {
         return PyErr_Error("csp_sendto_reply()", res);

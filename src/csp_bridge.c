@@ -63,7 +63,7 @@ static CSP_DEFINE_TASK(csp_bridge) {
 		}
 
 		/* Send to the interface directly, no hassle */
-		if (csp_send_direct(packet->id, packet, &route, 0) != CSP_ERR_NONE) {
+		if (csp_send_direct(packet->id, packet, &route) != CSP_ERR_NONE) {
 			csp_log_warn("Router failed to send");
 			csp_buffer_free(packet);
 		}
