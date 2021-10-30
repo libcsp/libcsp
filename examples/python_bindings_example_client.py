@@ -37,11 +37,9 @@ if __name__ == "__main__":
         # "host"          - Host name, returned by CSP identity requests
         # "model"         - Model, returned by CSP identity requests
         # "1.2.3"         - Revision, returned by CSP identity requests
-        # 10              - Number of CSP buffers (default=10)
-        # 300             - Data size of a CSP buffer. Total size will be size of csp_packet_t + Data size (default=256)
     # See "include\csp\csp.h" - lines 42-80 for more detail
     # See "src\bindings\python\pycsp.c" - lines 128-156 for more detail
-    libcsp.init(options.address, "host", "model", "1.2.3", 10, 300)
+    libcsp.init(options.address, "host", "model", "1.2.3")
 
     if options.can:
         # add CAN interface
@@ -82,7 +80,7 @@ if __name__ == "__main__":
 
     # Parameters: {address of subsystem}, optional:{timeout ms (default=1000)}, optional:{data size in bytes (default=10)}, optional:{connection options as bit flags (see "src\csp_conn.c")} 
     # Ping message
-    print("Ping: %d mS" % libcsp.ping(options.server_address))
+    print("Ping: %d ms" % libcsp.ping(options.server_address))
 
 
     # *** more services can be found at "src\csp_services.c" *** #

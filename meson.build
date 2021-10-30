@@ -109,6 +109,26 @@ csp_lib = static_library('csp',
 	c_args : csp_c_args,
 )
 
+csp_shlib = shared_library('csp',
+	sources: [csp_sources, csp_config_h],
+	include_directories : csp_inc,
+	dependencies : csp_deps,
+	c_args : csp_c_args,
+	install : true,
+)
+
+if get_option('enable_python3_bindings')
+	py_dep = dependency('python3', version: '>=3.5', required: true)
+	csp_pyshlib = shared_module('csp_py3',
+		sources: files('src/bindings/python/pycsp.c'),
+		include_directories : csp_inc,
+		link_with : csp_shlib,
+		dependencies : [py_dep],
+		c_args : csp_c_args,
+		install : true,
+	)
+endif
+
 subdir('examples')
 
 # The following dependency variable is for parent projects to link
