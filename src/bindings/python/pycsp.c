@@ -319,13 +319,10 @@ static PyObject* pycsp_sendto(PyObject *self, PyObject *args) {
         return NULL;
     }
 
-    int res;
     Py_BEGIN_ALLOW_THREADS;
-    res = csp_sendto(prio, dest, dport, src_port, opts, packet);
+    csp_sendto(prio, dest, dport, src_port, opts, packet);
     Py_END_ALLOW_THREADS;
-    if (res != CSP_ERR_NONE) {
-        return PyErr_Error("csp_sendto()", res);
-    }
+    
     PyCapsule_SetPointer(packet_capsule, &CSP_POINTER_HAS_BEEN_FREED);
 
     Py_RETURN_NONE;
@@ -368,13 +365,9 @@ static PyObject* pycsp_sendto_reply(PyObject *self, PyObject *args) {
         return NULL;
     }
 
-    int res;
     Py_BEGIN_ALLOW_THREADS;
-    res = csp_sendto_reply(request, reply, opts);
+    csp_sendto_reply(request, reply, opts);
     Py_END_ALLOW_THREADS;
-    if (res != CSP_ERR_NONE) {
-        return PyErr_Error("csp_sendto_reply()", res);
-    }
 
     PyCapsule_SetPointer(reply_packet_capsule, &CSP_POINTER_HAS_BEEN_FREED);
     Py_RETURN_NONE;

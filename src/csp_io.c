@@ -336,14 +336,15 @@ csp_packet_t * csp_recvfrom(csp_socket_t * socket, uint32_t timeout) {
 
 }
 
-int csp_sendto(uint8_t prio, uint16_t dest, uint8_t dport, uint8_t src_port, uint32_t opts, csp_packet_t * packet) {
+void csp_sendto(uint8_t prio, uint16_t dest, uint8_t dport, uint8_t src_port, uint32_t opts, csp_packet_t * packet) {
 
 	if (!(opts & CSP_O_SAME))
 		packet->id.flags = 0;
 
 	if (opts & CSP_O_RDP) {
 		csp_log_error("RDP packet on connection-less socket");
-		return CSP_ERR_INVAL;
+		csp_buffer_free(packet);
+		return;
 	}
 
 	if (opts & CSP_O_HMAC) {
@@ -351,7 +352,8 @@ int csp_sendto(uint8_t prio, uint16_t dest, uint8_t dport, uint8_t src_port, uin
 		packet->id.flags |= CSP_FHMAC;
 #else
 		csp_log_error("No HMAC support");
-		return CSP_ERR_NOTSUP;
+		csp_buffer_free(packet);
+		return;
 #endif
 	}
 
@@ -360,7 +362,8 @@ int csp_sendto(uint8_t prio, uint16_t dest, uint8_t dport, uint8_t src_port, uin
 		packet->id.flags |= CSP_FXTEA;
 #else
 		csp_log_error("No XTEA support");
-		return CSP_ERR_NOTSUP;
+		csp_buffer_free(packet);
+		return;
 #endif
 	}
 
@@ -369,7 +372,8 @@ int csp_sendto(uint8_t prio, uint16_t dest, uint8_t dport, uint8_t src_port, uin
 		packet->id.flags |= CSP_FCRC32;
 #else
 		csp_log_error("No CRC32 support");
-		return CSP_ERR_NOTSUP;
+		csp_buffer_free(packet);
+		return;
 #endif
 	}
 
@@ -379,16 +383,17 @@ int csp_sendto(uint8_t prio, uint16_t dest, uint8_t dport, uint8_t src_port, uin
 	packet->id.sport = src_port;
 	packet->id.pri = prio;
 
-	if (csp_send_direct(packet->id, packet, csp_rtable_find_route(dest)) != CSP_ERR_NONE)
-		return CSP_ERR_NOTSUP;
-	
-	return CSP_ERR_NONE;
+	if (csp_send_direct(packet->id, packet, csp_rtable_find_route(dest)) != CSP_ERR_NONE) {
+		csp_buffer_free(packet);
+		return;
+	}
 
 }
 
-int csp_sendto_reply(const csp_packet_t * request_packet, csp_packet_t * reply_packet, uint32_t opts) {
+void csp_sendto_reply(const csp_packet_t * request_packet, csp_packet_t * reply_packet, uint32_t opts) {
+	
 	if (request_packet == NULL)
-		return CSP_ERR_INVAL;
+		return;
 
 	if (opts & CSP_O_SAME) {
 		reply_packet->id.flags = request_packet->id.flags;
