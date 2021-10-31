@@ -1,0 +1,40 @@
+Author:
+
+  Johan De Claville Christiansen
+    company: Space Inventor (former GomSpace)
+    status: active maintainer
+
+    Johan was the inventor of CSP in 2008 and is still the
+    primary developer in 2020
+
+Contributers:
+
+  Jeppe Ledet-Pedersen
+    company: GomSpace
+    status: inactive
+
+    Jeppe contributed in the years 2013-2015 especially
+    with code quality improvements, and the CAN CFP protocol
+
+  Per Wullf
+    company: GomSpace
+    status: inactive
+
+    Per took over GomSpace contribution in the years 2016-2018
+    He made a lot of work towards the 1.6 release and added
+    travis CI. As well as general bugfixes and mac osx builds.
+
+  Yasushi Shoji:
+    company: SpaceCubics
+    status: active
+
+    Yasushi introduced the Zephyr OS support and have helped
+    with general improvements, moving from travis to github
+    actions, as well as official maintainer of the CMake build
+    system.
+
+  Dan Erik Holmstroem
+    company: NTNU
+    status: inactive
+
+    Dan added support for windows
