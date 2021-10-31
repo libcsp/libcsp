@@ -6,6 +6,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdatomic.h>
 
 #include <csp/arch/csp_queue.h>
 #include <csp/arch/csp_semaphore.h>
@@ -16,12 +17,8 @@
 /* Connection pool */
 static csp_conn_t arr_conn[CSP_CONN_MAX] __attribute__((section(".noinit")));
 
-/* Connection pool lock */
-static csp_bin_sem_handle_t conn_lock __attribute__((section(".noinit")));
-static csp_bin_sem_t conn_lock_buf __attribute__((section(".noinit")));
-
 /* Last used 'source' port */
-static uint8_t sport;
+static _Atomic uint8_t sport;
 
 /* Source port lock */
 static csp_bin_sem_handle_t sport_lock __attribute__((section(".noinit")));
@@ -54,7 +51,6 @@ int csp_conn_enqueue_packet(csp_conn_t * conn, csp_packet_t * packet) {
 
 void csp_conn_init(void) {
 
-	csp_bin_sem_create_static(&conn_lock, &conn_lock_buf);
 	csp_bin_sem_create_static(&sport_lock, &sport_lock_buf);
 
 	/* Initialize source port */
@@ -159,38 +155,26 @@ csp_conn_t * csp_conn_allocate(csp_conn_type_t type) {
 
 	static uint8_t csp_conn_last_given = 0;
 
-	if (csp_bin_sem_wait(&conn_lock, CSP_MAX_TIMEOUT) != CSP_SEMAPHORE_OK) {
-		csp_log_error("Failed to lock conn array");
-		return NULL;
-	}
-
 	/* Search for free connection */
 	csp_conn_t * conn = NULL;
 	int i = csp_conn_last_given;
 	for (int j = 0; j < CSP_CONN_MAX; j++) {
 		i = (i + 1) % CSP_CONN_MAX;
-		conn = &arr_conn[i];
-		if (conn->state == CONN_CLOSED) {
+
+		int expected = CONN_CLOSED;
+		if (atomic_compare_exchange_weak(&arr_conn[i].state, &expected, CONN_OPEN)) {
+			conn = &arr_conn[i];
 			break;
 		}
 	}
 
-	if (conn && (conn->state == CONN_CLOSED)) {
-		conn->timestamp = 0;
-		conn->type = type;
-		conn->state = CONN_OPEN;
-		csp_conn_last_given = i;
-	} else {
-		// no free connections
-		conn = NULL;
-	}
-
-	csp_bin_sem_post(&conn_lock);
-
 	if (conn == NULL) {
 		csp_log_error("No free connections, max %u", CSP_CONN_MAX);
+		return NULL;
 	}
 
+	conn->timestamp = 0;
+	conn->type = type;
 	return conn;
 }
 
@@ -238,15 +222,6 @@ int csp_conn_close(csp_conn_t * conn, uint8_t closed_by) {
 	}
 #endif
 
-	/* Lock connection array while closing connection */
-	if (csp_bin_sem_wait(&conn_lock, CSP_MAX_TIMEOUT) != CSP_SEMAPHORE_OK) {
-		csp_log_error("Failed to lock conn array");
-		return CSP_ERR_TIMEDOUT;
-	}
-
-	/* Set to closed */
-	conn->state = CONN_CLOSED;
-
 	/* Ensure connection queue is empty */
 	csp_conn_flush_rx_queue(conn);
 
@@ -257,9 +232,9 @@ int csp_conn_close(csp_conn_t * conn, uint8_t closed_by) {
 	}
 #endif
 
-	/* Unlock connection array */
-	csp_bin_sem_post(&conn_lock);
-
+	/* Set to closed */
+	conn->state = CONN_CLOSED;
+	
 	return CSP_ERR_NONE;
 }
 

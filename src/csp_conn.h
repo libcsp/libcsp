@@ -1,6 +1,6 @@
-
-
 #pragma once
+
+#include <stdatomic.h>
 
 #include <csp/csp.h>
 #include <csp/arch/csp_queue.h>
@@ -69,8 +69,8 @@ typedef struct {
 
 /** @brief Connection struct */
 struct csp_conn_s {
-	csp_conn_type_t type;   /* Connection type (CONN_CLIENT or CONN_SERVER) */
-	csp_conn_state_t state; /* Connection state (CONN_OPEN or CONN_CLOSED) */
+	atomic_int type;   /* Connection type (CONN_CLIENT or CONN_SERVER) */
+	atomic_int state; /* Connection state (CONN_OPEN or CONN_CLOSED) */
 	csp_id_t idin;          /* Identifier received */
 	csp_id_t idout;         /* Identifier transmitted */
 
