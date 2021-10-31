@@ -1,7 +1,4 @@
-
-
-#ifndef _PTHREAD_QUEUE_H_
-#define _PTHREAD_QUEUE_H_
+#pragma once
 
 /**
    @file
@@ -87,6 +84,3 @@ int pthread_queue_dequeue(pthread_queue_t * queue, void * buf, uint32_t timeout)
    Return number of elements in the queue.
 */
 int pthread_queue_items(pthread_queue_t * queue);
-
-
-#endif

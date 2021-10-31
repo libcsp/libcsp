@@ -1,7 +1,4 @@
-
-
-#ifndef CSP_TYPES_H_
-#define CSP_TYPES_H_
+#pragma once
 
 /**
    @file
@@ -199,6 +196,3 @@ typedef csp_memptr_t (*csp_memcpy_fnc_t)(csp_memptr_t, csp_const_memptr_t, size_
    Compile check/asserts.
 */
 #define CSP_STATIC_ASSERT(condition, name)   typedef char name[(condition) ? 1 : -1]
-
-
-#endif /* CSP_TYPES_H_ */

@@ -1,7 +1,4 @@
-
-
-#ifndef CSP_DEDUP_H_
-#define CSP_DEDUP_H_
+#pragma once
 
 #include <csp/csp_types.h>
 
@@ -12,4 +9,3 @@
  */
 bool csp_dedup_is_duplicate(csp_packet_t * packet);
 
-#endif /* CSP_DEDUP_H_ */

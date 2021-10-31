@@ -1,7 +1,4 @@
-
-
-#ifndef CSP_IFLIST_H_
-#define CSP_IFLIST_H_
+#pragma once
 
 /**
    @file
@@ -49,6 +46,3 @@ csp_iface_t * csp_iflist_get(void);
    Convert bytes to readable string.
 */
 int csp_bytesize(char *buffer, int buffer_len, unsigned long int bytes);
-    
-
-#endif

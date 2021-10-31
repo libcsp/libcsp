@@ -1,7 +1,4 @@
-
-
-#ifndef LIB_CSP_SRC_INTERFACES_CSP_IF_CAN_PBUF_H_
-#define LIB_CSP_SRC_INTERFACES_CSP_IF_CAN_PBUF_H_
+#pragma once
 
 #include <csp/csp_types.h>
 
@@ -24,5 +21,3 @@ int csp_can_pbuf_free(csp_can_pbuf_element_t * buf, int * task_woken);
 csp_can_pbuf_element_t * csp_can_pbuf_new(uint32_t id, int * task_woken);
 csp_can_pbuf_element_t * csp_can_pbuf_find(uint32_t id, uint32_t mask, int * task_woken);
 void csp_can_pbuf_cleanup(int * task_woken);
-
-#endif

@@ -1,7 +1,4 @@
-
-
-#ifndef CSP_QFIFO_H_
-#define CSP_QFIFO_H_
+#pragma once
 
 #include <csp/csp.h>
 #include <csp/csp_interface.h>
@@ -35,5 +32,3 @@ int csp_qfifo_read(csp_qfifo_t * input);
  * For testing.
  */
 void csp_qfifo_wake_up(void);
-
-#endif /* CSP_QFIFO_H_ */

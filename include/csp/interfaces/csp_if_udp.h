@@ -1,7 +1,4 @@
-
-
-#ifndef CSP_IF_UDP_H_
-#define CSP_IF_UDP_H_
+#pragma once
 
 #include <csp/csp.h>
 #include <csp/arch/csp_thread.h>
@@ -33,5 +30,3 @@ typedef struct {
  *   Outgoing CSP packets will be transferred to the peer specified by the host argument
  */
 void csp_if_udp_init(csp_iface_t * iface, csp_if_udp_conf_t * ifconf);
-
-#endif /* CSP_IF_UDP_H_ */

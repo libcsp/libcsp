@@ -1,7 +1,4 @@
-
-
-#ifndef _WINDOWS_QUEUE_H_
-#define _WINDOWS_QUEUE_H_
+#pragma once
 
 #include <csp/arch/csp_queue.h>
 
@@ -17,5 +14,3 @@ void windows_queue_delete(windows_queue_t * q);
 int windows_queue_enqueue(windows_queue_t * queue, const void * value, int timeout);
 int windows_queue_dequeue(windows_queue_t * queue, void * buf, int timeout);
 int windows_queue_items(windows_queue_t * queue);
-
-#endif

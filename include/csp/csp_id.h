@@ -1,12 +1,4 @@
-/*
- * csp_id.h
- *
- *  Created on: 30. jun. 2020
- *      Author: johan
- */
-
-#ifndef LIB_CSP_INCLUDE_CSP_CSP_ID_H_
-#define LIB_CSP_INCLUDE_CSP_CSP_ID_H_
+#pragma once
 
 void csp_id1_prepend(csp_packet_t * packet);
 int csp_id1_strip(csp_packet_t * packet);
@@ -23,5 +15,3 @@ unsigned int csp_id_get_host_bits(void);
 unsigned int csp_id_get_max_nodeid(void);
 unsigned int csp_id_get_max_port(void);
 
-
-#endif /* LIB_CSP_INCLUDE_CSP_CSP_ID_H_ */

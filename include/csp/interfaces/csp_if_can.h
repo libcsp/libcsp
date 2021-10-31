@@ -1,7 +1,4 @@
-
-
-#ifndef CSP_INTERFACES_CSP_IF_CAN_H
-#define CSP_INTERFACES_CSP_IF_CAN_H
+#pragma once
 
 /**
    @file
@@ -210,6 +207,3 @@ int csp_can_tx(const csp_route_t * ifroute, csp_packet_t *packet);
    @return #CSP_ERR_NONE on success, otherwise an error code.
 */
 int csp_can_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t dlc, int *pxTaskWoken);
-
-
-#endif

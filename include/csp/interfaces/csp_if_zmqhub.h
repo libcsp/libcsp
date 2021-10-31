@@ -1,6 +1,4 @@
-
-#ifndef CSP_IF_ZMQHUB_H_
-#define CSP_IF_ZMQHUB_H_
+#pragma once
 
 /**
    @file
@@ -92,5 +90,3 @@ int csp_zmqhub_init_w_name_endpoints_rxfilter(const char * ifname,
                                               uint32_t flags,
                                               csp_iface_t ** return_interface);
 
-
-#endif

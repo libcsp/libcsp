@@ -1,7 +1,4 @@
-
-
-#ifndef CSP_INTERFACES_CSP_IF_KISS_H
-#define CSP_INTERFACES_CSP_IF_KISS_H
+#pragma once
 
 /**
    @file
@@ -90,6 +87,3 @@ int csp_kiss_tx(const csp_route_t * ifroute, csp_packet_t * packet);
    @param[out] pxTaskWoken Valid reference if called from ISR, otherwise NULL!
 */
 void csp_kiss_rx(csp_iface_t * iface, const uint8_t * buf, size_t len, void * pxTaskWoken);
-
-
-#endif

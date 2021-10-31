@@ -1,7 +1,4 @@
-
-
-#ifndef CSP_RTABLE_H_
-#define CSP_RTABLE_H_
+#pragma once
 
 /**
    @file
@@ -123,5 +120,3 @@ static inline void csp_route_print_interfaces(void) {
     csp_iflist_print();
 }
 
-
-#endif

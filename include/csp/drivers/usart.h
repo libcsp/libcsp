@@ -1,7 +1,4 @@
-
-
-#ifndef CSP_DRIVERS_USART_H
-#define CSP_DRIVERS_USART_H
+#pragma once
 
 /**
    @file
@@ -94,6 +91,3 @@ int csp_usart_write(csp_usart_fd_t fd, const void * data, size_t data_length);
    @return #CSP_ERR_NONE on success, otherwise an error code.
 */
 int csp_usart_open_and_add_kiss_interface(const csp_usart_conf_t *conf, const char * ifname, csp_iface_t ** return_iface);
-
-
-#endif
