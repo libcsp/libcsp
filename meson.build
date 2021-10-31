@@ -1,5 +1,5 @@
 project('csp', 'c', version: '1.5.0', license: 'LGPL',
-        meson_version : '>=0.45.1',
+        meson_version : '>=0.53',
 	default_options : ['c_std=gnu11',
 			   'optimization=s',
 			   'warning_level=2',
@@ -117,18 +117,6 @@ csp_shlib = shared_library('csp',
 	install : true,
 )
 
-if get_option('enable_python3_bindings')
-	py_dep = dependency('python3', version: '>=3.5', required: true)
-	csp_pyshlib = shared_module('csp_py3',
-		sources: files('src/bindings/python/pycsp.c'),
-		include_directories : csp_inc,
-		link_with : csp_shlib,
-		dependencies : [py_dep],
-		c_args : csp_c_args,
-		install : true,
-	)
-endif
-
 subdir('examples')
 
 # The following dependency variable is for parent projects to link
@@ -137,3 +125,14 @@ csp_dep = declare_dependency(
 	include_directories : csp_inc,
 	link_with : csp_lib,
 )
+
+if get_option('enable_python3_bindings')
+  py = import('python').find_installation('python3')
+  # py.dependency() doesn't work with version constraint. Use plain
+  # dependency() instead
+  pydep = dependency('python3', version : '>=3.5', required : true)
+  py.extension_module('libcsp_py3', 'src/bindings/python/pycsp.c',
+                      c_args : csp_c_args,
+                      dependencies : [csp_dep, pydep],
+                      install : true)
+endif

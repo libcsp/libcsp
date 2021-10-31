@@ -1,6 +1,10 @@
 project(CSP)
 cmake_minimum_required(VERSION 3.20)
 
+if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
+  set(BUILD_SHARED_LIBS ON)
+endif()
+
 add_library(libcsp)
 set_target_properties(libcsp PROPERTIES C_STANDARD 11)
 set_target_properties(libcsp PROPERTIES C_EXTENSIONS ON)
@@ -45,6 +49,8 @@ option(CSP_USE_XTEA "eXtended TEA block cipher" ON)
 option(CSP_USE_PROMISC "Promiscious mode" ON)
 option(CSP_USE_DEDUP "Packet deduplication" ON)
 
+option(enable-python3-bindings "Build Python3 binding")
+
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   set(CSP_POSIX 1)
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Zephyr")
@@ -56,6 +62,7 @@ check_include_files(sys/socket.h HAVE_SYS_SOCKET_H)
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND
     CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
+  find_package(Threads REQUIRED)
   find_package(PkgConfig)
 
   pkg_search_module(LIBZMQ libzmq)
@@ -75,5 +82,14 @@ target_compile_options(libcsp PRIVATE ${CSP_C_ARGS})
 
 add_subdirectory(src)
 add_subdirectory(examples)
+
+if(${enable-python3-bindings})
+  find_package(Python COMPONENTS Development.Module)
+  if(Python_Development.Module_FOUND)
+    Python_add_library(libcsp_py3 src/bindings/python/pycsp.c WITH_SOABI)
+    target_include_directories(libcsp_py3 PRIVATE ${csp_inc})
+    target_link_libraries(libcsp_py3 PRIVATE libcsp)
+  endif()
+endif()
 
 configure_file(csp_autoconfig.h.in csp_autoconfig.h)
