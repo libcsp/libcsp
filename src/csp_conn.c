@@ -52,7 +52,7 @@ void csp_conn_init(void) {
 	for (int i = 0; i < CSP_CONN_MAX; i++) {
 		csp_conn_t * conn = &arr_conn[i];
 
-		conn->sport_outgoing = CSP_PORT_MAX_BIND + i;
+		conn->sport_outgoing = CSP_PORT_MAX_BIND + 1 + i;
 		conn->state = CONN_CLOSED;
 		conn->rx_queue = csp_queue_create_static(CSP_CONN_RXQUEUE_LEN, sizeof(csp_packet_t *), conn->rx_queue_static_data, &conn->rx_queue_static);
 
@@ -157,6 +157,7 @@ csp_conn_t * csp_conn_allocate(csp_conn_type_t type) {
 		int expected = CONN_CLOSED;
 		if (atomic_compare_exchange_weak(&arr_conn[i].state, &expected, CONN_OPEN)) {
 			conn = &arr_conn[i];
+			csp_conn_last_given = i;
 			break;
 		}
 	}
@@ -296,7 +297,8 @@ csp_conn_t * csp_connect(uint8_t prio, uint16_t dest, uint8_t dport, uint32_t ti
 	}
 
 	/* Outgoing connections always use pre-defined source port */
-	conn->idout.sport = conn->sport_outgoing;	
+	conn->idout.sport = conn->sport_outgoing;
+	conn->idin.dport = conn->sport_outgoing;
 
 	/* Set connection options */
 	conn->opts = opts;
@@ -347,9 +349,9 @@ void csp_conn_print_table(void) {
 
 	for (unsigned int i = 0; i < CSP_CONN_MAX; i++) {
 		csp_conn_t * conn = &arr_conn[i];
-		printf("[%02u %p] S:%u, %u -> %u, %u -> %u\r\n",
+		printf("[%02u %p] S:%u, %u -> %u, %u -> %u (%u)\r\n",
 			   i, conn, conn->state, conn->idin.src, conn->idin.dst,
-			   conn->idin.dport, conn->idin.sport);
+			   conn->idin.dport, conn->idin.sport, conn->sport_outgoing);
 #if (CSP_USE_RDP)
 		if (conn->idin.flags & CSP_FRDP) {
 			csp_rdp_conn_print(conn);
