@@ -109,14 +109,6 @@ csp_lib = static_library('csp',
 	c_args : csp_c_args,
 )
 
-csp_shlib = shared_library('csp',
-	sources: [csp_sources, csp_config_h],
-	include_directories : csp_inc,
-	dependencies : csp_deps,
-	c_args : csp_c_args,
-	install : true,
-)
-
 subdir('examples')
 
 # The following dependency variable is for parent projects to link
@@ -127,12 +119,20 @@ csp_dep = declare_dependency(
 )
 
 if get_option('enable_python3_bindings')
-  py = import('python').find_installation('python3')
-  # py.dependency() doesn't work with version constraint. Use plain
-  # dependency() instead
-  pydep = dependency('python3', version : '>=3.5', required : true)
-  py.extension_module('libcsp_py3', 'src/bindings/python/pycsp.c',
-                      c_args : csp_c_args,
-                      dependencies : [csp_dep, pydep],
-                      install : true)
+
+	csp_shlib = shared_library('csp',
+		sources: [csp_sources, csp_config_h],
+		include_directories : csp_inc,
+		dependencies : csp_deps,
+		c_args : csp_c_args,
+		install : true,
+	)
+	py = import('python').find_installation('python3')
+	# py.dependency() doesn't work with version constraint. Use plain
+	# dependency() instead
+	pydep = dependency('python3', version : '>=3.5', required : true)
+	py.extension_module('libcsp_py3', 'src/bindings/python/pycsp.c',
+                    	c_args : csp_c_args,
+                    	dependencies : [csp_dep, pydep],
+                    	install : true)
 endif
