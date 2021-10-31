@@ -73,6 +73,7 @@ struct csp_conn_s {
 	atomic_int state; /* Connection state (CONN_OPEN or CONN_CLOSED) */
 	csp_id_t idin;          /* Identifier received */
 	csp_id_t idout;         /* Identifier transmitted */
+	uint8_t sport_outgoing; /* When used for outgoing, use this sport */
 
 	csp_queue_handle_t rx_queue;        /* Queue for RX packets */
 	csp_static_queue_t rx_queue_static; /* Static storage for rx queue */

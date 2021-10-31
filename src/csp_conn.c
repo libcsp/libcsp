@@ -14,15 +14,13 @@
 #include <csp/csp_id.h>
 #include "transport/csp_transport.h"
 
+#define OUTGOING_PORTS (((1 << (CSP_ID2_PORT_SIZE)) - 1) - CSP_PORT_MAX_BIND)
+#if OUTGOING_PORTS > CSP_CONN_MAX
+#error "More connections than available outgoing ports"
+#endif
+
 /* Connection pool */
 static csp_conn_t arr_conn[CSP_CONN_MAX] __attribute__((section(".noinit")));
-
-/* Last used 'source' port */
-static _Atomic uint8_t sport;
-
-/* Source port lock */
-static csp_bin_sem_handle_t sport_lock __attribute__((section(".noinit")));
-static csp_bin_sem_t sport_lock_buf __attribute__((section(".noinit")));
 
 void csp_conn_check_timeouts(void) {
 #if (CSP_USE_RDP)
@@ -51,15 +49,10 @@ int csp_conn_enqueue_packet(csp_conn_t * conn, csp_packet_t * packet) {
 
 void csp_conn_init(void) {
 
-	csp_bin_sem_create_static(&sport_lock, &sport_lock_buf);
-
-	/* Initialize source port */
-	unsigned int seed = csp_get_ms();
-	sport = (rand_r(&seed) % (csp_id_get_max_port() - CSP_PORT_MAX_BIND)) + (CSP_PORT_MAX_BIND + 1);
-
 	for (int i = 0; i < CSP_CONN_MAX; i++) {
 		csp_conn_t * conn = &arr_conn[i];
 
+		conn->sport_outgoing = CSP_PORT_MAX_BIND + i;
 		conn->state = CONN_CLOSED;
 		conn->rx_queue = csp_queue_create_static(CSP_CONN_RXQUEUE_LEN, sizeof(csp_packet_t *), conn->rx_queue_static_data, &conn->rx_queue_static);
 
@@ -296,40 +289,14 @@ csp_conn_t * csp_connect(uint8_t prio, uint16_t dest, uint8_t dport, uint32_t ti
 		incoming_id.flags |= CSP_FCRC32;
 	}
 
-	/* Find an unused ephemeral port */
-	csp_conn_t * conn = NULL;
-
-	/* Wait for sport lock - note that csp_conn_new(..) is called inside the lock! */
-	if (csp_bin_sem_wait(&sport_lock, CSP_MAX_TIMEOUT) != CSP_SEMAPHORE_OK) {
-		return NULL;
-	}
-
-	/* Loop through available source ports */
-	const uint8_t start = sport;
-	while (++sport != start) {
-		if (sport > csp_id_get_max_port())
-			sport = CSP_PORT_MAX_BIND + 1;
-
-		/* Search for ephemeral outgoing port */
-		if (csp_conn_find_dport(sport) == NULL) {
-
-			/* We found an unused ephemeral port
-			 * allocate connection while locked to mark port in use */
-
-			outgoing_id.sport = sport;
-			incoming_id.dport = sport;
-
-			conn = csp_conn_new(incoming_id, outgoing_id);
-			break;
-		}
-	}
-
-	/* Post sport lock */
-	csp_bin_sem_post(&sport_lock);
-
+	/* Find a new connection */
+	csp_conn_t * conn = csp_conn_new(incoming_id, outgoing_id);
 	if (conn == NULL) {
 		return NULL;
 	}
+
+	/* Outgoing connections always use pre-defined source port */
+	conn->idout.sport = conn->sport_outgoing;	
 
 	/* Set connection options */
 	conn->opts = opts;
@@ -399,9 +366,9 @@ int csp_conn_print_table_str(char * str_buf, int str_size) {
 	for (unsigned int i = start; i < CSP_CONN_MAX; i++) {
 		csp_conn_t * conn = &arr_conn[i];
 		char buf[100];
-		snprintf(buf, sizeof(buf), "[%02u %p] S:%u, %u -> %u, %u -> %u\n",
+		snprintf(buf, sizeof(buf), "[%02u %p] S:%u, %u -> %u, %u -> %u (%u)\n",
 				 i, conn, conn->state, conn->idin.src, conn->idin.dst,
-				 conn->idin.dport, conn->idin.sport);
+				 conn->idin.dport, conn->idin.sport, conn->sport_outgoing);
 
 		strncat(str_buf, buf, str_size);
 		if ((str_size -= strlen(buf)) <= 0) {
