@@ -82,6 +82,7 @@ void csp_conn_init(void) {
 	for (int i = 0; i < CSP_CONN_MAX; i++) {
 		csp_conn_t * conn = &arr_conn[i];
 
+		conn->state = CONN_CLOSED;
 		conn->rx_queue = csp_queue_create_static(CSP_CONN_RXQUEUE_LEN, sizeof(csp_packet_t *), conn->rx_queue_static_data, &conn->rx_queue_static);
 
 #if (CSP_USE_RDP)
