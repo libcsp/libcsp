@@ -169,5 +169,9 @@ int csp_usart_open(const csp_usart_conf_t * conf, csp_usart_callback_t rx_callba
 		return res;
 	}
 
+	if (return_fd) {
+		*return_fd = fd;
+	}
+
 	return CSP_ERR_NONE;
 }
