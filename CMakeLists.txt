@@ -59,6 +59,7 @@ endif()
 
 include(CheckIncludeFiles)
 check_include_files(sys/socket.h HAVE_SYS_SOCKET_H)
+check_include_files(arpa/inet.h HAVE_ARPA_INET_H)
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND
     CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")

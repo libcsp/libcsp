@@ -22,7 +22,7 @@
 import os
 
 APPNAME = 'libcsp'
-VERSION = '1.6'
+VERSION = '2.0'
 
 valid_os = ['posix', 'windows', 'freertos', 'macosx']
 valid_loglevel = ['none', 'error', 'warn', 'info', 'debug']
@@ -57,19 +57,14 @@ def options(ctx):
     # Drivers and interfaces (requires external dependencies)
     gr.add_option('--enable-if-zmqhub', action='store_true', help='Enable ZMQ interface')
     gr.add_option('--enable-can-socketcan', action='store_true', help='Enable Linux socketcan driver')
-    gr.add_option('--with-driver-usart', default=None, metavar='DRIVER',
-                  help='Build USART driver. [windows, linux, None]')
+    gr.add_option('--with-driver-usart', default=None, metavar='DRIVER', help='Build USART driver. [windows, linux, None]')
 
     # OS
-    gr.add_option('--with-os', metavar='OS', default='posix',
-                  help='Set operating system. Must be one of: ' + str(valid_os))
+    gr.add_option('--with-os', metavar='OS', default='posix', help='Set operating system. Must be one of: ' + str(valid_os))
 
     # Options
-    gr.add_option('--with-loglevel', metavar='LEVEL', default='debug',
-                  help='Set minimum compile time log level. Must be one of: ' + str(valid_loglevel))
-    gr.add_option('--with-rtable', metavar='TABLE', default='cidr',
-                  help='Set routing table type: \'static\' or \'cidr\'')
-    gr.add_option('--version2', action='store_true', help='Build CSP version 2')
+    gr.add_option('--with-loglevel', metavar='LEVEL', default='debug', help='Set minimum compile time log level. Must be one of: ' + str(valid_loglevel))
+    gr.add_option('--with-rtable', metavar='TABLE', default='cidr', help='Set routing table type: \'static\' or \'cidr\'')
 
 
 def configure(ctx):
@@ -133,11 +128,14 @@ def configure(ctx):
                                         'src/interfaces/csp_if_can.c',
                                         'src/interfaces/csp_if_can_pbuf.c',
                                         'src/interfaces/csp_if_kiss.c',
-                                        'src/interfaces/csp_if_udp.c',
                                         'src/arch/*.c',
                                         'src/arch/{0}/**/*.c'.format(ctx.options.with_os),
                                         'src/rtable/csp_rtable.c',
                                         'src/rtable/csp_rtable_{0}.c'.format(ctx.options.with_rtable)])
+
+    # Add if UDP
+    if ctx.check(header_name="sys/socket.h") and ctx.check(header_name="arpa/inet.h"):
+        ctx.env.append_unique('FILES_CSP', ['src/interfaces/csp_if_udp.c'])
 
     # Add socketcan
     if ctx.options.enable_can_socketcan:
