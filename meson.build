@@ -1,4 +1,4 @@
-project('csp', 'c', version: '1.5.0', license: 'LGPL',
+project('csp', 'c', version: '2.0', license: 'LGPL',
         meson_version : '>=0.53',
 	default_options : ['c_std=gnu11',
 			   'optimization=s',

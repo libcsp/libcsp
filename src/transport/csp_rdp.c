@@ -60,27 +60,6 @@ static int pdTrue = 1;
 
 typedef struct __attribute__((__packed__)) {
 	uint8_t flags;
-#if 0
-	union __attribute__((__packed__)) {
-		struct __attribute__((__packed__)) {
-#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-			unsigned int res : 4;
-			unsigned int syn : 1;
-			unsigned int ack : 1;
-			unsigned int eak : 1;
-			unsigned int rst : 1;
-#elif __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-			unsigned int rst : 1;
-			unsigned int eak : 1;
-			unsigned int ack : 1;
-			unsigned int syn : 1;
-			unsigned int res : 4;
-#else
-#error "Your compiler doesn't define __BYTE_ORDER__"
-#endif
-		};
-	};
-#endif
 	uint16_t seq_nr;
 	uint16_t ack_nr;
 } rdp_header_t;

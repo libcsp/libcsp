@@ -169,6 +169,8 @@ typedef struct {
 
 } csp_packet_t;
 
+#define CSP_RDP_HEADER_SIZE 5
+
 /**
    Size of the packet overhead in #csp_packet_t.
    The overhead is the difference between the total buffer size (returned by csp_buffer_size()) and the data part
