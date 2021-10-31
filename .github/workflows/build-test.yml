@@ -15,6 +15,9 @@ jobs:
           - meson
           - cmake
           - waf
+        exclude:
+          - os: ubuntu-18.04
+            buildsystem: meson
     runs-on: ${{ matrix.os }}
     steps:
       - name: Setup packages on Linux
