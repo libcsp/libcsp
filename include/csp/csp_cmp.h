@@ -57,7 +57,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 /**
    Set/configure routing.
 */
-#define CSP_CMP_ROUTE_SET 2
+#define CSP_CMP_ROUTE_SET_V1 2
 /**
    Request interface statistics.
 */
@@ -74,6 +74,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
    Get/set clock.
 */
 #define CSP_CMP_CLOCK 6
+/**
+   Set/configure routing.
+*/
+#define CSP_CMP_ROUTE_SET_V2 7
 /**@}*/
 
 /**
@@ -120,12 +124,18 @@ struct csp_cmp_message {
 			char date[CSP_CMP_IDENT_DATE_LEN];
 			char time[CSP_CMP_IDENT_TIME_LEN];
 		} ident;
+      struct {
+			uint8_t dest_node;
+			uint8_t next_hop_via;
+			uint8_t netmask;
+			char interface[CSP_CMP_ROUTE_IFACE_LEN];
+		} route_set_v1;
 		struct {
 			uint16_t dest_node;
 			uint16_t next_hop_via;
 			uint16_t netmask;
 			char interface[CSP_CMP_ROUTE_IFACE_LEN];
-		} route_set;
+		} route_set_v2;
 		struct __attribute__((__packed__)) {
 			char interface[CSP_CMP_ROUTE_IFACE_LEN];
 			uint32_t tx;
@@ -178,9 +188,10 @@ static inline int csp_cmp_##_memb(uint16_t node, uint32_t timeout, struct csp_cm
 }
 
 CMP_MESSAGE(CSP_CMP_IDENT, ident)
-CMP_MESSAGE(CSP_CMP_ROUTE_SET, route_set)
+CMP_MESSAGE(CSP_CMP_ROUTE_SET_V1, route_set_v1)
 CMP_MESSAGE(CSP_CMP_IF_STATS, if_stats)
 CMP_MESSAGE(CSP_CMP_CLOCK, clock)
+CMP_MESSAGE(CSP_CMP_ROUTE_SET_V2, route_set_v2)
 
 /**
    Peek (read) memory on remote node.

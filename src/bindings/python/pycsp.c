@@ -707,13 +707,13 @@ static PyObject * pycsp_cmp_route_set(PyObject * self, PyObject * args) {
 
 	struct csp_cmp_message msg;
 	memset(&msg, 0, sizeof(msg));
-	msg.route_set.dest_node = addr;
-	msg.route_set.next_hop_via = via;
-	strncpy(msg.route_set.interface, ifstr, sizeof(msg.route_set.interface) - 1);
+	msg.route_set_v2.dest_node = htobe16(addr);
+	msg.route_set_v2.next_hop_via = htobe16(via);
+	strncpy(msg.route_set_v2.interface, ifstr, sizeof(msg.route_set_v2.interface) - 1);
 
 	int res;
 	Py_BEGIN_ALLOW_THREADS;
-	res = csp_cmp_route_set(node, timeout, &msg);
+	res = csp_cmp_route_set_v2(node, timeout, &msg);
 	Py_END_ALLOW_THREADS;
 	if (res != CSP_ERR_NONE) {
 		return PyErr_Error("csp_cmp_route_set()", res);

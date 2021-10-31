@@ -82,17 +82,34 @@ static int do_cmp_ident(struct csp_cmp_message * cmp) {
 	return CSP_ERR_NONE;
 }
 
-static int do_cmp_route_set(struct csp_cmp_message * cmp) {
+static int do_cmp_route_set_v1(struct csp_cmp_message * cmp) {
 
-	csp_iface_t * ifc = csp_iflist_get_by_name(cmp->route_set.interface);
+	csp_iface_t * ifc = csp_iflist_get_by_name(cmp->route_set_v1.interface);
 	if (ifc == NULL) {
 		return CSP_ERR_INVAL;
 	}
 
-	if (csp_rtable_set(cmp->route_set.dest_node, cmp->route_set.netmask, ifc, cmp->route_set.next_hop_via) != CSP_ERR_NONE) {
+	if (csp_rtable_set(cmp->route_set_v1.dest_node, cmp->route_set_v1.netmask, ifc, cmp->route_set_v1.next_hop_via) != CSP_ERR_NONE) {
 		return CSP_ERR_INVAL;
 	}
 
+	return CSP_ERR_NONE;
+}
+
+static int do_cmp_route_set_v2(struct csp_cmp_message * cmp) {
+
+	csp_iface_t * ifc = csp_iflist_get_by_name(cmp->route_set_v2.interface);
+	if (ifc == NULL) {
+		printf("Inval 1\n");
+		return CSP_ERR_INVAL;
+	}
+
+	if (csp_rtable_set(be16toh(cmp->route_set_v2.dest_node), be16toh(cmp->route_set_v2.netmask), ifc, be16toh(cmp->route_set_v2.next_hop_via)) != CSP_ERR_NONE) {
+		printf("Inval 2\n");
+		return CSP_ERR_INVAL;
+	}
+
+	printf("OK 1\n");
 	return CSP_ERR_NONE;
 }
 
@@ -179,9 +196,16 @@ static int csp_cmp_handler(csp_packet_t * packet) {
 			packet->length = CMP_SIZE(ident);
 			break;
 
-		case CSP_CMP_ROUTE_SET:
-			ret = do_cmp_route_set(cmp);
-			packet->length = CMP_SIZE(route_set);
+		case CSP_CMP_ROUTE_SET_V1:
+			printf("csp CMP V1\n");
+			ret = do_cmp_route_set_v1(cmp);
+			packet->length = CMP_SIZE(route_set_v1);
+			break;
+
+		case CSP_CMP_ROUTE_SET_V2:
+			printf("csp CMP V2\n");
+			ret = do_cmp_route_set_v2(cmp);
+			packet->length = CMP_SIZE(route_set_v2);
 			break;
 
 		case CSP_CMP_IF_STATS:
