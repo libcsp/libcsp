@@ -101,22 +101,12 @@ static int csp_route_security_check(uint32_t security_opts, csp_iface_t * iface,
 
 	/* CRC32 verified packet */
 	if (packet->id.flags & CSP_FCRC32) {
-#if (CSP_USE_CRC32)
 		/* Verify CRC32 (does not include header for backwards compatability with csp1.x) */
-		if (csp_crc32_verify(packet, false) != CSP_ERR_NONE) {
+		if (csp_crc32_verify(packet) != CSP_ERR_NONE) {
 			csp_log_error("CRC32 verification error! Discarding packet");
 			iface->rx_error++;
 			return CSP_ERR_CRC32;
 		}
-#else
-		/* No CRC32 validation - but size must be checked and adjusted */
-		if (packet->length < sizeof(uint32_t)) {
-			csp_log_error("CRC32 verification error! Discarding packet");
-			iface->rx_error++;
-			return CSP_ERR_CRC32;
-		}
-		packet->length -= sizeof(uint32_t);
-#endif
 	} else if (security_opts & CSP_SO_CRC32REQ) {
 		csp_log_warn("Received packet with CRC32, but CSP was compiled without CRC32 support. Accepting packet");
 	}

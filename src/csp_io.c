@@ -70,13 +70,6 @@ csp_socket_t * csp_socket(uint32_t opts) {
 	}
 #endif
 
-#if (CSP_USE_CRC32 == 0)
-	if (opts & CSP_SO_CRC32REQ) {
-		csp_log_error("No CRC32 support");
-		return NULL;
-	}
-#endif
-
 	/* Drop packet if reserved flags are set */
 	if (opts & ~(CSP_SO_RDPREQ | CSP_SO_XTEAREQ | CSP_SO_HMACREQ | CSP_SO_CRC32REQ | CSP_SO_CONN_LESS)) {
 		csp_log_error("Invalid socket option");
@@ -190,17 +183,12 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, const csp_route_t * i
 
 		/* Append CRC32 */
 		if (idout.flags & CSP_FCRC32) {
-#if (CSP_USE_CRC32)
 			/* Calculate and add CRC32 (does not include header for backwards compatability with csp1.x) */
-			if (csp_crc32_append(packet, false) != CSP_ERR_NONE) {
+			if (csp_crc32_append(packet) != CSP_ERR_NONE) {
 				/* CRC32 append failed */
 				csp_log_warn("CRC32 append failed!");
 				goto tx_err;
 			}
-#else
-			csp_log_warn("Sending without CRC32");
-			idout.flags &= ~(CSP_FCRC32);
-#endif
 		}
 
 		if (idout.flags & CSP_FXTEA) {
@@ -360,13 +348,7 @@ void csp_sendto(uint8_t prio, uint16_t dest, uint8_t dport, uint8_t src_port, ui
 	}
 
 	if (opts & CSP_O_CRC32) {
-#if (CSP_USE_CRC32)
 		packet->id.flags |= CSP_FCRC32;
-#else
-		csp_log_error("No CRC32 support");
-		csp_buffer_free(packet);
-		return;
-#endif
 	}
 
 	packet->id.dst = dest;

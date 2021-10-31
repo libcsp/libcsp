@@ -7,6 +7,7 @@ libcsp 2.0, xx-yy-zzzz
 - new: Went back to use more compile time configuration for less runtime checks and simpler memory allocation
 - new: Connection less callbacks. The router now supports executing small services directly using a callback saving memory
 - new: csp_if_udp: New UDP interface for point to point UDP links
+- new: csp_crc32_verify: now checks data + header, but still accepts checksum on data only. Default is still data only (will change in 2.1)
 - improvement: Support for 2k packets on CAN, KISS, UDP, ZMQ and others
 - improvement: Uses only static memory allocation
 - improvement: FreeRTOS 8+ support
@@ -32,7 +33,6 @@ libcsp 2.0, xx-yy-zzzz
 - fix: Buffer overrun in RDP EACK #157
 
 Todo:
-- improvement: CSP CRC now protects both data and header
 - interface: I2C needs to be tested with CSP 2.0
 
 libcsp 1.6, 16-04-2020

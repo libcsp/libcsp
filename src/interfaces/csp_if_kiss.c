@@ -43,7 +43,7 @@ int csp_kiss_tx(const csp_route_t * ifroute, csp_packet_t * packet) {
 	void * driver = ifroute->iface->driver_data;
 
 	/* Add CRC32 checksum - the MTU setting ensures there are space */
-	csp_crc32_append(packet, false);
+	csp_crc32_append(packet);
 
 	/* Lock */
 	if (csp_mutex_lock(&ifdata->lock, 1000) != CSP_MUTEX_OK) {
@@ -156,7 +156,7 @@ void csp_kiss_rx(csp_iface_t * iface, const uint8_t * buf, size_t len, void * px
 						iface->frame++;
 
 						/* Validate CRC */
-						if (csp_crc32_verify(ifdata->rx_packet, false) != CSP_ERR_NONE) {
+						if (csp_crc32_verify(ifdata->rx_packet) != CSP_ERR_NONE) {
 							// csp_log_warn("KISS invalid crc frame skipped, len: %u", ifdata->rx_packet->length);
 							iface->rx_error++;
 							ifdata->rx_mode = KISS_MODE_NOT_STARTED;

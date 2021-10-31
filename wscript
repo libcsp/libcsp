@@ -179,7 +179,6 @@ def configure(ctx):
     ctx.define('CSP_DEBUG_TIMESTAMP', ctx.options.enable_debug_timestamp)
     ctx.define('CSP_USE_RDP', ctx.options.enable_rdp)
     ctx.define('CSP_USE_RDP_FAST_CLOSE', ctx.options.enable_rdp and ctx.options.enable_rdp_fast_close)
-    ctx.define('CSP_USE_CRC32', ctx.options.enable_crc32)
     ctx.define('CSP_USE_HMAC', ctx.options.enable_hmac)
     ctx.define('CSP_USE_XTEA', ctx.options.enable_xtea)
     ctx.define('CSP_USE_PROMISC', ctx.options.enable_promisc)

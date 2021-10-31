@@ -30,18 +30,16 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 /**
    Append CRC32 checksum to packet
    @param[in] packet CSP packet, must be valid.
-   @param[in] include_header include the CSP header in the CRC32, otherwise just the data part.
    @return #CSP_ERR_NONE on success, otherwise an error code.
 */
-int csp_crc32_append(csp_packet_t * packet, bool include_header);
+int csp_crc32_append(csp_packet_t * packet);
 
 /**
    Verify CRC32 checksum on packet.
    @param[in] packet CSP packet, must be valid.
-   @param[in] include_header include the CSP header in the CRC32, otherwise just the data part.
    @return #CSP_ERR_NONE on success, otherwise an error code.
 */
-int csp_crc32_verify(csp_packet_t * packet, bool include_header);
+int csp_crc32_verify(csp_packet_t * packet);
 
 /**
    Calculate checksum for a given memory area.

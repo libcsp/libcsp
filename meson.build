@@ -40,7 +40,6 @@ conf.set('CSP_RTABLE_SIZE', get_option('rtable_size'))
 
 
 conf.set10('CSP_USE_RDP', get_option('use_rdp'))
-conf.set10('CSP_USE_CRC32', get_option('use_crc32'))
 conf.set10('CSP_USE_HMAC', get_option('use_hmac'))
 conf.set10('CSP_USE_XTEA', get_option('use_xtea'))
 conf.set10('CSP_USE_PROMISC', get_option('use_promisc'))

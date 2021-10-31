@@ -334,13 +334,8 @@ csp_conn_t * csp_connect(uint8_t prio, uint16_t dest, uint8_t dport, uint32_t ti
 	}
 
 	if (opts & CSP_O_CRC32) {
-#if (CSP_USE_CRC32)
 		outgoing_id.flags |= CSP_FCRC32;
 		incoming_id.flags |= CSP_FCRC32;
-#else
-		csp_log_error("No CRC32 support");
-		return NULL;
-#endif
 	}
 
 	/* Find an unused ephemeral port */
