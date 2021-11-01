@@ -15,11 +15,12 @@ target_sources(libcsp PRIVATE
   csp_qfifo.c
   csp_route.c
   csp_rtable_cidr.c
-	csp_rtable_stdio.c
+  csp_rtable_stdio.c
   csp_service_handler.c
   csp_services.c
   csp_rdp.c
   csp_rdp_queue.c
+  csp_sfp.c
   )
 
 add_subdirectory(arch)
