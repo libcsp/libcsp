@@ -9,6 +9,6 @@ if zmq_dep.found()
 	csp_deps += zmq_dep
 endif
 
-if cc.has_header('sys/socket.h')
+if cc.has_header('sys/socket.h') and cc.has_header('arpa/inet.h')
 	csp_sources += files('csp_if_udp.c')
 endif

@@ -1,0 +1,47 @@
+name: Build and Test
+on: [push, pull_request]
+jobs:
+  run-test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - ubuntu-18.04
+          #- macos-latest
+        arch:
+          - posix
+        buildsystem:
+          - meson
+          - cmake
+          - waf
+        exclude:
+          - os: ubuntu-18.04
+            buildsystem: meson
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Setup packages on Linux
+        if: ${{ runner.os == 'Linux' }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install libzmq3-dev libsocketcan-dev
+
+      - name: Setup build system packages on Linux
+        if: ${{ runner.os == 'Linux' && matrix.buildsystem != 'waf' }}
+        run: |
+          sudo apt-get install ninja-build ${{ matrix.buildsystem }}
+
+      - name: Setup packages on MacOS
+        if: ${{ runner.os == 'macOS' && matrix.buildsystem != 'waf' }}
+        run: |
+          brew update
+          brew install ninja ${{ matrix.buildsystem }}
+          brew install zeromq
+
+      - uses: actions/checkout@v2
+      - run: python3 ./examples/buildall.py ${{ matrix.arch }} --build-system=${{ matrix.buildsystem }}
+
+      - name: Run Tests
+        run: |
+          ./build/examples/csp_arch
+          ./build/examples/csp_server_client -t

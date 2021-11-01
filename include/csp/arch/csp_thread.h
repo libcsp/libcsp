@@ -1,25 +1,6 @@
-/*
-Cubesat Space Protocol - A small network-layer protocol designed for Cubesats
-Copyright (C) 2012 Gomspace ApS (http://www.gomspace.com)
-Copyright (C) 2012 AAUSAT3 Project (http://aausat3.space.aau.dk) 
 
-This library is free software; you can redistribute it and/or
-modify it under the terms of the GNU Lesser General Public
-License as published by the Free Software Foundation; either
-version 2.1 of the License, or (at your option) any later version.
 
-This library is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-Lesser General Public License for more details.
-
-You should have received a copy of the GNU Lesser General Public
-License along with this library; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
-*/
-
-#ifndef _CSP_THREAD_H_
-#define _CSP_THREAD_H_
+#pragma once
 
 /**
    @file
@@ -29,9 +10,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <csp/csp_types.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+
 
 /*
   POSIX interface
@@ -44,6 +23,7 @@ extern "C" {
    Platform specific thread handle.
 */
 typedef pthread_t csp_thread_handle_t;
+typedef pthread_t csp_thread_t;
 
 /**
    Platform specific thread return type.
@@ -102,6 +82,22 @@ typedef csp_thread_return_t (* csp_thread_func_t)(void *);
 
 #endif // CSP_FREERTOS
 
+/*
+  Zephyr interface
+*/
+#if (CSP_ZEPHYR)
+
+#include <zephyr.h>
+
+typedef k_tid_t csp_thread_handle_t;
+typedef struct k_thread csp_thread_t;
+typedef k_thread_entry_t csp_thread_func_t;
+
+#define CSP_DEFINE_TASK(task_name) void task_name(void *p1, void *p2, void *p3)
+#define CSP_TASK_RETURN
+
+#endif // CSP_ZEPHYR
+
 /**
    Create thread (task).
 
@@ -115,6 +111,12 @@ typedef csp_thread_return_t (* csp_thread_func_t)(void *);
 */
 int csp_thread_create(csp_thread_func_t func, const char * const name, unsigned int stack_size, void * parameter, unsigned int priority, csp_thread_handle_t * handle);
 
+csp_thread_handle_t
+csp_thread_create_static(csp_thread_handle_t *new_thread, const char * const name,
+			 char *stack, unsigned int stack_size,
+			 csp_thread_func_t func, void * parameter,
+			 unsigned int priority);
+
 /**
    Exit current thread.
    @note Not supported on all platforms.
@@ -126,8 +128,3 @@ void csp_thread_exit(void);
    @param[in] time_ms mS to sleep.
 */
 void csp_sleep_ms(unsigned int time_ms);
-
-#ifdef __cplusplus
-}
-#endif
-#endif

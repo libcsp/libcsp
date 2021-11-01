@@ -1,22 +1,4 @@
-/*
-Cubesat Space Protocol - A small network-layer protocol designed for Cubesats
-Copyright (C) 2012 GomSpace ApS (http://www.gomspace.com)
-Copyright (C) 2012 AAUSAT3 Project (http://aausat3.space.aau.dk)
 
-This library is free software; you can redistribute it and/or
-modify it under the terms of the GNU Lesser General Public
-License as published by the Free Software Foundation; either
-version 2.1 of the License, or (at your option) any later version.
-
-This library is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-Lesser General Public License for more details.
-
-You should have received a copy of the GNU Lesser General Public
-License along with this library; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
-*/
 
 #include <csp/drivers/can_socketcan.h>
 
@@ -54,8 +36,7 @@ static void socketcan_free(can_context_t * ctx) {
 	}
 }
 
-static void * socketcan_rx_thread(void * arg)
-{
+static void * socketcan_rx_thread(void * arg) {
 	can_context_t * ctx = arg;
 
 	while (1) {
@@ -68,7 +49,7 @@ static void * socketcan_rx_thread(void * arg)
 		}
 
 		if (nbytes != sizeof(frame)) {
-			csp_log_warn("%s[%s]: Read incomplete CAN frame, size: %d, expected: %u bytes", __FUNCTION__, ctx->name, nbytes, (unsigned int) sizeof(frame));
+			csp_log_warn("%s[%s]: Read incomplete CAN frame, size: %d, expected: %u bytes", __FUNCTION__, ctx->name, nbytes, (unsigned int)sizeof(frame));
 			continue;
 		}
 
@@ -94,19 +75,17 @@ static void * socketcan_rx_thread(void * arg)
 	pthread_exit(NULL);
 }
 
-
-static int csp_can_tx_frame(void * driver_data, uint32_t id, const uint8_t * data, uint8_t dlc)
-{
+static int csp_can_tx_frame(void * driver_data, uint32_t id, const uint8_t * data, uint8_t dlc) {
 	if (dlc > 8) {
 		return CSP_ERR_INVAL;
 	}
 
 	struct can_frame frame = {.can_id = id | CAN_EFF_FLAG,
-                                  .can_dlc = dlc};
-        memcpy(frame.data, data, dlc);
+							  .can_dlc = dlc};
+	memcpy(frame.data, data, dlc);
 
 	uint32_t elapsed_ms = 0;
-        can_context_t * ctx = driver_data;
+	can_context_t * ctx = driver_data;
 	while (write(ctx->socket, &frame, sizeof(frame)) != sizeof(frame)) {
 		if ((errno != ENOBUFS) || (elapsed_ms >= 1000)) {
 			csp_log_warn("%s[%s]: write() failed, errno %d: %s", __FUNCTION__, ctx->name, errno, strerror(errno));
@@ -119,14 +98,13 @@ static int csp_can_tx_frame(void * driver_data, uint32_t id, const uint8_t * dat
 	return CSP_ERR_NONE;
 }
 
-int csp_can_socketcan_open_and_add_interface(const char * device, const char * ifname, int bitrate, bool promisc, csp_iface_t ** return_iface)
-{
+int csp_can_socketcan_open_and_add_interface(const char * device, const char * ifname, int bitrate, bool promisc, csp_iface_t ** return_iface) {
 	if (ifname == NULL) {
 		ifname = CSP_IF_CAN_DEFAULT_NAME;
 	}
 
 	csp_log_info("INIT %s: device: [%s], bitrate: %d, promisc: %d",
-			ifname, device, bitrate, promisc);
+				 ifname, device, bitrate, promisc);
 
 #if (CSP_HAVE_LIBSOCKETCAN)
 	/* Set interface up - this may require increased OS privileges */
@@ -183,7 +161,7 @@ int csp_can_socketcan_open_and_add_interface(const char * device, const char * i
 	}
 
 	/* Add interface to CSP */
-        int res = csp_can_add_interface(&ctx->iface);
+	int res = csp_can_add_interface(&ctx->iface);
 	if (res != CSP_ERR_NONE) {
 		csp_log_error("%s[%s]: csp_can_add_interface() failed, error: %d", __FUNCTION__, ctx->name, res);
 		socketcan_free(ctx);
@@ -193,7 +171,7 @@ int csp_can_socketcan_open_and_add_interface(const char * device, const char * i
 	/* Create receive thread */
 	if (pthread_create(&ctx->rx_thread, NULL, socketcan_rx_thread, ctx) != 0) {
 		csp_log_error("%s[%s]: pthread_create() failed, error: %s", __FUNCTION__, ctx->name, strerror(errno));
-		//socketcan_free(ctx); // we already added it to CSP (no way to remove it)
+		// socketcan_free(ctx); // we already added it to CSP (no way to remove it)
 		return CSP_ERR_NOMEM;
 	}
 
@@ -204,14 +182,13 @@ int csp_can_socketcan_open_and_add_interface(const char * device, const char * i
 	return CSP_ERR_NONE;
 }
 
-int csp_can_socketcan_set_promisc(const bool promisc, int *socket)
-{
+int csp_can_socketcan_set_promisc(const bool promisc, int * socket) {
 	struct can_filter filter = {
 		.can_id = CFP_MAKE_DST(csp_get_address()),
 		.can_mask = 0x0000, /* receive anything */
 	};
 
-	static int *s_socket = NULL;
+	static int * s_socket = NULL;
 	if (socket != NULL) {
 		s_socket = socket;
 	}
@@ -239,15 +216,13 @@ int csp_can_socketcan_set_promisc(const bool promisc, int *socket)
 	return CSP_ERR_NONE;
 }
 
-csp_iface_t * csp_can_socketcan_init(const char * device, int bitrate, bool promisc)
-{
+csp_iface_t * csp_can_socketcan_init(const char * device, int bitrate, bool promisc) {
 	csp_iface_t * return_iface;
 	int res = csp_can_socketcan_open_and_add_interface(device, CSP_IF_CAN_DEFAULT_NAME, bitrate, promisc, &return_iface);
 	return (res == CSP_ERR_NONE) ? return_iface : NULL;
 }
 
-int csp_can_socketcan_stop(csp_iface_t *iface)
-{
+int csp_can_socketcan_stop(csp_iface_t * iface) {
 	can_context_t * ctx = iface->driver_data;
 
 	int error = pthread_cancel(ctx->rx_thread);
@@ -260,6 +235,6 @@ int csp_can_socketcan_stop(csp_iface_t *iface)
 		csp_log_error("%s[%s]: pthread_join() failed, error: %s", __FUNCTION__, ctx->name, strerror(errno));
 		return CSP_ERR_DRIVER;
 	}
-        socketcan_free(ctx);
+	socketcan_free(ctx);
 	return CSP_ERR_NONE;
 }

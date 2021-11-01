@@ -1,5 +1,6 @@
-project('csp', 'c', version: '1.5.0', license: 'LGPL',
-	default_options : ['c_std=gnu99',
+project('csp', 'c', version: '2.0', license: 'LGPL',
+        meson_version : '>=0.53',
+	default_options : ['c_std=gnu11',
 			   'optimization=s',
 			   'warning_level=2',
 			   'werror=true'])
@@ -10,15 +11,23 @@ conf = configuration_data()
 
 conf.set('CSP_DEBUG', 1)
 
-log_levels = {'none' : 0, 'error' : 1, 'warn'  : 2, 'info'  : 3, 'debug' : 4}
-log_level = log_levels.get(get_option('log-level'), 3)
+log_str = get_option('log-level')
+if log_str == 'error'
+  log_level = 1
+elif log_str == 'warn'
+  log_level = 2
+elif log_str == 'info'
+  log_level = 3
+elif log_str == 'debug'
+  log_level = 4
+else
+  log_level = 3
+endif
 
 conf.set10('CSP_LOG_LEVEL_ERROR', log_level >= 1)
 conf.set10('CSP_LOG_LEVEL_WARN',  log_level >= 2)
 conf.set10('CSP_LOG_LEVEL_INFO',  log_level >= 3)
 conf.set10('CSP_LOG_LEVEL_DEBUG', log_level >= 4)
-
-conf.set('CSP_VERSION', get_option('version'))
 
 conf.set('CSP_QFIFO_LEN', get_option('qfifo_len'))
 conf.set('CSP_PORT_MAX_BIND', get_option('port_max_bind'))
@@ -31,7 +40,6 @@ conf.set('CSP_RTABLE_SIZE', get_option('rtable_size'))
 
 
 conf.set10('CSP_USE_RDP', get_option('use_rdp'))
-conf.set10('CSP_USE_CRC32', get_option('use_crc32'))
 conf.set10('CSP_USE_HMAC', get_option('use_hmac'))
 conf.set10('CSP_USE_XTEA', get_option('use_xtea'))
 conf.set10('CSP_USE_PROMISC', get_option('use_promisc'))
@@ -40,12 +48,6 @@ conf.set10('CSP_USE_DEDUP', get_option('use_dedup'))
 zmq_dep = dependency('libzmq', version: '>4.0', required: false)
 if zmq_dep.found()
 	conf.set('CSP_HAVE_LIBZMQ', 1)
-endif
-
-if host_machine.endian() == 'little'
-	conf.set('CSP_LITTLE_ENDIAN', 1)
-else
-	conf.set('CSP_BIG_ENDIAN', 1)
 endif
 
 csp_sources = files([
@@ -71,6 +73,7 @@ csp_sources = files([
 	'src/csp_service_handler.c',
 	'src/csp_services.c',
 	'src/csp_id.c',
+	'src/csp_sfp.c',
 ])
 
 csp_deps = []
@@ -79,10 +82,10 @@ subdir('src/arch')
 subdir('src/drivers')
 subdir('src/interfaces')
 
-csp_config_h = configure_file(output: 'csp_autoconfig.h', configuration: conf, install: true, install_dir: 'csp/')
+csp_config_h = configure_file(output: 'csp_autoconfig.h', configuration: conf, install_dir: 'csp/')
 
 csp_inc = include_directories(['.', 'include'])
-if not meson.is_subproject() 
+if not meson.is_subproject()
   install_subdir('include', install_dir : '.')
   install_headers(csp_config_h, install_dir : 'include/csp')
 endif
@@ -115,3 +118,22 @@ csp_dep = declare_dependency(
 	link_with : csp_lib,
 	dependencies : csp_deps,
 )
+
+if get_option('enable_python3_bindings')
+
+	csp_shlib = shared_library('csp',
+		sources: [csp_sources, csp_config_h],
+		include_directories : csp_inc,
+		dependencies : csp_deps,
+		c_args : csp_c_args,
+		install : true,
+	)
+	py = import('python').find_installation('python3')
+	# py.dependency() doesn't work with version constraint. Use plain
+	# dependency() instead
+	pydep = dependency('python3', version : '>=3.5', required : true)
+	py.extension_module('libcsp_py3', 'src/bindings/python/pycsp.c',
+                    	c_args : csp_c_args,
+                    	dependencies : [csp_dep, pydep],
+                    	install : true)
+endif

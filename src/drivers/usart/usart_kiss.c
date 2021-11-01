@@ -1,27 +1,9 @@
-/*
-Cubesat Space Protocol - A small network-layer protocol designed for Cubesats
-Copyright (C) 2012 GomSpace ApS (http://www.gomspace.com)
-Copyright (C) 2012 AAUSAT3 Project (http://aausat3.space.aau.dk)
 
-This library is free software; you can redistribute it and/or
-modify it under the terms of the GNU Lesser General Public
-License as published by the Free Software Foundation; either
-version 2.1 of the License, or (at your option) any later version.
-
-This library is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-Lesser General Public License for more details.
-
-You should have received a copy of the GNU Lesser General Public
-License along with this library; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
-*/
 
 #include <csp/interfaces/csp_if_kiss.h>
 
 #include <stdio.h>
-#include <malloc.h>
+#include <stdlib.h>
 
 #include <csp/csp.h>
 #include <csp/drivers/usart.h>
@@ -33,10 +15,10 @@ typedef struct {
 	csp_usart_fd_t fd;
 } kiss_context_t;
 
-static int kiss_driver_tx(void *driver_data, const unsigned char * data, size_t data_length) {
+static int kiss_driver_tx(void * driver_data, const unsigned char * data, size_t data_length) {
 
 	kiss_context_t * ctx = driver_data;
-	if (csp_usart_write(ctx->fd, data, data_length) == (int) data_length) {
+	if (csp_usart_write(ctx->fd, data, data_length) == (int)data_length) {
 		return CSP_ERR_NONE;
 	}
 	return CSP_ERR_TX;
@@ -48,7 +30,7 @@ static void kiss_driver_rx(void * user_data, uint8_t * data, size_t data_size, v
 	csp_kiss_rx(&ctx->iface, data, data_size, NULL);
 }
 
-int csp_usart_open_and_add_kiss_interface(const csp_usart_conf_t *conf, const char * ifname, csp_iface_t ** return_iface) {
+int csp_usart_open_and_add_kiss_interface(const csp_usart_conf_t * conf, const char * ifname, csp_iface_t ** return_iface) {
 
 	if (ifname == NULL) {
 		ifname = CSP_IF_KISS_DEFAULT_NAME;

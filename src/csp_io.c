@@ -1,22 +1,4 @@
-/*
-Cubesat Space Protocol - A small network-layer protocol designed for Cubesats
-Copyright (C) 2012 GomSpace ApS (http://www.gomspace.com)
-Copyright (C) 2012 AAUSAT3 Project (http://aausat3.space.aau.dk) 
 
-This library is free software; you can redistribute it and/or
-modify it under the terms of the GNU Lesser General Public
-License as published by the Free Software Foundation; either
-version 2.1 of the License, or (at your option) any later version.
-
-This library is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-Lesser General Public License for more details.
-
-You should have received a copy of the GNU Lesser General Public
-License along with this library; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
-*/
 
 #include "csp_io.h"
 
@@ -47,7 +29,7 @@ extern csp_queue_handle_t csp_promisc_queue;
 #endif
 
 csp_socket_t * csp_socket(uint32_t opts) {
-	
+
 	/* Validate socket options */
 #if (CSP_USE_RDP == 0)
 	if (opts & CSP_SO_RDPREQ) {
@@ -67,16 +49,9 @@ csp_socket_t * csp_socket(uint32_t opts) {
 	if (opts & CSP_SO_HMACREQ) {
 		csp_log_error("No HMAC support");
 		return NULL;
-	} 
+	}
 #endif
 
-#if (CSP_USE_CRC32 == 0)
-	if (opts & CSP_SO_CRC32REQ) {
-		csp_log_error("No CRC32 support");
-		return NULL;
-	} 
-#endif
-	
 	/* Drop packet if reserved flags are set */
 	if (opts & ~(CSP_SO_RDPREQ | CSP_SO_XTEAREQ | CSP_SO_HMACREQ | CSP_SO_CRC32REQ | CSP_SO_CONN_LESS)) {
 		csp_log_error("Invalid socket option");
@@ -91,7 +66,6 @@ csp_socket_t * csp_socket(uint32_t opts) {
 	sock->opts = opts;
 
 	return sock;
-
 }
 
 void csp_socket_set_callback(csp_socket_t * socket, void (*callback)(csp_packet_t * packet)) {
@@ -109,7 +83,6 @@ csp_conn_t * csp_accept(csp_socket_t * sock, uint32_t timeout) {
 		return conn;
 
 	return NULL;
-
 }
 
 csp_packet_t * csp_read(csp_conn_t * conn, uint32_t timeout) {
@@ -121,10 +94,10 @@ csp_packet_t * csp_read(csp_conn_t * conn, uint32_t timeout) {
 	}
 
 #if (CSP_USE_RDP)
-        // RDP: timeout can either be 0 (for no hang poll/check) or minimum the "connection timeout"
-        if (timeout && (conn->idin.flags & CSP_FRDP) && (timeout < conn->rdp.conn_timeout)) {
-            timeout = conn->rdp.conn_timeout;
-        }
+	// RDP: timeout can either be 0 (for no hang poll/check) or minimum the "connection timeout"
+	if (timeout && (conn->idin.flags & CSP_FRDP) && (timeout < conn->rdp.conn_timeout)) {
+		timeout = conn->rdp.conn_timeout;
+	}
 #endif
 
 	if (csp_queue_dequeue(conn->rx_queue, &packet, timeout) != CSP_QUEUE_OK) {
@@ -139,7 +112,6 @@ csp_packet_t * csp_read(csp_conn_t * conn, uint32_t timeout) {
 #endif
 
 	return packet;
-
 }
 
 /* Provide a safe method to copy type safe, between two csp ids */
@@ -152,12 +124,7 @@ void csp_id_copy(csp_id_t * target, csp_id_t * source) {
 	target->flags = source->flags;
 }
 
-int csp_send_direct(csp_id_t idout, csp_packet_t * packet, const csp_route_t * ifroute, uint32_t timeout) {
-
-	if (packet == NULL) {
-		csp_log_error("csp_send_direct called with NULL packet");
-		goto err;
-	}
+int csp_send_direct(csp_id_t idout, csp_packet_t * packet, const csp_route_t * ifroute) {
 
 	if (ifroute == NULL) {
 		csp_log_error("No route to host: %u", idout.dst);
@@ -167,7 +134,7 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, const csp_route_t * i
 	csp_iface_t * ifout = ifroute->iface;
 
 	csp_log_packet("OUT: S %u, D %u, Dp %u, Sp %u, Pr %u, Fl 0x%02X, Sz %u VIA: %s (%u)",
-                       idout.src, idout.dst, idout.dport, idout.sport, idout.pri, idout.flags, packet->length, ifout->name, (ifroute->via != CSP_NO_VIA_ADDRESS) ? ifroute->via : idout.dst);
+				   idout.src, idout.dst, idout.dport, idout.sport, idout.pri, idout.flags, packet->length, ifout->name, (ifroute->via != CSP_NO_VIA_ADDRESS) ? ifroute->via : idout.dst);
 
 	/* Copy identifier to packet (before crc, xtea and hmac) */
 	csp_id_copy(&packet->id, &idout);
@@ -198,17 +165,12 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, const csp_route_t * i
 
 		/* Append CRC32 */
 		if (idout.flags & CSP_FCRC32) {
-#if (CSP_USE_CRC32)
 			/* Calculate and add CRC32 (does not include header for backwards compatability with csp1.x) */
-			if (csp_crc32_append(packet, false) != CSP_ERR_NONE) {
+			if (csp_crc32_append(packet) != CSP_ERR_NONE) {
 				/* CRC32 append failed */
 				csp_log_warn("CRC32 append failed!");
 				goto tx_err;
 			}
-#else
-			csp_log_warn("Sending without CRC32");
-			idout.flags &= ~(CSP_FCRC32);
-#endif
 		}
 
 		if (idout.flags & CSP_FXTEA) {
@@ -244,33 +206,38 @@ tx_err:
 	ifout->tx_error++;
 err:
 	return CSP_ERR_TX;
-
 }
 
-int csp_send(csp_conn_t * conn, csp_packet_t * packet, uint32_t timeout) {
+void csp_send(csp_conn_t * conn, csp_packet_t * packet) {
 
-	if ((conn == NULL) || (packet == NULL) || (conn->state != CONN_OPEN)) {
-		csp_log_error("Invalid call to csp_send");
-		return 0;
+	if (packet == NULL) {
+		return;
+	}
+
+	if ((conn == NULL) || (conn->state != CONN_OPEN)) {
+		csp_buffer_free(packet);
+		return;
 	}
 
 #if (CSP_USE_RDP)
 	if (conn->idout.flags & CSP_FRDP) {
 		if (csp_rdp_send(conn, packet) != CSP_ERR_NONE) {
-			return 0;
+			csp_buffer_free(packet);
+			return;
 		}
 	}
 #endif
 
-	int ret = csp_send_direct(conn->idout, packet, csp_rtable_find_route(conn->idout.dst), timeout);
-
-	return (ret == CSP_ERR_NONE) ? 1 : 0;
-
+	int ret = csp_send_direct(conn->idout, packet, csp_rtable_find_route(conn->idout.dst));
+	if (ret != CSP_ERR_NONE) {
+		csp_buffer_free(packet);
+		return;
+	}
 }
 
-int csp_send_prio(uint8_t prio, csp_conn_t * conn, csp_packet_t * packet, uint32_t timeout) {
+void csp_send_prio(uint8_t prio, csp_conn_t * conn, csp_packet_t * packet) {
 	conn->idout.pri = prio;
-	return csp_send(conn, packet, timeout);
+	csp_send(conn, packet);
 }
 
 int csp_transaction_persistent(csp_conn_t * conn, uint32_t timeout, void * outbuf, int outlen, void * inbuf, int inlen) {
@@ -285,10 +252,7 @@ int csp_transaction_persistent(csp_conn_t * conn, uint32_t timeout, void * outbu
 		memcpy(packet->data, outbuf, outlen);
 	packet->length = outlen;
 
-	if (!csp_send(conn, packet, timeout)) {
-		csp_buffer_free(packet);
-		return 0;
-	}
+	csp_send(conn, packet);
 
 	/* If no reply is expected, return now */
 	if (inlen == 0)
@@ -308,7 +272,6 @@ int csp_transaction_persistent(csp_conn_t * conn, uint32_t timeout, void * outbu
 	int length = packet->length;
 	csp_buffer_free(packet);
 	return length;
-
 }
 
 int csp_transaction_w_opts(uint8_t prio, uint16_t dest, uint8_t port, uint32_t timeout, void * outbuf, int outlen, void * inbuf, int inlen, uint32_t opts) {
@@ -322,7 +285,6 @@ int csp_transaction_w_opts(uint8_t prio, uint16_t dest, uint8_t port, uint32_t t
 	csp_close(conn);
 
 	return status;
-
 }
 
 csp_packet_t * csp_recvfrom(csp_socket_t * socket, uint32_t timeout) {
@@ -334,17 +296,17 @@ csp_packet_t * csp_recvfrom(csp_socket_t * socket, uint32_t timeout) {
 	csp_queue_dequeue(socket->rx_queue, &packet, timeout);
 
 	return packet;
-
 }
 
-int csp_sendto(uint8_t prio, uint16_t dest, uint8_t dport, uint8_t src_port, uint32_t opts, csp_packet_t * packet, uint32_t timeout) {
+void csp_sendto(uint8_t prio, uint16_t dest, uint8_t dport, uint8_t src_port, uint32_t opts, csp_packet_t * packet) {
 
 	if (!(opts & CSP_O_SAME))
 		packet->id.flags = 0;
 
 	if (opts & CSP_O_RDP) {
 		csp_log_error("RDP packet on connection-less socket");
-		return CSP_ERR_INVAL;
+		csp_buffer_free(packet);
+		return;
 	}
 
 	if (opts & CSP_O_HMAC) {
@@ -352,7 +314,8 @@ int csp_sendto(uint8_t prio, uint16_t dest, uint8_t dport, uint8_t src_port, uin
 		packet->id.flags |= CSP_FHMAC;
 #else
 		csp_log_error("No HMAC support");
-		return CSP_ERR_NOTSUP;
+		csp_buffer_free(packet);
+		return;
 #endif
 	}
 
@@ -361,17 +324,13 @@ int csp_sendto(uint8_t prio, uint16_t dest, uint8_t dport, uint8_t src_port, uin
 		packet->id.flags |= CSP_FXTEA;
 #else
 		csp_log_error("No XTEA support");
-		return CSP_ERR_NOTSUP;
+		csp_buffer_free(packet);
+		return;
 #endif
 	}
 
 	if (opts & CSP_O_CRC32) {
-#if (CSP_USE_CRC32)
 		packet->id.flags |= CSP_FCRC32;
-#else
-		csp_log_error("No CRC32 support");
-		return CSP_ERR_NOTSUP;
-#endif
 	}
 
 	packet->id.dst = dest;
@@ -380,20 +339,20 @@ int csp_sendto(uint8_t prio, uint16_t dest, uint8_t dport, uint8_t src_port, uin
 	packet->id.sport = src_port;
 	packet->id.pri = prio;
 
-	if (csp_send_direct(packet->id, packet, csp_rtable_find_route(dest), timeout) != CSP_ERR_NONE)
-		return CSP_ERR_NOTSUP;
-	
-	return CSP_ERR_NONE;
-
+	if (csp_send_direct(packet->id, packet, csp_rtable_find_route(dest)) != CSP_ERR_NONE) {
+		csp_buffer_free(packet);
+		return;
+	}
 }
 
-int csp_sendto_reply(const csp_packet_t * request_packet, csp_packet_t * reply_packet, uint32_t opts, uint32_t timeout) {
+void csp_sendto_reply(const csp_packet_t * request_packet, csp_packet_t * reply_packet, uint32_t opts) {
+
 	if (request_packet == NULL)
-		return CSP_ERR_INVAL;
+		return;
 
 	if (opts & CSP_O_SAME) {
 		reply_packet->id.flags = request_packet->id.flags;
 	}
 
-	return csp_sendto(request_packet->id.pri, request_packet->id.src, request_packet->id.sport, request_packet->id.dport, opts, reply_packet, timeout);
+	return csp_sendto(request_packet->id.pri, request_packet->id.src, request_packet->id.sport, request_packet->id.dport, opts, reply_packet);
 }

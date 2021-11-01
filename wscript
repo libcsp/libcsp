@@ -1,28 +1,10 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
-# Cubesat Space Protocol - A small network-layer protocol designed for Cubesats
-# Copyright (C) 2012 GomSpace ApS (http://www.gomspace.com)
-# Copyright (C) 2012 AAUSAT3 Project (http://aausat3.space.aau.dk)
-#
-# This library is free software; you can redistribute it and/or
-# modify it under the terms of the GNU Lesser General Public
-# License as published by the Free Software Foundation; either
-# version 2.1 of the License, or (at your option) any later version.
-#
-# This library is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-# Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public
-# License along with this library; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
-
 import os
 
 APPNAME = 'libcsp'
-VERSION = '1.6'
+VERSION = '2.0'
 
 valid_os = ['posix', 'windows', 'freertos', 'macosx']
 valid_loglevel = ['none', 'error', 'warn', 'info', 'debug']
@@ -57,19 +39,14 @@ def options(ctx):
     # Drivers and interfaces (requires external dependencies)
     gr.add_option('--enable-if-zmqhub', action='store_true', help='Enable ZMQ interface')
     gr.add_option('--enable-can-socketcan', action='store_true', help='Enable Linux socketcan driver')
-    gr.add_option('--with-driver-usart', default=None, metavar='DRIVER',
-                  help='Build USART driver. [windows, linux, None]')
+    gr.add_option('--with-driver-usart', default=None, metavar='DRIVER', help='Build USART driver. [windows, linux, None]')
 
     # OS
-    gr.add_option('--with-os', metavar='OS', default='posix',
-                  help='Set operating system. Must be one of: ' + str(valid_os))
+    gr.add_option('--with-os', metavar='OS', default='posix', help='Set operating system. Must be one of: ' + str(valid_os))
 
     # Options
-    gr.add_option('--with-loglevel', metavar='LEVEL', default='debug',
-                  help='Set minimum compile time log level. Must be one of: ' + str(valid_loglevel))
-    gr.add_option('--with-rtable', metavar='TABLE', default='cidr',
-                  help='Set routing table type: \'static\' or \'cidr\'')
-    gr.add_option('--version2', action='store_true', help='Build CSP version 2')
+    gr.add_option('--with-loglevel', metavar='LEVEL', default='debug', help='Set minimum compile time log level. Must be one of: ' + str(valid_loglevel))
+    gr.add_option('--with-rtable', metavar='TABLE', default='cidr', help='Set routing table type: \'static\' or \'cidr\'')
 
 
 def configure(ctx):
@@ -85,7 +62,7 @@ def configure(ctx):
         ctx.env.CC = ctx.options.toolchain + 'gcc'
         ctx.env.AR = ctx.options.toolchain + 'ar'
 
-    ctx.load('compiler_c')
+    ctx.load('compiler_c python')
 
     # Set git revision define
     git_rev = os.popen('git describe --long --always 2> /dev/null || echo unknown').read().strip()
@@ -100,11 +77,11 @@ def configure(ctx):
 
     # Setup CFLAGS
     if (len(ctx.stack_path) <= 1) and (len(ctx.env.CFLAGS) == 0):
-        ctx.env.prepend_value('CFLAGS', ["-std=gnu99", "-g", "-Os", "-Wall", "-Wextra", "-Wshadow", "-Wcast-align",
+        ctx.env.prepend_value('CFLAGS', ["-std=gnu11", "-g", "-Os", "-Wall", "-Wextra", "-Wshadow", "-Wcast-align",
                                          "-Wwrite-strings", "-Wno-unused-parameter", "-Werror"])
 
     # Setup default include path and any extra defined
-    ctx.env.append_unique('INCLUDES_CSP', ['include'] + ctx.options.includes.split(','))
+    ctx.env.append_unique('INCLUDES_CSP', ['.', 'include'] + ctx.options.includes.split(','))
 
     # Store OS as env variable
     ctx.env.append_unique('OS', ctx.options.with_os)
@@ -124,11 +101,6 @@ def configure(ctx):
     ctx.define_cond('CSP_WINDOWS', ctx.options.with_os == 'windows')
     ctx.define_cond('CSP_MACOSX', ctx.options.with_os == 'macosx')
 
-    if ctx.options.version2:
-        ctx.define('CSP_VERSION', 2)
-    else:
-        ctx.define('CSP_VERSION', 1)
-
     # Add files
     ctx.env.append_unique('FILES_CSP', ['src/*.c',
                                         'src/external/**/*.c',
@@ -138,11 +110,14 @@ def configure(ctx):
                                         'src/interfaces/csp_if_can.c',
                                         'src/interfaces/csp_if_can_pbuf.c',
                                         'src/interfaces/csp_if_kiss.c',
-                                        'src/interfaces/csp_if_udp.c',
                                         'src/arch/*.c',
                                         'src/arch/{0}/**/*.c'.format(ctx.options.with_os),
                                         'src/rtable/csp_rtable.c',
                                         'src/rtable/csp_rtable_{0}.c'.format(ctx.options.with_rtable)])
+
+    # Add if UDP
+    if ctx.check(header_name="sys/socket.h") and ctx.check(header_name="arpa/inet.h"):
+        ctx.env.append_unique('FILES_CSP', ['src/interfaces/csp_if_udp.c'])
 
     # Add socketcan
     if ctx.options.enable_can_socketcan:
@@ -166,15 +141,24 @@ def configure(ctx):
 
     # Add Python bindings
     if ctx.options.enable_python3_bindings:
-        ctx.env.LIBCSP_PYTHON3 = ctx.check_cfg(package='python3', args='--cflags --libs', atleast_version='3.5',
-                                               mandatory=True)
+        ctx.check_python_version((3,5))
+        ctx.check_python_headers(features='pyext')
+
+    # Set defines for customizable parameters
+    ctx.define('CSP_QFIFO_LEN', 15)
+    ctx.define('CSP_PORT_MAX_BIND', 16)
+    ctx.define('CSP_CONN_RXQUEUE_LEN', 15)
+    ctx.define('CSP_CONN_MAX', 8)
+    ctx.define('CSP_BUFFER_SIZE', 256)
+    ctx.define('CSP_BUFFER_COUNT', 15)
+    ctx.define('CSP_RDP_MAX_WINDOW', 5)
+    ctx.define('CSP_RTABLE_SIZE', 10)
 
     # Set defines for enabling features
     ctx.define('CSP_DEBUG', not ctx.options.disable_output)
     ctx.define('CSP_DEBUG_TIMESTAMP', ctx.options.enable_debug_timestamp)
     ctx.define('CSP_USE_RDP', ctx.options.enable_rdp)
     ctx.define('CSP_USE_RDP_FAST_CLOSE', ctx.options.enable_rdp and ctx.options.enable_rdp_fast_close)
-    ctx.define('CSP_USE_CRC32', ctx.options.enable_crc32)
     ctx.define('CSP_USE_HMAC', ctx.options.enable_hmac)
     ctx.define('CSP_USE_XTEA', ctx.options.enable_xtea)
     ctx.define('CSP_USE_PROMISC', ctx.options.enable_promisc)
@@ -187,15 +171,7 @@ def configure(ctx):
     ctx.define('CSP_LOG_LEVEL_WARN', ctx.options.with_loglevel in ('debug', 'info', 'warn'))
     ctx.define('CSP_LOG_LEVEL_ERROR', ctx.options.with_loglevel in ('debug', 'info', 'warn', 'error'))
 
-    # Check compiler endianness
-    endianness = ctx.check_endianness()
-    ctx.define_cond('CSP_LITTLE_ENDIAN', endianness == 'little')
-    ctx.define_cond('CSP_BIG_ENDIAN', endianness == 'big')
-
-    ctx.define('LIBCSP_VERSION', VERSION)
-
-    ctx.write_config_header('include/csp_autoconfig.h')
-
+    ctx.write_config_header('csp_autoconfig.h')
 
 def build(ctx):
 
@@ -207,7 +183,7 @@ def build(ctx):
                           ctx.path.ant_glob('include/csp/**'),
                           cwd=ctx.path.find_dir('include/csp'),
                           relative_trick=True)
-        ctx.install_files('${PREFIX}/include/csp', 'include/csp/csp_autoconfig.h', cwd=ctx.bldnode)
+        ctx.install_files('${PREFIX}/include/csp', 'csp_autoconfig.h', cwd=ctx.bldnode)
 
     ctx(export_includes=ctx.env.INCLUDES_CSP, name='csp_h')
 
@@ -218,7 +194,7 @@ def build(ctx):
         install_path=install_path)
 
     # Build shared library
-    if ctx.env.LIBCSP_SHLIB or ctx.env.LIBCSP_PYTHON3:
+    if ctx.env.LIBCSP_SHLIB or ctx.env.HAVE_PYEXT:
         ctx.shlib(source=ctx.path.ant_glob(ctx.env.FILES_CSP),
                   name='csp_shlib',
                   target='csp',
@@ -226,28 +202,27 @@ def build(ctx):
                   lib=ctx.env.LIBS)
 
     # Build Python bindings
-    if ctx.env.LIBCSP_PYTHON3:
+    if ctx.env.HAVE_PYEXT:
         ctx.shlib(source=ctx.path.ant_glob('src/bindings/python/**/*.c'),
-                  target='csp_py3',
-                  includes=ctx.env.INCLUDES_PYTHON3,
+                  target='libcsp_py3',
+                  features='pyext',
                   use=['csp_shlib'],
-                  lib=ctx.env.LIBS,
                   pytest_path=[ctx.path.get_bld()])
 
     if ctx.env.ENABLE_EXAMPLES:
         ctx.program(source='examples/csp_server_client.c',
-                    target='csp_server_client',
+                    target='examples/csp_server_client',
                     lib=ctx.env.LIBS,
                     use='csp')
 
         ctx.program(source='examples/csp_arch.c',
-                    target='csp_arch',
+                    target='examples/csp_arch',
                     lib=ctx.env.LIBS,
                     use='csp')
 
         if ctx.env.CSP_HAVE_LIBZMQ:
             ctx.program(source='examples/zmqproxy.c',
-                        target='zmqproxy',
+                        target='examples/zmqproxy',
                         lib=ctx.env.LIBS,
                         use='csp')
 

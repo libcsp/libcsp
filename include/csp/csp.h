@@ -1,25 +1,6 @@
-/*
-Cubesat Space Protocol - A small network-layer protocol designed for Cubesats
-Copyright (C) 2012 Gomspace ApS (http://www.gomspace.com)
-Copyright (C) 2012 AAUSAT3 Project (http://aausat3.space.aau.dk) 
 
-This library is free software; you can redistribute it and/or
-modify it under the terms of the GNU Lesser General Public
-License as published by the Free Software Foundation; either
-version 2.1 of the License, or (at your option) any later version.
 
-This library is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-Lesser General Public License for more details.
-
-You should have received a copy of the GNU Lesser General Public
-License along with this library; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
-*/
-
-#ifndef _CSP_H_
-#define _CSP_H_
+#pragma once
 
 /**
    @file
@@ -40,9 +21,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #define CSP_INFINITY CSP_MAX_TIMEOUT
 
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+
 
 enum csp_dedup_types {
 	CSP_DEDUP_OFF,              /**< Deduplication off */
@@ -124,12 +103,13 @@ csp_packet_t *csp_read(csp_conn_t *conn, uint32_t timeout);
 
 /**
    Send packet on a connection.
+
+   The packet buffer is automatically freed, and cannot be used after the call to csp_send()
+
    @param[in] conn connection
    @param[in] packet packet to send
-   @param[in] timeout unused as of CSP version 1.6
-   @return 1 on success, 0 on failure and the packet must be freed by calling csp_buffer_free()
 */
-int csp_send(csp_conn_t *conn, csp_packet_t *packet, uint32_t timeout);
+void csp_send(csp_conn_t *conn, csp_packet_t *packet);
 
 /**
    Change the default priority of the connection and send a packet.
@@ -138,10 +118,8 @@ int csp_send(csp_conn_t *conn, csp_packet_t *packet, uint32_t timeout);
    @param[in] prio priority to set on the connection
    @param[in] conn connection
    @param[in] packet packet to send
-   @param[in] timeout unused as of CSP version 1.6
-   @return 1 on success, 0 on failure and the packet must be freed by calling csp_buffer_free()
  */
-int csp_send_prio(uint8_t prio, csp_conn_t *conn, csp_packet_t *packet, uint32_t timeout);
+void csp_send_prio(uint8_t prio, csp_conn_t *conn, csp_packet_t *packet);
 
 /**
    Perform an entire request & reply transaction.
@@ -205,10 +183,8 @@ csp_packet_t *csp_recvfrom(csp_socket_t *socket, uint32_t timeout);
    @param[in] src_port source port
    @param[in] opts connection options, see @ref CSP_CONNECTION_OPTIONS.
    @param[in] packet packet to send
-   @param[in] timeout unused as of CSP version 1.6
-   @return #CSP_ERR_NONE on success, otherwise an error code and the packet must be freed by calling csp_buffer_free().
 */
-int csp_sendto(uint8_t prio, uint16_t dst, uint8_t dst_port, uint8_t src_port, uint32_t opts, csp_packet_t *packet, uint32_t timeout);
+void csp_sendto(uint8_t prio, uint16_t dst, uint8_t dst_port, uint8_t src_port, uint32_t opts, csp_packet_t *packet);
 
 /**
    Send a packet as a reply to a request (without a connection).
@@ -216,10 +192,8 @@ int csp_sendto(uint8_t prio, uint16_t dst, uint8_t dst_port, uint8_t src_port, u
    @param[in] request incoming request
    @param[in] reply reply packet
    @param[in] opts connection options, see @ref CSP_CONNECTION_OPTIONS.
-   @param[in] timeout unused as of CSP version 1.6
-   @return #CSP_ERR_NONE on success, otherwise an error code and the reply must be freed by calling csp_buffer_free().
 */
-int csp_sendto_reply(const csp_packet_t * request, csp_packet_t * reply, uint32_t opts, uint32_t timeout);
+void csp_sendto_reply(const csp_packet_t * request, csp_packet_t * reply, uint32_t opts);
 
 /**
    Establish outgoing connection.
@@ -477,7 +451,3 @@ void csp_hex_dump(const char *desc, void *addr, int len);
 */
 void csp_cmp_set_memcpy(csp_memcpy_fnc_t fnc);
 
-#ifdef __cplusplus
-}
-#endif
-#endif

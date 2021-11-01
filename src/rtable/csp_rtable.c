@@ -1,22 +1,3 @@
-/*
-Cubesat Space Protocol - A small network-layer protocol designed for Cubesats
-Copyright (C) 2012 GomSpace ApS (http://www.gomspace.com)
-Copyright (C) 2012 AAUSAT3 Project (http://aausat3.space.aau.dk)
-
-This library is free software; you can redistribute it and/or
-modify it under the terms of the GNU Lesser General Public
-License as published by the Free Software Foundation; either
-version 2.1 of the License, or (at your option) any later version.
-
-This library is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-Lesser General Public License for more details.
-
-You should have received a copy of the GNU Lesser General Public
-License along with this library; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
-*/
 
 
 #include <stdio.h>
@@ -27,7 +8,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/csp_iflist.h>
 #include <csp/interfaces/csp_if_lo.h>
 
-int csp_rtable_set_internal(uint16_t address, uint16_t netmask, csp_iface_t *ifc, uint16_t via);
+int csp_rtable_set_internal(uint16_t address, uint16_t netmask, csp_iface_t * ifc, uint16_t via);
 
 static int csp_rtable_parse(const char * rtable, int dry_run) {
 
@@ -37,7 +18,7 @@ static int csp_rtable_parse(const char * rtable, int dry_run) {
 	const size_t str_len = strnlen(rtable, 100);
 	char rtable_copy[str_len + 1];
 	strncpy(rtable_copy, rtable, str_len);
-	rtable_copy[str_len] = 0;        
+	rtable_copy[str_len] = 0;
 
 	/* Get first token */
 	char * saveptr;
@@ -61,7 +42,7 @@ static int csp_rtable_parse(const char * rtable, int dry_run) {
 		name[sizeof(name) - 1] = 0;
 
 		csp_iface_t * ifc = csp_iflist_get_by_name(name);
-		if ((address > csp_id_get_max_nodeid()) || (netmask > (int) csp_id_get_host_bits()) || (ifc == NULL))  {
+		if ((address > csp_id_get_max_nodeid()) || (netmask > (int)csp_id_get_host_bits()) || (ifc == NULL)) {
 			csp_log_error("%s: invalid entry [%s] addr: %u, netmask %d", __FUNCTION__, str, address, netmask);
 			return CSP_ERR_INVAL;
 		}
@@ -88,70 +69,67 @@ int csp_rtable_check(const char * rtable) {
 	return csp_rtable_parse(rtable, 1);
 }
 
-int csp_rtable_set(uint16_t address, int netmask, csp_iface_t *ifc, uint16_t via) {
+int csp_rtable_set(uint16_t address, int netmask, csp_iface_t * ifc, uint16_t via) {
 
-	if ((netmask < 0) || (netmask > (int) csp_id_get_host_bits())) {
+	if ((netmask < 0) || (netmask > (int)csp_id_get_host_bits())) {
 		netmask = csp_id_get_host_bits();
 	}
 
 	/* Validates options */
-	if ((ifc == NULL) || (netmask > (int) csp_id_get_host_bits())) {
+	if ((ifc == NULL) || (netmask > (int)csp_id_get_host_bits())) {
 		csp_log_error("%s: invalid route: address %u, netmask %u, interface %p (%s), via %u",
-                              __FUNCTION__, address, netmask, ifc, (ifc != NULL) ? ifc->name : "", via);
+					  __FUNCTION__, address, netmask, ifc, (ifc != NULL) ? ifc->name : "", via);
 		return CSP_ERR_INVAL;
 	}
 
-    return csp_rtable_set_internal(address, netmask, ifc, via);
-
+	return csp_rtable_set_internal(address, netmask, ifc, via);
 }
 
 typedef struct {
-    char * buffer;
-    size_t len;
-    size_t maxlen;
-    int error;
+	char * buffer;
+	size_t len;
+	size_t maxlen;
+	int error;
 } csp_rtable_save_ctx_t;
 
-static bool csp_rtable_save_route(void * vctx, uint16_t address, uint16_t mask, const csp_route_t * route)
-{
-    csp_rtable_save_ctx_t * ctx = vctx;
+static bool csp_rtable_save_route(void * vctx, uint16_t address, uint16_t mask, const csp_route_t * route) {
+	csp_rtable_save_ctx_t * ctx = vctx;
 
-    // Do not save loop back interface
-    if (strcasecmp(route->iface->name, CSP_IF_LOOPBACK_NAME) == 0) {
-        return true;
-    }
+	// Do not save loop back interface
+	if (strcmp(route->iface->name, CSP_IF_LOOPBACK_NAME) == 0) {
+		return true;
+	}
 
-    const char * sep = (ctx->len == 0) ? "" : ",";
+	const char * sep = (ctx->len == 0) ? "" : ",";
 
-    char mask_str[10];
-    if (mask != csp_id_get_host_bits()) {
-        snprintf(mask_str, sizeof(mask_str), "/%u", mask);
-    } else {
-        mask_str[0] = 0;
-    }
-    char via_str[10];
-    if (route->via != CSP_NO_VIA_ADDRESS) {
-        snprintf(via_str, sizeof(via_str), " %u", route->via);
-    } else {
-        via_str[0] = 0;
-    }
-    size_t remain_buf_size = ctx->maxlen - ctx->len;
-    int res = snprintf(ctx->buffer + ctx->len, remain_buf_size,
-                       "%s%u%s %s%s", sep, address, mask_str, route->iface->name, via_str);
-    if ((res < 0) || (res >= (int)(remain_buf_size))) {
-        ctx->error = CSP_ERR_NOMEM;
-        return false;
-    }
-    ctx->len += res;
-    return true;
+	char mask_str[10];
+	if (mask != csp_id_get_host_bits()) {
+		snprintf(mask_str, sizeof(mask_str), "/%u", mask);
+	} else {
+		mask_str[0] = 0;
+	}
+	char via_str[10];
+	if (route->via != CSP_NO_VIA_ADDRESS) {
+		snprintf(via_str, sizeof(via_str), " %u", route->via);
+	} else {
+		via_str[0] = 0;
+	}
+	size_t remain_buf_size = ctx->maxlen - ctx->len;
+	int res = snprintf(ctx->buffer + ctx->len, remain_buf_size,
+					   "%s%u%s %s%s", sep, address, mask_str, route->iface->name, via_str);
+	if ((res < 0) || (res >= (int)(remain_buf_size))) {
+		ctx->error = CSP_ERR_NOMEM;
+		return false;
+	}
+	ctx->len += res;
+	return true;
 }
 
-int csp_rtable_save(char * buffer, size_t maxlen)
-{
-    csp_rtable_save_ctx_t ctx = {.len = 0, .buffer = buffer, .maxlen = maxlen, .error = CSP_ERR_NONE};
-    buffer[0] = 0;
-    csp_rtable_iterate(csp_rtable_save_route, &ctx);
-    return ctx.error;
+int csp_rtable_save(char * buffer, size_t maxlen) {
+	csp_rtable_save_ctx_t ctx = {.len = 0, .buffer = buffer, .maxlen = maxlen, .error = CSP_ERR_NONE};
+	buffer[0] = 0;
+	csp_rtable_iterate(csp_rtable_save_route, &ctx);
+	return ctx.error;
 }
 
 void csp_rtable_clear(void) {
@@ -159,24 +137,22 @@ void csp_rtable_clear(void) {
 
 	/* Set loopback up again */
 	csp_rtable_set(csp_conf.address, -1, &csp_if_lo, CSP_NO_VIA_ADDRESS);
-	//csp_rtable_set(csp_conf.address, csp_id_get_host_bits(), &csp_if_lo, CSP_NO_VIA_ADDRESS);
+	// csp_rtable_set(csp_conf.address, csp_id_get_host_bits(), &csp_if_lo, CSP_NO_VIA_ADDRESS);
 }
 
 #if (CSP_DEBUG)
 
-static bool csp_rtable_print_route(void * ctx, uint16_t address, uint16_t mask, const csp_route_t * route)
-{
-    if (route->via == CSP_NO_VIA_ADDRESS) {
-        printf("%u/%u %s\r\n", address, mask, route->iface->name);
-    } else {
-        printf("%u/%u %s %u\r\n", address, mask, route->iface->name, route->via);
-    }
-    return true;
+static bool csp_rtable_print_route(void * ctx, uint16_t address, uint16_t mask, const csp_route_t * route) {
+	if (route->via == CSP_NO_VIA_ADDRESS) {
+		printf("%u/%u %s\r\n", address, mask, route->iface->name);
+	} else {
+		printf("%u/%u %s %u\r\n", address, mask, route->iface->name, route->via);
+	}
+	return true;
 }
 
-void csp_rtable_print(void)
-{
-    csp_rtable_iterate(csp_rtable_print_route, NULL);
+void csp_rtable_print(void) {
+	csp_rtable_iterate(csp_rtable_print_route, NULL);
 }
 
 #endif

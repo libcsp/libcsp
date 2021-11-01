@@ -6,12 +6,13 @@ option('use_hmac', type: 'boolean', value: true, description: 'Hash-based messag
 option('use_xtea', type: 'boolean', value: true, description: 'eXtended TEA block cipher')
 option('use_promisc', type: 'boolean', value: true, description: 'Promiscious mode')
 option('use_dedup', type: 'boolean', value: true, description: 'Packet deduplication')
+option('enable_python3_bindings', type: 'boolean', value: false, description: 'Build Python 3 binding')
 
 option('version', type: 'integer', value: 1, description: 'Which version of CSP to use.')
 option('packet_padding_bytes', type: 'integer', value: 8, description: 'Number of bytes to include before the packet data (must be minimum 8)')
 
-option('log-level', type: 'combo', choices: ['none', 'error', 'warning', 'info', 'debug'],
-       value: 'debug', description: 'Select debug log level')
+option('log-level', type: 'combo', choices: ['none', 'error', 'warning', 'info', 'debug'], value: 'debug', description: 'Select debug log level')
+
 
 # Memory tuning parameters:
 # Try to balance these so there is enough memory to handle expected system usage plus some,
@@ -24,4 +25,3 @@ option('buffer_size', type: 'integer', value: 256, description: 'Bytes in each p
 option('buffer_count', type: 'integer', value: 15, description: 'Number of total packet buffers')
 option('rdp_max_window', type: 'integer', value: 5, description: 'Max window size for RDP')
 option('rtable_size', type: 'integer', value: 10, description: 'Number of elements in routing table')
-

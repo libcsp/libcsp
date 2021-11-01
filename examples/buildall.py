@@ -10,15 +10,27 @@ DEFAULT_BUILD_SYSTEM = 'waf'
 
 
 def build_with_meson():
-    extra_target = ['csp_server_client',
-                    'csp_arch',
-                    'zmqproxy']
+    targets = ['examples/csp_server_client',
+               'examples/csp_arch',
+               'examples/zmqproxy']
     builddir = 'build'
 
     meson_setup = ['meson', 'setup', builddir]
-    meson_compile = ['meson', 'compile', '-C', builddir]
+    meson_compile = ['ninja', '-C', builddir]
     subprocess.check_call(meson_setup)
-    subprocess.check_call(meson_compile + extra_target)
+    subprocess.check_call(meson_compile + targets)
+
+
+def build_with_cmake():
+    targets = ['examples/csp_server_client',
+               'examples/csp_arch',
+               'examples/zmqproxy']
+    builddir = 'build'
+
+    cmake_setup = ['cmake', '-GNinja', '-B' + builddir]
+    cmake_compile = ['ninja', '-C', builddir]
+    subprocess.check_call(cmake_setup)
+    subprocess.check_call(cmake_compile + targets)
 
 
 def build_with_waf(options):
@@ -42,7 +54,6 @@ def build_with_waf(options):
     waf = ['./waf']
     if target_os in ['posix']:
         options += [
-            '--enable-python3-bindings',
             '--enable-can-socketcan',
             '--with-driver-usart=linux',
             '--enable-if-zmqhub',
@@ -68,9 +79,11 @@ def build_with_waf(options):
     subprocess.check_call(waf + options + ['--enable-examples'])
 
 
-def main(with_waf, options):
-    if (with_waf):
+def main(build_system, options):
+    if (build_system == 'waf'):
         build_with_waf(options)
+    elif (build_system == 'cmake'):
+        build_with_cmake()
     else:
         build_with_meson()
 
@@ -79,7 +92,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--build-system',
                         default=DEFAULT_BUILD_SYSTEM,
-                        choices=['meson', 'waf'])
+                        choices=['meson', 'cmake', 'waf'])
     args, rest = parser.parse_known_args()
 
-    main(args.build_system == DEFAULT_BUILD_SYSTEM, rest)
+    main(args.build_system, rest)

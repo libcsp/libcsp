@@ -1,0 +1,23 @@
+# libcsp Cubesat Space Protocol
+
+# Copyright (c) 2021 Space Cubics, LLC.
+# SPDX-License-Identifier: Apache-2.0
+
+config LIBCSP
+	bool "Enable Cubesat Space Protocol Support"
+	select POSIX_CLOCK
+	help
+	  This option enables the Cubesat Space Protocol (CSP) library.
+
+config LIBCSP_DEBUG
+	bool "Enable CSP debugging option"
+	help
+	  This option enables CSP debugging options.
+
+if LIBCSP_DEBUG
+
+module = LIBCSP
+module-str = libcsp
+source "subsys/logging/Kconfig.template.log_config"
+
+endif # LIBCSP_DEBUG
