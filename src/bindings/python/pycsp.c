@@ -127,7 +127,10 @@ static void copy_string(const char * from, char * to, size_t size_to) {
 
 static PyObject* pycsp_init(PyObject *self, PyObject *args) {
 
-    if (!PyArg_ParseTuple(args, "bsss", &csp_conf.address, &csp_conf.hostname, &csp_conf.model, &csp_conf.revision)) {
+    csp_conf_t conf;
+    csp_conf_get_defaults(&conf);
+
+    if (!PyArg_ParseTuple(args, "bsssHH", &conf.address, &conf.hostname, &conf.model, &conf.revision, &conf.buffers, &conf.buffer_data_size)) {
         return NULL; // TypeError is thrown
     }
 
@@ -136,16 +139,18 @@ static PyObject* pycsp_init(PyObject *self, PyObject *args) {
     static char model[CSP_MODEL_LEN + 1];
     static char revision[CSP_CMP_IDENT_REV_LEN + 1];
 
-    copy_string(csp_conf.hostname, hostname, sizeof(hostname));
-    copy_string(csp_conf.model, model, sizeof(model));
-    copy_string(csp_conf.revision, revision, sizeof(revision));
+    copy_string(conf.hostname, hostname, sizeof(hostname));
+    copy_string(conf.model, model, sizeof(model));
+    copy_string(conf.revision, revision, sizeof(revision));
 
-    csp_conf.hostname = hostname;
-    csp_conf.model = model;
-    csp_conf.revision = revision;
-
-    /* Init CSP with address and default settings */
-    csp_init();
+    conf.hostname = hostname;
+    conf.model = model;
+    conf.revision = revision;
+    
+    int res = csp_init(&conf);
+    if (res != CSP_ERR_NONE) {
+        return PyErr_Error("csp_init()", res);
+    }
 
     Py_RETURN_NONE;
 }

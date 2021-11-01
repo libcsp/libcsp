@@ -97,9 +97,11 @@ if __name__ == "__main__":
         # "test_service"  - Host name, returned by CSP identity requests
         # "bindings"      - Model, returned by CSP identity requests
         # "1.2.3"         - Revision, returned by CSP identity requests
+        # 10              - Number of CSP buffers (default=10)
+        # 300             - Data size of a CSP buffer. Total size will be size of csp_packet_t + Data size (default=256)
     # See "include\csp\csp.h" - lines 42-80 for more detail
     # See "src\bindings\python\pycsp.c" - lines 128-156 for more detail
-    libcsp.init(27, "test_service", "bindings", "1.2.3")
+    libcsp.init(27, "test_service", "bindings", "1.2.3", 10, 300)
     
     # init zmqhub with parameters: {address (using 255 means all addresses)} {host name/ip}
     # subscribe and publish endpoints are created on the default ports using the {host}

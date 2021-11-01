@@ -181,16 +181,6 @@ def configure(ctx):
     ctx.define('CSP_USE_DEDUP', ctx.options.enable_dedup)
     ctx.define('CSP_USE_EXTERNAL_DEBUG', ctx.options.enable_external_debug)
 
-    # Defines imported from Meson, using their default values.
-    ctx.define('CSP_QFIFO_LEN', 15)
-    ctx.define('CSP_PORT_MAX_BIND', 16)
-    ctx.define('CSP_CONN_RXQUEUE_LEN', 15)
-    ctx.define('CSP_CONN_MAX', 8)
-    ctx.define('CSP_BUFFER_SIZE', 256)
-    ctx.define('CSP_BUFFER_COUNT', 15)
-    ctx.define('CSP_RDP_MAX_WINDOW', 5)
-    ctx.define('CSP_RTABLE_SIZE', 10)
-
     # Set logging level
     ctx.define('CSP_LOG_LEVEL_DEBUG', ctx.options.with_loglevel in ('debug'))
     ctx.define('CSP_LOG_LEVEL_INFO', ctx.options.with_loglevel in ('debug', 'info'))
