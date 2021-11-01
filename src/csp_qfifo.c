@@ -7,14 +7,12 @@
 #include <csp/csp_buffer.h>
 #include <csp_autoconfig.h>
 
-#define QFIFO_LEN 10
-
 static csp_static_queue_t qfifo_queue __attribute__((section(".noinit")));
 static csp_queue_handle_t qfifo_queue_handle __attribute__((section(".noinit")));
-char qfifo_queue_buffer[sizeof(csp_qfifo_t) * QFIFO_LEN] __attribute__((section(".noinit")));
+char qfifo_queue_buffer[sizeof(csp_qfifo_t) * CSP_QFIFO_LEN] __attribute__((section(".noinit")));
 
 void csp_qfifo_init(void) {
-	qfifo_queue_handle = csp_queue_create_static(QFIFO_LEN, sizeof(csp_qfifo_t), qfifo_queue_buffer, &qfifo_queue);
+	qfifo_queue_handle = csp_queue_create_static(CSP_QFIFO_LEN, sizeof(csp_qfifo_t), qfifo_queue_buffer, &qfifo_queue);
 }
 
 int csp_qfifo_read(csp_qfifo_t * input) {
@@ -52,7 +50,7 @@ void csp_qfifo_write(csp_packet_t * packet, csp_iface_t * iface, void * pxTaskWo
 	queue_element.packet = packet;
 
 	if (pxTaskWoken == NULL)
-		result = csp_queue_enqueue(qfifo_queue_handle, &queue_element, 0);
+		result = csp_queue_enqueue(qfifo_queue_handle, &queue_element, 1);
 	else
 		result = csp_queue_enqueue_isr(qfifo_queue_handle, &queue_element, pxTaskWoken);
 

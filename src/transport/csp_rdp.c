@@ -385,7 +385,7 @@ void csp_rdp_flush_all(csp_conn_t * conn) {
 	csp_packet_t * packet;
 
 	/* Empty TX queue */
-	while (csp_queue_dequeue_isr(conn->rdp.tx_queue, &packet, &pdTrue) == CSP_QUEUE_OK) {
+	while (csp_queue_dequeue(conn->rdp.tx_queue, &packet, 0) == CSP_QUEUE_OK) {
 		if (packet != NULL) {
 			csp_log_protocol("RDP %p: Flush TX Element, time %" PRIu32 ", seq %u", conn, packet->timestamp_tx, be16toh(csp_rdp_header_ref((csp_packet_t *)packet)->seq_nr));
 			csp_buffer_free(packet);
@@ -393,7 +393,7 @@ void csp_rdp_flush_all(csp_conn_t * conn) {
 	}
 
 	/* Empty RX queue */
-	while (csp_queue_dequeue_isr(conn->rdp.rx_queue, &packet, &pdTrue) == CSP_QUEUE_OK) {
+	while (csp_queue_dequeue(conn->rdp.rx_queue, &packet, 0) == CSP_QUEUE_OK) {
 		if (packet != NULL) {
 			csp_log_protocol("RDP %p: Flush RX Element, time %" PRIu32 ", seq %u", conn, packet->timestamp_tx, be16toh(csp_rdp_header_ref((csp_packet_t *)packet)->seq_nr));
 			csp_buffer_free(packet);
@@ -466,7 +466,7 @@ void csp_rdp_check_timeouts(csp_conn_t * conn) {
 	for (int i = 0; i < count; i++) {
 
 		csp_packet_t * packet;
-		if ((csp_queue_dequeue_isr(conn->rdp.tx_queue, &packet, &pdTrue) != CSP_QUEUE_OK) || packet == NULL) {
+		if ((csp_queue_dequeue(conn->rdp.tx_queue, &packet, 0) != CSP_QUEUE_OK) || packet == NULL) {
 			csp_log_warn("RDP %p: Cannot dequeue from tx_queue in check timeout", conn);
 			break;
 		}
@@ -498,7 +498,8 @@ void csp_rdp_check_timeouts(csp_conn_t * conn) {
 		}
 
 		/* Requeue the TX element */
-		csp_queue_enqueue_isr(conn->rdp.tx_queue, &packet, &pdTrue);
+		csp_queue_enqueue(conn->rdp.tx_queue, &packet, 0);
+
 	}
 
 	if (conn->rdp.state == RDP_OPEN) {
