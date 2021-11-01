@@ -1,5 +1,3 @@
-
-
 #include <csp/interfaces/csp_if_zmqhub.h>
 
 #if (CSP_HAVE_LIBZMQ)
@@ -61,8 +59,11 @@ CSP_DEFINE_TASK(csp_zmqhub_task) {
 	// csp_log_info("RX %s started", drv->iface.name);
 
 	while (1) {
+		int ret;
 		zmq_msg_t msg;
-		assert(zmq_msg_init_size(&msg, CSP_ZMQ_MTU + HEADER_SIZE) == 0);
+
+		ret = zmq_msg_init_size(&msg, CSP_ZMQ_MTU + HEADER_SIZE);
+		assert(ret == 0);
 
 		// Receive data
 		if (zmq_msg_recv(&msg, drv->subscriber, 0) < 0) {
@@ -156,8 +157,9 @@ int csp_zmqhub_init_w_name_endpoints_rxfilter(const char * ifname,
 											  uint32_t flags,
 											  csp_iface_t ** return_interface) {
 
+	int ret;
 	zmq_driver_t * drv = calloc(1, sizeof(*drv));
-	assert(drv);
+	assert(drv != NULL);
 
 	if (ifname == NULL) {
 		ifname = CSP_ZMQHUB_IF_NAME;
@@ -170,31 +172,35 @@ int csp_zmqhub_init_w_name_endpoints_rxfilter(const char * ifname,
 	drv->iface.mtu = CSP_ZMQ_MTU;  // there is actually no 'max' MTU on ZMQ, but assuming the other end is based on the same code
 
 	drv->context = zmq_ctx_new();
-	assert(drv->context);
+	assert(drv->context != NULL);
 
 	csp_log_info("INIT %s: pub(tx): [%s], sub(rx): [%s], rx filters: %u",
 				 drv->iface.name, publish_endpoint, subscribe_endpoint, rxfilter_count);
 
 	/* Publisher (TX) */
 	drv->publisher = zmq_socket(drv->context, ZMQ_PUB);
-	assert(drv->publisher);
+	assert(drv->publisher != NULL);
 
 	/* Subscriber (RX) */
 	drv->subscriber = zmq_socket(drv->context, ZMQ_SUB);
-	assert(drv->subscriber);
+	assert(drv->subscriber != NULL);
 
 	// subscribe to all packets - no filter
-	assert(zmq_setsockopt(drv->subscriber, ZMQ_SUBSCRIBE, NULL, 0) == 0);
+	ret = zmq_setsockopt(drv->subscriber, ZMQ_SUBSCRIBE, NULL, 0);
+	assert(ret == 0);
 
 	/* Connect to server */
-	assert(zmq_connect(drv->publisher, publish_endpoint) == 0);
-	assert(zmq_connect(drv->subscriber, subscribe_endpoint) == 0);
+	ret = zmq_connect(drv->publisher, publish_endpoint);
+	assert(ret == 0);
+	zmq_connect(drv->subscriber, subscribe_endpoint);
+	assert(ret == 0);
 
 	/* ZMQ isn't thread safe, so we add a binary semaphore to wait on for tx */
 	csp_bin_sem_create_static(&drv->tx_wait, &drv->tx_wait_buf);
 
 	/* Start RX thread */
-	assert(csp_thread_create(csp_zmqhub_task, drv->iface.name, 20000, drv, 0, &drv->rx_thread) == 0);
+	ret = csp_thread_create(csp_zmqhub_task, drv->iface.name, 20000, drv, 0, &drv->rx_thread);
+	assert(ret == 0);
 
 	/* Register interface */
 	csp_iflist_add(&drv->iface);
