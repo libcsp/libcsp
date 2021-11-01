@@ -280,10 +280,9 @@ int csp_route_start_task(unsigned int task_stack_size, unsigned int task_priorit
    Route packet from the incoming router queue and check RDP timeouts.
    In order for incoming packets to routed and RDP timeouts to be checked, this function must be called reguarly.
    If the router task is started by calling csp_route_start_task(), there function should not be called.
-   @param[in] timeout timeout in mS to wait for an incoming packet.
    @return #CSP_ERR_NONE on success, otherwise an error code.
 */
-int csp_route_work(uint32_t timeout);
+int csp_route_work(void);
 
 /**
    Start the bridge task.
@@ -450,4 +449,3 @@ void csp_hex_dump(const char *desc, void *addr, int len);
    Set platform specific memory copy function.
 */
 void csp_cmp_set_memcpy(csp_memcpy_fnc_t fnc);
-

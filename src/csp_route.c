@@ -124,7 +124,7 @@ static int csp_route_security_check(uint32_t security_opts, csp_iface_t * iface,
 	return CSP_ERR_NONE;
 }
 
-int csp_route_work(uint32_t timeout) {
+int csp_route_work(void) {
 
 	csp_qfifo_t input;
 	csp_packet_t * packet;
@@ -300,7 +300,7 @@ CSP_DEFINE_TASK(csp_task_router) {
 
 	/* Here there be routing */
 	while (1) {
-		csp_route_work(FIFO_TIMEOUT);
+		csp_route_work();
 	}
 
 	return CSP_TASK_RETURN;
