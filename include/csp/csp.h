@@ -268,18 +268,8 @@ int csp_listen(csp_socket_t *socket, size_t backlog);
 int csp_bind(csp_socket_t *socket, uint8_t port);
 
 /**
-   Start the router task.
-   The router task calls csp_route_work() to do the actual work.
-   @param[in] task_stack_size stack size for the task, see csp_thread_create() for details on the stack size parameter.
-   @param[in] task_priority priority for the task, see csp_thread_create() for details on the stack size parameter.
-   @return #CSP_ERR_NONE on success, otherwise an error code.
-*/
-int csp_route_start_task(unsigned int task_stack_size, unsigned int task_priority);
-
-/**
    Route packet from the incoming router queue and check RDP timeouts.
    In order for incoming packets to routed and RDP timeouts to be checked, this function must be called reguarly.
-   If the router task is started by calling csp_route_start_task(), there function should not be called.
    @return #CSP_ERR_NONE on success, otherwise an error code.
 */
 int csp_route_work(void);

@@ -210,7 +210,7 @@ def build(ctx):
                   pytest_path=[ctx.path.get_bld()])
 
     if ctx.env.ENABLE_EXAMPLES:
-        ctx.program(source='examples/csp_server_client.c',
+        ctx.program(source='examples/csp_server_client.c examples/csp_server_client_posix.c ',
                     target='examples/csp_server_client',
                     lib=ctx.env.LIBS,
                     use='csp')

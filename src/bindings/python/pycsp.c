@@ -1,5 +1,3 @@
-
-
 // It is recommended to always define PY_SSIZE_T_CLEAN before including Python.h
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
@@ -458,13 +456,40 @@ static PyObject * pycsp_bind(PyObject * self, PyObject * args) {
 	Py_RETURN_NONE;
 }
 
-static PyObject * pycsp_route_start_task(PyObject * self, PyObject * args) {
-	unsigned int priority = CSP_PRIO_NORM;
-	if (!PyArg_ParseTuple(args, "|I", &priority)) {
-		return NULL;  // TypeError is thrown
+static void * csp_task_router(void * param) {
+
+	/* Here there be routing */
+	while (1) {
+		csp_route_work();
 	}
 
-	int res = csp_route_start_task(0, priority);
+	return NULL;
+}
+
+static int csp_route_start_task(void) {
+
+	pthread_attr_t attributes;
+	pthread_t handle;
+	int ret;
+
+	if (pthread_attr_init(&attributes) != 0) {
+		return CSP_ERR_NOMEM;
+	}
+	pthread_attr_setdetachstate(&attributes, PTHREAD_CREATE_DETACHED);  // no need to join with thread to free its resources
+
+	ret = pthread_create(&handle, &attributes, csp_task_router, NULL);
+	pthread_attr_destroy(&attributes);
+
+	if (ret != 0) {
+		csp_log_error("Failed to start router task, error: %d", ret);
+		return ret;
+	}
+
+	return CSP_ERR_NONE;
+}
+
+static PyObject * pycsp_route_start_task(PyObject * self, PyObject * args) {
+	int res = csp_route_start_task();
 	if (res != CSP_ERR_NONE) {
 		return PyErr_Error("csp_route_start_task()", res);
 	}
