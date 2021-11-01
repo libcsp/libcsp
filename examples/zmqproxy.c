@@ -1,5 +1,3 @@
-
-
 #include <unistd.h>
 #include <stdlib.h>
 #include <zmq.h>
@@ -10,10 +8,14 @@
 
 static void * task_capture(void * ctx) {
 
+	int ret;
+
 	/* Subscriber (RX) */
 	void * subscriber = zmq_socket(ctx, ZMQ_SUB);
-	assert(zmq_connect(subscriber, "tcp://localhost:7000") == 0);
-	assert(zmq_setsockopt(subscriber, ZMQ_SUBSCRIBE, "", 0) == 0);
+	ret = zmq_connect(subscriber, "tcp://localhost:7000");
+	assert(ret == 0);
+	zmq_setsockopt(subscriber, ZMQ_SUBSCRIBE, "", 0);
+	assert(ret == 0);
 
 	/* Allocated 'raw' CSP packet */
 	csp_packet_t * packet = malloc(1024);
@@ -55,6 +57,8 @@ static void * task_capture(void * ctx) {
 
 int main(int argc, char ** argv) {
 
+	int ret;
+
 	csp_debug_level_t debug_level = CSP_PACKET;
 	int opt;
 	while ((opt = getopt(argc, argv, "d:h")) != -1) {
@@ -81,11 +85,13 @@ int main(int argc, char ** argv) {
 
 	void * frontend = zmq_socket(ctx, ZMQ_XSUB);
 	assert(frontend);
-	assert(zmq_bind(frontend, "tcp://*:6000") == 0);
+	ret = zmq_bind(frontend, "tcp://*:6000");
+	assert(ret == 0);
 
 	void * backend = zmq_socket(ctx, ZMQ_XPUB);
 	assert(backend);
-	assert(zmq_bind(backend, "tcp://*:7000") == 0);
+	ret = zmq_bind(backend, "tcp://*:7000");
+	assert(ret == 0);
 
 	pthread_t capworker;
 	pthread_create(&capworker, NULL, task_capture, ctx);
