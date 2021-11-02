@@ -50,9 +50,7 @@ int csp_if_udp_rx_work(int sockfd, csp_iface_t * iface) {
 
 	/* Setup RX frane to point to ID */
 	int header_size = csp_id_setup_rx(packet);
-
-	unsigned int peer_addr_len = sizeof(ifconf->peer_addr);
-	int received_len = recvfrom(sockfd, (char *)packet->frame_begin, iface->mtu + header_size, MSG_WAITALL, (struct sockaddr *)&ifconf->peer_addr, &peer_addr_len);
+	int received_len = recvfrom(sockfd, (char *)packet->frame_begin, iface->mtu + header_size, MSG_WAITALL, (struct sockaddr *)&ifconf->peer_addr, NULL);
 	packet->frame_length = received_len;
 
 	csp_log_info("UDP peer address: %s", inet_ntoa(ifconf->peer_addr.sin_addr));
