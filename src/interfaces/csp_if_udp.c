@@ -39,9 +39,7 @@ static int csp_if_udp_tx(const csp_route_t * ifroute, csp_packet_t * packet) {
 	return CSP_ERR_NONE;
 }
 
-int csp_if_udp_rx_work(int sockfd, csp_iface_t * iface) {
-
-	csp_if_udp_conf_t * ifconf = iface->driver_data;
+int csp_if_udp_rx_work(int sockfd, struct sockaddr_in * peer_addr, csp_iface_t * iface) {
 
 	csp_packet_t * packet = csp_buffer_get(iface->mtu);
 	if (packet == NULL) {
@@ -50,10 +48,10 @@ int csp_if_udp_rx_work(int sockfd, csp_iface_t * iface) {
 
 	/* Setup RX frane to point to ID */
 	int header_size = csp_id_setup_rx(packet);
-	int received_len = recvfrom(sockfd, (char *)packet->frame_begin, iface->mtu + header_size, MSG_WAITALL, (struct sockaddr *)&ifconf->peer_addr, NULL);
+	int received_len = recvfrom(sockfd, (char *)packet->frame_begin, iface->mtu + header_size, MSG_WAITALL, (struct sockaddr *)peer_addr, NULL);
 	packet->frame_length = received_len;
 
-	csp_log_info("UDP peer address: %s", inet_ntoa(ifconf->peer_addr.sin_addr));
+	csp_log_info("UDP peer address: %s", inet_ntoa(peer_addr->sin_addr));
 
 	/* Parse the frame and strip the ID field */
 	if (csp_id_strip(packet) != 0) {
@@ -89,7 +87,7 @@ CSP_DEFINE_TASK(csp_if_udp_rx_loop) {
 		while (1) {
 			int ret;
 
-			ret = csp_if_udp_rx_work(sockfd, iface);
+			ret = csp_if_udp_rx_work(sockfd, &ifconf->peer_addr, iface);
 			if (ret == CSP_ERR_INVAL) {
 				iface->rx_error++;
 			} else if (ret == CSP_ERR_NOMEM) {
