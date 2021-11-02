@@ -1,5 +1,3 @@
-
-
 #include <csp/drivers/usart.h>
 
 #include <stdio.h>
@@ -144,7 +142,7 @@ int csp_usart_open(const csp_usart_conf_t * conf, csp_usart_callback_t rx_callba
 	ctx->fd = fd;
 	ctx->isListening = 1;
 
-	res = csp_thread_create(usart_rx_thread, "usart_rx", 0, ctx, 0, &ctx->rx_thread);
+	res = csp_windows_thread_create(usart_rx_thread, "usart_rx", 0, ctx, 0, &ctx->rx_thread);
 	if (res) {
 		CloseHandle(ctx->fd);
 		csp_free(ctx);
