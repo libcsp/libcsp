@@ -1,4 +1,5 @@
 csp_sources += files([
+	'csp_bridge.c',
 	'csp_queue.c',
 	'csp_semaphore.c',
 	'csp_system.c',
@@ -9,4 +10,3 @@ csp_sources += files([
 
 # FreeRTOS can be provided by either a freertos subproject, or a bsp subproject
 csp_deps += dependency('freertos', fallback : ['freertos', 'freertos_dep'], required: false)
-

@@ -10,13 +10,13 @@ typedef struct {
 static bridge_interface_t bif_a;
 static bridge_interface_t bif_b;
 
-static void csp_bridge_set_interfaces(csp_iface_t * if_a, csp_iface_t * if_b) {
+void csp_bridge_set_interfaces(csp_iface_t * if_a, csp_iface_t * if_b) {
 
 	bif_a.iface = if_a;
 	bif_b.iface = if_b;
 }
 
-static void csp_bridge_work(void) {
+void csp_bridge_work(void) {
 
 	/* Get next packet to route */
 	csp_qfifo_t input;
@@ -50,30 +50,4 @@ static void csp_bridge_work(void) {
 		csp_log_warn("Router failed to send");
 		csp_buffer_free(packet);
 	}
-}
-
-static CSP_DEFINE_TASK(csp_bridge) {
-
-	/* Here there be bridging */
-	while (1) {
-		csp_bridge_work();
-	}
-
-	return CSP_TASK_RETURN;
-}
-
-int csp_bridge_start(unsigned int task_stack_size, unsigned int task_priority, csp_iface_t * if_a, csp_iface_t * if_b) {
-
-	/* Set static references to A/B side of bridge */
-	csp_bridge_set_interfaces(if_a, if_b);
-
-	static csp_thread_handle_t handle;
-	int ret = csp_thread_create(csp_bridge, "BRIDGE", task_stack_size, NULL, task_priority, &handle);
-
-	if (ret != 0) {
-		csp_log_error("Failed to start task");
-		return CSP_ERR_NOMEM;
-	}
-
-	return CSP_ERR_NONE;
 }

@@ -275,6 +275,16 @@ int csp_bind(csp_socket_t *socket, uint8_t port);
 int csp_route_work(void);
 
 /**
+   Set the bridge interfaces.
+*/
+void csp_bridge_set_interfaces(csp_iface_t * if_a, csp_iface_t * if_b);
+
+/**
+   Bridge packet from an interface to the other.
+*/
+void csp_bridge_work(void);
+
+/**
    Start the bridge task.
    The bridge will copy packets between interfaces, i.e. packets received on A will be sent on B, and vice versa.
    @param[in] task_stack_size stack size for the task, see csp_thread_create() for details on the stack size parameter.
