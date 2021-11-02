@@ -39,6 +39,35 @@ static int csp_if_udp_tx(const csp_route_t * ifroute, csp_packet_t * packet) {
 	return CSP_ERR_NONE;
 }
 
+int csp_if_udp_rx_work(int sockfd, csp_iface_t * iface) {
+
+	csp_if_udp_conf_t * ifconf = iface->driver_data;
+
+	csp_packet_t * packet = csp_buffer_get(iface->mtu);
+	if (packet == NULL) {
+		return CSP_ERR_NOMEM;
+	}
+
+	/* Setup RX frane to point to ID */
+	int header_size = csp_id_setup_rx(packet);
+
+	unsigned int peer_addr_len = sizeof(ifconf->peer_addr);
+	int received_len = recvfrom(sockfd, (char *)packet->frame_begin, iface->mtu + header_size, MSG_WAITALL, (struct sockaddr *)&ifconf->peer_addr, &peer_addr_len);
+	packet->frame_length = received_len;
+
+	csp_log_info("UDP peer address: %s", inet_ntoa(ifconf->peer_addr.sin_addr));
+
+	/* Parse the frame and strip the ID field */
+	if (csp_id_strip(packet) != 0) {
+		csp_buffer_free(packet);
+		return CSP_ERR_INVAL;
+	}
+
+	csp_qfifo_write(packet, iface, NULL);
+
+	return CSP_ERR_NONE;
+}
+
 CSP_DEFINE_TASK(csp_if_udp_rx_task) {
 
 	csp_iface_t * iface = param;
@@ -60,30 +89,14 @@ CSP_DEFINE_TASK(csp_if_udp_rx_task) {
 		}
 
 		while (1) {
+			int ret;
 
-			csp_packet_t * packet = csp_buffer_get(iface->mtu);
-			if (packet == NULL) {
-				csp_sleep_ms(10);
-				continue;
-			}
-
-			/* Setup RX frane to point to ID */
-			int header_size = csp_id_setup_rx(packet);
-
-			unsigned int peer_addr_len = sizeof(ifconf->peer_addr);
-			int received_len = recvfrom(sockfd, (char *)packet->frame_begin, iface->mtu + header_size, MSG_WAITALL, (struct sockaddr *)&ifconf->peer_addr, &peer_addr_len);
-			packet->frame_length = received_len;
-
-			csp_log_info("UDP peer address: %s", inet_ntoa(ifconf->peer_addr.sin_addr));
-
-			/* Parse the frame and strip the ID field */
-			if (csp_id_strip(packet) != 0) {
+			ret = csp_if_udp_rx_work(sockfd, iface);
+			if (ret == CSP_ERR_INVAL) {
 				iface->rx_error++;
-				csp_buffer_free(packet);
-				continue;
+			} else if (ret == CSP_ERR_NOMEM) {
+				csp_sleep_ms(10);
 			}
-
-			csp_qfifo_write(packet, iface, NULL);
 		}
 	}
 
