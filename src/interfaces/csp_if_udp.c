@@ -80,27 +80,24 @@ CSP_DEFINE_TASK(csp_if_udp_rx_loop) {
 
 	csp_iface_t * iface = param;
 	csp_if_udp_conf_t * ifconf = iface->driver_data;
+	int sockfd;
 
-	while (1) {
-
-		int sockfd;
-
+	do {
 		sockfd = csp_if_udp_rx_get_socket(ifconf->lport);
 		if (sockfd < 0) {
 			printf("UDP server waiting for port %d\n", ifconf->lport);
 			sleep(1);
-			continue;
 		}
+	} while (sockfd < 0);
 
-		while (1) {
-			int ret;
+	while (1) {
+		int ret;
 
-			ret = csp_if_udp_rx_work(sockfd, iface->mtu, &ifconf->peer_addr, iface);
-			if (ret == CSP_ERR_INVAL) {
-				iface->rx_error++;
-			} else if (ret == CSP_ERR_NOMEM) {
-				csp_sleep_ms(10);
-			}
+		ret = csp_if_udp_rx_work(sockfd, iface->mtu, &ifconf->peer_addr, iface);
+		if (ret == CSP_ERR_INVAL) {
+			iface->rx_error++;
+		} else if (ret == CSP_ERR_NOMEM) {
+			csp_sleep_ms(10);
 		}
 	}
 
