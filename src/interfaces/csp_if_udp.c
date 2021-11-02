@@ -68,7 +68,7 @@ int csp_if_udp_rx_work(int sockfd, csp_iface_t * iface) {
 	return CSP_ERR_NONE;
 }
 
-CSP_DEFINE_TASK(csp_if_udp_rx_task) {
+CSP_DEFINE_TASK(csp_if_udp_rx_loop) {
 
 	csp_iface_t * iface = param;
 	csp_if_udp_conf_t * ifconf = iface->driver_data;
@@ -114,8 +114,8 @@ void csp_if_udp_init(csp_iface_t * iface, csp_if_udp_conf_t * ifconf) {
 	printf("UDP peer address: %s:%d (listening on port %d)\n", inet_ntoa(ifconf->peer_addr.sin_addr), ifconf->rport, ifconf->lport);
 
 	/* Start server thread */
-	int ret = csp_thread_create(csp_if_udp_rx_task, "UDPS", 10000, iface, 0, &ifconf->server_handle);
-	csp_log_info("csp_if_udp_rx_task start %d\r\n", ret);
+	int ret = csp_thread_create(csp_if_udp_rx_loop, "UDPS", 10000, iface, 0, &ifconf->server_handle);
+	csp_log_info("csp_if_udp_rx_loop start %d\r\n", ret);
 
 	/* MTU is datasize */
 	iface->mtu = csp_buffer_data_size();
