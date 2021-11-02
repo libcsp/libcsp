@@ -1,5 +1,3 @@
-
-
 #include <csp/arch/csp_thread.h>
 #include "csp_qfifo.h"
 #include "csp_io.h"
@@ -11,6 +9,12 @@ typedef struct {
 
 static bridge_interface_t bif_a;
 static bridge_interface_t bif_b;
+
+static void csp_bridge_set_interfaces(csp_iface_t * if_a, csp_iface_t * if_b) {
+
+	bif_a.iface = if_a;
+	bif_b.iface = if_b;
+}
 
 static CSP_DEFINE_TASK(csp_bridge) {
 
@@ -57,8 +61,7 @@ static CSP_DEFINE_TASK(csp_bridge) {
 int csp_bridge_start(unsigned int task_stack_size, unsigned int task_priority, csp_iface_t * if_a, csp_iface_t * if_b) {
 
 	/* Set static references to A/B side of bridge */
-	bif_a.iface = if_a;
-	bif_b.iface = if_b;
+	csp_bridge_set_interfaces(if_a, if_b);
 
 	static csp_thread_handle_t handle;
 	int ret = csp_thread_create(csp_bridge, "BRIDGE", task_stack_size, NULL, task_priority, &handle);
