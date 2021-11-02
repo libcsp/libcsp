@@ -39,6 +39,18 @@ static int csp_if_udp_tx(const csp_route_t * ifroute, csp_packet_t * packet) {
 	return CSP_ERR_NONE;
 }
 
+int csp_if_udp_rx_get_socket(int lport) {
+
+	int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+
+	struct sockaddr_in server_addr = {0};
+	server_addr.sin_family = AF_INET;
+	server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+	server_addr.sin_port = htons(lport);
+
+	return bind(sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr));
+}
+
 int csp_if_udp_rx_work(int sockfd, size_t mtu, struct sockaddr_in * peer_addr, csp_iface_t * iface) {
 
 	csp_packet_t * packet = csp_buffer_get(mtu);
@@ -69,16 +81,12 @@ CSP_DEFINE_TASK(csp_if_udp_rx_loop) {
 	csp_iface_t * iface = param;
 	csp_if_udp_conf_t * ifconf = iface->driver_data;
 
-	int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
-
-	struct sockaddr_in server_addr = {0};
-	server_addr.sin_family = AF_INET;
-	server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-	server_addr.sin_port = htons(ifconf->lport);
-
 	while (1) {
 
-		if (bind(sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
+		int sockfd;
+
+		sockfd = csp_if_udp_rx_get_socket(ifconf->lport);
+		if (sockfd < 0) {
 			printf("UDP server waiting for port %d\n", ifconf->lport);
 			sleep(1);
 			continue;
