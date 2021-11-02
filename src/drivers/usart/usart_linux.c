@@ -1,5 +1,3 @@
-
-
 #include <csp/drivers/usart.h>
 
 #include <stdio.h>
@@ -273,8 +271,8 @@ int csp_usart_open(const csp_usart_conf_t * conf, csp_usart_callback_t rx_callba
 	ctx->fd = fd;
 
 	if (rx_callback) {
-		if (csp_thread_create(usart_rx_thread, "usart_rx", 0, ctx, 0, &ctx->rx_thread) != CSP_ERR_NONE) {
-			csp_log_error("%s: csp_thread_create() failed to create Rx thread for device: [%s], errno: %s", __FUNCTION__, conf->device, strerror(errno));
+		if (csp_posix_thread_create(usart_rx_thread, "usart_rx", 0, ctx, 0, &ctx->rx_thread) != CSP_ERR_NONE) {
+			csp_log_error("%s: csp_posix_thread_create() failed to create Rx thread for device: [%s], errno: %s", __FUNCTION__, conf->device, strerror(errno));
 			free(ctx);
 			close(fd);
 			return CSP_ERR_NOMEM;
