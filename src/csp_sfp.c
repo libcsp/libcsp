@@ -6,7 +6,7 @@
 
 #include <csp/csp_buffer.h>
 #include <csp/csp_debug.h>
-#include <sys/types.h>
+#include <endian.h>
 
 #include "csp_conn.h"
 

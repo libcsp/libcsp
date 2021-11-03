@@ -5,7 +5,7 @@
  *      Author: johan
  */
 
-#include <sys/types.h>
+#include <endian.h>
 #include <csp/csp.h>
 
 /**

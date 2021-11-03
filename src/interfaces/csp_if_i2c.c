@@ -3,7 +3,7 @@
 #include <csp/interfaces/csp_if_i2c.h>
 
 #include <csp/csp.h>
-#include <sys/types.h>
+#include <endian.h>
 
 // Ensure certain fields in the csp_i2c_frame_t matches the fields in the csp_packet_t
 CSP_STATIC_ASSERT(offsetof(csp_i2c_frame_t, len) == offsetof(csp_packet_t, length), len_field_misaligned);

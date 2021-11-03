@@ -5,7 +5,7 @@
 #include <stdio.h>
 
 #include <csp/csp_cmp.h>
-#include <sys/types.h>
+#include <endian.h>
 #include <csp/arch/csp_time.h>
 
 int csp_ping(uint16_t node, uint32_t timeout, unsigned int size, uint8_t conn_options) {

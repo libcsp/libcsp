@@ -9,7 +9,7 @@
 #include <csp/interfaces/csp_if_kiss.h>
 #include <string.h>
 
-#include <sys/types.h>
+#include <endian.h>
 #include <csp/csp_crc32.h>
 #include <csp/csp_id.h>
 

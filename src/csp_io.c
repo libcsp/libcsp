@@ -7,7 +7,7 @@
 #include <string.h>
 
 #include <csp/csp.h>
-#include <sys/types.h>
+#include <endian.h>
 #include <csp/csp_crc32.h>
 #include <csp/csp_rtable.h>
 #include <csp/interfaces/csp_if_lo.h>

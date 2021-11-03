@@ -13,7 +13,7 @@
 #include <string.h>
 
 #include <csp/csp_cmp.h>
-#include <sys/types.h>
+#include <endian.h>
 #include <csp/csp_types.h>
 #include <csp/csp_rtable.h>
 #include <csp/arch/csp_time.h>

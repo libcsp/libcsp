@@ -4,7 +4,7 @@
 
 #include <string.h>
 #include <stdlib.h>
-#include <sys/types.h>
+#include <endian.h>
 
 #include <csp/csp.h>
 #include <csp/arch/csp_semaphore.h>

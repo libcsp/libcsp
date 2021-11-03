@@ -4,7 +4,7 @@
 
 #include <csp/crypto/csp_xtea.h>
 
-#include <sys/types.h>
+#include <endian.h>
 #include <string.h>
 #include <stdlib.h>
 

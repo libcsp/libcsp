@@ -5,7 +5,7 @@
 #include <stdlib.h>
 
 #include <csp/csp_crc32.h>
-#include <sys/types.h>
+#include <endian.h>
 #include <csp/arch/csp_thread.h>
 #include <csp/arch/csp_queue.h>
 #include <csp/crypto/csp_hmac.h>

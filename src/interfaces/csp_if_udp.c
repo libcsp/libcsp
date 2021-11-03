@@ -8,7 +8,7 @@
 #include <arpa/inet.h>
 
 #include <csp/csp.h>
-#include <sys/types.h>
+#include <endian.h>
 #include <csp/csp_interface.h>
 #include <csp/arch/csp_thread.h>
 #include <csp/csp_id.h>

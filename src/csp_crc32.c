@@ -2,7 +2,7 @@
 
 #include <csp/csp_crc32.h>
 
-#include <sys/types.h>
+#include <endian.h>
 
 #ifdef __AVR__
 #include <avr/pgmspace.h>
