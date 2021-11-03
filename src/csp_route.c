@@ -124,7 +124,7 @@ static int csp_route_security_check(uint32_t security_opts, csp_iface_t * iface,
 	return CSP_ERR_NONE;
 }
 
-int csp_route_work(uint32_t timeout) {
+int csp_route_work(void) {
 
 	csp_qfifo_t input;
 	csp_packet_t * packet;
@@ -293,26 +293,5 @@ int csp_route_work(uint32_t timeout) {
 
 	/* Pass packet to UDP module */
 	csp_udp_new_packet(conn, packet);
-	return CSP_ERR_NONE;
-}
-
-CSP_DEFINE_TASK(csp_task_router) {
-
-	/* Here there be routing */
-	while (1) {
-		csp_route_work(FIFO_TIMEOUT);
-	}
-
-	return CSP_TASK_RETURN;
-}
-
-int csp_route_start_task(unsigned int task_stack_size, unsigned int task_priority) {
-
-	int ret = csp_thread_create(csp_task_router, "RTE", task_stack_size, NULL, task_priority, NULL);
-	if (ret != 0) {
-		csp_log_error("Failed to start router task, error: %d", ret);
-		return ret;
-	}
-
 	return CSP_ERR_NONE;
 }

@@ -39,51 +39,65 @@ static int csp_if_udp_tx(const csp_route_t * ifroute, csp_packet_t * packet) {
 	return CSP_ERR_NONE;
 }
 
-CSP_DEFINE_TASK(csp_if_udp_rx_task) {
-
-	csp_iface_t * iface = param;
-	csp_if_udp_conf_t * ifconf = iface->driver_data;
+int csp_if_udp_rx_get_socket(int lport) {
 
 	int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
 
 	struct sockaddr_in server_addr = {0};
 	server_addr.sin_family = AF_INET;
 	server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-	server_addr.sin_port = htons(ifconf->lport);
+	server_addr.sin_port = htons(lport);
 
-	while (1) {
+	return bind(sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr));
+}
 
-		if (bind(sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
+int csp_if_udp_rx_work(int sockfd, size_t mtu, struct sockaddr_in * peer_addr, csp_iface_t * iface) {
+
+	csp_packet_t * packet = csp_buffer_get(mtu);
+	if (packet == NULL) {
+		return CSP_ERR_NOMEM;
+	}
+
+	/* Setup RX frane to point to ID */
+	int header_size = csp_id_setup_rx(packet);
+	int received_len = recvfrom(sockfd, (char *)packet->frame_begin, mtu + header_size, MSG_WAITALL, (struct sockaddr *)peer_addr, NULL);
+	packet->frame_length = received_len;
+
+	csp_log_info("UDP peer address: %s", inet_ntoa(peer_addr->sin_addr));
+
+	/* Parse the frame and strip the ID field */
+	if (csp_id_strip(packet) != 0) {
+		csp_buffer_free(packet);
+		return CSP_ERR_INVAL;
+	}
+
+	csp_qfifo_write(packet, iface, NULL);
+
+	return CSP_ERR_NONE;
+}
+
+CSP_DEFINE_TASK(csp_if_udp_rx_loop) {
+
+	csp_iface_t * iface = param;
+	csp_if_udp_conf_t * ifconf = iface->driver_data;
+	int sockfd;
+
+	do {
+		sockfd = csp_if_udp_rx_get_socket(ifconf->lport);
+		if (sockfd < 0) {
 			printf("UDP server waiting for port %d\n", ifconf->lport);
 			sleep(1);
-			continue;
 		}
+	} while (sockfd < 0);
 
-		while (1) {
+	while (1) {
+		int ret;
 
-			csp_packet_t * packet = csp_buffer_get(iface->mtu);
-			if (packet == NULL) {
-				csp_sleep_ms(10);
-				continue;
-			}
-
-			/* Setup RX frane to point to ID */
-			int header_size = csp_id_setup_rx(packet);
-
-			unsigned int peer_addr_len = sizeof(ifconf->peer_addr);
-			int received_len = recvfrom(sockfd, (char *)packet->frame_begin, iface->mtu + header_size, MSG_WAITALL, (struct sockaddr *)&ifconf->peer_addr, &peer_addr_len);
-			packet->frame_length = received_len;
-
-			csp_log_info("UDP peer address: %s", inet_ntoa(ifconf->peer_addr.sin_addr));
-
-			/* Parse the frame and strip the ID field */
-			if (csp_id_strip(packet) != 0) {
-				iface->rx_error++;
-				csp_buffer_free(packet);
-				continue;
-			}
-
-			csp_qfifo_write(packet, iface, NULL);
+		ret = csp_if_udp_rx_work(sockfd, iface->mtu, &ifconf->peer_addr, iface);
+		if (ret == CSP_ERR_INVAL) {
+			iface->rx_error++;
+		} else if (ret == CSP_ERR_NOMEM) {
+			csp_sleep_ms(10);
 		}
 	}
 
@@ -101,8 +115,8 @@ void csp_if_udp_init(csp_iface_t * iface, csp_if_udp_conf_t * ifconf) {
 	printf("UDP peer address: %s:%d (listening on port %d)\n", inet_ntoa(ifconf->peer_addr.sin_addr), ifconf->rport, ifconf->lport);
 
 	/* Start server thread */
-	int ret = csp_thread_create(csp_if_udp_rx_task, "UDPS", 10000, iface, 0, &ifconf->server_handle);
-	csp_log_info("csp_if_udp_rx_task start %d\r\n", ret);
+	int ret = csp_thread_create(csp_if_udp_rx_loop, "UDPS", 10000, iface, 0, &ifconf->server_handle);
+	csp_log_info("csp_if_udp_rx_loop start %d\r\n", ret);
 
 	/* MTU is datasize */
 	iface->mtu = csp_buffer_data_size();

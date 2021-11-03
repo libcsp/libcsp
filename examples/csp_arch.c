@@ -1,5 +1,3 @@
-
-
 #define CSP_USE_ASSERT 1  // always enable CSP assert
 
 #include <csp/csp_debug.h>
@@ -11,19 +9,9 @@
 
 #include <stdlib.h>
 
-static bool thread_executed = false;
-
 void csp_assert_fail_action(const char *assertion, const char *file, int line) {
     printf("assertion: [%s], file: %s:%d\r\n", assertion, file, line);
     exit(1);
-}
-
-CSP_DEFINE_TASK(thread_func) {
-    csp_log_info("Thread started");
-    thread_executed = true;
-    csp_sleep_ms(10000); // safty - ensure process terminates
-    exit(1);
-    return CSP_TASK_RETURN;
 }
 
 int main(int argc, char * argv[]) {
@@ -39,12 +27,6 @@ int main(int argc, char * argv[]) {
     csp_log_packet("csp_log_packet(...), level: %d", CSP_PACKET);
     csp_log_protocol("csp_log_protocol(...), level: %d", CSP_PROTOCOL);
     csp_log_lock("csp_log_lock(...), level: %d", CSP_LOCK);
-
-    // create a thread - csp_thread doesn't support join
-    csp_thread_handle_t thread = 0;
-    int res = csp_thread_create(thread_func, "thread", 0, NULL, 0, &thread);
-    csp_assert(res == CSP_ERR_NONE);
-    csp_assert(thread != 0);
 
     // clock
     csp_timestamp_t csp_clock = {};
@@ -62,10 +44,6 @@ int main(int argc, char * argv[]) {
     csp_assert(csp_get_ms_isr() >= (msec2 + 500));
     csp_assert(csp_get_s() >= (sec1 + 1));
     csp_assert(csp_get_s_isr() >= (sec2 + 1));
-
-
-    // check thread actually executed
-    csp_assert(thread_executed != false);
 
     // queue handling
     uint32_t value;

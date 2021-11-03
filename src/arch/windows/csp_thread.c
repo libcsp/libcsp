@@ -4,7 +4,7 @@
 
 #include <process.h>
 
-int csp_thread_create(csp_thread_func_t routine, const char * const thread_name, unsigned int stack_size, void * parameters, unsigned int priority, csp_thread_handle_t * return_handle) {
+int csp_windows_thread_create(csp_thread_func_t routine, const char * const thread_name, unsigned int stack_size, void * parameters, unsigned int priority, csp_thread_handle_t * return_handle) {
 
 	HANDLE handle = (HANDLE)_beginthreadex(NULL, 0, routine, parameters, 0, 0);
 	if (handle == 0) {
@@ -17,7 +17,7 @@ int csp_thread_create(csp_thread_func_t routine, const char * const thread_name,
 	return CSP_ERR_NONE;
 }
 
-void csp_thread_exit(void) {
+void csp_widows_thread_exit(void) {
 
 	_endthreadex(CSP_TASK_RETURN);
 }

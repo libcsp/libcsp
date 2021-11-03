@@ -1,5 +1,3 @@
-
-
 #pragma once
 
 /**
@@ -60,7 +58,7 @@ typedef HANDLE csp_thread_handle_t;
 typedef unsigned int csp_thread_return_t;
 typedef csp_thread_return_t (* csp_thread_func_t)(void *) __attribute__((stdcall));
 
-#define CSP_DEFINE_TASK(task_name) csp_thread_return_t __attribute__((stdcall)) task_name(void * param) 
+#define CSP_DEFINE_TASK(task_name) csp_thread_return_t __attribute__((stdcall)) task_name(void * param)
 #define CSP_TASK_RETURN 0
 
 #endif // CSP_WINDOWS
@@ -98,6 +96,9 @@ typedef k_thread_entry_t csp_thread_func_t;
 
 #endif // CSP_ZEPHYR
 
+#if (CSP_POSIX || __DOXYGEN__)
+
+int csp_posix_thread_create(csp_thread_func_t func, const char * const name, unsigned int stack_size, void * parameter, unsigned int priority, csp_thread_handle_t * handle);
 /**
    Create thread (task).
 
@@ -109,19 +110,70 @@ typedef k_thread_entry_t csp_thread_func_t;
    @param[out] handle reference to created thread.
    @return #CSP_ERR_NONE on success, otherwise an error code.
 */
-int csp_thread_create(csp_thread_func_t func, const char * const name, unsigned int stack_size, void * parameter, unsigned int priority, csp_thread_handle_t * handle);
+inline int csp_thread_create(csp_thread_func_t func, const char * const name, unsigned int stack_size, void * parameter, unsigned int priority, csp_thread_handle_t * handle) {
+	return csp_posix_thread_create(func, name, stack_size, parameter, priority, handle);
+}
 
 csp_thread_handle_t
-csp_thread_create_static(csp_thread_handle_t *new_thread, const char * const name,
+csp_posix_thread_create_static(csp_thread_handle_t *new_thread, const char * const name,
 			 char *stack, unsigned int stack_size,
 			 csp_thread_func_t func, void * parameter,
 			 unsigned int priority);
+
+inline csp_thread_handle_t
+csp_thread_create_static(csp_thread_handle_t *new_thread, const char * const name,
+			 char *stack, unsigned int stack_size,
+			 csp_thread_func_t func, void * parameter,
+			 unsigned int priority) {
+	return csp_posix_thread_create_static(new_thread, name, stack, stack_size, func, parameter, priority);
+}
+
+void csp_posix_thread_exit(void);
 
 /**
    Exit current thread.
    @note Not supported on all platforms.
 */
-void csp_thread_exit(void);
+inline void csp_thread_exit(void) {
+	csp_posix_thread_exit();
+}
+
+#elif (CSP_MACOSX)
+int csp_macosx_thread_create(csp_thread_func_t func, const char * const name, unsigned int stack_size, void * parameter, unsigned int priority, csp_thread_handle_t * handle);
+inline int csp_thread_create(csp_thread_func_t func, const char * const name, unsigned int stack_size, void * parameter, unsigned int priority, csp_thread_handle_t * handle) {
+	return csp_macosx_thread_create(func, name, stack_size, parameter, priority, handle);
+}
+void csp_macosx_thread_exit(void);
+inline void csp_thread_exit(void) {
+	csp_macosx_thread_exit();
+}
+
+#elif (CSP_WINDOWS)
+int csp_windows_thread_create(csp_thread_func_t func, const char * const name, unsigned int stack_size, void * parameter, unsigned int priority, csp_thread_handle_t * handle);
+inline int csp_thread_create(csp_thread_func_t func, const char * const name, unsigned int stack_size, void * parameter, unsigned int priority, csp_thread_handle_t * handle) {
+	return csp_windows_thread_create(func, name, stack_size, parameter, priority, handle);
+}
+void csp_windows_thread_exit(void);
+inline void csp_thread_exit(void) {
+	csp_windows_thread_exit();
+}
+
+#elif (CSP_FREERTOS)
+int csp_freertos_thread_create(csp_thread_func_t func, const char * const name, unsigned int stack_size, void * parameter, unsigned int priority, csp_thread_handle_t * handle);
+inline int csp_thread_create(csp_thread_func_t func, const char * const name, unsigned int stack_size, void * parameter, unsigned int priority, csp_thread_handle_t * handle) {
+	return csp_freertos_thread_create(func, name, stack_size, parameter, priority, handle);
+}
+void csp_freertos_thread_exit(void);
+inline void csp_thread_exit(void) {
+	csp_freertos_thread_exit();
+}
+
+#elif (CSP_ZEPHYR)
+csp_thread_handle_t csp_zephyr_thread_create_static(csp_thread_handle_t *new_thread, const char * const name, char *stack, unsigned int stack_size, csp_thread_func_t func, void * parameter, unsigned int priority);
+inline csp_thread_handle_t csp_thread_create_static(csp_thread_handle_t *new_thread, const char * const name, char *stack, unsigned int stack_size, csp_thread_func_t func, void * parameter, unsigned int priority) {
+	return csp_zephyr_thread_create_static(new_thread, name, stack, stack_size, func, parameter, priority);
+}
+#endif
 
 /**
    Sleep X mS.

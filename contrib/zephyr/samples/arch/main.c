@@ -47,7 +47,7 @@ int main(int argc, char * argv[]) {
     csp_thread_handle_t tid;
     csp_thread_t new_thread;
 
-    tid = csp_thread_create_static(&new_thread, "thread",
+    tid = csp_zephyr_thread_create_static(&new_thread, "thread",
 				   stack, K_THREAD_STACK_SIZEOF(stack),
 				   thread_func, NULL, 0);
     //csp_assert(res == CSP_ERR_NONE);

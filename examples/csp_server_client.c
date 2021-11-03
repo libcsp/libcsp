@@ -1,5 +1,3 @@
-
-
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -10,6 +8,11 @@
 #include <csp/drivers/usart.h>
 #include <csp/drivers/can_socketcan.h>
 #include <csp/interfaces/csp_if_zmqhub.h>
+
+/* These three functions must be provided in arch specific way */
+int router_start(void);
+int server_start(void);
+int client_start(void);
 
 /* Server port, the port the server listens on for incoming connections from the client. */
 #define MY_SERVER_PORT		10
@@ -22,7 +25,7 @@ static bool test_mode = false;
 static unsigned int server_received = 0;
 
 /* Server task - handles requests from clients */
-CSP_DEFINE_TASK(task_server) {
+void server(void) {
 
 	csp_log_info("Server task started");
 
@@ -68,13 +71,13 @@ CSP_DEFINE_TASK(task_server) {
 
 	}
 
-	return CSP_TASK_RETURN;
+	return;
 
 }
 /* End of server task */
 
 /* Client task sending requests to server task */
-CSP_DEFINE_TASK(task_client) {
+void client(void) {
 
 	csp_log_info("Client task started");
 
@@ -99,7 +102,7 @@ CSP_DEFINE_TASK(task_client) {
 		if (conn == NULL) {
 			/* Connect failed */
 			csp_log_error("Connection failed");
-			return CSP_TASK_RETURN;
+			return;
 		}
 
 		/* 2. Get packet buffer for message/data */
@@ -107,7 +110,7 @@ CSP_DEFINE_TASK(task_client) {
 		if (packet == NULL) {
 			/* Could not get buffer element */
 			csp_log_error("Failed to get CSP buffer");
-			return CSP_TASK_RETURN;
+			return;
 		}
 
 		/* 3. Copy data to packet */
@@ -123,7 +126,7 @@ CSP_DEFINE_TASK(task_client) {
 		csp_close(conn);
 	}
 
-	return CSP_TASK_RETURN;
+	return;
 }
 /* End of client task */
 
@@ -197,8 +200,8 @@ int main(int argc, char * argv[]) {
     csp_conf.address = address;
     csp_init();
 
-    /* Start router task with 10000 bytes of stack (priority is only supported on FreeRTOS) */
-    csp_route_start_task(500, 0);
+    /* Start router */
+    router_start();
 
     /* Add interface(s) */
     csp_iface_t * default_iface = NULL;
@@ -260,13 +263,13 @@ int main(int argc, char * argv[]) {
     /* Start server thread */
     if ((server_address == 255) ||  /* no server address specified, I must be server */
         (default_iface == NULL)) {  /* no interfaces specified -> run server & client via loopback */
-        csp_thread_create(task_server, "SERVER", 1000, NULL, 0, NULL);
+        server_start();
     }
 
     /* Start client thread */
     if ((server_address != 255) ||  /* server address specified, I must be client */
         (default_iface == NULL)) {  /* no interfaces specified -> run server & client via loopback */
-        csp_thread_create(task_client, "CLIENT", 1000, NULL, 0, NULL);
+        client_start();
     }
 
     /* Wait for execution to end (ctrl+c) */

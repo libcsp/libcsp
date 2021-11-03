@@ -199,7 +199,7 @@ int csp_zmqhub_init_w_name_endpoints_rxfilter(const char * ifname,
 	csp_bin_sem_create_static(&drv->tx_wait, &drv->tx_wait_buf);
 
 	/* Start RX thread */
-	ret = csp_thread_create(csp_zmqhub_task, drv->iface.name, 20000, drv, 0, &drv->rx_thread);
+	ret = csp_posix_thread_create(csp_zmqhub_task, drv->iface.name, 20000, drv, 0, &drv->rx_thread);
 	assert(ret == 0);
 
 	/* Register interface */

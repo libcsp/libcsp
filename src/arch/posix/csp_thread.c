@@ -8,7 +8,7 @@
 #include <time.h>
 #include <errno.h>
 
-int csp_thread_create(csp_thread_func_t routine, const char * const thread_name, unsigned int stack_size, void * parameters, unsigned int priority, csp_thread_handle_t * return_handle) {
+int csp_posix_thread_create(csp_thread_func_t routine, const char * const thread_name, unsigned int stack_size, void * parameters, unsigned int priority, csp_thread_handle_t * return_handle) {
 
 	pthread_attr_t attributes;
 	if (pthread_attr_init(&attributes) != 0) {
@@ -38,20 +38,20 @@ int csp_thread_create(csp_thread_func_t routine, const char * const thread_name,
 	return CSP_ERR_NONE;
 }
 
-void csp_thread_exit(void) {
+void csp_posix_thread_exit(void) {
 
 	pthread_exit(CSP_TASK_RETURN);
 }
 
 csp_thread_handle_t
-csp_thread_create_static(csp_thread_handle_t * new_thread, const char * const thread_name,
+csp_posix_thread_create_static(csp_thread_handle_t * new_thread, const char * const thread_name,
 						 char * stack, unsigned int stack_size,
 						 csp_thread_func_t routine, void * parameter,
 						 unsigned int priority) {
 	int ret;
 
-	ret = csp_thread_create(routine, thread_name, stack_size, parameter, priority, new_thread);
-	/* csp_thread_create_static is not allowed to fail */
+	ret = csp_posix_thread_create(routine, thread_name, stack_size, parameter, priority, new_thread);
+	/* csp_posix_thread_create_static is not allowed to fail */
 	if (ret == 0) {
 		abort();
 	}
