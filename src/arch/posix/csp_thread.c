@@ -8,7 +8,7 @@
 #include <time.h>
 #include <errno.h>
 
-int csp_posix_thread_create(csp_thread_func_t routine, const char * const thread_name, unsigned int stack_size, void * parameters, unsigned int priority, pthread_t * return_handle) {
+int csp_posix_thread_create(void * (*routine)(void *), const char * const thread_name, unsigned int stack_size, void * parameters, unsigned int priority, pthread_t * return_handle) {
 
 	pthread_attr_t attributes;
 	if (pthread_attr_init(&attributes) != 0) {
@@ -45,9 +45,9 @@ void csp_posix_thread_exit(void) {
 
 pthread_t
 csp_posix_thread_create_static(pthread_t * new_thread, const char * const thread_name,
-						 char * stack, unsigned int stack_size,
-						 csp_thread_func_t routine, void * parameter,
-						 unsigned int priority) {
+							   char * stack, unsigned int stack_size,
+							   void * (*routine)(void *), void * parameter,
+							   unsigned int priority) {
 	int ret;
 
 	ret = csp_posix_thread_create(routine, thread_name, stack_size, parameter, priority, new_thread);

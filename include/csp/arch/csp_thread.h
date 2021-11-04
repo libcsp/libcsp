@@ -22,12 +22,6 @@
 */
 typedef void * csp_thread_return_t;
 
-/**
-   Platform specific thread function.
-   @param[in] parameter parameter to thread function #csp_thread_return_t.
-*/
-typedef csp_thread_return_t (* csp_thread_func_t)(void * parameter);
-
 #endif // CSP_POSIX
 
 /*
@@ -38,7 +32,6 @@ typedef csp_thread_return_t (* csp_thread_func_t)(void * parameter);
 #include <windows.h>
 
 typedef unsigned int csp_thread_return_t;
-typedef csp_thread_return_t (* csp_thread_func_t)(void *) __attribute__((stdcall));
 
 #endif // CSP_WINDOWS
 
@@ -51,7 +44,6 @@ typedef csp_thread_return_t (* csp_thread_func_t)(void *) __attribute__((stdcall
 // #include <task.h>
 
 typedef void csp_thread_return_t;
-typedef csp_thread_return_t (* csp_thread_func_t)(void *);
 
 #endif // CSP_FREERTOS
 
@@ -62,13 +54,11 @@ typedef csp_thread_return_t (* csp_thread_func_t)(void *);
 
 #include <zephyr.h>
 
-typedef k_thread_entry_t csp_thread_func_t;
-
 #endif // CSP_ZEPHYR
 
 #if (CSP_POSIX || __DOXYGEN__)
 
-int csp_posix_thread_create(csp_thread_func_t func, const char * const name, unsigned int stack_size, void * parameter, unsigned int priority, pthread_t * handle);
+int csp_posix_thread_create(void *(* func)(void *), const char * const name, unsigned int stack_size, void * parameter, unsigned int priority, pthread_t * handle);
 /**
    Create thread (task).
 
@@ -82,9 +72,9 @@ int csp_posix_thread_create(csp_thread_func_t func, const char * const name, uns
 */
 pthread_t
 csp_posix_thread_create_static(pthread_t *new_thread, const char * const name,
-			 char *stack, unsigned int stack_size,
-			 csp_thread_func_t func, void * parameter,
-			 unsigned int priority);
+							   char *stack, unsigned int stack_size,
+							   void *(* func)(void *), void * parameter,
+							   unsigned int priority);
 
 void csp_posix_thread_exit(void);
 
@@ -97,28 +87,28 @@ inline void csp_thread_exit(void) {
 }
 
 #elif (CSP_MACOSX)
-int csp_macosx_thread_create(csp_thread_func_t func, const char * const name, unsigned int stack_size, void * parameter, unsigned int priority, pthread_t * handle);
+int csp_macosx_thread_create(void *(*func)(void *), const char * const name, unsigned int stack_size, void * parameter, unsigned int priority, pthread_t * handle);
 void csp_macosx_thread_exit(void);
 inline void csp_thread_exit(void) {
 	csp_macosx_thread_exit();
 }
 
 #elif (CSP_WINDOWS)
-int csp_windows_thread_create(csp_thread_func_t func, const char * const name, unsigned int stack_size, void * parameter, unsigned int priority, HANDLE * handle);
+int csp_windows_thread_create(unsigned int (*func)(void *), const char * const name, unsigned int stack_size, void * parameter, unsigned int priority, HANDLE * handle);
 void csp_windows_thread_exit(void);
 inline void csp_thread_exit(void) {
 	csp_windows_thread_exit();
 }
 
 #elif (CSP_FREERTOS)
-int csp_freertos_thread_create(csp_thread_func_t func, const char * const name, unsigned int stack_size, void * parameter, unsigned int priority, void ** handle);
+int csp_freertos_thread_create(TaskFunction_t func, const char * const name, unsigned int stack_size, void * parameter, unsigned int priority, void ** handle);
 void csp_freertos_thread_exit(void);
 inline void csp_thread_exit(void) {
 	csp_freertos_thread_exit();
 }
 
 #elif (CSP_ZEPHYR)
-k_tid_t csp_zephyr_thread_create_static(k_tid_t *new_thread, const char * const name, char *stack, unsigned int stack_size, csp_thread_func_t func, void * parameter, unsigned int priority);
+k_tid_t csp_zephyr_thread_create_static(k_tid_t *new_thread, const char * const name, char *stack, unsigned int stack_size, k_thread_entry_t func, void * parameter, unsigned int priority);
 #endif
 
 /**

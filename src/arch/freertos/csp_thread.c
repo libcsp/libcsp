@@ -9,7 +9,7 @@
 #include <task.h>
 
 #if (configSUPPORT_DYNAMIC_ALLOCATION == 1)
-int csp_freertos_thread_create(csp_thread_func_t routine, const char * const thread_name, unsigned int stack_size, void * parameters, unsigned int priority, void ** return_handle) {
+int csp_freertos_thread_create(TaskFunction_t routine, const char * const thread_name, unsigned int stack_size, void * parameters, unsigned int priority, void ** return_handle) {
 
 	TaskHandle_t handle;
 #if (tskKERNEL_VERSION_MAJOR >= 8)

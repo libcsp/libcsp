@@ -7,7 +7,7 @@ csp_zephyr_thread_create_static(k_tid_t * new_thread,
 						 const char * const thread_name,
 						 char * stack,
 						 unsigned int stack_size,
-						 csp_thread_func_t entry,
+						 k_thread_entry_t entry,
 						 void * param,
 						 unsigned int priority) {
 	k_tid_t tid;
