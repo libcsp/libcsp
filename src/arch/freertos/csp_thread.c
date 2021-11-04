@@ -29,11 +29,6 @@ int csp_freertos_thread_create(TaskFunction_t routine, const char * const thread
 
 // TODO xTaskCreateStatic
 
-void csp_freertos_thread_exit(void) {
-
-	vTaskDelete(NULL);  // Function must exist, otherwise code wont behave the same on all platforms.
-}
-
 void csp_sleep_ms(unsigned int time_ms) {
 
 	vTaskDelay(time_ms / portTICK_PERIOD_MS);

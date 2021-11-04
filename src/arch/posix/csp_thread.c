@@ -38,11 +38,6 @@ int csp_posix_thread_create(void * (*routine)(void *), const char * const thread
 	return CSP_ERR_NONE;
 }
 
-void csp_posix_thread_exit(void) {
-
-	pthread_exit(NULL);
-}
-
 pthread_t
 csp_posix_thread_create_static(pthread_t * new_thread, const char * const thread_name,
 							   char * stack, unsigned int stack_size,

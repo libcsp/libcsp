@@ -19,11 +19,6 @@ int csp_macosx_thread_create(void * (*routine)(void *), const char * const threa
 	return CSP_ERR_NONE;
 }
 
-void csp_macosx_thread_exit(void) {
-
-	pthread_exit(NULL);
-}
-
 void csp_sleep_ms(unsigned int time_ms) {
 
 	struct timespec req, rem;

@@ -15,11 +15,6 @@ int csp_windows_thread_create(unsigned int (*routine)(void *), const char * cons
 	return CSP_ERR_NONE;
 }
 
-void csp_widows_thread_exit(void) {
-
-	_endthreadex(0);
-}
-
 void csp_sleep_ms(unsigned int time_ms) {
 
 	Sleep(time_ms);
