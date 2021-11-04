@@ -158,6 +158,7 @@ int csp_zmqhub_init_w_name_endpoints_rxfilter(const char * ifname,
 											  csp_iface_t ** return_interface) {
 
 	int ret;
+	pthread_attr_t attributes;
 	zmq_driver_t * drv = calloc(1, sizeof(*drv));
 	assert(drv != NULL);
 
@@ -199,7 +200,11 @@ int csp_zmqhub_init_w_name_endpoints_rxfilter(const char * ifname,
 	csp_bin_sem_create_static(&drv->tx_wait, &drv->tx_wait_buf);
 
 	/* Start RX thread */
-	ret = csp_posix_thread_create(csp_zmqhub_task, drv->iface.name, 20000, drv, 0, &drv->rx_thread);
+	ret = pthread_attr_init(&attributes);
+	assert(ret == 0);
+	ret = pthread_attr_setdetachstate(&attributes, PTHREAD_CREATE_DETACHED);
+	assert(ret == 0);
+	ret = pthread_create(&drv->rx_thread, &attributes, csp_zmqhub_task, drv);
 	assert(ret == 0);
 
 	/* Register interface */
