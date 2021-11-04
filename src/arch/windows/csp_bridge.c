@@ -17,7 +17,7 @@ int csp_bridge_start(unsigned int task_stack_size, unsigned int task_priority, c
 	/* Set static references to A/B side of bridge */
 	csp_bridge_set_interfaces(if_a, if_b);
 
-	static csp_thread_handle_t handle;
+	static HANDLE handle;
 	int ret = csp_windows_thread_create(csp_bridge, "BRIDGE", task_stack_size, NULL, task_priority, &handle);
 
 	if (ret != 0) {

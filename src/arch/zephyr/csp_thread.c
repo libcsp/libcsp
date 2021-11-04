@@ -2,8 +2,8 @@
 
 #include <csp/arch/csp_thread.h>
 
-csp_thread_handle_t
-csp_zephyr_thread_create_static(csp_thread_handle_t * new_thread,
+k_tid_t
+csp_zephyr_thread_create_static(k_tid_t * new_thread,
 						 const char * const thread_name,
 						 char * stack,
 						 unsigned int stack_size,

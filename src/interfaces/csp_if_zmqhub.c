@@ -17,7 +17,7 @@
 
 /* ZMQ driver & interface */
 typedef struct {
-	csp_thread_handle_t rx_thread;
+	pthread_t rx_thread;
 	void * context;
 	void * publisher;
 	void * subscriber;

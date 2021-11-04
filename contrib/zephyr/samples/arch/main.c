@@ -1,7 +1,6 @@
-
-
 #define CSP_USE_ASSERT 1  // always enable CSP assert
 
+#include <zephyr.h>
 #include <csp/csp_debug.h>
 #include <csp/arch/csp_thread.h>
 #include <csp/arch/csp_clock.h>
@@ -44,7 +43,7 @@ int main(int argc, char * argv[]) {
     csp_log_lock("csp_log_lock(...), level: %d", CSP_LOCK);
 
     // create a thread - csp_thread doesn't support join
-    csp_thread_handle_t tid;
+    k_tid_t tid;
     csp_thread_t new_thread;
 
     tid = csp_zephyr_thread_create_static(&new_thread, "thread",

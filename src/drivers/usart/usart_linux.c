@@ -18,7 +18,7 @@ typedef struct {
 	csp_usart_callback_t rx_callback;
 	void * user_data;
 	csp_usart_fd_t fd;
-	csp_thread_handle_t rx_thread;
+	pthread_t rx_thread;
 } usart_context_t;
 
 static void * usart_rx_thread(void * arg) {
