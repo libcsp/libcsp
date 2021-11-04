@@ -2,7 +2,7 @@
 
 #include <csp/arch/csp_time.h>
 
-#include <Windows.h>
+#include <windows.h>
 
 uint32_t csp_get_ms(void) {
 

@@ -3,7 +3,7 @@
 #include <csp/arch/csp_system.h>
 
 #include <string.h>
-#include <Windows.h>
+#include <windows.h>
 
 #include <csp/csp_debug.h>
 

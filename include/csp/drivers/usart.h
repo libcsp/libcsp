@@ -11,7 +11,7 @@
 #include <csp/interfaces/csp_if_kiss.h>
 
 #if (CSP_WINDOWS)
-#include <Windows.h>
+#include <windows.h>
 #endif
 
 

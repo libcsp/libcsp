@@ -1,7 +1,7 @@
 #include <csp/drivers/usart.h>
 
 #include <stdio.h>
-#include <Windows.h>
+#include <windows.h>
 #include <process.h>
 #include <malloc.h>
 
