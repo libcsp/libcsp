@@ -8,11 +8,8 @@
 
 #include <csp/csp_types.h>
 
-#if (CSP_POSIX || __DOXYGEN__)
+#if (CSP_POSIX || CSP_MACOSX || __DOXYGEN__)
 #include <pthread.h>
-#elif (CSP_MACOSX)
-#include <pthread.h>
-int csp_macosx_thread_create(void *(*func)(void *), const char * const name, unsigned int stack_size, void * parameter, unsigned int priority, pthread_t * handle);
 
 #elif (CSP_WINDOWS)
 #include <windows.h>
