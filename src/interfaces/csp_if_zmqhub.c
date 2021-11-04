@@ -107,7 +107,7 @@ CSP_DEFINE_TASK(csp_zmqhub_task) {
 		zmq_msg_close(&msg);
 	}
 
-	return CSP_TASK_RETURN;
+	return NULL;
 }
 
 int csp_zmqhub_make_endpoint(const char * host, uint16_t port, char * buf, size_t buf_size) {

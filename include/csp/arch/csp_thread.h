@@ -39,12 +39,6 @@ typedef csp_thread_return_t (* csp_thread_func_t)(void * parameter);
 */
 #define CSP_DEFINE_TASK(task_name) csp_thread_return_t task_name(void * param)
 
-/**
-   Return value for a thread function.
-   Can be used as argument for normal return, eg "return CSP_TASK_RETURN";
-*/
-#define CSP_TASK_RETURN NULL
-
 #endif // CSP_POSIX
 
 /*
@@ -59,7 +53,6 @@ typedef unsigned int csp_thread_return_t;
 typedef csp_thread_return_t (* csp_thread_func_t)(void *) __attribute__((stdcall));
 
 #define CSP_DEFINE_TASK(task_name) csp_thread_return_t __attribute__((stdcall)) task_name(void * param)
-#define CSP_TASK_RETURN 0
 
 #endif // CSP_WINDOWS
 
@@ -76,7 +69,6 @@ typedef void csp_thread_return_t;
 typedef csp_thread_return_t (* csp_thread_func_t)(void *);
 
 #define CSP_DEFINE_TASK(task_name) csp_thread_return_t task_name(void * param)
-#define CSP_TASK_RETURN
 
 #endif // CSP_FREERTOS
 
@@ -92,7 +84,6 @@ typedef struct k_thread csp_thread_t;
 typedef k_thread_entry_t csp_thread_func_t;
 
 #define CSP_DEFINE_TASK(task_name) void task_name(void *p1, void *p2, void *p3)
-#define CSP_TASK_RETURN
 
 #endif // CSP_ZEPHYR
 

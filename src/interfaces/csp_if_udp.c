@@ -101,7 +101,7 @@ CSP_DEFINE_TASK(csp_if_udp_rx_loop) {
 		}
 	}
 
-	return CSP_TASK_RETURN;
+	return NULL;
 }
 
 void csp_if_udp_init(csp_iface_t * iface, csp_if_udp_conf_t * ifconf) {

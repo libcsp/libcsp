@@ -40,7 +40,7 @@ int csp_posix_thread_create(csp_thread_func_t routine, const char * const thread
 
 void csp_posix_thread_exit(void) {
 
-	pthread_exit(CSP_TASK_RETURN);
+	pthread_exit(NULL);
 }
 
 csp_thread_handle_t

@@ -23,7 +23,7 @@ CSP_DEFINE_TASK(thread_func) {
     thread_executed = true;
     csp_sleep_ms(10000); // safty - ensure process terminates
     exit(1);
-    return CSP_TASK_RETURN;
+    return;
 }
 
 #define STACKSIZE 1024
