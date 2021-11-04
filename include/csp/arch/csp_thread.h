@@ -17,11 +17,6 @@
 
 #include <pthread.h>
 
-/**
-   Platform specific thread return type.
-*/
-typedef void * csp_thread_return_t;
-
 #endif // CSP_POSIX
 
 /*
@@ -30,8 +25,6 @@ typedef void * csp_thread_return_t;
 #if (CSP_WINDOWS)
 
 #include <windows.h>
-
-typedef unsigned int csp_thread_return_t;
 
 #endif // CSP_WINDOWS
 
@@ -42,8 +35,6 @@ typedef unsigned int csp_thread_return_t;
 
 // #include <FreeRTOS.h>
 // #include <task.h>
-
-typedef void csp_thread_return_t;
 
 #endif // CSP_FREERTOS
 
