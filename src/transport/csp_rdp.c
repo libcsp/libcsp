@@ -23,10 +23,10 @@
 #include "../csp_conn.h"
 #include "../csp_io.h"
 
-#define RDP_SYN 0x01
-#define RDP_ACK 0x02
-#define RDP_EAK 0x04
-#define RDP_RST 0x08
+#define RDP_SYN 0x08
+#define RDP_ACK 0x04
+#define RDP_EAK 0x02
+#define RDP_RST 0x01
 
 #if (CSP_USE_RDP)
 
@@ -147,8 +147,8 @@ static int csp_rdp_send_cmp(csp_conn_t * conn, csp_packet_t * packet, int flags,
 	idout.pri = conn->idout.pri < CSP_PRIO_HIGH ? conn->idout.pri : CSP_PRIO_HIGH;
 
 	csp_log_protocol("RDP %p: Send CMP S %u: syn %u, ack %u, eack %u, rst %u, seq_nr %5u, ack_nr %5u, packet_len %u (%u)",
-					 conn, conn->rdp.state, (header->flags & RDP_SYN), (header->flags & RDP_ACK), (header->flags & RDP_EAK),
-					 (header->flags & RDP_RST), be16toh(header->seq_nr), be16toh(header->ack_nr),
+					 conn, conn->rdp.state, ((header->flags & RDP_SYN) != 0), ((header->flags & RDP_ACK) != 0), ((header->flags & RDP_EAK) != 0),
+					 ((header->flags & RDP_RST) != 0), be16toh(header->seq_nr), be16toh(header->ack_nr),
 					 packet->length, (unsigned int)(packet->length - sizeof(rdp_header_t)));
 
 	/* Send packet to IF */
@@ -531,8 +531,8 @@ bool csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 	csp_log_protocol(
 		"RDP %p: Received in S %u: syn %u, ack %u, eack %u, "
 		"rst %u, seq_nr %5u, ack_nr %5u, packet_len %u (%u)",
-		conn, conn->rdp.state, (rx_header->flags & RDP_SYN), (rx_header->flags & RDP_ACK), (rx_header->flags & RDP_EAK),
-		(rx_header->flags & RDP_RST), rx_header->seq_nr, rx_header->ack_nr,
+		conn, conn->rdp.state, ((rx_header->flags & RDP_SYN) != 0), ((rx_header->flags & RDP_ACK) != 0), ((rx_header->flags & RDP_EAK) != 0),
+		((rx_header->flags & RDP_RST) != 0), rx_header->seq_nr, rx_header->ack_nr,
 		packet->length, (unsigned int)(packet->length - sizeof(rdp_header_t)));
 
 	/* If a RESET was received. */
