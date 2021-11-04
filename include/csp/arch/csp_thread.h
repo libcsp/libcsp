@@ -8,47 +8,8 @@
 
 #include <csp/csp_types.h>
 
-
-
-/*
-  POSIX interface
-*/
-#if (CSP_POSIX || CSP_MACOSX || __DOXYGEN__)
-
-#include <pthread.h>
-
-#endif // CSP_POSIX
-
-/*
-  Windows interface
-*/
-#if (CSP_WINDOWS)
-
-#include <windows.h>
-
-#endif // CSP_WINDOWS
-
-/*
-  FreeRTOS interface
-*/
-#if (CSP_FREERTOS)
-
-// #include <FreeRTOS.h>
-// #include <task.h>
-
-#endif // CSP_FREERTOS
-
-/*
-  Zephyr interface
-*/
-#if (CSP_ZEPHYR)
-
-#include <zephyr.h>
-
-#endif // CSP_ZEPHYR
-
 #if (CSP_POSIX || __DOXYGEN__)
-
+#include <pthread.h>
 int csp_posix_thread_create(void *(* func)(void *), const char * const name, unsigned int stack_size, void * parameter, unsigned int priority, pthread_t * handle);
 /**
    Create thread (task).
@@ -68,15 +29,20 @@ csp_posix_thread_create_static(pthread_t *new_thread, const char * const name,
 							   unsigned int priority);
 
 #elif (CSP_MACOSX)
+#include <pthread.h>
 int csp_macosx_thread_create(void *(*func)(void *), const char * const name, unsigned int stack_size, void * parameter, unsigned int priority, pthread_t * handle);
 
 #elif (CSP_WINDOWS)
+#include <windows.h>
 int csp_windows_thread_create(unsigned int (*func)(void *), const char * const name, unsigned int stack_size, void * parameter, unsigned int priority, HANDLE * handle);
 
 #elif (CSP_FREERTOS)
+// #include <FreeRTOS.h>
+// #include <task.h>
 int csp_freertos_thread_create(TaskFunction_t func, const char * const name, unsigned int stack_size, void * parameter, unsigned int priority, void ** handle);
 
 #elif (CSP_ZEPHYR)
+#include <zephyr.h>
 k_tid_t csp_zephyr_thread_create_static(k_tid_t *new_thread, const char * const name, char *stack, unsigned int stack_size, k_thread_entry_t func, void * parameter, unsigned int priority);
 #endif
 
