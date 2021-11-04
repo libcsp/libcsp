@@ -120,14 +120,6 @@ csp_posix_thread_create_static(csp_thread_handle_t *new_thread, const char * con
 			 csp_thread_func_t func, void * parameter,
 			 unsigned int priority);
 
-inline csp_thread_handle_t
-csp_thread_create_static(csp_thread_handle_t *new_thread, const char * const name,
-			 char *stack, unsigned int stack_size,
-			 csp_thread_func_t func, void * parameter,
-			 unsigned int priority) {
-	return csp_posix_thread_create_static(new_thread, name, stack, stack_size, func, parameter, priority);
-}
-
 void csp_posix_thread_exit(void);
 
 /**
@@ -170,9 +162,6 @@ inline void csp_thread_exit(void) {
 
 #elif (CSP_ZEPHYR)
 csp_thread_handle_t csp_zephyr_thread_create_static(csp_thread_handle_t *new_thread, const char * const name, char *stack, unsigned int stack_size, csp_thread_func_t func, void * parameter, unsigned int priority);
-inline csp_thread_handle_t csp_thread_create_static(csp_thread_handle_t *new_thread, const char * const name, char *stack, unsigned int stack_size, csp_thread_func_t func, void * parameter, unsigned int priority) {
-	return csp_zephyr_thread_create_static(new_thread, name, stack, stack_size, func, parameter, priority);
-}
 #endif
 
 /**
