@@ -115,7 +115,7 @@ void csp_if_udp_init(csp_iface_t * iface, csp_if_udp_conf_t * ifconf) {
 	printf("UDP peer address: %s:%d (listening on port %d)\n", inet_ntoa(ifconf->peer_addr.sin_addr), ifconf->rport, ifconf->lport);
 
 	/* Start server thread */
-	int ret = csp_thread_create(csp_if_udp_rx_loop, "UDPS", 10000, iface, 0, &ifconf->server_handle);
+	int ret = csp_posix_thread_create(csp_if_udp_rx_loop, "UDPS", 10000, iface, 0, &ifconf->server_handle);
 	csp_log_info("csp_if_udp_rx_loop start %d\r\n", ret);
 
 	/* MTU is datasize */
