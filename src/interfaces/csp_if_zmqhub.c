@@ -50,7 +50,7 @@ int csp_zmqhub_tx(const csp_route_t * route, csp_packet_t * packet) {
 	return CSP_ERR_NONE;
 }
 
-CSP_DEFINE_TASK(csp_zmqhub_task) {
+void * csp_zmqhub_task(void * param) {
 
 	zmq_driver_t * drv = param;
 	csp_packet_t * packet;

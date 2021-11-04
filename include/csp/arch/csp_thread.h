@@ -34,11 +34,6 @@ typedef void * csp_thread_return_t;
 */
 typedef csp_thread_return_t (* csp_thread_func_t)(void * parameter);
 
-/**
-   Macro for creating a thread.
-*/
-#define CSP_DEFINE_TASK(task_name) csp_thread_return_t task_name(void * param)
-
 #endif // CSP_POSIX
 
 /*
@@ -51,8 +46,6 @@ typedef csp_thread_return_t (* csp_thread_func_t)(void * parameter);
 typedef HANDLE csp_thread_handle_t;
 typedef unsigned int csp_thread_return_t;
 typedef csp_thread_return_t (* csp_thread_func_t)(void *) __attribute__((stdcall));
-
-#define CSP_DEFINE_TASK(task_name) csp_thread_return_t __attribute__((stdcall)) task_name(void * param)
 
 #endif // CSP_WINDOWS
 
@@ -68,8 +61,6 @@ typedef void * csp_thread_handle_t;
 typedef void csp_thread_return_t;
 typedef csp_thread_return_t (* csp_thread_func_t)(void *);
 
-#define CSP_DEFINE_TASK(task_name) csp_thread_return_t task_name(void * param)
-
 #endif // CSP_FREERTOS
 
 /*
@@ -82,8 +73,6 @@ typedef csp_thread_return_t (* csp_thread_func_t)(void *);
 typedef k_tid_t csp_thread_handle_t;
 typedef struct k_thread csp_thread_t;
 typedef k_thread_entry_t csp_thread_func_t;
-
-#define CSP_DEFINE_TASK(task_name) void task_name(void *p1, void *p2, void *p3)
 
 #endif // CSP_ZEPHYR
 

@@ -76,7 +76,7 @@ int csp_if_udp_rx_work(int sockfd, size_t mtu, struct sockaddr_in * peer_addr, c
 	return CSP_ERR_NONE;
 }
 
-CSP_DEFINE_TASK(csp_if_udp_rx_loop) {
+void * csp_if_udp_rx_loop(void * param) {
 
 	csp_iface_t * iface = param;
 	csp_if_udp_conf_t * ifconf = iface->driver_data;

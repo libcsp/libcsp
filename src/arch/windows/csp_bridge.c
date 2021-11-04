@@ -2,7 +2,7 @@
 #include <csp/arch/csp_thread.h>
 #include <csp/csp_debug.h>
 
-static CSP_DEFINE_TASK(csp_bridge) {
+static unsigned int __attribute__((stdcall)) csp_bridge(void * param) {
 
 	/* Here there be bridging */
 	while (1) {
