@@ -110,10 +110,6 @@ int csp_posix_thread_create(csp_thread_func_t func, const char * const name, uns
    @param[out] handle reference to created thread.
    @return #CSP_ERR_NONE on success, otherwise an error code.
 */
-inline int csp_thread_create(csp_thread_func_t func, const char * const name, unsigned int stack_size, void * parameter, unsigned int priority, csp_thread_handle_t * handle) {
-	return csp_posix_thread_create(func, name, stack_size, parameter, priority, handle);
-}
-
 csp_thread_handle_t
 csp_posix_thread_create_static(csp_thread_handle_t *new_thread, const char * const name,
 			 char *stack, unsigned int stack_size,
@@ -132,9 +128,6 @@ inline void csp_thread_exit(void) {
 
 #elif (CSP_MACOSX)
 int csp_macosx_thread_create(csp_thread_func_t func, const char * const name, unsigned int stack_size, void * parameter, unsigned int priority, csp_thread_handle_t * handle);
-inline int csp_thread_create(csp_thread_func_t func, const char * const name, unsigned int stack_size, void * parameter, unsigned int priority, csp_thread_handle_t * handle) {
-	return csp_macosx_thread_create(func, name, stack_size, parameter, priority, handle);
-}
 void csp_macosx_thread_exit(void);
 inline void csp_thread_exit(void) {
 	csp_macosx_thread_exit();
@@ -142,9 +135,6 @@ inline void csp_thread_exit(void) {
 
 #elif (CSP_WINDOWS)
 int csp_windows_thread_create(csp_thread_func_t func, const char * const name, unsigned int stack_size, void * parameter, unsigned int priority, csp_thread_handle_t * handle);
-inline int csp_thread_create(csp_thread_func_t func, const char * const name, unsigned int stack_size, void * parameter, unsigned int priority, csp_thread_handle_t * handle) {
-	return csp_windows_thread_create(func, name, stack_size, parameter, priority, handle);
-}
 void csp_windows_thread_exit(void);
 inline void csp_thread_exit(void) {
 	csp_windows_thread_exit();
@@ -152,9 +142,6 @@ inline void csp_thread_exit(void) {
 
 #elif (CSP_FREERTOS)
 int csp_freertos_thread_create(csp_thread_func_t func, const char * const name, unsigned int stack_size, void * parameter, unsigned int priority, csp_thread_handle_t * handle);
-inline int csp_thread_create(csp_thread_func_t func, const char * const name, unsigned int stack_size, void * parameter, unsigned int priority, csp_thread_handle_t * handle) {
-	return csp_freertos_thread_create(func, name, stack_size, parameter, priority, handle);
-}
 void csp_freertos_thread_exit(void);
 inline void csp_thread_exit(void) {
 	csp_freertos_thread_exit();

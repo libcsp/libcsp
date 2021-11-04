@@ -287,8 +287,8 @@ void csp_bridge_work(void);
 /**
    Start the bridge task.
    The bridge will copy packets between interfaces, i.e. packets received on A will be sent on B, and vice versa.
-   @param[in] task_stack_size stack size for the task, see csp_thread_create() for details on the stack size parameter.
-   @param[in] task_priority priority for the task, see csp_thread_create() for details on the stack size parameter.
+   @param[in] task_stack_size stack size for the task, see csp_\<arch\>_thread_create() for details on the stack size parameter.
+   @param[in] task_priority priority for the task, see csp_\<arch\>_thread_create() for details on the stack size parameter.
    @param[in] if_a interface/side A
    @param[in] if_b interface/side B
    @return #CSP_ERR_NONE on success, otherwise an error code.
