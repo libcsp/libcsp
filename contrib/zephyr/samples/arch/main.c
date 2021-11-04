@@ -46,11 +46,11 @@ int main(int argc, char * argv[]) {
     k_tid_t tid;
     struct k_thread new_thread;
 
-    tid = csp_zephyr_thread_create_static(&new_thread, "thread",
-				   stack, K_THREAD_STACK_SIZEOF(stack),
-				   thread_func, NULL, 0);
-    //csp_assert(res == CSP_ERR_NONE);
-    //csp_assert(thread != 0);
+    tid = k_thread_create(&new_thread,
+						  stack, K_THREAD_STACK_SIZEOF(stack),
+						  thread_func, NULL, NULL, NULL,
+						  0, 0, K_NO_WAIT);
+    csp_assert(tid != NULL);
 
     // clock
     csp_timestamp_t csp_clock = {};
