@@ -22,11 +22,6 @@ int csp_posix_thread_create(void *(* func)(void *), const char * const name, uns
    @param[out] handle reference to created thread.
    @return #CSP_ERR_NONE on success, otherwise an error code.
 */
-pthread_t
-csp_posix_thread_create_static(pthread_t *new_thread, const char * const name,
-							   char *stack, unsigned int stack_size,
-							   void *(* func)(void *), void * parameter,
-							   unsigned int priority);
 
 #elif (CSP_MACOSX)
 #include <pthread.h>

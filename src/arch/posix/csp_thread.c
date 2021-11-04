@@ -1,5 +1,3 @@
-
-
 #include <csp/arch/csp_thread.h>
 
 #include <limits.h>
@@ -36,22 +34,6 @@ int csp_posix_thread_create(void * (*routine)(void *), const char * const thread
 	}
 
 	return CSP_ERR_NONE;
-}
-
-pthread_t
-csp_posix_thread_create_static(pthread_t * new_thread, const char * const thread_name,
-							   char * stack, unsigned int stack_size,
-							   void * (*routine)(void *), void * parameter,
-							   unsigned int priority) {
-	int ret;
-
-	ret = csp_posix_thread_create(routine, thread_name, stack_size, parameter, priority, new_thread);
-	/* csp_posix_thread_create_static is not allowed to fail */
-	if (ret == 0) {
-		abort();
-	}
-
-	return *new_thread;
 }
 
 void csp_sleep_ms(unsigned int time_ms) {
