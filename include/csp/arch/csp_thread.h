@@ -18,11 +18,6 @@
 #include <pthread.h>
 
 /**
-   Platform specific thread handle.
-*/
-typedef pthread_t csp_thread_t;
-
-/**
    Platform specific thread return type.
 */
 typedef void * csp_thread_return_t;
@@ -67,7 +62,6 @@ typedef csp_thread_return_t (* csp_thread_func_t)(void *);
 
 #include <zephyr.h>
 
-typedef struct k_thread csp_thread_t;
 typedef k_thread_entry_t csp_thread_func_t;
 
 #endif // CSP_ZEPHYR

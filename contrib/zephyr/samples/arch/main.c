@@ -44,7 +44,7 @@ int main(int argc, char * argv[]) {
 
     // create a thread - csp_thread doesn't support join
     k_tid_t tid;
-    csp_thread_t new_thread;
+    struct k_thread new_thread;
 
     tid = csp_zephyr_thread_create_static(&new_thread, "thread",
 				   stack, K_THREAD_STACK_SIZEOF(stack),
