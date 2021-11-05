@@ -109,7 +109,6 @@ struct csp_cmp_message {
       struct {
 			uint8_t dest_node;
 			uint8_t next_hop_via;
-			uint8_t netmask;
 			char interface[CSP_CMP_ROUTE_IFACE_LEN];
 		} route_set_v1;
 		struct {
