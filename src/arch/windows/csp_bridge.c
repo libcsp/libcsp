@@ -1,6 +1,6 @@
 #include <csp/csp.h>
-#include <csp/arch/csp_thread.h>
 #include <csp/csp_debug.h>
+#include <process.h>
 
 static unsigned int __attribute__((stdcall)) csp_bridge(void * param) {
 
@@ -17,10 +17,8 @@ int csp_bridge_start(unsigned int task_stack_size, unsigned int task_priority, c
 	/* Set static references to A/B side of bridge */
 	csp_bridge_set_interfaces(if_a, if_b);
 
-	static HANDLE handle;
-	int ret = csp_windows_thread_create(csp_bridge, "BRIDGE", task_stack_size, NULL, task_priority, &handle);
-
-	if (ret != 0) {
+	uintptr_t ret = _beginthreadex(NULL, 0, csp_bridge, NULL, 0, NULL);
+	if (ret == 0) {
 		csp_log_error("Failed to start task");
 		return CSP_ERR_NOMEM;
 	}
