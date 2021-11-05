@@ -142,8 +142,8 @@ int csp_usart_open(const csp_usart_conf_t * conf, csp_usart_callback_t rx_callba
 	ctx->fd = fd;
 	ctx->isListening = 1;
 
-	res = csp_windows_thread_create(usart_rx_thread, "usart_rx", 0, ctx, 0, &ctx->rx_thread);
-	if (res) {
+	uintptr_t ret = _beginthreadex(NULL, 0, usart_rx_thread, NULL, 0, NULL);
+	if (ret == 0) {
 		CloseHandle(ctx->fd);
 		free(ctx);
 		return res;
