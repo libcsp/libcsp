@@ -13,7 +13,6 @@
 
 #elif (CSP_WINDOWS)
 #include <windows.h>
-int csp_windows_thread_create(unsigned int (*func)(void *), const char * const name, unsigned int stack_size, void * parameter, unsigned int priority, HANDLE * handle);
 
 #elif (CSP_FREERTOS)
 // #include <FreeRTOS.h>
