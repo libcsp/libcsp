@@ -35,7 +35,7 @@ int fec_csp_to_mpdu(CircularBufferHandle fifo, csp_packet_t *packet, int mtu) {
         }
         head->csp_id = csp_index & 0x0ff;
         head->index = mpdu_count;
-        head->total_len = packet->length;
+        head->total_len = sizeof(csp_packet_t) + packet->length;
         int payload_len = mtu - sizeof(struct mpdu);
         if (payload_len > remaining)
             payload_len = remaining;
@@ -50,7 +50,6 @@ int fec_csp_to_mpdu(CircularBufferHandle fifo, csp_packet_t *packet, int mtu) {
     return mpdu_count;
 }
 
-
 fec_state_t fec_mpdu_to_csp(const void *buf, csp_packet_t **packet, uint8_t *id, int mtu) {
     fec_state_t state = FEC_STATE_IN_PROGRESS;
     const struct mpdu *mpdu = (const struct mpdu *) buf;
@@ -58,7 +57,7 @@ fec_state_t fec_mpdu_to_csp(const void *buf, csp_packet_t **packet, uint8_t *id,
         ex2_log("missing cookies");
         return FEC_STATE_ERROR;
     }
-  
+
     if (*packet == 0) {
         /* There is no current CSP packet and we got a new MPDU, so that means
          * we are starting a new CSP. Normally, this would also coincide with
@@ -70,12 +69,12 @@ fec_state_t fec_mpdu_to_csp(const void *buf, csp_packet_t **packet, uint8_t *id,
         /* The CSP infrastructure does not like getting malloc'ed packets,
          * so we use csp_get_buffer instead.
          */
-        *packet = csp_buffer_get(mpdu->total_len);
+        *packet = csp_buffer_get(mpdu->total_len - sizeof(csp_packet_t));
         if (*packet == 0) {
             ex2_log("out of memory");
             return FEC_STATE_ERROR;
         }
-        (*packet)->length = mpdu->total_len;
+        (*packet)->length = mpdu->total_len - sizeof(csp_packet_t);
         *id = mpdu->csp_id; 
     }
     else if (mpdu->csp_id != *id) {
@@ -94,15 +93,27 @@ fec_state_t fec_mpdu_to_csp(const void *buf, csp_packet_t **packet, uint8_t *id,
         return state;
     }
     size_t len = mtu - sizeof(struct mpdu);
+    size_t mpdu_offset = 0;
     /* last packet? */
     if (len >= ((size_t) mpdu->total_len - start)) {
         len = mpdu->total_len - start;
         state = FEC_STATE_COMPLETE;
     }
-    /* first packet? skip over the CSP header in the MPDU payload */
+
     if (mpdu->index == 0) {
-        start += sizeof(csp_packet_t);
+        /* For the first packet skip over the CSP header in the MPDU payload,
+         * since we had to use csp_get_buffer above to get a local CSP packet.
+         */
+        mpdu_offset = sizeof(csp_packet_t);
+        len -= sizeof(csp_packet_t);
+        (*packet)->id.ext = ((csp_packet_t *) mpdu->payload)->id.ext;
     }
-    memcpy((*packet)->data + start, mpdu->payload, len);
+    else {
+        /* For all other MPDUs adjust the start to account for the CSP header
+         */
+        start -= sizeof(csp_packet_t);
+    }
+    ex2_log("mpdu %d, sizeof(csp) %d, start %d, offset %d, len %d", mpdu->index, sizeof(csp_packet_t), start, mpdu_offset, len);
+    memcpy((*packet)->data + start, mpdu->payload + mpdu_offset, len);
     return state;
 }
