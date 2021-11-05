@@ -116,7 +116,7 @@ def configure(ctx):
                                         'src/rtable/csp_rtable_{0}.c'.format(ctx.options.with_rtable)])
 
     # Add if UDP
-    if ctx.check(header_name="sys/socket.h") and ctx.check(header_name="arpa/inet.h"):
+    if ctx.check(header_name="sys/socket.h", mandatory=False) and ctx.check(header_name="arpa/inet.h", mandatory=False):
         ctx.env.append_unique('FILES_CSP', ['src/interfaces/csp_if_udp.c'])
 
     # Add socketcan
