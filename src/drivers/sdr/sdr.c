@@ -18,6 +18,7 @@
  */
 
 #include <string.h>
+#include <csp/csp.h>
 #include <csp/csp_interface.h>
 #include <csp/arch/csp_malloc.h>
 #include <csp/drivers/sdr.h>
@@ -104,6 +105,7 @@ static void sdr_rx_thread(void *arg) {
     sdr_context_t *ctx = (sdr_context_t *) arg;
     csp_iface_t *iface = &ctx->iface;
     csp_sdr_interface_data_t *ifdata = &ctx->ifdata;
+    const csp_conf_t *conf = csp_get_conf();
     /* State machine state */
     csp_packet_t *packet = 0;
     uint8_t id = 0;
@@ -114,21 +116,30 @@ static void sdr_rx_thread(void *arg) {
             continue;
         }
 
-        ex2_log("RX got data, config %d", ifdata->config_flags);
         if (ifdata->config_flags & SDR_CONF_FEC) {
-            csp_packet_t *clone;
-    fec_state_t state = fec_mpdu_to_csp(data, (uint8_t **) &packet, &id, ifdata->mtu);
+            fec_state_t state = fec_mpdu_to_csp(data, (uint8_t **) &packet, &id, ifdata->mtu);
             switch(state) {
             case FEC_STATE_IN_PROGRESS:
                 break;
             case FEC_STATE_COMPLETE:
-                ex2_log("%s Rx: received a packet, csp length %d", iface->name, packet->length);
+                ex2_log("%s Rx: received a packet, csp id %d length %d", iface->name, packet->id, packet->length);
+                if (strcmp(iface->name, CSP_IF_SDR_LOOPBACK_NAME) == 0) {
+                    /* This is an unfortunate hack to be able to do loopback.
+                     * We have to change the outgoing packet destination (the 
+                     * device) to the incoming destination (us) or else CSP will
+                     * drop the packet.
+                     */
+                    packet->id.dst = conf->address;
+                }
                 csp_qfifo_write(packet, iface, NULL);
                 /* csp_qfifo_write disposes the packet for us. */
                 packet = 0;
                 break;
             case FEC_STATE_INCOMPLETE:
                 /* oops! missed a MPDU! Finish of the CSP packet and try again. */
+                if (strcmp(iface->name, CSP_IF_SDR_LOOPBACK_NAME) == 0) {
+                    packet->id.dst = conf->address; // same hack as above
+                }
                 csp_qfifo_write(packet, iface, NULL);
                 packet = 0;
                 state = fec_mpdu_to_csp(data, (uint8_t **) &packet, &id, ifdata->mtu);
