@@ -16,6 +16,7 @@
 #include <endian.h>
 #include <csp/csp_types.h>
 #include <csp/csp_rtable.h>
+#include <csp/csp_id.h>
 #include <csp/arch/csp_time.h>
 #include <csp/arch/csp_clock.h>
 #include <csp/arch/csp_system.h>
@@ -71,7 +72,7 @@ static int do_cmp_route_set_v1(struct csp_cmp_message * cmp) {
 		return CSP_ERR_INVAL;
 	}
 
-	if (csp_rtable_set(cmp->route_set_v1.dest_node, cmp->route_set_v1.netmask, ifc, cmp->route_set_v1.next_hop_via) != CSP_ERR_NONE) {
+	if (csp_rtable_set(cmp->route_set_v1.dest_node, csp_id_get_host_bits(), ifc, cmp->route_set_v1.next_hop_via) != CSP_ERR_NONE) {
 		return CSP_ERR_INVAL;
 	}
 
