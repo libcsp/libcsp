@@ -17,7 +17,7 @@
 
 /* ZMQ driver & interface */
 typedef struct {
-	csp_thread_handle_t rx_thread;
+	pthread_t rx_thread;
 	void * context;
 	void * publisher;
 	void * subscriber;
@@ -50,7 +50,7 @@ int csp_zmqhub_tx(const csp_route_t * route, csp_packet_t * packet) {
 	return CSP_ERR_NONE;
 }
 
-CSP_DEFINE_TASK(csp_zmqhub_task) {
+void * csp_zmqhub_task(void * param) {
 
 	zmq_driver_t * drv = param;
 	csp_packet_t * packet;
@@ -107,7 +107,7 @@ CSP_DEFINE_TASK(csp_zmqhub_task) {
 		zmq_msg_close(&msg);
 	}
 
-	return CSP_TASK_RETURN;
+	return NULL;
 }
 
 int csp_zmqhub_make_endpoint(const char * host, uint16_t port, char * buf, size_t buf_size) {
@@ -158,6 +158,7 @@ int csp_zmqhub_init_w_name_endpoints_rxfilter(const char * ifname,
 											  csp_iface_t ** return_interface) {
 
 	int ret;
+	pthread_attr_t attributes;
 	zmq_driver_t * drv = calloc(1, sizeof(*drv));
 	assert(drv != NULL);
 
@@ -199,7 +200,11 @@ int csp_zmqhub_init_w_name_endpoints_rxfilter(const char * ifname,
 	csp_bin_sem_create_static(&drv->tx_wait, &drv->tx_wait_buf);
 
 	/* Start RX thread */
-	ret = csp_posix_thread_create(csp_zmqhub_task, drv->iface.name, 20000, drv, 0, &drv->rx_thread);
+	ret = pthread_attr_init(&attributes);
+	assert(ret == 0);
+	ret = pthread_attr_setdetachstate(&attributes, PTHREAD_CREATE_DETACHED);
+	assert(ret == 0);
+	ret = pthread_create(&drv->rx_thread, &attributes, csp_zmqhub_task, drv);
 	assert(ret == 0);
 
 	/* Register interface */

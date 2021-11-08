@@ -43,13 +43,15 @@ typedef pthread_queue_t * csp_mutex_t;
 
 #if (CSP_WINDOWS)
 
-#include <Windows.h>
+#include <windows.h>
 
 #define CSP_SEMAPHORE_OK 	1
 #define CSP_SEMAPHORE_ERROR	2
 
 typedef HANDLE csp_bin_sem_handle_t;
 typedef HANDLE csp_mutex_t;
+typedef void * csp_bin_sem_t;
+typedef void * csp_mutex_buffer_t;
 
 #endif // CSP_WINDOWS
 
@@ -199,4 +201,3 @@ int csp_bin_sem_post(csp_bin_sem_handle_t * sem);
    @return #CSP_MUTEX_OK on success, otherwise #CSP_MUTEX_ERROR*
 */
 int csp_bin_sem_post_isr(csp_bin_sem_handle_t * sem, int * pxTaskWoken);
-

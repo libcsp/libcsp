@@ -84,7 +84,7 @@ def configure(ctx):
     ctx.env.append_unique('INCLUDES_CSP', ['.', 'include'] + ctx.options.includes.split(','))
 
     # Store OS as env variable
-    ctx.env.append_unique('OS', ctx.options.with_os)
+    ctx.env.OS = ctx.options.with_os
 
     # Platform/OS specifics
     if ctx.options.with_os == 'posix':
@@ -116,7 +116,7 @@ def configure(ctx):
                                         'src/rtable/csp_rtable_{0}.c'.format(ctx.options.with_rtable)])
 
     # Add if UDP
-    if ctx.check(header_name="sys/socket.h") and ctx.check(header_name="arpa/inet.h"):
+    if ctx.check(header_name="sys/socket.h", mandatory=False) and ctx.check(header_name="arpa/inet.h", mandatory=False):
         ctx.env.append_unique('FILES_CSP', ['src/interfaces/csp_if_udp.c'])
 
     # Add socketcan
@@ -210,7 +210,8 @@ def build(ctx):
                   pytest_path=[ctx.path.get_bld()])
 
     if ctx.env.ENABLE_EXAMPLES:
-        ctx.program(source='examples/csp_server_client.c examples/csp_server_client_posix.c ',
+        ctx.program(source=['examples/csp_server_client.c',
+                            'examples/csp_server_client_{0}.c'.format(ctx.env.OS)],
                     target='examples/csp_server_client',
                     lib=ctx.env.LIBS,
                     use='csp')

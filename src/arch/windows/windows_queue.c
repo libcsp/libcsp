@@ -1,7 +1,7 @@
 
 
 #include "windows_queue.h"
-#include <Windows.h>
+#include <windows.h>
 #include <synchapi.h>
 
 struct windows_queue_s {

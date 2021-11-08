@@ -13,7 +13,7 @@ typedef struct {
 	int rport;
 
 	/* Internal parameters */
-	csp_thread_handle_t server_handle;
+	pthread_t server_handle;
 	struct sockaddr_in peer_addr;
 
 } csp_if_udp_conf_t;

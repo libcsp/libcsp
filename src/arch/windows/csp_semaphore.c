@@ -2,7 +2,7 @@
 
 #include <csp/arch/csp_semaphore.h>
 
-#include <Windows.h>
+#include <windows.h>
 
 int csp_mutex_create(csp_mutex_t * mutex) {
 

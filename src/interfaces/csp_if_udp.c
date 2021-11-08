@@ -76,7 +76,7 @@ int csp_if_udp_rx_work(int sockfd, size_t mtu, struct sockaddr_in * peer_addr, c
 	return CSP_ERR_NONE;
 }
 
-CSP_DEFINE_TASK(csp_if_udp_rx_loop) {
+void * csp_if_udp_rx_loop(void * param) {
 
 	csp_iface_t * iface = param;
 	csp_if_udp_conf_t * ifconf = iface->driver_data;
@@ -101,10 +101,13 @@ CSP_DEFINE_TASK(csp_if_udp_rx_loop) {
 		}
 	}
 
-	return CSP_TASK_RETURN;
+	return NULL;
 }
 
 void csp_if_udp_init(csp_iface_t * iface, csp_if_udp_conf_t * ifconf) {
+
+	pthread_attr_t attributes;
+	int ret;
 
 	iface->driver_data = ifconf;
 
@@ -115,7 +118,15 @@ void csp_if_udp_init(csp_iface_t * iface, csp_if_udp_conf_t * ifconf) {
 	printf("UDP peer address: %s:%d (listening on port %d)\n", inet_ntoa(ifconf->peer_addr.sin_addr), ifconf->rport, ifconf->lport);
 
 	/* Start server thread */
-	int ret = csp_thread_create(csp_if_udp_rx_loop, "UDPS", 10000, iface, 0, &ifconf->server_handle);
+	ret = pthread_attr_init(&attributes);
+	if (ret != 0) {
+		csp_log_error("csp_if_udp_init: pthread_attr_init failed: %s: %d\n", strerror(ret), ret);
+	}
+	ret = pthread_attr_setdetachstate(&attributes, PTHREAD_CREATE_DETACHED);
+	if (ret != 0) {
+		csp_log_error("csp_if_udp_init: pthread_attr_setdetachstate failed: %s: %d\n", strerror(ret), ret);
+	}
+	ret = pthread_create(&ifconf->server_handle, &attributes, csp_if_udp_rx_loop, iface);
 	csp_log_info("csp_if_udp_rx_loop start %d\r\n", ret);
 
 	/* MTU is datasize */
