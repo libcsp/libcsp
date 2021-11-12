@@ -3,6 +3,7 @@
 #include <csp/csp.h>
 #include <csp/arch/csp_thread.h>
 
+#include <pthread.h>
 #include <netinet/in.h>
 
 typedef struct {

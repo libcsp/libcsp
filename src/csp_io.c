@@ -11,7 +11,6 @@
 #include <csp/csp_crc32.h>
 #include <csp/csp_rtable.h>
 #include <csp/interfaces/csp_if_lo.h>
-#include <csp/arch/csp_thread.h>
 #include <csp/arch/csp_queue.h>
 #include <csp/arch/csp_semaphore.h>
 #include <csp/arch/csp_time.h>

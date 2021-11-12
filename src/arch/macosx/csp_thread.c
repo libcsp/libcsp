@@ -1,7 +1,3 @@
-
-
-#include <csp/arch/csp_thread.h>
-
 #include <time.h>
 #include <errno.h>
 

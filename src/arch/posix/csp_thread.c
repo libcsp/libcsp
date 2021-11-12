@@ -1,5 +1,3 @@
-#include <csp/arch/csp_thread.h>
-
 #include <limits.h>
 #include <unistd.h>
 #include <stdlib.h>

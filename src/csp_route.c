@@ -6,7 +6,6 @@
 
 #include <csp/csp_crc32.h>
 #include <endian.h>
-#include <csp/arch/csp_thread.h>
 #include <csp/arch/csp_queue.h>
 #include <csp/crypto/csp_hmac.h>
 #include <csp/crypto/csp_xtea.h>

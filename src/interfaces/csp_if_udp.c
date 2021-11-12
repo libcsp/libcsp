@@ -1,5 +1,3 @@
-
-
 #include <csp/interfaces/csp_if_udp.h>
 
 #include <stdio.h>
@@ -10,7 +8,6 @@
 #include <csp/csp.h>
 #include <endian.h>
 #include <csp/csp_interface.h>
-#include <csp/arch/csp_thread.h>
 #include <csp/csp_id.h>
 
 #ifndef MSG_CONFIRM

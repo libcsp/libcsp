@@ -2,7 +2,6 @@
 
 #include <zephyr.h>
 #include <csp/csp_debug.h>
-#include <csp/arch/csp_thread.h>
 #include <csp/arch/csp_clock.h>
 #include <csp/arch/csp_time.h>
 #include <csp/arch/csp_queue.h>
