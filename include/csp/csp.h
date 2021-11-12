@@ -285,17 +285,6 @@ void csp_bridge_set_interfaces(csp_iface_t * if_a, csp_iface_t * if_b);
 void csp_bridge_work(void);
 
 /**
-   Start the bridge task.
-   The bridge will copy packets between interfaces, i.e. packets received on A will be sent on B, and vice versa.
-   @param[in] task_stack_size stack size for the task, see csp_\<arch\>_thread_create() for details on the stack size parameter.
-   @param[in] task_priority priority for the task, see csp_\<arch\>_thread_create() for details on the stack size parameter.
-   @param[in] if_a interface/side A
-   @param[in] if_b interface/side B
-   @return #CSP_ERR_NONE on success, otherwise an error code.
-*/
-int csp_bridge_start(unsigned int task_stack_size, unsigned int task_priority, csp_iface_t * if_a, csp_iface_t * if_b);
-
-/**
    Handle CSP service request.
    If the given packet is a service-request (the destination port matches one of CSP service ports #csp_service_port_t),
    the packet will be processed by the specific CSP service handler.
