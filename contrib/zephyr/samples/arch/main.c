@@ -41,7 +41,7 @@ int main(int argc, char * argv[]) {
     csp_log_protocol("csp_log_protocol(...), level: %d", CSP_PROTOCOL);
     csp_log_lock("csp_log_lock(...), level: %d", CSP_LOCK);
 
-    // create a thread - csp_thread doesn't support join
+    // create a thread
     k_tid_t tid;
     struct k_thread new_thread;
 
