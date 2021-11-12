@@ -15,9 +15,6 @@
 #include <windows.h>
 
 #elif (CSP_FREERTOS)
-// #include <FreeRTOS.h>
-// #include <task.h>
-int csp_freertos_thread_create(TaskFunction_t func, const char * const name, unsigned int stack_size, void * parameter, unsigned int priority, void ** handle);
 #endif
 
 /**
