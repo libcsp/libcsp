@@ -281,7 +281,7 @@ int csp_usart_open(const csp_usart_conf_t * conf, csp_usart_callback_t rx_callba
 			return CSP_ERR_NOMEM;
 		}
 		pthread_attr_setdetachstate(&attributes, PTHREAD_CREATE_DETACHED);
-		ret = pthread_create(&ctx->rx_thread, &attributes, usart_rx_thread, NULL);
+		ret = pthread_create(&ctx->rx_thread, &attributes, usart_rx_thread, ctx);
 		if (ret != 0) {
 			csp_log_error("%s: pthread_create() failed to create Rx thread for device: [%s], errno: %s", __FUNCTION__, conf->device, strerror(errno));
 			free(ctx);
