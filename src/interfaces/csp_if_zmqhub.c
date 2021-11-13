@@ -8,7 +8,6 @@
 
 #include <csp/csp.h>
 #include <csp/csp_debug.h>
-#include <csp/arch/csp_thread.h>
 #include <csp/arch/csp_semaphore.h>
 
 #include <csp/csp_id.h>

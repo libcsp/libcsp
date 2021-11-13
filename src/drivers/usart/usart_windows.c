@@ -6,7 +6,6 @@
 #include <malloc.h>
 
 #include <csp/csp.h>
-#include <csp/arch/csp_thread.h>
 
 typedef struct {
 	csp_usart_callback_t rx_callback;

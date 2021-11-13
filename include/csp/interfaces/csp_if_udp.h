@@ -1,8 +1,9 @@
 #pragma once
 
 #include <csp/csp.h>
-#include <csp/arch/csp_thread.h>
+#include <csp/arch/csp_sleep.h>
 
+#include <pthread.h>
 #include <netinet/in.h>
 
 typedef struct {

@@ -1,4 +1,3 @@
-#include <csp/arch/csp_thread.h>
 #include "csp_qfifo.h"
 #include "csp_io.h"
 #include "csp_promisc.h"
