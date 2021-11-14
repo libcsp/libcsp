@@ -97,7 +97,8 @@ csp_c_args = ['-Wshadow',
 
 clib = meson.get_compiler('c').find_library('c', required: false)
 if not clib.found()
-	clib = dependency('libc', fallback: ['picolibc', 'picolibc_dep'], required: true)
+	clib = dependency('libc', fallback: ['picolibc', 'picolibc_dep'], required: true,
+			  default_options : ['multilib=false'])
 endif
 
 csp_deps += clib
