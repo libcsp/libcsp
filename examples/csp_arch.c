@@ -38,7 +38,7 @@ int main(int argc, char * argv[]) {
     const uint32_t msec2 = csp_get_ms_isr();
     const uint32_t sec1 = csp_get_s();
     const uint32_t sec2 = csp_get_s_isr();
-    csp_sleep_ms(2000);
+    sleep(2000);
     csp_assert(csp_get_ms() >= (msec1 + 500));
     csp_assert(csp_get_ms_isr() >= (msec2 + 500));
     csp_assert(csp_get_s() >= (sec1 + 1));

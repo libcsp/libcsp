@@ -84,7 +84,7 @@ void client(void) {
 
 	while (1) {
 
-		csp_sleep_ms(test_mode ? 200 : 1000);
+		usleep(test_mode ? 200000 : 1000000);
 
 		/* Send ping to server, timeout 1000 mS, ping size 100 bytes */
 		int result = csp_ping(server_address, 1000, 100, CSP_O_NONE);
@@ -273,7 +273,7 @@ int main(int argc, char * argv[]) {
 
     /* Wait for execution to end (ctrl+c) */
     while(1) {
-        csp_sleep_ms(3000);
+        sleep(3);
 
         if (test_mode) {
             /* Test mode is intended for checking that host & client can exchange packets over loopback */
