@@ -48,6 +48,15 @@ static sdr_context_t *tx_timer_ctx;
 
 static void tx_timer_cb( TimerHandle_t xTimer );
 
+/* From the EnduroSat manual, these delays assume the UART speed is 19.2KBaud */
+static int sdr_uhf_baud_rate_delay[] = {
+    [SDR_UHF_1200_BAUD] = 920,
+    [SDR_UHF_2400_BAUD] = 460,
+    [SDR_UHF_4800_BAUD] = 240,
+    [SDR_UHF_9600_BAUD] = 120,
+    [SDR_UHF_19200_BAUD] = 60
+};
+
 static void sdr_tx_thread(void *arg) {
     sdr_context_t *ctx = (sdr_context_t *) arg;
     csp_sdr_interface_data_t *ifdata = &ctx->ifdata;
@@ -169,6 +178,9 @@ static void sdr_rx_thread(void *arg) {
 }
 
 int csp_sdr_open_and_add_interface(const csp_sdr_conf_t *conf, const char *ifname, csp_iface_t **return_iface) {
+    if (conf->baudrate < 0 || conf->baudrate >= SDR_UHF_END_BAUD) {
+        return CSP_ERR_INVAL;
+    }
     sdr_context_t *ctx = csp_calloc(1, sizeof(*ctx));
     if (ctx == NULL) {
         return CSP_ERR_NOMEM;
@@ -194,7 +206,9 @@ int csp_sdr_open_and_add_interface(const csp_sdr_conf_t *conf, const char *ifnam
     ifdata->tx_queue = xQueueCreate((unsigned portBASE_TYPE) SDR_TX_QUEUE_SIZE,
                                         (unsigned portBASE_TYPE)sizeof(void*));
     ifdata->tx_sema = xSemaphoreCreateBinary();
-    ifdata->tx_timer = xTimerCreate("UHF-pacer", 100, pdTRUE, (void *) 0, tx_timer_cb);
+
+    int timer_period = sdr_uhf_baud_rate_delay[conf->baudrate]/portTICK_PERIOD_MS;
+    ifdata->tx_timer = xTimerCreate("UHF-pacer", timer_period, pdTRUE, (void *) 0, tx_timer_cb);
     xTaskCreate(sdr_tx_thread, "sdr_tx", SDR_STACK_SIZE, ctx, 0, NULL);
 
     ifdata->rx_queue = xQueueCreate((unsigned portBASE_TYPE) SDR_RX_QUEUE_SIZE,
