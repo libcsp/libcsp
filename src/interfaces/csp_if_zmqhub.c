@@ -8,7 +8,7 @@
 
 #include <csp/csp.h>
 #include <csp/csp_debug.h>
-#include <csp/arch/csp_semaphore.h>
+#include <pthread.h>
 
 #include <csp/csp_id.h>
 
@@ -20,11 +20,12 @@ typedef struct {
 	void * context;
 	void * publisher;
 	void * subscriber;
-	csp_bin_sem_handle_t tx_wait;
-	csp_bin_sem_t tx_wait_buf;
 	char name[CSP_IFLIST_NAME_MAX + 1];
 	csp_iface_t iface;
 } zmq_driver_t;
+
+/* Linux is fast, so we keep it simple by having a single lock */
+static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 
 /**
  * Interface transmit function
@@ -37,9 +38,13 @@ int csp_zmqhub_tx(const csp_route_t * route, csp_packet_t * packet) {
 
 	csp_id_prepend(packet);
 
-	csp_bin_sem_wait(&drv->tx_wait, 1000); /* Using ZMQ in thread safe manner*/
+	/** 
+	 * While a ZMQ context is thread safe, sockets are NOT threadsafe, so by sharing drv->publisher, we 
+	 * need to have a lock around any calls that uses that */
+	pthread_mutex_lock(&lock);
 	int result = zmq_send(drv->publisher, packet->frame_begin, packet->frame_length, 0);
-	csp_bin_sem_post(&drv->tx_wait); /* Release tx semaphore */
+	pthread_mutex_unlock(&lock);
+
 	if (result < 0) {
 		csp_log_error("ZMQ send error: %u %s\r\n", result, zmq_strerror(zmq_errno()));
 	}
@@ -194,9 +199,6 @@ int csp_zmqhub_init_w_name_endpoints_rxfilter(const char * ifname,
 	assert(ret == 0);
 	zmq_connect(drv->subscriber, subscribe_endpoint);
 	assert(ret == 0);
-
-	/* ZMQ isn't thread safe, so we add a binary semaphore to wait on for tx */
-	csp_bin_sem_create_static(&drv->tx_wait, &drv->tx_wait_buf);
 
 	/* Start RX thread */
 	ret = pthread_attr_init(&attributes);
