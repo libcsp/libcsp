@@ -94,7 +94,7 @@ void * csp_if_udp_rx_loop(void * param) {
 		if (ret == CSP_ERR_INVAL) {
 			iface->rx_error++;
 		} else if (ret == CSP_ERR_NOMEM) {
-			csp_sleep_ms(10);
+			usleep(10000);
 		}
 	}
 

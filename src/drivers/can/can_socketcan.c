@@ -9,13 +9,13 @@
 #include <errno.h>
 #include <sys/ioctl.h>
 #include <net/if.h>
+#include <unistd.h>
 #include <linux/can/raw.h>
 #if (CSP_HAVE_LIBSOCKETCAN)
 #include <libsocketcan.h>
 #endif
 
 #include <csp/csp.h>
-#include <csp/arch/csp_sleep.h>
 
 // CAN interface data, state, etc.
 typedef struct {
@@ -91,7 +91,7 @@ static int csp_can_tx_frame(void * driver_data, uint32_t id, const uint8_t * dat
 			csp_log_warn("%s[%s]: write() failed, errno %d: %s", __FUNCTION__, ctx->name, errno, strerror(errno));
 			return CSP_ERR_TX;
 		}
-		csp_sleep_ms(5);
+		usleep(5000);
 		elapsed_ms += 5;
 	}
 

@@ -4,7 +4,6 @@
 #include <stdlib.h>
 
 #include <csp/csp.h>
-#include <csp/arch/csp_sleep.h>
 #include <csp/drivers/usart.h>
 #include <csp/drivers/can_socketcan.h>
 #include <csp/interfaces/csp_if_zmqhub.h>

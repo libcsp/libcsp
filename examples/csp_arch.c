@@ -1,7 +1,6 @@
 #define CSP_USE_ASSERT 1  // always enable CSP assert
 
 #include <csp/csp_debug.h>
-#include <csp/arch/csp_sleep.h>
 #include <csp/arch/csp_clock.h>
 #include <csp/arch/csp_time.h>
 #include <csp/arch/csp_queue.h>
