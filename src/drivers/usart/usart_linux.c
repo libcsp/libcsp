@@ -12,6 +12,7 @@
 #include <malloc.h>
 
 #include <csp/csp.h>
+#include <pthread.h>
 
 typedef struct {
 	csp_usart_callback_t rx_callback;
@@ -19,6 +20,17 @@ typedef struct {
 	csp_usart_fd_t fd;
 	pthread_t rx_thread;
 } usart_context_t;
+
+/* Linux is fast, so we keep it simple by having a single lock */
+static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
+
+void csp_usart_lock(void * driver_data) {
+	pthread_mutex_lock(&lock);
+}
+
+void csp_usart_unlock(void * driver_data) {
+	pthread_mutex_unlock(&lock);
+}
 
 static void * usart_rx_thread(void * arg) {
 
@@ -37,113 +49,6 @@ static void * usart_rx_thread(void * arg) {
 	}
 	return NULL;
 }
-
-#if (0)  // Unused function and no prototype in public heaaders
-int getbaud(int ifd) {
-	struct termios termAttr;
-	int inputSpeed = -1;
-	speed_t baudRate;
-	tcgetattr(ifd, &termAttr);
-	/* Get the input speed. */
-	baudRate = cfgetispeed(&termAttr);
-	switch (baudRate) {
-		case B0:
-			inputSpeed = 0;
-			break;
-		case B50:
-			inputSpeed = 50;
-			break;
-		case B110:
-			inputSpeed = 110;
-			break;
-		case B134:
-			inputSpeed = 134;
-			break;
-		case B150:
-			inputSpeed = 150;
-			break;
-		case B200:
-			inputSpeed = 200;
-			break;
-		case B300:
-			inputSpeed = 300;
-			break;
-		case B600:
-			inputSpeed = 600;
-			break;
-		case B1200:
-			inputSpeed = 1200;
-			break;
-		case B1800:
-			inputSpeed = 1800;
-			break;
-		case B2400:
-			inputSpeed = 2400;
-			break;
-		case B4800:
-			inputSpeed = 4800;
-			break;
-		case B9600:
-			inputSpeed = 9600;
-			break;
-		case B19200:
-			inputSpeed = 19200;
-			break;
-		case B38400:
-			inputSpeed = 38400;
-			break;
-		case B57600:
-			inputSpeed = 57600;
-			break;
-		case B115200:
-			inputSpeed = 115200;
-			break;
-		case B230400:
-			inputSpeed = 230400;
-			break;
-#if (CSP_MACOSX == 0)
-		case B460800:
-			inputSpeed = 460800;
-			break;
-		case B500000:
-			inputSpeed = 500000;
-			break;
-		case B576000:
-			inputSpeed = 576000;
-			break;
-		case B921600:
-			inputSpeed = 921600;
-			break;
-		case B1000000:
-			inputSpeed = 1000000;
-			break;
-		case B1152000:
-			inputSpeed = 1152000;
-			break;
-		case B1500000:
-			inputSpeed = 1500000;
-			break;
-		case B2000000:
-			inputSpeed = 2000000;
-			break;
-		case B2500000:
-			inputSpeed = 2500000;
-			break;
-		case B3000000:
-			inputSpeed = 3000000;
-			break;
-		case B3500000:
-			inputSpeed = 3500000;
-			break;
-		case B4000000:
-			inputSpeed = 4000000;
-			break;
-#endif
-	}
-
-	return inputSpeed;
-}
-#endif
 
 int csp_usart_write(csp_usart_fd_t fd, const void * data, size_t data_length) {
 

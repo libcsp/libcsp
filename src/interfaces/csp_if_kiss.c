@@ -7,6 +7,7 @@
  */
 
 #include <csp/interfaces/csp_if_kiss.h>
+#include <csp/drivers/usart.h>
 #include <string.h>
 
 #include <endian.h>
@@ -24,13 +25,11 @@ int csp_kiss_tx(const csp_route_t * ifroute, csp_packet_t * packet) {
 	csp_kiss_interface_data_t * ifdata = ifroute->iface->interface_data;
 	void * driver = ifroute->iface->driver_data;
 
+	/* Lock (before modifying packet) */
+	csp_usart_lock(driver);
+
 	/* Add CRC32 checksum - the MTU setting ensures there are space */
 	csp_crc32_append(packet);
-
-	/* Lock */
-	if (csp_mutex_lock(&ifdata->lock, 1000) != CSP_MUTEX_OK) {
-		return CSP_ERR_TIMEDOUT;
-	}
 
 	/* Save the outgoing id in the buffer */
 	csp_id_prepend(packet);
@@ -57,11 +56,11 @@ int csp_kiss_tx(const csp_route_t * ifroute, csp_packet_t * packet) {
 	const unsigned char stop[] = {FEND};
 	ifdata->tx_func(driver, stop, sizeof(stop));
 
+	/* Unlock */
+	csp_usart_unlock(driver);
+
 	/* Free data */
 	csp_buffer_free(packet);
-
-	/* Unlock */
-	csp_mutex_unlock(&ifdata->lock);
 
 	return CSP_ERR_NONE;
 }
