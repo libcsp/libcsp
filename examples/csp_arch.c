@@ -78,18 +78,12 @@ int main(int argc, char * argv[]) {
 
 
     // semaphore
-    csp_bin_sem_handle_t s;
-    csp_assert(csp_bin_sem_create(&s) == CSP_SEMAPHORE_OK);
+    csp_bin_sem_t s;
+    csp_bin_sem_init(&s);
     csp_assert(csp_bin_sem_wait(&s, 0) == CSP_SEMAPHORE_OK);
     csp_assert(csp_bin_sem_post(&s) == CSP_SEMAPHORE_OK);
-#if (CSP_POSIX) // implementations differ in return value if already posted/signaled
-    csp_assert(csp_bin_sem_post_isr(&s, NULL) == CSP_SEMAPHORE_OK);
-#else
-    csp_assert(csp_bin_sem_post_isr(&s, NULL) == CSP_SEMAPHORE_ERROR);
-#endif
     csp_assert(csp_bin_sem_wait(&s, 200) == CSP_SEMAPHORE_OK);
     csp_assert(csp_bin_sem_wait(&s, 200) == CSP_SEMAPHORE_ERROR);
-    csp_assert(csp_bin_sem_remove(&s) == CSP_SEMAPHORE_OK);
 
     return 0;
 }
