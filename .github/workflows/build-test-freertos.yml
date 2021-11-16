@@ -1,0 +1,35 @@
+name: FreeRTOS Build and Test
+on: [push, pull_request]
+jobs:
+  run-test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+
+    steps:
+      - name: Setup build system packages on Linux
+        run: |
+          sudo apt-get install ninja-build meson tree
+
+      - name: Checkout Test App
+        uses: actions/checkout@v2
+        with:
+          repository: libcsp/libcsp-freertos
+
+      - name: Checkout FreeRTOS Kernel
+        uses: actions/checkout@v2
+        with:
+          repository: FreeRTOS/FreeRTOS-Kernel
+          path: freertos
+
+      - name: Checkout libcsp under subprojects
+        uses: actions/checkout@v2
+        with:
+          path: subprojects/libcsp
+
+      - name: Build it
+        run: |
+          meson setup builddir && ninja -C builddir
+
+      - name: Run it
+        run: builddir/demo
