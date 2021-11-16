@@ -76,19 +76,6 @@ int main(int argc, char * argv[]) {
     csp_assert(value == 3);
     csp_queue_remove(q);
 
-    // mutex - the actual mutex lock can't be tested from a single thread
-    csp_mutex_t m;
-    csp_assert(csp_mutex_create(&m) == CSP_MUTEX_OK);
-    csp_assert(csp_mutex_lock(&m, 0) == CSP_MUTEX_OK);
-#if (CSP_WINDOWS) // implementations differ in return value if already locked
-    csp_assert(csp_mutex_lock(&m, 200) == CSP_MUTEX_OK);
-#else
-    csp_assert(csp_mutex_lock(&m, 200) == CSP_MUTEX_ERROR);
-#endif
-    csp_assert(csp_mutex_unlock(&m) == CSP_MUTEX_OK);
-    csp_assert(csp_mutex_lock(&m, 200) == CSP_MUTEX_OK);
-    csp_assert(csp_mutex_unlock(&m) == CSP_MUTEX_OK);
-    csp_assert(csp_mutex_remove(&m) == CSP_MUTEX_OK);
 
     // semaphore
     csp_bin_sem_handle_t s;

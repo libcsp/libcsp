@@ -12,7 +12,6 @@
 #include <csp/csp_rtable.h>
 #include <csp/interfaces/csp_if_lo.h>
 #include <csp/arch/csp_queue.h>
-#include <csp/arch/csp_semaphore.h>
 #include <csp/arch/csp_time.h>
 #include <csp/crypto/csp_hmac.h>
 #include <csp/crypto/csp_xtea.h>

@@ -7,7 +7,6 @@
 */
 
 #include <csp/csp_interface.h>
-#include <csp/arch/csp_semaphore.h>
 
 
 
@@ -44,9 +43,6 @@ typedef struct {
 	unsigned int max_rx_length;
 	/** Tx function */
 	csp_kiss_driver_tx_t tx_func;
-	/** Tx lock. Current implementation doesn't transfer data to driver in a single 'write', hence locking is necessary. */
-	csp_mutex_t lock;
-   csp_mutex_buffer_t lock_buf;
 	/** Rx mode/state. */
 	csp_kiss_mode_t rx_mode;
 	/** Rx length */

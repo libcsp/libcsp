@@ -4,44 +4,6 @@
 
 #include <windows.h>
 
-int csp_mutex_create(csp_mutex_t * mutex) {
-
-	HANDLE mutexHandle = CreateMutex(NULL, FALSE, FALSE);
-	if (mutexHandle == NULL) {
-		return CSP_MUTEX_ERROR;
-	}
-	*mutex = mutexHandle;
-	return CSP_MUTEX_OK;
-}
-
-void csp_mutex_create_static(csp_mutex_t * handle, csp_mutex_buffer_t * buffer) {
-	csp_mutex_create(handle);
-}
-
-int csp_mutex_remove(csp_mutex_t * mutex) {
-
-	if (!CloseHandle(*mutex)) {
-		return CSP_MUTEX_ERROR;
-	}
-	return CSP_MUTEX_OK;
-}
-
-int csp_mutex_lock(csp_mutex_t * mutex, uint32_t timeout) {
-
-	if (WaitForSingleObject(*mutex, timeout) == WAIT_OBJECT_0) {
-		return CSP_MUTEX_OK;
-	}
-	return CSP_MUTEX_ERROR;
-}
-
-int csp_mutex_unlock(csp_mutex_t * mutex) {
-
-	if (!ReleaseMutex(*mutex)) {
-		return CSP_MUTEX_ERROR;
-	}
-	return CSP_MUTEX_OK;
-}
-
 int csp_bin_sem_create(csp_bin_sem_handle_t * sem) {
 
 	HANDLE semHandle = CreateSemaphore(NULL, 1, 1, NULL);

@@ -7,7 +7,6 @@
 #include <endian.h>
 
 #include <csp/csp.h>
-#include <csp/arch/csp_semaphore.h>
 #include <csp/csp_id.h>
 
 #include "csp_if_can_pbuf.h"

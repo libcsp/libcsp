@@ -202,8 +202,6 @@ int csp_kiss_add_interface(csp_iface_t * iface) {
 		return CSP_ERR_INVAL;
 	}
 
-	csp_mutex_create_static(&ifdata->lock, &ifdata->lock_buf);
-
 	ifdata->max_rx_length = csp_buffer_data_size();
 	ifdata->rx_length = 0;
 	ifdata->rx_mode = KISS_MODE_NOT_STARTED;

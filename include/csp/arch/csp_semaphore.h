@@ -89,60 +89,6 @@ typedef struct csp_empty_t csp_bin_sem_t;
 
 #endif // CSP_ZEPHYR
 
-/**
-   Mutex call OK.
-
-   @note Value is different from standard CSP error codes, see #CSP_SEMAPHORE_OK
-*/
-#define CSP_MUTEX_OK 		CSP_SEMAPHORE_OK
-
-/**
-   Mutex call failed.
-
-   @note Value is different from standard CSP error codes, see #CSP_SEMAPHORE_ERROR
-*/
-#define CSP_MUTEX_ERROR		CSP_SEMAPHORE_ERROR
-
-/**
-   Create/initialize a mutex.
-
-   @param[in] mutex mutex.
-   @return #CSP_MUTEX_OK on success, otherwise #CSP_MUTEX_ERROR
-*/
-int csp_mutex_create(csp_mutex_t * mutex);
-
-/**
-   Initialize a mutex with static allocation
-
-   @param[in] mutex mutex handle pointer
-   @param buffer pointer to mutex storage
-*/
-void csp_mutex_create_static(csp_mutex_t * handle, csp_mutex_buffer_t * buffer);
-
-/**
-   Free a mutex.
-
-   @param[in] mutex mutex.
-   @return #CSP_MUTEX_OK on success, otherwise #CSP_MUTEX_ERROR
-*/
-int csp_mutex_remove(csp_mutex_t * mutex);
-
-/**
-   Lock mutex.
-
-   @param[in] mutex mutex
-   @param[in] timeout timeout in mS. Use #CSP_MAX_TIMEOUT for no timeout, e.g. wait forever until locked.
-   @return #CSP_MUTEX_OK on success, otherwise #CSP_MUTEX_ERROR
-*/
-int csp_mutex_lock(csp_mutex_t * mutex, uint32_t timeout);
-
-/**
-   Unlock mutex.
-
-   @param[in] mutex mutex
-   @return #CSP_MUTEX_OK on success, otherwise #CSP_MUTEX_ERROR
-*/
-int csp_mutex_unlock(csp_mutex_t * mutex);
 
 /**
    Create/initialize a binary semaphore.

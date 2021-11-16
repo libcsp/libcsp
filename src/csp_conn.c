@@ -9,7 +9,6 @@
 #include <stdatomic.h>
 
 #include <csp/arch/csp_queue.h>
-#include <csp/arch/csp_semaphore.h>
 #include <csp/arch/csp_time.h>
 #include <csp/csp_id.h>
 #include "transport/csp_transport.h"

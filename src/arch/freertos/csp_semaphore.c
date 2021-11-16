@@ -7,32 +7,6 @@
 #include <csp/csp_debug.h>
 #include <csp/csp.h>
 
-#if (configSUPPORT_DYNAMIC_ALLOCATION == 1)
-int csp_mutex_create(csp_mutex_t * mutex) {
-	*mutex = xSemaphoreCreateMutex();
-	if (*mutex) {
-		return CSP_SEMAPHORE_OK;
-	} else {
-		return CSP_SEMAPHORE_ERROR;
-	}
-}
-
-int csp_mutex_remove(csp_mutex_t * mutex) {
-	return csp_bin_sem_remove(mutex);
-}
-#endif
-
-void csp_mutex_create_static(csp_mutex_t * handle, csp_mutex_buffer_t * buffer) {
-	*handle = xSemaphoreCreateMutexStatic(buffer);
-}
-
-int csp_mutex_lock(csp_mutex_t * mutex, uint32_t timeout) {
-	return csp_bin_sem_wait(mutex, timeout);
-}
-
-int csp_mutex_unlock(csp_mutex_t * mutex) {
-	return csp_bin_sem_post(mutex);
-}
 
 #if (configSUPPORT_DYNAMIC_ALLOCATION == 1)
 int csp_bin_sem_create(csp_bin_sem_handle_t * sem) {
