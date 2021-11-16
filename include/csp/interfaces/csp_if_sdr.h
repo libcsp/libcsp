@@ -16,6 +16,8 @@
 #define SDR_UHF_MAX_MTU 128
 #define SDR_SBAND_MAX_MTU 128
 
+#define QUEUE_NO_WAIT 0
+
 /**
    Send MPDU frame (implemented by driver).
 
@@ -47,6 +49,9 @@ typedef struct {
     void *mac_data;
     /** Receiver fields */
     xQueueHandle rx_queue;
+    /** Low level buffer state */
+    uint16_t rx_mpdu_index;
+    uint8_t rx_mpdu[SDR_UHF_MAX_MTU];
 } csp_sdr_interface_data_t;
 
 int csp_sdr_add_interface(csp_iface_t *iface);

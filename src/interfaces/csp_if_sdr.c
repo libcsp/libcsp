@@ -22,7 +22,15 @@ int csp_sdr_tx(const csp_route_t *ifroute, csp_packet_t *packet) {
 
 static void csp_sdr_usart_rx(void *cb_data, uint8_t *buf, size_t len, void *pxTaskWoken) {
     csp_iface_t *iface = (csp_iface_t *) cb_data;
-    csp_qfifo_write((csp_packet_t *) buf, iface, pxTaskWoken);
+    csp_sdr_interface_data_t *ifdata = iface->interface_data;
+    ifdata->rx_mpdu[ifdata->rx_mpdu_index] = *buf;
+    ifdata->rx_mpdu_index++;
+    if (ifdata->rx_mpdu_index >= SDR_UHF_MAX_MTU) {
+        ifdata->rx_mpdu_index = 0;
+        if (xQueueSend(ifdata->rx_queue, ifdata->rx_mpdu, QUEUE_NO_WAIT) != pdPASS) {
+        return CSP_ERR_NOBUFS;
+        }
+    }
 }
 
 int csp_sdr_add_interface(csp_iface_t * iface) {
