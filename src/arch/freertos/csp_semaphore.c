@@ -12,7 +12,7 @@ void csp_bin_sem_init(csp_bin_sem_t * sem) {
 	xSemaphoreGive(sem);
 }
 
-int csp_bin_sem_wait(csp_bin_sem_t * sem, uint32_t timeout) {
+int csp_bin_sem_wait(csp_bin_sem_t * sem, unsigned int timeout) {
 	csp_log_lock("Wait: %p", sem);
 	if (timeout != CSP_MAX_TIMEOUT) {
 		timeout = timeout / portTICK_PERIOD_MS;
