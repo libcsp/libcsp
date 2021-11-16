@@ -1,4 +1,6 @@
 #include <csp/arch/csp_semaphore.h>
+
+#include <inttypes.h>
 #include <csp/csp.h>
 #include <csp/csp_debug.h>
 
@@ -7,7 +9,7 @@ void csp_bin_sem_init(csp_bin_sem_t * sem) {
 	sem_init(sem, 0, 1);
 }
 
-int csp_bin_sem_wait(csp_bin_sem_t * sem, uint32_t timeout) {
+int csp_bin_sem_wait(csp_bin_sem_t * sem, unsigned int timeout) {
 
 	int ret;
 
