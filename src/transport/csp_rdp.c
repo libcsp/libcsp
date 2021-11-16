@@ -956,7 +956,7 @@ void csp_rdp_init(csp_conn_t * conn) {
 	conn->rdp.packet_timeout = csp_rdp_packet_timeout;
 
 	/* Create a binary semaphore to wait on for tasks */
-	csp_bin_sem_create_static(&conn->rdp.tx_wait, &conn->rdp.tx_wait_buf);
+	csp_bin_sem_init(&conn->rdp.tx_wait);
 
 	/* Create TX queue */
 	conn->rdp.tx_queue = csp_queue_create_static(CSP_RDP_MAX_WINDOW * 2, sizeof(csp_packet_t *), conn->rdp.tx_queue_static_data, &conn->rdp.tx_queue_static);
@@ -967,7 +967,6 @@ void csp_rdp_init(csp_conn_t * conn) {
 
 void csp_rdp_free_resources(csp_conn_t * conn) {
 
-	csp_bin_sem_remove(&conn->rdp.tx_wait);
 	csp_queue_remove(conn->rdp.tx_queue);
 	csp_queue_remove(conn->rdp.rx_queue);
 }

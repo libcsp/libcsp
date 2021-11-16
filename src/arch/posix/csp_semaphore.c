@@ -1,35 +1,13 @@
-
-
 #include <csp/arch/csp_semaphore.h>
 #include <csp/csp.h>
 #include <csp/csp_debug.h>
 
-
-int csp_bin_sem_create(csp_bin_sem_handle_t * sem) {
+void csp_bin_sem_init(csp_bin_sem_t * sem) {
 	csp_log_lock("Semaphore init: %p", sem);
-	if (sem_init(sem, 0, 1) == 0) {
-		return CSP_SEMAPHORE_OK;
-	}
-
-	return CSP_SEMAPHORE_ERROR;
+	sem_init(sem, 0, 1);
 }
 
-void csp_bin_sem_create_static(csp_bin_sem_handle_t * handle, csp_bin_sem_t * buffer) {
-	csp_log_lock("Semaphore init: %p", handle);
-
-	/* Ignore static allocation for now on posix */
-	sem_init(handle, 0, 1);
-}
-
-int csp_bin_sem_remove(csp_bin_sem_handle_t * sem) {
-	if (sem_destroy(sem) == 0) {
-		return CSP_SEMAPHORE_OK;
-	}
-
-	return CSP_SEMAPHORE_ERROR;
-}
-
-int csp_bin_sem_wait(csp_bin_sem_handle_t * sem, uint32_t timeout) {
+int csp_bin_sem_wait(csp_bin_sem_t * sem, uint32_t timeout) {
 
 	int ret;
 
@@ -63,14 +41,7 @@ int csp_bin_sem_wait(csp_bin_sem_handle_t * sem, uint32_t timeout) {
 	return CSP_SEMAPHORE_OK;
 }
 
-int csp_bin_sem_post_isr(csp_bin_sem_handle_t * sem, int * task_woken) {
-	if (task_woken) {
-		*task_woken = 0;
-	}
-	return csp_bin_sem_post(sem);
-}
-
-int csp_bin_sem_post(csp_bin_sem_handle_t * sem) {
+int csp_bin_sem_post(csp_bin_sem_t * sem) {
 	csp_log_lock("Post: %p", sem);
 
 	int value;

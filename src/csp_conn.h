@@ -55,8 +55,7 @@ typedef struct {
 	uint32_t ack_timeout;
 	uint32_t ack_delay_count;
 	uint32_t ack_timestamp;
-	csp_bin_sem_handle_t tx_wait;
-	csp_bin_sem_t tx_wait_buf;
+	csp_bin_sem_t tx_wait;
 
 	csp_queue_handle_t tx_queue;
 	csp_static_queue_t tx_queue_static; /* Static storage for rx queue */
