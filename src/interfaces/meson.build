@@ -1,6 +1,7 @@
 csp_sources += files('csp_if_lo.c')
 csp_sources += files(['csp_if_can.c', 'csp_if_can_pbuf.c'])
 csp_sources += files('csp_if_kiss.c')
+csp_sources += files('csp_if_tun.c')
 
 zmq_dep = dependency('libzmq', version: '>4.0', required: false)
 if zmq_dep.found()
