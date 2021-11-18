@@ -4,44 +4,53 @@
 
 #include <csp_autoconfig.h>
 
-/* POSIX interface */
+#define CSP_SEMAPHORE_OK 	0
+#define CSP_SEMAPHORE_ERROR	-1
+
+/**
+ * Define the size of a semaphore:
+ * 
+ * This varies a little across different platforms and implementations
+ * Here we include the platform header in order to get that size.
+ * Except for POSIX which are pretty stable already
+ * The FreeRTOS size depends on some compile time options, so the most
+ * efficient way is to use the sizeof().
+ * However we may consider getting rid of the dependency on freertos just
+ * for this single number
+ * Maybe we should leave this as a compile time configuration parameter 
+ * 
+ */
+
 #if (CSP_POSIX || __DOXYGEN__)
 
-#include <pthread.h>
-#include <semaphore.h>
+    /* POSIX interface */
+    #define CSP_SIZEOF_SEM_T 32
 
-#define CSP_SEMAPHORE_OK 	1
-#define CSP_SEMAPHORE_ERROR	2
+#elif (CSP_FREERTOS)
 
-typedef sem_t csp_bin_sem_t;
+    /* FreeRTOS interface */
+    #include <FreeRTOS.h>
+    #include <semphr.h>
+    #define CSP_SIZEOF_SEM_T sizeof(StaticSemaphore_t)
 
-#endif // CSP_POSIX
+#elif (CSP_ZEPHYR)
 
-/* FreeRTOS interface */
-#if (CSP_FREERTOS)
+    /* Zephyr RTOS Interface */
+    #include <zephyr.h>
+    #define CSP_SIZEOF_SEM_T sizeof(struct k_sem);
 
-#include <FreeRTOS.h>
-#include <semphr.h>
+#endif
 
-#define CSP_SEMAPHORE_OK 	1
-#define CSP_SEMAPHORE_ERROR	0
-
-typedef StaticSemaphore_t csp_bin_sem_t;
-
-#endif // CSP_FREERTOS
-
-/* Zephyr RTOS Interface */
-#if (CSP_ZEPHYR)
-
-#include <zephyr.h>
-
-#define CSP_SEMAPHORE_OK 	1
-#define CSP_SEMAPHORE_ERROR	2
-
-typedef struct k_sem csp_bin_sem_t;
-
-#endif // CSP_ZEPHYR
-
+/** 
+ * This definition is borrowed from POSIX sem_t
+ * It ensures the proper amount of memory to hold a static semaphore
+ * as well as alignment is correct for the given platform.
+ * The fields are never actually used directly so they can have any name
+ */
+typedef union {
+  char __size[CSP_SIZEOF_SEM_T];
+  long int __align;
+} csp_bin_sem_t;
 
 /**
  * initialize a binary semaphore with static storage
