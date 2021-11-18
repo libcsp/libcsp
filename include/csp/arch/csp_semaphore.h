@@ -29,9 +29,13 @@
 #elif (CSP_FREERTOS)
 
     /* FreeRTOS interface */
+#if 0
     #include <FreeRTOS.h>
     #include <semphr.h>
     #define CSP_SIZEOF_SEM_T sizeof(StaticSemaphore_t)
+#else
+    #define CSP_SIZEOF_SEM_T sizeof(void *)
+#endif
 
 #elif (CSP_ZEPHYR)
 
