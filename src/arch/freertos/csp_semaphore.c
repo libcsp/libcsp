@@ -8,8 +8,8 @@
 #include <csp/csp.h>
 
 void csp_bin_sem_init(csp_bin_sem_t * sem) {
-	xSemaphoreCreateBinaryStatic(sem);
-	xSemaphoreGive(sem);
+	xSemaphoreCreateBinaryStatic((StaticQueue_t *) sem);
+	xSemaphoreGive((QueueHandle_t) sem);
 }
 
 int csp_bin_sem_wait(csp_bin_sem_t * sem, unsigned int timeout) {
@@ -25,7 +25,7 @@ int csp_bin_sem_wait(csp_bin_sem_t * sem, unsigned int timeout) {
 
 int csp_bin_sem_post(csp_bin_sem_t * sem) {
 	csp_log_lock("Post: %p", sem);
-	if (xSemaphoreGive((QueueHandle_t)sem) == pdPASS) {
+	if (xSemaphoreGive((QueueHandle_t) sem) == pdPASS) {
 		return CSP_SEMAPHORE_OK;
 	}
 	return CSP_SEMAPHORE_ERROR;
