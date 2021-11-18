@@ -53,6 +53,7 @@ void csp_conn_init(void) {
 
 		conn->sport_outgoing = CSP_PORT_MAX_BIND + 1 + i;
 		conn->state = CONN_CLOSED;
+		conn->idin.flags = 0;
 		conn->rx_queue = csp_queue_create_static(CSP_CONN_RXQUEUE_LEN, sizeof(csp_packet_t *), conn->rx_queue_static_data, &conn->rx_queue_static);
 
 #if (CSP_USE_RDP)
@@ -168,6 +169,8 @@ csp_conn_t * csp_conn_allocate(csp_conn_type_t type) {
 
 	conn->timestamp = 0;
 	conn->type = type;
+	conn->idin.flags = 0;
+	conn->idout.flags = 0;
 	return conn;
 }
 
@@ -196,6 +199,8 @@ int csp_close(csp_conn_t * conn) {
 }
 
 int csp_conn_close(csp_conn_t * conn, uint8_t closed_by) {
+
+	csp_conn_print_table();
 
 	if (conn == NULL) {
 		return CSP_ERR_NONE;
@@ -348,9 +353,9 @@ void csp_conn_print_table(void) {
 
 	for (unsigned int i = 0; i < CSP_CONN_MAX; i++) {
 		csp_conn_t * conn = &arr_conn[i];
-		printf("[%02u %p] S:%u, %u -> %u, %u -> %u (%u)\r\n",
+		printf("[%02u %p] S:%u, %u -> %u, %u -> %u (%u) fl %x\r\n",
 			   i, conn, conn->state, conn->idin.src, conn->idin.dst,
-			   conn->idin.dport, conn->idin.sport, conn->sport_outgoing);
+			   conn->idin.dport, conn->idin.sport, conn->sport_outgoing, conn->idin.flags);
 #if (CSP_USE_RDP)
 		if (conn->idin.flags & CSP_FRDP) {
 			csp_rdp_conn_print(conn);

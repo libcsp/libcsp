@@ -952,6 +952,7 @@ void csp_rdp_init(csp_conn_t * conn) {
 
 	/* Set initial state */
 	conn->rdp.state = RDP_CLOSED;
+	conn->rdp.closed_by = 0;
 	conn->rdp.conn_timeout = csp_rdp_conn_timeout;
 	conn->rdp.packet_timeout = csp_rdp_packet_timeout;
 
@@ -999,8 +1000,8 @@ static int csp_rdp_close_internal(csp_conn_t * conn, uint8_t closed_by, bool sen
 	}
 
 	if (conn->rdp.closed_by != CSP_RDP_CLOSED_BY_ALL) {
-		csp_log_protocol("RDP %p: csp_rdp_close(0x%x), waiting for:%s%s%s",
-						 conn, closed_by,
+		csp_log_protocol("RDP %p: csp_rdp_close(0x%x) != %x, waiting for:%s%s%s",
+						 conn, closed_by, conn->rdp.closed_by,
 						 (conn->rdp.closed_by & CSP_RDP_CLOSED_BY_USERSPACE) ? "" : " userspace",
 						 (conn->rdp.closed_by & CSP_RDP_CLOSED_BY_PROTOCOL) ? "" : " protocol",
 						 (conn->rdp.closed_by & CSP_RDP_CLOSED_BY_TIMEOUT) ? "" : " timeout");
