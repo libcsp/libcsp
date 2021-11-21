@@ -134,10 +134,6 @@ int csp_rtable_save(char * buffer, size_t maxlen) {
 
 void csp_rtable_clear(void) {
 	csp_rtable_free();
-
-	/* Set loopback up again */
-	csp_rtable_set(csp_conf.address, -1, &csp_if_lo, CSP_NO_VIA_ADDRESS);
-	// csp_rtable_set(csp_conf.address, csp_id_get_host_bits(), &csp_if_lo, CSP_NO_VIA_ADDRESS);
 }
 
 #if (CSP_DEBUG)

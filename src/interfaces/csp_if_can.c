@@ -408,7 +408,7 @@ int csp_can2_tx(const csp_route_t * ifroute, csp_packet_t * packet) {
 	/* Pack mandatory fields of header */
 	can_id = (((packet->id.pri & CFP2_PRIO_MASK) << CFP2_PRIO_OFFSET) |
 			  ((packet->id.dst & CFP2_DST_MASK) << CFP2_DST_OFFSET) |
-			  ((csp_conf.address & CFP2_SENDER_MASK) << CFP2_SENDER_OFFSET) |
+			  ((iface->addr & CFP2_SENDER_MASK) << CFP2_SENDER_OFFSET) |
 			  ((sender_count & CFP2_SC_MASK) << CFP2_SC_OFFSET) |
 			  ((1 & CFP2_BEGIN_MASK) << CFP2_BEGIN_OFFSET));
 
@@ -455,7 +455,7 @@ int csp_can2_tx(const csp_route_t * ifroute, csp_packet_t * packet) {
 		/* Pack mandatory fields of header */
 		can_id = (((packet->id.pri & CFP2_PRIO_MASK) << CFP2_PRIO_OFFSET) |
 				  ((packet->id.dst & CFP2_DST_MASK) << CFP2_DST_OFFSET) |
-				  ((csp_conf.address & CFP2_SENDER_MASK) << CFP2_SENDER_OFFSET) |
+				  ((iface->addr & CFP2_SENDER_MASK) << CFP2_SENDER_OFFSET) |
 				  ((sender_count & CFP2_SC_MASK) << CFP2_SC_OFFSET));
 
 		/* Set and increment fragment count */

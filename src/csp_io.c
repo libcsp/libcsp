@@ -122,7 +122,7 @@ void csp_id_copy(csp_id_t * target, csp_id_t * source) {
 	target->flags = source->flags;
 }
 
-int csp_send_direct(csp_id_t idout, csp_packet_t * packet, const csp_route_t * ifroute) {
+int csp_send_direct(csp_id_t idout, csp_packet_t * packet, const csp_route_t * ifroute, int from_me) {
 
 	if (ifroute == NULL) {
 		csp_log_error("No route to host: %u", idout.dst);
@@ -130,7 +130,7 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, const csp_route_t * i
 	}
 
 	csp_iface_t * ifout = ifroute->iface;
-
+	
 	csp_log_packet("OUT: S %u, D %u, Dp %u, Sp %u, Pr %u, Fl 0x%02X, Sz %u VIA: %s (%u)",
 				   idout.src, idout.dst, idout.dport, idout.sport, idout.pri, idout.flags, packet->length, ifout->name, (ifroute->via != CSP_NO_VIA_ADDRESS) ? ifroute->via : idout.dst);
 
@@ -139,13 +139,14 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, const csp_route_t * i
 
 #if (CSP_USE_PROMISC)
 	/* Loopback traffic is added to promisc queue by the router */
-	if (idout.dst != csp_get_address() && idout.src == csp_get_address()) {
+	if (from_me && (ifout != &csp_if_lo)) {
 		csp_promisc_add(packet);
 	}
 #endif
 
 	/* Only encrypt packets from the current node */
-	if (idout.src == csp_conf.address) {
+	if (from_me) {
+
 		/* Append HMAC */
 		if (idout.flags & CSP_FHMAC) {
 #if (CSP_USE_HMAC)
@@ -226,7 +227,7 @@ void csp_send(csp_conn_t * conn, csp_packet_t * packet) {
 	}
 #endif
 
-	int ret = csp_send_direct(conn->idout, packet, csp_rtable_find_route(conn->idout.dst));
+	int ret = csp_send_direct(conn->idout, packet, csp_rtable_find_route(conn->idout.dst), 1);
 	if (ret != CSP_ERR_NONE) {
 		csp_buffer_free(packet);
 		return;
@@ -331,13 +332,15 @@ void csp_sendto(uint8_t prio, uint16_t dest, uint8_t dport, uint8_t src_port, ui
 		packet->id.flags |= CSP_FCRC32;
 	}
 
+	const csp_route_t * route = csp_rtable_find_route(dest);
+
 	packet->id.dst = dest;
 	packet->id.dport = dport;
-	packet->id.src = csp_conf.address;
+	packet->id.src = route->iface->addr;
 	packet->id.sport = src_port;
 	packet->id.pri = prio;
 
-	if (csp_send_direct(packet->id, packet, csp_rtable_find_route(dest)) != CSP_ERR_NONE) {
+	if (csp_send_direct(packet->id, packet, route, 1) != CSP_ERR_NONE) {
 		csp_buffer_free(packet);
 		return;
 	}

@@ -195,8 +195,7 @@ int main(int argc, char * argv[]) {
 
     csp_log_info("Initialising CSP");
 
-    /* Init CSP with address and default settings */
-    csp_conf.address = address;
+    /* Init CSP */
     csp_init();
 
     /* Start router */
@@ -229,7 +228,7 @@ int main(int argc, char * argv[]) {
 #endif
 #if (CSP_HAVE_LIBZMQ)
     if (zmq_device) {
-        int error = csp_zmqhub_init(csp_get_address(), zmq_device, 0, &default_iface);
+        int error = csp_zmqhub_init(0, zmq_device, 0, &default_iface);
         if (error != CSP_ERR_NONE) {
             csp_log_error("failed to add ZMQ interface [%s], error: %d", zmq_device, error);
             exit(1);

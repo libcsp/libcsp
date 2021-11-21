@@ -188,7 +188,7 @@ int csp_route_work(void) {
 		}
 
 		/* Otherwise, actually send the message */
-		if (csp_send_direct(packet->id, packet, ifroute) != CSP_ERR_NONE) {
+		if (csp_send_direct(packet->id, packet, ifroute, 0) != CSP_ERR_NONE) {
 			csp_log_warn("Router failed to send");
 			csp_buffer_free(packet);
 		}
@@ -251,8 +251,7 @@ int csp_route_work(void) {
 		/* New incoming connection accepted */
 		csp_id_t idout;
 		idout.pri = packet->id.pri;
-		idout.src = csp_conf.address;
-
+		idout.src = packet->id.dst;
 		idout.dst = packet->id.src;
 		idout.dport = packet->id.sport;
 		idout.sport = packet->id.dport;
