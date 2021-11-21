@@ -132,7 +132,7 @@ void client(void) {
 /* main - initialization of CSP and start of server/client tasks */
 int main(int argc, char * argv[]) {
 
-    uint8_t address = 1;
+    uint8_t address = 0;
     csp_debug_level_t debug_level = CSP_INFO;
 #if (CSP_HAVE_LIBSOCKETCAN)
     const char * can_device = NULL;
