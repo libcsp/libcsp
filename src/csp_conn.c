@@ -111,9 +111,6 @@ csp_conn_t * csp_conn_find_existing(csp_id_t * id) {
 		if (conn->idin.dst != id->dst)
 			continue;
 
-		/* Connection must match source */
-		if (conn->idin.src != id->src)
-			continue;
 
 		/* Connection must be open */
 		if (conn->state != CONN_OPEN)
@@ -199,8 +196,6 @@ int csp_close(csp_conn_t * conn) {
 }
 
 int csp_conn_close(csp_conn_t * conn, uint8_t closed_by) {
-
-	csp_conn_print_table();
 
 	if (conn == NULL) {
 		return CSP_ERR_NONE;

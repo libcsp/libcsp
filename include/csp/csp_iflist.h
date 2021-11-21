@@ -1,18 +1,6 @@
 #pragma once
 
-/**
-   @file
-
-   Interface list.
-
-   Linked-list of interfaces in the system.
-
-   This API is not thread-safe.
-*/
-
 #include <csp/csp_interface.h>
-
-
 
 /**
    Add interface to the list.
@@ -22,27 +10,13 @@
 */
 int csp_iflist_add(csp_iface_t * iface);
 
-/**
-   Get interface by name.
-
-   @param[in] name interface name.
-   @return Interface or NULL if not found.
-*/
 csp_iface_t * csp_iflist_get_by_name(const char *name);
 
-/**
-   Print list of interfaces to stdout.
-*/
+/* Includes match on broadcast address */
+csp_iface_t * csp_iflist_get_by_addr(uint16_t addr);
+
 void csp_iflist_print(void);
-
-/**
-   Return list of interfaces.
-
-   @return First interface or NULL, if no interfaces added.
-*/
 csp_iface_t * csp_iflist_get(void);
 
-/**
-   Convert bytes to readable string.
-*/
+/* Convert bytes to readable string */
 int csp_bytesize(char *buffer, int buffer_len, unsigned long int bytes);

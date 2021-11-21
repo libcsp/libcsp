@@ -17,6 +17,7 @@
 #include "csp_promisc.h"
 #include "csp_qfifo.h"
 #include "csp_dedup.h"
+#include <csp/csp_iflist.h>
 #include "transport/csp_transport.h"
 
 /**
@@ -158,7 +159,8 @@ int csp_route_work(void) {
 	input.iface->rx++;
 	input.iface->rxbytes += packet->length;
 
-	int is_to_me = ((packet->id.dst == csp_conf.address) || (packet->id.dst == csp_id_get_max_nodeid()));
+	csp_iface_t * dest_interface = csp_iflist_get_by_addr(packet->id.dst);
+	int is_to_me = (dest_interface != NULL);
 
 	/* Deduplication */
 	if ((csp_conf.dedup == CSP_DEDUP_ALL) ||
