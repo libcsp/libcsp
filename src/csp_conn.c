@@ -200,8 +200,6 @@ int csp_close(csp_conn_t * conn) {
 
 int csp_conn_close(csp_conn_t * conn, uint8_t closed_by) {
 
-	csp_conn_print_table();
-
 	if (conn == NULL) {
 		return CSP_ERR_NONE;
 	}

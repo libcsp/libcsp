@@ -84,3 +84,6 @@ int pthread_queue_dequeue(pthread_queue_t * queue, void * buf, uint32_t timeout)
    Return number of elements in the queue.
 */
 int pthread_queue_items(pthread_queue_t * queue);
+
+
+int pthread_queue_free(pthread_queue_t * queue);

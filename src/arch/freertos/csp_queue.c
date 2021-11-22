@@ -47,3 +47,7 @@ int csp_queue_size(csp_queue_handle_t handle) {
 int csp_queue_size_isr(csp_queue_handle_t handle) {
 	return uxQueueMessagesWaitingFromISR(handle);
 }
+
+int csp_queue_free(csp_queue_handle_t handle) {
+	return uxQueueSpacesAvailable(handle);
+}

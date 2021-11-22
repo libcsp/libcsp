@@ -255,6 +255,12 @@ front:
 	count = csp_queue_size(conn->rdp.rx_queue);
 	for (i = 0; i < count; i++) {
 
+		/* Check there is room in the RX queue:
+		 * We don't hold a lock on the queue, so we require at least two spaces to be free
+		 * to hopefully avoid posting packets on a full queue */
+		if (csp_queue_free(conn->rx_queue) <= 2)
+			return;
+
 		if (csp_queue_dequeue_isr(conn->rdp.rx_queue, &packet, &pdTrue) != CSP_QUEUE_OK) {
 			csp_log_error("RDP %p: Cannot dequeue from rx_queue in queue deliver", conn);
 			break;
@@ -266,14 +272,21 @@ front:
 		/* If the matching packet was found: */
 		if (header->seq_nr == (uint16_t)(conn->rdp.rcv_cur + 1)) {
 			csp_log_protocol("RDP %p: Deliver seq %u", conn, header->seq_nr);
-			csp_rdp_receive_data(conn, packet);
+			if (csp_rdp_receive_data(conn, packet) != CSP_ERR_NONE) {
+				csp_log_error("RDP lost packet internally, stream corrupted!\n");
+				csp_buffer_free(packet);
+			}
 			conn->rdp.rcv_cur++;
+
 			/* Loop from first element again */
 			goto front;
 
 			/* Otherwise, requeue */
 		} else {
-			csp_queue_enqueue_isr(conn->rdp.rx_queue, &packet, &pdTrue);
+			if (csp_queue_enqueue_isr(conn->rdp.rx_queue, &packet, &pdTrue) != pdTrue) {
+				csp_log_error("RDP lost packet internally, window too large\n");
+				csp_buffer_free(packet);
+			}
 		}
 	}
 }
@@ -511,10 +524,13 @@ void csp_rdp_check_timeouts(csp_conn_t * conn) {
 
 		/* Wake user task if additional Tx can be done */
 		if (csp_rdp_is_conn_ready_for_tx(conn)) {
-			csp_log_protocol("RDP %p: Wake Tx task (check timeouts)", conn);
+			//csp_log_protocol("RDP %p: Wake Tx task (check timeouts)", conn);
 			csp_bin_sem_post(&conn->rdp.tx_wait);
 		}
 	}
+
+	csp_rdp_rx_queue_flush(conn);
+
 }
 
 bool csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
