@@ -45,22 +45,9 @@ conf.set10('CSP_USE_XTEA', get_option('use_xtea'))
 conf.set10('CSP_USE_PROMISC', get_option('use_promisc'))
 conf.set10('CSP_USE_DEDUP', get_option('use_dedup'))
 
-csp_sources = []
 csp_deps = []
 
-zmq_dep = dependency('libzmq', version: '>4.0', required: false)
-if zmq_dep.found()
-	conf.set('CSP_HAVE_LIBZMQ', 1)
-endif
-
-yaml_dep = dependency('yaml-0.1', required : false)
-if yaml_dep.found()
-	conf.set('CSP_HAVE_LIBYAML', 1)
-	csp_sources += files(['src/yaml/iflist_yaml.c'])
-	csp_deps += yaml_dep
-endif
-
-csp_sources += files([
+csp_sources = files([
 	'src/crypto/csp_hmac.c',
 	'src/crypto/csp_sha1.c',
 	'src/crypto/csp_xtea.c',
@@ -86,6 +73,7 @@ csp_sources += files([
 	'src/csp_sfp.c',
 ])
 
+subdir('src/yaml')
 subdir('src/rtable')
 subdir('src/arch')
 subdir('src/drivers')

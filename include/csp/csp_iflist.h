@@ -22,4 +22,4 @@ csp_iface_t * csp_iflist_get(void);
 int csp_bytesize(char *buffer, int buffer_len, unsigned long int bytes);
 
 /* From iflist_yaml.c */
-void iflist_yaml_init(void);
+void iflist_yaml_init(char * filename);

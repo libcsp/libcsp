@@ -1,3 +1,3 @@
 #pragma once
 
-void iflist_yaml_init(void);
+void iflist_yaml_init(char * filename);
