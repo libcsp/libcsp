@@ -413,11 +413,9 @@ int csp_can2_tx(const csp_route_t * ifroute, csp_packet_t * packet) {
 			  ((1 & CFP2_BEGIN_MASK) << CFP2_BEGIN_OFFSET));
 
 	/* Pack the rest of the CSP header in the first 32-bit of data */
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wcast-align"
-	uint8_t frame_buf[CAN_FRAME_SIZE] __attribute__((aligned(sizeof(uint32_t))));
-	uint32_t * header_extension = (uint32_t *)frame_buf;
-#pragma GCC diagnostic pop
+    uint32_t frame_buf_mem[(CAN_FRAME_SIZE+sizeof(uint32_t)-1)/sizeof(uint32_t)];
+    uint8_t *frame_buf = (uint8_t*)frame_buf_mem;
+	uint32_t * header_extension = (uint32_t *)frame_buf_mem;
 
 	*header_extension = (((packet->id.src & CFP2_SRC_MASK) << CFP2_SRC_OFFSET) |
 						 ((packet->id.dport & CFP2_DPORT_MASK) << CFP2_DPORT_OFFSET) |
