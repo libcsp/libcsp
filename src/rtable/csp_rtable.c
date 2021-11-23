@@ -92,7 +92,7 @@ typedef struct {
 	int error;
 } csp_rtable_save_ctx_t;
 
-static bool csp_rtable_save_route(void * vctx, uint16_t address, uint16_t mask, const csp_route_t * route) {
+static bool csp_rtable_save_route(void * vctx, csp_route_t * route) {
 	csp_rtable_save_ctx_t * ctx = vctx;
 
 	// Do not save loop back interface
@@ -103,8 +103,8 @@ static bool csp_rtable_save_route(void * vctx, uint16_t address, uint16_t mask, 
 	const char * sep = (ctx->len == 0) ? "" : ",";
 
 	char mask_str[10];
-	if (mask != csp_id_get_host_bits()) {
-		snprintf(mask_str, sizeof(mask_str), "/%u", mask);
+	if (route->netmask != csp_id_get_host_bits()) {
+		snprintf(mask_str, sizeof(mask_str), "/%u", route->netmask);
 	} else {
 		mask_str[0] = 0;
 	}
@@ -116,7 +116,7 @@ static bool csp_rtable_save_route(void * vctx, uint16_t address, uint16_t mask, 
 	}
 	size_t remain_buf_size = ctx->maxlen - ctx->len;
 	int res = snprintf(ctx->buffer + ctx->len, remain_buf_size,
-					   "%s%u%s %s%s", sep, address, mask_str, route->iface->name, via_str);
+					   "%s%u%s %s%s", sep, route->address, mask_str, route->iface->name, via_str);
 	if ((res < 0) || (res >= (int)(remain_buf_size))) {
 		ctx->error = CSP_ERR_NOMEM;
 		return false;
@@ -138,11 +138,11 @@ void csp_rtable_clear(void) {
 
 #if (CSP_DEBUG)
 
-static bool csp_rtable_print_route(void * ctx, uint16_t address, uint16_t mask, const csp_route_t * route) {
+static bool csp_rtable_print_route(void * ctx, csp_route_t * route) {
 	if (route->via == CSP_NO_VIA_ADDRESS) {
-		printf("%u/%u %s\r\n", address, mask, route->iface->name);
+		printf("%u/%u %s\r\n", route->address, route->netmask, route->iface->name);
 	} else {
-		printf("%u/%u %s %u\r\n", address, mask, route->iface->name, route->via);
+		printf("%u/%u %s %u\r\n", route->address, route->netmask, route->iface->name, route->via);
 	}
 	return true;
 }

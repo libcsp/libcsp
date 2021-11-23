@@ -14,9 +14,9 @@
 #define MSG_CONFIRM (0)
 #endif
 
-static int csp_if_udp_tx(const csp_route_t * ifroute, csp_packet_t * packet) {
+static int csp_if_udp_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet) {
 
-	csp_if_udp_conf_t * ifconf = ifroute->iface->driver_data;
+	csp_if_udp_conf_t * ifconf = iface->driver_data;
 
 	int sockfd;
 	if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {

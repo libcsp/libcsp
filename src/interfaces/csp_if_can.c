@@ -180,16 +180,15 @@ int csp_can1_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t 
 	return CSP_ERR_NONE;
 }
 
-int csp_can1_tx(const csp_route_t * ifroute, csp_packet_t * packet) {
+int csp_can1_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet) {
 
-	csp_iface_t * iface = ifroute->iface;
 	csp_can_interface_data_t * ifdata = iface->interface_data;
 
 	/* Get an unique CFP id - this should be locked to prevent access from multiple tasks */
 	const uint32_t ident = ifdata->cfp_packet_counter++;
 
 	/* Figure out destination node based on routing entry */
-	const uint8_t dest = (ifroute->via != CSP_NO_VIA_ADDRESS) ? ifroute->via : packet->id.dst;
+	const uint8_t dest = (via != CSP_NO_VIA_ADDRESS) ? via : packet->id.dst;
 
 	uint32_t can_id = 0;
 	uint8_t data_bytes = 0;
@@ -392,9 +391,8 @@ int csp_can2_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t 
 	return CSP_ERR_NONE;
 }
 
-int csp_can2_tx(const csp_route_t * ifroute, csp_packet_t * packet) {
+int csp_can2_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet) {
 
-	csp_iface_t * iface = ifroute->iface;
 	csp_can_interface_data_t * ifdata = iface->interface_data;
 
 	/* Setup counters */

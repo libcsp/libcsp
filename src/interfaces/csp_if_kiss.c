@@ -20,10 +20,10 @@
 #define TFESC    0xDD
 #define TNC_DATA 0x00
 
-int csp_kiss_tx(const csp_route_t * ifroute, csp_packet_t * packet) {
+int csp_kiss_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet) {
 
-	csp_kiss_interface_data_t * ifdata = ifroute->iface->interface_data;
-	void * driver = ifroute->iface->driver_data;
+	csp_kiss_interface_data_t * ifdata = iface->interface_data;
+	void * driver = iface->driver_data;
 
 	/* Lock (before modifying packet) */
 	csp_usart_lock(driver);

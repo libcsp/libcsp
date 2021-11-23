@@ -11,7 +11,7 @@
 /* Interfaces are stored in a linked list */
 static csp_iface_t * interfaces = NULL;
 
-csp_iface_t * csp_iflist_get_by_addr(uint16_t addr) {
+csp_iface_t * csp_iflist_get_by_addr(uint16_t addr, int subnet_match) {
 	csp_iface_t * ifc = interfaces;
 	while (ifc) {
 
@@ -21,6 +21,12 @@ csp_iface_t * csp_iflist_get_by_addr(uint16_t addr) {
 		if (ifc->addr == addr) {
 			//printf("addr match\n");
 			return ifc;
+		}
+
+		/* Reject searches involving subnets, if the netmask is invalud */
+		if (ifc->netmask == 0) {
+			ifc = ifc->next;
+			continue;
 		}
 
 		uint16_t netmask = ((1 << ifc->netmask) - 1) << (csp_id_get_host_bits() - ifc->netmask);
@@ -40,6 +46,11 @@ csp_iface_t * csp_iflist_get_by_addr(uint16_t addr) {
 		/* Match on broadcast address */
 		if ((addr & hostmask) == hostmask) {
 			//printf("broadcast match\n");
+			return ifc;
+		}
+
+		/* If a subnet match is enough, return the interface anyways */
+		if (subnet_match) {
 			return ifc;
 		}
 		

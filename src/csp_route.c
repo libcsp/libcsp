@@ -159,7 +159,7 @@ int csp_route_work(void) {
 	input.iface->rx++;
 	input.iface->rxbytes += packet->length;
 
-	csp_iface_t * dest_interface = csp_iflist_get_by_addr(packet->id.dst);
+	csp_iface_t * dest_interface = csp_iflist_get_by_addr(packet->id.dst, 0);
 	int is_to_me = (dest_interface != NULL);
 
 	/* Deduplication */
@@ -179,16 +179,16 @@ int csp_route_work(void) {
 	if (!is_to_me) {
 
 		/* Find the destination interface */
-		const csp_route_t * ifroute = csp_rtable_find_route(packet->id.dst);
+		csp_route_t * route = csp_rtable_find_route(packet->id.dst);
 
 		/* If the message resolves to the input interface, don't loop it back out */
-		if ((ifroute == NULL) || ((ifroute->iface == input.iface) && (input.iface->split_horizon_off == 0))) {
+		if ((route == NULL) || ((route->iface == input.iface) && (input.iface->split_horizon_off == 0))) {
 			csp_buffer_free(packet);
 			return CSP_ERR_NONE;
 		}
 
 		/* Otherwise, actually send the message */
-		if (csp_send_direct(packet->id, packet, ifroute, 0) != CSP_ERR_NONE) {
+		if (csp_send_direct(packet->id, packet, 0) != CSP_ERR_NONE) {
 			csp_log_warn("Router failed to send");
 			csp_buffer_free(packet);
 		}

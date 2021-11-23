@@ -2,6 +2,8 @@ libcsp 2.0, xx-yy-zzzz
 ----------------------
 - new: CSP Header 2.0. Support for 14-bit network addresses.
 - new: CFP (Can fragmentation protocol) 2.0
+- new: Layer-3 broadcast (last address of each subnet)
+- new: One CSP address per interface
 - new: Meson build system
 - new: CMake build system
 - new: Went back to use more compile time configuration for less runtime checks and simpler memory allocation
