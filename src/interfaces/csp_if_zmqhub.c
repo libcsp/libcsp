@@ -32,9 +32,9 @@ static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
  * @param packet Packet to transmit
  * @return 1 if packet was successfully transmitted, 0 on error
  */
-int csp_zmqhub_tx(const csp_route_t * route, csp_packet_t * packet) {
+int csp_zmqhub_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet) {
 
-	zmq_driver_t * drv = route->iface->driver_data;
+	zmq_driver_t * drv = iface->driver_data;
 
 	csp_id_prepend(packet);
 
