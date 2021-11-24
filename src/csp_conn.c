@@ -236,18 +236,31 @@ csp_conn_t * csp_connect(uint8_t prio, uint16_t dest, uint8_t dport, uint32_t ti
 	/* Force options on all connections */
 	opts |= csp_conf.conn_dfl_so;
 
-	const csp_route_t * route = csp_rtable_find_route(dest);
+	int source_addr = -1;
+	csp_iface_t * local_interface = csp_iflist_get_by_subnet(dest);
+	if (local_interface) {
+		source_addr = local_interface->addr;		
+	} else {
+		csp_route_t * route = csp_rtable_find_route(dest);
+		if (route) {
+			source_addr = route->iface->addr;
+		}
+	}
 
+	if (source_addr == -1) {
+		csp_log_error("No route to host %d", dest);
+	}	
+	
 	/* Generate identifier */
 	csp_id_t incoming_id, outgoing_id;
 	incoming_id.pri = prio;
-	incoming_id.dst = route->iface->addr;
+	incoming_id.dst = source_addr;
 	incoming_id.src = dest;
 	incoming_id.sport = dport;
 	incoming_id.flags = 0;
 	outgoing_id.pri = prio;
 	outgoing_id.dst = dest;
-	outgoing_id.src = route->iface->addr;;
+	outgoing_id.src = source_addr;
 	outgoing_id.dport = dport;
 	outgoing_id.flags = 0;
 
