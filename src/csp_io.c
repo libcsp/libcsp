@@ -122,30 +122,52 @@ void csp_id_copy(csp_id_t * target, csp_id_t * source) {
 	target->flags = source->flags;
 }
 
-int csp_send_direct(csp_id_t idout, csp_packet_t * packet, const csp_route_t * ifroute) {
+int csp_send_direct(csp_id_t idout, csp_packet_t * packet, int from_me) {
 
-	if (ifroute == NULL) {
+	int ret;
+
+	/* Try to find the destination on any local subnets */
+	csp_iface_t * local_interface = csp_iflist_get_by_subnet(idout.dst);
+	if (local_interface) {
+		idout.src = local_interface->addr;
+		ret = csp_send_direct_iface(idout, packet, local_interface, CSP_NO_VIA_ADDRESS, 1);
+
+	/* Otherwise, resort to the routing table for help */		
+	} else {
+		csp_route_t * route = csp_rtable_find_route(idout.dst);
+		if (route == NULL) {
+			return CSP_ERR_TX;
+		}
+		idout.src = route->iface->addr;
+		ret = csp_send_direct_iface(idout, packet, route->iface, route->via, 1);
+	}
+	return ret;
+
+}
+
+int csp_send_direct_iface(csp_id_t idout, csp_packet_t * packet, csp_iface_t * iface, uint16_t via, int from_me) {
+
+	if (iface == NULL) {
 		csp_log_error("No route to host: %u", idout.dst);
 		goto err;
 	}
-
-	csp_iface_t * ifout = ifroute->iface;
-
+	
 	csp_log_packet("OUT: S %u, D %u, Dp %u, Sp %u, Pr %u, Fl 0x%02X, Sz %u VIA: %s (%u)",
-				   idout.src, idout.dst, idout.dport, idout.sport, idout.pri, idout.flags, packet->length, ifout->name, (ifroute->via != CSP_NO_VIA_ADDRESS) ? ifroute->via : idout.dst);
+				   idout.src, idout.dst, idout.dport, idout.sport, idout.pri, idout.flags, packet->length, iface->name, (via != CSP_NO_VIA_ADDRESS) ? via : idout.dst);
 
 	/* Copy identifier to packet (before crc, xtea and hmac) */
 	csp_id_copy(&packet->id, &idout);
 
 #if (CSP_USE_PROMISC)
 	/* Loopback traffic is added to promisc queue by the router */
-	if (idout.dst != csp_get_address() && idout.src == csp_get_address()) {
+	if (from_me && (iface != &csp_if_lo)) {
 		csp_promisc_add(packet);
 	}
 #endif
 
 	/* Only encrypt packets from the current node */
-	if (idout.src == csp_conf.address) {
+	if (from_me) {
+
 		/* Append HMAC */
 		if (idout.flags & CSP_FHMAC) {
 #if (CSP_USE_HMAC)
@@ -188,20 +210,20 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, const csp_route_t * i
 
 	/* Store length before passing to interface */
 	uint16_t bytes = packet->length;
-	uint16_t mtu = ifout->mtu;
+	uint16_t mtu = iface->mtu;
 
 	if (mtu > 0 && bytes > mtu)
 		goto tx_err;
 
-	if ((*ifout->nexthop)(ifroute, packet) != CSP_ERR_NONE)
+	if ((*iface->nexthop)(iface, via, packet) != CSP_ERR_NONE)
 		goto tx_err;
 
-	ifout->tx++;
-	ifout->txbytes += bytes;
+	iface->tx++;
+	iface->txbytes += bytes;
 	return CSP_ERR_NONE;
 
 tx_err:
-	ifout->tx_error++;
+	iface->tx_error++;
 err:
 	return CSP_ERR_TX;
 }
@@ -226,8 +248,7 @@ void csp_send(csp_conn_t * conn, csp_packet_t * packet) {
 	}
 #endif
 
-	int ret = csp_send_direct(conn->idout, packet, csp_rtable_find_route(conn->idout.dst));
-	if (ret != CSP_ERR_NONE) {
+	if (csp_send_direct(conn->idout, packet, 1) != CSP_ERR_NONE) {
 		csp_buffer_free(packet);
 		return;
 	}
@@ -333,11 +354,11 @@ void csp_sendto(uint8_t prio, uint16_t dest, uint8_t dport, uint8_t src_port, ui
 
 	packet->id.dst = dest;
 	packet->id.dport = dport;
-	packet->id.src = csp_conf.address;
+	packet->id.src = 0; // The source address will be filled by csp_send_direct
 	packet->id.sport = src_port;
 	packet->id.pri = prio;
 
-	if (csp_send_direct(packet->id, packet, csp_rtable_find_route(dest)) != CSP_ERR_NONE) {
+	if (csp_send_direct(packet->id, packet, 1) != CSP_ERR_NONE) {
 		csp_buffer_free(packet);
 		return;
 	}

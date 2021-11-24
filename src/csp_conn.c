@@ -111,9 +111,6 @@ csp_conn_t * csp_conn_find_existing(csp_id_t * id) {
 		if (conn->idin.dst != id->dst)
 			continue;
 
-		/* Connection must match source */
-		if (conn->idin.src != id->src)
-			continue;
 
 		/* Connection must be open */
 		if (conn->state != CONN_OPEN)
@@ -239,16 +236,18 @@ csp_conn_t * csp_connect(uint8_t prio, uint16_t dest, uint8_t dport, uint32_t ti
 	/* Force options on all connections */
 	opts |= csp_conf.conn_dfl_so;
 
+	const csp_route_t * route = csp_rtable_find_route(dest);
+
 	/* Generate identifier */
 	csp_id_t incoming_id, outgoing_id;
 	incoming_id.pri = prio;
-	incoming_id.dst = csp_conf.address;
+	incoming_id.dst = route->iface->addr;
 	incoming_id.src = dest;
 	incoming_id.sport = dport;
 	incoming_id.flags = 0;
 	outgoing_id.pri = prio;
 	outgoing_id.dst = dest;
-	outgoing_id.src = csp_conf.address;
+	outgoing_id.src = route->iface->addr;;
 	outgoing_id.dport = dport;
 	outgoing_id.flags = 0;
 

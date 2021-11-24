@@ -71,11 +71,9 @@ int csp_i2c_add_interface(csp_iface_t * iface);
 /**
    Send CSP packet over I2C (nexthop).
 
-   @param[in] ifroute route.
-   @param[in] packet CSP packet to send.
    @return #CSP_ERR_NONE on success, otherwise an error code.
 */
-int csp_i2c_tx(const csp_route_t * ifroute, csp_packet_t * packet);
+int csp_i2c_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet);
 
 /**
    Process received I2C frame.

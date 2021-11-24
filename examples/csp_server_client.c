@@ -132,7 +132,7 @@ void client(void) {
 /* main - initialization of CSP and start of server/client tasks */
 int main(int argc, char * argv[]) {
 
-    uint8_t address = 1;
+    uint8_t address = 0;
     csp_debug_level_t debug_level = CSP_INFO;
 #if (CSP_HAVE_LIBSOCKETCAN)
     const char * can_device = NULL;
@@ -195,8 +195,7 @@ int main(int argc, char * argv[]) {
 
     csp_log_info("Initialising CSP");
 
-    /* Init CSP with address and default settings */
-    csp_conf.address = address;
+    /* Init CSP */
     csp_init();
 
     /* Start router */
@@ -229,7 +228,7 @@ int main(int argc, char * argv[]) {
 #endif
 #if (CSP_HAVE_LIBZMQ)
     if (zmq_device) {
-        int error = csp_zmqhub_init(csp_get_address(), zmq_device, 0, &default_iface);
+        int error = csp_zmqhub_init(0, zmq_device, 0, &default_iface);
         if (error != CSP_ERR_NONE) {
             csp_log_error("failed to add ZMQ interface [%s], error: %d", zmq_device, error);
             exit(1);

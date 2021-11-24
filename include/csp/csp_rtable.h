@@ -13,35 +13,16 @@
 
 #include <csp/csp_iflist.h>
 
-
-
-/**
-   No via address specified for the route, use CSP header destination.
-*/
 #define CSP_NO_VIA_ADDRESS	0xFFFF
-
-/**
-   Legacy definition for #CSP_NO_VIA_ADDRESS.
-*/
-#define CSP_NODE_MAC	CSP_NO_VIA_ADDRESS
     
-/**
-   Route entry.
-   @see csp_rtable_find_route().
-*/
-struct csp_route_s {
-    /** Which interface to route packet on */
-    csp_iface_t * iface;
-    /** If different from #CSP_NO_VIA_ADDRESS, send packet to this address, instead of the destination address in the CSP header. */
-    uint16_t via;
-};
+typedef struct csp_route_s {
+	uint16_t address;
+	uint16_t netmask;
+   uint16_t via;
+   csp_iface_t * iface;
+} csp_route_t;
 
-/**
-   Find route to address/node.
-   @param[in] dest_address destination address.
-   @return Route or NULL if no route found.
-*/
-const csp_route_t * csp_rtable_find_route(uint16_t dest_address);
+csp_route_t * csp_rtable_find_route(uint16_t dest_address);
 
 /**
    Set route to destination address/node.
@@ -97,7 +78,7 @@ void csp_rtable_free(void);
 void csp_rtable_print(void);
 
 /** Iterator for looping through the routing table. */
-typedef bool (*csp_rtable_iterator_t)(void * ctx, uint16_t address, uint16_t mask, const csp_route_t * route);
+typedef bool (*csp_rtable_iterator_t)(void * ctx, csp_route_t * route);
 
 /**
    Iterate routing table.

@@ -7,15 +7,11 @@
 #include <csp/csp_id.h>
 
 /* Definition of routing table */
-static struct csp_rtable_s {
-	csp_route_t route;
-	uint16_t address;
-	uint16_t netmask;
-} rtable[CSP_RTABLE_SIZE] = {0};
+static csp_route_t rtable[CSP_RTABLE_SIZE] = {0};
 
 static int rtable_inptr = 0;
 
-static struct csp_rtable_s * csp_rtable_find_exact(uint16_t addr, uint16_t netmask) {
+static csp_route_t * csp_rtable_find_exact(uint16_t addr, uint16_t netmask) {
 
 	/* Start search */
 	for (int i = 0; i < rtable_inptr; i++) {
@@ -27,7 +23,7 @@ static struct csp_rtable_s * csp_rtable_find_exact(uint16_t addr, uint16_t netma
 	return NULL;
 }
 
-const csp_route_t * csp_rtable_find_route(uint16_t addr) {
+csp_route_t * csp_rtable_find_route(uint16_t addr) {
 
 	/* Remember best result */
 	int best_result = -1;
@@ -53,7 +49,7 @@ const csp_route_t * csp_rtable_find_route(uint16_t addr) {
 	}
 
 	if (best_result > -1) {
-		return &rtable[best_result].route;
+		return &rtable[best_result];
 	}
 
 	return NULL;
@@ -62,7 +58,7 @@ const csp_route_t * csp_rtable_find_route(uint16_t addr) {
 int csp_rtable_set_internal(uint16_t address, uint16_t netmask, csp_iface_t * ifc, uint16_t via) {
 
 	/* First see if the entry exists */
-	struct csp_rtable_s * entry = csp_rtable_find_exact(address, netmask);
+	csp_route_t * entry = csp_rtable_find_exact(address, netmask);
 
 	/* If not, create a new one */
 	if (!entry) {
@@ -74,8 +70,8 @@ int csp_rtable_set_internal(uint16_t address, uint16_t netmask, csp_iface_t * if
 	/* Fill in the data */
 	entry->address = address;
 	entry->netmask = netmask;
-	entry->route.iface = ifc;
-	entry->route.via = via;
+	entry->iface = ifc;
+	entry->via = via;
 
 	return CSP_ERR_NONE;
 }
@@ -86,6 +82,6 @@ void csp_rtable_free(void) {
 
 void csp_rtable_iterate(csp_rtable_iterator_t iter, void * ctx) {
 	for (int i = 0; i < rtable_inptr; i++) {
-		iter(ctx, rtable[i].address, rtable[i].netmask, &rtable[i].route);
+		iter(ctx, &rtable[i]);
 	}
 }

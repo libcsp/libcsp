@@ -152,7 +152,7 @@ static int csp_rdp_send_cmp(csp_conn_t * conn, csp_packet_t * packet, int flags,
 					 packet->length, (unsigned int)(packet->length - sizeof(rdp_header_t)));
 
 	/* Send packet to IF */
-	if (csp_send_direct(idout, packet, csp_rtable_find_route(idout.dst)) != CSP_ERR_NONE) {
+	if (csp_send_direct(idout, packet, 1) != CSP_ERR_NONE) {
 		csp_log_error("RDP %p: INTERFACE ERROR: not possible to send", conn);
 		csp_buffer_free(packet);
 		return CSP_ERR_BUSY;
@@ -504,7 +504,7 @@ void csp_rdp_check_timeouts(csp_conn_t * conn) {
 			/* Send copy to tx_queue */
 			packet->timestamp_tx = csp_get_ms();
 			csp_packet_t * new_packet = csp_buffer_clone(packet);
-			if (csp_send_direct(conn->idout, new_packet, csp_rtable_find_route(conn->idout.dst)) != CSP_ERR_NONE) {
+			if (csp_send_direct(conn->idout, new_packet, 1) != CSP_ERR_NONE) {
 				csp_log_warn("RDP %p: Retransmission failed", conn);
 				csp_buffer_free(new_packet);
 			}

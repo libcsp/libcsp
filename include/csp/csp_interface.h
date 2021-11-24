@@ -1,52 +1,37 @@
-
-
 #pragma once
-
-/**
-   @file
-   Interface.
-*/
 
 #include <csp/csp_types.h>
 
-
-
-/**
-   Max unique length of interface name, when matching names.
-*/
-#define CSP_IFLIST_NAME_MAX    10
+#define CSP_IFLIST_NAME_MAX 10
 
 /**
-   Interface Tx function.
-
-   @param[in] ifroute contains the interface and the \a mac adddress.
-   @param[in] packet CSP packet to send. On success, the packet must be freed using csp_buffer_free().
-   @return #CSP_ERR_NONE on success, otherwise an error code.
-*/
-typedef int (*nexthop_t)(const csp_route_t * ifroute, csp_packet_t *packet);
+ * Interface Tx function.
+ * @return #CSP_ERR_NONE on success, otherwise an error code.
+ */
+typedef int (*nexthop_t)(csp_iface_t * iface, uint16_t via, csp_packet_t * packet);
 
 /* This struct is referenced in documentation.  Update doc when you change this. */
-/**
-   CSP interface.
-*/
 struct csp_iface_s {
-    const char *name;          //!< Name, max compare length is #CSP_IFLIST_NAME_MAX
-    void * interface_data;     //!< Interface data, only known/used by the interface layer, e.g. state information.
-    void * driver_data;        //!< Driver data, only known/used by the driver layer, e.g. device/channel references.
-    nexthop_t nexthop;         //!< Next hop (Tx) function
-    uint16_t mtu;              //!< Maximum Transmission Unit of interface
-    uint8_t split_horizon_off; //!< Disable the route-loop prevention
-    uint32_t tx;               //!< Successfully transmitted packets
-    uint32_t rx;               //!< Successfully received packets
-    uint32_t tx_error;         //!< Transmit errors (packets)
-    uint32_t rx_error;         //!< Receive errors, e.g. too large message
-    uint32_t drop;             //!< Dropped packets
-    uint32_t autherr;          //!< Authentication errors (packets)
-    uint32_t frame;            //!< Frame format errors (packets)
-    uint32_t txbytes;          //!< Transmitted bytes
-    uint32_t rxbytes;          //!< Received bytes
-    uint32_t irq;              //!< Interrupts
-    struct csp_iface_s *next;  //!< Internal, interfaces are stored in a linked list
+
+	uint16_t addr;              // Host address on this subnet
+	uint16_t netmask;           // Subnet mask
+	const char * name;          // Name, max compare length is #CSP_IFLIST_NAME_MAX
+	void * interface_data;      // Interface data, only known/used by the interface layer, e.g. state information.
+	void * driver_data;         // Driver data, only known/used by the driver layer, e.g. device/channel references.
+	nexthop_t nexthop;          // Next hop (Tx) function
+	uint16_t mtu;               // Maximum Transmission Unit of interface
+	uint8_t split_horizon_off;  // Disable the route-loop prevention
+	uint32_t tx;                // Successfully transmitted packets
+	uint32_t rx;                // Successfully received packets
+	uint32_t tx_error;          // Transmit errors (packets)
+	uint32_t rx_error;          // Receive errors, e.g. too large message
+	uint32_t drop;              // Dropped packets
+	uint32_t autherr;           // Authentication errors (packets)
+	uint32_t frame;             // Frame format errors (packets)
+	uint32_t txbytes;           // Transmitted bytes
+	uint32_t rxbytes;           // Received bytes
+	uint32_t irq;               // Interrupts
+	struct csp_iface_s * next;  // Internal, interfaces are stored in a linked list
 };
 
 /**
@@ -64,5 +49,4 @@ struct csp_iface_s {
    @param[in] iface A pointer to the incoming interface TX function.
    @param[out] pxTaskWoken Valid reference if called from ISR, otherwise NULL!
 */
-void csp_qfifo_write(csp_packet_t *packet, csp_iface_t *iface, void * pxTaskWoken);
-
+void csp_qfifo_write(csp_packet_t * packet, csp_iface_t * iface, void * pxTaskWoken);

@@ -33,10 +33,7 @@ void csp_init(void) {
 	csp_iflist_add(&csp_if_lo);
 
 	/* Register loopback route */
-	csp_rtable_set(csp_conf.address, csp_id_get_host_bits(), &csp_if_lo, CSP_NO_VIA_ADDRESS);
-
-	/* Also register loopback as default, until user redefines default route */
-	csp_rtable_set(0, 0, &csp_if_lo, CSP_NO_VIA_ADDRESS);
+	csp_rtable_set(0, 14, &csp_if_lo, CSP_NO_VIA_ADDRESS);
 }
 
 void csp_free_resources(void) {

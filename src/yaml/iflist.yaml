@@ -1,0 +1,61 @@
+#
+# YAML interface config
+#
+# Each interface should have the following attributes:
+#   name, driver, addr and netmask
+#
+# List of supported drivers:
+#   can, zmq, uart, tun, TODO: udp
+#
+# The following additional attirbutes are optional:
+#   device: used for can, and uart typically set to /dev/ttyUSB0 or can0
+#   server: used for zmq, typically set to an IP address of a zmqproxy
+#   default: true, set to true on one interface only. Sets the default route to this if.
+#
+# EXAMPLES:
+#
+# - name: "CAN"
+#   driver: "can"
+#   device: "vcan0"
+#   addr: 66
+#   netmask: 8
+#
+# - name: "ZMQ"
+#   driver: "zmq"
+#   server: "localhost"
+#   addr: 16
+#   netmask: 8
+#   default: true
+#
+# - name: "KISS"
+#   driver: "kiss"
+#   device: "/dev/ttyUSB0"
+#   baudrate: 115200
+#   addr: 136
+#   netmask: 8
+#   default: true
+#
+# - name: "TUN"
+#   driver: "tun"
+#   source: 300
+#   destination: 400
+#   addr: 300
+#   netmask: 8
+#
+# - name: "UDP"
+#   driver: "udp"
+#   addr: 500
+#   netmask: 8
+#   server: "127.0.0.1"
+#   listen_port: 9600
+#   remote_port: 9700
+#
+
+- name: "CAN0"
+  driver: "can"
+  device: "can0"
+  addr: 1
+  netmask: 8
+  default: true
+
+ 

@@ -2,17 +2,13 @@
 #include "csp_io.h"
 #include "csp_promisc.h"
 
-typedef struct {
-	csp_iface_t * iface;
-} bridge_interface_t;
-
-static bridge_interface_t bif_a;
-static bridge_interface_t bif_b;
+csp_iface_t * bif_a;
+csp_iface_t * bif_b;
 
 void csp_bridge_set_interfaces(csp_iface_t * if_a, csp_iface_t * if_b) {
 
-	bif_a.iface = if_a;
-	bif_b.iface = if_b;
+	bif_a = if_a;
+	bif_b = if_b;
 }
 
 void csp_bridge_work(void) {
@@ -35,17 +31,15 @@ void csp_bridge_work(void) {
 #endif
 
 	/* Find the opposing interface */
-	csp_route_t route;
-	if (input.iface == bif_a.iface) {
-		route.iface = bif_b.iface;
-		route.via = CSP_NO_VIA_ADDRESS;
+	csp_iface_t * destif;
+	if (input.iface == bif_a) {
+		destif = bif_b;
 	} else {
-		route.iface = bif_a.iface;
-		route.via = CSP_NO_VIA_ADDRESS;
+		destif = bif_a;
 	}
 
 	/* Send to the interface directly, no hassle */
-	if (csp_send_direct(packet->id, packet, &route) != CSP_ERR_NONE) {
+	if (csp_send_direct_iface(packet->id, packet, destif, CSP_NO_VIA_ADDRESS, 0) != CSP_ERR_NONE) {
 		csp_log_warn("Router failed to send");
 		csp_buffer_free(packet);
 	}

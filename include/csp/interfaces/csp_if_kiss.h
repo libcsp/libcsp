@@ -66,11 +66,9 @@ int csp_kiss_add_interface(csp_iface_t * iface);
 /**
    Send CSP packet over KISS (nexthop).
 
-   @param[in] ifroute route.
-   @param[in] packet CSP packet to send.
    @return #CSP_ERR_NONE on success, otherwise an error code.
 */
-int csp_kiss_tx(const csp_route_t * ifroute, csp_packet_t * packet);
+int csp_kiss_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet);
 
 /**
    Process received CAN frame.

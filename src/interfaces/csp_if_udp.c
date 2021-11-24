@@ -14,9 +14,9 @@
 #define MSG_CONFIRM (0)
 #endif
 
-static int csp_if_udp_tx(const csp_route_t * ifroute, csp_packet_t * packet) {
+static int csp_if_udp_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet) {
 
-	csp_if_udp_conf_t * ifconf = ifroute->iface->driver_data;
+	csp_if_udp_conf_t * ifconf = iface->driver_data;
 
 	int sockfd;
 	if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
@@ -45,7 +45,8 @@ int csp_if_udp_rx_get_socket(int lport) {
 	server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
 	server_addr.sin_port = htons(lport);
 
-	return bind(sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr));
+	bind(sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr));
+	return sockfd;
 }
 
 int csp_if_udp_rx_work(int sockfd, size_t mtu, struct sockaddr_in * peer_addr, csp_iface_t * iface) {
@@ -58,9 +59,12 @@ int csp_if_udp_rx_work(int sockfd, size_t mtu, struct sockaddr_in * peer_addr, c
 	/* Setup RX frane to point to ID */
 	int header_size = csp_id_setup_rx(packet);
 	int received_len = recvfrom(sockfd, (char *)packet->frame_begin, mtu + header_size, MSG_WAITALL, (struct sockaddr *)peer_addr, NULL);
-	packet->frame_length = received_len;
+	if (received_len <= 4) {
+		csp_buffer_free(packet);
+		return CSP_ERR_NOMEM;
+	}
 
-	csp_log_info("UDP peer address: %s", inet_ntoa(peer_addr->sin_addr));
+	packet->frame_length = received_len;
 
 	/* Parse the frame and strip the ID field */
 	if (csp_id_strip(packet) != 0) {
@@ -77,19 +81,18 @@ void * csp_if_udp_rx_loop(void * param) {
 
 	csp_iface_t * iface = param;
 	csp_if_udp_conf_t * ifconf = iface->driver_data;
-	int sockfd;
+	int sockfd = -1;
 
-	do {
+	while (sockfd < 0) {
 		sockfd = csp_if_udp_rx_get_socket(ifconf->lport);
 		if (sockfd < 0) {
-			printf("UDP server waiting for port %d\n", ifconf->lport);
+			printf("  UDP server waiting for port %d\n", ifconf->lport);
 			sleep(1);
 		}
-	} while (sockfd < 0);
+	}
 
 	while (1) {
 		int ret;
-
 		ret = csp_if_udp_rx_work(sockfd, iface->mtu, &ifconf->peer_addr, iface);
 		if (ret == CSP_ERR_INVAL) {
 			iface->rx_error++;
@@ -109,10 +112,10 @@ void csp_if_udp_init(csp_iface_t * iface, csp_if_udp_conf_t * ifconf) {
 	iface->driver_data = ifconf;
 
 	if (inet_aton(ifconf->host, &ifconf->peer_addr.sin_addr) == 0) {
-		printf("Unknown peer address %s\n", ifconf->host);
+		printf("  Unknown peer address %s\n", ifconf->host);
 	}
 
-	printf("UDP peer address: %s:%d (listening on port %d)\n", inet_ntoa(ifconf->peer_addr.sin_addr), ifconf->rport, ifconf->lport);
+	printf("  UDP peer address: %s:%d (listening on port %d)\n", inet_ntoa(ifconf->peer_addr.sin_addr), ifconf->rport, ifconf->lport);
 
 	/* Start server thread */
 	ret = pthread_attr_init(&attributes);

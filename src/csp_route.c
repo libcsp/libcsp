@@ -17,6 +17,7 @@
 #include "csp_promisc.h"
 #include "csp_qfifo.h"
 #include "csp_dedup.h"
+#include <csp/csp_iflist.h>
 #include "transport/csp_transport.h"
 
 /**
@@ -158,7 +159,9 @@ int csp_route_work(void) {
 	input.iface->rx++;
 	input.iface->rxbytes += packet->length;
 
-	int is_to_me = ((packet->id.dst == csp_conf.address) || (packet->id.dst == csp_id_get_max_nodeid()));
+	/* The packet is to me, if the address matches that of the incoming interface,
+	 * or the address matches the broadcast address of the incoming interface */
+	int is_to_me = ((input.iface->addr == packet->id.dst) || (csp_id_is_broadcast(packet->id.dst, input.iface->netmask)));
 
 	/* Deduplication */
 	if ((csp_conf.dedup == CSP_DEDUP_ALL) ||
@@ -177,16 +180,16 @@ int csp_route_work(void) {
 	if (!is_to_me) {
 
 		/* Find the destination interface */
-		const csp_route_t * ifroute = csp_rtable_find_route(packet->id.dst);
+		csp_route_t * route = csp_rtable_find_route(packet->id.dst);
 
 		/* If the message resolves to the input interface, don't loop it back out */
-		if ((ifroute == NULL) || ((ifroute->iface == input.iface) && (input.iface->split_horizon_off == 0))) {
+		if ((route == NULL) || ((route->iface == input.iface) && (input.iface->split_horizon_off == 0))) {
 			csp_buffer_free(packet);
 			return CSP_ERR_NONE;
 		}
 
 		/* Otherwise, actually send the message */
-		if (csp_send_direct(packet->id, packet, ifroute) != CSP_ERR_NONE) {
+		if (csp_send_direct(packet->id, packet, 0) != CSP_ERR_NONE) {
 			csp_log_warn("Router failed to send");
 			csp_buffer_free(packet);
 		}
@@ -249,8 +252,7 @@ int csp_route_work(void) {
 		/* New incoming connection accepted */
 		csp_id_t idout;
 		idout.pri = packet->id.pri;
-		idout.src = csp_conf.address;
-
+		idout.src = packet->id.dst;
 		idout.dst = packet->id.src;
 		idout.dport = packet->id.sport;
 		idout.sport = packet->id.dport;
