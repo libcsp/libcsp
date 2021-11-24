@@ -127,7 +127,7 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, int from_me) {
 	int ret;
 
 	/* Try to find the destination on any local subnets */
-	csp_iface_t * local_interface = csp_iflist_get_by_addr(idout.dst, 1);
+	csp_iface_t * local_interface = csp_iflist_get_by_subnet(idout.dst);
 	if (local_interface) {
 		idout.src = local_interface->addr;
 		ret = csp_send_direct_iface(idout, packet, local_interface, CSP_NO_VIA_ADDRESS, 1);

@@ -159,8 +159,9 @@ int csp_route_work(void) {
 	input.iface->rx++;
 	input.iface->rxbytes += packet->length;
 
-	csp_iface_t * dest_interface = csp_iflist_get_by_addr(packet->id.dst, 0);
-	int is_to_me = (dest_interface != NULL);
+	/* The packet is to me, if the address matches that of the incoming interface,
+	 * or the address matches the broadcast address of the incoming interface */
+	int is_to_me = ((input.iface->addr == packet->id.dst) || (csp_id_is_broadcast(packet->id.dst, input.iface->netmask)));
 
 	/* Deduplication */
 	if ((csp_conf.dedup == CSP_DEDUP_ALL) ||
