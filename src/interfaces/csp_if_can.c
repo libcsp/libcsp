@@ -378,6 +378,11 @@ int csp_can2_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t 
 		/* Parse CSP header into csp_id type */
 		csp_id2_strip(buf->packet);
 
+		/* Rewrite incoming L2 broadcast to local node */
+		if (buf->packet->id.dst == 0x3FFF) {
+			buf->packet->id.dst = iface->addr;
+		}
+
 		/* Data is available */
 		csp_qfifo_write(buf->packet, iface, task_woken);
 
