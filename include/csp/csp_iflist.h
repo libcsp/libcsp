@@ -19,3 +19,6 @@ csp_iface_t * csp_iflist_get(void);
 
 /* Convert bytes to readable string */
 int csp_bytesize(char *buffer, int buffer_len, unsigned long int bytes);
+
+/* From iflist_yaml.c */
+void iflist_yaml_init(char * filename);

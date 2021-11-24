@@ -45,3 +45,7 @@ int csp_queue_size(csp_queue_handle_t handle) {
 int csp_queue_size_isr(csp_queue_handle_t handle) {
 	return pthread_queue_items(handle);
 }
+
+int csp_queue_free(csp_queue_handle_t handle) {
+	return pthread_queue_free(handle);
+}
