@@ -8,6 +8,8 @@
 #include <csp/interfaces/csp_if_zmqhub.h>
 #include <csp/interfaces/csp_if_can.h>
 #include <csp/interfaces/csp_if_lo.h>
+#include <csp/interfaces/csp_if_tun.h>
+#include <csp/interfaces/csp_if_udp.h>
 #include <csp/drivers/can_socketcan.h>
 #include <csp/drivers/usart.h>
 #include <stdio.h>
@@ -21,6 +23,11 @@ struct data_s {
 	char * netmask;
 	char * server;
 	char * is_dfl;
+	char * baudrate;
+	char * source;
+	char * destination;
+	char * listen_port;
+	char * remote_port;
 };
 
 static void iflist_yaml_start_if(struct data_s * data) {
@@ -29,19 +36,76 @@ static void iflist_yaml_start_if(struct data_s * data) {
 
 static void iflist_yaml_end_if(struct data_s * data) {
 	/* Sanity checks */
-	if ((!data->name) || (!data->driver) || (!data->addr)) {
-		printf("interface is missing, name, driver or addr\n");
+	if ((!data->name) || (!data->driver) || (!data->addr) || (!data->netmask)) {
+		printf("  invalid interface found\n");
 		return;
 	}
 
+	printf("  %s addr: %u netmask %u\n", data->name, atoi(data->addr), atoi(data->netmask));
+
 	csp_iface_t * iface;
 
-    if (0) {
+	/* UART */
+    if (strcmp(data->driver, "kiss") == 0) {
+
+		/* Check for valid options */
+		if (!data->baudrate) {
+			printf("no baudrate configured\n");
+			return;
+		}
+
+		csp_usart_conf_t conf = {
+			.device = data->device,
+			.baudrate = atoi(data->baudrate),
+			.databits = 8,
+			.stopbits = 1,
+			.paritysetting = 0,
+			.checkparity = 0
+		};
+		int error = csp_usart_open_and_add_kiss_interface(&conf, data->name, &iface);
+		if (error != CSP_ERR_NONE) {
+			return;
+		}
+
+	}
+
+	else if (strcmp(data->driver, "tun") == 0) {
+
+		/* Check for valid options */
+		if (!data->source || !data->destination) {
+			printf("source or destination missing\n");
+			return;
+		}
+
+		iface = malloc(sizeof(csp_iface_t));
+		csp_if_tun_conf_t * ifconf = malloc(sizeof(csp_if_tun_conf_t));
+		ifconf->tun_dst = atoi(data->destination);
+		ifconf->tun_src = atoi(data->source);
+
+		csp_if_tun_init(iface, ifconf);
+	}
+
+	else if (strcmp(data->driver, "udp") == 0) {
+
+		/* Check for valid options */
+		if (!data->server || !data->listen_port || !data->remote_port) {
+			printf("server, listen_port or remote_port missing\n");
+			return;
+		}
+
+		iface = malloc(sizeof(csp_iface_t));
+		csp_if_udp_conf_t * udp_conf = malloc(sizeof(csp_if_udp_conf_t));
+		udp_conf->host = data->server;
+		udp_conf->lport = atoi(data->listen_port);
+		udp_conf->rport = atoi(data->remote_port);
+		csp_if_udp_init(iface, udp_conf);
+
+	}
 
 #if (CSP_HAVE_LIBZMQ)
 	/* ZMQ */
-    } else if (strcmp(data->driver, "zmq") == 0) {
-		printf("Adding ZMQ interface: %s node %s\n", data->name, data->addr);
+    else if (strcmp(data->driver, "zmq") == 0) {
+		
 
 		/* Check for valid server */
 		if (!data->server) {
@@ -49,19 +113,17 @@ static void iflist_yaml_end_if(struct data_s * data) {
 			return;
 		}
 
-		printf("server: %s\n", data->server);
-
 		csp_zmqhub_init(atoi(data->addr), data->server, 0, &iface);
 		strncpy((char *)iface->name, data->name, CSP_IFLIST_NAME_MAX);
 
 		csp_iflist_add(iface);
+
+	}
 #endif
 
-
 #if (CSP_HAVE_LIBSOCKETCAN)
-
 	/* CAN */
-	} else if (strcmp(data->driver, "can") == 0) {
+	else if (strcmp(data->driver, "can") == 0) {
 
 		/* Check for valid server */
 		if (!data->device) {
@@ -69,32 +131,27 @@ static void iflist_yaml_end_if(struct data_s * data) {
 			return;
 		}
 
-		printf("device: %s\n", data->device);
-
 		int error = csp_can_socketcan_open_and_add_interface(data->device, data->name, 1000000, true, &iface);
 		if (error != CSP_ERR_NONE) {
 			printf("failed to add CAN interface [%s], error: %d", data->device, error);
 			return;
 		}
 
+	}
 #endif
 
     /* Unsupported interface */
-	} else {
+	else {
         printf("Unsupported driver %s\n", data->driver);
         return;
     }
 
 	iface->addr = atoi(data->addr);
 	iface->netmask = atoi(data->netmask);
-
-	csp_rtable_set(atoi(data->addr), atoi(data->netmask), iface, CSP_NO_VIA_ADDRESS);
-
-    /* TODO: this should not be necessary if the csp_send uses the iflist to search before the rtable */
-	csp_rtable_set(atoi(data->addr), csp_id_get_host_bits(), &csp_if_lo, CSP_NO_VIA_ADDRESS);
+	iface->name = data->name;
 
 	if (iface && data->is_dfl) {
-		printf("Setting default route to %s\n", iface->name);
+		printf("  Setting default route to %s\n", iface->name);
 		csp_rtable_set(0, 0, iface, CSP_NO_VIA_ADDRESS);
 	}
 }
@@ -116,6 +173,16 @@ static void iflist_yaml_key_value(struct data_s * data, char * key, char * value
 		data->server = value;
 	} else if (strcmp(key, "default") == 0) {
 		data->is_dfl = value;
+	} else if (strcmp(key, "baudrate") == 0) {
+		data->baudrate = value;
+	} else if (strcmp(key, "source") == 0) {
+		data->source = value;
+	} else if (strcmp(key, "destination") == 0) {
+		data->destination = value;
+	} else if (strcmp(key, "listen_port") == 0) {
+		data->listen_port = value;
+	} else if (strcmp(key, "remote_port") == 0) {
+		data->remote_port = value;
 	} else {
 		printf("Unkown key %s\n", key);
 	}
@@ -125,6 +192,7 @@ void iflist_yaml_init(char * filename) {
 
     struct data_s data;
 
+	printf("  Reading config from %s\n", filename);
 	FILE * file = fopen(filename, "rb");
 	if (file == NULL)
 		return;
