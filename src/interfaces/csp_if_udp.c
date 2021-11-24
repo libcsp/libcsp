@@ -25,7 +25,6 @@ static int csp_if_udp_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packe
 	}
 
 	csp_id_prepend(packet);
-
 	ifconf->peer_addr.sin_family = AF_INET;
 	ifconf->peer_addr.sin_port = htons(ifconf->rport);
 	sendto(sockfd, packet->frame_begin, packet->frame_length, MSG_CONFIRM, (struct sockaddr *)&ifconf->peer_addr, sizeof(ifconf->peer_addr));
@@ -49,7 +48,7 @@ int csp_if_udp_rx_get_socket(int lport) {
 	return sockfd;
 }
 
-int csp_if_udp_rx_work(int sockfd, size_t mtu, struct sockaddr_in * peer_addr, csp_iface_t * iface) {
+int csp_if_udp_rx_work(int sockfd, size_t mtu, csp_iface_t * iface) {
 
 	csp_packet_t * packet = csp_buffer_get(mtu);
 	if (packet == NULL) {
@@ -58,7 +57,8 @@ int csp_if_udp_rx_work(int sockfd, size_t mtu, struct sockaddr_in * peer_addr, c
 
 	/* Setup RX frane to point to ID */
 	int header_size = csp_id_setup_rx(packet);
-	int received_len = recvfrom(sockfd, (char *)packet->frame_begin, mtu + header_size, MSG_WAITALL, (struct sockaddr *)peer_addr, NULL);
+	int received_len = recvfrom(sockfd, (char *)packet->frame_begin, mtu + header_size, MSG_WAITALL, NULL, NULL);
+	
 	if (received_len <= 4) {
 		csp_buffer_free(packet);
 		return CSP_ERR_NOMEM;
@@ -93,7 +93,7 @@ void * csp_if_udp_rx_loop(void * param) {
 
 	while (1) {
 		int ret;
-		ret = csp_if_udp_rx_work(sockfd, iface->mtu, &ifconf->peer_addr, iface);
+		ret = csp_if_udp_rx_work(sockfd, iface->mtu, iface);
 		if (ret == CSP_ERR_INVAL) {
 			iface->rx_error++;
 		} else if (ret == CSP_ERR_NOMEM) {
