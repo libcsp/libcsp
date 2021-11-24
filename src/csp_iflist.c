@@ -11,17 +11,10 @@
 /* Interfaces are stored in a linked list */
 static csp_iface_t * interfaces = NULL;
 
-csp_iface_t * csp_iflist_get_by_addr(uint16_t addr, int subnet_match) {
+csp_iface_t * csp_iflist_get_by_subnet(uint16_t addr) {
+
 	csp_iface_t * ifc = interfaces;
 	while (ifc) {
-
-		//printf("search if %s %u == %u ?\n", ifc->name, ifc->addr, addr);
-
-		/* Direct match on host address */
-		if (ifc->addr == addr) {
-			//printf("addr match\n");
-			return ifc;
-		}
 
 		/* Reject searches involving subnets, if the netmask is invalud */
 		if (ifc->netmask == 0) {
@@ -29,35 +22,33 @@ csp_iface_t * csp_iflist_get_by_addr(uint16_t addr, int subnet_match) {
 			continue;
 		}
 
+		/* Look if address is within subnet */
 		uint16_t netmask = ((1 << ifc->netmask) - 1) << (csp_id_get_host_bits() - ifc->netmask);
-		uint16_t hostmask = (1 << (csp_id_get_host_bits() - ifc->netmask)) - 1;
-
-		//printf("netmask %x hostmask %x\n", netmask, hostmask);
-
-		/* Reject if address is outside subnet */
 		uint16_t network_a = ifc->addr & netmask;
 		uint16_t network_b = addr & netmask;
-		if (network_a != network_b) {
-			//printf("subnet reject\n");
-			ifc = ifc->next;
-			continue;
-		}
-
-		/* Match on broadcast address */
-		if ((addr & hostmask) == hostmask) {
-			//printf("broadcast match\n");
+		if (network_a == network_b) {
 			return ifc;
 		}
 
-		/* If a subnet match is enough, return the interface anyways */
-		if (subnet_match) {
-			return ifc;
-		}
-		
-		//printf("reject\n");
-		ifc = ifc->next;		
+		ifc = ifc->next;
 	}
+	
 	return NULL;
+
+}
+
+csp_iface_t * csp_iflist_get_by_addr(uint16_t addr) {
+
+	csp_iface_t * ifc = interfaces;
+	while (ifc) {
+		if (ifc->addr == addr) {
+			return ifc;
+		}
+		ifc = ifc->next;
+	}
+
+	return NULL;
+
 }
 
 csp_iface_t * csp_iflist_get_by_name(const char * name) {

@@ -227,3 +227,11 @@ unsigned int csp_id_get_max_nodeid(void) {
 unsigned int csp_id_get_max_port(void) {
 	return ((1 << (CSP_ID2_PORT_SIZE)) - 1);
 }
+
+int csp_id_is_broadcast(uint16_t addr, uint16_t netmask) {
+	uint16_t hostmask = (1 << (csp_id_get_host_bits() - netmask)) - 1;
+	if ((addr & hostmask) == hostmask) {
+		return 1;
+	}
+	return 0;
+}
