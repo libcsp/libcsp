@@ -30,6 +30,7 @@ void csp_init(void) {
 	csp_qfifo_init();
 
 	/* Loopback */
+	csp_if_lo.netmask = csp_id_get_host_bits();
 	csp_iflist_add(&csp_if_lo);
 
 	/* Register loopback route */

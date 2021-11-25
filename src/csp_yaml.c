@@ -1,6 +1,5 @@
 
-#include "iflist_yaml.h"
-
+#include <csp/csp_yaml.h>
 #include <csp/csp_iflist.h>
 #include <csp/csp_interface.h>
 #include <csp/csp_rtable.h>
@@ -30,11 +29,11 @@ struct data_s {
 	char * remote_port;
 };
 
-static void iflist_yaml_start_if(struct data_s * data) {
+static void csp_yaml_start_if(struct data_s * data) {
 	memset(data, 0, sizeof(struct data_s));
 }
 
-static void iflist_yaml_end_if(struct data_s * data, int dfl_addr) {
+static void csp_yaml_end_if(struct data_s * data, int dfl_addr) {
 	/* Sanity checks */
 	if ((!data->name) || (!data->driver) || (!data->addr) || (!data->netmask)) {
 		printf("  invalid interface found\n");
@@ -152,8 +151,7 @@ static void iflist_yaml_end_if(struct data_s * data, int dfl_addr) {
 	iface->netmask = atoi(data->netmask);
 	iface->name = data->name;
 
-	printf("  %s addr: %u netmask %u\n", ifac
-	e->name, iface->addr, iface->netmask);
+	printf("  %s addr: %u netmask %u\n", iface->name, iface->addr, iface->netmask);
 
 	if (iface && data->is_dfl) {
 		printf("  Setting default route to %s\n", iface->name);
@@ -161,7 +159,7 @@ static void iflist_yaml_end_if(struct data_s * data, int dfl_addr) {
 	}
 }
 
-static void iflist_yaml_key_value(struct data_s * data, char * key, char * value) {
+static void csp_yaml_key_value(struct data_s * data, char * key, char * value) {
 	//printf("%s : %s\n", key, value);
 
 	if (strcmp(key, "name") == 0) {
@@ -193,7 +191,7 @@ static void iflist_yaml_key_value(struct data_s * data, char * key, char * value
 	}
 }
 
-void iflist_yaml_init(char * filename, int dfl_addr) {
+void csp_yaml_init(char * filename, int dfl_addr) {
 
     struct data_s data;
 
@@ -228,12 +226,12 @@ void iflist_yaml_init(char * filename, int dfl_addr) {
 			break;
 
 		if (event.type == YAML_MAPPING_START_EVENT) {
-			iflist_yaml_start_if(&data);
+			csp_yaml_start_if(&data);
 			continue;
 		}
 
 		if (event.type == YAML_MAPPING_END_EVENT) {
-			iflist_yaml_end_if(&data, dfl_addr);
+			csp_yaml_end_if(&data, dfl_addr);
 			continue;
 		}
 
@@ -243,7 +241,7 @@ void iflist_yaml_init(char * filename, int dfl_addr) {
 			yaml_parser_parse(&parser, &event);
 			yaml_char_t * value = event.data.scalar.value;
 
-			iflist_yaml_key_value(&data, (char *)key, (char *)value);
+			csp_yaml_key_value(&data, (char *)key, (char *)value);
 			continue;
 		}
 	}

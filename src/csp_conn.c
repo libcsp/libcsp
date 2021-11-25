@@ -239,7 +239,7 @@ csp_conn_t * csp_connect(uint8_t prio, uint16_t dest, uint8_t dport, uint32_t ti
 	int source_addr = -1;
 	csp_iface_t * local_interface = csp_iflist_get_by_subnet(dest);
 	if (local_interface) {
-		source_addr = local_interface->addr;		
+		source_addr = local_interface->addr;
 	} else {
 		csp_route_t * route = csp_rtable_find_route(dest);
 		if (route) {

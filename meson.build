@@ -71,9 +71,16 @@ csp_sources = files([
 	'src/csp_services.c',
 	'src/csp_id.c',
 	'src/csp_sfp.c',
+	
 ])
 
-subdir('src/yaml')
+yaml_dep = dependency('yaml-0.1', required : false)
+conf.set('CSP_HAVE_LIBYAML', yaml_dep.found())
+if yaml_dep.found()
+    csp_deps += yaml_dep
+    csp_sources += files('src/csp_yaml.c')
+endif
+
 subdir('src/rtable')
 subdir('src/arch')
 subdir('src/drivers')
