@@ -34,14 +34,12 @@ static void iflist_yaml_start_if(struct data_s * data) {
 	memset(data, 0, sizeof(struct data_s));
 }
 
-static void iflist_yaml_end_if(struct data_s * data) {
+static void iflist_yaml_end_if(struct data_s * data, int dfl_addr) {
 	/* Sanity checks */
 	if ((!data->name) || (!data->driver) || (!data->addr) || (!data->netmask)) {
 		printf("  invalid interface found\n");
 		return;
 	}
-
-	printf("  %s addr: %u netmask %u\n", data->name, atoi(data->addr), atoi(data->netmask));
 
 	csp_iface_t * iface;
 
@@ -146,9 +144,16 @@ static void iflist_yaml_end_if(struct data_s * data) {
         return;
     }
 
-	iface->addr = atoi(data->addr);
+	if (data->is_dfl && dfl_addr != 0) {
+		iface->addr = dfl_addr;
+	} else {
+		iface->addr = atoi(data->addr);
+	}
 	iface->netmask = atoi(data->netmask);
 	iface->name = data->name;
+
+	printf("  %s addr: %u netmask %u\n", ifac
+	e->name, iface->addr, iface->netmask);
 
 	if (iface && data->is_dfl) {
 		printf("  Setting default route to %s\n", iface->name);
@@ -188,7 +193,7 @@ static void iflist_yaml_key_value(struct data_s * data, char * key, char * value
 	}
 }
 
-void iflist_yaml_init(char * filename) {
+void iflist_yaml_init(char * filename, int dfl_addr) {
 
     struct data_s data;
 
@@ -228,7 +233,7 @@ void iflist_yaml_init(char * filename) {
 		}
 
 		if (event.type == YAML_MAPPING_END_EVENT) {
-			iflist_yaml_end_if(&data);
+			iflist_yaml_end_if(&data, dfl_addr);
 			continue;
 		}
 
