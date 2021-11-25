@@ -182,6 +182,12 @@ int csp_can1_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t 
 
 int csp_can1_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet) {
 
+	/* Loopback */
+	if (packet->id.dst == iface->addr) {
+		csp_qfifo_write(packet, iface, NULL);
+		return CSP_ERR_NONE;
+	}
+
 	csp_can_interface_data_t * ifdata = iface->interface_data;
 
 	/* Get an unique CFP id - this should be locked to prevent access from multiple tasks */
@@ -397,6 +403,12 @@ int csp_can2_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t 
 }
 
 int csp_can2_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet) {
+
+	/* Loopback */
+	if (packet->id.dst == iface->addr) {
+		csp_qfifo_write(packet, iface, NULL);
+		return CSP_ERR_NONE;
+	}
 
 	csp_can_interface_data_t * ifdata = iface->interface_data;
 
