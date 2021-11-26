@@ -74,11 +74,22 @@ csp_sources = files([
 	
 ])
 
+# First try libyaml from dynamic library (os)
 yaml_dep = dependency('yaml-0.1', required : false)
+
+# Second try to include libyaml as a cmake subproject
+if yaml_dep.found() == false
+	cmake = import('cmake')
+	yaml_pro = cmake.subproject('yaml', required: false)
+	if yaml_pro.found()
+		yaml_dep = yaml_pro.dependency('yaml')
+	endif
+endif
+
 conf.set('CSP_HAVE_LIBYAML', yaml_dep.found())
 if yaml_dep.found()
-    csp_deps += yaml_dep
-    csp_sources += files('src/csp_yaml.c')
+	csp_deps += yaml_dep
+	csp_sources += files('src/csp_yaml.c')
 endif
 
 subdir('src/rtable')
