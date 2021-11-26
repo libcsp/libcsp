@@ -313,6 +313,7 @@ csp_conn_t * csp_connect(uint8_t prio, uint16_t dest, uint8_t dport, uint32_t ti
 	/* Outgoing connections always use pre-defined source port */
 	conn->idout.sport = conn->sport_outgoing;
 	conn->idin.dport = conn->sport_outgoing;
+	conn->dest_socket = NULL;
 
 	/* Set connection options */
 	conn->opts = opts;
