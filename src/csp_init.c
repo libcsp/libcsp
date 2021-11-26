@@ -9,7 +9,7 @@
 
 csp_conf_t csp_conf = {
 	.version = 2,
-	.address = 1,
+	.address = 0,
 	.hostname = "",
 	.model = "",
 	.revision = "",
