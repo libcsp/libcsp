@@ -23,7 +23,6 @@ static int csp_bin_sem_errno_to_csp(int val) {
 void csp_bin_sem_create_static(csp_bin_sem_handle_t * sem, csp_bin_sem_t * unused) {
 	struct k_sem * s = (struct k_sem *)sem;
 
-	csp_log_lock("Semaphore init: %p", sem);
 	(void)k_sem_init(s, 1, 1);
 }
 
@@ -31,7 +30,6 @@ int csp_bin_sem_wait(csp_bin_sem_handle_t * sem, uint32_t timeout) {
 	int ret;
 	struct k_sem * s = (struct k_sem *)sem;
 
-	csp_log_lock("Wait: %p timeout %" PRIu32, sem, timeout);
 	ret = k_sem_take(s, K_MSEC(timeout));
 
 	return csp_bin_sem_errno_to_csp(ret);
@@ -40,7 +38,6 @@ int csp_bin_sem_wait(csp_bin_sem_handle_t * sem, uint32_t timeout) {
 int csp_bin_sem_post(csp_bin_sem_handle_t * sem) {
 	struct k_sem * s = (struct k_sem *)sem;
 
-	csp_log_lock("Post: %p", sem);
 	k_sem_give(s);
 
 	return CSP_SEMAPHORE_OK;

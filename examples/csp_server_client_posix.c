@@ -1,4 +1,5 @@
 #include <csp/csp.h>
+#include <stdio.h>
 #include <pthread.h>
 
 void server(void);
@@ -20,7 +21,7 @@ static int csp_pthread_create(void * (*routine)(void *)) {
 	pthread_attr_destroy(&attributes);
 
 	if (ret != 0) {
-		csp_log_error("Failed to start router task, error: %d", ret);
+		printf("Failed to start router task, error: %d", ret);
 		return ret;
 	}
 

@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include <csp/csp_rtable.h>
+#include <csp/csp_debug.h>
 #include <csp/csp_id.h>
 
 /* Definition of routing table */

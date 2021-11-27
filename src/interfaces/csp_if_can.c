@@ -11,6 +11,9 @@
 
 #include "csp_if_can_pbuf.h"
 
+/* Error counters */
+uint8_t csp_dbg_can_errno = 0;
+
 /**
  * TESTING:
  *
@@ -44,11 +47,11 @@ enum cfp_frame_t {
 };
 
 int csp_can1_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t dlc, int * task_woken) {
+
 	/* Test: random packet loss */
 	if (0) {
 		int random = rand();
 		if (random < RAND_MAX * 0.00005) {
-			// csp_log_warn("Dropping frame");
 			return CSP_ERR_DRIVER;
 		}
 	}
@@ -59,12 +62,10 @@ int csp_can1_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t 
 		if (CFP_TYPE(id) == CFP_BEGIN) {
 			buf = csp_can_pbuf_new(id, task_woken);
 			if (buf == NULL) {
-				// csp_log_warn("No available packet buffer for CAN");
 				iface->rx_error++;
 				return CSP_ERR_NOMEM;
 			}
 		} else {
-			// csp_log_warn("Out of order id 0x%X remain %u", CFP_ID(id), CFP_REMAIN(id));
 			iface->frame++;
 			return CSP_ERR_INVAL;
 		}
@@ -79,7 +80,7 @@ int csp_can1_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t 
 
 			/* Discard packet if DLC is less than CSP id + CSP length fields */
 			if (dlc < (sizeof(uint32_t) + sizeof(uint16_t))) {
-				csp_log_warn("Short BEGIN frame received");
+				csp_dbg_conn_errno = CSP_DBG_CAN_ERR_SHORT_BEGIN;
 				iface->frame++;
 				csp_can_pbuf_free(buf, task_woken);
 				break;
@@ -88,14 +89,14 @@ int csp_can1_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t 
 			/* Check for incomplete frame */
 			if (buf->packet != NULL) {
 				/* Reuse the buffer */
-				csp_log_warn("Incomplete frame");
+				csp_dbg_conn_errno = CSP_DBG_CAN_ERR_INCOMPLETE;
 				iface->frame++;
 			} else {
 				/* Get free buffer for frame */
 				buf->packet = task_woken ? csp_buffer_get_isr(0) : csp_buffer_get(0);  // CSP only supports one size
 				if (buf->packet == NULL) {
-					// csp_log_error("Failed to get buffer for CSP_BEGIN packet");
 					iface->frame++;
+					csp_dbg_can_errno = CSP_DBG_CAN_ERR_RX_OUT;
 					csp_can_pbuf_free(buf, task_woken);
 					break;
 				}
@@ -135,7 +136,7 @@ int csp_can1_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t 
 
 			/* Check 'remain' field match */
 			if (CFP_REMAIN(id) != buf->remain - 1) {
-				// csp_log_error("CAN frame lost in CSP packet");
+				csp_dbg_can_errno = CSP_DBG_CAN_ERR_FRAME_LOST;
 				csp_can_pbuf_free(buf, task_woken);
 				iface->frame++;
 				break;
@@ -146,7 +147,7 @@ int csp_can1_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t 
 
 			/* Check for overflow */
 			if ((buf->rx_count + dlc - offset) > buf->packet->length) {
-				// csp_log_error("RX buffer overflow");
+				csp_dbg_can_errno = CSP_DBG_CAN_ERR_RX_OVF;
 				iface->frame++;
 				csp_can_pbuf_free(buf, task_woken);
 				break;
@@ -172,7 +173,7 @@ int csp_can1_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t 
 			break;
 
 		default:
-			// csp_log_warn("Received unknown CFP message type");
+			csp_dbg_conn_errno = CSP_DBG_CAN_ERR_UNKNOWN;
 			csp_can_pbuf_free(buf, task_woken);
 			break;
 	}
@@ -237,7 +238,6 @@ int csp_can1_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet) {
 
 	/* Send first frame */
 	if ((tx_func)(iface->driver_data, can_id, frame_buf, CFP1_DATA_OFFSET + data_bytes) != CSP_ERR_NONE) {
-		// csp_log_warn("Failed to send CAN frame in csp_tx_can");
 		iface->tx_error++;
 		/* Does not free on return */
 		return CSP_ERR_DRIVER;
@@ -266,7 +266,6 @@ int csp_can1_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet) {
 
 		/* Send frame */
 		if ((tx_func)(iface->driver_data, can_id, packet->data + tx_count - data_bytes, data_bytes) != CSP_ERR_NONE) {
-			// csp_log_warn("Failed to send CAN frame in Tx callback");
 			iface->tx_error++;
 			/* Does not free on return */
 			return CSP_ERR_DRIVER;
@@ -286,12 +285,12 @@ int csp_can2_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t 
 		if (id & (CFP2_BEGIN_MASK << CFP2_BEGIN_OFFSET)) {
 			buf = csp_can_pbuf_new(id, task_woken);
 			if (buf == NULL) {
-				// csp_log_warn("No available packet buffer for CAN");
+				csp_dbg_conn_errno = CSP_DBG_CAN_ERR_RX_OUT;
 				iface->rx_error++;
 				return CSP_ERR_NOMEM;
 			}
 		} else {
-			// csp_log_warn("can: Incomplete fragment\n");;
+			csp_dbg_conn_errno = CSP_DBG_CAN_ERR_INCOMPLETE;
 			return CSP_ERR_INVAL;
 		}
 	}
@@ -301,7 +300,7 @@ int csp_can2_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t 
 
 		/* Discard packet if DLC is less than CSP id + CSP length fields */
 		if (dlc < 4) {
-			// csp_log_warn("Short BEGIN frame received");
+			csp_dbg_conn_errno = CSP_DBG_CAN_ERR_SHORT_BEGIN;
 			iface->frame++;
 			csp_can_pbuf_free(buf, task_woken);
 			return CSP_ERR_INVAL;
@@ -310,13 +309,13 @@ int csp_can2_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t 
 		/* Check for incomplete frame */
 		if (buf->packet != NULL) {
 			/* Reuse the buffer */
-			// csp_log_warn("Incomplete frame");
+			csp_dbg_conn_errno = CSP_DBG_CAN_ERR_INCOMPLETE;
 			iface->frame++;
 		} else {
 			/* Get free buffer for frame */
 			buf->packet = task_woken ? csp_buffer_get_isr(0) : csp_buffer_get(0);  // CSP only supports one size
 			if (buf->packet == NULL) {
-				// csp_log_error("Failed to get buffer for CSP_BEGIN packet");
+				csp_dbg_can_errno = CSP_DBG_CAN_ERR_RX_OUT;
 				iface->frame++;
 				csp_can_pbuf_free(buf, task_woken);
 				return CSP_ERR_NOBUFS;
@@ -355,7 +354,7 @@ int csp_can2_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t 
 		 * We abuse / reuse the rx_count pbuf field
 		 * (Note this could be done using csp buffers instead) */
 		if ((buf->rx_count) != fragment_counter) {
-			// csp_log_error("CAN frame lost in CSP packet");
+			csp_dbg_can_errno = CSP_DBG_CAN_ERR_FRAME_LOST;
 			csp_can_pbuf_free(buf, task_woken);
 			iface->frame++;
 			return CSP_ERR_INVAL;
@@ -368,7 +367,7 @@ int csp_can2_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t 
 
 	/* Check for overflow */
 	if (buf->packet->frame_length + dlc > iface->mtu) {
-		// csp_log_error("RX buffer overflow");
+		csp_dbg_can_errno = CSP_DBG_CAN_ERR_RX_OVF;
 		iface->frame++;
 		csp_can_pbuf_free(buf, task_woken);
 		return CSP_ERR_INVAL;
@@ -484,7 +483,6 @@ int csp_can2_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet) {
 
 		/* Send frame */
 		if ((ifdata->tx_func)(iface->driver_data, can_id, packet->data + tx_count, data_bytes) != CSP_ERR_NONE) {
-			// csp_log_warn("Failed to send CAN frame in Tx callback");
 			iface->tx_error++;
 			/* Does not free on return */
 			return CSP_ERR_DRIVER;

@@ -20,6 +20,55 @@
 
 #else 
 
+/**
+ * NEW DEBUG API:
+ * 
+ * Based on counters, and error numbers.
+ * This gets rid of a lot of verbose debugging strings while
+ * still maintaining the same level of debug capabilities.
+ * 
+ */
+
+/* Error counters */
+extern uint8_t csp_dbg_buffer_out;
+
+extern uint8_t csp_dbg_buffer_errno;
+#define CSP_DBG_BUFFER_ERR_CORRUPT_BUFFER 1
+#define CSP_DBG_BUFFER_ERR_MTU_EXCEEDED 2
+#define CSP_DBG_BUFFER_ERR_ALREADY_FREE 3
+#define CSP_DBG_BUFFER_ERR_REFCOUNT 4
+
+extern uint8_t csp_dbg_init_errno;
+#define CSP_DBG_INIT_ERR_INVALID_CAN_CONFIG 1
+#define CSP_DBG_INIT_ERR_INVALID_RTABLE_ENTRY 2
+
+extern uint8_t csp_dbg_conn_out;
+extern uint8_t csp_dbg_conn_ovf;
+extern uint8_t csp_dbg_conn_noroute;
+extern uint8_t csp_dbg_conn_errno;
+#define CSP_DBG_CONN_ERR_UNSUPPORTED 1
+#define CSP_DBG_CONN_ERR_INVALID_BIND_PORT 2
+#define CSP_DBG_CONN_ERR_PORT_ALREADY_IN_USE 3
+#define CSP_DBG_CONN_ERR_ALREADY_CLOSED 4
+#define CSP_DBG_CONN_ERR_INVALID_POINTER 5
+
+extern uint8_t csp_dbg_can_errno;
+#define CSP_DBG_CAN_ERR_FRAME_LOST 1
+#define CSP_DBG_CAN_ERR_RX_OVF 2
+#define CSP_DBG_CAN_ERR_RX_OUT 3
+#define CSP_DBG_CAN_ERR_SHORT_BEGIN 4
+#define CSP_DBG_CAN_ERR_INCOMPLETE 5
+#define CSP_DBG_CAN_ERR_UNKNOWN 6
+
+extern uint8_t csp_dbg_inval_reply;
+
+extern uint8_t csp_dbg_rdp_print;
+extern uint8_t csp_dbg_packet_print;
+
+#define csp_rdp_error(format, ...) { if (csp_dbg_rdp_print >= 1) printf(format, ##__VA_ARGS__); }
+#define csp_rdp_protocol(format, ...) { if (csp_dbg_rdp_print >= 2) printf(format, ##__VA_ARGS__); }
+#define csp_print_packet(format, ...) { if (csp_dbg_packet_print >= 1) printf(format, ##__VA_ARGS__); }
+
 
 /**
    Debug levels.
@@ -91,47 +140,6 @@ extern bool csp_debug_level_enabled[];
 #define csp_debug(level, format, ...) { if (CSP_DEBUG && csp_debug_level_enabled[level]) do_csp_debug(level, format, ##__VA_ARGS__); }
 #endif
 
-/**
- * Log message with level #CSP_ERROR.
- * @param format log message, printf syntax.
- */
-#define csp_log_error(format, ...)    { if (CSP_LOG_LEVEL_ERROR) csp_debug(CSP_ERROR, format, ##__VA_ARGS__); }
-
-/**
- * Log message with level #CSP_WARN.
- * @param format log message, printf syntax.
- */
-#define csp_log_warn(format, ...)     { if (CSP_LOG_LEVEL_WARN) csp_debug(CSP_WARN, format, ##__VA_ARGS__); }
-
-/**
- * Log message with level #CSP_INFO.
- * @param format log message, printf syntax.
- */
-#define csp_log_info(format, ...)     { if (CSP_LOG_LEVEL_INFO) csp_debug(CSP_INFO, format, ##__VA_ARGS__); }
-
-/**
- * Log message with level #CSP_BUFFER.
- * @param format log message, printf syntax.
- */
-#define csp_log_buffer(format, ...)   { if (CSP_LOG_LEVEL_DEBUG) csp_debug(CSP_BUFFER, format, ##__VA_ARGS__); }
-
-/**
- * Log message with level #CSP_PACKET.
- * @param format log message, printf syntax.
- */
-#define csp_log_packet(format, ...)   { if (CSP_LOG_LEVEL_DEBUG) csp_debug(CSP_PACKET, format, ##__VA_ARGS__); }
-
-/**
- * Log message with level #CSP_PROTOCOL.
- * @param format log message, printf syntax.
- */
-#define csp_log_protocol(format, ...) { if (CSP_LOG_LEVEL_DEBUG) csp_debug(CSP_PROTOCOL, format, ##__VA_ARGS__); }
-
-/**
- * Log message with level #CSP_LOCK.
- * @param format log message, printf syntax.
- */
-#define csp_log_lock(format, ...)     { if (CSP_LOG_LEVEL_DEBUG) csp_debug(CSP_LOCK, format, ##__VA_ARGS__); }
 
 /**
  * Do the actual logging (don't use directly).

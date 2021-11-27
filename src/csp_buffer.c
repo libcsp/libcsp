@@ -21,6 +21,10 @@ typedef struct csp_skbf_s {
 // Queue of free CSP buffers
 static csp_queue_handle_t csp_buffers;
 
+/* Error counters */
+uint8_t csp_dbg_buffer_out = 0;
+uint8_t csp_dbg_buffer_errno = 0;
+
 void csp_buffer_init(void) {
 
 	/**
@@ -48,11 +52,16 @@ void * csp_buffer_get_isr(size_t _data_size) {
 	csp_skbf_t * buffer = NULL;
 	int task_woken = 0;
 	csp_queue_dequeue_isr(csp_buffers, &buffer, &task_woken);
-	if (buffer == NULL)
+	if (buffer == NULL) {
+		csp_dbg_buffer_out++;
 		return NULL;
+	}
 
-	if (buffer != buffer->skbf_addr)
+	if (buffer != buffer->skbf_addr) {
+		csp_dbg_buffer_errno = CSP_DBG_BUFFER_ERR_CORRUPT_BUFFER;
+		/* Best option here must be to leak the invalid buffer */
 		return NULL;
+	}
 
 	buffer->refcount = 1;
 	return buffer->skbf_data;
@@ -61,23 +70,21 @@ void * csp_buffer_get_isr(size_t _data_size) {
 void * csp_buffer_get(size_t _data_size) {
 
 	if (_data_size > CSP_BUFFER_SIZE) {
-		csp_log_error("GET: Too large data size %u > max %u", (unsigned int)_data_size, (unsigned int)CSP_BUFFER_SIZE);
+		csp_dbg_buffer_errno = CSP_DBG_BUFFER_ERR_MTU_EXCEEDED;
 		return NULL;
 	}
 
 	csp_skbf_t * buffer = NULL;
 	csp_queue_dequeue(csp_buffers, &buffer, 0);
 	if (buffer == NULL) {
-		csp_log_error("GET: Out of buffers");
+		csp_dbg_buffer_out++;
 		return NULL;
 	}
 
 	if (buffer != buffer->skbf_addr) {
-		csp_log_error("GET: Corrupt CSP buffer %p != %p", buffer, buffer->skbf_addr);
+		csp_dbg_buffer_errno = CSP_DBG_BUFFER_ERR_CORRUPT_BUFFER;
 		return NULL;
 	}
-
-	csp_log_buffer("GET: %p", buffer);
 
 	buffer->refcount = 1;
 	return buffer->skbf_data;
@@ -93,18 +100,22 @@ void csp_buffer_free_isr(void * packet) {
 	csp_skbf_t * buf = (void *)(((uint8_t *)packet) - sizeof(csp_skbf_t));
 
 	if (((uintptr_t)buf % CSP_BUFFER_ALIGN) > 0) {
+		csp_dbg_buffer_errno = CSP_DBG_BUFFER_ERR_CORRUPT_BUFFER;
 		return;
 	}
 
 	if (buf->skbf_addr != buf) {
+		csp_dbg_buffer_errno = CSP_DBG_BUFFER_ERR_CORRUPT_BUFFER;
 		return;
 	}
 
 	if (buf->refcount == 0) {
+		csp_dbg_buffer_errno = CSP_DBG_BUFFER_ERR_CORRUPT_BUFFER;
 		return;
 	}
 
 	if (--(buf->refcount) > 0) {
+		csp_dbg_buffer_errno = CSP_DBG_BUFFER_ERR_CORRUPT_BUFFER;;
 		return;
 	}
 
@@ -122,26 +133,25 @@ void csp_buffer_free(void * packet) {
 	csp_skbf_t * buf = (void *)(((uint8_t *)packet) - sizeof(csp_skbf_t));
 
 	if (((uintptr_t)buf % CSP_BUFFER_ALIGN) > 0) {
-		csp_log_error("FREE: Unaligned CSP buffer pointer %p", packet);
+		csp_dbg_buffer_errno = CSP_DBG_BUFFER_ERR_CORRUPT_BUFFER;
 		return;
 	}
 
 	if (buf->skbf_addr != buf) {
-		csp_log_error("FREE: Invalid CSP buffer pointer %p", packet);
+		csp_dbg_buffer_errno = CSP_DBG_BUFFER_ERR_CORRUPT_BUFFER;
 		return;
 	}
 
 	if (buf->refcount == 0) {
-		csp_log_error("FREE: Buffer already free %p", buf);
+		csp_dbg_buffer_errno = CSP_DBG_BUFFER_ERR_ALREADY_FREE;
 		return;
 	}
 
 	if (--(buf->refcount) > 0) {
-		csp_log_error("FREE: Buffer %p in use by %u users", buf, buf->refcount);
+		csp_dbg_buffer_errno = CSP_DBG_BUFFER_ERR_REFCOUNT;
 		return;
 	}
 
-	csp_log_buffer("FREE: %p", buf);
 	csp_queue_enqueue(csp_buffers, &buf, 0);
 }
 

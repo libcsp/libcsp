@@ -72,9 +72,7 @@ int csp_sfp_send_own_memcpy(csp_conn_t * conn, const void * data, unsigned int t
 		}
 
 		/* Print debug */
-		csp_log_protocol("%s: %d:%d, sending at %p size %u",
-						 __FUNCTION__, csp_conn_src(conn), csp_conn_sport(conn),
-						 ((uint8_t *)data) + count, size);
+		//printf("%s: %d:%d, sending at %p size %u\n", __FUNCTION__, csp_conn_src(conn), csp_conn_sport(conn), ((uint8_t *)data) + count, size);
 
 		/* Copy data */
 		(memcpyfcn)((csp_memptr_t)(uintptr_t)packet->data, (csp_memptr_t)(uintptr_t)(((uint8_t *)data) + count), size);
@@ -122,24 +120,18 @@ int csp_sfp_recv_fp(csp_conn_t * conn, void ** return_data, int * return_datasiz
 		/* Read SFP header */
 		sfp_header_t * sfp_header = csp_sfp_header_remove(packet);
 		if (sfp_header == NULL) {
-			csp_log_warn("%s: %u:%u, invalid message, id.flags: 0x%x, length: %u",
-						 __FUNCTION__, packet->id.src, packet->id.sport,
-						 packet->id.flags, packet->length);
+			//printf("%s: %u:%u, invalid message, id.flags: 0x%x, length: %u\n", __FUNCTION__, packet->id.src, packet->id.sport, packet->id.flags, packet->length);
 			csp_buffer_free(packet);
 
 			error = CSP_ERR_SFP;
 			goto error;
 		}
 
-		csp_log_protocol("%s: %u:%u, fragment %" PRIu32 "/%" PRIu32,
-						 __FUNCTION__, packet->id.src, packet->id.sport,
-						 sfp_header->offset + packet->length, sfp_header->totalsize);
+		//printf("%s: %u:%u, fragment %" PRIu32 "/%" PRIu32 "\n",  __FUNCTION__, packet->id.src, packet->id.sport, sfp_header->offset + packet->length, sfp_header->totalsize);
 
 		/* Consistency check */
 		if (sfp_header->offset != data_offset) {
-			csp_log_warn("%s: %u:%u, invalid message, offset %" PRIu32 " (expected %" PRIu32 "), length: %u, totalsize %" PRIu32,
-						 __FUNCTION__, packet->id.src, packet->id.sport,
-						 sfp_header->offset, data_offset, packet->length, sfp_header->totalsize);
+			//printf("%s: %u:%u, invalid message, offset %" PRIu32 " (expected %" PRIu32 "), length: %u, totalsize %" PRIu32 "\n", __FUNCTION__, packet->id.src, packet->id.sport, sfp_header->offset, data_offset, packet->length, sfp_header->totalsize);
 			csp_buffer_free(packet);
 
 			error = CSP_ERR_SFP;
@@ -151,9 +143,7 @@ int csp_sfp_recv_fp(csp_conn_t * conn, void ** return_data, int * return_datasiz
 			datasize = sfp_header->totalsize;
 			data = malloc(datasize);
 			if (data == NULL) {
-				csp_log_warn("%s: %u:%u, malloc(%" PRIu32 ") failed",
-							 __FUNCTION__, packet->id.src, packet->id.sport,
-							 datasize);
+				//printf("%s: %u:%u, malloc(%" PRIu32 ") failed\n", __FUNCTION__, packet->id.src, packet->id.sport, datasize);
 				csp_buffer_free(packet);
 
 				error = CSP_ERR_NOMEM;
@@ -163,9 +153,7 @@ int csp_sfp_recv_fp(csp_conn_t * conn, void ** return_data, int * return_datasiz
 
 		/* Consistency check */
 		if (((data_offset + packet->length) > datasize) || (datasize != sfp_header->totalsize)) {
-			csp_log_warn("%s: %u:%u, invalid size, sfp.offset: %" PRIu32 ", length: %u, total: %" PRIu32 " / %" PRIu32 "",
-						 __FUNCTION__, packet->id.src, packet->id.sport,
-						 sfp_header->offset, packet->length, datasize, sfp_header->totalsize);
+			//printf("%s: %u:%u, invalid size, sfp.offset: %" PRIu32 ", length: %u, total: %" PRIu32 " / %" PRIu32 "\n", __FUNCTION__, packet->id.src, packet->id.sport, sfp_header->offset, packet->length, datasize, sfp_header->totalsize);
 			csp_buffer_free(packet);
 
 			error = CSP_ERR_SFP;
@@ -187,9 +175,7 @@ int csp_sfp_recv_fp(csp_conn_t * conn, void ** return_data, int * return_datasiz
 
 		/* Consistency check */
 		if (packet->length == 0) {
-			csp_log_warn("%s: %u:%u, invalid size, sfp.offset: %" PRIu32 ", length: %u, total: %" PRIu32 " / %" PRIu32 "",
-						 __FUNCTION__, packet->id.src, packet->id.sport,
-						 sfp_header->offset, packet->length, datasize, sfp_header->totalsize);
+			printf("%s: %u:%u, invalid size, sfp.offset: %" PRIu32 ", length: %u, total: %" PRIu32 " / %" PRIu32 "\n", __FUNCTION__, packet->id.src, packet->id.sport, sfp_header->offset, packet->length, datasize, sfp_header->totalsize);
 			csp_buffer_free(packet);
 
 			error = CSP_ERR_SFP;

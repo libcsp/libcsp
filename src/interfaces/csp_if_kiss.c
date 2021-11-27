@@ -79,7 +79,6 @@ void csp_kiss_rx(csp_iface_t * iface, const uint8_t * buf, size_t len, void * px
 
 		/* If packet was too long */
 		if (ifdata->rx_length >= ifdata->max_rx_length) {
-			// csp_log_warn("KISS RX overflow");
 			iface->rx_error++;
 			ifdata->rx_mode = KISS_MODE_NOT_STARTED;
 			ifdata->rx_length = 0;
@@ -138,7 +137,6 @@ void csp_kiss_rx(csp_iface_t * iface, const uint8_t * buf, size_t len, void * px
 
 						/* Validate CRC */
 						if (csp_crc32_verify(ifdata->rx_packet) != CSP_ERR_NONE) {
-							// csp_log_warn("KISS invalid crc frame skipped, len: %u", ifdata->rx_packet->length);
 							iface->rx_error++;
 							ifdata->rx_mode = KISS_MODE_NOT_STARTED;
 							break;

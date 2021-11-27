@@ -15,19 +15,12 @@ int main(int argc, char * argv[]) {
     for (int i = 0; i <= CSP_LOCK; ++i) {
         csp_debug_set_level(i, true);
     }
-    csp_log_error("csp_log_error(...), level: %d", CSP_ERROR);
-    csp_log_warn("csp_log_warn(...), level: %d", CSP_WARN);
-    csp_log_info("csp_log_info((...), level: %d", CSP_INFO);
-    csp_log_buffer("csp_log_buffer(...), level: %d", CSP_BUFFER);
-    csp_log_packet("csp_log_packet(...), level: %d", CSP_PACKET);
-    csp_log_protocol("csp_log_protocol(...), level: %d", CSP_PROTOCOL);
-    csp_log_lock("csp_log_lock(...), level: %d", CSP_LOCK);
 
     // clock
     csp_timestamp_t csp_clock = {};
     csp_clock_get_time(&csp_clock);
     assert(csp_clock.tv_sec != 0);
-    csp_log_info("csp_clock_get_time(..) -> sec:nsec = %"PRIu32":%"PRIu32, csp_clock.tv_sec, csp_clock.tv_nsec);
+    printf("csp_clock_get_time(..) -> sec:nsec = %"PRIu32":%"PRIu32, csp_clock.tv_sec, csp_clock.tv_nsec);
 
     // relative time
     const uint32_t msec1 = csp_get_ms();

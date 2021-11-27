@@ -4,6 +4,7 @@
 #include <inttypes.h>
 
 #include <csp/csp.h>
+#include <csp/csp_debug.h>
 #include <csp/csp_id.h>
 #include <csp/csp_iflist.h>
 #include <csp/interfaces/csp_if_lo.h>
@@ -43,14 +44,14 @@ static int csp_rtable_parse(const char * rtable, int dry_run) {
 
 		csp_iface_t * ifc = csp_iflist_get_by_name(name);
 		if ((address > csp_id_get_max_nodeid()) || (netmask > (int)csp_id_get_host_bits()) || (ifc == NULL)) {
-			csp_log_error("%s: invalid entry [%s] addr: %u, netmask %d", __FUNCTION__, str, address, netmask);
+			csp_dbg_init_errno = CSP_DBG_INIT_ERR_INVALID_RTABLE_ENTRY; 
 			return CSP_ERR_INVAL;
 		}
 
 		if (dry_run == 0) {
 			int res = csp_rtable_set(address, netmask, ifc, via);
 			if (res != CSP_ERR_NONE) {
-				csp_log_error("%s: failed to add [%s], error: %d", __FUNCTION__, str, res);
+				csp_dbg_init_errno = CSP_DBG_INIT_ERR_INVALID_RTABLE_ENTRY;
 				return res;
 			}
 		}
@@ -77,8 +78,7 @@ int csp_rtable_set(uint16_t address, int netmask, csp_iface_t * ifc, uint16_t vi
 
 	/* Validates options */
 	if ((ifc == NULL) || (netmask > (int)csp_id_get_host_bits())) {
-		csp_log_error("%s: invalid route: address %u, netmask %u, interface %p (%s), via %u",
-					  __FUNCTION__, address, netmask, ifc, (ifc != NULL) ? ifc->name : "", via);
+		csp_dbg_init_errno = CSP_DBG_INIT_ERR_INVALID_RTABLE_ENTRY; 
 		return CSP_ERR_INVAL;
 	}
 

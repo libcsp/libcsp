@@ -11,6 +11,7 @@
 #include <csp/arch/csp_queue.h>
 #include <csp/arch/csp_time.h>
 #include <csp/csp_id.h>
+#include <csp/csp_debug.h>
 #include "transport/csp_transport.h"
 
 #define OUTGOING_PORTS (((1 << (CSP_ID2_PORT_SIZE)) - 1) - CSP_PORT_MAX_BIND)
@@ -20,6 +21,12 @@
 
 /* Connection pool */
 static csp_conn_t arr_conn[CSP_CONN_MAX] __attribute__((section(".noinit")));
+
+/* Error counters */
+uint8_t csp_dbg_conn_out = 0;
+uint8_t csp_dbg_conn_ovf = 0;
+uint8_t csp_dbg_conn_noroute = 0;
+uint8_t csp_dbg_conn_errno = 0;
 
 void csp_conn_check_timeouts(void) {
 #if (CSP_USE_RDP)
@@ -39,7 +46,7 @@ int csp_conn_enqueue_packet(csp_conn_t * conn, csp_packet_t * packet) {
 		return CSP_ERR_INVAL;
 
 	if (csp_queue_enqueue(conn->rx_queue, &packet, 0) != CSP_QUEUE_OK) {
-		csp_log_error("RX queue %p full with %u items", conn->rx_queue, csp_queue_size(conn->rx_queue));
+		csp_dbg_conn_ovf++;
 		return CSP_ERR_NOMEM;
 	}
 
@@ -160,7 +167,7 @@ csp_conn_t * csp_conn_allocate(csp_conn_type_t type) {
 	}
 
 	if (conn == NULL) {
-		csp_log_error("No free connections, max %u", CSP_CONN_MAX);
+		csp_dbg_conn_out++;
 		return NULL;
 	}
 
@@ -202,7 +209,7 @@ int csp_conn_close(csp_conn_t * conn, uint8_t closed_by) {
 	}
 
 	if (conn->state == CONN_CLOSED) {
-		csp_log_protocol("Conn already closed");
+		csp_dbg_conn_errno = CSP_DBG_CONN_ERR_ALREADY_CLOSED;
 		return CSP_ERR_NONE;
 	}
 
@@ -248,8 +255,9 @@ csp_conn_t * csp_connect(uint8_t prio, uint16_t dest, uint8_t dport, uint32_t ti
 	}
 
 	if (source_addr == -1) {
-		csp_log_error("No route to host %d", dest);
-	}	
+		csp_dbg_conn_noroute++;
+		return NULL;
+	}
 	
 	/* Generate identifier */
 	csp_id_t incoming_id, outgoing_id;
@@ -274,7 +282,7 @@ csp_conn_t * csp_connect(uint8_t prio, uint16_t dest, uint8_t dport, uint32_t ti
 		incoming_id.flags |= CSP_FRDP;
 		outgoing_id.flags |= CSP_FRDP;
 #else
-		csp_log_error("No RDP support");
+		csp_dbg_conn_errno = CSP_DBG_CONN_ERR_UNSUPPORTED;
 		return NULL;
 #endif
 	}
@@ -284,7 +292,7 @@ csp_conn_t * csp_connect(uint8_t prio, uint16_t dest, uint8_t dport, uint32_t ti
 		outgoing_id.flags |= CSP_FHMAC;
 		incoming_id.flags |= CSP_FHMAC;
 #else
-		csp_log_error("No HMAC support");
+		csp_dbg_conn_errno = CSP_DBG_CONN_ERR_UNSUPPORTED;
 		return NULL;
 #endif
 	}
@@ -294,7 +302,7 @@ csp_conn_t * csp_connect(uint8_t prio, uint16_t dest, uint8_t dport, uint32_t ti
 		outgoing_id.flags |= CSP_FXTEA;
 		incoming_id.flags |= CSP_FXTEA;
 #else
-		csp_log_error("No XTEA support");
+		csp_dbg_conn_errno = CSP_DBG_CONN_ERR_UNSUPPORTED;
 		return NULL;
 #endif
 	}

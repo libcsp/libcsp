@@ -120,14 +120,13 @@ void csp_if_udp_init(csp_iface_t * iface, csp_if_udp_conf_t * ifconf) {
 	/* Start server thread */
 	ret = pthread_attr_init(&attributes);
 	if (ret != 0) {
-		csp_log_error("csp_if_udp_init: pthread_attr_init failed: %s: %d\n", strerror(ret), ret);
+		printf("csp_if_udp_init: pthread_attr_init failed: %s: %d\n", strerror(ret), ret);
 	}
 	ret = pthread_attr_setdetachstate(&attributes, PTHREAD_CREATE_DETACHED);
 	if (ret != 0) {
-		csp_log_error("csp_if_udp_init: pthread_attr_setdetachstate failed: %s: %d\n", strerror(ret), ret);
+		printf("csp_if_udp_init: pthread_attr_setdetachstate failed: %s: %d\n", strerror(ret), ret);
 	}
 	ret = pthread_create(&ifconf->server_handle, &attributes, csp_if_udp_rx_loop, iface);
-	csp_log_info("csp_if_udp_rx_loop start %d\r\n", ret);
 
 	/* MTU is datasize */
 	iface->mtu = csp_buffer_data_size();

@@ -215,7 +215,7 @@ csp_iface_t * csp_driver_can_init(int addr, int netmask, int id, can_mode_e mode
 	} else if (mode == CSP_CAN_PROMISC) {
 		mcan[id].mask = 0;
 	} else {
-		csp_log_error("Unknown CAN mode");
+		csp_dbg_init_errno = CSP_DBG_INIT_ERR_INVALID_CAN_CONFIG;
 		return NULL;
 	}
 

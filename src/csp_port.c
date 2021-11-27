@@ -55,16 +55,14 @@ int csp_bind(csp_socket_t * socket, uint8_t port) {
 	if (port == CSP_ANY) {
 		port = CSP_PORT_MAX_BIND + 1;
 	} else if (port > CSP_PORT_MAX_BIND) {
-		csp_log_error("csp_bind: invalid port %u", port);
+		csp_dbg_conn_errno = CSP_DBG_CONN_ERR_INVALID_BIND_PORT;
 		return CSP_ERR_INVAL;
 	}
 
 	if (ports[port].state != PORT_CLOSED) {
-		csp_log_error("Port %d is already in use", port);
+		csp_dbg_conn_errno = CSP_DBG_CONN_ERR_PORT_ALREADY_IN_USE;
 		return CSP_ERR_USED;
 	}
-
-	csp_log_info("Binding socket %p to port %u", socket, port);
 
 	/* Save listener */
 	ports[port].socket = socket;

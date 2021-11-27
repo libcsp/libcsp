@@ -26,7 +26,7 @@ static unsigned int server_received = 0;
 /* Server task - handles requests from clients */
 void server(void) {
 
-	csp_log_info("Server task started");
+	printf("Server task started\n");
 
 	/* Create socket with no specific socket options, e.g. accepts CRC32, HMAC, XTEA, etc. if enabled during compilation */
 	csp_socket_t *sock = csp_socket(CSP_SO_NONE);
@@ -53,7 +53,7 @@ void server(void) {
 			switch (csp_conn_dport(conn)) {
 			case MY_SERVER_PORT:
 				/* Process packet here */
-				csp_log_info("Packet received on MY_SERVER_PORT: %s", (char *) packet->data);
+				printf("Packet received on MY_SERVER_PORT: %s\n", (char *) packet->data);
 				csp_buffer_free(packet);
 				++server_received;
 				break;
@@ -78,7 +78,7 @@ void server(void) {
 /* Client task sending requests to server task */
 void client(void) {
 
-	csp_log_info("Client task started");
+	printf("Client task started");
 
 	unsigned int count = 0;
 
@@ -88,11 +88,11 @@ void client(void) {
 
 		/* Send ping to server, timeout 1000 mS, ping size 100 bytes */
 		int result = csp_ping(server_address, 1000, 100, CSP_O_NONE);
-		csp_log_info("Ping address: %u, result %d [mS]", server_address, result);
+		printf("Ping address: %u, result %d [mS]\n", server_address, result);
 
 		/* Send reboot request to server, the server has no actual implementation of csp_sys_reboot() and fails to reboot */
 		csp_reboot(server_address);
-		csp_log_info("reboot system request sent to address: %u", server_address);
+		printf("reboot system request sent to address: %u\n", server_address);
 
 		/* Send data packet (string) to server */
 
@@ -100,7 +100,7 @@ void client(void) {
 		csp_conn_t * conn = csp_connect(CSP_PRIO_NORM, server_address, MY_SERVER_PORT, 1000, CSP_O_NONE);
 		if (conn == NULL) {
 			/* Connect failed */
-			csp_log_error("Connection failed");
+			printf("Connection failed\n");
 			return;
 		}
 
@@ -108,7 +108,7 @@ void client(void) {
 		csp_packet_t * packet = csp_buffer_get(100);
 		if (packet == NULL) {
 			/* Could not get buffer element */
-			csp_log_error("Failed to get CSP buffer");
+			printf("Failed to get CSP buffer\n");
 			return;
 		}
 
@@ -193,7 +193,7 @@ int main(int argc, char * argv[]) {
         csp_debug_set_level(i, (i <= debug_level) ? true : false);
     }
 
-    csp_log_info("Initialising CSP");
+    printf("Initialising CSP");
 
     /* Init CSP */
     csp_init();
@@ -213,7 +213,7 @@ int main(int argc, char * argv[]) {
             .checkparity = 0};
         int error = csp_usart_open_and_add_kiss_interface(&conf, CSP_IF_KISS_DEFAULT_NAME,  &default_iface);
         if (error != CSP_ERR_NONE) {
-            csp_log_error("failed to add KISS interface [%s], error: %d", kiss_device, error);
+            printf("failed to add KISS interface [%s], error: %d\n", kiss_device, error);
             exit(1);
         }
     }
@@ -221,7 +221,7 @@ int main(int argc, char * argv[]) {
     if (can_device) {
         int error = csp_can_socketcan_open_and_add_interface(can_device, CSP_IF_CAN_DEFAULT_NAME, 0, false, &default_iface);
         if (error != CSP_ERR_NONE) {
-            csp_log_error("failed to add CAN interface [%s], error: %d", can_device, error);
+            printf("failed to add CAN interface [%s], error: %d\n", can_device, error);
             exit(1);
         }
     }
@@ -230,7 +230,7 @@ int main(int argc, char * argv[]) {
     if (zmq_device) {
         int error = csp_zmqhub_init(0, zmq_device, 0, &default_iface);
         if (error != CSP_ERR_NONE) {
-            csp_log_error("failed to add ZMQ interface [%s], error: %d", zmq_device, error);
+            printf("failed to add ZMQ interface [%s], error: %d\n", zmq_device, error);
             exit(1);
         }
     }
@@ -239,7 +239,7 @@ int main(int argc, char * argv[]) {
     if (rtable) {
         int error = csp_rtable_load(rtable);
         if (error < 1) {
-            csp_log_error("csp_rtable_load(%s) failed, error: %d", rtable, error);
+            printf("csp_rtable_load(%s) failed, error: %d\n", rtable, error);
             exit(1);
         }
     } else if (default_iface) {
@@ -277,10 +277,10 @@ int main(int argc, char * argv[]) {
         if (test_mode) {
             /* Test mode is intended for checking that host & client can exchange packets over loopback */
             if (server_received < 5) {
-                csp_log_error("Server received %u packets", server_received);
+                printf("Server received %u packets\n", server_received);
                 exit(1);
             }
-            csp_log_info("Server received %u packets", server_received);
+            printf("Server received %u packets\n", server_received);
             exit(0);
         }
     }

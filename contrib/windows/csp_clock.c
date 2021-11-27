@@ -19,6 +19,6 @@ void csp_clock_get_time(csp_timestamp_t * time) {
 
 //__attribute__((weak)) int csp_clock_set_time(const csp_timestamp_t * time) {
 int csp_clock_set_time(const csp_timestamp_t * time) {
-	csp_log_warn("csp_clock_set_time() not supported");
+	printf("csp_clock_set_time() not supported\n");
 	return CSP_ERR_NOTSUP;
 }

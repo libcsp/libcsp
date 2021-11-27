@@ -8,15 +8,13 @@
 #include <time.h>
 
 void csp_bin_sem_init(csp_bin_sem_t * sem) {
-	csp_log_lock("Semaphore init: %p", sem);
+
 	sem_init((sem_t *) sem, 0, 1);
 }
 
 int csp_bin_sem_wait(csp_bin_sem_t * sem, unsigned int timeout) {
 
 	int ret;
-
-	csp_log_lock("Wait: %p timeout %" PRIu32, sem, timeout);
 
 	if (timeout == CSP_MAX_TIMEOUT) {
 		ret = sem_wait((sem_t *) sem);
@@ -47,7 +45,6 @@ int csp_bin_sem_wait(csp_bin_sem_t * sem, unsigned int timeout) {
 }
 
 int csp_bin_sem_post(csp_bin_sem_t * sem) {
-	csp_log_lock("Post: %p", sem);
 
 	int value;
 	sem_getvalue((sem_t *) sem, &value);
