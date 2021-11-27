@@ -14,6 +14,7 @@
 #include <endian.h>
 
 #include <csp/csp.h>
+#include <csp/csp_debug.h>
 #include <csp/csp_error.h>
 #include <csp/arch/csp_queue.h>
 #include <csp/arch/csp_semaphore.h>
@@ -29,8 +30,6 @@
 #define RDP_RST 0x01
 
 #if (CSP_USE_RDP)
-
-uint8_t csp_dbg_rdp_print = 0;
 
 
 static uint32_t csp_rdp_window_size = 4;

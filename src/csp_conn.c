@@ -22,12 +22,6 @@
 /* Connection pool */
 static csp_conn_t arr_conn[CSP_CONN_MAX] __attribute__((section(".noinit")));
 
-/* Error counters */
-uint8_t csp_dbg_conn_out = 0;
-uint8_t csp_dbg_conn_ovf = 0;
-uint8_t csp_dbg_conn_noroute = 0;
-uint8_t csp_dbg_conn_errno = 0;
-
 void csp_conn_check_timeouts(void) {
 #if (CSP_USE_RDP)
 	for (int i = 0; i < CSP_CONN_MAX; i++) {
@@ -209,7 +203,7 @@ int csp_conn_close(csp_conn_t * conn, uint8_t closed_by) {
 	}
 
 	if (conn->state == CONN_CLOSED) {
-		csp_dbg_conn_errno = CSP_DBG_CONN_ERR_ALREADY_CLOSED;
+		csp_dbg_errno = CSP_DBG_CONN_ERR_ALREADY_CLOSED;
 		return CSP_ERR_NONE;
 	}
 
@@ -302,7 +296,7 @@ csp_conn_t * csp_connect(uint8_t prio, uint16_t dest, uint8_t dport, uint32_t ti
 		outgoing_id.flags |= CSP_FXTEA;
 		incoming_id.flags |= CSP_FXTEA;
 #else
-		csp_dbg_conn_errno = CSP_DBG_CONN_ERR_UNSUPPORTED;
+		csp_dbg_errno = CSP_DBG_CONN_ERR_UNSUPPORTED;
 		return NULL;
 #endif
 	}

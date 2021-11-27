@@ -17,10 +17,9 @@
 #include "csp_promisc.h"
 #include "csp_qfifo.h"
 #include "csp_dedup.h"
+#include <csp/csp_debug.h>
 #include <csp/csp_iflist.h>
 #include "transport/csp_transport.h"
-
-uint8_t csp_dbg_packet_print = 0;
 
 /**
  * Check supported packet options
@@ -32,7 +31,7 @@ static int csp_route_check_options(csp_iface_t * iface, csp_packet_t * packet) {
 #if (CSP_USE_XTEA == 0)
 	/* Drop XTEA packets */
 	if (packet->id.flags & CSP_FXTEA) {
-		csp_dbg_init_errno = CSP_DBG_CONN_ERR_UNSUPPORTED;
+		csp_dbg_errno = CSP_DBG_CONN_ERR_UNSUPPORTED;
 		iface->autherr++;
 		return CSP_ERR_NOTSUP;
 	}
@@ -89,7 +88,7 @@ static int csp_route_security_check(uint32_t security_opts, csp_iface_t * iface,
 			return CSP_ERR_CRC32;
 		}
 	} else if (security_opts & CSP_SO_CRC32REQ) {
-		csp_dbg_init_errno = CSP_DBG_CONN_ERR_UNSUPPORTED;
+		csp_dbg_errno = CSP_DBG_CONN_ERR_UNSUPPORTED;
 	}
 
 #if (CSP_USE_HMAC)

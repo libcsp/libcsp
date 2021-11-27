@@ -11,9 +11,6 @@
 
 #include "csp_if_can_pbuf.h"
 
-/* Error counters */
-uint8_t csp_dbg_can_errno = 0;
-
 /**
  * TESTING:
  *
@@ -80,7 +77,7 @@ int csp_can1_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t 
 
 			/* Discard packet if DLC is less than CSP id + CSP length fields */
 			if (dlc < (sizeof(uint32_t) + sizeof(uint16_t))) {
-				csp_dbg_conn_errno = CSP_DBG_CAN_ERR_SHORT_BEGIN;
+				csp_dbg_can_errno = CSP_DBG_CAN_ERR_SHORT_BEGIN;
 				iface->frame++;
 				csp_can_pbuf_free(buf, task_woken);
 				break;
@@ -89,7 +86,7 @@ int csp_can1_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t 
 			/* Check for incomplete frame */
 			if (buf->packet != NULL) {
 				/* Reuse the buffer */
-				csp_dbg_conn_errno = CSP_DBG_CAN_ERR_INCOMPLETE;
+				csp_dbg_can_errno = CSP_DBG_CAN_ERR_INCOMPLETE;
 				iface->frame++;
 			} else {
 				/* Get free buffer for frame */
@@ -173,7 +170,7 @@ int csp_can1_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t 
 			break;
 
 		default:
-			csp_dbg_conn_errno = CSP_DBG_CAN_ERR_UNKNOWN;
+			csp_dbg_can_errno = CSP_DBG_CAN_ERR_UNKNOWN;
 			csp_can_pbuf_free(buf, task_woken);
 			break;
 	}
@@ -285,12 +282,12 @@ int csp_can2_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t 
 		if (id & (CFP2_BEGIN_MASK << CFP2_BEGIN_OFFSET)) {
 			buf = csp_can_pbuf_new(id, task_woken);
 			if (buf == NULL) {
-				csp_dbg_conn_errno = CSP_DBG_CAN_ERR_RX_OUT;
+				csp_dbg_can_errno = CSP_DBG_CAN_ERR_RX_OUT;
 				iface->rx_error++;
 				return CSP_ERR_NOMEM;
 			}
 		} else {
-			csp_dbg_conn_errno = CSP_DBG_CAN_ERR_INCOMPLETE;
+			csp_dbg_can_errno = CSP_DBG_CAN_ERR_INCOMPLETE;
 			return CSP_ERR_INVAL;
 		}
 	}
@@ -300,7 +297,7 @@ int csp_can2_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t 
 
 		/* Discard packet if DLC is less than CSP id + CSP length fields */
 		if (dlc < 4) {
-			csp_dbg_conn_errno = CSP_DBG_CAN_ERR_SHORT_BEGIN;
+			csp_dbg_can_errno = CSP_DBG_CAN_ERR_SHORT_BEGIN;
 			iface->frame++;
 			csp_can_pbuf_free(buf, task_woken);
 			return CSP_ERR_INVAL;
@@ -309,7 +306,7 @@ int csp_can2_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t 
 		/* Check for incomplete frame */
 		if (buf->packet != NULL) {
 			/* Reuse the buffer */
-			csp_dbg_conn_errno = CSP_DBG_CAN_ERR_INCOMPLETE;
+			csp_dbg_can_errno = CSP_DBG_CAN_ERR_INCOMPLETE;
 			iface->frame++;
 		} else {
 			/* Get free buffer for frame */

@@ -3,6 +3,7 @@
 #include "csp_transport.h"
 
 #include <csp/csp.h>
+#include <csp/csp_debug.h>
 #include <csp/arch/csp_queue.h>
 
 #include "../csp_conn.h"

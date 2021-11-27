@@ -26,8 +26,6 @@
 extern csp_queue_handle_t csp_promisc_queue;
 #endif
 
-uint8_t csp_dbg_inval_reply = 0;
-
 csp_socket_t * csp_socket(uint32_t opts) {
 
 	/* Validate socket options */
@@ -40,7 +38,7 @@ csp_socket_t * csp_socket(uint32_t opts) {
 
 #if (CSP_USE_XTEA == 0)
 	if (opts & CSP_SO_XTEAREQ) {
-		csp_dbg_conn_errno = CSP_DBG_CONN_ERR_UNSUPPORTED;
+		csp_dbg_errno = CSP_DBG_CONN_ERR_UNSUPPORTED;
 		return NULL;
 	}
 #endif
@@ -54,7 +52,7 @@ csp_socket_t * csp_socket(uint32_t opts) {
 
 	/* Drop packet if reserved flags are set */
 	if (opts & ~(CSP_SO_RDPREQ | CSP_SO_XTEAREQ | CSP_SO_HMACREQ | CSP_SO_CRC32REQ | CSP_SO_CONN_LESS)) {
-		csp_dbg_conn_errno = CSP_DBG_CONN_ERR_UNSUPPORTED;
+		csp_dbg_errno = CSP_DBG_CONN_ERR_UNSUPPORTED;
 		return NULL;
 	}
 
@@ -202,7 +200,7 @@ int csp_send_direct_iface(csp_id_t idout, csp_packet_t * packet, csp_iface_t * i
 				goto tx_err;
 			}
 #else
-			csp_dbg_conn_errno = CSP_DBG_CONN_ERR_UNSUPPORTED;
+			csp_dbg_errno = CSP_DBG_CONN_ERR_UNSUPPORTED;
 			goto tx_err;
 #endif
 		}
@@ -323,7 +321,7 @@ void csp_sendto(uint8_t prio, uint16_t dest, uint8_t dport, uint8_t src_port, ui
 		packet->id.flags = 0;
 
 	if (opts & CSP_O_RDP) {
-		csp_dbg_conn_errno = CSP_DBG_CONN_ERR_UNSUPPORTED;
+		csp_dbg_errno = CSP_DBG_CONN_ERR_UNSUPPORTED;
 		csp_buffer_free(packet);
 		return;
 	}
@@ -342,7 +340,7 @@ void csp_sendto(uint8_t prio, uint16_t dest, uint8_t dport, uint8_t src_port, ui
 #if (CSP_USE_XTEA)
 		packet->id.flags |= CSP_FXTEA;
 #else
-		csp_dbg_conn_errno = CSP_DBG_CONN_ERR_UNSUPPORTED;
+		csp_dbg_errno = CSP_DBG_CONN_ERR_UNSUPPORTED;
 		csp_buffer_free(packet);
 		return;
 #endif

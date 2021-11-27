@@ -7,8 +7,6 @@
 #include "csp_qfifo.h"
 #include "csp_port.h"
 
-uint8_t csp_dbg_init_errno = 0;
-
 csp_conf_t csp_conf = {
 	.version = 2,
 	.address = 0,
