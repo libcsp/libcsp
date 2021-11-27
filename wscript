@@ -101,11 +101,32 @@ def configure(ctx):
     ctx.define_cond('CSP_WINDOWS', ctx.options.with_os == 'windows')
     ctx.define_cond('CSP_MACOSX', ctx.options.with_os == 'macosx')
 
+
+
     # Add files
-    ctx.env.append_unique('FILES_CSP', ['src/*.c',
-                                        'src/external/**/*.c',
-                                        'src/transport/**/*.c',
-                                        'src/crypto/**/*.c',
+    ctx.env.append_unique('FILES_CSP', ['src/crypto/csp_hmac.c',
+                                        'src/crypto/csp_sha1.c',
+                                        'src/crypto/csp_xtea.c',
+                                        'src/transport/csp_rdp.c',
+                                        'src/transport/csp_udp.c',
+                                        'src/csp_buffer.c',
+                                        'src/csp_bridge.c',
+                                        'src/csp_conn.c',
+                                        'src/csp_crc32.c',
+                                        'src/csp_debug.c',
+                                        'src/csp_dedup.c',
+                                        'src/csp_hex_dump.c',
+                                        'src/csp_iflist.c',
+                                        'src/csp_init.c',
+                                        'src/csp_io.c',
+                                        'src/csp_port.c',
+                                        'src/csp_promisc.c',
+                                        'src/csp_qfifo.c',
+                                        'src/csp_route.c',
+                                        'src/csp_service_handler.c',
+                                        'src/csp_services.c',
+                                        'src/csp_id.c',
+                                        'src/csp_sfp.c',                                       
                                         'src/interfaces/csp_if_lo.c',
                                         'src/interfaces/csp_if_can.c',
                                         'src/interfaces/csp_if_can_pbuf.c',
