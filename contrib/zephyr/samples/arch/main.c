@@ -1,4 +1,3 @@
-#define CSP_USE_ASSERT 1  // always enable CSP assert
 
 #include <zephyr.h>
 #include <csp/csp_debug.h>
@@ -11,11 +10,6 @@
 #include <stdlib.h>
 
 static bool thread_executed = false;
-
-void csp_assert_fail_action(const char *assertion, const char *file, int line) {
-    printf("assertion: [%s], file: %s:%d\r\n", assertion, file, line);
-    exit(1);
-}
 
 void thread_func(void * p1, void * p2, void * p3) {
     csp_log_info("Thread started");
@@ -50,12 +44,12 @@ int main(int argc, char * argv[]) {
 						  stack, K_THREAD_STACK_SIZEOF(stack),
 						  thread_func, NULL, NULL, NULL,
 						  0, 0, K_NO_WAIT);
-    csp_assert(tid != NULL);
+    assert(tid != NULL);
 
     // clock
     csp_timestamp_t csp_clock = {};
     csp_clock_get_time(&csp_clock);
-    csp_assert(csp_clock.tv_sec != 0);
+    assert(csp_clock.tv_sec != 0);
     csp_log_info("csp_clock_get_time(..) -> sec:nsec = %"PRIu32":%"PRIu32, csp_clock.tv_sec, csp_clock.tv_nsec);
 
     // relative time
@@ -65,13 +59,13 @@ int main(int argc, char * argv[]) {
     const uint32_t sec2 = csp_get_s_isr();
     sleep(2);
 
-    csp_assert(csp_get_ms() >= (msec1 + 500));
-    csp_assert(csp_get_ms_isr() >= (msec2 + 500));
-    csp_assert(csp_get_s() >= (sec1 + 1));
-    csp_assert(csp_get_s_isr() >= (sec2 + 1));
+    assert(csp_get_ms() >= (msec1 + 500));
+    assert(csp_get_ms_isr() >= (msec2 + 500));
+    assert(csp_get_s() >= (sec1 + 1));
+    assert(csp_get_s_isr() >= (sec2 + 1));
 
     // check thread actually executed
-    csp_assert(thread_executed != false);
+    assert(thread_executed != false);
 
     // queue handling
     uint32_t value;
@@ -79,46 +73,46 @@ int main(int argc, char * argv[]) {
     csp_queue_handle_t q;
     char buf[3 * sizeof(value)];
     q = csp_queue_create_static(3, sizeof(value), buf, &sq);
-    csp_assert(csp_queue_size(q) == 0);
-    csp_assert(csp_queue_size_isr(q) == 0);
-    csp_assert(csp_queue_dequeue(q, &value, 0) == CSP_QUEUE_ERROR);
-    csp_assert(csp_queue_dequeue(q, &value, 200) == CSP_QUEUE_ERROR);
-    csp_assert(csp_queue_dequeue_isr(q, &value, NULL) == CSP_QUEUE_ERROR);
+    assert(csp_queue_size(q) == 0);
+    assert(csp_queue_size_isr(q) == 0);
+    assert(csp_queue_dequeue(q, &value, 0) == CSP_QUEUE_ERROR);
+    assert(csp_queue_dequeue(q, &value, 200) == CSP_QUEUE_ERROR);
+    assert(csp_queue_dequeue_isr(q, &value, NULL) == CSP_QUEUE_ERROR);
     value = 1;
-    csp_assert(csp_queue_enqueue(q, &value, 0) == CSP_QUEUE_OK);
+    assert(csp_queue_enqueue(q, &value, 0) == CSP_QUEUE_OK);
     value = 2;
-    csp_assert(csp_queue_enqueue(q, &value, 200) == CSP_QUEUE_OK);
+    assert(csp_queue_enqueue(q, &value, 200) == CSP_QUEUE_OK);
     value = 3;
-    csp_assert(csp_queue_enqueue_isr(q, &value, NULL) == CSP_QUEUE_OK);
-    csp_assert(csp_queue_size(q) == 3);
-    csp_assert(csp_queue_size_isr(q) == 3);
+    assert(csp_queue_enqueue_isr(q, &value, NULL) == CSP_QUEUE_OK);
+    assert(csp_queue_size(q) == 3);
+    assert(csp_queue_size_isr(q) == 3);
     value = 10;
-    csp_assert(csp_queue_enqueue(q, &value, 0) == CSP_QUEUE_ERROR);
+    assert(csp_queue_enqueue(q, &value, 0) == CSP_QUEUE_ERROR);
     value = 20;
-    csp_assert(csp_queue_enqueue(q, &value, 200) == CSP_QUEUE_ERROR);
+    assert(csp_queue_enqueue(q, &value, 200) == CSP_QUEUE_ERROR);
     value = 30;
-    csp_assert(csp_queue_enqueue_isr(q, &value, NULL) == CSP_QUEUE_ERROR);
+    assert(csp_queue_enqueue_isr(q, &value, NULL) == CSP_QUEUE_ERROR);
     value = 100;
-    csp_assert(csp_queue_dequeue(q, &value, 0) == CSP_QUEUE_OK);
-    csp_assert(value == 1);
-    csp_assert(csp_queue_dequeue(q, &value, 200) == CSP_QUEUE_OK);
-    csp_assert(value == 2);
-    csp_assert(csp_queue_dequeue_isr(q, &value, NULL) == CSP_QUEUE_OK);
-    csp_assert(value == 3);
+    assert(csp_queue_dequeue(q, &value, 0) == CSP_QUEUE_OK);
+    assert(value == 1);
+    assert(csp_queue_dequeue(q, &value, 200) == CSP_QUEUE_OK);
+    assert(value == 2);
+    assert(csp_queue_dequeue_isr(q, &value, NULL) == CSP_QUEUE_OK);
+    assert(value == 3);
 
 
     // semaphore
     csp_bin_sem_handle_t s;
     csp_bin_sem_create_static(&s, NULL);
-    csp_assert(csp_bin_sem_wait(&s, 0) == CSP_SEMAPHORE_OK);
-    csp_assert(csp_bin_sem_post(&s) == CSP_SEMAPHORE_OK);
+    assert(csp_bin_sem_wait(&s, 0) == CSP_SEMAPHORE_OK);
+    assert(csp_bin_sem_post(&s) == CSP_SEMAPHORE_OK);
 #if (CSP_POSIX || CSP_ZEPHYR) // implementations differ in return value if already posted/signaled
-    csp_assert(csp_bin_sem_post_isr(&s, NULL) == CSP_SEMAPHORE_OK);
+    assert(csp_bin_sem_post_isr(&s, NULL) == CSP_SEMAPHORE_OK);
 #else
-    csp_assert(csp_bin_sem_post_isr(&s, NULL) == CSP_SEMAPHORE_ERROR);
+    assert(csp_bin_sem_post_isr(&s, NULL) == CSP_SEMAPHORE_ERROR);
 #endif
-    csp_assert(csp_bin_sem_wait(&s, 200) == CSP_SEMAPHORE_OK);
-    csp_assert(csp_bin_sem_wait(&s, 200) == CSP_SEMAPHORE_ERROR);
+    assert(csp_bin_sem_wait(&s, 200) == CSP_SEMAPHORE_OK);
+    assert(csp_bin_sem_wait(&s, 200) == CSP_SEMAPHORE_ERROR);
 
     return 0;
 }

@@ -44,30 +44,6 @@ extern bool csp_debug_level_enabled[];
 */
 #define BASENAME(_file) ((strrchr(_file, '/') ? : (strrchr(_file, '\\') ? : _file)) + 1)
 
-/**
-   Implement csp_assert_fail_action to override default failure action
-*/
-extern void __attribute__((weak)) csp_assert_fail_action(const char *assertion, const char *file, int line);
-
-/**
-   CSP assert.
-*/
-#if (!defined(NDEBUG) || CSP_USE_ASSERT)
-#define csp_assert(exp) {                                       				        \
-		if (!(exp)) {										\
-			const char *assertion = #exp;							\
-			const char *file = BASENAME(__FILE__);						\
-			int line = __LINE__;								\
-			printf("\E[1;31mAssertion \'%s\' failed in %s:%d\E[0m\r\n",			\
-			       assertion, file, line);							\
-			if (csp_assert_fail_action)							\
-				csp_assert_fail_action(assertion, file, line);				\
-		}											\
-	}
-#else
-#define csp_assert(...) {}
-#endif
-
 #if !(__DOXYGEN__)
 /* Ensure defines are 'defined' */
 #if !defined(CSP_DEBUG)
