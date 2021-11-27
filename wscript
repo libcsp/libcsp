@@ -186,11 +186,6 @@ def configure(ctx):
     ctx.define('CSP_USE_DEDUP', ctx.options.enable_dedup)
     ctx.define('CSP_USE_EXTERNAL_DEBUG', ctx.options.enable_external_debug)
 
-    # Set logging level
-    ctx.define('CSP_LOG_LEVEL_DEBUG', ctx.options.with_loglevel in ('debug'))
-    ctx.define('CSP_LOG_LEVEL_INFO', ctx.options.with_loglevel in ('debug', 'info'))
-    ctx.define('CSP_LOG_LEVEL_WARN', ctx.options.with_loglevel in ('debug', 'info', 'warn'))
-    ctx.define('CSP_LOG_LEVEL_ERROR', ctx.options.with_loglevel in ('debug', 'info', 'warn', 'error'))
 
     ctx.write_config_header('csp_autoconfig.h')
 

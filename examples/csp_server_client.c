@@ -133,7 +133,6 @@ void client(void) {
 int main(int argc, char * argv[]) {
 
     uint8_t address = 0;
-    csp_debug_level_t debug_level = CSP_INFO;
 #if (CSP_HAVE_LIBSOCKETCAN)
     const char * can_device = NULL;
 #endif
@@ -147,9 +146,6 @@ int main(int argc, char * argv[]) {
         switch (opt) {
             case 'a':
                 address = atoi(optarg);
-                break;
-            case 'd':
-                debug_level = atoi(optarg);
                 break;
             case 'r':
                 server_address = atoi(optarg);
@@ -186,11 +182,6 @@ int main(int argc, char * argv[]) {
                 exit(1);
                 break;
         }
-    }
-
-    /* enable/disable debug levels */
-    for (csp_debug_level_t i = 0; i <= CSP_LOCK; ++i) {
-        csp_debug_set_level(i, (i <= debug_level) ? true : false);
     }
 
     printf("Initialising CSP");

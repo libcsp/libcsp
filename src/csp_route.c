@@ -141,7 +141,7 @@ int csp_route_work(void) {
 		return CSP_ERR_TIMEDOUT;
 	}
 
-	csp_print_packet("INP: S %u, D %u, Dp %u, Sp %u, Pr %u, Fl 0x%02X, Sz %" PRIu16 " VIA: %s",
+	csp_print_packet("INP: S %u, D %u, Dp %u, Sp %u, Pr %u, Fl 0x%02X, Sz %" PRIu16 " VIA: %s\n",
 				   packet->id.src, packet->id.dst, packet->id.dport,
 				   packet->id.sport, packet->id.pri, packet->id.flags, packet->length, input.iface->name);
 

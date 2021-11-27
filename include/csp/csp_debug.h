@@ -47,6 +47,6 @@ extern uint8_t csp_dbg_rdp_print;
 extern uint8_t csp_dbg_packet_print;
 
 /* Helper macros for toggled printf */
-#define csp_rdp_error(format, ...) { if (csp_dbg_rdp_print >= 1) printf(format, ##__VA_ARGS__); }
-#define csp_rdp_protocol(format, ...) { if (csp_dbg_rdp_print >= 2) printf(format, ##__VA_ARGS__); }
-#define csp_print_packet(format, ...) { if (csp_dbg_packet_print >= 1) printf(format, ##__VA_ARGS__); }
+#define csp_rdp_error(format, ...) { if (csp_dbg_rdp_print >= 1) printf("\033[31m" format "\033[0m", ##__VA_ARGS__); }
+#define csp_rdp_protocol(format, ...) { if (csp_dbg_rdp_print >= 2) printf("\033[34m" format "\033[0m", ##__VA_ARGS__); }
+#define csp_print_packet(format, ...) { if (csp_dbg_packet_print >= 1) printf("\033[32m" format "\033[0m", ##__VA_ARGS__); }

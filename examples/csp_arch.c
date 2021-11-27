@@ -11,10 +11,6 @@
 
 int main(int argc, char * argv[]) {
 
-    // debug/log - enable all levels
-    for (int i = 0; i <= CSP_LOCK; ++i) {
-        csp_debug_set_level(i, true);
-    }
 
     // clock
     csp_timestamp_t csp_clock = {};

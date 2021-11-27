@@ -11,23 +11,6 @@ conf = configuration_data()
 
 conf.set('CSP_DEBUG', 1)
 
-log_str = get_option('log-level')
-if log_str == 'error'
-  log_level = 1
-elif log_str == 'warn'
-  log_level = 2
-elif log_str == 'info'
-  log_level = 3
-elif log_str == 'debug'
-  log_level = 4
-else
-  log_level = 3
-endif
-
-conf.set10('CSP_LOG_LEVEL_ERROR', log_level >= 1)
-conf.set10('CSP_LOG_LEVEL_WARN',  log_level >= 2)
-conf.set10('CSP_LOG_LEVEL_INFO',  log_level >= 3)
-conf.set10('CSP_LOG_LEVEL_DEBUG', log_level >= 4)
 
 conf.set('CSP_QFIFO_LEN', get_option('qfifo_len'))
 conf.set('CSP_PORT_MAX_BIND', get_option('port_max_bind'))

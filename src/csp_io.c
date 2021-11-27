@@ -153,7 +153,7 @@ int csp_send_direct_iface(csp_id_t idout, csp_packet_t * packet, csp_iface_t * i
 		goto err;
 	}
 	
-	csp_print_packet("OUT: S %u, D %u, Dp %u, Sp %u, Pr %u, Fl 0x%02X, Sz %u VIA: %s (%u)",
+	csp_print_packet("OUT: S %u, D %u, Dp %u, Sp %u, Pr %u, Fl 0x%02X, Sz %u VIA: %s (%u)\n",
 				   idout.src, idout.dst, idout.dport, idout.sport, idout.pri, idout.flags, packet->length, iface->name, (via != CSP_NO_VIA_ADDRESS) ? via : idout.dst);
 
 	/* Copy identifier to packet (before crc, xtea and hmac) */
