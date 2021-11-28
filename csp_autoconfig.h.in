@@ -1,6 +1,8 @@
 #cmakedefine01 CSP_POSIX
 #cmakedefine01 CSP_ZEPHYR
 
+#cmakedefine01 CSP_DEBUG
+
 #cmakedefine CSP_QFIFO_LEN @CSP_QFIFO_LEN@
 #cmakedefine CSP_PORT_MAX_BIND @CSP_PORT_MAX_BIND@
 #cmakedefine CSP_CONN_RXQUEUE_LEN @CSP_CONN_RXQUEUE_LEN@

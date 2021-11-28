@@ -29,20 +29,20 @@ void server(void) {
 	printf("Server task started\n");
 
 	/* Create socket with no specific socket options, e.g. accepts CRC32, HMAC, XTEA, etc. if enabled during compilation */
-	csp_socket_t *sock = csp_socket(CSP_SO_NONE);
-
+	csp_socket_t sock = {0};
+    
 	/* Bind socket to all ports, e.g. all incoming connections will be handled here */
-	csp_bind(sock, CSP_ANY);
+	csp_bind(&sock, CSP_ANY);
 
 	/* Create a backlog of 10 connections, i.e. up to 10 new connections can be queued */
-	csp_listen(sock, 10);
+	csp_listen(&sock, 10);
 
 	/* Wait for connections and then process packets on the connection */
 	while (1) {
 
 		/* Wait for a new connection, 10000 mS timeout */
 		csp_conn_t *conn;
-		if ((conn = csp_accept(sock, 10000)) == NULL) {
+		if ((conn = csp_accept(&sock, 10000)) == NULL) {
 			/* timeout */
 			continue;
 		}
