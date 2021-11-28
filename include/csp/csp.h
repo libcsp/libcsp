@@ -76,15 +76,6 @@ uint16_t csp_get_address(void);
 void csp_id_copy(csp_id_t * target, csp_id_t * source);
 
 /**
-   Create a CSP socket endpoint.
-   @param[in] opts socket options, see @ref CSP_SOCKET_OPTIONS.
-   @return Socket on success, NULL on failure
-*/
-csp_socket_t *csp_socket(uint32_t opts);
-
-void csp_socket_set_callback(csp_socket_t * socket, void (*callback)(csp_packet_t * packet));
-
-/**
    Wait/accept a new connection.
    @param[in] socket socket to accept connections on, created by calling csp_socket().
    @param[in] timeout timeout in mS to wait for a connection, use #CSP_MAX_TIMEOUT for infinite timeout.
@@ -266,6 +257,15 @@ int csp_listen(csp_socket_t *socket, size_t backlog);
    @return #CSP_ERR_NONE on success, otherwise an error code.
 */
 int csp_bind(csp_socket_t *socket, uint8_t port);
+
+
+/**
+   Bind port to callback function.
+   @param[in] callback pointer to callback function
+   @param[in] port port number to bind, use #CSP_ANY for all ports. Bindnig to a specific will take precedence over #CSP_ANY.
+   @return 0 on success, otherwise an error code.
+*/
+int csp_bind_callback(csp_callback_t callback, uint8_t port);
 
 /**
    Route packet from the incoming router queue and check RDP timeouts.

@@ -31,33 +31,33 @@ csp_socket_t * csp_socket(uint32_t opts) {
 	/* Validate socket options */
 #if (CSP_USE_RDP == 0)
 	if (opts & CSP_SO_RDPREQ) {
-		csp_dbg_conn_errno = CSP_DBG_CONN_ERR_UNSUPPORTED;
+		csp_dbg_conn_errno = CSP_DBG_ERR_UNSUPPORTED;
 		return NULL;
 	}
 #endif
 
 #if (CSP_USE_XTEA == 0)
 	if (opts & CSP_SO_XTEAREQ) {
-		csp_dbg_errno = CSP_DBG_CONN_ERR_UNSUPPORTED;
+		csp_dbg_errno = CSP_DBG_ERR_UNSUPPORTED;
 		return NULL;
 	}
 #endif
 
 #if (CSP_USE_HMAC == 0)
 	if (opts & CSP_SO_HMACREQ) {
-		csp_dbg_conn_errno = CSP_DBG_CONN_ERR_UNSUPPORTED;
+		csp_dbg_conn_errno = CSP_DBG_ERR_UNSUPPORTED;
 		return NULL;
 	}
 #endif
 
 	/* Drop packet if reserved flags are set */
 	if (opts & ~(CSP_SO_RDPREQ | CSP_SO_XTEAREQ | CSP_SO_HMACREQ | CSP_SO_CRC32REQ | CSP_SO_CONN_LESS)) {
-		csp_dbg_errno = CSP_DBG_CONN_ERR_UNSUPPORTED;
+		csp_dbg_errno = CSP_DBG_ERR_UNSUPPORTED;
 		return NULL;
 	}
 
 	/* Use CSP buffers instead? */
-	csp_socket_t * sock = csp_conn_allocate(CONN_SERVER);
+	csp_socket_t * sock = NULL;//csp_conn_allocate(CONN_SERVER);
 	if (sock == NULL)
 		return NULL;
 
@@ -66,19 +66,17 @@ csp_socket_t * csp_socket(uint32_t opts) {
 	return sock;
 }
 
-void csp_socket_set_callback(csp_socket_t * socket, void (*callback)(csp_packet_t * packet)) {
-	socket->opts |= (CSP_SO_CONN_LESS | CSP_SO_CONN_LESS_CALLBACK);
-	socket->callback = callback;
-}
-
 csp_conn_t * csp_accept(csp_socket_t * sock, uint32_t timeout) {
 
-	if (sock == NULL)
+	if ((sock == NULL) || (sock->rx_queue == NULL)) {
+		csp_dbg_errno = CSP_DBG_ERR_INVALID_POINTER;
 		return NULL;
+	}
 
 	csp_conn_t * conn;
-	if (csp_queue_dequeue(sock->rx_queue, &conn, timeout) == CSP_QUEUE_OK)
+	if (csp_queue_dequeue(sock->rx_queue, &conn, timeout) == CSP_QUEUE_OK) {
 		return conn;
+	}
 
 	return NULL;
 }
@@ -178,7 +176,7 @@ int csp_send_direct_iface(csp_id_t idout, csp_packet_t * packet, csp_iface_t * i
 				goto tx_err;
 			}
 #else
-			csp_dbg_conn_errno = CSP_DBG_CONN_ERR_UNSUPPORTED;
+			csp_dbg_conn_errno = CSP_DBG_ERR_UNSUPPORTED;
 			goto tx_err;
 #endif
 		}
@@ -200,7 +198,7 @@ int csp_send_direct_iface(csp_id_t idout, csp_packet_t * packet, csp_iface_t * i
 				goto tx_err;
 			}
 #else
-			csp_dbg_errno = CSP_DBG_CONN_ERR_UNSUPPORTED;
+			csp_dbg_errno = CSP_DBG_ERR_UNSUPPORTED;
 			goto tx_err;
 #endif
 		}
@@ -321,7 +319,7 @@ void csp_sendto(uint8_t prio, uint16_t dest, uint8_t dport, uint8_t src_port, ui
 		packet->id.flags = 0;
 
 	if (opts & CSP_O_RDP) {
-		csp_dbg_errno = CSP_DBG_CONN_ERR_UNSUPPORTED;
+		csp_dbg_errno = CSP_DBG_ERR_UNSUPPORTED;
 		csp_buffer_free(packet);
 		return;
 	}
@@ -330,7 +328,7 @@ void csp_sendto(uint8_t prio, uint16_t dest, uint8_t dport, uint8_t src_port, ui
 #if (CSP_USE_HMAC)
 		packet->id.flags |= CSP_FHMAC;
 #else
-		csp_dbg_conn_errno = CSP_DBG_CONN_ERR_UNSUPPORTED;
+		csp_dbg_conn_errno = CSP_DBG_ERR_UNSUPPORTED;
 		csp_buffer_free(packet);
 		return;
 #endif
@@ -340,7 +338,7 @@ void csp_sendto(uint8_t prio, uint16_t dest, uint8_t dport, uint8_t src_port, ui
 #if (CSP_USE_XTEA)
 		packet->id.flags |= CSP_FXTEA;
 #else
-		csp_dbg_errno = CSP_DBG_CONN_ERR_UNSUPPORTED;
+		csp_dbg_errno = CSP_DBG_ERR_UNSUPPORTED;
 		csp_buffer_free(packet);
 		return;
 #endif

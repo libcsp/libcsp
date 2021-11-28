@@ -44,14 +44,14 @@ static int csp_rtable_parse(const char * rtable, int dry_run) {
 
 		csp_iface_t * ifc = csp_iflist_get_by_name(name);
 		if ((address > csp_id_get_max_nodeid()) || (netmask > (int)csp_id_get_host_bits()) || (ifc == NULL)) {
-			csp_dbg_errno = CSP_DBG_INIT_ERR_INVALID_RTABLE_ENTRY; 
+			csp_dbg_errno = CSP_DBG_ERR_INVALID_RTABLE_ENTRY; 
 			return CSP_ERR_INVAL;
 		}
 
 		if (dry_run == 0) {
 			int res = csp_rtable_set(address, netmask, ifc, via);
 			if (res != CSP_ERR_NONE) {
-				csp_dbg_errno = CSP_DBG_INIT_ERR_INVALID_RTABLE_ENTRY;
+				csp_dbg_errno = CSP_DBG_ERR_INVALID_RTABLE_ENTRY;
 				return res;
 			}
 		}
@@ -78,7 +78,7 @@ int csp_rtable_set(uint16_t address, int netmask, csp_iface_t * ifc, uint16_t vi
 
 	/* Validates options */
 	if ((ifc == NULL) || (netmask > (int)csp_id_get_host_bits())) {
-		csp_dbg_errno = CSP_DBG_INIT_ERR_INVALID_RTABLE_ENTRY; 
+		csp_dbg_errno = CSP_DBG_ERR_INVALID_RTABLE_ENTRY; 
 		return CSP_ERR_INVAL;
 	}
 

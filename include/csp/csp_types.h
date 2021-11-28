@@ -11,6 +11,8 @@
 
 #include <csp_autoconfig.h> // -> CSP_X defines (compile configuration)
 #include <csp/csp_error.h>
+#include <csp/arch/csp_queue.h>
+#include <csp/arch/csp_semaphore.h>
 
 
 
@@ -80,7 +82,6 @@ typedef struct {
 #define CSP_SO_CRC32REQ			0x0040 //!< Require CRC32
 #define CSP_SO_CRC32PROHIB		0x0080 //!< Prohibit CRC32
 #define CSP_SO_CONN_LESS		0x0100 //!< Enable Connection Less mode
-#define CSP_SO_CONN_LESS_CALLBACK 	0x0200 // Enable Callbacks directly in router task
 #define CSP_SO_SAME			0x8000 // Copy opts from incoming packet only apllies to csp_sendto_reply()
 
 /**@}*/
@@ -160,8 +161,19 @@ typedef struct {
 /** Forward declaration of CSP interface, see #csp_iface_s for details. */
 typedef struct csp_iface_s csp_iface_t;
 
+typedef void (*csp_callback_t)(csp_packet_t * packet);
+
+/** @brief Connection struct */
+struct csp_socket_s {
+	csp_queue_handle_t rx_queue;        /* Queue for RX packets */
+	csp_static_queue_t rx_queue_static; /* Static storage for rx queue */
+	char rx_queue_static_data[sizeof(csp_packet_t *) * CSP_CONN_RXQUEUE_LEN];
+
+	uint32_t opts;              /* Connection or socket options */
+};
+
 /** Forward declaration of socket structure */
-typedef struct csp_conn_s csp_socket_t;
+typedef struct csp_socket_s csp_socket_t;
 /** Forward declaration of connection structure */
 typedef struct csp_conn_s csp_conn_t;
 

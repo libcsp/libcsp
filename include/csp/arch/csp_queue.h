@@ -2,13 +2,8 @@
 
 #pragma once
 
-/**
-   @file
-
-   Queue interface.
-*/
-
-#include <csp/csp_types.h>
+#include <inttypes.h>
+#include <stddef.h>
 
 #if (CSP_FREERTOS)
 #include <FreeRTOS.h>

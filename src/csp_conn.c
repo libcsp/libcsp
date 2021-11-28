@@ -203,7 +203,7 @@ int csp_conn_close(csp_conn_t * conn, uint8_t closed_by) {
 	}
 
 	if (conn->state == CONN_CLOSED) {
-		csp_dbg_errno = CSP_DBG_CONN_ERR_ALREADY_CLOSED;
+		csp_dbg_errno = CSP_DBG_ERR_ALREADY_CLOSED;
 		return CSP_ERR_NONE;
 	}
 
@@ -276,7 +276,7 @@ csp_conn_t * csp_connect(uint8_t prio, uint16_t dest, uint8_t dport, uint32_t ti
 		incoming_id.flags |= CSP_FRDP;
 		outgoing_id.flags |= CSP_FRDP;
 #else
-		csp_dbg_conn_errno = CSP_DBG_CONN_ERR_UNSUPPORTED;
+		csp_dbg_conn_errno = CSP_DBG_ERR_UNSUPPORTED;
 		return NULL;
 #endif
 	}
@@ -286,7 +286,7 @@ csp_conn_t * csp_connect(uint8_t prio, uint16_t dest, uint8_t dport, uint32_t ti
 		outgoing_id.flags |= CSP_FHMAC;
 		incoming_id.flags |= CSP_FHMAC;
 #else
-		csp_dbg_conn_errno = CSP_DBG_CONN_ERR_UNSUPPORTED;
+		csp_dbg_conn_errno = CSP_DBG_ERR_UNSUPPORTED;
 		return NULL;
 #endif
 	}
@@ -296,7 +296,7 @@ csp_conn_t * csp_connect(uint8_t prio, uint16_t dest, uint8_t dport, uint32_t ti
 		outgoing_id.flags |= CSP_FXTEA;
 		incoming_id.flags |= CSP_FXTEA;
 #else
-		csp_dbg_errno = CSP_DBG_CONN_ERR_UNSUPPORTED;
+		csp_dbg_errno = CSP_DBG_ERR_UNSUPPORTED;
 		return NULL;
 #endif
 	}

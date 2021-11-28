@@ -54,7 +54,7 @@ void * csp_buffer_get_isr(size_t _data_size) {
 	}
 
 	if (buffer != buffer->skbf_addr) {
-		csp_dbg_errno = CSP_DBG_BUFFER_ERR_CORRUPT_BUFFER;
+		csp_dbg_errno = CSP_DBG_ERR_CORRUPT_BUFFER;
 		/* Best option here must be to leak the invalid buffer */
 		return NULL;
 	}
@@ -66,7 +66,7 @@ void * csp_buffer_get_isr(size_t _data_size) {
 void * csp_buffer_get(size_t _data_size) {
 
 	if (_data_size > CSP_BUFFER_SIZE) {
-		csp_dbg_errno = CSP_DBG_BUFFER_ERR_MTU_EXCEEDED;
+		csp_dbg_errno = CSP_DBG_ERR_MTU_EXCEEDED;
 		return NULL;
 	}
 
@@ -78,7 +78,7 @@ void * csp_buffer_get(size_t _data_size) {
 	}
 
 	if (buffer != buffer->skbf_addr) {
-		csp_dbg_errno = CSP_DBG_BUFFER_ERR_CORRUPT_BUFFER;
+		csp_dbg_errno = CSP_DBG_ERR_CORRUPT_BUFFER;
 		return NULL;
 	}
 
@@ -96,22 +96,22 @@ void csp_buffer_free_isr(void * packet) {
 	csp_skbf_t * buf = (void *)(((uint8_t *)packet) - sizeof(csp_skbf_t));
 
 	if (((uintptr_t)buf % CSP_BUFFER_ALIGN) > 0) {
-		csp_dbg_errno = CSP_DBG_BUFFER_ERR_CORRUPT_BUFFER;
+		csp_dbg_errno = CSP_DBG_ERR_CORRUPT_BUFFER;
 		return;
 	}
 
 	if (buf->skbf_addr != buf) {
-		csp_dbg_errno = CSP_DBG_BUFFER_ERR_CORRUPT_BUFFER;
+		csp_dbg_errno = CSP_DBG_ERR_CORRUPT_BUFFER;
 		return;
 	}
 
 	if (buf->refcount == 0) {
-		csp_dbg_errno = CSP_DBG_BUFFER_ERR_CORRUPT_BUFFER;
+		csp_dbg_errno = CSP_DBG_ERR_CORRUPT_BUFFER;
 		return;
 	}
 
 	if (--(buf->refcount) > 0) {
-		csp_dbg_errno = CSP_DBG_BUFFER_ERR_CORRUPT_BUFFER;;
+		csp_dbg_errno = CSP_DBG_ERR_CORRUPT_BUFFER;;
 		return;
 	}
 
@@ -129,22 +129,22 @@ void csp_buffer_free(void * packet) {
 	csp_skbf_t * buf = (void *)(((uint8_t *)packet) - sizeof(csp_skbf_t));
 
 	if (((uintptr_t)buf % CSP_BUFFER_ALIGN) > 0) {
-		csp_dbg_errno = CSP_DBG_BUFFER_ERR_CORRUPT_BUFFER;
+		csp_dbg_errno = CSP_DBG_ERR_CORRUPT_BUFFER;
 		return;
 	}
 
 	if (buf->skbf_addr != buf) {
-		csp_dbg_errno = CSP_DBG_BUFFER_ERR_CORRUPT_BUFFER;
+		csp_dbg_errno = CSP_DBG_ERR_CORRUPT_BUFFER;
 		return;
 	}
 
 	if (buf->refcount == 0) {
-		csp_dbg_errno = CSP_DBG_BUFFER_ERR_ALREADY_FREE;
+		csp_dbg_errno = CSP_DBG_ERR_ALREADY_FREE;
 		return;
 	}
 
 	if (--(buf->refcount) > 0) {
-		csp_dbg_errno = CSP_DBG_BUFFER_ERR_REFCOUNT;
+		csp_dbg_errno = CSP_DBG_ERR_REFCOUNT;
 		return;
 	}
 

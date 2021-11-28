@@ -28,12 +28,12 @@ void csp_qfifo_write(csp_packet_t * packet, csp_iface_t * iface, void * pxTaskWo
 	int result;
 
 	if (packet == NULL) {
-		csp_dbg_errno = CSP_DBG_CONN_ERR_INVALID_POINTER;
+		csp_dbg_errno = CSP_DBG_ERR_INVALID_POINTER;
 		return;
 	}
 
 	if (iface == NULL) {
-		csp_dbg_errno = CSP_DBG_CONN_ERR_INVALID_POINTER;
+		csp_dbg_errno = CSP_DBG_ERR_INVALID_POINTER;
 		if (pxTaskWoken == NULL)
 			csp_buffer_free(packet);
 		else

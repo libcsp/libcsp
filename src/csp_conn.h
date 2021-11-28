@@ -88,6 +88,8 @@ struct csp_conn_s {
 #endif
 };
 
+
+
 int csp_conn_enqueue_packet(csp_conn_t * conn, csp_packet_t * packet);
 void csp_conn_init(void);
 csp_conn_t * csp_conn_allocate(csp_conn_type_t type);

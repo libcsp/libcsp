@@ -31,7 +31,7 @@ static int csp_route_check_options(csp_iface_t * iface, csp_packet_t * packet) {
 #if (CSP_USE_XTEA == 0)
 	/* Drop XTEA packets */
 	if (packet->id.flags & CSP_FXTEA) {
-		csp_dbg_errno = CSP_DBG_CONN_ERR_UNSUPPORTED;
+		csp_dbg_errno = CSP_DBG_ERR_UNSUPPORTED;
 		iface->autherr++;
 		return CSP_ERR_NOTSUP;
 	}
@@ -40,7 +40,7 @@ static int csp_route_check_options(csp_iface_t * iface, csp_packet_t * packet) {
 #if (CSP_USE_HMAC == 0)
 	/* Drop HMAC packets */
 	if (packet->id.flags & CSP_FHMAC) {
-		csp_dbg_init_errno = CSP_DBG_CONN_ERR_UNSUPPORTED;
+		csp_dbg_init_errno = CSP_DBG_ERR_UNSUPPORTED;
 		iface->autherr++;
 		return CSP_ERR_NOTSUP;
 	}
@@ -49,7 +49,7 @@ static int csp_route_check_options(csp_iface_t * iface, csp_packet_t * packet) {
 #if (CSP_USE_RDP == 0)
 	/* Drop RDP packets */
 	if (packet->id.flags & CSP_FRDP) {
-		csp_dbg_init_errno = CSP_DBG_CONN_ERR_UNSUPPORTED;
+		csp_dbg_init_errno = CSP_DBG_ERR_UNSUPPORTED;
 		iface->rx_error++;
 		return CSP_ERR_NOTSUP;
 	}
@@ -88,7 +88,8 @@ static int csp_route_security_check(uint32_t security_opts, csp_iface_t * iface,
 			return CSP_ERR_CRC32;
 		}
 	} else if (security_opts & CSP_SO_CRC32REQ) {
-		csp_dbg_errno = CSP_DBG_CONN_ERR_UNSUPPORTED;
+		iface->rx_error++;
+		return CSP_ERR_CRC32;
 	}
 
 #if (CSP_USE_HMAC)
@@ -197,30 +198,42 @@ int csp_route_work(void) {
 		return CSP_ERR_NONE;
 	}
 
+	/**
+	 * Callbacks 
+	 */
+	csp_callback_t callback = csp_port_get_callback(packet->id.dport);
+	if (callback) {
+
+		if (csp_route_security_check(CSP_SO_NONE, input.iface, packet) < 0) {
+			csp_buffer_free(packet);
+			return CSP_ERR_NONE;
+		}
+
+		callback(packet);
+		return CSP_ERR_NONE;
+	}
+
+	/**
+	 * Sockets 
+	 */
+
 	/* The message is to me, search for incoming socket */
 	socket = csp_port_get_socket(packet->id.dport);
 
 	/* If the socket is connection-less, deliver now */
 	if (socket && (socket->opts & CSP_SO_CONN_LESS)) {
+
 		if (csp_route_security_check(socket->opts, input.iface, packet) < 0) {
 			csp_buffer_free(packet);
 			return CSP_ERR_NONE;
 		}
 
-		/* If the socket uses callback */
-		if (socket->opts & CSP_SO_CONN_LESS_CALLBACK) {
-			socket->callback(packet);
-
-			/* Otherwise, it uses a queue */
-		} else {
-
-			if (csp_queue_enqueue(socket->rx_queue, &packet, 0) != CSP_QUEUE_OK) {
-				csp_dbg_conn_ovf++;
-				csp_buffer_free(packet);
-				return 0;
-			}
+		if (csp_queue_enqueue(socket->rx_queue, &packet, 0) != CSP_QUEUE_OK) {
+			csp_dbg_conn_ovf++;
+			csp_buffer_free(packet);
+			return 0;
 		}
-
+		
 		return CSP_ERR_NONE;
 	}
 
