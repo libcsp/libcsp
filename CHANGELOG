@@ -19,7 +19,9 @@ libcsp 2.0, xx-yy-zzzz
 - improvement: uart driver linux. enable low latency mode
 - improvement: socketcan: Setup sjw in can driver
 - improvement: Portability. No more use of packed bitfields.
-- deprecated: HMAC and XTEA use a dedicatd encryption library instead
+- improvement: RDP RX/TX queue is now global, saving a lot of memory
+- improvement: FreeRTOS now uses taskNotify API instead of binary semaphores
+- deprecated: HMAC and XTEA is deprecated, use a dedicatd encryption library instead
 - removed: csp_endian.h: Use the system provided <endian.h> instead (which is faster and smaller)
 - removed: csp_malloc.h: libcsp no longer uses dynamic allocation
 - removed: Windows Support (moved to contrib, maintainer needed)
@@ -29,6 +31,10 @@ libcsp 2.0, xx-yy-zzzz
 - api: csp_init(): Now a void function, because allocation cannot fail
 - api: python bindings: Refreshed to new 2.0 api, builds with meson too
 - api: Interface names are now case sensitive (this is faster and avoids pulling in _ctypes_ and saves 340 bytes of flash)
+- api: csp_socket(): is replaced by simply `csp_socket_t my_sock;` static allocation. This is very leightweight
+- api: csp_bind_callback(): instead of using a socket, and binding that socket to a port.
+- api: new debug API. CSP does not print error messages any longer. Instead a new series of error counters has been added
+       and a new error code system. There are flags to enable the old level 4 and 5 debug to stdout with printf.
 - fix: router counts incoming packets before deduplication
 - fix: rdp: Fix ack_delay_count off by one error
 - fix: rtable cidr: continue parsing, even if an unknown interface is found
