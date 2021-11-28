@@ -4,6 +4,7 @@
 
 #include <inttypes.h>
 #include <stddef.h>
+#include <csp_autoconfig.h>
 
 #if (CSP_FREERTOS)
 #include <FreeRTOS.h>
