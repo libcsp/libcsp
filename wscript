@@ -108,6 +108,7 @@ def configure(ctx):
                                         'src/crypto/csp_sha1.c',
                                         'src/crypto/csp_xtea.c',
                                         'src/transport/csp_rdp.c',
+                                        'src/transport/csp_rdp_queue.c',
                                         'src/transport/csp_udp.c',
                                         'src/csp_buffer.c',
                                         'src/csp_bridge.c',

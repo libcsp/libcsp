@@ -117,6 +117,7 @@ typedef struct {
 	uint32_t rdp_quarantine;	// EACK quarantine period
 	uint32_t timestamp_tx;		// Time the message was sent
 	uint32_t timestamp_rx;		// Time the message was received
+	struct csp_conn_s * conn;   // Associated connection (this is used in RDP queue)
 
 	uint16_t length;			// Data length
 	csp_id_t id;				// CSP id (unpacked version CPU readable)

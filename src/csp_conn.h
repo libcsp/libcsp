@@ -57,13 +57,6 @@ typedef struct {
 	uint32_t ack_timestamp;
 	csp_bin_sem_t tx_wait;
 
-	csp_queue_handle_t tx_queue;
-	csp_static_queue_t tx_queue_static; /* Static storage for rx queue */
-	char tx_queue_static_data[sizeof(csp_packet_t *) * CSP_RDP_MAX_WINDOW * 2];
-
-	csp_queue_handle_t rx_queue;
-	csp_static_queue_t rx_queue_static; /* Static storage for rx queue */
-	char rx_queue_static_data[sizeof(csp_packet_t *) * CSP_RDP_MAX_WINDOW * 2];
 } csp_rdp_t;
 
 /** @brief Connection struct */
