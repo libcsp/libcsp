@@ -36,8 +36,6 @@ int csp_usart_open_and_add_kiss_interface(const csp_usart_conf_t * conf, const c
 		ifname = CSP_IF_KISS_DEFAULT_NAME;
 	}
 
-	//csp_print("INIT %s: device: [%s], bitrate: %d", ifname, conf->device, conf->baudrate);
-
 	kiss_context_t * ctx = calloc(1, sizeof(*ctx));
 	if (ctx == NULL) {
 		return CSP_ERR_NOMEM;

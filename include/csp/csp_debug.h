@@ -37,6 +37,7 @@ extern uint8_t csp_dbg_errno;
 #define CSP_DBG_ERR_PORT_ALREADY_IN_USE 9
 #define CSP_DBG_ERR_ALREADY_CLOSED 10
 #define CSP_DBG_ERR_INVALID_POINTER 11
+#define CSP_DBG_ERR_CLOCK_SET_FAIL 12
 
 /* CAN protocol specific errno */
 extern uint8_t csp_dbg_can_errno;

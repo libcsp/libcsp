@@ -165,7 +165,6 @@ static void csp_yaml_end_if(struct data_s * data, unsigned int * dfl_addr) {
 }
 
 static void csp_yaml_key_value(struct data_s * data, char * key, char * value) {
-	//csp_print("%s : %s\n", key, value);
 
 	if (strcmp(key, "name") == 0) {
 		data->name = value;
@@ -225,7 +224,6 @@ void csp_yaml_init(char * filename, unsigned int * dfl_addr) {
 	while (1) {
 
 		yaml_parser_parse(&parser, &event);
-		//csp_print("Event type %d\n", event.type);
 
 		if (event.type == YAML_SEQUENCE_END_EVENT)
 			break;

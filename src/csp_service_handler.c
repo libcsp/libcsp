@@ -148,7 +148,7 @@ static int do_cmp_clock(struct csp_cmp_message * cmp) {
 		// set time
 		res = csp_clock_set_time(&clock);
 		if (res != CSP_ERR_NONE) {
-			//csp_print("csp_clock_set_time(sec=%" PRIu32 ", nsec=%" PRIu32 ") failed, error: %d\n", clock.tv_sec, clock.tv_nsec, res);
+			csp_dbg_errno = CSP_DBG_ERR_CLOCK_SET_FAIL;
 		}
 	}
 

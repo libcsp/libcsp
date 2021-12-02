@@ -21,7 +21,7 @@ static int csp_pthread_create(void * (*routine)(void *)) {
 	pthread_attr_destroy(&attributes);
 
 	if (ret != 0) {
-		csp_print("Failed to start router task, error: %d", ret);
+		printf("Failed to start router task, error: %d", ret);
 		return ret;
 	}
 

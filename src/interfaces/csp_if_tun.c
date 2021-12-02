@@ -33,7 +33,6 @@ static int csp_if_tun_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packe
 			csp_buffer_free(new_packet);
 			csp_buffer_free(packet);
 			iface->rx_error++;
-			csp_print("Decryption error\n");
 			return CSP_ERR_NONE;
 		} else {
 			new_packet->frame_length = length;
@@ -108,8 +107,6 @@ static int csp_if_tun_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packe
 void csp_if_tun_init(csp_iface_t * iface, csp_if_tun_conf_t * ifconf) {
 
 	iface->driver_data = ifconf;
-
-	//csp_print("Setup Tunnel between %d and %d\n", ifconf->tun_src, ifconf->tun_dst);
 
 	/* MTU is datasize */
 	iface->mtu = csp_buffer_data_size();
