@@ -438,3 +438,7 @@ void csp_hex_dump(const char *desc, void *addr, int len);
    Set platform specific memory copy function.
 */
 void csp_cmp_set_memcpy(csp_memcpy_fnc_t fnc);
+
+/* Hooks for input/output */
+__attribute__((weak)) void csp_output_hook(csp_id_t idout, csp_packet_t * packet, csp_iface_t * iface, uint16_t via, int from_me);
+__attribute__((weak)) void csp_input_hook(csp_iface_t * iface, csp_packet_t * packet);

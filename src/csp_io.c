@@ -144,15 +144,20 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, int from_me) {
 
 }
 
+__attribute__((weak)) void csp_output_hook(csp_id_t idout, csp_packet_t * packet, csp_iface_t * iface, uint16_t via, int from_me) {
+	csp_print_packet("OUT: S %u, D %u, Dp %u, Sp %u, Pr %u, Fl 0x%02X, Sz %u VIA: %s (%u)\n",
+				idout.src, idout.dst, idout.dport, idout.sport, idout.pri, idout.flags, packet->length, iface->name, (via != CSP_NO_VIA_ADDRESS) ? via : idout.dst);
+	return;
+}
+
 int csp_send_direct_iface(csp_id_t idout, csp_packet_t * packet, csp_iface_t * iface, uint16_t via, int from_me) {
 
 	if (iface == NULL) {
 		csp_dbg_conn_noroute++;
 		goto err;
 	}
-	
-	csp_print_packet("OUT: S %u, D %u, Dp %u, Sp %u, Pr %u, Fl 0x%02X, Sz %u VIA: %s (%u)\n",
-				   idout.src, idout.dst, idout.dport, idout.sport, idout.pri, idout.flags, packet->length, iface->name, (via != CSP_NO_VIA_ADDRESS) ? via : idout.dst);
+
+	csp_output_hook(idout, packet, iface, via, from_me);
 
 	/* Copy identifier to packet (before crc, xtea and hmac) */
 	csp_id_copy(&packet->id, &idout);
