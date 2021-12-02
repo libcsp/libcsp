@@ -10,6 +10,11 @@
  * This gets rid of a lot of verbose debugging strings while
  * still maintaining the same level of debug capabilities.
  * 
+ * NOTE: We choose to ignore atomic access to the counters right now.
+ *   1) Most of the access to these happens single threaded (router task) or within ISR (driver RX)
+ *   2) Having accurate error counters is NOT a priority. They are only there for debugging purposes.
+ *   3) Not all compilers have support for <stdatomic.h> yet.
+ * 
  */
 
 /** Error counters */
