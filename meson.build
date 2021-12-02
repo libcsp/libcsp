@@ -61,10 +61,12 @@ csp_sources = files([
 # First try libyaml from dynamic library (os)
 yaml_dep = dependency('yaml-0.1', required : false)
 
-# Second try to include libyaml as a cmake subproject
+# Second try to include libyaml as a cmake subproject (shared library)
 if yaml_dep.found() == false
 	cmake = import('cmake')
-	yaml_pro = cmake.subproject('yaml', required: false)
+	yaml_opts = cmake.subproject_options()
+	yaml_opts.add_cmake_defines({'BUILD_SHARED_LIBS': true})
+	yaml_pro = cmake.subproject('yaml', required: false, options: yaml_opts)
 	if yaml_pro.found()
 		yaml_dep = yaml_pro.dependency('yaml')
 	endif
@@ -106,9 +108,9 @@ csp_lib = static_library('csp',
 	include_directories : csp_inc,
 	dependencies : csp_deps,
 	c_args : csp_c_args,
-	install : false
+	install : false,
+	pic:true,
 )
-
 
 # The following dependency variable is for parent projects to link
 # against libcsp. https://mesonbuild.com/Subprojects.html
@@ -118,17 +120,27 @@ csp_dep = declare_dependency(
 	dependencies : csp_deps,
 )
 
-subdir('examples')
-
-if get_option('enable_python3_bindings')
-
-	csp_shlib = shared_library('csp',
+csp_shlib = shared_library('csp',
 		sources: [csp_sources, csp_config_h],
 		include_directories : csp_inc,
 		dependencies : csp_deps,
 		c_args : csp_c_args,
 		install : true,
 	)
+
+# The following dependency variable is for parent projects to link
+# against libcsp. https://mesonbuild.com/Subprojects.html
+csp_shdep = declare_dependency(
+	include_directories : csp_inc,
+	link_with : csp_shlib,
+	dependencies : csp_deps,
+)
+
+subdir('examples')
+
+if get_option('enable_python3_bindings')
+
+	
 	py = import('python').find_installation('python3')
 	# py.dependency() doesn't work with version constraint. Use plain
 	# dependency() instead

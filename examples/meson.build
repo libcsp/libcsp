@@ -12,6 +12,13 @@ executable('csp_arch',
 	dependencies :  csp_dep.as_link_whole(),
 	build_by_default : false)
 
+executable('csp_arch_shared',
+	'csp_arch.c',
+	include_directories : csp_inc,
+	c_args : csp_c_args,
+	dependencies :  [csp_shdep, yaml_dep],
+	build_by_default : false)
+
 executable('zmqproxy',
 	'zmqproxy.c',
 	include_directories : csp_inc,
