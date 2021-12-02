@@ -120,6 +120,7 @@ csp_dep = declare_dependency(
 	dependencies : csp_deps,
 )
 
+if get_option('enable_shared_library')
 csp_shlib = shared_library('csp',
 		sources: [csp_sources, csp_config_h],
 		include_directories : csp_inc,
@@ -135,6 +136,7 @@ csp_shdep = declare_dependency(
 	link_with : csp_shlib,
 	dependencies : csp_deps,
 )
+endif
 
 subdir('examples')
 
