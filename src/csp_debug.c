@@ -18,13 +18,13 @@ uint8_t csp_dbg_packet_print;
 __attribute__((weak)) void csp_print(const char * fmt, ...) {
     va_list args;
     va_start(args, fmt);
-    vfprintf(stdout, fmt, args);
+    vprintf(fmt, args);
     va_end(args);
 }
 
 #else
 
-__attribute__((weak)) void csp_print(const char * fmt, ...)) {
+__attribute__((weak)) void csp_print(const char * fmt, ...) {
     return;
 }
 

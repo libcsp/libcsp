@@ -1,5 +1,5 @@
 project('csp', 'c', version: '2.0', license: 'LGPL',
-        meson_version : '>=0.53',
+        meson_version : '>=0.56',
 	default_options : ['c_std=gnu11',
 			   'optimization=s',
 			   'warning_level=2',
@@ -106,9 +106,9 @@ csp_lib = static_library('csp',
 	include_directories : csp_inc,
 	dependencies : csp_deps,
 	c_args : csp_c_args,
+	install : false
 )
 
-subdir('examples')
 
 # The following dependency variable is for parent projects to link
 # against libcsp. https://mesonbuild.com/Subprojects.html
@@ -117,6 +117,8 @@ csp_dep = declare_dependency(
 	link_with : csp_lib,
 	dependencies : csp_deps,
 )
+
+subdir('examples')
 
 if get_option('enable_python3_bindings')
 
