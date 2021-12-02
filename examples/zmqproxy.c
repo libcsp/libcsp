@@ -22,7 +22,7 @@ static void * task_capture(void * ctx) {
     int ret;
 
 	csp_sys_set_color(COLOR_BLUE);
-	printf("Capture/logging task listening on %s\n", sub_str);
+	csp_print("Capture/logging task listening on %s\n", sub_str);
 	csp_sys_set_color(COLOR_RESET);
 
 	/* Subscriber (RX) */
@@ -39,7 +39,7 @@ static void * task_capture(void * ctx) {
 	if (logfile_name) {
 		logfile = fopen(logfile_name, "a+");
 		if (logfile == NULL) {
-			printf("Unable to open logfile %s\n", logfile_name);
+			csp_print("Unable to open logfile %s\n", logfile_name);
 			exit(-1);
 		}
 	}
@@ -51,13 +51,13 @@ static void * task_capture(void * ctx) {
 		/* Receive data */
 		if (zmq_msg_recv(&msg, subscriber, 0) < 0) {
 			zmq_msg_close(&msg);
-			printf("ZMQ: %s\n", zmq_strerror(zmq_errno()));
+			csp_print("ZMQ: %s\n", zmq_strerror(zmq_errno()));
 			continue;
 		}
 
 		int datalen = zmq_msg_size(&msg);
 		if (datalen < 5) {
-			printf("ZMQ: Too short datalen: %u\n", datalen);
+			csp_print("ZMQ: Too short datalen: %u\n", datalen);
 			while (zmq_msg_recv(&msg, subscriber, ZMQ_NOBLOCK) > 0)
 				zmq_msg_close(&msg);
 			continue;
@@ -73,7 +73,7 @@ static void * task_capture(void * ctx) {
 
 		/* Print header data */
 		csp_sys_set_color(COLOR_GREEN);
-		printf("Packet: Src %u, Dst %u, Dport %u, Sport %u, Pri %u, Flags 0x%02X, Size %" PRIu16 "\n",
+		csp_print("Packet: Src %u, Dst %u, Dport %u, Sport %u, Pri %u, Flags 0x%02X, Size %" PRIu16 "\n",
 			   packet->id.src, packet->id.dst, packet->id.dport,
 			   packet->id.sport, packet->id.pri, packet->id.flags, packet->length);
 		csp_sys_set_color(COLOR_RESET);
@@ -113,7 +113,7 @@ int main(int argc, char ** argv) {
 				logfile_name = optarg;
 				break;
 			default:
-				printf(
+				csp_print(
 					"Usage:\n"
 					" -d \t\tEnable debug\n"
 					" -v VERSION\tcsp version\n"
@@ -133,13 +133,13 @@ int main(int argc, char ** argv) {
     ret = zmq_bind(frontend, sub_str);
 	assert(ret == 0);
 	csp_sys_set_color(COLOR_BLUE);
-	printf("Subscriber task listening on %s\n", sub_str);
+	csp_print("Subscriber task listening on %s\n", sub_str);
 
 	void * backend = zmq_socket(ctx, ZMQ_XPUB);
 	assert(backend);
     ret = zmq_bind(backend, pub_str);
 	assert(ret == 0);
-	printf("Publisher task listening on %s\n", pub_str);
+	csp_print("Publisher task listening on %s\n", pub_str);
 
 	pthread_t capworker;
 	pthread_create(&capworker, NULL, task_capture, ctx);
@@ -148,7 +148,7 @@ int main(int argc, char ** argv) {
 
 	zmq_proxy(frontend, backend, NULL);
 
-	printf("Closing ZMQproxy");
+	csp_print("Closing ZMQproxy");
 	zmq_ctx_destroy(ctx);
 
 	return 0;

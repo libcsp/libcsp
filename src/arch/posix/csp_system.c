@@ -37,10 +37,10 @@ uint32_t csp_sys_memfree(void) {
 static int csp_sys_log_and_return(const char * function, int res) {
 
 	if (res != 0) {
-		printf("%s: failed to execute, returned error: %d, errno: %d\n", function, res, errno);
+		csp_print("%s: failed to execute, returned error: %d, errno: %d\n", function, res, errno);
 		return CSP_ERR_INVAL;  // no real suitable error code
 	}
-	printf("%s: executed\n", function);
+	csp_print("%s: executed\n", function);
 	return CSP_ERR_NONE;
 }
 
@@ -119,5 +119,5 @@ void csp_sys_set_color(csp_color_t color) {
 			break;
 	}
 
-	printf("\033[%u;%um", modifier_code, color_code);
+	csp_print("\033[%u;%um", modifier_code, color_code);
 }

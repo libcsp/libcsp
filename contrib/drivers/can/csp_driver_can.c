@@ -255,19 +255,19 @@ csp_iface_t * csp_driver_can_init(int addr, int netmask, int id, can_mode_e mode
     struct can_filter filter;
     filter.id   = mcan[id].id;
     filter.mask = mcan[id].mask;
-    printf("H filter %x %x\n", filter.id, filter.mask);
+    //csp_print("H filter %x %x\n", filter.id, filter.mask);
     can_async_set_filter(&CAN_0, 0, CAN_FMT_EXTID, &filter);
 
     /* Filter for subnet broadcast address */
     filter.id   = mcan[id].id_l3bc;
     filter.mask = mcan[id].mask;
-    printf("L3 filter %x %x\n", filter.id, filter.mask);
+    //csp_print("L3 filter %x %x\n", filter.id, filter.mask);
     can_async_set_filter(&CAN_0, 1, CAN_FMT_EXTID, &filter);
 
     /* Filter for layer-2 broadcast */
     filter.id   = mcan[id].id_l2bc;
     filter.mask = mcan[id].mask;
-    printf("L2 filter %x %x\n", filter.id, filter.mask);
+    //csp_print("L2 filter %x %x\n", filter.id, filter.mask);
     can_async_set_filter(&CAN_0, 2, CAN_FMT_EXTID, &filter);
 
 	return &mcan[id].interface;

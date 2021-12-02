@@ -46,7 +46,7 @@ int csp_zmqhub_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet) {
 	pthread_mutex_unlock(&lock);
 
 	if (result < 0) {
-		printf("ZMQ send error: %u %s\n", result, zmq_strerror(zmq_errno()));
+		csp_print("ZMQ send error: %u %s\n", result, zmq_strerror(zmq_errno()));
 	}
 
 	csp_buffer_free(packet);
@@ -69,13 +69,13 @@ void * csp_zmqhub_task(void * param) {
 
 		// Receive data
 		if (zmq_msg_recv(&msg, drv->subscriber, 0) < 0) {
-			printf("ZMQ RX err %s: %s\n", drv->iface.name, zmq_strerror(zmq_errno()));
+			csp_print("ZMQ RX err %s: %s\n", drv->iface.name, zmq_strerror(zmq_errno()));
 			continue;
 		}
 
 		unsigned int datalen = zmq_msg_size(&msg);
 		if (datalen < HEADER_SIZE) {
-			printf("ZMQ RX %s: Too short datalen: %u - expected min %u bytes\n", drv->iface.name, datalen, HEADER_SIZE);
+			csp_print("ZMQ RX %s: Too short datalen: %u - expected min %u bytes\n", drv->iface.name, datalen, HEADER_SIZE);
 			zmq_msg_close(&msg);
 			continue;
 		}
@@ -83,7 +83,7 @@ void * csp_zmqhub_task(void * param) {
 		// Create new csp packet
 		packet = csp_buffer_get(datalen);
 		if (packet == NULL) {
-			printf("RX %s: Failed to get csp_buffer(%u)\n", drv->iface.name, datalen);
+			csp_print("RX %s: Failed to get csp_buffer(%u)\n", drv->iface.name, datalen);
 			zmq_msg_close(&msg);
 			continue;
 		}
@@ -177,7 +177,7 @@ int csp_zmqhub_init_w_name_endpoints_rxfilter(const char * ifname,
 	drv->context = zmq_ctx_new();
 	assert(drv->context != NULL);
 
-	//printf("INIT %s: pub(tx): [%s], sub(rx): [%s], rx filters: %u", drv->iface.name, publish_endpoint, subscribe_endpoint, rxfilter_count);
+	//csp_print("INIT %s: pub(tx): [%s], sub(rx): [%s], rx filters: %u", drv->iface.name, publish_endpoint, subscribe_endpoint, rxfilter_count);
 
 	/* Publisher (TX) */
 	drv->publisher = zmq_socket(drv->context, ZMQ_PUB);

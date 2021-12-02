@@ -481,7 +481,7 @@ static int csp_route_start_task(void) {
 	pthread_attr_destroy(&attributes);
 
 	if (ret != 0) {
-		printf("Failed to start router task, error: %d", ret);
+		csp_print("Failed to start router task, error: %d", ret);
 		return ret;
 	}
 

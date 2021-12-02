@@ -117,7 +117,7 @@ void csp_iflist_print(void) {
 	while (i) {
 		csp_bytesize(txbuf, sizeof(txbuf), i->txbytes);
 		csp_bytesize(rxbuf, sizeof(rxbuf), i->rxbytes);
-		printf("%-10s addr: %"PRIu16" netmask: %"PRIu16" mtu: %"PRIu16"\r\n"
+		csp_print("%-10s addr: %"PRIu16" netmask: %"PRIu16" mtu: %"PRIu16"\r\n"
 			   "           tx: %05" PRIu32 " rx: %05" PRIu32 " txe: %05" PRIu32 " rxe: %05" PRIu32 "\r\n"
 			   "           drop: %05" PRIu32 " autherr: %05" PRIu32 " frame: %05" PRIu32 "\r\n"
 			   "           txb: %" PRIu32 " (%s) rxb: %" PRIu32 " (%s) \r\n\r\n",

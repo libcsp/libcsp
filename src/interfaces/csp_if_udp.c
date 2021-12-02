@@ -86,7 +86,7 @@ void * csp_if_udp_rx_loop(void * param) {
 	while (sockfd < 0) {
 		sockfd = csp_if_udp_rx_get_socket(ifconf->lport);
 		if (sockfd < 0) {
-			printf("  UDP server waiting for port %d\n", ifconf->lport);
+			csp_print("  UDP server waiting for port %d\n", ifconf->lport);
 			sleep(1);
 		}
 	}
@@ -112,19 +112,19 @@ void csp_if_udp_init(csp_iface_t * iface, csp_if_udp_conf_t * ifconf) {
 	iface->driver_data = ifconf;
 
 	if (inet_aton(ifconf->host, &ifconf->peer_addr.sin_addr) == 0) {
-		printf("  Unknown peer address %s\n", ifconf->host);
+		csp_print("  Unknown peer address %s\n", ifconf->host);
 	}
 
-	printf("  UDP peer address: %s:%d (listening on port %d)\n", inet_ntoa(ifconf->peer_addr.sin_addr), ifconf->rport, ifconf->lport);
+	csp_print("  UDP peer address: %s:%d (listening on port %d)\n", inet_ntoa(ifconf->peer_addr.sin_addr), ifconf->rport, ifconf->lport);
 
 	/* Start server thread */
 	ret = pthread_attr_init(&attributes);
 	if (ret != 0) {
-		printf("csp_if_udp_init: pthread_attr_init failed: %s: %d\n", strerror(ret), ret);
+		csp_print("csp_if_udp_init: pthread_attr_init failed: %s: %d\n", strerror(ret), ret);
 	}
 	ret = pthread_attr_setdetachstate(&attributes, PTHREAD_CREATE_DETACHED);
 	if (ret != 0) {
-		printf("csp_if_udp_init: pthread_attr_setdetachstate failed: %s: %d\n", strerror(ret), ret);
+		csp_print("csp_if_udp_init: pthread_attr_setdetachstate failed: %s: %d\n", strerror(ret), ret);
 	}
 	ret = pthread_create(&ifconf->server_handle, &attributes, csp_if_udp_rx_loop, iface);
 

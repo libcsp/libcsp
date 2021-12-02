@@ -140,9 +140,9 @@ void csp_rtable_clear(void) {
 
 static bool csp_rtable_print_route(void * ctx, csp_route_t * route) {
 	if (route->via == CSP_NO_VIA_ADDRESS) {
-		printf("%u/%u %s\r\n", route->address, route->netmask, route->iface->name);
+		csp_print("%u/%u %s\r\n", route->address, route->netmask, route->iface->name);
 	} else {
-		printf("%u/%u %s %u\r\n", route->address, route->netmask, route->iface->name, route->via);
+		csp_print("%u/%u %s %u\r\n", route->address, route->netmask, route->iface->name, route->via);
 	}
 	return true;
 }

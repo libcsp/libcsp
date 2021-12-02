@@ -82,5 +82,5 @@ void csp_sys_set_color(csp_color_t color) {
 			break;
 	}
 
-	printf("\033[%u;%um", modifier_code, color_code);
+	csp_print("\033[%u;%um", modifier_code, color_code);
 }
