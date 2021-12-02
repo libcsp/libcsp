@@ -33,7 +33,7 @@ static void csp_yaml_start_if(struct data_s * data) {
 	memset(data, 0, sizeof(struct data_s));
 }
 
-static void csp_yaml_end_if(struct data_s * data, int dfl_addr) {
+static void csp_yaml_end_if(struct data_s * data, unsigned int * dfl_addr) {
 	/* Sanity checks */
 	if ((!data->name) || (!data->driver) || (!data->addr) || (!data->netmask)) {
 		printf("  invalid interface found\n");
@@ -143,10 +143,15 @@ static void csp_yaml_end_if(struct data_s * data, int dfl_addr) {
         return;
     }
 
-	if (data->is_dfl && dfl_addr != 0) {
-		iface->addr = dfl_addr;
-	} else {
-		iface->addr = atoi(data->addr);
+	iface->addr = atoi(data->addr);
+
+	/* If dfl_addr is passed, we can either readout or override */
+	if ((dfl_addr != NULL) && (data->is_dfl)) {
+		if (*dfl_addr == 0) {
+			*dfl_addr = iface->addr;
+		} else {
+			iface->addr = *dfl_addr;
+		}
 	}
 	iface->netmask = atoi(data->netmask);
 	iface->name = data->name;
@@ -191,7 +196,7 @@ static void csp_yaml_key_value(struct data_s * data, char * key, char * value) {
 	}
 }
 
-void csp_yaml_init(char * filename, int dfl_addr) {
+void csp_yaml_init(char * filename, unsigned int * dfl_addr) {
 
     struct data_s data;
 
