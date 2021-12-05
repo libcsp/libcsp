@@ -7,6 +7,7 @@
 #include <csp/csp_id.h>
 #include <csp/csp_iflist.h>
 #include <csp/interfaces/csp_if_lo.h>
+#include <csp_autoconfig.h>
 
 #if (CSP_HAVE_STDIO)
 #include <stdio.h> //! scanf()
