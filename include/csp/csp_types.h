@@ -45,14 +45,14 @@ typedef enum {
 /**
    CSP identifier/header.
 */
-typedef struct {
-	uint8_t pri;
+typedef struct  __attribute__((packed)) {
+	uint8_t pri; 
 	uint8_t flags;
 	uint16_t src;
 	uint16_t dst;
 	uint8_t dport;
 	uint8_t sport;
-} csp_id_t;
+} csp_id_t ;
 
 /**
    @defgroup CSP_HEADER_FLAGS CSP header flags.
@@ -113,17 +113,35 @@ typedef struct {
    lower layers may add additional data causing increased length (e.g. CRC32), convert
    the CSP id to different endian (e.g. I2C), etc.
 */
-typedef struct {
-	uint32_t rdp_quarantine;	// EACK quarantine period
-	uint32_t timestamp_tx;		// Time the message was sent
-	uint32_t timestamp_rx;		// Time the message was received
-	struct csp_conn_s * conn;   // Associated connection (this is used in RDP queue)
+typedef struct csp_packet_s {
 
+	union {
+
+		/* Only used on layer 3 (RDP) */
+		struct {
+			uint32_t rdp_quarantine;	// EACK quarantine period
+			uint32_t timestamp_tx;		// Time the message was sent
+			uint32_t timestamp_rx;		// Time the message was received
+			struct csp_conn_s * conn;   // Associated connection (this is used in RDP queue)
+		};
+
+		/* Only used on interface RX/TX (layer 2) */
+		struct {
+			uint16_t rx_count;          /* Received bytes */
+			uint16_t remain;            /* Remaining packets */
+			uint32_t cfpid;             /* Connection CFP identification number */
+			uint32_t last_used;         /* Timestamp in ms for last use of buffer */
+			uint8_t * frame_begin;
+			uint16_t frame_length;
+		};
+
+	};
+	
 	uint16_t length;			// Data length
 	csp_id_t id;				// CSP id (unpacked version CPU readable)
 
-	uint8_t * frame_begin;
-	uint16_t frame_length;
+	struct csp_packet_s * next; // Used for lists / queues of packets
+
 
 	/* Additional header bytes, to prepend packed data before transmission
 	 * This must be minimum 6 bytes to accomodate CSP 2.0. But some implementations
