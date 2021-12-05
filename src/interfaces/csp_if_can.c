@@ -354,7 +354,7 @@ int csp_can2_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t 
 		}
 
 		/* Free packet buffer */
-		csp_can_pbuf_free(packet, 1, task_woken);
+		csp_can_pbuf_free(packet, 0, task_woken);
 		
 		/* Data is available */
 		csp_qfifo_write(packet, iface, task_woken);
