@@ -14,18 +14,7 @@
 #define CSP_QUEUE_OK 0
 #define CSP_QUEUE_ERROR -1
 
-/**
-   Queue handle.
-*/
 typedef void * csp_queue_handle_t;
-
-/**
-   Create queue.
-   @param[in] length max length of queue, number of elements.
-   @param[in] item_size size of queue elements (bytes).
-   @return Create queue on success, otherwise NULL.
-*/
-csp_queue_handle_t csp_queue_create(int length, size_t item_size);
 
 #if (CSP_FREERTOS)
 typedef StaticQueue_t csp_static_queue_t;
@@ -37,12 +26,6 @@ typedef void * csp_static_queue_t;
 #endif
 
 csp_queue_handle_t csp_queue_create_static(int length, size_t item_size, char * buffer, csp_static_queue_t * queue);
-
-/**
-   Remove/delete queue.
-   @param[in] queue queue.
-*/
-void csp_queue_remove(csp_queue_handle_t queue);
 
 /**
    Enqueue (back) value.

@@ -6,16 +6,6 @@
 #include <FreeRTOS.h>
 #include <queue.h>
 
-#if (configSUPPORT_DYNAMIC_ALLOCATION == 1)
-csp_queue_handle_t csp_queue_create(int length, size_t item_size) {
-	return xQueueCreate(length, item_size);
-}
-
-void csp_queue_remove(csp_queue_handle_t queue) {
-	vQueueDelete(queue);
-}
-#endif
-
 csp_queue_handle_t csp_queue_create_static(int length, size_t item_size, char * buffer, csp_static_queue_t * queue) {
 	if (xQueueCreateStatic(length, item_size, (uint8_t *)buffer, queue) == pdPASS) {
 		return CSP_QUEUE_OK;
