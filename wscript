@@ -6,7 +6,7 @@ import os
 APPNAME = 'libcsp'
 VERSION = '2.0'
 
-valid_os = ['posix', 'windows', 'freertos', 'macosx']
+valid_os = ['posix', 'freertos']
 valid_loglevel = ['none', 'error', 'warn', 'info', 'debug']
 
 
@@ -39,7 +39,7 @@ def options(ctx):
     # Drivers and interfaces (requires external dependencies)
     gr.add_option('--enable-if-zmqhub', action='store_true', help='Enable ZMQ interface')
     gr.add_option('--enable-can-socketcan', action='store_true', help='Enable Linux socketcan driver')
-    gr.add_option('--with-driver-usart', default=None, metavar='DRIVER', help='Build USART driver. [windows, linux, None]')
+    gr.add_option('--with-driver-usart', default=None, metavar='DRIVER', help='Build USART driver. [linux, None]')
 
     # OS
     gr.add_option('--with-os', metavar='OS', default='posix', help='Set operating system. Must be one of: ' + str(valid_os))
@@ -93,14 +93,9 @@ def configure(ctx):
         ctx.env.append_unique('LIBS', ['pthread'])
         if ctx.env.CC_VERSION[0] == '9':
             ctx.env.append_unique('CFLAGS', ['-Wno-missing-field-initializers'])
-    elif ctx.options.with_os == 'windows':
-        ctx.env.append_unique('CFLAGS', ['-D_WIN32_WINNT=0x0600'])
 
     ctx.define_cond('CSP_FREERTOS', ctx.options.with_os == 'freertos')
     ctx.define_cond('CSP_POSIX', ctx.options.with_os == 'posix')
-    ctx.define_cond('CSP_WINDOWS', ctx.options.with_os == 'windows')
-    ctx.define_cond('CSP_MACOSX', ctx.options.with_os == 'macosx')
-
 
 
     # Add files

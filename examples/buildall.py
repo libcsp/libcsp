@@ -12,7 +12,6 @@ DEFAULT_BUILD_SYSTEM = 'waf'
 def build_with_meson():
     targets = ['examples/csp_server_client',
                'examples/csp_arch',
-               #'examples/csp_arch_shared',
                'examples/zmqproxy']
     builddir = 'build'
 
@@ -61,16 +60,6 @@ def build_with_waf(options):
             '--enable-shlib'
         ]
 
-    if target_os in ['macosx']:
-        options += [
-            '--with-driver-usart=linux',
-        ]
-
-    if target_os in ['windows']:
-        options += [
-            '--with-driver-usart=windows',
-        ]
-        waf = ['python', '-x', 'waf']
 
     # Build
     waf += ['distclean', 'configure', 'build']
