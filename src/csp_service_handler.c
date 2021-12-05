@@ -19,7 +19,6 @@
 #include <csp/csp_rtable.h>
 #include <csp/csp_id.h>
 #include <csp/arch/csp_time.h>
-#include <csp/arch/csp_clock.h>
 
 #define CSP_RPS_MTU 196
 

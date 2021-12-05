@@ -11,6 +11,4 @@ else()
   message(FATAL_ERROR "invalid system ${CMAKE_SYSTEM_NAME}")
 endif()
 
-target_sources(libcsp PRIVATE
-  csp_time.c
-  )
+

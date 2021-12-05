@@ -114,7 +114,6 @@ def configure(ctx):
                                         'src/interfaces/csp_if_can.c',
                                         'src/interfaces/csp_if_can_pbuf.c',
                                         'src/interfaces/csp_if_kiss.c',
-                                        'src/arch/*.c',
                                         'src/arch/{0}/**/*.c'.format(ctx.options.with_os),
                                         'src/csp_rtable_stdio.c',
                                         'src/csp_rtable_cidr.c'])

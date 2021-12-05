@@ -14,7 +14,10 @@
 #include <csp/arch/csp_queue.h>
 #include <csp/arch/csp_semaphore.h>
 
-
+typedef struct {
+	uint32_t tv_sec;
+	uint32_t tv_nsec;
+} csp_timestamp_t;
 
 /**
    Reserved ports for CSP services.
