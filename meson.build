@@ -22,8 +22,7 @@ conf.set10('CSP_USE_HMAC', get_option('use_hmac'))
 conf.set10('CSP_USE_XTEA', get_option('use_xtea'))
 conf.set10('CSP_USE_PROMISC', get_option('use_promisc'))
 conf.set10('CSP_USE_DEDUP', get_option('use_dedup'))
-
-conf.set10('CSP_HAVE_STDIO', (cc.has_header('stdio.h') and get_option('have_stdio')))
+conf.set10('CSP_HAVE_STDIO', get_option('have_stdio'))
 
 csp_deps = []
 
