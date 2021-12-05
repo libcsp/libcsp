@@ -6,10 +6,6 @@
 #include <csp/arch/csp_queue.h>
 #include <csp/arch/csp_semaphore.h>
 
-#ifndef CSP_USE_RDP_FAST_CLOSE
-#define CSP_USE_RDP_FAST_CLOSE 0
-#endif
-
 /** Connection states */
 typedef enum {
 	CONN_CLOSED = 0,
