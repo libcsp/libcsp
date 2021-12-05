@@ -21,9 +21,7 @@ static void * task_capture(void * ctx) {
 
     int ret;
 
-	csp_sys_set_color(COLOR_BLUE);
 	csp_print("Capture/logging task listening on %s\n", sub_str);
-	csp_sys_set_color(COLOR_RESET);
 
 	/* Subscriber (RX) */
 	void * subscriber = zmq_socket(ctx, ZMQ_SUB);
@@ -72,11 +70,10 @@ static void * task_capture(void * ctx) {
 		csp_id_strip(packet);
 
 		/* Print header data */
-		csp_sys_set_color(COLOR_GREEN);
 		csp_print("Packet: Src %u, Dst %u, Dport %u, Sport %u, Pri %u, Flags 0x%02X, Size %" PRIu16 "\n",
 			   packet->id.src, packet->id.dst, packet->id.dport,
 			   packet->id.sport, packet->id.pri, packet->id.flags, packet->length);
-		csp_sys_set_color(COLOR_RESET);
+			   
 
 		if (logfile) {
 			const char * delimiter = "--------\n";
@@ -132,7 +129,6 @@ int main(int argc, char ** argv) {
 	assert(frontend);
     ret = zmq_bind(frontend, sub_str);
 	assert(ret == 0);
-	csp_sys_set_color(COLOR_BLUE);
 	csp_print("Subscriber task listening on %s\n", sub_str);
 
 	void * backend = zmq_socket(ctx, ZMQ_XPUB);
@@ -143,8 +139,6 @@ int main(int argc, char ** argv) {
 
 	pthread_t capworker;
 	pthread_create(&capworker, NULL, task_capture, ctx);
-
-	csp_sys_set_color(COLOR_RESET);
 
 	zmq_proxy(frontend, backend, NULL);
 

@@ -9,4 +9,3 @@ else
 endif
 
 csp_sources += files('csp_time.c')
-csp_sources += files('csp_system.c')

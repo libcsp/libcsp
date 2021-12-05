@@ -14,7 +14,3 @@ int csp_sys_tasklist_size(void) {
 uint32_t csp_sys_memfree(void) {
 	return 0;
 }
-
-void csp_sys_set_color(csp_color_t color) {
-	/* not implemented. won't be used. */
-}
