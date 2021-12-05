@@ -177,8 +177,7 @@ def configure(ctx):
     ctx.define('CSP_RTABLE_SIZE', 10)
 
     # Set defines for enabling features
-    ctx.define('CSP_DEBUG', not ctx.options.disable_output)
-    ctx.define('CSP_DEBUG_TIMESTAMP', ctx.options.enable_debug_timestamp)
+    ctx.define('CSP_HAVE_STDIO', not ctx.options.disable_output)
     ctx.define('CSP_USE_RDP', ctx.options.enable_rdp)
     ctx.define('CSP_USE_RDP_FAST_CLOSE', ctx.options.enable_rdp and ctx.options.enable_rdp_fast_close)
     ctx.define('CSP_USE_HMAC', ctx.options.enable_hmac)

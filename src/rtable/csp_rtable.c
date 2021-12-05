@@ -1,6 +1,5 @@
 
 
-#include <stdio.h>
 #include <inttypes.h>
 
 #include <csp/csp.h>
@@ -136,7 +135,7 @@ void csp_rtable_clear(void) {
 	csp_rtable_free();
 }
 
-#if (CSP_DEBUG)
+#if (CSP_HAVE_STDIO)
 
 static bool csp_rtable_print_route(void * ctx, csp_route_t * route) {
 	if (route->via == CSP_NO_VIA_ADDRESS) {
@@ -150,5 +149,6 @@ static bool csp_rtable_print_route(void * ctx, csp_route_t * route) {
 void csp_rtable_print(void) {
 	csp_rtable_iterate(csp_rtable_print_route, NULL);
 }
-
+#else
+void csp_rtable_print(void) {};
 #endif

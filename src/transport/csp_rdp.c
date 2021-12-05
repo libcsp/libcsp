@@ -9,7 +9,6 @@
 #include "csp_rdp_queue.h"
 #include "csp_transport.h"
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <endian.h>
@@ -1020,7 +1019,7 @@ void csp_rdp_get_opt(unsigned int * window_size, unsigned int * conn_timeout_ms,
 		*ack_delay_count = csp_rdp_ack_delay_count;
 }
 
-#if (CSP_DEBUG)
+#if (CSP_HAVE_STDIO)
 void csp_rdp_conn_print(csp_conn_t * conn) {
 
 	if (conn == NULL)
@@ -1029,6 +1028,6 @@ void csp_rdp_conn_print(csp_conn_t * conn) {
 	csp_print("\tRDP: S:%d (closed by 0x%x), rcv %u, snd %u, win %" PRIu32 "\n",
 		   conn->rdp.state, conn->rdp.closed_by, conn->rdp.rcv_cur, conn->rdp.snd_una, conn->rdp.window_size);
 }
-#endif  // CSP_DEBUG
+#endif
 
 #endif  // CSP_USE_RDP

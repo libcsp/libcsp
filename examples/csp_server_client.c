@@ -1,4 +1,4 @@
-#include <stdio.h>
+#include <csp/csp_debug.h>
 #include <string.h>
 #include <unistd.h>
 #include <stdlib.h>

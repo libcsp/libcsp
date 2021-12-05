@@ -23,7 +23,7 @@
  * 
  */
 
-#include <stdio.h>
+#include <csp/csp_debug.h>
 #include <driver_init.h>
 #include <hal_can_async.h>
 

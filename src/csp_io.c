@@ -2,11 +2,11 @@
 
 #include "csp_io.h"
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include <csp/csp.h>
+#include <csp/csp_debug.h>
 #include <endian.h>
 #include <csp/csp_crc32.h>
 #include <csp/csp_rtable.h>

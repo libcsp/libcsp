@@ -5,7 +5,6 @@
 #include "csp_conn.h"
 
 #include <stdlib.h>
-#include <stdio.h>
 #include <stdatomic.h>
 
 #include <csp/arch/csp_queue.h>
@@ -362,7 +361,7 @@ int csp_conn_flags(csp_conn_t * conn) {
 	return conn->idin.flags;
 }
 
-#if (CSP_DEBUG)
+#if (CSP_HAVE_STDIO)
 void csp_conn_print_table(void) {
 
 	for (unsigned int i = 0; i < CSP_CONN_MAX; i++) {
@@ -398,6 +397,8 @@ int csp_conn_print_table_str(char * str_buf, int str_size) {
 
 	return CSP_ERR_NONE;
 }
+#else
+void csp_conn_print_table(void) {};
 #endif
 
 const csp_conn_t * csp_conn_get_array(size_t * size) {

@@ -929,14 +929,14 @@ static PyObject * pycsp_packet_get_length(PyObject * self, PyObject * packet_cap
 }
 
 static PyObject * pycsp_print_connections(PyObject * self, PyObject * args) {
-#if (CSP_DEBUG)
+#if (CSP_HAVE_STDIO)
 	csp_conn_print_table();
 #endif
 	Py_RETURN_NONE;
 }
 
 static PyObject * pycsp_print_routes(PyObject * self, PyObject * args) {
-#if (CSP_DEBUG)
+#if (CSP_HAVE_STDIO)
 	csp_rtable_print();
 #endif
 	Py_RETURN_NONE;

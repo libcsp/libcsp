@@ -1,8 +1,7 @@
 
 
-#include <csp/arch/csp_system.h>
 
-#include <stdio.h>
+#include <csp/csp_debug.h>
 #include <string.h>
 
 #include <csp/csp.h>

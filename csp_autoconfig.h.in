@@ -1,7 +1,7 @@
 #cmakedefine01 CSP_POSIX
 #cmakedefine01 CSP_ZEPHYR
 
-#cmakedefine01 CSP_DEBUG
+#cmakedefine01 CSP_HAVE_STDIO
 
 #cmakedefine CSP_QFIFO_LEN @CSP_QFIFO_LEN@
 #cmakedefine CSP_PORT_MAX_BIND @CSP_PORT_MAX_BIND@

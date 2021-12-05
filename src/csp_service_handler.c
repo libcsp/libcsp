@@ -2,7 +2,7 @@
 
 #include <csp/csp.h>
 
-#include <stdio.h>
+#include <csp/csp_debug.h>
 #ifdef __GNUC__
 #ifndef alloca
 #define alloca __builtin_alloca

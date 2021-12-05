@@ -1,6 +1,6 @@
 #include <csp/interfaces/csp_if_udp.h>
 
-#include <stdio.h>
+#include <csp/csp_debug.h>
 #include <unistd.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>

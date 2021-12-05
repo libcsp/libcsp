@@ -11,7 +11,7 @@ option('enable_shared_library', type: 'boolean', value: false, description: 'Bui
 
 option('version', type: 'integer', value: 1, description: 'Which version of CSP to use.')
 option('packet_padding_bytes', type: 'integer', value: 8, description: 'Number of bytes to include before the packet data (must be minimum 8)')
-
+option('have_stdio', type: 'boolean', value: true, description: 'Use print and scan functions (some features may be missing without)')
 
 # Memory tuning parameters:
 # Try to balance these so there is enough memory to handle expected system usage plus some,

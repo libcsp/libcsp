@@ -1,5 +1,5 @@
 #include <csp/csp.h>
-#include <stdio.h>
+#include <csp/csp_debug.h>
 #include <pthread.h>
 
 void server(void);

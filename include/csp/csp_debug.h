@@ -1,7 +1,7 @@
 #pragma once
 
+#include <csp_autoconfig.h>
 #include <inttypes.h>
-#include <stdio.h>
 
 /**
  * NEW DEBUG API:
@@ -53,7 +53,16 @@ extern uint8_t csp_dbg_rdp_print;
 extern uint8_t csp_dbg_packet_print;
 
 /* Helper macros for toggled printf */
-void csp_print(const char * fmt, ...) __attribute__((weak));
-#define csp_rdp_error(format, ...) { if (csp_dbg_rdp_print >= 1) csp_print("\033[31m" format "\033[0m", ##__VA_ARGS__); }
-#define csp_rdp_protocol(format, ...) { if (csp_dbg_rdp_print >= 2) csp_print("\033[34m" format "\033[0m", ##__VA_ARGS__); }
-#define csp_print_packet(format, ...) { if (csp_dbg_packet_print >= 1) csp_print("\033[32m" format "\033[0m", ##__VA_ARGS__); }
+void csp_print_func(const char * fmt, ...) __attribute__((weak));
+
+/* Compile time disable all printout from CSP */
+#if (CSP_HAVE_STDIO)
+#include <stdio.h>
+#define csp_print(...) if (csp_print_func) { csp_print_func(__VA_ARGS__); }
+#else
+#define csp_print(...) do {} while(0)
+#endif
+
+#define csp_rdp_error(format, ...) { if (csp_dbg_rdp_print >= 1) { csp_print("\033[31m" format "\033[0m", ##__VA_ARGS__); }}
+#define csp_rdp_protocol(format, ...) { if (csp_dbg_rdp_print >= 2) { csp_print("\033[34m" format "\033[0m", ##__VA_ARGS__); }}
+#define csp_print_packet(format, ...) { if (csp_dbg_packet_print >= 1) { csp_print("\033[32m" format "\033[0m", ##__VA_ARGS__); }}

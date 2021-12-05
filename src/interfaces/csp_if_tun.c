@@ -1,11 +1,7 @@
 #include <csp/interfaces/csp_if_tun.h>
 #include <csp/csp.h>
 #include <csp/csp_id.h>
-
-/** Implement these, if you use csp_if_tun */
-
-__attribute__((weak)) int csp_crypto_decrypt(uint8_t * ciphertext_in, uint8_t ciphertext_len, uint8_t * msg_out); // Returns -1 for failure, length if ok
-__attribute__((weak)) int csp_crypto_encrypt(uint8_t * msg_begin, uint8_t msg_len, uint8_t * ciphertext_out); // Returns length of encrypted data
+#include <csp/csp_hooks.h>
 
 static int csp_if_tun_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet) {
 

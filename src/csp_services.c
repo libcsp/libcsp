@@ -2,7 +2,7 @@
 
 #include <csp/csp.h>
 
-#include <stdio.h>
+#include <csp/csp_debug.h>
 
 #include <csp/csp_cmp.h>
 #include <endian.h>

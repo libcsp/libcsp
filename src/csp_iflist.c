@@ -3,7 +3,6 @@
 #include <csp/csp_iflist.h>
 #include <csp/csp_id.h>
 
-#include <stdio.h>
 #include <string.h>
 
 #include <csp_autoconfig.h>
@@ -91,7 +90,7 @@ csp_iface_t * csp_iflist_get(void) {
 	return interfaces;
 }
 
-#if (CSP_DEBUG)
+#if (CSP_HAVE_STDIO)
 int csp_bytesize(char * buffer, int buffer_len, unsigned long int bytes) {
 	char postfix;
 	double size;
@@ -126,4 +125,6 @@ void csp_iflist_print(void) {
 		i = i->next;
 	}
 }
+#else
+void csp_iflist_print(void) {};
 #endif

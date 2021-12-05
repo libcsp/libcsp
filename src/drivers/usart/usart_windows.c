@@ -1,6 +1,6 @@
 #include <csp/drivers/usart.h>
 
-#include <stdio.h>
+#include <csp/csp_debug.h>
 #include <windows.h>
 #include <process.h>
 #include <malloc.h>

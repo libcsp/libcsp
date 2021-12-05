@@ -1,4 +1,4 @@
-project('csp', 'c', version: '2.0', license: 'LGPL', meson_version : '>=0.53', default_options : [
+project('csp', 'c', version: '2.0', license: 'LGPL', meson_version : '>=0.53.2', default_options : [
 	'c_std=gnu11',
 	'optimization=s',
 	'warning_level=2',
@@ -8,7 +8,6 @@ cc = meson.get_compiler('c')
 
 conf = configuration_data()
 
-conf.set('CSP_DEBUG', 1)
 conf.set('CSP_QFIFO_LEN', get_option('qfifo_len'))
 conf.set('CSP_PORT_MAX_BIND', get_option('port_max_bind'))
 conf.set('CSP_CONN_RXQUEUE_LEN', get_option('conn_rxqueue_len'))
@@ -23,6 +22,8 @@ conf.set10('CSP_USE_HMAC', get_option('use_hmac'))
 conf.set10('CSP_USE_XTEA', get_option('use_xtea'))
 conf.set10('CSP_USE_PROMISC', get_option('use_promisc'))
 conf.set10('CSP_USE_DEDUP', get_option('use_dedup'))
+
+conf.set10('CSP_HAVE_STDIO', (cc.has_header('stdio.h') and get_option('have_stdio')))
 
 csp_deps = []
 
