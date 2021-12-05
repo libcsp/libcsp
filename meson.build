@@ -60,9 +60,11 @@ yaml_dep = dependency('yaml-0.1', required : false)
 # Second try to include libyaml as a cmake subproject (shared library)
 if yaml_dep.found() == false
 	cmake = import('cmake')
-	yaml_opts = cmake.subproject_options()
-	yaml_opts.add_cmake_defines({'BUILD_SHARED_LIBS': true})
-	yaml_pro = cmake.subproject('yaml', required: false, options: yaml_opts)
+	# This feature is too new for github CI meson version
+	#yaml_opts = cmake.subproject_options()
+	#yaml_opts.add_cmake_defines({'BUILD_SHARED_LIBS': true})
+	#yaml_pro = cmake.subproject('yaml', required: false, options: yaml_opts)
+	yaml_pro = cmake.subproject('yaml', required: false)
 	if yaml_pro.found()
 		yaml_dep = yaml_pro.dependency('yaml')
 	endif
