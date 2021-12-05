@@ -57,7 +57,6 @@ void csp_print_func(const char * fmt, ...);
 
 /* Compile time disable all printout from CSP */
 #if (CSP_HAVE_STDIO)
-#include <stdio.h>
 #define csp_print(...) csp_print_func(__VA_ARGS__);
 #else
 #define csp_print(...) do {} while(0)

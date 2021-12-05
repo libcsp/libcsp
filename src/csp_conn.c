@@ -362,6 +362,9 @@ int csp_conn_flags(csp_conn_t * conn) {
 }
 
 #if (CSP_HAVE_STDIO)
+
+#include <stdio.h> // snprintf()
+
 void csp_conn_print_table(void) {
 
 	for (unsigned int i = 0; i < CSP_CONN_MAX; i++) {

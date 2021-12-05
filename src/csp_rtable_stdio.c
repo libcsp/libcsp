@@ -9,6 +9,7 @@
 #include <csp/interfaces/csp_if_lo.h>
 
 #if (CSP_HAVE_STDIO)
+#include <stdio.h> //! scanf()
 
 static int csp_rtable_parse(const char * rtable, int dry_run) {
 

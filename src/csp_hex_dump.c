@@ -2,6 +2,7 @@
 
 #include <inttypes.h>
 #include <csp/csp_debug.h>
+#include <stddef.h>
 
 #if (CSP_HAVE_STDIO)
 void csp_hex_dump_format(const char * desc, void * addr, int len, int format) {

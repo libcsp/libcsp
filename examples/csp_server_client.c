@@ -8,6 +8,7 @@
 #include <csp/drivers/can_socketcan.h>
 #include <csp/interfaces/csp_if_zmqhub.h>
 
+
 /* These three functions must be provided in arch specific way */
 int router_start(void);
 int server_start(void);

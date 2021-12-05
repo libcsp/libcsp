@@ -91,6 +91,8 @@ csp_iface_t * csp_iflist_get(void) {
 }
 
 #if (CSP_HAVE_STDIO)
+#include <stdio.h>  // snprintf()
+
 int csp_bytesize(char * buffer, int buffer_len, unsigned long int bytes) {
 	char postfix;
 	double size;
