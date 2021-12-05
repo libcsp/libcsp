@@ -1,7 +1,6 @@
 
-
-#include <csp/arch/csp_clock.h>
-#include <csp/csp_debug.h>
+#include <csp/csp_types.h>
+#include <csp/csp_hooks.h>
 
 __attribute__((weak)) void csp_clock_get_time(csp_timestamp_t * time) {
 	time->tv_sec = 0;

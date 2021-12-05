@@ -8,7 +8,7 @@
 #if (CSP_USE_PROMISC)
 
 static csp_queue_handle_t csp_promisc_queue = NULL;
-static csp_static_queue_t csp_promisc_queue __attribute__((section(".noinit")));
+static csp_static_queue_t csp_promisc_queue_static __attribute__((section(".noinit")));
 char csp_promisc_queue_buffer[sizeof(csp_packet_t *) * CSP_CONN_RXQUEUE_LEN] __attribute__((section(".noinit")));
 
 static int csp_promisc_enabled = 0;
@@ -22,7 +22,7 @@ int csp_promisc_enable(unsigned int queue_size) {
 	}
 
 	/* Create packet queue */
-	csp_promisc_queue = csp_queue_create_static(CSP_CONN_RXQUEUE_LEN, sizeof(csp_packet_t *), csp_promisc_queue_buffer, &csp_promisc_queue);
+	csp_promisc_queue = csp_queue_create_static(CSP_CONN_RXQUEUE_LEN, sizeof(csp_packet_t *), csp_promisc_queue_buffer, &csp_promisc_queue_static);
 
 	if (csp_promisc_queue == NULL)
 		return CSP_ERR_INVAL;
