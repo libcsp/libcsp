@@ -17,9 +17,9 @@
 #include "csp_promisc.h"
 #include "csp_qfifo.h"
 #include "csp_dedup.h"
+#include "csp_rdp.h"
 #include <csp/csp_debug.h>
 #include <csp/csp_iflist.h>
-#include "transport/csp_transport.h"
 
 /**
  * Check supported packet options
@@ -302,7 +302,24 @@ int csp_route_work(void) {
 	}
 #endif
 
-	/* Pass packet to UDP module */
-	csp_udp_new_packet(conn, packet);
+	/* Otherwise, enqueue directly */
+	if (csp_conn_enqueue_packet(conn, packet) < 0) {
+		csp_dbg_conn_ovf++;
+		csp_buffer_free(packet);
+		return CSP_ERR_NONE;
+	}
+
+	/* Try to queue up the new connection pointer */
+	if (conn->dest_socket != NULL) {
+		if (csp_queue_enqueue(conn->dest_socket->rx_queue, &conn, 0) != CSP_QUEUE_OK) {
+			csp_dbg_conn_ovf++;
+			csp_close(conn);
+			return CSP_ERR_NONE;
+		}
+
+		/* Ensure that this connection will not be posted to this socket again */
+		conn->dest_socket = NULL;
+	}
+
 	return CSP_ERR_NONE;
 }

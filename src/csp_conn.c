@@ -11,8 +11,8 @@
 #include <csp/arch/csp_time.h>
 #include <csp/csp_id.h>
 #include <csp/csp_debug.h>
-#include "transport/csp_transport.h"
-#include "transport/csp_rdp_queue.h"
+#include "csp_rdp_queue.h"
+#include "csp_rdp.h"
 
 #define OUTGOING_PORTS (((1 << (CSP_ID2_PORT_SIZE)) - 1) - CSP_PORT_MAX_BIND)
 #if OUTGOING_PORTS > CSP_CONN_MAX
@@ -370,11 +370,12 @@ void csp_conn_print_table(void) {
 	for (unsigned int i = 0; i < CSP_CONN_MAX; i++) {
 		csp_conn_t * conn = &arr_conn[i];
 		csp_print("[%02u %p] S:%u, %u -> %u, %u -> %u (%u) fl %x\r\n",
-			   i, conn, conn->state, conn->idin.src, conn->idin.dst,
-			   conn->idin.dport, conn->idin.sport, conn->sport_outgoing, conn->idin.flags);
+		          i, conn, conn->state, conn->idin.src, conn->idin.dst,
+		          conn->idin.dport, conn->idin.sport, conn->sport_outgoing, conn->idin.flags);
 #if (CSP_USE_RDP)
 		if (conn->idin.flags & CSP_FRDP) {
-			csp_rdp_conn_print(conn);
+			csp_print("\tRDP: S:%d (closed by 0x%x), rcv %u, snd %u, win %" PRIu32 "\n", 
+			          conn->rdp.state, conn->rdp.closed_by, conn->rdp.rcv_cur, conn->rdp.snd_una, conn->rdp.window_size);
 		}
 #endif
 	}
@@ -402,8 +403,3 @@ int csp_conn_print_table_str(char * str_buf, int str_size) {
 }
 
 #endif
-
-const csp_conn_t * csp_conn_get_array(size_t * size) {
-	*size = CSP_CONN_MAX;
-	return arr_conn;
-}

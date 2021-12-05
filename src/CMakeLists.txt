@@ -18,10 +18,11 @@ target_sources(libcsp PRIVATE
 	csp_rtable_stdio.c
   csp_service_handler.c
   csp_services.c
+  csp_rdp.c
+  csp_rdp_queue.c
   )
 
 add_subdirectory(arch)
 add_subdirectory(crypto)
 add_subdirectory(drivers)
 add_subdirectory(interfaces)
-add_subdirectory(transport)

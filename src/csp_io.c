@@ -20,7 +20,7 @@
 #include "csp_conn.h"
 #include "csp_promisc.h"
 #include "csp_qfifo.h"
-#include "transport/csp_transport.h"
+#include "csp_rdp.h"
 
 #if (CSP_USE_PROMISC)
 extern csp_queue_handle_t csp_promisc_queue;

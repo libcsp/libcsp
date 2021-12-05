@@ -91,4 +91,3 @@ void csp_conn_check_timeouts(void);
 int csp_conn_get_rxq(int prio);
 int csp_conn_close(csp_conn_t * conn, uint8_t closed_by);
 
-const csp_conn_t * csp_conn_get_array(size_t * size);  // for test purposes only!

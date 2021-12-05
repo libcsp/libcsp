@@ -7,7 +7,7 @@
 #include "csp_conn.h"
 #include "csp_qfifo.h"
 #include "csp_port.h"
-#include "transport/csp_rdp_queue.h"
+#include "csp_rdp_queue.h"
 
 csp_conf_t csp_conf = {
 	.version = 2,
