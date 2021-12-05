@@ -1,7 +1,8 @@
 
 #include <unistd.h>
 #include <csp/csp_debug.h>
-#include <csp/arch/csp_clock.h>
+#include <csp/csp_types.h>
+#include <csp/csp_hooks.h>
 #include <csp/arch/csp_time.h>
 #include <csp/arch/csp_queue.h>
 #include <csp/arch/csp_semaphore.h>
@@ -31,7 +32,10 @@ int main(int argc, char * argv[]) {
 
     // queue handling
     uint32_t value;
-    csp_queue_handle_t q = csp_queue_create(3, sizeof(value));
+    csp_static_queue_t sq;
+    csp_queue_handle_t q;
+    char buf[3 * sizeof(value)];
+    q = csp_queue_create_static(3, sizeof(value), buf, &sq);
     assert(csp_queue_size(q) == 0);
     assert(csp_queue_size_isr(q) == 0);
     assert(csp_queue_dequeue(q, &value, 0) == CSP_QUEUE_ERROR);
@@ -58,7 +62,6 @@ int main(int argc, char * argv[]) {
     assert(value == 2);
     assert(csp_queue_dequeue_isr(q, &value, NULL) == CSP_QUEUE_OK);
     assert(value == 3);
-    csp_queue_remove(q);
 
 
     // semaphore
