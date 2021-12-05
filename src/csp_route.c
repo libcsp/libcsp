@@ -40,7 +40,7 @@ static int csp_route_check_options(csp_iface_t * iface, csp_packet_t * packet) {
 #if (CSP_USE_HMAC == 0)
 	/* Drop HMAC packets */
 	if (packet->id.flags & CSP_FHMAC) {
-		csp_dbg_init_errno = CSP_DBG_ERR_UNSUPPORTED;
+		csp_dbg_errno = CSP_DBG_ERR_UNSUPPORTED;
 		iface->autherr++;
 		return CSP_ERR_NOTSUP;
 	}
@@ -49,7 +49,7 @@ static int csp_route_check_options(csp_iface_t * iface, csp_packet_t * packet) {
 #if (CSP_USE_RDP == 0)
 	/* Drop RDP packets */
 	if (packet->id.flags & CSP_FRDP) {
-		csp_dbg_init_errno = CSP_DBG_ERR_UNSUPPORTED;
+		csp_dbg_errno = CSP_DBG_ERR_UNSUPPORTED;
 		iface->rx_error++;
 		return CSP_ERR_NOTSUP;
 	}

@@ -276,7 +276,7 @@ csp_conn_t * csp_connect(uint8_t prio, uint16_t dest, uint8_t dport, uint32_t ti
 		incoming_id.flags |= CSP_FRDP;
 		outgoing_id.flags |= CSP_FRDP;
 #else
-		csp_dbg_conn_errno = CSP_DBG_ERR_UNSUPPORTED;
+		csp_dbg_errno = CSP_DBG_ERR_UNSUPPORTED;
 		return NULL;
 #endif
 	}
@@ -286,7 +286,7 @@ csp_conn_t * csp_connect(uint8_t prio, uint16_t dest, uint8_t dport, uint32_t ti
 		outgoing_id.flags |= CSP_FHMAC;
 		incoming_id.flags |= CSP_FHMAC;
 #else
-		csp_dbg_conn_errno = CSP_DBG_ERR_UNSUPPORTED;
+		csp_dbg_errno = CSP_DBG_ERR_UNSUPPORTED;
 		return NULL;
 #endif
 	}
