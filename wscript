@@ -134,8 +134,8 @@ def configure(ctx):
                                         'src/interfaces/csp_if_kiss.c',
                                         'src/arch/*.c',
                                         'src/arch/{0}/**/*.c'.format(ctx.options.with_os),
-                                        'src/rtable/csp_rtable.c',
-                                        'src/rtable/csp_rtable_{0}.c'.format(ctx.options.with_rtable)])
+                                        'src/csp_rtable_stdio.c',
+                                        'src/csp_rtable_cidr.c'])
 
     # Add if UDP
     if ctx.check(header_name="sys/socket.h", mandatory=False) and ctx.check(header_name="arpa/inet.h", mandatory=False):

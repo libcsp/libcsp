@@ -8,7 +8,7 @@
 #include <csp/csp_iflist.h>
 #include <csp/interfaces/csp_if_lo.h>
 
-int csp_rtable_set_internal(uint16_t address, uint16_t netmask, csp_iface_t * ifc, uint16_t via);
+#if (CSP_HAVE_STDIO)
 
 static int csp_rtable_parse(const char * rtable, int dry_run) {
 
@@ -69,20 +69,7 @@ int csp_rtable_check(const char * rtable) {
 	return csp_rtable_parse(rtable, 1);
 }
 
-int csp_rtable_set(uint16_t address, int netmask, csp_iface_t * ifc, uint16_t via) {
 
-	if ((netmask < 0) || (netmask > (int)csp_id_get_host_bits())) {
-		netmask = csp_id_get_host_bits();
-	}
-
-	/* Validates options */
-	if ((ifc == NULL) || (netmask > (int)csp_id_get_host_bits())) {
-		csp_dbg_errno = CSP_DBG_ERR_INVALID_RTABLE_ENTRY; 
-		return CSP_ERR_INVAL;
-	}
-
-	return csp_rtable_set_internal(address, netmask, ifc, via);
-}
 
 typedef struct {
 	char * buffer;
@@ -131,12 +118,6 @@ int csp_rtable_save(char * buffer, size_t maxlen) {
 	return ctx.error;
 }
 
-void csp_rtable_clear(void) {
-	csp_rtable_free();
-}
-
-#if (CSP_HAVE_STDIO)
-
 static bool csp_rtable_print_route(void * ctx, csp_route_t * route) {
 	if (route->via == CSP_NO_VIA_ADDRESS) {
 		csp_print("%u/%u %s\r\n", route->address, route->netmask, route->iface->name);
@@ -149,6 +130,4 @@ static bool csp_rtable_print_route(void * ctx, csp_route_t * route) {
 void csp_rtable_print(void) {
 	csp_rtable_iterate(csp_rtable_print_route, NULL);
 }
-#else
-void csp_rtable_print(void) {};
 #endif

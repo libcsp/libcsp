@@ -125,6 +125,5 @@ void csp_iflist_print(void) {
 		i = i->next;
 	}
 }
-#else
-void csp_iflist_print(void) {};
+
 #endif

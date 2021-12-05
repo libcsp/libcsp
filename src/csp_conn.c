@@ -397,8 +397,7 @@ int csp_conn_print_table_str(char * str_buf, int str_size) {
 
 	return CSP_ERR_NONE;
 }
-#else
-void csp_conn_print_table(void) {};
+
 #endif
 
 const csp_conn_t * csp_conn_get_array(size_t * size) {

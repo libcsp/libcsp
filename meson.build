@@ -48,6 +48,8 @@ csp_sources = files([
 	'src/csp_promisc.c',
 	'src/csp_qfifo.c',
 	'src/csp_route.c',
+	'src/csp_rtable_cidr.c',
+	'src/csp_rtable_stdio.c',
 	'src/csp_service_handler.c',
 	'src/csp_services.c',
 	'src/csp_id.c',
@@ -77,7 +79,6 @@ if yaml_dep.found()
 	csp_sources += files('src/csp_yaml.c')
 endif
 
-subdir('src/rtable')
 subdir('src/arch')
 subdir('src/drivers')
 subdir('src/interfaces')

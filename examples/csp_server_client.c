@@ -80,7 +80,7 @@ void client(void) {
 
 	csp_print("Client task started");
 
-	unsigned int count = 0;
+	unsigned int count = 'A';
 
 	while (1) {
 
@@ -89,6 +89,7 @@ void client(void) {
 		/* Send ping to server, timeout 1000 mS, ping size 100 bytes */
 		int result = csp_ping(server_address, 1000, 100, CSP_O_NONE);
 		csp_print("Ping address: %u, result %d [mS]\n", server_address, result);
+        (void) result;
 
 		/* Send reboot request to server, the server has no actual implementation of csp_sys_reboot() and fails to reboot */
 		csp_reboot(server_address);
@@ -113,7 +114,10 @@ void client(void) {
 		}
 
 		/* 3. Copy data to packet */
-		snprintf((char *) packet->data, csp_buffer_data_size(), "Hello World (%u)", ++count);
+        memcpy(packet->data, "Hello world ", 12);
+        memcpy(packet->data + 12, &count, 1);
+        memset(packet->data + 13, 0, 1);
+        count++;
 
 		/* 4. Set packet length */
 		packet->length = (strlen((char *) packet->data) + 1); /* include the 0 termination */
@@ -228,11 +232,13 @@ int main(int argc, char * argv[]) {
 #endif
 
     if (rtable) {
+#if (CSP_HAVE_STDIO)
         int error = csp_rtable_load(rtable);
         if (error < 1) {
             csp_print("csp_rtable_load(%s) failed, error: %d\n", rtable, error);
             exit(1);
         }
+#endif
     } else if (default_iface) {
         csp_rtable_set(0, 0, default_iface, CSP_NO_VIA_ADDRESS);
     } else {
@@ -240,14 +246,16 @@ int main(int argc, char * argv[]) {
         server_address = address;
     }
 
+#if (CSP_HAVE_STDIO)
     csp_print("Connection table\r\n");
     csp_conn_print_table();
 
     csp_print("Interfaces\r\n");
-    csp_route_print_interfaces();
+    csp_rtable_print();
 
     csp_print("Route table\r\n");
-    csp_route_print_table();
+    csp_iflist_print();
+#endif
 
     /* Start server thread */
     if ((server_address == 255) ||  /* no server address specified, I must be server */
