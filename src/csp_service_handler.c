@@ -13,6 +13,7 @@
 #include <string.h>
 
 #include <csp/csp_cmp.h>
+#include <csp/csp_hooks.h>
 #include <endian.h>
 #include <csp/csp_types.h>
 #include <csp/csp_rtable.h>
@@ -296,9 +297,13 @@ void csp_service_handler(csp_packet_t * packet) {
 
 			/* If the magic word is valid, reboot */
 			if (magic_word == CSP_REBOOT_MAGIC) {
-				csp_sys_reboot();
+				if (csp_reboot_hook) {
+					csp_reboot_hook();
+				}
 			} else if (magic_word == CSP_REBOOT_SHUTDOWN_MAGIC) {
-				csp_sys_shutdown();
+				if (csp_shutdown_hook) {
+					csp_shutdown_hook();
+				}
 			}
 
 			csp_buffer_free(packet);

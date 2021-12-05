@@ -35,6 +35,7 @@ libcsp 2.0, xx-yy-zzzz
 - api: csp_bind_callback(): instead of using a socket, and binding that socket to a port.
 - api: new debug API. CSP does not print error messages any longer. Instead a new series of error counters has been added
        and a new error code system. There are flags to enable the old level 4 and 5 debug to stdout with printf.
+- api: csp reboot and shutdown are now implemented using hooks instaed of callback functions (see hooks.md)
 - fix: router counts incoming packets before deduplication
 - fix: rdp: Fix ack_delay_count off by one error
 - fix: rtable cidr: continue parsing, even if an unknown interface is found
