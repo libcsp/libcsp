@@ -12,6 +12,5 @@ else()
 endif()
 
 target_sources(libcsp PRIVATE
-  csp_system.c
   csp_time.c
   )

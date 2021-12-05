@@ -20,7 +20,6 @@
 #include <csp/csp_id.h>
 #include <csp/arch/csp_time.h>
 #include <csp/arch/csp_clock.h>
-#include <csp/arch/csp_system.h>
 
 #define CSP_RPS_MTU 196
 
@@ -230,57 +229,13 @@ void csp_service_handler(csp_packet_t * packet) {
 			/* A ping means, just echo the packet, so no changes */
 			break;
 
-		case CSP_PS: {
-			/* Sanity check on request */
-			if ((packet->length != 1) || (packet->data[0] != 0x55)) {
-				/* Sanity check failed */
-				csp_buffer_free(packet);
-				/* Clear the packet, it has been freed */
-				packet = NULL;
-				break;
-			}
-			/* Start by allocating just the right amount of memory */
-			int task_list_size = csp_sys_tasklist_size();
-			char * pslist = alloca(task_list_size);
-			/* Check for malloc fail */
-			if (pslist == NULL) {
-				/* Send out the data */
-				strcpy((char *)packet->data, "Not enough memory");
-				packet->length = strlen((char *)packet->data);
-				/* Break and let the default handling send packet */
-				break;
-			}
-
-			/* Retrieve the tasklist */
-			csp_sys_tasklist(pslist);
-			int pslen = strnlen(pslist, task_list_size);
-
-			/* Split the potentially very long string into packets */
-			int i = 0;
-			while (i < pslen) {
-
-				/* Allocate packet buffer, if need be */
-				csp_packet_t * rpacket = csp_buffer_get(CSP_RPS_MTU);
-				if (rpacket == NULL)
-					break;
-
-				/* Calculate length, either full MTU or the remainder */
-				rpacket->length = (pslen - i > CSP_RPS_MTU) ? CSP_RPS_MTU : (pslen - i);
-
-				/* Send out the data */
-				memcpy(rpacket->data, &pslist[i], rpacket->length);
-				i += rpacket->length;
-				csp_sendto_reply(packet, rpacket, CSP_O_SAME);
-
-				/* Clear the packet reference when sent */
-			}
-			csp_buffer_free(packet);
-			packet = NULL;
-			break;
-		}
 
 		case CSP_MEMFREE: {
-			uint32_t total = csp_sys_memfree();
+
+			uint32_t total = 0;
+			if (csp_memfree_hook) {
+				total = csp_memfree_hook();
+			}
 
 			total = htobe32(total);
 			memcpy(packet->data, &total, sizeof(total));

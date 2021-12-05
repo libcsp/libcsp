@@ -5,7 +5,6 @@
 #include <pthread.h>
 
 #include <csp/csp.h>
-#include <csp/arch/csp_system.h>
 
 int csp_id_strip(csp_packet_t * packet);
 int csp_id_setup_rx(csp_packet_t * packet);
