@@ -11,25 +11,8 @@
 #include <queue.h>
 #endif
 
-
-
-/**
-   No error.
-   @note Value is 1!
-*/
-#define CSP_QUEUE_OK 1
-
-/**
-   Queue full.
-   @note Value is 0!
-*/
-#define CSP_QUEUE_FULL 0
-
-/**
-   Queue error.
-   @note Value is 0!
-*/
-#define CSP_QUEUE_ERROR 0
+#define CSP_QUEUE_OK 0
+#define CSP_QUEUE_ERROR -1
 
 /**
    Queue handle.

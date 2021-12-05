@@ -713,7 +713,7 @@ bool csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 				if (conn->dest_socket != NULL) {
 
 					/* Try queueing */
-					if (csp_queue_enqueue(conn->dest_socket->rx_queue, &conn, 0) == CSP_QUEUE_FULL) {
+					if (csp_queue_enqueue(conn->dest_socket->rx_queue, &conn, 0) == CSP_QUEUE_ERROR) {
 						csp_rdp_error("RDP %p: ERROR socket cannot accept more connections\n", conn);
 						goto discard_close;
 					}
