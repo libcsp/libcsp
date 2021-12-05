@@ -233,10 +233,8 @@ void csp_service_handler(csp_packet_t * packet) {
 		case CSP_MEMFREE: {
 
 			uint32_t total = 0;
-			if (csp_memfree_hook) {
-				total = csp_memfree_hook();
-			}
-
+			total = csp_memfree_hook();
+			
 			total = htobe32(total);
 			memcpy(packet->data, &total, sizeof(total));
 			packet->length = sizeof(total);
@@ -252,13 +250,9 @@ void csp_service_handler(csp_packet_t * packet) {
 
 			/* If the magic word is valid, reboot */
 			if (magic_word == CSP_REBOOT_MAGIC) {
-				if (csp_reboot_hook) {
-					csp_reboot_hook();
-				}
+				csp_reboot_hook();
 			} else if (magic_word == CSP_REBOOT_SHUTDOWN_MAGIC) {
-				if (csp_shutdown_hook) {
-					csp_shutdown_hook();
-				}
+				csp_shutdown_hook();
 			}
 
 			csp_buffer_free(packet);

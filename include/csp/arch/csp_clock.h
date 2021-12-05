@@ -44,6 +44,6 @@ void csp_clock_get_time(csp_timestamp_t * time);
 int csp_clock_set_time(const csp_timestamp_t * time);
 
 /* Additional functions for 64-bit nanosecond type */
-__attribute__((weak)) extern uint64_t clock_get_time64(void);
-__attribute__((weak)) extern void clock_set_time64(uint64_t time);
+uint64_t clock_get_time64(void);
+void clock_set_time64(uint64_t time);
 

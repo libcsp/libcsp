@@ -3,6 +3,14 @@
 #include <csp/csp_id.h>
 #include <csp/csp_hooks.h>
 
+__attribute__((weak)) int csp_crypto_decrypt(uint8_t * ciphertext_in, uint8_t ciphertext_len, uint8_t * msg_out) {
+	return -1;
+}
+
+__attribute__((weak)) int csp_crypto_encrypt(uint8_t * msg_begin, uint8_t msg_len, uint8_t * ciphertext_out) {
+	return -1;
+}
+
 static int csp_if_tun_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet) {
 
 	csp_if_tun_conf_t * ifconf = iface->driver_data;
