@@ -20,7 +20,6 @@ static int csp_if_udp_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packe
 
 	int sockfd;
 	if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
-		perror("socket creation failed");
 		return CSP_ERR_BUSY;
 	}
 
