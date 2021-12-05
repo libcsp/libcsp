@@ -1,17 +1,14 @@
-project('csp', 'c', version: '2.0', license: 'LGPL',
-        meson_version : '>=0.56',
-	default_options : ['c_std=gnu11',
-			   'optimization=s',
-			   'warning_level=2',
-			   'werror=true'])
+project('csp', 'c', version: '2.0', license: 'LGPL', meson_version : '>=0.53', default_options : [
+	'c_std=gnu11',
+	'optimization=s',
+	'warning_level=2',
+	'werror=true'])
 
 cc = meson.get_compiler('c')
 
 conf = configuration_data()
 
 conf.set('CSP_DEBUG', 1)
-
-
 conf.set('CSP_QFIFO_LEN', get_option('qfifo_len'))
 conf.set('CSP_PORT_MAX_BIND', get_option('port_max_bind'))
 conf.set('CSP_CONN_RXQUEUE_LEN', get_option('conn_rxqueue_len'))
@@ -20,7 +17,6 @@ conf.set('CSP_BUFFER_SIZE', get_option('buffer_size'))
 conf.set('CSP_BUFFER_COUNT', get_option('buffer_count'))
 conf.set('CSP_RDP_MAX_WINDOW', get_option('rdp_max_window'))
 conf.set('CSP_RTABLE_SIZE', get_option('rtable_size'))
-
 
 conf.set10('CSP_USE_RDP', get_option('use_rdp'))
 conf.set10('CSP_USE_HMAC', get_option('use_hmac'))
