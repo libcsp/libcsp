@@ -7,17 +7,14 @@
 #include <queue.h>
 
 csp_queue_handle_t csp_queue_create_static(int length, size_t item_size, char * buffer, csp_static_queue_t * queue) {
-	if (xQueueCreateStatic(length, item_size, (uint8_t *)buffer, queue) == pdPASS) {
-		return CSP_QUEUE_OK;
-	}
-	return CSP_QUEUE_ERROR;
+	return xQueueCreateStatic(length, item_size, (uint8_t *)buffer, queue);
 }
 
 int csp_queue_enqueue(csp_queue_handle_t handle, const void * value, uint32_t timeout) {
 	if (timeout != CSP_MAX_TIMEOUT)
 		timeout = timeout / portTICK_PERIOD_MS;
 	if (xQueueSendToBack(handle, value, timeout) == pdPASS) {
-		return CSO_QUEUE_OK;
+		return CSP_QUEUE_OK;
 	}
 	return CSP_QUEUE_ERROR;
 }
