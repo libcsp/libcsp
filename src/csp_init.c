@@ -24,9 +24,6 @@ uint16_t csp_get_address(void) {
 
 void csp_init(void) {
 
-	/* make offset first time, so uptime is counted from process/task boot */
-	csp_get_uptime_s();
-
 	csp_buffer_init();
 	csp_conn_init();
 	csp_qfifo_init();
