@@ -3,9 +3,9 @@
 #include <csp/csp_iflist.h>
 #include <csp/csp_id.h>
 
-#include <stdio.h>
 #include <string.h>
 
+#include <csp_autoconfig.h>
 #include <csp/csp_debug.h>
 
 /* Interfaces are stored in a linked list */
@@ -90,7 +90,9 @@ csp_iface_t * csp_iflist_get(void) {
 	return interfaces;
 }
 
-#if (CSP_DEBUG)
+#if (CSP_HAVE_STDIO)
+#include <stdio.h>  // snprintf()
+
 int csp_bytesize(char * buffer, int buffer_len, unsigned long int bytes) {
 	char postfix;
 	double size;
@@ -116,7 +118,7 @@ void csp_iflist_print(void) {
 	while (i) {
 		csp_bytesize(txbuf, sizeof(txbuf), i->txbytes);
 		csp_bytesize(rxbuf, sizeof(rxbuf), i->rxbytes);
-		printf("%-10s addr: %"PRIu16" netmask: %"PRIu16" mtu: %"PRIu16"\r\n"
+		csp_print("%-10s addr: %"PRIu16" netmask: %"PRIu16" mtu: %"PRIu16"\r\n"
 			   "           tx: %05" PRIu32 " rx: %05" PRIu32 " txe: %05" PRIu32 " rxe: %05" PRIu32 "\r\n"
 			   "           drop: %05" PRIu32 " autherr: %05" PRIu32 " frame: %05" PRIu32 "\r\n"
 			   "           txb: %" PRIu32 " (%s) rxb: %" PRIu32 " (%s) \r\n\r\n",
@@ -125,4 +127,5 @@ void csp_iflist_print(void) {
 		i = i->next;
 	}
 }
+
 #endif

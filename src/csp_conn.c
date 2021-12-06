@@ -5,13 +5,14 @@
 #include "csp_conn.h"
 
 #include <stdlib.h>
-#include <stdio.h>
 #include <stdatomic.h>
 
 #include <csp/arch/csp_queue.h>
 #include <csp/arch/csp_time.h>
 #include <csp/csp_id.h>
-#include "transport/csp_transport.h"
+#include <csp/csp_debug.h>
+#include "csp_rdp_queue.h"
+#include "csp_rdp.h"
 
 #define OUTGOING_PORTS (((1 << (CSP_ID2_PORT_SIZE)) - 1) - CSP_PORT_MAX_BIND)
 #if OUTGOING_PORTS > CSP_CONN_MAX
@@ -39,7 +40,7 @@ int csp_conn_enqueue_packet(csp_conn_t * conn, csp_packet_t * packet) {
 		return CSP_ERR_INVAL;
 
 	if (csp_queue_enqueue(conn->rx_queue, &packet, 0) != CSP_QUEUE_OK) {
-		csp_log_error("RX queue %p full with %u items", conn->rx_queue, csp_queue_size(conn->rx_queue));
+		csp_dbg_conn_ovf++;
 		return CSP_ERR_NOMEM;
 	}
 
@@ -160,7 +161,7 @@ csp_conn_t * csp_conn_allocate(csp_conn_type_t type) {
 	}
 
 	if (conn == NULL) {
-		csp_log_error("No free connections, max %u", CSP_CONN_MAX);
+		csp_dbg_conn_out++;
 		return NULL;
 	}
 
@@ -202,7 +203,7 @@ int csp_conn_close(csp_conn_t * conn, uint8_t closed_by) {
 	}
 
 	if (conn->state == CONN_CLOSED) {
-		csp_log_protocol("Conn already closed");
+		csp_dbg_errno = CSP_DBG_ERR_ALREADY_CLOSED;
 		return CSP_ERR_NONE;
 	}
 
@@ -221,7 +222,7 @@ int csp_conn_close(csp_conn_t * conn, uint8_t closed_by) {
 	/* Reset RDP state */
 #if (CSP_USE_RDP)
 	if (conn->idin.flags & CSP_FRDP) {
-		csp_rdp_flush_all(conn);
+		csp_rdp_queue_flush(conn);
 	}
 #endif
 
@@ -248,8 +249,9 @@ csp_conn_t * csp_connect(uint8_t prio, uint16_t dest, uint8_t dport, uint32_t ti
 	}
 
 	if (source_addr == -1) {
-		csp_log_error("No route to host %d", dest);
-	}	
+		csp_dbg_conn_noroute++;
+		return NULL;
+	}
 	
 	/* Generate identifier */
 	csp_id_t incoming_id, outgoing_id;
@@ -274,7 +276,7 @@ csp_conn_t * csp_connect(uint8_t prio, uint16_t dest, uint8_t dport, uint32_t ti
 		incoming_id.flags |= CSP_FRDP;
 		outgoing_id.flags |= CSP_FRDP;
 #else
-		csp_log_error("No RDP support");
+		csp_dbg_errno = CSP_DBG_ERR_UNSUPPORTED;
 		return NULL;
 #endif
 	}
@@ -284,7 +286,7 @@ csp_conn_t * csp_connect(uint8_t prio, uint16_t dest, uint8_t dport, uint32_t ti
 		outgoing_id.flags |= CSP_FHMAC;
 		incoming_id.flags |= CSP_FHMAC;
 #else
-		csp_log_error("No HMAC support");
+		csp_dbg_errno = CSP_DBG_ERR_UNSUPPORTED;
 		return NULL;
 #endif
 	}
@@ -294,7 +296,7 @@ csp_conn_t * csp_connect(uint8_t prio, uint16_t dest, uint8_t dport, uint32_t ti
 		outgoing_id.flags |= CSP_FXTEA;
 		incoming_id.flags |= CSP_FXTEA;
 #else
-		csp_log_error("No XTEA support");
+		csp_dbg_errno = CSP_DBG_ERR_UNSUPPORTED;
 		return NULL;
 #endif
 	}
@@ -359,17 +361,21 @@ int csp_conn_flags(csp_conn_t * conn) {
 	return conn->idin.flags;
 }
 
-#if (CSP_DEBUG)
+#if (CSP_HAVE_STDIO)
+
+#include <stdio.h> // snprintf()
+
 void csp_conn_print_table(void) {
 
 	for (unsigned int i = 0; i < CSP_CONN_MAX; i++) {
 		csp_conn_t * conn = &arr_conn[i];
-		printf("[%02u %p] S:%u, %u -> %u, %u -> %u (%u) fl %x\r\n",
-			   i, conn, conn->state, conn->idin.src, conn->idin.dst,
-			   conn->idin.dport, conn->idin.sport, conn->sport_outgoing, conn->idin.flags);
+		csp_print("[%02u %p] S:%u, %u -> %u, %u -> %u (%u) fl %x\r\n",
+		          i, conn, conn->state, conn->idin.src, conn->idin.dst,
+		          conn->idin.dport, conn->idin.sport, conn->sport_outgoing, conn->idin.flags);
 #if (CSP_USE_RDP)
 		if (conn->idin.flags & CSP_FRDP) {
-			csp_rdp_conn_print(conn);
+			csp_print("\tRDP: S:%d (closed by 0x%x), rcv %u, snd %u, win %" PRIu32 "\n", 
+			          conn->rdp.state, conn->rdp.closed_by, conn->rdp.rcv_cur, conn->rdp.snd_una, conn->rdp.window_size);
 		}
 #endif
 	}
@@ -395,9 +401,5 @@ int csp_conn_print_table_str(char * str_buf, int str_size) {
 
 	return CSP_ERR_NONE;
 }
-#endif
 
-const csp_conn_t * csp_conn_get_array(size_t * size) {
-	*size = CSP_CONN_MAX;
-	return arr_conn;
-}
+#endif

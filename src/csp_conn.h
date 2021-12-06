@@ -6,10 +6,6 @@
 #include <csp/arch/csp_queue.h>
 #include <csp/arch/csp_semaphore.h>
 
-#ifndef CSP_USE_RDP_FAST_CLOSE
-#define CSP_USE_RDP_FAST_CLOSE 0
-#endif
-
 /** Connection states */
 typedef enum {
 	CONN_CLOSED = 0,
@@ -57,13 +53,6 @@ typedef struct {
 	uint32_t ack_timestamp;
 	csp_bin_sem_t tx_wait;
 
-	csp_queue_handle_t tx_queue;
-	csp_static_queue_t tx_queue_static; /* Static storage for rx queue */
-	char tx_queue_static_data[sizeof(csp_packet_t *) * CSP_RDP_MAX_WINDOW * 2];
-
-	csp_queue_handle_t rx_queue;
-	csp_static_queue_t rx_queue_static; /* Static storage for rx queue */
-	char rx_queue_static_data[sizeof(csp_packet_t *) * CSP_RDP_MAX_WINDOW * 2];
 } csp_rdp_t;
 
 /** @brief Connection struct */
@@ -88,6 +77,8 @@ struct csp_conn_s {
 #endif
 };
 
+
+
 int csp_conn_enqueue_packet(csp_conn_t * conn, csp_packet_t * packet);
 void csp_conn_init(void);
 csp_conn_t * csp_conn_allocate(csp_conn_type_t type);
@@ -100,4 +91,3 @@ void csp_conn_check_timeouts(void);
 int csp_conn_get_rxq(int prio);
 int csp_conn_close(csp_conn_t * conn, uint8_t closed_by);
 
-const csp_conn_t * csp_conn_get_array(size_t * size);  // for test purposes only!

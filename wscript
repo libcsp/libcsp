@@ -6,9 +6,7 @@ import os
 APPNAME = 'libcsp'
 VERSION = '2.0'
 
-valid_os = ['posix', 'windows', 'freertos', 'macosx']
-valid_loglevel = ['none', 'error', 'warn', 'info', 'debug']
-
+valid_os = ['posix', 'freertos']
 
 def options(ctx):
     # Load compiler
@@ -25,7 +23,6 @@ def options(ctx):
     gr.add_option('--disable-stlib', action='store_true', help='Build objects only')
     gr.add_option('--enable-shlib', action='store_true', help='Build shared library')
     gr.add_option('--enable-rdp', action='store_true', help='Enable RDP support')
-    gr.add_option('--enable-rdp-fast-close', action='store_true', help='Enable fast close of RDP connections')
     gr.add_option('--enable-promisc', action='store_true', help='Enable promiscuous support')
     gr.add_option('--enable-crc32', action='store_true', help='Enable CRC32 support')
     gr.add_option('--enable-hmac', action='store_true', help='Enable HMAC-SHA1 support')
@@ -33,29 +30,20 @@ def options(ctx):
     gr.add_option('--enable-python3-bindings', action='store_true', help='Enable Python3 bindings')
     gr.add_option('--enable-examples', action='store_true', help='Enable examples')
     gr.add_option('--enable-dedup', action='store_true', help='Enable packet deduplicator')
-    gr.add_option('--enable-external-debug', action='store_true', help='Enable external debug API')
-    gr.add_option('--enable-debug-timestamp', action='store_true', help='Enable timestamps on debug/log')
 
     # Drivers and interfaces (requires external dependencies)
     gr.add_option('--enable-if-zmqhub', action='store_true', help='Enable ZMQ interface')
     gr.add_option('--enable-can-socketcan', action='store_true', help='Enable Linux socketcan driver')
-    gr.add_option('--with-driver-usart', default=None, metavar='DRIVER', help='Build USART driver. [windows, linux, None]')
+    gr.add_option('--with-driver-usart', default=None, metavar='DRIVER', help='Build USART driver. [linux, None]')
 
     # OS
     gr.add_option('--with-os', metavar='OS', default='posix', help='Set operating system. Must be one of: ' + str(valid_os))
-
-    # Options
-    gr.add_option('--with-loglevel', metavar='LEVEL', default='debug', help='Set minimum compile time log level. Must be one of: ' + str(valid_loglevel))
-    gr.add_option('--with-rtable', metavar='TABLE', default='cidr', help='Set routing table type: \'static\' or \'cidr\'')
 
 
 def configure(ctx):
     # Validate options
     if ctx.options.with_os not in valid_os:
         ctx.fatal('--with-os must be either: ' + str(valid_os))
-
-    if ctx.options.with_loglevel not in valid_loglevel:
-        ctx.fatal('--with-loglevel must be either: ' + str(valid_loglevel))
 
     # Setup and validate toolchain
     if (len(ctx.stack_path) <= 1) and ctx.options.toolchain:
@@ -93,22 +81,17 @@ def configure(ctx):
         ctx.env.append_unique('LIBS', ['pthread'])
         if ctx.env.CC_VERSION[0] == '9':
             ctx.env.append_unique('CFLAGS', ['-Wno-missing-field-initializers'])
-    elif ctx.options.with_os == 'windows':
-        ctx.env.append_unique('CFLAGS', ['-D_WIN32_WINNT=0x0600'])
 
     ctx.define_cond('CSP_FREERTOS', ctx.options.with_os == 'freertos')
     ctx.define_cond('CSP_POSIX', ctx.options.with_os == 'posix')
-    ctx.define_cond('CSP_WINDOWS', ctx.options.with_os == 'windows')
-    ctx.define_cond('CSP_MACOSX', ctx.options.with_os == 'macosx')
-
 
 
     # Add files
     ctx.env.append_unique('FILES_CSP', ['src/crypto/csp_hmac.c',
                                         'src/crypto/csp_sha1.c',
                                         'src/crypto/csp_xtea.c',
-                                        'src/transport/csp_rdp.c',
-                                        'src/transport/csp_udp.c',
+                                        'src/csp_rdp.c',
+                                        'src/csp_rdp_queue.c',
                                         'src/csp_buffer.c',
                                         'src/csp_bridge.c',
                                         'src/csp_conn.c',
@@ -131,10 +114,9 @@ def configure(ctx):
                                         'src/interfaces/csp_if_can.c',
                                         'src/interfaces/csp_if_can_pbuf.c',
                                         'src/interfaces/csp_if_kiss.c',
-                                        'src/arch/*.c',
                                         'src/arch/{0}/**/*.c'.format(ctx.options.with_os),
-                                        'src/rtable/csp_rtable.c',
-                                        'src/rtable/csp_rtable_{0}.c'.format(ctx.options.with_rtable)])
+                                        'src/csp_rtable_stdio.c',
+                                        'src/csp_rtable_cidr.c'])
 
     # Add if UDP
     if ctx.check(header_name="sys/socket.h", mandatory=False) and ctx.check(header_name="arpa/inet.h", mandatory=False):
@@ -176,21 +158,13 @@ def configure(ctx):
     ctx.define('CSP_RTABLE_SIZE', 10)
 
     # Set defines for enabling features
-    ctx.define('CSP_DEBUG', not ctx.options.disable_output)
-    ctx.define('CSP_DEBUG_TIMESTAMP', ctx.options.enable_debug_timestamp)
+    ctx.define('CSP_HAVE_STDIO', not ctx.options.disable_output)
     ctx.define('CSP_USE_RDP', ctx.options.enable_rdp)
-    ctx.define('CSP_USE_RDP_FAST_CLOSE', ctx.options.enable_rdp and ctx.options.enable_rdp_fast_close)
     ctx.define('CSP_USE_HMAC', ctx.options.enable_hmac)
     ctx.define('CSP_USE_XTEA', ctx.options.enable_xtea)
     ctx.define('CSP_USE_PROMISC', ctx.options.enable_promisc)
     ctx.define('CSP_USE_DEDUP', ctx.options.enable_dedup)
-    ctx.define('CSP_USE_EXTERNAL_DEBUG', ctx.options.enable_external_debug)
 
-    # Set logging level
-    ctx.define('CSP_LOG_LEVEL_DEBUG', ctx.options.with_loglevel in ('debug'))
-    ctx.define('CSP_LOG_LEVEL_INFO', ctx.options.with_loglevel in ('debug', 'info'))
-    ctx.define('CSP_LOG_LEVEL_WARN', ctx.options.with_loglevel in ('debug', 'info', 'warn'))
-    ctx.define('CSP_LOG_LEVEL_ERROR', ctx.options.with_loglevel in ('debug', 'info', 'warn', 'error'))
 
     ctx.write_config_header('csp_autoconfig.h')
 

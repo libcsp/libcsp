@@ -11,7 +11,7 @@
 #include <csp/interfaces/csp_if_udp.h>
 #include <csp/drivers/can_socketcan.h>
 #include <csp/drivers/usart.h>
-#include <stdio.h>
+#include <csp/csp_debug.h>
 #include <yaml.h>
 
 struct data_s {
@@ -33,10 +33,10 @@ static void csp_yaml_start_if(struct data_s * data) {
 	memset(data, 0, sizeof(struct data_s));
 }
 
-static void csp_yaml_end_if(struct data_s * data, int dfl_addr) {
+static void csp_yaml_end_if(struct data_s * data, unsigned int * dfl_addr) {
 	/* Sanity checks */
 	if ((!data->name) || (!data->driver) || (!data->addr) || (!data->netmask)) {
-		printf("  invalid interface found\n");
+		csp_print("  invalid interface found\n");
 		return;
 	}
 
@@ -47,7 +47,7 @@ static void csp_yaml_end_if(struct data_s * data, int dfl_addr) {
 
 		/* Check for valid options */
 		if (!data->baudrate) {
-			printf("no baudrate configured\n");
+			csp_print("no baudrate configured\n");
 			return;
 		}
 
@@ -70,7 +70,7 @@ static void csp_yaml_end_if(struct data_s * data, int dfl_addr) {
 
 		/* Check for valid options */
 		if (!data->source || !data->destination) {
-			printf("source or destination missing\n");
+			csp_print("source or destination missing\n");
 			return;
 		}
 
@@ -86,7 +86,7 @@ static void csp_yaml_end_if(struct data_s * data, int dfl_addr) {
 
 		/* Check for valid options */
 		if (!data->server || !data->listen_port || !data->remote_port) {
-			printf("server, listen_port or remote_port missing\n");
+			csp_print("server, listen_port or remote_port missing\n");
 			return;
 		}
 
@@ -106,7 +106,7 @@ static void csp_yaml_end_if(struct data_s * data, int dfl_addr) {
 
 		/* Check for valid server */
 		if (!data->server) {
-			printf("no server configured\n");
+			csp_print("no server configured\n");
 			return;
 		}
 
@@ -124,13 +124,13 @@ static void csp_yaml_end_if(struct data_s * data, int dfl_addr) {
 
 		/* Check for valid server */
 		if (!data->device) {
-			printf("can: no device configured\n");
+			csp_print("can: no device configured\n");
 			return;
 		}
 
 		int error = csp_can_socketcan_open_and_add_interface(data->device, data->name, 1000000, true, &iface);
 		if (error != CSP_ERR_NONE) {
-			printf("failed to add CAN interface [%s], error: %d", data->device, error);
+			csp_print("failed to add CAN interface [%s], error: %d", data->device, error);
 			return;
 		}
 
@@ -139,28 +139,32 @@ static void csp_yaml_end_if(struct data_s * data, int dfl_addr) {
 
     /* Unsupported interface */
 	else {
-        printf("Unsupported driver %s\n", data->driver);
+        csp_print("Unsupported driver %s\n", data->driver);
         return;
     }
 
-	if (data->is_dfl && dfl_addr != 0) {
-		iface->addr = dfl_addr;
-	} else {
-		iface->addr = atoi(data->addr);
+	iface->addr = atoi(data->addr);
+
+	/* If dfl_addr is passed, we can either readout or override */
+	if ((dfl_addr != NULL) && (data->is_dfl)) {
+		if (*dfl_addr == 0) {
+			*dfl_addr = iface->addr;
+		} else {
+			iface->addr = *dfl_addr;
+		}
 	}
 	iface->netmask = atoi(data->netmask);
 	iface->name = data->name;
 
-	printf("  %s addr: %u netmask %u\n", iface->name, iface->addr, iface->netmask);
+	csp_print("  %s addr: %u netmask %u\n", iface->name, iface->addr, iface->netmask);
 
 	if (iface && data->is_dfl) {
-		printf("  Setting default route to %s\n", iface->name);
+		csp_print("  Setting default route to %s\n", iface->name);
 		csp_rtable_set(0, 0, iface, CSP_NO_VIA_ADDRESS);
 	}
 }
 
 static void csp_yaml_key_value(struct data_s * data, char * key, char * value) {
-	//printf("%s : %s\n", key, value);
 
 	if (strcmp(key, "name") == 0) {
 		data->name = value;
@@ -187,15 +191,15 @@ static void csp_yaml_key_value(struct data_s * data, char * key, char * value) {
 	} else if (strcmp(key, "remote_port") == 0) {
 		data->remote_port = value;
 	} else {
-		printf("Unkown key %s\n", key);
+		csp_print("Unkown key %s\n", key);
 	}
 }
 
-void csp_yaml_init(char * filename, int dfl_addr) {
+void csp_yaml_init(char * filename, unsigned int * dfl_addr) {
 
     struct data_s data;
 
-	printf("  Reading config from %s\n", filename);
+	csp_print("  Reading config from %s\n", filename);
 	FILE * file = fopen(filename, "rb");
 	if (file == NULL)
 		return;
@@ -220,7 +224,6 @@ void csp_yaml_init(char * filename, int dfl_addr) {
 	while (1) {
 
 		yaml_parser_parse(&parser, &event);
-		//printf("Event type %d\n", event.type);
 
 		if (event.type == YAML_SEQUENCE_END_EVENT)
 			break;

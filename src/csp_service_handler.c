@@ -2,7 +2,7 @@
 
 #include <csp/csp.h>
 
-#include <stdio.h>
+#include <csp/csp_debug.h>
 #ifdef __GNUC__
 #ifndef alloca
 #define alloca __builtin_alloca
@@ -13,13 +13,12 @@
 #include <string.h>
 
 #include <csp/csp_cmp.h>
+#include <csp/csp_hooks.h>
 #include <endian.h>
 #include <csp/csp_types.h>
 #include <csp/csp_rtable.h>
 #include <csp/csp_id.h>
 #include <csp/arch/csp_time.h>
-#include <csp/arch/csp_clock.h>
-#include <csp/arch/csp_system.h>
 
 #define CSP_RPS_MTU 196
 
@@ -83,16 +82,13 @@ static int do_cmp_route_set_v2(struct csp_cmp_message * cmp) {
 
 	csp_iface_t * ifc = csp_iflist_get_by_name(cmp->route_set_v2.interface);
 	if (ifc == NULL) {
-		printf("Inval 1\n");
 		return CSP_ERR_INVAL;
 	}
 
 	if (csp_rtable_set(be16toh(cmp->route_set_v2.dest_node), be16toh(cmp->route_set_v2.netmask), ifc, be16toh(cmp->route_set_v2.next_hop_via)) != CSP_ERR_NONE) {
-		printf("Inval 2\n");
 		return CSP_ERR_INVAL;
 	}
 
-	printf("OK 1\n");
 	return CSP_ERR_NONE;
 }
 
@@ -151,7 +147,7 @@ static int do_cmp_clock(struct csp_cmp_message * cmp) {
 		// set time
 		res = csp_clock_set_time(&clock);
 		if (res != CSP_ERR_NONE) {
-			csp_log_warn("csp_clock_set_time(sec=%" PRIu32 ", nsec=%" PRIu32 ") failed, error: %d", clock.tv_sec, clock.tv_nsec, res);
+			csp_dbg_errno = CSP_DBG_ERR_CLOCK_SET_FAIL;
 		}
 	}
 
@@ -180,13 +176,11 @@ static int csp_cmp_handler(csp_packet_t * packet) {
 			break;
 
 		case CSP_CMP_ROUTE_SET_V1:
-			printf("csp CMP V1\n");
 			ret = do_cmp_route_set_v1(cmp);
 			packet->length = CMP_SIZE(route_set_v1);
 			break;
 
 		case CSP_CMP_ROUTE_SET_V2:
-			printf("csp CMP V2\n");
 			ret = do_cmp_route_set_v2(cmp);
 			packet->length = CMP_SIZE(route_set_v2);
 			break;
@@ -232,61 +226,14 @@ void csp_service_handler(csp_packet_t * packet) {
 
 		case CSP_PING:
 			/* A ping means, just echo the packet, so no changes */
-			csp_log_info("SERVICE: Ping received");
 			break;
 
-		case CSP_PS: {
-			/* Sanity check on request */
-			if ((packet->length != 1) || (packet->data[0] != 0x55)) {
-				/* Sanity check failed */
-				csp_buffer_free(packet);
-				/* Clear the packet, it has been freed */
-				packet = NULL;
-				break;
-			}
-			/* Start by allocating just the right amount of memory */
-			int task_list_size = csp_sys_tasklist_size();
-			char * pslist = alloca(task_list_size);
-			/* Check for malloc fail */
-			if (pslist == NULL) {
-				/* Send out the data */
-				strcpy((char *)packet->data, "Not enough memory");
-				packet->length = strlen((char *)packet->data);
-				/* Break and let the default handling send packet */
-				break;
-			}
-
-			/* Retrieve the tasklist */
-			csp_sys_tasklist(pslist);
-			int pslen = strnlen(pslist, task_list_size);
-
-			/* Split the potentially very long string into packets */
-			int i = 0;
-			while (i < pslen) {
-
-				/* Allocate packet buffer, if need be */
-				csp_packet_t * rpacket = csp_buffer_get(CSP_RPS_MTU);
-				if (rpacket == NULL)
-					break;
-
-				/* Calculate length, either full MTU or the remainder */
-				rpacket->length = (pslen - i > CSP_RPS_MTU) ? CSP_RPS_MTU : (pslen - i);
-
-				/* Send out the data */
-				memcpy(rpacket->data, &pslist[i], rpacket->length);
-				i += rpacket->length;
-				csp_sendto_reply(packet, rpacket, CSP_O_SAME);
-
-				/* Clear the packet reference when sent */
-			}
-			csp_buffer_free(packet);
-			packet = NULL;
-			break;
-		}
 
 		case CSP_MEMFREE: {
-			uint32_t total = csp_sys_memfree();
 
+			uint32_t total = 0;
+			total = csp_memfree_hook();
+			
 			total = htobe32(total);
 			memcpy(packet->data, &total, sizeof(total));
 			packet->length = sizeof(total);
@@ -302,9 +249,9 @@ void csp_service_handler(csp_packet_t * packet) {
 
 			/* If the magic word is valid, reboot */
 			if (magic_word == CSP_REBOOT_MAGIC) {
-				csp_sys_reboot();
+				csp_reboot_hook();
 			} else if (magic_word == CSP_REBOOT_SHUTDOWN_MAGIC) {
-				csp_sys_shutdown();
+				csp_shutdown_hook();
 			}
 
 			csp_buffer_free(packet);

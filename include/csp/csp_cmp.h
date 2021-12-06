@@ -8,7 +8,7 @@
 */
 
 #include <csp/csp.h>
-#include <csp/arch/csp_clock.h>
+
 
 
 /**

@@ -12,7 +12,7 @@
 
 
 int csp_bin_sem_create(csp_bin_sem_handle_t * sem) {
-	csp_log_lock("Mutex init: %p", sem);
+	//csp_print("Mutex init: %p\n", sem);
 	*sem = pthread_queue_create(1, sizeof(int));
 	if (*sem) {
 		int dummy = 0;
@@ -34,7 +34,7 @@ int csp_bin_sem_remove(csp_bin_sem_handle_t * sem) {
 
 int csp_bin_sem_wait(csp_bin_sem_handle_t * sem, uint32_t timeout) {
 	
-	csp_log_lock("Wait: %p timeout %" PRIu32, sem, timeout);
+	//csp_print("Wait: %p timeout %" PRIu32"\n", sem, timeout);
 
 	int dummy = 0;
 	if (pthread_queue_dequeue(*sem, &dummy, timeout) == PTHREAD_QUEUE_OK) {

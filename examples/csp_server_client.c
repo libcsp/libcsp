@@ -1,4 +1,4 @@
-#include <stdio.h>
+#include <csp/csp_debug.h>
 #include <string.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -7,6 +7,7 @@
 #include <csp/drivers/usart.h>
 #include <csp/drivers/can_socketcan.h>
 #include <csp/interfaces/csp_if_zmqhub.h>
+
 
 /* These three functions must be provided in arch specific way */
 int router_start(void);
@@ -26,23 +27,23 @@ static unsigned int server_received = 0;
 /* Server task - handles requests from clients */
 void server(void) {
 
-	csp_log_info("Server task started");
+	csp_print("Server task started\n");
 
 	/* Create socket with no specific socket options, e.g. accepts CRC32, HMAC, XTEA, etc. if enabled during compilation */
-	csp_socket_t *sock = csp_socket(CSP_SO_NONE);
-
+	csp_socket_t sock = {0};
+    
 	/* Bind socket to all ports, e.g. all incoming connections will be handled here */
-	csp_bind(sock, CSP_ANY);
+	csp_bind(&sock, CSP_ANY);
 
 	/* Create a backlog of 10 connections, i.e. up to 10 new connections can be queued */
-	csp_listen(sock, 10);
+	csp_listen(&sock, 10);
 
 	/* Wait for connections and then process packets on the connection */
 	while (1) {
 
 		/* Wait for a new connection, 10000 mS timeout */
 		csp_conn_t *conn;
-		if ((conn = csp_accept(sock, 10000)) == NULL) {
+		if ((conn = csp_accept(&sock, 10000)) == NULL) {
 			/* timeout */
 			continue;
 		}
@@ -53,7 +54,7 @@ void server(void) {
 			switch (csp_conn_dport(conn)) {
 			case MY_SERVER_PORT:
 				/* Process packet here */
-				csp_log_info("Packet received on MY_SERVER_PORT: %s", (char *) packet->data);
+				csp_print("Packet received on MY_SERVER_PORT: %s\n", (char *) packet->data);
 				csp_buffer_free(packet);
 				++server_received;
 				break;
@@ -78,9 +79,9 @@ void server(void) {
 /* Client task sending requests to server task */
 void client(void) {
 
-	csp_log_info("Client task started");
+	csp_print("Client task started");
 
-	unsigned int count = 0;
+	unsigned int count = 'A';
 
 	while (1) {
 
@@ -88,11 +89,12 @@ void client(void) {
 
 		/* Send ping to server, timeout 1000 mS, ping size 100 bytes */
 		int result = csp_ping(server_address, 1000, 100, CSP_O_NONE);
-		csp_log_info("Ping address: %u, result %d [mS]", server_address, result);
+		csp_print("Ping address: %u, result %d [mS]\n", server_address, result);
+        (void) result;
 
 		/* Send reboot request to server, the server has no actual implementation of csp_sys_reboot() and fails to reboot */
 		csp_reboot(server_address);
-		csp_log_info("reboot system request sent to address: %u", server_address);
+		csp_print("reboot system request sent to address: %u\n", server_address);
 
 		/* Send data packet (string) to server */
 
@@ -100,7 +102,7 @@ void client(void) {
 		csp_conn_t * conn = csp_connect(CSP_PRIO_NORM, server_address, MY_SERVER_PORT, 1000, CSP_O_NONE);
 		if (conn == NULL) {
 			/* Connect failed */
-			csp_log_error("Connection failed");
+			csp_print("Connection failed\n");
 			return;
 		}
 
@@ -108,12 +110,15 @@ void client(void) {
 		csp_packet_t * packet = csp_buffer_get(100);
 		if (packet == NULL) {
 			/* Could not get buffer element */
-			csp_log_error("Failed to get CSP buffer");
+			csp_print("Failed to get CSP buffer\n");
 			return;
 		}
 
 		/* 3. Copy data to packet */
-		snprintf((char *) packet->data, csp_buffer_data_size(), "Hello World (%u)", ++count);
+        memcpy(packet->data, "Hello world ", 12);
+        memcpy(packet->data + 12, &count, 1);
+        memset(packet->data + 13, 0, 1);
+        count++;
 
 		/* 4. Set packet length */
 		packet->length = (strlen((char *) packet->data) + 1); /* include the 0 termination */
@@ -133,7 +138,6 @@ void client(void) {
 int main(int argc, char * argv[]) {
 
     uint8_t address = 0;
-    csp_debug_level_t debug_level = CSP_INFO;
 #if (CSP_HAVE_LIBSOCKETCAN)
     const char * can_device = NULL;
 #endif
@@ -147,9 +151,6 @@ int main(int argc, char * argv[]) {
         switch (opt) {
             case 'a':
                 address = atoi(optarg);
-                break;
-            case 'd':
-                debug_level = atoi(optarg);
                 break;
             case 'r':
                 server_address = atoi(optarg);
@@ -174,7 +175,7 @@ int main(int argc, char * argv[]) {
                 rtable = optarg;
                 break;
             default:
-                printf("Usage:\n"
+                csp_print("Usage:\n"
                        " -a <address>     local CSP address\n"
                        " -d <debug-level> debug level, 0 - 6\n"
                        " -r <address>     run client against server address\n"
@@ -188,12 +189,7 @@ int main(int argc, char * argv[]) {
         }
     }
 
-    /* enable/disable debug levels */
-    for (csp_debug_level_t i = 0; i <= CSP_LOCK; ++i) {
-        csp_debug_set_level(i, (i <= debug_level) ? true : false);
-    }
-
-    csp_log_info("Initialising CSP");
+    csp_print("Initialising CSP");
 
     /* Init CSP */
     csp_init();
@@ -213,7 +209,7 @@ int main(int argc, char * argv[]) {
             .checkparity = 0};
         int error = csp_usart_open_and_add_kiss_interface(&conf, CSP_IF_KISS_DEFAULT_NAME,  &default_iface);
         if (error != CSP_ERR_NONE) {
-            csp_log_error("failed to add KISS interface [%s], error: %d", kiss_device, error);
+            csp_print("failed to add KISS interface [%s], error: %d\n", kiss_device, error);
             exit(1);
         }
     }
@@ -221,7 +217,7 @@ int main(int argc, char * argv[]) {
     if (can_device) {
         int error = csp_can_socketcan_open_and_add_interface(can_device, CSP_IF_CAN_DEFAULT_NAME, 0, false, &default_iface);
         if (error != CSP_ERR_NONE) {
-            csp_log_error("failed to add CAN interface [%s], error: %d", can_device, error);
+            csp_print("failed to add CAN interface [%s], error: %d\n", can_device, error);
             exit(1);
         }
     }
@@ -230,18 +226,20 @@ int main(int argc, char * argv[]) {
     if (zmq_device) {
         int error = csp_zmqhub_init(0, zmq_device, 0, &default_iface);
         if (error != CSP_ERR_NONE) {
-            csp_log_error("failed to add ZMQ interface [%s], error: %d", zmq_device, error);
+            csp_print("failed to add ZMQ interface [%s], error: %d\n", zmq_device, error);
             exit(1);
         }
     }
 #endif
 
     if (rtable) {
+#if (CSP_HAVE_STDIO)
         int error = csp_rtable_load(rtable);
         if (error < 1) {
-            csp_log_error("csp_rtable_load(%s) failed, error: %d", rtable, error);
+            csp_print("csp_rtable_load(%s) failed, error: %d\n", rtable, error);
             exit(1);
         }
+#endif
     } else if (default_iface) {
         csp_rtable_set(0, 0, default_iface, CSP_NO_VIA_ADDRESS);
     } else {
@@ -249,14 +247,16 @@ int main(int argc, char * argv[]) {
         server_address = address;
     }
 
-    printf("Connection table\r\n");
+#if (CSP_HAVE_STDIO)
+    csp_print("Connection table\r\n");
     csp_conn_print_table();
 
-    printf("Interfaces\r\n");
-    csp_route_print_interfaces();
+    csp_print("Interfaces\r\n");
+    csp_rtable_print();
 
-    printf("Route table\r\n");
-    csp_route_print_table();
+    csp_print("Route table\r\n");
+    csp_iflist_print();
+#endif
 
     /* Start server thread */
     if ((server_address == 255) ||  /* no server address specified, I must be server */
@@ -277,10 +277,10 @@ int main(int argc, char * argv[]) {
         if (test_mode) {
             /* Test mode is intended for checking that host & client can exchange packets over loopback */
             if (server_received < 5) {
-                csp_log_error("Server received %u packets", server_received);
+                csp_print("Server received %u packets\n", server_received);
                 exit(1);
             }
-            csp_log_info("Server received %u packets", server_received);
+            csp_print("Server received %u packets\n", server_received);
             exit(0);
         }
     }

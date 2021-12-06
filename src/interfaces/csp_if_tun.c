@@ -1,11 +1,15 @@
 #include <csp/interfaces/csp_if_tun.h>
 #include <csp/csp.h>
 #include <csp/csp_id.h>
+#include <csp/csp_hooks.h>
 
-/** Implement these, if you use csp_if_tun */
+__attribute__((weak)) int csp_crypto_decrypt(uint8_t * ciphertext_in, uint8_t ciphertext_len, uint8_t * msg_out) {
+	return -1;
+}
 
-__attribute__((weak)) int csp_crypto_decrypt(uint8_t * ciphertext_in, uint8_t ciphertext_len, uint8_t * msg_out); // Returns -1 for failure, length if ok
-__attribute__((weak)) int csp_crypto_encrypt(uint8_t * msg_begin, uint8_t msg_len, uint8_t * ciphertext_out); // Returns length of encrypted data
+__attribute__((weak)) int csp_crypto_encrypt(uint8_t * msg_begin, uint8_t msg_len, uint8_t * ciphertext_out) {
+	return -1;
+}
 
 static int csp_if_tun_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet) {
 
@@ -33,7 +37,6 @@ static int csp_if_tun_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packe
 			csp_buffer_free(new_packet);
 			csp_buffer_free(packet);
 			iface->rx_error++;
-			printf("Decryption error\n");
 			return CSP_ERR_NONE;
 		} else {
 			new_packet->frame_length = length;
@@ -108,8 +111,6 @@ static int csp_if_tun_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packe
 void csp_if_tun_init(csp_iface_t * iface, csp_if_tun_conf_t * ifconf) {
 
 	iface->driver_data = ifconf;
-
-	//printf("Setup Tunnel between %d and %d\n", ifconf->tun_src, ifconf->tun_dst);
 
 	/* MTU is datasize */
 	iface->mtu = csp_buffer_data_size();

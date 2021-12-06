@@ -11,8 +11,13 @@
 
 #include <csp_autoconfig.h> // -> CSP_X defines (compile configuration)
 #include <csp/csp_error.h>
+#include <csp/arch/csp_queue.h>
+#include <csp/arch/csp_semaphore.h>
 
-
+typedef struct {
+	uint32_t tv_sec;
+	uint32_t tv_nsec;
+} csp_timestamp_t;
 
 /**
    Reserved ports for CSP services.
@@ -43,14 +48,14 @@ typedef enum {
 /**
    CSP identifier/header.
 */
-typedef struct {
-	uint8_t pri;
+typedef struct  __attribute__((packed)) {
+	uint8_t pri; 
 	uint8_t flags;
 	uint16_t src;
 	uint16_t dst;
 	uint8_t dport;
 	uint8_t sport;
-} csp_id_t;
+} csp_id_t ;
 
 /**
    @defgroup CSP_HEADER_FLAGS CSP header flags.
@@ -80,7 +85,6 @@ typedef struct {
 #define CSP_SO_CRC32REQ			0x0040 //!< Require CRC32
 #define CSP_SO_CRC32PROHIB		0x0080 //!< Prohibit CRC32
 #define CSP_SO_CONN_LESS		0x0100 //!< Enable Connection Less mode
-#define CSP_SO_CONN_LESS_CALLBACK 	0x0200 // Enable Callbacks directly in router task
 #define CSP_SO_SAME			0x8000 // Copy opts from incoming packet only apllies to csp_sendto_reply()
 
 /**@}*/
@@ -112,16 +116,35 @@ typedef struct {
    lower layers may add additional data causing increased length (e.g. CRC32), convert
    the CSP id to different endian (e.g. I2C), etc.
 */
-typedef struct {
-	uint32_t rdp_quarantine;	// EACK quarantine period
-	uint32_t timestamp_tx;		// Time the message was sent
-	uint32_t timestamp_rx;		// Time the message was received
+typedef struct csp_packet_s {
 
+	union {
+
+		/* Only used on layer 3 (RDP) */
+		struct {
+			uint32_t rdp_quarantine;	// EACK quarantine period
+			uint32_t timestamp_tx;		// Time the message was sent
+			uint32_t timestamp_rx;		// Time the message was received
+			struct csp_conn_s * conn;   // Associated connection (this is used in RDP queue)
+		};
+
+		/* Only used on interface RX/TX (layer 2) */
+		struct {
+			uint16_t rx_count;          /* Received bytes */
+			uint16_t remain;            /* Remaining packets */
+			uint32_t cfpid;             /* Connection CFP identification number */
+			uint32_t last_used;         /* Timestamp in ms for last use of buffer */
+			uint8_t * frame_begin;
+			uint16_t frame_length;
+		};
+
+	};
+	
 	uint16_t length;			// Data length
 	csp_id_t id;				// CSP id (unpacked version CPU readable)
 
-	uint8_t * frame_begin;
-	uint16_t frame_length;
+	struct csp_packet_s * next; // Used for lists / queues of packets
+
 
 	/* Additional header bytes, to prepend packed data before transmission
 	 * This must be minimum 6 bytes to accomodate CSP 2.0. But some implementations
@@ -160,8 +183,19 @@ typedef struct {
 /** Forward declaration of CSP interface, see #csp_iface_s for details. */
 typedef struct csp_iface_s csp_iface_t;
 
+typedef void (*csp_callback_t)(csp_packet_t * packet);
+
+/** @brief Connection struct */
+struct csp_socket_s {
+	csp_queue_handle_t rx_queue;        /* Queue for RX packets */
+	csp_static_queue_t rx_queue_static; /* Static storage for rx queue */
+	char rx_queue_static_data[sizeof(csp_packet_t *) * CSP_CONN_RXQUEUE_LEN];
+
+	uint32_t opts;              /* Connection or socket options */
+};
+
 /** Forward declaration of socket structure */
-typedef struct csp_conn_s csp_socket_t;
+typedef struct csp_socket_s csp_socket_t;
 /** Forward declaration of connection structure */
 typedef struct csp_conn_s csp_conn_t;
 

@@ -5,7 +5,7 @@ Inspired by c-pthread-queue by Matthew Dickinson
 http://code.google.com/p/c-pthread-queue/
 */
 
-#include <csp/arch/posix/pthread_queue.h>
+#include "pthread_queue.h"
 
 #include <errno.h>
 #include <string.h>

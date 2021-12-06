@@ -17,8 +17,9 @@
 #include "csp_promisc.h"
 #include "csp_qfifo.h"
 #include "csp_dedup.h"
+#include "csp_rdp.h"
+#include <csp/csp_debug.h>
 #include <csp/csp_iflist.h>
-#include "transport/csp_transport.h"
 
 /**
  * Check supported packet options
@@ -30,7 +31,7 @@ static int csp_route_check_options(csp_iface_t * iface, csp_packet_t * packet) {
 #if (CSP_USE_XTEA == 0)
 	/* Drop XTEA packets */
 	if (packet->id.flags & CSP_FXTEA) {
-		csp_log_error("Received XTEA encrypted packet, but CSP was compiled without XTEA support. Discarding packet");
+		csp_dbg_errno = CSP_DBG_ERR_UNSUPPORTED;
 		iface->autherr++;
 		return CSP_ERR_NOTSUP;
 	}
@@ -39,7 +40,7 @@ static int csp_route_check_options(csp_iface_t * iface, csp_packet_t * packet) {
 #if (CSP_USE_HMAC == 0)
 	/* Drop HMAC packets */
 	if (packet->id.flags & CSP_FHMAC) {
-		csp_log_error("Received packet with HMAC, but CSP was compiled without HMAC support. Discarding packet");
+		csp_dbg_errno = CSP_DBG_ERR_UNSUPPORTED;
 		iface->autherr++;
 		return CSP_ERR_NOTSUP;
 	}
@@ -48,7 +49,7 @@ static int csp_route_check_options(csp_iface_t * iface, csp_packet_t * packet) {
 #if (CSP_USE_RDP == 0)
 	/* Drop RDP packets */
 	if (packet->id.flags & CSP_FRDP) {
-		csp_log_error("Received RDP packet, but CSP was compiled without RDP support. Discarding packet");
+		csp_dbg_errno = CSP_DBG_ERR_UNSUPPORTED;
 		iface->rx_error++;
 		return CSP_ERR_NOTSUP;
 	}
@@ -70,12 +71,10 @@ static int csp_route_security_check(uint32_t security_opts, csp_iface_t * iface,
 	if (packet->id.flags & CSP_FXTEA) {
 		/* Decrypt data */
 		if (csp_xtea_decrypt_packet(packet) != CSP_ERR_NONE) {
-			csp_log_error("XTEA Decryption failed! Discarding packet");
 			iface->autherr++;
 			return CSP_ERR_XTEA;
 		}
 	} else if (security_opts & CSP_SO_XTEAREQ) {
-		csp_log_warn("Received packet without XTEA encryption. Discarding packet");
 		iface->autherr++;
 		return CSP_ERR_XTEA;
 	}
@@ -85,12 +84,12 @@ static int csp_route_security_check(uint32_t security_opts, csp_iface_t * iface,
 	if (packet->id.flags & CSP_FCRC32) {
 		/* Verify CRC32 (does not include header for backwards compatability with csp1.x) */
 		if (csp_crc32_verify(packet) != CSP_ERR_NONE) {
-			csp_log_error("CRC32 verification error! Discarding packet");
 			iface->rx_error++;
 			return CSP_ERR_CRC32;
 		}
 	} else if (security_opts & CSP_SO_CRC32REQ) {
-		csp_log_warn("Received packet with CRC32, but CSP was compiled without CRC32 support. Accepting packet");
+		iface->rx_error++;
+		return CSP_ERR_CRC32;
 	}
 
 #if (CSP_USE_HMAC)
@@ -99,12 +98,10 @@ static int csp_route_security_check(uint32_t security_opts, csp_iface_t * iface,
 		/* Verify HMAC (does not include header for backwards compatability with csp1.x) */
 		if (csp_hmac_verify(packet, false) != CSP_ERR_NONE) {
 			/* HMAC failed */
-			csp_log_error("HMAC verification error! Discarding packet");
 			iface->autherr++;
 			return CSP_ERR_HMAC;
 		}
 	} else if (security_opts & CSP_SO_HMACREQ) {
-		csp_log_warn("Received packet without HMAC. Discarding packet");
 		iface->autherr++;
 		return CSP_ERR_HMAC;
 	}
@@ -114,7 +111,6 @@ static int csp_route_security_check(uint32_t security_opts, csp_iface_t * iface,
 	/* RDP packet */
 	if (!(packet->id.flags & CSP_FRDP)) {
 		if (security_opts & CSP_SO_RDPREQ) {
-			csp_log_warn("Received packet without RDP header. Discarding packet");
 			iface->rx_error++;
 			return CSP_ERR_INVAL;
 		}
@@ -122,6 +118,12 @@ static int csp_route_security_check(uint32_t security_opts, csp_iface_t * iface,
 #endif
 
 	return CSP_ERR_NONE;
+}
+
+__attribute__((weak)) void csp_input_hook(csp_iface_t * iface, csp_packet_t * packet) {
+	csp_print_packet("INP: S %u, D %u, Dp %u, Sp %u, Pr %u, Fl 0x%02X, Sz %" PRIu16 " VIA: %s\n",
+				   packet->id.src, packet->id.dst, packet->id.dport,
+				   packet->id.sport, packet->id.pri, packet->id.flags, packet->length, iface->name);
 }
 
 int csp_route_work(void) {
@@ -146,9 +148,7 @@ int csp_route_work(void) {
 		return CSP_ERR_TIMEDOUT;
 	}
 
-	csp_log_packet("INP: S %u, D %u, Dp %u, Sp %u, Pr %u, Fl 0x%02X, Sz %" PRIu16 " VIA: %s",
-				   packet->id.src, packet->id.dst, packet->id.dport,
-				   packet->id.sport, packet->id.pri, packet->id.flags, packet->length, input.iface->name);
+	csp_input_hook(input.iface, packet);
 
 	/* Here there be promiscuous mode */
 #if (CSP_USE_PROMISC)
@@ -169,7 +169,6 @@ int csp_route_work(void) {
 		((!is_to_me) && (csp_conf.dedup == CSP_DEDUP_FWD))) {
 		if (csp_dedup_is_duplicate(packet)) {
 			/* Discard packet */
-			csp_log_packet("Duplicate packet discarded");
 			input.iface->drop++;
 			csp_buffer_free(packet);
 			return CSP_ERR_NONE;
@@ -190,7 +189,6 @@ int csp_route_work(void) {
 
 		/* Otherwise, actually send the message */
 		if (csp_send_direct(packet->id, packet, 0) != CSP_ERR_NONE) {
-			csp_log_warn("Router failed to send");
 			csp_buffer_free(packet);
 		}
 
@@ -204,30 +202,42 @@ int csp_route_work(void) {
 		return CSP_ERR_NONE;
 	}
 
+	/**
+	 * Callbacks 
+	 */
+	csp_callback_t callback = csp_port_get_callback(packet->id.dport);
+	if (callback) {
+
+		if (csp_route_security_check(CSP_SO_NONE, input.iface, packet) < 0) {
+			csp_buffer_free(packet);
+			return CSP_ERR_NONE;
+		}
+
+		callback(packet);
+		return CSP_ERR_NONE;
+	}
+
+	/**
+	 * Sockets 
+	 */
+
 	/* The message is to me, search for incoming socket */
 	socket = csp_port_get_socket(packet->id.dport);
 
 	/* If the socket is connection-less, deliver now */
 	if (socket && (socket->opts & CSP_SO_CONN_LESS)) {
+
 		if (csp_route_security_check(socket->opts, input.iface, packet) < 0) {
 			csp_buffer_free(packet);
 			return CSP_ERR_NONE;
 		}
 
-		/* If the socket uses callback */
-		if (socket->opts & CSP_SO_CONN_LESS_CALLBACK) {
-			socket->callback(packet);
-
-			/* Otherwise, it uses a queue */
-		} else {
-
-			if (csp_queue_enqueue(socket->rx_queue, &packet, 0) != CSP_QUEUE_OK) {
-				csp_log_error("Conn-less socket queue full");
-				csp_buffer_free(packet);
-				return 0;
-			}
+		if (csp_queue_enqueue(socket->rx_queue, &packet, 0) != CSP_QUEUE_OK) {
+			csp_dbg_conn_ovf++;
+			csp_buffer_free(packet);
+			return 0;
 		}
-
+		
 		return CSP_ERR_NONE;
 	}
 
@@ -262,7 +272,7 @@ int csp_route_work(void) {
 		conn = csp_conn_new(packet->id, idout);
 
 		if (!conn) {
-			csp_log_error("No more connections available");
+			csp_dbg_conn_out++;
 			csp_buffer_free(packet);
 			return CSP_ERR_NONE;
 		}
@@ -292,7 +302,24 @@ int csp_route_work(void) {
 	}
 #endif
 
-	/* Pass packet to UDP module */
-	csp_udp_new_packet(conn, packet);
+	/* Otherwise, enqueue directly */
+	if (csp_conn_enqueue_packet(conn, packet) < 0) {
+		csp_dbg_conn_ovf++;
+		csp_buffer_free(packet);
+		return CSP_ERR_NONE;
+	}
+
+	/* Try to queue up the new connection pointer */
+	if (conn->dest_socket != NULL) {
+		if (csp_queue_enqueue(conn->dest_socket->rx_queue, &conn, 0) != CSP_QUEUE_OK) {
+			csp_dbg_conn_ovf++;
+			csp_close(conn);
+			return CSP_ERR_NONE;
+		}
+
+		/* Ensure that this connection will not be posted to this socket again */
+		conn->dest_socket = NULL;
+	}
+
 	return CSP_ERR_NONE;
 }

@@ -1,38 +1,23 @@
-#define CSP_USE_ASSERT 1  // always enable CSP assert
 
 #include <unistd.h>
 #include <csp/csp_debug.h>
-#include <csp/arch/csp_clock.h>
+#include <csp/csp_types.h>
+#include <csp/csp_hooks.h>
 #include <csp/arch/csp_time.h>
 #include <csp/arch/csp_queue.h>
 #include <csp/arch/csp_semaphore.h>
-
+#include <assert.h>
 #include <stdlib.h>
 
-void csp_assert_fail_action(const char *assertion, const char *file, int line) {
-    printf("assertion: [%s], file: %s:%d\r\n", assertion, file, line);
-    exit(1);
-}
 
 int main(int argc, char * argv[]) {
 
-    // debug/log - enable all levels
-    for (int i = 0; i <= CSP_LOCK; ++i) {
-        csp_debug_set_level(i, true);
-    }
-    csp_log_error("csp_log_error(...), level: %d", CSP_ERROR);
-    csp_log_warn("csp_log_warn(...), level: %d", CSP_WARN);
-    csp_log_info("csp_log_info((...), level: %d", CSP_INFO);
-    csp_log_buffer("csp_log_buffer(...), level: %d", CSP_BUFFER);
-    csp_log_packet("csp_log_packet(...), level: %d", CSP_PACKET);
-    csp_log_protocol("csp_log_protocol(...), level: %d", CSP_PROTOCOL);
-    csp_log_lock("csp_log_lock(...), level: %d", CSP_LOCK);
 
     // clock
     csp_timestamp_t csp_clock = {};
     csp_clock_get_time(&csp_clock);
-    csp_assert(csp_clock.tv_sec != 0);
-    csp_log_info("csp_clock_get_time(..) -> sec:nsec = %"PRIu32":%"PRIu32, csp_clock.tv_sec, csp_clock.tv_nsec);
+    assert(csp_clock.tv_sec != 0);
+    csp_print("csp_clock_get_time(..) -> sec:nsec = %"PRIu32":%"PRIu32"\n", csp_clock.tv_sec, csp_clock.tv_nsec);
 
     // relative time
     const uint32_t msec1 = csp_get_ms();
@@ -40,50 +25,52 @@ int main(int argc, char * argv[]) {
     const uint32_t sec1 = csp_get_s();
     const uint32_t sec2 = csp_get_s_isr();
     sleep(2);
-    csp_assert(csp_get_ms() >= (msec1 + 500));
-    csp_assert(csp_get_ms_isr() >= (msec2 + 500));
-    csp_assert(csp_get_s() >= (sec1 + 1));
-    csp_assert(csp_get_s_isr() >= (sec2 + 1));
+    assert(csp_get_ms() >= (msec1 + 500));
+    assert(csp_get_ms_isr() >= (msec2 + 500));
+    assert(csp_get_s() >= (sec1 + 1));
+    assert(csp_get_s_isr() >= (sec2 + 1));
 
     // queue handling
     uint32_t value;
-    csp_queue_handle_t q = csp_queue_create(3, sizeof(value));
-    csp_assert(csp_queue_size(q) == 0);
-    csp_assert(csp_queue_size_isr(q) == 0);
-    csp_assert(csp_queue_dequeue(q, &value, 0) == CSP_QUEUE_ERROR);
-    csp_assert(csp_queue_dequeue(q, &value, 200) == CSP_QUEUE_ERROR);
-    csp_assert(csp_queue_dequeue_isr(q, &value, NULL) == CSP_QUEUE_ERROR);
+    csp_static_queue_t sq;
+    csp_queue_handle_t q;
+    char buf[3 * sizeof(value)];
+    q = csp_queue_create_static(3, sizeof(value), buf, &sq);
+    assert(csp_queue_size(q) == 0);
+    assert(csp_queue_size_isr(q) == 0);
+    assert(csp_queue_dequeue(q, &value, 0) == CSP_QUEUE_ERROR);
+    assert(csp_queue_dequeue(q, &value, 200) == CSP_QUEUE_ERROR);
+    assert(csp_queue_dequeue_isr(q, &value, NULL) == CSP_QUEUE_ERROR);
     value = 1;
-    csp_assert(csp_queue_enqueue(q, &value, 0) == CSP_QUEUE_OK);
+    assert(csp_queue_enqueue(q, &value, 0) == CSP_QUEUE_OK);
     value = 2;
-    csp_assert(csp_queue_enqueue(q, &value, 200) == CSP_QUEUE_OK);
+    assert(csp_queue_enqueue(q, &value, 200) == CSP_QUEUE_OK);
     value = 3;
-    csp_assert(csp_queue_enqueue_isr(q, &value, NULL) == CSP_QUEUE_OK);
-    csp_assert(csp_queue_size(q) == 3);
-    csp_assert(csp_queue_size_isr(q) == 3);
+    assert(csp_queue_enqueue_isr(q, &value, NULL) == CSP_QUEUE_OK);
+    assert(csp_queue_size(q) == 3);
+    assert(csp_queue_size_isr(q) == 3);
     value = 10;
-    csp_assert(csp_queue_enqueue(q, &value, 0) == CSP_QUEUE_ERROR);
+    assert(csp_queue_enqueue(q, &value, 0) == CSP_QUEUE_ERROR);
     value = 20;
-    csp_assert(csp_queue_enqueue(q, &value, 200) == CSP_QUEUE_ERROR);
+    assert(csp_queue_enqueue(q, &value, 200) == CSP_QUEUE_ERROR);
     value = 30;
-    csp_assert(csp_queue_enqueue_isr(q, &value, NULL) == CSP_QUEUE_ERROR);
+    assert(csp_queue_enqueue_isr(q, &value, NULL) == CSP_QUEUE_ERROR);
     value = 100;
-    csp_assert(csp_queue_dequeue(q, &value, 0) == CSP_QUEUE_OK);
-    csp_assert(value == 1);
-    csp_assert(csp_queue_dequeue(q, &value, 200) == CSP_QUEUE_OK);
-    csp_assert(value == 2);
-    csp_assert(csp_queue_dequeue_isr(q, &value, NULL) == CSP_QUEUE_OK);
-    csp_assert(value == 3);
-    csp_queue_remove(q);
+    assert(csp_queue_dequeue(q, &value, 0) == CSP_QUEUE_OK);
+    assert(value == 1);
+    assert(csp_queue_dequeue(q, &value, 200) == CSP_QUEUE_OK);
+    assert(value == 2);
+    assert(csp_queue_dequeue_isr(q, &value, NULL) == CSP_QUEUE_OK);
+    assert(value == 3);
 
 
     // semaphore
     csp_bin_sem_t s;
     csp_bin_sem_init(&s);
-    csp_assert(csp_bin_sem_wait(&s, 0) == CSP_SEMAPHORE_OK);
-    csp_assert(csp_bin_sem_post(&s) == CSP_SEMAPHORE_OK);
-    csp_assert(csp_bin_sem_wait(&s, 200) == CSP_SEMAPHORE_OK);
-    csp_assert(csp_bin_sem_wait(&s, 200) == CSP_SEMAPHORE_ERROR);
+    assert(csp_bin_sem_wait(&s, 0) == CSP_SEMAPHORE_OK);
+    assert(csp_bin_sem_post(&s) == CSP_SEMAPHORE_OK);
+    assert(csp_bin_sem_wait(&s, 200) == CSP_SEMAPHORE_OK);
+    assert(csp_bin_sem_wait(&s, 200) == CSP_SEMAPHORE_ERROR);
 
     return 0;
 }

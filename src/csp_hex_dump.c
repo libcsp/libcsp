@@ -1,8 +1,10 @@
 
 
-#include <stdio.h>
 #include <inttypes.h>
+#include <csp/csp_debug.h>
+#include <stddef.h>
 
+#if (CSP_HAVE_STDIO)
 void csp_hex_dump_format(const char * desc, void * addr, int len, int format) {
 	int i;
 	unsigned char buff[17];
@@ -10,7 +12,7 @@ void csp_hex_dump_format(const char * desc, void * addr, int len, int format) {
 
 	// Output description if given.
 	if (desc != NULL)
-		printf("%s\n", desc);
+		csp_print("%s\n", desc);
 
 	if (!(len > 0))
 		return;
@@ -22,18 +24,18 @@ void csp_hex_dump_format(const char * desc, void * addr, int len, int format) {
 		if ((i % 16) == 0) {
 			// Just don't print ASCII for the zeroth line.
 			if (i != 0)
-				printf("  %s\n", buff);
+				csp_print("  %s\n", buff);
 
 			// Output the offset.
 			if (format & 0x1) {
-				printf("  %p ", ((uint8_t *)addr) + i);
+				csp_print("  %p ", ((uint8_t *)addr) + i);
 			} else {
-				printf("        ");
+				csp_print("        ");
 			}
 		}
 
 		// Now the hex code for the specific character.
-		printf(" %02x", pc[i]);
+		csp_print(" %02x", pc[i]);
 
 		// And store a printable ASCII character for later.
 		if ((pc[i] < 0x20) || (pc[i] > 0x7e))
@@ -45,14 +47,17 @@ void csp_hex_dump_format(const char * desc, void * addr, int len, int format) {
 
 	// Pad out last line if not exactly 16 characters.
 	while ((i % 16) != 0) {
-		printf("   ");
+		csp_print("   ");
 		i++;
 	}
 
 	// And print the final ASCII bit.
-	printf("  %s\n", buff);
+	csp_print("  %s\n", buff);
 }
 
 void csp_hex_dump(const char * desc, void * addr, int len) {
 	csp_hex_dump_format(desc, addr, len, 0);
 }
+#else
+void csp_hex_dump(const char * desc, void * addr, int len) {};
+#endif

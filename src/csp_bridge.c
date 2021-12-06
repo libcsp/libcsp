@@ -11,6 +11,12 @@ void csp_bridge_set_interfaces(csp_iface_t * if_a, csp_iface_t * if_b) {
 	bif_b = if_b;
 }
 
+__attribute__((weak)) void csp_input_hook(csp_iface_t * iface, csp_packet_t * packet) {
+	csp_print_packet("INP: S %u, D %u, Dp %u, Sp %u, Pr %u, Fl 0x%02X, Sz %" PRIu16 " VIA: %s\n",
+				   packet->id.src, packet->id.dst, packet->id.dport,
+				   packet->id.sport, packet->id.pri, packet->id.flags, packet->length, iface->name);
+}
+
 void csp_bridge_work(void) {
 
 	/* Get next packet to route */
@@ -20,10 +26,11 @@ void csp_bridge_work(void) {
 	}
 
 	csp_packet_t * packet = input.packet;
+	if (packet == NULL) {
+		return;
+	}
 
-	csp_log_packet("INP: S %u, D %u, Dp %u, Sp %u, Pr %u, Fl 0x%02X, Sz %" PRIu16,
-				   packet->id.src, packet->id.dst, packet->id.dport,
-				   packet->id.sport, packet->id.pri, packet->id.flags, packet->length);
+	csp_input_hook(input.iface, packet);
 
 	/* Here there be promiscuous mode */
 #if (CSP_USE_PROMISC)
@@ -40,7 +47,7 @@ void csp_bridge_work(void) {
 
 	/* Send to the interface directly, no hassle */
 	if (csp_send_direct_iface(packet->id, packet, destif, CSP_NO_VIA_ADDRESS, 0) != CSP_ERR_NONE) {
-		csp_log_warn("Router failed to send");
+		destif->tx_error++;
 		csp_buffer_free(packet);
 	}
 }

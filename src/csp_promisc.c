@@ -8,6 +8,9 @@
 #if (CSP_USE_PROMISC)
 
 static csp_queue_handle_t csp_promisc_queue = NULL;
+static csp_static_queue_t csp_promisc_queue_static __attribute__((section(".noinit")));
+char csp_promisc_queue_buffer[sizeof(csp_packet_t *) * CSP_CONN_RXQUEUE_LEN] __attribute__((section(".noinit")));
+
 static int csp_promisc_enabled = 0;
 
 int csp_promisc_enable(unsigned int queue_size) {
@@ -19,7 +22,7 @@ int csp_promisc_enable(unsigned int queue_size) {
 	}
 
 	/* Create packet queue */
-	csp_promisc_queue = csp_queue_create(queue_size, sizeof(csp_packet_t *));
+	csp_promisc_queue = csp_queue_create_static(CSP_CONN_RXQUEUE_LEN, sizeof(csp_packet_t *), csp_promisc_queue_buffer, &csp_promisc_queue_static);
 
 	if (csp_promisc_queue == NULL)
 		return CSP_ERR_INVAL;
@@ -53,7 +56,7 @@ void csp_promisc_add(csp_packet_t * packet) {
 		csp_packet_t * packet_copy = csp_buffer_clone(packet);
 		if (packet_copy != NULL) {
 			if (csp_queue_enqueue(csp_promisc_queue, &packet_copy, 0) != CSP_QUEUE_OK) {
-				csp_log_error("Promiscuous mode input queue full");
+				csp_dbg_conn_ovf++;
 				csp_buffer_free(packet_copy);
 			}
 		}

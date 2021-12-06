@@ -2,11 +2,11 @@
 
 #include "csp_io.h"
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include <csp/csp.h>
+#include <csp/csp_debug.h>
 #include <endian.h>
 #include <csp/csp_crc32.h>
 #include <csp/csp_rtable.h>
@@ -20,7 +20,7 @@
 #include "csp_conn.h"
 #include "csp_promisc.h"
 #include "csp_qfifo.h"
-#include "transport/csp_transport.h"
+#include "csp_rdp.h"
 
 #if (CSP_USE_PROMISC)
 extern csp_queue_handle_t csp_promisc_queue;
@@ -31,33 +31,33 @@ csp_socket_t * csp_socket(uint32_t opts) {
 	/* Validate socket options */
 #if (CSP_USE_RDP == 0)
 	if (opts & CSP_SO_RDPREQ) {
-		csp_log_error("No RDP support");
+		csp_dbg_errno = CSP_DBG_ERR_UNSUPPORTED;
 		return NULL;
 	}
 #endif
 
 #if (CSP_USE_XTEA == 0)
 	if (opts & CSP_SO_XTEAREQ) {
-		csp_log_error("No XTEA support");
+		csp_dbg_errno = CSP_DBG_ERR_UNSUPPORTED;
 		return NULL;
 	}
 #endif
 
 #if (CSP_USE_HMAC == 0)
 	if (opts & CSP_SO_HMACREQ) {
-		csp_log_error("No HMAC support");
+		csp_dbg_errno = CSP_DBG_ERR_UNSUPPORTED;
 		return NULL;
 	}
 #endif
 
 	/* Drop packet if reserved flags are set */
 	if (opts & ~(CSP_SO_RDPREQ | CSP_SO_XTEAREQ | CSP_SO_HMACREQ | CSP_SO_CRC32REQ | CSP_SO_CONN_LESS)) {
-		csp_log_error("Invalid socket option");
+		csp_dbg_errno = CSP_DBG_ERR_UNSUPPORTED;
 		return NULL;
 	}
 
 	/* Use CSP buffers instead? */
-	csp_socket_t * sock = csp_conn_allocate(CONN_SERVER);
+	csp_socket_t * sock = NULL;//csp_conn_allocate(CONN_SERVER);
 	if (sock == NULL)
 		return NULL;
 
@@ -66,19 +66,17 @@ csp_socket_t * csp_socket(uint32_t opts) {
 	return sock;
 }
 
-void csp_socket_set_callback(csp_socket_t * socket, void (*callback)(csp_packet_t * packet)) {
-	socket->opts |= (CSP_SO_CONN_LESS | CSP_SO_CONN_LESS_CALLBACK);
-	socket->callback = callback;
-}
-
 csp_conn_t * csp_accept(csp_socket_t * sock, uint32_t timeout) {
 
-	if (sock == NULL)
+	if ((sock == NULL) || (sock->rx_queue == NULL)) {
+		csp_dbg_errno = CSP_DBG_ERR_INVALID_POINTER;
 		return NULL;
+	}
 
 	csp_conn_t * conn;
-	if (csp_queue_dequeue(sock->rx_queue, &conn, timeout) == CSP_QUEUE_OK)
+	if (csp_queue_dequeue(sock->rx_queue, &conn, timeout) == CSP_QUEUE_OK) {
 		return conn;
+	}
 
 	return NULL;
 }
@@ -136,6 +134,7 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, int from_me) {
 	} else {
 		csp_route_t * route = csp_rtable_find_route(idout.dst);
 		if (route == NULL) {
+			csp_dbg_conn_noroute++;
 			return CSP_ERR_TX;
 		}
 		idout.src = route->iface->addr;
@@ -145,15 +144,20 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, int from_me) {
 
 }
 
+__attribute__((weak)) void csp_output_hook(csp_id_t idout, csp_packet_t * packet, csp_iface_t * iface, uint16_t via, int from_me) {
+	csp_print_packet("OUT: S %u, D %u, Dp %u, Sp %u, Pr %u, Fl 0x%02X, Sz %u VIA: %s (%u)\n",
+				idout.src, idout.dst, idout.dport, idout.sport, idout.pri, idout.flags, packet->length, iface->name, (via != CSP_NO_VIA_ADDRESS) ? via : idout.dst);
+	return;
+}
+
 int csp_send_direct_iface(csp_id_t idout, csp_packet_t * packet, csp_iface_t * iface, uint16_t via, int from_me) {
 
 	if (iface == NULL) {
-		csp_log_error("No route to host: %u", idout.dst);
+		csp_dbg_conn_noroute++;
 		goto err;
 	}
-	
-	csp_log_packet("OUT: S %u, D %u, Dp %u, Sp %u, Pr %u, Fl 0x%02X, Sz %u VIA: %s (%u)",
-				   idout.src, idout.dst, idout.dport, idout.sport, idout.pri, idout.flags, packet->length, iface->name, (via != CSP_NO_VIA_ADDRESS) ? via : idout.dst);
+
+	csp_output_hook(idout, packet, iface, via, from_me);
 
 	/* Copy identifier to packet (before crc, xtea and hmac) */
 	csp_id_copy(&packet->id, &idout);
@@ -174,11 +178,10 @@ int csp_send_direct_iface(csp_id_t idout, csp_packet_t * packet, csp_iface_t * i
 			/* Calculate and add HMAC (does not include header for backwards compatability with csp1.x) */
 			if (csp_hmac_append(packet, false) != CSP_ERR_NONE) {
 				/* HMAC append failed */
-				csp_log_warn("HMAC append failed!");
 				goto tx_err;
 			}
 #else
-			csp_log_warn("No HMAC Discarding packet");
+			csp_dbg_errno = CSP_DBG_ERR_UNSUPPORTED;
 			goto tx_err;
 #endif
 		}
@@ -188,7 +191,6 @@ int csp_send_direct_iface(csp_id_t idout, csp_packet_t * packet, csp_iface_t * i
 			/* Calculate and add CRC32 (does not include header for backwards compatability with csp1.x) */
 			if (csp_crc32_append(packet) != CSP_ERR_NONE) {
 				/* CRC32 append failed */
-				csp_log_warn("CRC32 append failed!");
 				goto tx_err;
 			}
 		}
@@ -198,11 +200,10 @@ int csp_send_direct_iface(csp_id_t idout, csp_packet_t * packet, csp_iface_t * i
 			/* Encrypt data */
 			if (csp_xtea_encrypt_packet(packet) != CSP_ERR_NONE) {
 				/* Encryption failed */
-				csp_log_warn("XTEA Encryption failed!");
 				goto tx_err;
 			}
 #else
-			csp_log_warn("No XTEA Discarding packet");
+			csp_dbg_errno = CSP_DBG_ERR_UNSUPPORTED;
 			goto tx_err;
 #endif
 		}
@@ -282,7 +283,7 @@ int csp_transaction_persistent(csp_conn_t * conn, uint32_t timeout, void * outbu
 		return 0;
 
 	if ((inlen != -1) && ((int)packet->length != inlen)) {
-		csp_log_error("Reply length %u expected %u", packet->length, inlen);
+		csp_dbg_inval_reply++;
 		csp_buffer_free(packet);
 		return 0;
 	}
@@ -323,7 +324,7 @@ void csp_sendto(uint8_t prio, uint16_t dest, uint8_t dport, uint8_t src_port, ui
 		packet->id.flags = 0;
 
 	if (opts & CSP_O_RDP) {
-		csp_log_error("RDP packet on connection-less socket");
+		csp_dbg_errno = CSP_DBG_ERR_UNSUPPORTED;
 		csp_buffer_free(packet);
 		return;
 	}
@@ -332,7 +333,7 @@ void csp_sendto(uint8_t prio, uint16_t dest, uint8_t dport, uint8_t src_port, ui
 #if (CSP_USE_HMAC)
 		packet->id.flags |= CSP_FHMAC;
 #else
-		csp_log_error("No HMAC support");
+		csp_dbg_errno = CSP_DBG_ERR_UNSUPPORTED;
 		csp_buffer_free(packet);
 		return;
 #endif
@@ -342,7 +343,7 @@ void csp_sendto(uint8_t prio, uint16_t dest, uint8_t dport, uint8_t src_port, ui
 #if (CSP_USE_XTEA)
 		packet->id.flags |= CSP_FXTEA;
 #else
-		csp_log_error("No XTEA support");
+		csp_dbg_errno = CSP_DBG_ERR_UNSUPPORTED;
 		csp_buffer_free(packet);
 		return;
 #endif

@@ -2,7 +2,7 @@
 
 #include <csp/csp.h>
 
-#include <stdio.h>
+#include <csp/csp_debug.h>
 
 #include <csp/csp_cmp.h>
 #include <endian.h>
@@ -79,8 +79,6 @@ void csp_ping_noreply(uint16_t node) {
 	packet->data[0] = 0x55;
 	packet->length = 1;
 
-	printf("Ping ignore reply node %u.\r\n", (unsigned int)node);
-
 	csp_send(conn, packet);
 	csp_close(conn);
 }
@@ -114,8 +112,6 @@ void csp_ps(uint16_t node, uint32_t timeout) {
 	packet->data[0] = 0x55;
 	packet->length = 1;
 
-	printf("PS node %u: \r\n", node);
-
 	/* Try to send frame */
 	csp_send(conn, packet);
 
@@ -130,13 +126,13 @@ void csp_ps(uint16_t node, uint32_t timeout) {
 		/* We have a reply, ensure data is 0 (zero) termianted */
 		const unsigned int length = (packet->length < csp_buffer_data_size()) ? packet->length : (csp_buffer_data_size() - 1);
 		packet->data[length] = 0;
-		printf("%s", packet->data);
+		csp_print("%s", packet->data);
 
 		/* Each packet from csp_read must to be freed by user */
 		csp_buffer_free(packet);
 	}
 
-	printf("\r\n");
+	csp_print("\r\n");
 
 	/* Clean up */
 out:
@@ -160,9 +156,9 @@ void csp_memfree(uint16_t node, uint32_t timeout) {
 	uint32_t memfree;
 	int err = csp_get_memfree(node, timeout, &memfree);
 	if (err == CSP_ERR_NONE) {
-		printf("Free Memory at node %u is %" PRIu32 " bytes\r\n", node, memfree);
+		csp_print("Free Memory at node %u is %" PRIu32 " bytes\r\n", node, memfree);
 	} else {
-		printf("Network error\r\n");
+		csp_print("Network error\r\n");
 	}
 }
 
@@ -182,9 +178,9 @@ void csp_buf_free(uint16_t node, uint32_t timeout) {
 	uint32_t size;
 	int err = csp_get_buf_free(node, timeout, &size);
 	if (err == CSP_ERR_NONE) {
-		printf("Free buffers at node %u is %" PRIu32 "\r\n", node, size);
+		csp_print("Free buffers at node %u is %" PRIu32 "\r\n", node, size);
 	} else {
-		printf("Network error\r\n");
+		csp_print("Network error\r\n");
 	}
 }
 
@@ -204,9 +200,9 @@ void csp_uptime(uint16_t node, uint32_t timeout) {
 	uint32_t uptime;
 	int err = csp_get_uptime(node, timeout, &uptime);
 	if (err == CSP_ERR_NONE) {
-		printf("Uptime of node %u is %" PRIu32 " s\r\n", node, uptime);
+		csp_print("Uptime of node %u is %" PRIu32 " s\r\n", node, uptime);
 	} else {
-		printf("Network error\r\n");
+		csp_print("Network error\r\n");
 	}
 }
 

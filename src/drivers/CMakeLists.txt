@@ -17,6 +17,3 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   target_sources(libcsp PRIVATE usart/usart_linux.c)
 endif()
 
-if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-  target_sources(libcsp PRIVATE usart/usart_windows.c)
-endif()

@@ -85,19 +85,4 @@ typedef bool (*csp_rtable_iterator_t)(void * ctx, csp_route_t * route);
 */
 void csp_rtable_iterate(csp_rtable_iterator_t iter, void * ctx);
 
-/**
-   Print routing table.
-   @deprecated Use csp_rtable_print() instead.
-*/
-static inline void csp_route_print_table() {
-    csp_rtable_print();
-}
-
-/**
-   Print list of interfaces.
-   @deprecated Use csp_iflist_print() instead.
-*/
-static inline void csp_route_print_interfaces(void) {
-    csp_iflist_print();
-}
 

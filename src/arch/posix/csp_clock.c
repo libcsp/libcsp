@@ -1,6 +1,6 @@
 
 
-#include <csp/arch/csp_clock.h>
+#include <csp/csp_hooks.h>
 
 #include <time.h>
 

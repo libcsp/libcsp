@@ -28,6 +28,3 @@ uint32_t csp_sys_memfree(void) {
 	return (uint32_t)total;
 }
 
-void csp_sys_set_color(csp_color_t color) {
-	// not implemented
-}

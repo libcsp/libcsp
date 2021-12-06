@@ -2,7 +2,7 @@
 
 #include <csp/interfaces/csp_if_kiss.h>
 
-#include <stdio.h>
+#include <csp/csp_debug.h>
 #include <stdlib.h>
 
 #include <csp/csp.h>
@@ -35,8 +35,6 @@ int csp_usart_open_and_add_kiss_interface(const csp_usart_conf_t * conf, const c
 	if (ifname == NULL) {
 		ifname = CSP_IF_KISS_DEFAULT_NAME;
 	}
-
-	csp_log_info("INIT %s: device: [%s], bitrate: %d", ifname, conf->device, conf->baudrate);
 
 	kiss_context_t * ctx = calloc(1, sizeof(*ctx));
 	if (ctx == NULL) {

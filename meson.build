@@ -1,33 +1,12 @@
-project('csp', 'c', version: '2.0', license: 'LGPL',
-        meson_version : '>=0.53',
-	default_options : ['c_std=gnu11',
-			   'optimization=s',
-			   'warning_level=2',
-			   'werror=true'])
+project('csp', 'c', version: '2.0', license: 'LGPL', meson_version : '>=0.53.2', default_options : [
+	'c_std=gnu11',
+	'optimization=s',
+	'warning_level=2',
+	'werror=true'])
 
 cc = meson.get_compiler('c')
 
 conf = configuration_data()
-
-conf.set('CSP_DEBUG', 1)
-
-log_str = get_option('log-level')
-if log_str == 'error'
-  log_level = 1
-elif log_str == 'warn'
-  log_level = 2
-elif log_str == 'info'
-  log_level = 3
-elif log_str == 'debug'
-  log_level = 4
-else
-  log_level = 3
-endif
-
-conf.set10('CSP_LOG_LEVEL_ERROR', log_level >= 1)
-conf.set10('CSP_LOG_LEVEL_WARN',  log_level >= 2)
-conf.set10('CSP_LOG_LEVEL_INFO',  log_level >= 3)
-conf.set10('CSP_LOG_LEVEL_DEBUG', log_level >= 4)
 
 conf.set('CSP_QFIFO_LEN', get_option('qfifo_len'))
 conf.set('CSP_PORT_MAX_BIND', get_option('port_max_bind'))
@@ -38,12 +17,12 @@ conf.set('CSP_BUFFER_COUNT', get_option('buffer_count'))
 conf.set('CSP_RDP_MAX_WINDOW', get_option('rdp_max_window'))
 conf.set('CSP_RTABLE_SIZE', get_option('rtable_size'))
 
-
 conf.set10('CSP_USE_RDP', get_option('use_rdp'))
 conf.set10('CSP_USE_HMAC', get_option('use_hmac'))
 conf.set10('CSP_USE_XTEA', get_option('use_xtea'))
 conf.set10('CSP_USE_PROMISC', get_option('use_promisc'))
 conf.set10('CSP_USE_DEDUP', get_option('use_dedup'))
+conf.set10('CSP_HAVE_STDIO', get_option('have_stdio'))
 
 csp_deps = []
 
@@ -51,8 +30,8 @@ csp_sources = files([
 	'src/crypto/csp_hmac.c',
 	'src/crypto/csp_sha1.c',
 	'src/crypto/csp_xtea.c',
-	'src/transport/csp_rdp.c',
-	'src/transport/csp_udp.c',
+	'src/csp_rdp.c',
+	'src/csp_rdp_queue.c',
 	'src/csp_buffer.c',
 	'src/csp_bridge.c',
 	'src/csp_conn.c',
@@ -67,6 +46,8 @@ csp_sources = files([
 	'src/csp_promisc.c',
 	'src/csp_qfifo.c',
 	'src/csp_route.c',
+	'src/csp_rtable_cidr.c',
+	'src/csp_rtable_stdio.c',
 	'src/csp_service_handler.c',
 	'src/csp_services.c',
 	'src/csp_id.c',
@@ -77,9 +58,13 @@ csp_sources = files([
 # First try libyaml from dynamic library (os)
 yaml_dep = dependency('yaml-0.1', required : false)
 
-# Second try to include libyaml as a cmake subproject
+# Second try to include libyaml as a cmake subproject (shared library)
 if yaml_dep.found() == false
 	cmake = import('cmake')
+	# This feature is too new for github CI meson version
+	#yaml_opts = cmake.subproject_options()
+	#yaml_opts.add_cmake_defines({'BUILD_SHARED_LIBS': true})
+	#yaml_pro = cmake.subproject('yaml', required: false, options: yaml_opts)
 	yaml_pro = cmake.subproject('yaml', required: false)
 	if yaml_pro.found()
 		yaml_dep = yaml_pro.dependency('yaml')
@@ -92,7 +77,6 @@ if yaml_dep.found()
 	csp_sources += files('src/csp_yaml.c')
 endif
 
-subdir('src/rtable')
 subdir('src/arch')
 subdir('src/drivers')
 subdir('src/interfaces')
@@ -122,9 +106,9 @@ csp_lib = static_library('csp',
 	include_directories : csp_inc,
 	dependencies : csp_deps,
 	c_args : csp_c_args,
+	install : false,
+	pic:true,
 )
-
-subdir('examples')
 
 # The following dependency variable is for parent projects to link
 # against libcsp. https://mesonbuild.com/Subprojects.html
@@ -134,15 +118,29 @@ csp_dep = declare_dependency(
 	dependencies : csp_deps,
 )
 
-if get_option('enable_python3_bindings')
-
-	csp_shlib = shared_library('csp',
+if get_option('enable_shared_library')
+csp_shlib = shared_library('csp',
 		sources: [csp_sources, csp_config_h],
 		include_directories : csp_inc,
 		dependencies : csp_deps,
 		c_args : csp_c_args,
 		install : true,
 	)
+
+# The following dependency variable is for parent projects to link
+# against libcsp. https://mesonbuild.com/Subprojects.html
+csp_shdep = declare_dependency(
+	include_directories : csp_inc,
+	link_with : csp_shlib,
+	dependencies : csp_deps,
+)
+endif
+
+subdir('examples')
+
+if get_option('enable_python3_bindings')
+
+	
 	py = import('python').find_installation('python3')
 	# py.dependency() doesn't work with version constraint. Use plain
 	# dependency() instead

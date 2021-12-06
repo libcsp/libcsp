@@ -1,199 +1,67 @@
-
-
 #pragma once
 
-/**
-   @file
-   Debug and log.
-*/
-
+#include <csp_autoconfig.h>
 #include <inttypes.h>
-#include <string.h>
-#include <stdarg.h>
-#include <stdio.h>
-
-#include <csp/csp_types.h>
-
-#if (CSP_USE_EXTERNAL_DEBUG)
-/* Use external csp_debug API */
-#include <csp/external/csp_debug.h>
-
-#else 
-
 
 /**
-   Debug levels.
-*/
-typedef enum {
-	CSP_ERROR	= 0, //!< Error
-	CSP_WARN	= 1, //!< Warning
-	CSP_INFO	= 2, //!< Informational
-	CSP_BUFFER	= 3, //!< Buffer, e.g. csp_packet get/free
-	CSP_PACKET	= 4, //!< Packet routing
-	CSP_PROTOCOL	= 5, //!< Protocol, i.e. RDP
-	CSP_LOCK	= 6, //!< Locking, i.e. semaphore
-} csp_debug_level_t;
+ * NEW DEBUG API:
+ * 
+ * Based on counters, and error numbers.
+ * This gets rid of a lot of verbose debugging strings while
+ * still maintaining the same level of debug capabilities.
+ * 
+ * NOTE: We choose to ignore atomic access to the counters right now.
+ *   1) Most of the access to these happens single threaded (router task) or within ISR (driver RX)
+ *   2) Having accurate error counters is NOT a priority. They are only there for debugging purposes.
+ *   3) Not all compilers have support for <stdatomic.h> yet.
+ * 
+ */
 
-/**
-   Debug level enabled/disabled.
-*/
-extern bool csp_debug_level_enabled[];
+/** Error counters */
+extern uint8_t csp_dbg_buffer_out;
+extern uint8_t csp_dbg_conn_out;
+extern uint8_t csp_dbg_conn_ovf;
+extern uint8_t csp_dbg_conn_noroute;
+extern uint8_t csp_dbg_inval_reply;
 
-/**
-   Extract filename component from path
-*/
-#define BASENAME(_file) ((strrchr(_file, '/') ? : (strrchr(_file, '\\') ? : _file)) + 1)
+/* Central errno */
+extern uint8_t csp_dbg_errno;
+#define CSP_DBG_ERR_CORRUPT_BUFFER 1
+#define CSP_DBG_ERR_MTU_EXCEEDED 2
+#define CSP_DBG_ERR_ALREADY_FREE 3
+#define CSP_DBG_ERR_REFCOUNT 4
+#define CSP_DBG_ERR_INVALID_CAN_CONFIG 5
+#define CSP_DBG_ERR_INVALID_RTABLE_ENTRY 6
+#define CSP_DBG_ERR_UNSUPPORTED 7
+#define CSP_DBG_ERR_INVALID_BIND_PORT 8
+#define CSP_DBG_ERR_PORT_ALREADY_IN_USE 9
+#define CSP_DBG_ERR_ALREADY_CLOSED 10
+#define CSP_DBG_ERR_INVALID_POINTER 11
+#define CSP_DBG_ERR_CLOCK_SET_FAIL 12
 
-/**
-   Implement csp_assert_fail_action to override default failure action
-*/
-extern void __attribute__((weak)) csp_assert_fail_action(const char *assertion, const char *file, int line);
+/* CAN protocol specific errno */
+extern uint8_t csp_dbg_can_errno;
+#define CSP_DBG_CAN_ERR_FRAME_LOST 1
+#define CSP_DBG_CAN_ERR_RX_OVF 2
+#define CSP_DBG_CAN_ERR_RX_OUT 3
+#define CSP_DBG_CAN_ERR_SHORT_BEGIN 4
+#define CSP_DBG_CAN_ERR_INCOMPLETE 5
+#define CSP_DBG_CAN_ERR_UNKNOWN 6
 
-/**
-   CSP assert.
-*/
-#if (!defined(NDEBUG) || CSP_USE_ASSERT)
-#define csp_assert(exp) {                                       				        \
-		if (!(exp)) {										\
-			const char *assertion = #exp;							\
-			const char *file = BASENAME(__FILE__);						\
-			int line = __LINE__;								\
-			printf("\E[1;31mAssertion \'%s\' failed in %s:%d\E[0m\r\n",			\
-			       assertion, file, line);							\
-			if (csp_assert_fail_action)							\
-				csp_assert_fail_action(assertion, file, line);				\
-		}											\
-	}
+/* Toogle flags for rdp and packet print */
+extern uint8_t csp_dbg_rdp_print;
+extern uint8_t csp_dbg_packet_print;
+
+/* Helper macros for toggled printf */
+void csp_print_func(const char * fmt, ...);
+
+/* Compile time disable all printout from CSP */
+#if (CSP_HAVE_STDIO)
+#define csp_print(...) csp_print_func(__VA_ARGS__);
 #else
-#define csp_assert(...) {}
+#define csp_print(...) do {} while(0)
 #endif
 
-#if !(__DOXYGEN__)
-/* Ensure defines are 'defined' */
-#if !defined(CSP_DEBUG)
-#define CSP_DEBUG 0
-#endif
-
-#if !defined(CSP_LOG_LEVEL_DEBUG)
-#define CSP_LOG_LEVEL_DEBUG 0
-#endif
-
-#if !defined(CSP_LOG_LEVEL_INFO)
-#define CSP_LOG_LEVEL_INFO 0
-#endif
-
-#if !defined(CSP_LOG_LEVEL_WARN)
-#define CSP_LOG_LEVEL_WARN 0
-#endif
-
-#if !defined(CSP_LOG_LEVEL_ERROR)
-#define CSP_LOG_LEVEL_ERROR 0
-#endif
-#endif // __DOXYGEN__
-
-#ifdef __AVR__
-        #include <stdio.h>
-	#include <avr/pgmspace.h>
-	#define CONSTSTR(data) PSTR(data)
-	#undef printf
-	#undef sscanf
-	#undef scanf
-	#undef sprintf
-	#undef snprintf
-	#define printf(s, ...) printf_P(PSTR(s), ## __VA_ARGS__)
-	#define sscanf(buf, s, ...) sscanf_P(buf, PSTR(s), ## __VA_ARGS__)
-	#define scanf(s, ...) scanf_P(PSTR(s), ## __VA_ARGS__)
-	#define sprintf(buf, s, ...) sprintf_P(buf, PSTR(s), ## __VA_ARGS__)
-	#define snprintf(buf, size, s, ...) snprintf_P(buf, size, PSTR(s), ## __VA_ARGS__)
-#define csp_debug(level, format, ...) { if (CSP_DEBUG && csp_debug_level_enabled[level]) do_csp_debug(level, PSTR(format), ##__VA_ARGS__); }
-#else
-/**
- * Log message with specific level.
- * @param level log level
- * @param format log message, printf syntax.
- */
-#define csp_debug(level, format, ...) { if (CSP_DEBUG && csp_debug_level_enabled[level]) do_csp_debug(level, format, ##__VA_ARGS__); }
-#endif
-
-/**
- * Log message with level #CSP_ERROR.
- * @param format log message, printf syntax.
- */
-#define csp_log_error(format, ...)    { if (CSP_LOG_LEVEL_ERROR) csp_debug(CSP_ERROR, format, ##__VA_ARGS__); }
-
-/**
- * Log message with level #CSP_WARN.
- * @param format log message, printf syntax.
- */
-#define csp_log_warn(format, ...)     { if (CSP_LOG_LEVEL_WARN) csp_debug(CSP_WARN, format, ##__VA_ARGS__); }
-
-/**
- * Log message with level #CSP_INFO.
- * @param format log message, printf syntax.
- */
-#define csp_log_info(format, ...)     { if (CSP_LOG_LEVEL_INFO) csp_debug(CSP_INFO, format, ##__VA_ARGS__); }
-
-/**
- * Log message with level #CSP_BUFFER.
- * @param format log message, printf syntax.
- */
-#define csp_log_buffer(format, ...)   { if (CSP_LOG_LEVEL_DEBUG) csp_debug(CSP_BUFFER, format, ##__VA_ARGS__); }
-
-/**
- * Log message with level #CSP_PACKET.
- * @param format log message, printf syntax.
- */
-#define csp_log_packet(format, ...)   { if (CSP_LOG_LEVEL_DEBUG) csp_debug(CSP_PACKET, format, ##__VA_ARGS__); }
-
-/**
- * Log message with level #CSP_PROTOCOL.
- * @param format log message, printf syntax.
- */
-#define csp_log_protocol(format, ...) { if (CSP_LOG_LEVEL_DEBUG) csp_debug(CSP_PROTOCOL, format, ##__VA_ARGS__); }
-
-/**
- * Log message with level #CSP_LOCK.
- * @param format log message, printf syntax.
- */
-#define csp_log_lock(format, ...)     { if (CSP_LOG_LEVEL_DEBUG) csp_debug(CSP_LOCK, format, ##__VA_ARGS__); }
-
-/**
- * Do the actual logging (don't use directly).
- * @note Use the csp_log_<level>() macros instead.
- * @param level log level
- * @param format log message, printf syntax.
- */
-void do_csp_debug(csp_debug_level_t level, const char *format, ...) __attribute__ ((format (__printf__, 2, 3)));
-
-/**
- * Toggle debug level on/off
- * @param level Level to toggle
- */
-void csp_debug_toggle_level(csp_debug_level_t level);
-
-/**
- * Set debug level
- * @param level Level to set
- * @param value New level value
- */
-void csp_debug_set_level(csp_debug_level_t level, bool value);
-
-/**
- * Get current debug level value
- * @param level Level to get
- * @return Level value
- */
-int csp_debug_get_level(csp_debug_level_t level);
-
-/**
- * Debug hook function.
- */
-typedef void (*csp_debug_hook_func_t)(csp_debug_level_t level, const char *format, va_list args);
-
-/**
- * Set debug/log hook function.
- */
-void csp_debug_hook_set(csp_debug_hook_func_t f);
-
-#endif // CSP_USE_EXTERNAL_DEBUG
-
+#define csp_rdp_error(format, ...) { if (csp_dbg_rdp_print >= 1) { csp_print("\033[31m" format "\033[0m", ##__VA_ARGS__); }}
+#define csp_rdp_protocol(format, ...) { if (csp_dbg_rdp_print >= 2) { csp_print("\033[34m" format "\033[0m", ##__VA_ARGS__); }}
+#define csp_print_packet(format, ...) { if (csp_dbg_packet_print >= 1) { csp_print("\033[32m" format "\033[0m", ##__VA_ARGS__); }}

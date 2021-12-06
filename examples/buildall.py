@@ -2,7 +2,6 @@
 # encoding: utf-8
 
 import subprocess
-import sys
 import argparse
 
 
@@ -33,55 +32,29 @@ def build_with_cmake():
     subprocess.check_call(cmake_compile + targets)
 
 
-def build_with_waf(options):
-    target_os = 'posix'  # default OS
-    if (len(options) > 0) and not options[0].startswith('--'):
-        target_os = options[0]
-        options = options[1:]
+def build_with_waf():
 
-    options += [
-        '--with-os=' + target_os,
+    options = [
+        '--with-os=posix',
         '--enable-rdp',
         '--enable-promisc',
         '--enable-crc32',
         '--enable-hmac',
         '--enable-xtea',
         '--enable-dedup',
-        '--with-loglevel=debug',
-        '--enable-debug-timestamp'
+        '--enable-can-socketcan',
+        '--with-driver-usart=linux',
+        '--enable-if-zmqhub',
+        '--enable-examples',
     ]
 
-    waf = ['./waf']
-    if target_os in ['posix']:
-        options += [
-            '--enable-can-socketcan',
-            '--with-driver-usart=linux',
-            '--enable-if-zmqhub',
-            '--enable-shlib'
-        ]
-
-    if target_os in ['macosx']:
-        options += [
-            '--with-driver-usart=linux',
-        ]
-
-    if target_os in ['windows']:
-        options += [
-            '--with-driver-usart=windows',
-        ]
-        waf = ['python', '-x', 'waf']
-
-    # Build
-    waf += ['distclean', 'configure', 'build']
-    print("Waf build command:", waf)
-    subprocess.check_call(waf + options +
-                          ['--with-rtable=cidr', '--disable-stlib', '--disable-output'])
-    subprocess.check_call(waf + options + ['--enable-examples'])
+    subprocess.check_call(['./waf', 'distclean', 'configure', 'build'])
+    subprocess.check_call(['./waf', 'distclean', 'configure', 'build'] + options)
 
 
-def main(build_system, options):
+def main(build_system, rest):
     if (build_system == 'waf'):
-        build_with_waf(options)
+        build_with_waf()
     elif (build_system == 'cmake'):
         build_with_cmake()
     else:

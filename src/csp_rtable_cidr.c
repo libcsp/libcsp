@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include <csp/csp_rtable.h>
+#include <csp/csp_debug.h>
 #include <csp/csp_id.h>
 
 /* Definition of routing table */
@@ -78,6 +79,25 @@ int csp_rtable_set_internal(uint16_t address, uint16_t netmask, csp_iface_t * if
 
 void csp_rtable_free(void) {
 	memset(rtable, 0, sizeof(rtable));
+}
+
+void csp_rtable_clear(void) {
+	csp_rtable_free();
+}
+
+int csp_rtable_set(uint16_t address, int netmask, csp_iface_t * ifc, uint16_t via) {
+
+	if ((netmask < 0) || (netmask > (int)csp_id_get_host_bits())) {
+		netmask = csp_id_get_host_bits();
+	}
+
+	/* Validates options */
+	if ((ifc == NULL) || (netmask > (int)csp_id_get_host_bits())) {
+		csp_dbg_errno = CSP_DBG_ERR_INVALID_RTABLE_ENTRY; 
+		return CSP_ERR_INVAL;
+	}
+
+	return csp_rtable_set_internal(address, netmask, ifc, via);
 }
 
 void csp_rtable_iterate(csp_rtable_iterator_t iter, void * ctx) {
