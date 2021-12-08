@@ -30,6 +30,14 @@ def options(ctx):
     gr.add_option('--enable-python3-bindings', action='store_true', help='Enable Python3 bindings')
     gr.add_option('--enable-examples', action='store_true', help='Enable examples')
     gr.add_option('--enable-dedup', action='store_true', help='Enable packet deduplicator')
+    gr.add_option('--with-rdp-max-window', type=int, default=5, help='Set maximum window size for RDP')
+    gr.add_option('--with-max-bind-port', type=int, default=16, help='Set maximum bindable port')
+    gr.add_option('--with-max-connections', type=int, default=8, help='Set maximum number of connections')
+    gr.add_option('--with-conn-queue-length', type=int, default=15, help='Set max connection queue length')
+    gr.add_option('--with-router-queue-length', type=int, default=15, help='Set max router queue length')
+    gr.add_option('--with-buffer-size', type=int, default=256, help='Set size of csp buffers')
+    gr.add_option('--with-buffer-count', type=int, default=15, help='Set number of csp buffers')
+    gr.add_option('--with-rtable-size', type=int, default=10, help='Set max number of entries in route table')
 
     # Drivers and interfaces (requires external dependencies)
     gr.add_option('--enable-if-zmqhub', action='store_true', help='Enable ZMQ interface')
@@ -148,14 +156,14 @@ def configure(ctx):
         ctx.check_python_headers(features='pyext')
 
     # Set defines for customizable parameters
-    ctx.define('CSP_QFIFO_LEN', 15)
-    ctx.define('CSP_PORT_MAX_BIND', 16)
-    ctx.define('CSP_CONN_RXQUEUE_LEN', 15)
-    ctx.define('CSP_CONN_MAX', 8)
-    ctx.define('CSP_BUFFER_SIZE', 256)
-    ctx.define('CSP_BUFFER_COUNT', 15)
-    ctx.define('CSP_RDP_MAX_WINDOW', 5)
-    ctx.define('CSP_RTABLE_SIZE', 10)
+    ctx.define('CSP_QFIFO_LEN', ctx.options.with_router_queue_length)
+    ctx.define('CSP_PORT_MAX_BIND', ctx.options.with_max_bind_port)
+    ctx.define('CSP_CONN_RXQUEUE_LEN', ctx.options.with_conn_queue_length)
+    ctx.define('CSP_CONN_MAX', ctx.options.with_max_connections)
+    ctx.define('CSP_BUFFER_SIZE', ctx.options.with_buffer_size)
+    ctx.define('CSP_BUFFER_COUNT', ctx.options.with_buffer_count)
+    ctx.define('CSP_RDP_MAX_WINDOW', ctx.options.with_rdp_max_window)
+    ctx.define('CSP_RTABLE_SIZE', ctx.options.with_rtable_size)
 
     # Set defines for enabling features
     ctx.define('CSP_HAVE_STDIO', not ctx.options.disable_output)
