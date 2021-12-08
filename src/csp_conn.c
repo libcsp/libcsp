@@ -403,3 +403,8 @@ int csp_conn_print_table_str(char * str_buf, int str_size) {
 }
 
 #endif
+
+const csp_conn_t * csp_conn_get_array(size_t * size) {
+        *size = CSP_CONN_MAX;
+        return arr_conn;
+}
