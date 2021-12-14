@@ -1,38 +1,29 @@
 
 
 #include <csp/interfaces/csp_if_i2c.h>
-
+#include <csp/csp_id.h>
 #include <csp/csp.h>
-#include <endian.h>
-
-// Ensure certain fields in the csp_i2c_frame_t matches the fields in the csp_packet_t
-CSP_STATIC_ASSERT(offsetof(csp_i2c_frame_t, len) == offsetof(csp_packet_t, length), len_field_misaligned);
-CSP_STATIC_ASSERT(offsetof(csp_i2c_frame_t, data) == offsetof(csp_packet_t, id), data_field_misaligned);
 
 int csp_i2c_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet) {
 
-	/* Cast the CSP packet buffer into an i2c frame */
-	csp_i2c_frame_t * frame = (csp_i2c_frame_t *)packet;
+	/* Loopback */
+	if (packet->id.dst == iface->addr) {
+		csp_qfifo_write(packet, iface, NULL);
+		return CSP_ERR_NONE;
+	}
 
-	/* Insert destination node into the i2c destination field */
-	frame->dest = (via != CSP_NO_VIA_ADDRESS) ? via : packet->id.dst;
+    /* Prepend the CSP ID to the packet */
+    csp_id_prepend(packet);
 
-	/* Save the outgoing id in the buffer */
-	packet->id.ext = htobe32(packet->id.ext);
+	/* Use cfpid to transfer the physical destination address to the driver */
+    packet->cfpid = (via != CSP_NO_VIA_ADDRESS) ? via : packet->id.dst;
 
-	/* Add the CSP header to the I2C length field */
-	frame->len += sizeof(packet->id);
-	frame->len_rx = 0;
-
-	/* Some I2C drivers support X number of retries
-	 * CSP don't care about this. If it doesn't work the first
-	 * time, don't use time on it.
-	 */
-	frame->retries = 0;
+    /* There is only 7 address bits available on CSP, so use the lower 7 bits for destination */
+    packet->cfpid = packet->cfpid & 0x7F;
 
 	/* send frame */
 	csp_i2c_interface_data_t * ifdata = iface->interface_data;
-	return (ifdata->tx_func)(iface->driver_data, frame);
+	return (ifdata->tx_func)(iface->driver_data, packet);
 }
 
 /**
@@ -40,31 +31,27 @@ int csp_i2c_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet) {
  * and send it directly to the CSP new packet function.
  * Context: ISR only
  */
-void csp_i2c_rx(csp_iface_t * iface, csp_i2c_frame_t * frame, void * pxTaskWoken) {
+void csp_i2c_rx(csp_iface_t * iface, csp_packet_t * packet, void * pxTaskWoken) {
 
 	/* Validate input */
-	if (frame == NULL) {
+	if (packet == NULL) {
 		return;
 	}
 
-	if (frame->len < sizeof(uint32_t)) {
+	if (packet->frame_length < sizeof(uint32_t)) {
 		iface->frame++;
-		(pxTaskWoken != NULL) ? csp_buffer_free_isr(frame) : csp_buffer_free(frame);
+		(pxTaskWoken != NULL) ? csp_buffer_free_isr(packet) : csp_buffer_free(packet);
 		return;
 	}
 
 	/* Strip the CSP header off the length field before converting to CSP packet */
-	frame->len -= sizeof(uint32_t);
+    csp_id_strip(packet);
 
-	if (frame->len > csp_buffer_data_size()) {  // consistency check, should never happen
+	if (packet->frame_length > csp_buffer_data_size()) {  // consistency check, should never happen
 		iface->rx_error++;
-		(pxTaskWoken != NULL) ? csp_buffer_free_isr(frame) : csp_buffer_free(frame);
+		(pxTaskWoken != NULL) ? csp_buffer_free_isr(packet) : csp_buffer_free(packet);
 		return;
 	}
-
-	/* Convert the packet from network to host order */
-	csp_packet_t * packet = (csp_packet_t *)frame;
-	packet->id.ext = be32toh(packet->id.ext);
 
 	/* Receive the packet in CSP */
 	csp_qfifo_write(packet, iface, pxTaskWoken);
