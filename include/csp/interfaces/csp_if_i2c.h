@@ -17,27 +17,6 @@
 */
 #define CSP_IF_I2C_DEFAULT_NAME "I2C"
 
-/* This struct is referenced in documentation.  Update doc when you change this. */
-/**
-   I2C frame.
-   This struct fits on top of a #csp_packet_t, removing the need for copying data.
-*/
-typedef struct i2c_frame_s {
-    //! Not used  (-> csp_packet_t.padding)
-    uint8_t padding[3];
-    //! Cleared before Tx  (-> csp_packet_t.padding)
-    uint8_t retries;
-    //! Not used  (-> csp_packet_t.padding)
-    uint32_t reserved;
-    //! Destination address  (-> csp_packet_t.padding)
-    uint8_t dest;
-    //! Cleared before Tx  (-> csp_packet_t.padding)
-    uint8_t len_rx;
-    //! Length of \a data part  (-> csp_packet_t.length)
-    uint16_t len;
-    //! CSP id + data  (-> csp_packet_t.id)
-    uint8_t data[0];
-} csp_i2c_frame_t;
 
 /**
    Send I2C frame (implemented by driver).
@@ -50,7 +29,7 @@ typedef struct i2c_frame_s {
    @param[in] frame destination, length and data. This is actually a #csp_packet_t buffer, casted to #csp_i2c_frame_t.
    @return #CSP_ERR_NONE on success, or an error code.
 */
-typedef int (*csp_i2c_driver_tx_t)(void * driver_data, csp_i2c_frame_t * frame);
+typedef int (*csp_i2c_driver_tx_t)(void * driver_data, csp_packet_t * frame);
 
 /**
    Interface data (state information).
@@ -86,5 +65,4 @@ int csp_i2c_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet);
    @param[in] frame received data, routed on as a #csp_packet_t.
    @param[out] pxTaskWoken Valid reference if called from ISR, otherwise NULL!
 */
-void csp_i2c_rx(csp_iface_t * iface, csp_i2c_frame_t * frame, void * pxTaskWoken);
-
+void csp_i2c_rx(csp_iface_t * iface, csp_packet_t * frame, void * pxTaskWoken);
