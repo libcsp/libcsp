@@ -38,7 +38,9 @@
 		(y)[7] = (uint8_t)(((x) >> 0) & 0xff);  \
 	} while (0)
 
+#ifndef MIN
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
+#endif
 
 /* SHA1 macros */
 #define F0(x, y, z) (z ^ (x & (y ^ z)))
