@@ -42,10 +42,9 @@ if yaml_dep.found() == false
 		yaml_dep = yaml_pro.dependency('yaml')
 	endif
 endif
-
+csp_deps += yaml_dep
 conf.set('CSP_HAVE_LIBYAML', yaml_dep.found())
 if yaml_dep.found()
-	csp_deps += yaml_dep
 	csp_sources += files('src/csp_yaml.c')
 endif
 
