@@ -45,6 +45,13 @@ endif
 csp_deps += yaml_dep
 conf.set('CSP_HAVE_LIBYAML', yaml_dep.found())
 
+# Libc dependency
+clib = meson.get_compiler('c').find_library('c', required: false)
+if not clib.found()
+	clib = dependency('libc', fallback: ['picolibc', 'picolibc_dep'], required: true)
+endif
+csp_deps += clib
+
 subdir('src')
 
 csp_config_h = configure_file(output: 'csp_autoconfig.h', configuration: conf, install_dir: 'csp/')
@@ -59,13 +66,6 @@ csp_c_args = ['-Wshadow',
 	      '-Wcast-align',
 	      '-Wwrite-strings',
 	      '-Wno-unused-parameter']
-
-clib = meson.get_compiler('c').find_library('c', required: false)
-if not clib.found()
-	clib = dependency('libc', fallback: ['picolibc', 'picolibc_dep'], required: true)
-endif
-
-csp_deps += clib
 
 csp_lib = library('csp',
 	sources: [csp_sources, csp_config_h],
