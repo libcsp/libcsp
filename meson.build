@@ -101,7 +101,7 @@ endif
 
 csp_deps += clib
 
-csp_lib = static_library('csp',
+csp_lib = library('csp',
 	sources: [csp_sources, csp_config_h],
 	include_directories : csp_inc,
 	dependencies : csp_deps,
@@ -117,24 +117,6 @@ csp_dep = declare_dependency(
 	link_with : csp_lib,
 	dependencies : csp_deps,
 )
-
-if get_option('enable_shared_library')
-csp_shlib = shared_library('csp',
-		sources: [csp_sources, csp_config_h],
-		include_directories : csp_inc,
-		dependencies : csp_deps,
-		c_args : csp_c_args,
-		install : true,
-	)
-
-# The following dependency variable is for parent projects to link
-# against libcsp. https://mesonbuild.com/Subprojects.html
-csp_shdep = declare_dependency(
-	include_directories : csp_inc,
-	link_with : csp_shlib,
-	dependencies : csp_deps,
-)
-endif
 
 subdir('examples')
 
