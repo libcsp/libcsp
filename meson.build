@@ -44,9 +44,6 @@ if yaml_dep.found() == false
 endif
 csp_deps += yaml_dep
 conf.set('CSP_HAVE_LIBYAML', yaml_dep.found())
-if yaml_dep.found()
-	csp_sources += files('src/csp_yaml.c')
-endif
 
 subdir('src')
 

@@ -23,6 +23,10 @@ csp_sources += files([
 	'csp_sfp.c',
 ])
 
+if yaml_dep.found()
+	csp_sources += files('csp_yaml.c')
+endif
+
 subdir('arch')
 subdir('crypto')
 subdir('drivers')
