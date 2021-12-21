@@ -52,20 +52,24 @@ if not clib.found()
 endif
 csp_deps += clib
 
+# Include paths
+csp_inc = include_directories(['.', 'include'])
+
+# Default compile options
+csp_c_args = ['-Wshadow',
+	      '-Wcast-align',
+	      '-Wwrite-strings',
+	      '-Wno-unused-parameter']
+
 subdir('src')
 
 csp_config_h = configure_file(output: 'csp_autoconfig.h', configuration: conf, install_dir: 'csp/')
 
-csp_inc = include_directories(['.', 'include'])
 if not meson.is_subproject()
   install_subdir('include', install_dir : '.')
   install_headers(csp_config_h, install_dir : 'include/csp')
 endif
 
-csp_c_args = ['-Wshadow',
-	      '-Wcast-align',
-	      '-Wwrite-strings',
-	      '-Wno-unused-parameter']
 
 csp_lib = library('csp',
 	sources: [csp_sources, csp_config_h],
