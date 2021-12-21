@@ -25,35 +25,7 @@ conf.set10('CSP_USE_DEDUP', get_option('use_dedup'))
 conf.set10('CSP_HAVE_STDIO', get_option('have_stdio'))
 
 csp_deps = []
-
-csp_sources = files([
-	'src/crypto/csp_hmac.c',
-	'src/crypto/csp_sha1.c',
-	'src/crypto/csp_xtea.c',
-	'src/csp_rdp.c',
-	'src/csp_rdp_queue.c',
-	'src/csp_buffer.c',
-	'src/csp_bridge.c',
-	'src/csp_conn.c',
-	'src/csp_crc32.c',
-	'src/csp_debug.c',
-	'src/csp_dedup.c',
-	'src/csp_hex_dump.c',
-	'src/csp_iflist.c',
-	'src/csp_init.c',
-	'src/csp_io.c',
-	'src/csp_port.c',
-	'src/csp_promisc.c',
-	'src/csp_qfifo.c',
-	'src/csp_route.c',
-	'src/csp_rtable_cidr.c',
-	'src/csp_rtable_stdio.c',
-	'src/csp_service_handler.c',
-	'src/csp_services.c',
-	'src/csp_id.c',
-	'src/csp_sfp.c',
-	
-])
+csp_sources = []
 
 # First try libyaml from dynamic library (os)
 yaml_dep = dependency('yaml-0.1', required : false)
@@ -77,9 +49,7 @@ if yaml_dep.found()
 	csp_sources += files('src/csp_yaml.c')
 endif
 
-subdir('src/arch')
-subdir('src/drivers')
-subdir('src/interfaces')
+subdir('src')
 
 csp_config_h = configure_file(output: 'csp_autoconfig.h', configuration: conf, install_dir: 'csp/')
 
