@@ -41,7 +41,7 @@
 
     /* Zephyr RTOS Interface */
     #include <zephyr.h>
-    #define CSP_SIZEOF_SEM_T sizeof(struct k_sem);
+    #define CSP_SIZEOF_SEM_T sizeof(struct k_sem)
 
 #endif
 
