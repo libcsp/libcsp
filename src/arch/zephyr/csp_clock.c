@@ -1,7 +1,4 @@
-
-
-#include <csp/arch/csp_clock.h>
-
+#include <csp/csp_types.h>
 #include <zephyr.h>
 #include <posix/time.h>
 #include <logging/log.h>
