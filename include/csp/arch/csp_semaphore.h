@@ -9,7 +9,7 @@
 
 /**
  * Define the size of a semaphore:
- * 
+ *
  * This varies a little across different platforms and implementations
  * Here we include the platform header in order to get that size.
  * Except for POSIX which are pretty stable already
@@ -17,8 +17,8 @@
  * efficient way is to use the sizeof().
  * However we may consider getting rid of the dependency on freertos just
  * for this single number
- * Maybe we should leave this as a compile time configuration parameter 
- * 
+ * Maybe we should leave this as a compile time configuration parameter
+ *
  */
 
 #if (CSP_POSIX || __DOXYGEN__)
@@ -45,7 +45,7 @@
 
 #endif
 
-/** 
+/**
  * This definition is borrowed from POSIX sem_t
  * It ensures the proper amount of memory to hold a static semaphore
  * as well as alignment is correct for the given platform.
@@ -59,7 +59,7 @@ typedef union {
 /**
  * initialize a binary semaphore with static storage
  * The semaphore is created in state \a unlocked (value 1).
- * On platforms supporting max values, the semaphore is created with a max value of 1, hence the naming \a binary. 
+ * On platforms supporting max values, the semaphore is created with a max value of 1, hence the naming \a binary.
  */
 void csp_bin_sem_init(csp_bin_sem_t * sem);
 
