@@ -1,42 +1,17 @@
 
-#include <zephyr.h>
+#include <unistd.h>
 #include <csp/csp_debug.h>
-#include <csp/arch/csp_clock.h>
+#include <csp/csp_types.h>
+#include <csp/csp_hooks.h>
 #include <csp/arch/csp_time.h>
 #include <csp/arch/csp_queue.h>
 #include <csp/arch/csp_semaphore.h>
-#include <unistd.h>
-
+#include <assert.h>
 #include <stdlib.h>
 
-static bool thread_executed = false;
-
-void thread_func(void * p1, void * p2, void * p3) {
-    thread_executed = true;
-    sleep(10); // safty - ensure process terminates
-    exit(1);
-    return;
-}
-
-#define STACKSIZE 1024
-K_THREAD_STACK_DEFINE(stack, STACKSIZE);
 
 int main(int argc, char * argv[]) {
 
-    // debug/log - enable all levels
-    for (int i = 0; i <= CSP_LOCK; ++i) {
-        csp_debug_set_level(i, true);
-    }
-
-    // create a thread
-    k_tid_t tid;
-    struct k_thread new_thread;
-
-    tid = k_thread_create(&new_thread,
-						  stack, K_THREAD_STACK_SIZEOF(stack),
-						  thread_func, NULL, NULL, NULL,
-						  0, 0, K_NO_WAIT);
-    assert(tid != NULL);
 
     // clock
     csp_timestamp_t csp_clock = {};
@@ -50,14 +25,10 @@ int main(int argc, char * argv[]) {
     const uint32_t sec1 = csp_get_s();
     const uint32_t sec2 = csp_get_s_isr();
     sleep(2);
-
     assert(csp_get_ms() >= (msec1 + 500));
     assert(csp_get_ms_isr() >= (msec2 + 500));
     assert(csp_get_s() >= (sec1 + 1));
     assert(csp_get_s_isr() >= (sec2 + 1));
-
-    // check thread actually executed
-    assert(thread_executed != false);
 
     // queue handling
     uint32_t value;
@@ -94,15 +65,10 @@ int main(int argc, char * argv[]) {
 
 
     // semaphore
-    csp_bin_sem_handle_t s;
-    csp_bin_sem_create_static(&s, NULL);
+    csp_bin_sem_t s;
+    csp_bin_sem_init(&s);
     assert(csp_bin_sem_wait(&s, 0) == CSP_SEMAPHORE_OK);
     assert(csp_bin_sem_post(&s) == CSP_SEMAPHORE_OK);
-#if (CSP_POSIX || CSP_ZEPHYR) // implementations differ in return value if already posted/signaled
-    assert(csp_bin_sem_post_isr(&s, NULL) == CSP_SEMAPHORE_OK);
-#else
-    assert(csp_bin_sem_post_isr(&s, NULL) == CSP_SEMAPHORE_ERROR);
-#endif
     assert(csp_bin_sem_wait(&s, 200) == CSP_SEMAPHORE_OK);
     assert(csp_bin_sem_wait(&s, 200) == CSP_SEMAPHORE_ERROR);
 
