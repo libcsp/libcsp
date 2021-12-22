@@ -12,7 +12,6 @@
 #include <csp_autoconfig.h> // -> CSP_X defines (compile configuration)
 #include <csp/csp_error.h>
 #include <csp/arch/csp_queue.h>
-#include <csp/arch/csp_semaphore.h>
 
 typedef struct {
 	uint32_t tv_sec;

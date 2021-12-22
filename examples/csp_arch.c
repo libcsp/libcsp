@@ -5,7 +5,6 @@
 #include <csp/csp_hooks.h>
 #include <csp/arch/csp_time.h>
 #include <csp/arch/csp_queue.h>
-#include <csp/arch/csp_semaphore.h>
 #include <assert.h>
 #include <stdlib.h>
 
@@ -62,15 +61,6 @@ int main(int argc, char * argv[]) {
     assert(value == 2);
     assert(csp_queue_dequeue_isr(q, &value, NULL) == CSP_QUEUE_OK);
     assert(value == 3);
-
-
-    // semaphore
-    csp_bin_sem_t s;
-    csp_bin_sem_init(&s);
-    assert(csp_bin_sem_wait(&s, 0) == CSP_SEMAPHORE_OK);
-    assert(csp_bin_sem_post(&s) == CSP_SEMAPHORE_OK);
-    assert(csp_bin_sem_wait(&s, 200) == CSP_SEMAPHORE_OK);
-    assert(csp_bin_sem_wait(&s, 200) == CSP_SEMAPHORE_ERROR);
 
     return 0;
 }
