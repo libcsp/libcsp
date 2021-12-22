@@ -25,35 +25,7 @@ conf.set10('CSP_USE_DEDUP', get_option('use_dedup'))
 conf.set10('CSP_HAVE_STDIO', get_option('have_stdio'))
 
 csp_deps = []
-
-csp_sources = files([
-	'src/crypto/csp_hmac.c',
-	'src/crypto/csp_sha1.c',
-	'src/crypto/csp_xtea.c',
-	'src/csp_rdp.c',
-	'src/csp_rdp_queue.c',
-	'src/csp_buffer.c',
-	'src/csp_bridge.c',
-	'src/csp_conn.c',
-	'src/csp_crc32.c',
-	'src/csp_debug.c',
-	'src/csp_dedup.c',
-	'src/csp_hex_dump.c',
-	'src/csp_iflist.c',
-	'src/csp_init.c',
-	'src/csp_io.c',
-	'src/csp_port.c',
-	'src/csp_promisc.c',
-	'src/csp_qfifo.c',
-	'src/csp_route.c',
-	'src/csp_rtable_cidr.c',
-	'src/csp_rtable_stdio.c',
-	'src/csp_service_handler.c',
-	'src/csp_services.c',
-	'src/csp_id.c',
-	'src/csp_sfp.c',
-	
-])
+csp_sources = []
 
 # First try libyaml from dynamic library (os)
 yaml_dep = dependency('yaml-0.1', required : false)
@@ -70,36 +42,34 @@ if yaml_dep.found() == false
 		yaml_dep = yaml_pro.dependency('yaml')
 	endif
 endif
-
+csp_deps += yaml_dep
 conf.set('CSP_HAVE_LIBYAML', yaml_dep.found())
-if yaml_dep.found()
-	csp_deps += yaml_dep
-	csp_sources += files('src/csp_yaml.c')
+
+# Libc dependency
+clib = meson.get_compiler('c').find_library('c', required: false)
+if not clib.found()
+	clib = dependency('libc', fallback: ['picolibc', 'picolibc_dep'], required: true)
 endif
+csp_deps += clib
 
-subdir('src/arch')
-subdir('src/drivers')
-subdir('src/interfaces')
-
-csp_config_h = configure_file(output: 'csp_autoconfig.h', configuration: conf, install_dir: 'csp/')
-
+# Include paths
 csp_inc = include_directories(['.', 'include'])
-if not meson.is_subproject()
-  install_subdir('include', install_dir : '.')
-  install_headers(csp_config_h, install_dir : 'include/csp')
-endif
 
+# Default compile options
 csp_c_args = ['-Wshadow',
 	      '-Wcast-align',
 	      '-Wwrite-strings',
 	      '-Wno-unused-parameter']
 
-clib = meson.get_compiler('c').find_library('c', required: false)
-if not clib.found()
-	clib = dependency('libc', fallback: ['picolibc', 'picolibc_dep'], required: true)
+subdir('src')
+
+csp_config_h = configure_file(output: 'csp_autoconfig.h', configuration: conf, install_dir: 'csp/')
+
+if not meson.is_subproject()
+  install_subdir('include', install_dir : '.')
+  install_headers(csp_config_h, install_dir : 'include/csp')
 endif
 
-csp_deps += clib
 
 csp_lib = library('csp',
 	sources: [csp_sources, csp_config_h],
