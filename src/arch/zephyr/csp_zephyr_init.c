@@ -8,8 +8,6 @@
 #include <logging/log.h>
 LOG_MODULE_REGISTER(libcsp);
 
-}
-
 static int libcsp_zephyr_init(const struct device * unused) {
 
 	struct timespec ts = {
