@@ -16,12 +16,12 @@
 #include <csp/csp_debug.h>
 #include <csp/csp_error.h>
 #include <csp/arch/csp_queue.h>
-#include <csp/arch/csp_semaphore.h>
 #include <csp/arch/csp_time.h>
 
 #include "csp_port.h"
 #include "csp_conn.h"
 #include "csp_io.h"
+#include "csp_semaphore.h"
 
 #define RDP_SYN 0x08
 #define RDP_ACK 0x04

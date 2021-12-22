@@ -1,6 +1,6 @@
 
 
-#include <csp/arch/csp_semaphore.h>
+#include "../../csp_semaphore.h"
 
 #include <windows.h>
 

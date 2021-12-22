@@ -1,6 +1,6 @@
 
 
-#include <csp/arch/csp_semaphore.h>
+#include "../../csp_semaphore.h"
 
 #include <sys/time.h>
 #include <stdlib.h>

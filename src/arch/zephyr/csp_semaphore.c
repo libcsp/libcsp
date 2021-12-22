@@ -1,6 +1,4 @@
-
-
-#include <csp/arch/csp_semaphore.h>
+#include "../../csp_semaphore.h"
 #include <csp/csp_debug.h>
 
 #include <zephyr.h>

@@ -4,7 +4,7 @@
 
 #include <csp/csp.h>
 #include <csp/arch/csp_queue.h>
-#include <csp/arch/csp_semaphore.h>
+#include "csp_semaphore.h"
 
 /** Connection states */
 typedef enum {
