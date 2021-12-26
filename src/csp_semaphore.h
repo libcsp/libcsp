@@ -22,9 +22,8 @@
  */
 
 #if (CSP_POSIX || __DOXYGEN__)
-
-    /* POSIX interface */
-    #define CSP_SIZEOF_SEM_T 32
+#include <semaphore.h>
+typedef sem_t csp_bin_sem_t;
 
 #elif (CSP_FREERTOS)
 
@@ -36,15 +35,6 @@
 #else
     #define CSP_SIZEOF_SEM_T sizeof(void *)
 #endif
-
-#elif (CSP_ZEPHYR)
-
-    /* Zephyr RTOS Interface */
-    #include <zephyr.h>
-    #define CSP_SIZEOF_SEM_T sizeof(struct k_sem)
-
-#endif
-
 /**
  * This definition is borrowed from POSIX sem_t
  * It ensures the proper amount of memory to hold a static semaphore
@@ -55,6 +45,12 @@ typedef union {
   char __size[CSP_SIZEOF_SEM_T];
   long int __align;
 } csp_bin_sem_t;
+
+#elif (CSP_ZEPHYR)
+#include <zephyr.h>
+typedef struct k_sem csp_bin_sem_t;
+
+#endif
 
 /**
  * initialize a binary semaphore with static storage
