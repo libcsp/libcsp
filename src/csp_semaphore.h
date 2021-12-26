@@ -7,49 +7,16 @@
 #define CSP_SEMAPHORE_OK 	0
 #define CSP_SEMAPHORE_ERROR	-1
 
-/**
- * Define the size of a semaphore:
- *
- * This varies a little across different platforms and implementations
- * Here we include the platform header in order to get that size.
- * Except for POSIX which are pretty stable already
- * The FreeRTOS size depends on some compile time options, so the most
- * efficient way is to use the sizeof().
- * However we may consider getting rid of the dependency on freertos just
- * for this single number
- * Maybe we should leave this as a compile time configuration parameter
- *
- */
-
 #if (CSP_POSIX || __DOXYGEN__)
-#include <semaphore.h>
-typedef sem_t csp_bin_sem_t;
-
+    #include <semaphore.h>
+    typedef sem_t csp_bin_sem_t;
 #elif (CSP_FREERTOS)
-
-    /* FreeRTOS interface */
-#if 0
     #include <FreeRTOS.h>
-    #include <semphr.h>
-    #define CSP_SIZEOF_SEM_T sizeof(StaticSemaphore_t)
-#else
-    #define CSP_SIZEOF_SEM_T sizeof(void *)
-#endif
-/**
- * This definition is borrowed from POSIX sem_t
- * It ensures the proper amount of memory to hold a static semaphore
- * as well as alignment is correct for the given platform.
- * The fields are never actually used directly so they can have any name
- */
-typedef union {
-  char __size[CSP_SIZEOF_SEM_T];
-  long int __align;
-} csp_bin_sem_t;
-
+    #include <task.h>
+    typedef TaskHandle_t csp_bin_sem_t;
 #elif (CSP_ZEPHYR)
-#include <zephyr.h>
-typedef struct k_sem csp_bin_sem_t;
-
+    #include <zephyr.h>
+    typedef struct k_sem csp_bin_sem_t;
 #endif
 
 /**
