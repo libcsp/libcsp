@@ -56,7 +56,7 @@ extern uint8_t csp_dbg_packet_print;
 void csp_print_func(const char * fmt, ...);
 
 /* Compile time disable all printout from CSP */
-#if (CSP_HAVE_STDIO)
+#if (CSP_ENABLE_CSP_PRINT)
 #define csp_print(...) csp_print_func(__VA_ARGS__);
 #else
 #define csp_print(...) do {} while(0)

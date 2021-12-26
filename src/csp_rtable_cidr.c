@@ -105,3 +105,20 @@ void csp_rtable_iterate(csp_rtable_iterator_t iter, void * ctx) {
 		iter(ctx, &rtable[i]);
 	}
 }
+
+#if (CSP_ENABLE_CSP_PRINT)
+
+static bool csp_rtable_print_route(void * ctx, csp_route_t * route) {
+	if (route->via == CSP_NO_VIA_ADDRESS) {
+		csp_print("%u/%u %s\r\n", route->address, route->netmask, route->iface->name);
+	} else {
+		csp_print("%u/%u %s %u\r\n", route->address, route->netmask, route->iface->name, route->via);
+	}
+	return true;
+}
+
+void csp_rtable_print(void) {
+	csp_rtable_iterate(csp_rtable_print_route, NULL);
+}
+
+#endif

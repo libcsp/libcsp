@@ -22,6 +22,7 @@ conf.set10('CSP_USE_HMAC', get_option('use_hmac'))
 conf.set10('CSP_USE_PROMISC', get_option('use_promisc'))
 conf.set10('CSP_USE_DEDUP', get_option('use_dedup'))
 conf.set10('CSP_HAVE_STDIO', get_option('have_stdio'))
+conf.set10('CSP_ENABLE_CSP_PRINT', get_option('enable_csp_print'))
 
 csp_deps = []
 csp_sources = []

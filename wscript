@@ -122,8 +122,12 @@ def configure(ctx):
                                         'src/interfaces/csp_if_kiss.c',
                                         'src/interfaces/csp_if_i2c.c',
                                         'src/arch/{0}/**/*.c'.format(ctx.options.with_os),
-                                        'src/csp_rtable_stdio.c',
                                         'src/csp_rtable_cidr.c'])
+
+    # Add if stdio
+    if ctx.check(header_name="stdio.h", mandatory=False):
+        ctx.define('CSP_HAVE_STDIO', True)
+        ctx.env.append_unique('FILES_CSP', ['src/csp_rtable_stdio.c'])
 
     # Add if UDP
     if ctx.check(header_name="sys/socket.h", mandatory=False) and ctx.check(header_name="arpa/inet.h", mandatory=False):
@@ -165,7 +169,7 @@ def configure(ctx):
     ctx.define('CSP_RTABLE_SIZE', ctx.options.with_rtable_size)
 
     # Set defines for enabling features
-    ctx.define('CSP_HAVE_STDIO', not ctx.options.disable_output)
+    ctx.define('CSP_ENABLE_CSP_PRINT', not ctx.options.disable_output)
     ctx.define('CSP_USE_RDP', ctx.options.enable_rdp)
     ctx.define('CSP_USE_HMAC', ctx.options.enable_hmac)
     ctx.define('CSP_USE_PROMISC', ctx.options.enable_promisc)

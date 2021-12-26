@@ -2,6 +2,7 @@
 #cmakedefine01 CSP_ZEPHYR
 
 #cmakedefine01 CSP_HAVE_STDIO
+#cmakedefine01 CSP_ENABLE_CSP_PRINT
 
 #cmakedefine CSP_QFIFO_LEN @CSP_QFIFO_LEN@
 #cmakedefine CSP_PORT_MAX_BIND @CSP_PORT_MAX_BIND@

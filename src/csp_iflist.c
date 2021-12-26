@@ -90,8 +90,6 @@ csp_iface_t * csp_iflist_get(void) {
 	return interfaces;
 }
 
-#if (CSP_HAVE_STDIO)
-
 unsigned long csp_bytesize(unsigned long bytes, char *postfix) {
 	unsigned long size;
 
@@ -108,6 +106,8 @@ unsigned long csp_bytesize(unsigned long bytes, char *postfix) {
 
 	return size;
 }
+
+#if (CSP_ENABLE_CSP_PRINT)
 
 void csp_iflist_print(void) {
 	csp_iface_t * i = interfaces;

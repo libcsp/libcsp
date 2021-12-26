@@ -412,14 +412,16 @@ void csp_rdp_get_opt(unsigned int *window_size, unsigned int *conn_timeout_ms,
 		unsigned int *ack_timeout, unsigned int *ack_delay_count);
 
 /**
+   Set platform specific memory copy function.
+*/
+void csp_cmp_set_memcpy(csp_memcpy_fnc_t fnc);
+
+#if (CSP_ENABLE_CSP_PRINT)
+
+/**
    Print connection table to stdout.
 */
 void csp_conn_print_table(void);
-
-/**
-   Print connection table to string.
-*/
-int csp_conn_print_table_str(char * str_buf, int str_size);
 
 /**
    Hex dump memory to stdout.
@@ -429,8 +431,24 @@ int csp_conn_print_table_str(char * str_buf, int str_size);
 */
 void csp_hex_dump(const char *desc, void *addr, int len);
 
-/**
-   Set platform specific memory copy function.
-*/
-void csp_cmp_set_memcpy(csp_memcpy_fnc_t fnc);
+#else
 
+inline void csp_conn_print_table(void) {}
+inline void csp_hex_dump(const char *desc, void *addr, int len) {}
+
+#endif
+
+#if (CSP_HAVE_STDIO)
+/**
+   Print connection table to string.
+*/
+int csp_conn_print_table_str(char * str_buf, int str_size);
+#else
+inline int csp_conn_print_table_str(char * str_buf, int str_size) {
+	if (str_buf != NULL && str_size > 0) {
+		str_buf[0] = '\0';
+	}
+
+	return CSP_ERR_NONE;
+}
+#endif

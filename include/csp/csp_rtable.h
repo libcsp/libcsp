@@ -14,7 +14,7 @@
 #include <csp/csp_iflist.h>
 
 #define CSP_NO_VIA_ADDRESS	0xFFFF
-    
+
 typedef struct csp_route_s {
 	uint16_t address;
 	uint16_t netmask;
@@ -34,6 +34,7 @@ csp_route_t * csp_rtable_find_route(uint16_t dest_address);
 */
 int csp_rtable_set(uint16_t dest_address, int netmask, csp_iface_t *ifc, uint16_t via);
 
+#if (CSP_HAVE_STDIO)
 /**
    Save routing table as a string (readable format).
    @see csp_rtable_load() for additional information, e.g. format.
@@ -61,6 +62,12 @@ int csp_rtable_load(const char * rtable);
 */
 int csp_rtable_check(const char * rtable);
 
+#else
+inline int csp_rtable_save(char * buffer, size_t buffer_size) { return CSP_ERR_NOSYS; }
+inline int csp_rtable_load(const char * rtable) { return CSP_ERR_NOSYS; }
+inline int csp_rtable_check(const char * rtable) { return CSP_ERR_NOSYS; }
+#endif
+
 /**
    Clear routing table and add loopback route.
    @see csp_rtable_free()
@@ -72,11 +79,6 @@ void csp_rtable_clear(void);
 */
 void csp_rtable_free(void);
 
-/**
-   Print routing table
-*/
-void csp_rtable_print(void);
-
 /** Iterator for looping through the routing table. */
 typedef bool (*csp_rtable_iterator_t)(void * ctx, csp_route_t * route);
 
@@ -85,4 +87,13 @@ typedef bool (*csp_rtable_iterator_t)(void * ctx, csp_route_t * route);
 */
 void csp_rtable_iterate(csp_rtable_iterator_t iter, void * ctx);
 
+#if (CSP_ENABLE_CSP_PRINT)
 
+/**
+   Print routing table
+*/
+void csp_rtable_print(void);
+
+#else
+inline void csp_rtable_print(void) {}
+#endif
