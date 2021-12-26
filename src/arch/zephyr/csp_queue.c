@@ -77,5 +77,8 @@ int csp_queue_size_isr(csp_queue_handle_t queue) {
 	return csp_queue_size(queue);
 }
 
-// TODO: Implement number of remaing slots in queue */
-int csp_queue_free(csp_queue_handle_t handle);
+int csp_queue_free(csp_queue_handle_t queue) {
+	struct k_msgq * q = (struct k_msgq *)queue;
+
+	return k_msgq_num_free_get(q);
+}
