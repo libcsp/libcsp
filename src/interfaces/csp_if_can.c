@@ -53,11 +53,13 @@ int csp_can1_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t 
 		}
 	}
 
+	csp_can_interface_data_t * ifdata = iface->interface_data;
+
 	/* Bind incoming frame to a packet buffer */
-	csp_packet_t * packet = csp_can_pbuf_find(id, CFP_ID_CONN_MASK, task_woken);
+	csp_packet_t * packet = csp_can_pbuf_find(ifdata, id, CFP_ID_CONN_MASK, task_woken);
 	if (packet == NULL) {
 		if (CFP_TYPE(id) == CFP_BEGIN) {
-			packet = csp_can_pbuf_new(id, task_woken);
+			packet = csp_can_pbuf_new(ifdata, id, task_woken);
 			if (packet == NULL) {
 				iface->rx_error++;
 				return CSP_ERR_NOMEM;
@@ -79,7 +81,7 @@ int csp_can1_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t 
 			if (dlc < (sizeof(uint32_t) + sizeof(uint16_t))) {
 				csp_dbg_can_errno = CSP_DBG_CAN_ERR_SHORT_BEGIN;
 				iface->frame++;
-				csp_can_pbuf_free(packet, 1, task_woken);
+				csp_can_pbuf_free(ifdata, packet, 1, task_woken);
 				break;
 			}
 
@@ -100,7 +102,7 @@ int csp_can1_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t 
 			/* Check if frame exceeds MTU */
 			if (packet->length > iface->mtu) {
 				iface->rx_error++;
-				csp_can_pbuf_free(packet, 1, task_woken);
+				csp_can_pbuf_free(ifdata, packet, 1, task_woken);
 				break;
 			}
 
@@ -120,7 +122,7 @@ int csp_can1_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t 
 			/* Check 'remain' field match */
 			if ((uint16_t) CFP_REMAIN(id) != packet->remain - 1) {
 				csp_dbg_can_errno = CSP_DBG_CAN_ERR_FRAME_LOST;
-				csp_can_pbuf_free(packet, 1, task_woken);
+				csp_can_pbuf_free(ifdata, packet, 1, task_woken);
 				iface->frame++;
 				break;
 			}
@@ -132,7 +134,7 @@ int csp_can1_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t 
 			if ((packet->rx_count + dlc - offset) > packet->length) {
 				csp_dbg_can_errno = CSP_DBG_CAN_ERR_RX_OVF;
 				iface->frame++;
-				csp_can_pbuf_free(packet, 1, task_woken);
+				csp_can_pbuf_free(ifdata, packet, 1, task_woken);
 				break;
 			}
 
@@ -145,7 +147,7 @@ int csp_can1_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t 
 				break;
 
 			/* Free packet buffer */
-			csp_can_pbuf_free(packet, 0, task_woken);
+			csp_can_pbuf_free(ifdata, packet, 0, task_woken);
 
 			/* Data is available */
 			csp_qfifo_write(packet, iface, task_woken);
@@ -154,7 +156,7 @@ int csp_can1_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t 
 
 		default:
 			csp_dbg_can_errno = CSP_DBG_CAN_ERR_UNKNOWN;
-			csp_can_pbuf_free(packet, 1, task_woken);
+			csp_can_pbuf_free(ifdata, packet, 1, task_woken);
 			break;
 	}
 
@@ -259,11 +261,13 @@ int csp_can1_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet) {
 
 int csp_can2_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t dlc, int * task_woken) {
 
+	csp_can_interface_data_t * ifdata = iface->interface_data;
+
 	/* Bind incoming frame to a packet buffer */
-	csp_packet_t * packet = csp_can_pbuf_find(id, CFP2_ID_CONN_MASK, task_woken);
+	csp_packet_t * packet = csp_can_pbuf_find(ifdata, id, CFP2_ID_CONN_MASK, task_woken);
 	if (packet == NULL) {
 		if (id & (CFP2_BEGIN_MASK << CFP2_BEGIN_OFFSET)) {
-			packet = csp_can_pbuf_new(id, task_woken);
+			packet = csp_can_pbuf_new(ifdata, id, task_woken);
 			if (packet == NULL) {
 				iface->rx_error++;
 				return CSP_ERR_NOMEM;
@@ -282,7 +286,7 @@ int csp_can2_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t 
 		if (dlc < 4) {
 			csp_dbg_can_errno = CSP_DBG_CAN_ERR_SHORT_BEGIN;
 			iface->frame++;
-			csp_can_pbuf_free(packet, 1, task_woken);
+			csp_can_pbuf_free(ifdata, packet, 1, task_woken);
 			return CSP_ERR_INVAL;
 		}
 
@@ -320,7 +324,7 @@ int csp_can2_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t 
 		 * (Note this could be done using csp buffers instead) */
 		if ((packet->rx_count) != fragment_counter) {
 			csp_dbg_can_errno = CSP_DBG_CAN_ERR_FRAME_LOST;
-			csp_can_pbuf_free(packet, 1, task_woken);
+			csp_can_pbuf_free(ifdata, packet, 1, task_woken);
 			iface->frame++;
 			return CSP_ERR_INVAL;
 		}
@@ -334,7 +338,7 @@ int csp_can2_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t 
 	if (packet->frame_length + dlc > iface->mtu) {
 		csp_dbg_can_errno = CSP_DBG_CAN_ERR_RX_OVF;
 		iface->frame++;
-		csp_can_pbuf_free(packet, 1, task_woken);
+		csp_can_pbuf_free(ifdata, packet, 1, task_woken);
 		return CSP_ERR_INVAL;
 	}
 
@@ -354,7 +358,7 @@ int csp_can2_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t 
 		}
 
 		/* Free packet buffer */
-		csp_can_pbuf_free(packet, 0, task_woken);
+		csp_can_pbuf_free(ifdata, packet, 0, task_woken);
 		
 		/* Data is available */
 		csp_qfifo_write(packet, iface, task_woken);

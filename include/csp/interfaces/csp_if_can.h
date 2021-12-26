@@ -170,6 +170,8 @@ typedef struct {
     uint32_t cfp_packet_counter;
     /** Tx function */
     csp_can_driver_tx_t tx_func;
+    /** PBUF queue */
+    csp_packet_t * pbufs;
 } csp_can_interface_data_t;
 
 /**
