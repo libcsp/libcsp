@@ -100,15 +100,35 @@ csp_conn_t * csp_conn_find_existing(csp_id_t * id) {
 		 * portability and dual use between different header formats.
 		 */
 
-		/* Connection must match dport */
-		if (conn->idin.dport != id->dport)
-			continue;
+		/* Outgoing connections are uniquely defined by the source port,
+		 * So only the incoming destination port must match. This means
+		 * that responses to broadcast addresses, are accepted as long
+		 * as the incoming port matches the unique source port of the 
+		 * connection */
+		if (conn->type == CONN_CLIENT) {
 
-		/* Connection must match sport */
-		if (conn->idin.sport != id->sport)
-			continue;
+			/* Connection must match dport */
+			if (conn->idin.dport != id->dport)
+				continue;
 
+		/* Incoming connections are uniquely defined by the source amd
+		 * destination port, as well as the source node. Incoming
+		 * connections can never come from a brodcast address */
+		} else {
 
+			/* Connection must match dport */
+			if (conn->idin.dport != id->dport)
+				continue;
+
+			/* Connection must match sport */
+			if (conn->idin.sport != id->sport)
+				continue;
+
+			/* Connection must match source */
+			if (conn->idin.src != id->src)
+				continue;
+
+		}
 
 		/* Connection must be open */
 		if (conn->state != CONN_OPEN)
