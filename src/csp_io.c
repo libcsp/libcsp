@@ -114,42 +114,46 @@ void csp_id_copy(csp_id_t * target, csp_id_t * source) {
 
 int csp_send_direct(csp_id_t idout, csp_packet_t * packet, int from_me) {
 
-	int ret;
-
 	/* Try to find the destination on any local subnets */
 	int via = CSP_NO_VIA_ADDRESS;
-	csp_iface_t * iface = csp_iflist_get_by_subnet(idout.dst);
-
-	/* Otherwise, resort to the routing table for help */		
-	if (iface == NULL) {
-		csp_route_t * route = csp_rtable_find_route(idout.dst);
-		if (route == NULL) {
-			csp_dbg_conn_noroute++;
-			return CSP_ERR_TX;
-		}
-		iface = route->iface;
-		via = route->via;
-	}
-
-	/* Apply outgoing interface address to packet */
-	idout.src = iface->addr;
-
-	/* Perform copy of packet, before sending */
+	csp_iface_t * iface = NULL;
 	csp_packet_t * copy = NULL;
-	if (iface->copy_to) {
+	int local_found = 0;
+
+	while ((iface = csp_iflist_get_by_subnet(idout.dst, iface)) != NULL) {
+		
+		/* Apply outgoing interface address to packet */
+		idout.src = iface->addr;
+		
 		copy = csp_buffer_clone(packet);
+		if (csp_send_direct_iface(idout, copy, iface, via, 1) != CSP_ERR_NONE) {
+			csp_buffer_free(copy);
+		}
+
+		local_found = 1;
+
 	}
 
-	/* Send */
-	ret = csp_send_direct_iface(idout, packet, iface, via, 1);
+	/* If the above worked, we don't want to look at the routing table */
+	if (local_found == 1) {
+		csp_buffer_free(packet);
+		return CSP_ERR_NONE;
+	}
+
+	/* Try to send via routing table */
+	csp_route_t * route = csp_rtable_find_route(idout.dst);
+	if (route == NULL) {
+		csp_dbg_conn_noroute++;
+		csp_buffer_free(packet);
+		return CSP_ERR_NONE;
+	}
+
+	if (csp_send_direct_iface(idout, copy, route->iface, route->via, 1) != CSP_ERR_NONE) {
+		csp_buffer_free(packet);
+	}
+
+	return CSP_ERR_NONE;
 	
-	/* Send copy */
-	if (iface->copy_to) {
-		csp_send_direct_iface(idout, copy, iface->copy_to, via, 1);
-	}
-
-	return ret;
-
 }
 
 __attribute__((weak)) void csp_output_hook(csp_id_t idout, csp_packet_t * packet, csp_iface_t * iface, uint16_t via, int from_me) {
