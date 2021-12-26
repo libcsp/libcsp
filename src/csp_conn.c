@@ -108,9 +108,6 @@ csp_conn_t * csp_conn_find_existing(csp_id_t * id) {
 		if (conn->idin.sport != id->sport)
 			continue;
 
-		/* Connection must match destination */
-		if (conn->idin.dst != id->dst)
-			continue;
 
 
 		/* Connection must be open */
@@ -255,14 +252,21 @@ csp_conn_t * csp_connect(uint8_t prio, uint16_t dest, uint8_t dport, uint32_t ti
 	
 	/* Generate identifier */
 	csp_id_t incoming_id, outgoing_id;
+
+	/* Use 0 as incoming id (this disables the input filter on destination node)
+	 * This means that for this outgoing connection, we accept the answer coming to whatever address
+	 * the outgoing interface has. CSP does not support "source address" on outgoing connections 
+	 * so the outgoing source address will be automatically applied after outgoing routing 
+	 * selects which interface the packet will leavve from */
+	incoming_id.dst = 0; 
+	outgoing_id.src = 0; 
+
 	incoming_id.pri = prio;
-	incoming_id.dst = source_addr;
 	incoming_id.src = dest;
 	incoming_id.sport = dport;
 	incoming_id.flags = 0;
 	outgoing_id.pri = prio;
 	outgoing_id.dst = dest;
-	outgoing_id.src = source_addr;
 	outgoing_id.dport = dport;
 	outgoing_id.flags = 0;
 
