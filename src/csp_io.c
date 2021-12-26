@@ -238,14 +238,6 @@ int csp_send_direct_iface(csp_id_t idout, csp_packet_t * packet, csp_iface_t * i
 	iface->tx++;
 	iface->txbytes += bytes;
 
-
-	/* COPY TO */
-	if (iface->copy_to != NULL) {
-
-		mtu = iface->copy_to->mtu;
-		if (mtu > 0 && bytes > mtu)
-			goto tx_err;
-	}
 	return CSP_ERR_NONE;
 
 tx_err:
