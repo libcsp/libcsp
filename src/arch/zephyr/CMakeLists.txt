@@ -3,7 +3,6 @@ target_sources(libcsp PRIVATE
   csp_hooks.c
   csp_queue.c
   csp_semaphore.c
-  csp_system.c
   csp_time.c
   csp_zephyr_init.c
   )
