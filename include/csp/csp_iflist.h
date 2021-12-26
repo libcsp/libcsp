@@ -18,5 +18,4 @@ void csp_iflist_print(void);
 csp_iface_t * csp_iflist_get(void);
 
 /* Convert bytes to readable string */
-int csp_bytesize(char *buffer, int buffer_len, unsigned long int bytes);
-
+unsigned long csp_bytesize(unsigned long bytes, char *postfix);
