@@ -228,6 +228,13 @@ void csp_service_handler(csp_packet_t * packet) {
 			/* A ping means, just echo the packet, so no changes */
 			break;
 
+		case CSP_PS: {
+			packet->length = csp_ps_hook(packet);
+			if (packet->length == 0) {
+				csp_buffer_free(packet);
+			}
+			break;
+		}
 
 		case CSP_MEMFREE: {
 

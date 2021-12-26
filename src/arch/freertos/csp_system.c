@@ -10,3 +10,7 @@ __attribute__((weak)) uint32_t csp_memfree_hook(void) {
 	return 0;
 #endif
 }
+
+__attribute__((weak)) unsigned int csp_ps_hook(csp_packet_t * packet) {
+	return 0;
+}
