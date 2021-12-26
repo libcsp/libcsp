@@ -157,6 +157,7 @@ int csp_can_socketcan_open_and_add_interface(const char * device, const char * i
 	ctx->iface.interface_data = &ctx->ifdata;
 	ctx->iface.driver_data = ctx;
 	ctx->ifdata.tx_func = csp_can_tx_frame;
+	ctx->ifdata.pbufs = NULL;
 
 	/* Create socket */
 	if ((ctx->socket = socket(PF_CAN, SOCK_RAW, CAN_RAW)) < 0) {

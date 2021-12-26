@@ -229,6 +229,7 @@ csp_iface_t * csp_driver_can_init(int addr, int netmask, int id, can_mode_e mode
 	}
 
 	mcan[id].ifdata.tx_func = csp_can_tx_frame;
+	mcan[id].ifdata.pbufs = NULL;
 	mcan[id].interface.interface_data = &mcan[id].ifdata;
 
 	mcan[id].interface.addr = addr;
