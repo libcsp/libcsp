@@ -253,22 +253,6 @@ csp_conn_t * csp_connect(uint8_t prio, uint16_t dest, uint8_t dport, uint32_t ti
 
 	/* Force options on all connections */
 	opts |= csp_conf.conn_dfl_so;
-
-	int source_addr = -1;
-	csp_iface_t * local_interface = csp_iflist_get_by_subnet(dest);
-	if (local_interface) {
-		source_addr = local_interface->addr;
-	} else {
-		csp_route_t * route = csp_rtable_find_route(dest);
-		if (route) {
-			source_addr = route->iface->addr;
-		}
-	}
-
-	if (source_addr == -1) {
-		csp_dbg_conn_noroute++;
-		return NULL;
-	}
 	
 	/* Generate identifier */
 	csp_id_t incoming_id, outgoing_id;
@@ -282,12 +266,12 @@ csp_conn_t * csp_connect(uint8_t prio, uint16_t dest, uint8_t dport, uint32_t ti
 	outgoing_id.src = 0; 
 
 	incoming_id.pri = prio;
-	incoming_id.src = dest;
-	incoming_id.sport = dport;
-	incoming_id.flags = 0;
 	outgoing_id.pri = prio;
+	incoming_id.src = dest;
 	outgoing_id.dst = dest;
+	incoming_id.sport = dport;
 	outgoing_id.dport = dport;
+	incoming_id.flags = 0;
 	outgoing_id.flags = 0;
 
 	/* Set connection options */
