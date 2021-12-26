@@ -125,21 +125,37 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, int from_me) {
 	int ret;
 
 	/* Try to find the destination on any local subnets */
-	csp_iface_t * local_interface = csp_iflist_get_by_subnet(idout.dst);
-	if (local_interface) {
-		idout.src = local_interface->addr;
-		ret = csp_send_direct_iface(idout, packet, local_interface, CSP_NO_VIA_ADDRESS, 1);
+	int via = CSP_NO_VIA_ADDRESS;
+	csp_iface_t * iface = csp_iflist_get_by_subnet(idout.dst);
 
 	/* Otherwise, resort to the routing table for help */		
-	} else {
+	if (iface == NULL) {
 		csp_route_t * route = csp_rtable_find_route(idout.dst);
 		if (route == NULL) {
 			csp_dbg_conn_noroute++;
 			return CSP_ERR_TX;
 		}
-		idout.src = route->iface->addr;
-		ret = csp_send_direct_iface(idout, packet, route->iface, route->via, 1);
+		iface = route->iface;
+		via = route->via;
 	}
+
+	/* Apply outgoing interface address to packet */
+	idout.src = iface->addr;
+
+	/* Perform copy of packet, before sending */
+	csp_packet_t * copy = NULL;
+	if (iface->copy_to) {
+		copy = csp_buffer_clone(packet);
+	}
+
+	/* Send */
+	ret = csp_send_direct_iface(idout, packet, iface, via, 1);
+	
+	/* Send copy */
+	if (iface->copy_to) {
+		csp_send_direct_iface(idout, copy, iface->copy_to, via, 1);
+	}
+
 	return ret;
 
 }
@@ -221,6 +237,15 @@ int csp_send_direct_iface(csp_id_t idout, csp_packet_t * packet, csp_iface_t * i
 
 	iface->tx++;
 	iface->txbytes += bytes;
+
+
+	/* COPY TO */
+	if (iface->copy_to != NULL) {
+
+		mtu = iface->copy_to->mtu;
+		if (mtu > 0 && bytes > mtu)
+			goto tx_err;
+	}
 	return CSP_ERR_NONE;
 
 tx_err:
