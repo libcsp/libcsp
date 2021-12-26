@@ -1,6 +1,7 @@
 
 
 #include <csp/csp_crc32.h>
+#include <csp/csp_id.h>
 
 #include <endian.h>
 
@@ -67,7 +68,8 @@ int csp_crc32_append(csp_packet_t * packet) {
 
 	/* Calculate CRC32, convert to network byte order */
 #if CSP_21 // In CSP 2.1 we change to include header per default
-		crc = csp_crc32_memory((uint8_t *)&packet->id, packet->length + sizeof(packet->id));
+		csp_id_prepend(packet);
+		crc = csp_crc32_memory(packet->frame_begin, packet->frame_length);
 #else
 		crc = csp_crc32_memory(packet->data, packet->length);
 #endif
@@ -91,7 +93,8 @@ int csp_crc32_verify(csp_packet_t * packet) {
 	}
 
 	/* Calculate CRC32, convert to network byte order */
-	crc = csp_crc32_memory((uint8_t *)&packet->id, packet->length + sizeof(packet->id) - sizeof(crc));
+	csp_id_prepend(packet);
+	crc = csp_crc32_memory(packet->frame_begin, packet->frame_length);
 	crc = htobe32(crc);
 
 	/* Compare calculated checksum with packet header */
