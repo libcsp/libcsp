@@ -21,7 +21,7 @@ libcsp 2.0, xx-yy-zzzz
 - improvement: Portability. No more use of packed bitfields.
 - improvement: RDP RX/TX queue is now global, saving a lot of memory
 - improvement: FreeRTOS now uses taskNotify API instead of binary semaphores
-- deprecated: HMAC and XTEA is deprecated, use a dedicatd encryption library instead
+- removed: XTEA has been removed, use a dedicated encryption library instead
 - removed: csp_endian.h: Use the system provided <endian.h> instead (which is faster and smaller)
 - removed: csp_malloc.h: libcsp no longer uses dynamic allocation
 - removed: Windows Support (moved to contrib, maintainer needed)

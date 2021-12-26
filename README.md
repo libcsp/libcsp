@@ -59,7 +59,6 @@ to have some rather advanced features as well:
     and Windows
   - Broadcast traffic
   - Promiscuous mode
-  - Encrypted packets with XTEA in CTR mode
   - Truncated HMAC-SHA1 Authentication (RFC 2104)
 
 ## Software license

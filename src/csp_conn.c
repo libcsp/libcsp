@@ -291,16 +291,6 @@ csp_conn_t * csp_connect(uint8_t prio, uint16_t dest, uint8_t dport, uint32_t ti
 #endif
 	}
 
-	if (opts & CSP_O_XTEA) {
-#if (CSP_USE_XTEA)
-		outgoing_id.flags |= CSP_FXTEA;
-		incoming_id.flags |= CSP_FXTEA;
-#else
-		csp_dbg_errno = CSP_DBG_ERR_UNSUPPORTED;
-		return NULL;
-#endif
-	}
-
 	if (opts & CSP_O_CRC32) {
 		outgoing_id.flags |= CSP_FCRC32;
 		incoming_id.flags |= CSP_FCRC32;

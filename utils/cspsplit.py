@@ -26,7 +26,6 @@ def main():
     print("Destination port: {0}".format((hdrhex >> 14) & 0x3f))
     print("Source port:      {0}".format((hdrhex >> 8) & 0x3f))
     print("HMAC:             {0}".format("Yes" if ((hdrhex >> 3) & 0x01) else "No"))
-    print("XTEA:             {0}".format("Yes" if ((hdrhex >> 2) & 0x01) else "No"))
     print("RDP:              {0}".format("Yes" if ((hdrhex >> 1) & 0x01) else "No"))
     print("CRC32:            {0}".format("Yes" if ((hdrhex >> 0) & 0x01) else "No"))
 

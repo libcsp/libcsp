@@ -40,7 +40,6 @@ def build_with_waf():
         '--enable-promisc',
         '--enable-crc32',
         '--enable-hmac',
-        '--enable-xtea',
         '--enable-dedup',
         '--enable-can-socketcan',
         '--with-driver-usart=linux',

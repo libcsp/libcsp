@@ -28,7 +28,6 @@
 #define CSP_ERR_DRIVER		-11		/**< Error in driver layer */
 #define CSP_ERR_AGAIN		-12		/**< Resource temporarily unavailable */
 #define CSP_ERR_HMAC		-100		/**< HMAC failed */
-#define CSP_ERR_XTEA		-101		/**< XTEA failed */
 #define CSP_ERR_CRC32		-102		/**< CRC32 failed */
 #define CSP_ERR_SFP		-103		/**< SFP protocol error or inconsistency */
 /**@}*/

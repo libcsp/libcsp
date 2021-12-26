@@ -8,7 +8,6 @@
 #include <endian.h>
 #include <csp/arch/csp_queue.h>
 #include <csp/crypto/csp_hmac.h>
-#include <csp/crypto/csp_xtea.h>
 #include <csp/csp_id.h>
 
 #include "csp_port.h"
@@ -28,14 +27,7 @@
  * @return CSP_ERR_NONE is all options are supported, CSP_ERR_NOTSUP if not
  */
 static int csp_route_check_options(csp_iface_t * iface, csp_packet_t * packet) {
-#if (CSP_USE_XTEA == 0)
-	/* Drop XTEA packets */
-	if (packet->id.flags & CSP_FXTEA) {
-		csp_dbg_errno = CSP_DBG_ERR_UNSUPPORTED;
-		iface->autherr++;
-		return CSP_ERR_NOTSUP;
-	}
-#endif
+
 
 #if (CSP_USE_HMAC == 0)
 	/* Drop HMAC packets */
@@ -66,19 +58,6 @@ static int csp_route_check_options(csp_iface_t * iface, csp_packet_t * packet) {
  */
 static int csp_route_security_check(uint32_t security_opts, csp_iface_t * iface, csp_packet_t * packet) {
 
-#if (CSP_USE_XTEA)
-	/* XTEA encrypted packet */
-	if (packet->id.flags & CSP_FXTEA) {
-		/* Decrypt data */
-		if (csp_xtea_decrypt_packet(packet) != CSP_ERR_NONE) {
-			iface->autherr++;
-			return CSP_ERR_XTEA;
-		}
-	} else if (security_opts & CSP_SO_XTEAREQ) {
-		iface->autherr++;
-		return CSP_ERR_XTEA;
-	}
-#endif
 
 	/* CRC32 verified packet */
 	if (packet->id.flags & CSP_FCRC32) {

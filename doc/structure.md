@@ -16,7 +16,7 @@ following table:
 | `libcsp/src/arch/posix`         | Posix (Linux)                                       |
 | `libcsp/src/arch/windows`       | Windows                                             |
 | `libcsp/src/bindings/python`    | Python3 wrapper for libcsp                          |
-| `libcsp/src/crypto`             | HMAC, SHA and XTEA.                                 |
+| `libcsp/src/crypto`             | HMAC, SHA                                           |
 | `libcsp/src/drivers`            | Drivers, mostly platform specific (Linux)           |
 | `libcsp/src/drivers/can`        | CAN                                                 |
 | `libcsp/src/drivers/usart`      | USART                                               |
