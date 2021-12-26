@@ -1,3 +1,5 @@
+#pragma once
+
 #include <csp/csp_types.h>
 #include <inttypes.h>
 
