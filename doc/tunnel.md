@@ -52,6 +52,5 @@ int csp_crypto_decrypt(uint8_t * ciphertext_in, uint8_t ciphertext_len, uint8_t 
 int csp_crypto_encrypt(uint8_t * msg_begin, uint8_t msg_len, uint8_t * ciphertext_out); // Returns length of encrypted data
 ```
 
-CSP does not come with an encryption library (the old XTEA is deprecated)
 
 

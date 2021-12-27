@@ -14,6 +14,5 @@
 
 #cmakedefine01 CSP_USE_RDP
 #cmakedefine01 CSP_USE_HMAC
-#cmakedefine01 CSP_USE_XTEA
 #cmakedefine01 CSP_USE_PROMISC
 #cmakedefine01 CSP_USE_DEDUP

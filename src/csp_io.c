@@ -14,7 +14,6 @@
 #include <csp/arch/csp_queue.h>
 #include <csp/arch/csp_time.h>
 #include <csp/crypto/csp_hmac.h>
-#include <csp/crypto/csp_xtea.h>
 
 #include "csp_port.h"
 #include "csp_conn.h"
@@ -36,13 +35,6 @@ csp_socket_t * csp_socket(uint32_t opts) {
 	}
 #endif
 
-#if (CSP_USE_XTEA == 0)
-	if (opts & CSP_SO_XTEAREQ) {
-		csp_dbg_errno = CSP_DBG_ERR_UNSUPPORTED;
-		return NULL;
-	}
-#endif
-
 #if (CSP_USE_HMAC == 0)
 	if (opts & CSP_SO_HMACREQ) {
 		csp_dbg_errno = CSP_DBG_ERR_UNSUPPORTED;
@@ -51,7 +43,7 @@ csp_socket_t * csp_socket(uint32_t opts) {
 #endif
 
 	/* Drop packet if reserved flags are set */
-	if (opts & ~(CSP_SO_RDPREQ | CSP_SO_XTEAREQ | CSP_SO_HMACREQ | CSP_SO_CRC32REQ | CSP_SO_CONN_LESS)) {
+	if (opts & ~(CSP_SO_RDPREQ | CSP_SO_HMACREQ | CSP_SO_CRC32REQ | CSP_SO_CONN_LESS)) {
 		csp_dbg_errno = CSP_DBG_ERR_UNSUPPORTED;
 		return NULL;
 	}
@@ -159,7 +151,7 @@ int csp_send_direct_iface(csp_id_t idout, csp_packet_t * packet, csp_iface_t * i
 
 	csp_output_hook(idout, packet, iface, via, from_me);
 
-	/* Copy identifier to packet (before crc, xtea and hmac) */
+	/* Copy identifier to packet (before crc and hmac) */
 	csp_id_copy(&packet->id, &idout);
 
 #if (CSP_USE_PROMISC)
@@ -195,18 +187,6 @@ int csp_send_direct_iface(csp_id_t idout, csp_packet_t * packet, csp_iface_t * i
 			}
 		}
 
-		if (idout.flags & CSP_FXTEA) {
-#if (CSP_USE_XTEA)
-			/* Encrypt data */
-			if (csp_xtea_encrypt_packet(packet) != CSP_ERR_NONE) {
-				/* Encryption failed */
-				goto tx_err;
-			}
-#else
-			csp_dbg_errno = CSP_DBG_ERR_UNSUPPORTED;
-			goto tx_err;
-#endif
-		}
 	}
 
 	/* Store length before passing to interface */
@@ -332,16 +312,6 @@ void csp_sendto(uint8_t prio, uint16_t dest, uint8_t dport, uint8_t src_port, ui
 	if (opts & CSP_O_HMAC) {
 #if (CSP_USE_HMAC)
 		packet->id.flags |= CSP_FHMAC;
-#else
-		csp_dbg_errno = CSP_DBG_ERR_UNSUPPORTED;
-		csp_buffer_free(packet);
-		return;
-#endif
-	}
-
-	if (opts & CSP_O_XTEA) {
-#if (CSP_USE_XTEA)
-		packet->id.flags |= CSP_FXTEA;
 #else
 		csp_dbg_errno = CSP_DBG_ERR_UNSUPPORTED;
 		csp_buffer_free(packet);

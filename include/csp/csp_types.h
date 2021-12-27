@@ -65,7 +65,6 @@ typedef struct  __attribute__((packed)) {
 #define CSP_FRES3			0x20 //!< Reserved for future use
 #define CSP_FFRAG			0x10 //!< Use fragmentation
 #define CSP_FHMAC			0x08 //!< Use HMAC verification
-#define CSP_FXTEA			0x04 //!< Use XTEA encryption
 #define CSP_FRDP			0x02 //!< Use RDP protocol
 #define CSP_FCRC32			0x01 //!< Use CRC32 checksum
 /**@}*/
@@ -79,8 +78,6 @@ typedef struct  __attribute__((packed)) {
 #define CSP_SO_RDPPROHIB		0x0002 //!< Prohibit RDP
 #define CSP_SO_HMACREQ			0x0004 //!< Require HMAC
 #define CSP_SO_HMACPROHIB		0x0008 //!< Prohibit HMAC
-#define CSP_SO_XTEAREQ			0x0010 //!< Require XTEA
-#define CSP_SO_XTEAPROHIB		0x0020 //!< Prohibit HMAC
 #define CSP_SO_CRC32REQ			0x0040 //!< Require CRC32
 #define CSP_SO_CRC32PROHIB		0x0080 //!< Prohibit CRC32
 #define CSP_SO_CONN_LESS		0x0100 //!< Enable Connection Less mode
@@ -94,8 +91,6 @@ typedef struct  __attribute__((packed)) {
 #define CSP_O_NORDP			CSP_SO_RDPPROHIB   //!< Disable RDP
 #define CSP_O_HMAC			CSP_SO_HMACREQ     //!< Enable HMAC
 #define CSP_O_NOHMAC			CSP_SO_HMACPROHIB  //!< Disable HMAC
-#define CSP_O_XTEA			CSP_SO_XTEAREQ     //!< Enable XTEA
-#define CSP_O_NOXTEA			CSP_SO_XTEAPROHIB  //!< Disable XTEA
 #define CSP_O_CRC32			CSP_SO_CRC32REQ    //!< Enable CRC32
 #define CSP_O_NOCRC32			CSP_SO_CRC32PROHIB //!< Disable CRC32
 #define CSP_O_SAME			CSP_SO_SAME

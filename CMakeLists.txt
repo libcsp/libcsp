@@ -28,7 +28,6 @@ set(CSP_RTABLE_SIZE 10 CACHE STRING "Number of elements in routing table")
 
 option(CSP_USE_RDP "Reliable Datagram Protocol" ON)
 option(CSP_USE_HMAC "Hash-based message authentication code" ON)
-option(CSP_USE_XTEA "eXtended TEA block cipher" ON)
 option(CSP_USE_PROMISC "Promiscious mode" ON)
 option(CSP_USE_DEDUP "Packet deduplication" ON)
 

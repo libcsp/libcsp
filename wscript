@@ -26,7 +26,6 @@ def options(ctx):
     gr.add_option('--enable-promisc', action='store_true', help='Enable promiscuous support')
     gr.add_option('--enable-crc32', action='store_true', help='Enable CRC32 support')
     gr.add_option('--enable-hmac', action='store_true', help='Enable HMAC-SHA1 support')
-    gr.add_option('--enable-xtea', action='store_true', help='Enable XTEA support')
     gr.add_option('--enable-python3-bindings', action='store_true', help='Enable Python3 bindings')
     gr.add_option('--enable-examples', action='store_true', help='Enable examples')
     gr.add_option('--enable-dedup', action='store_true', help='Enable packet deduplicator')
@@ -97,7 +96,6 @@ def configure(ctx):
     # Add files
     ctx.env.append_unique('FILES_CSP', ['src/crypto/csp_hmac.c',
                                         'src/crypto/csp_sha1.c',
-                                        'src/crypto/csp_xtea.c',
                                         'src/csp_rdp.c',
                                         'src/csp_rdp_queue.c',
                                         'src/csp_buffer.c',
@@ -170,7 +168,6 @@ def configure(ctx):
     ctx.define('CSP_HAVE_STDIO', not ctx.options.disable_output)
     ctx.define('CSP_USE_RDP', ctx.options.enable_rdp)
     ctx.define('CSP_USE_HMAC', ctx.options.enable_hmac)
-    ctx.define('CSP_USE_XTEA', ctx.options.enable_xtea)
     ctx.define('CSP_USE_PROMISC', ctx.options.enable_promisc)
     ctx.define('CSP_USE_DEDUP', ctx.options.enable_dedup)
 
