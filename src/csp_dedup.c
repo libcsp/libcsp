@@ -3,7 +3,6 @@
 #include "csp_dedup.h"
 
 #include <stdlib.h>
-#include <stdio.h>
 
 #include <csp/arch/csp_time.h>
 #include <csp/csp_crc32.h>
