@@ -126,7 +126,7 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, int from_me) {
 		idout.src = iface->addr;
 		
 		copy = csp_buffer_clone(packet);
-		if (csp_send_direct_iface(idout, copy, iface, via, 1) != CSP_ERR_NONE) {
+		if (csp_send_direct_iface(idout, copy, iface, via, from_me) != CSP_ERR_NONE) {
 			csp_buffer_free(copy);
 		}
 
@@ -148,7 +148,7 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, int from_me) {
 		return CSP_ERR_NONE;
 	}
 
-	if (csp_send_direct_iface(idout, copy, route->iface, route->via, 1) != CSP_ERR_NONE) {
+	if (csp_send_direct_iface(idout, copy, route->iface, route->via, from_me) != CSP_ERR_NONE) {
 		csp_buffer_free(packet);
 	}
 
