@@ -32,7 +32,7 @@ csp_iface_t * csp_iflist_get_by_subnet(uint16_t addr) {
 
 		ifc = ifc->next;
 	}
-	
+
 	return NULL;
 
 }
@@ -91,39 +91,38 @@ csp_iface_t * csp_iflist_get(void) {
 }
 
 #if (CSP_HAVE_STDIO)
-#include <stdio.h>  // snprintf()
 
-int csp_bytesize(char * buffer, int buffer_len, unsigned long int bytes) {
-	char postfix;
-	double size;
+unsigned long csp_bytesize(unsigned long bytes, char *postfix) {
+	unsigned long size;
 
-	if (bytes >= 1048576) {
-		size = bytes / 1048576.0;
-		postfix = 'M';
+	if (bytes >= (1024 * 1024)) {
+		size = bytes / (1024 * 1024);
+		*postfix = 'M';
 	} else if (bytes >= 1024) {
-		size = bytes / 1024.0;
-		postfix = 'K';
+		size = bytes / 1024;
+		*postfix = 'K';
 	} else {
 		size = bytes;
-		postfix = 'B';
+		*postfix = 'B';
 	}
 
-	return snprintf(buffer, buffer_len, "%.1f%c", size, postfix);
+	return size;
 }
 
 void csp_iflist_print(void) {
 	csp_iface_t * i = interfaces;
-	char txbuf[25], rxbuf[25];
+	unsigned long tx, rx;
+	char tx_postfix, rx_postfix;
 
 	while (i) {
-		csp_bytesize(txbuf, sizeof(txbuf), i->txbytes);
-		csp_bytesize(rxbuf, sizeof(rxbuf), i->rxbytes);
+		tx = csp_bytesize(i->txbytes, &tx_postfix);
+		rx = csp_bytesize(i->rxbytes, &rx_postfix);
 		csp_print("%-10s addr: %"PRIu16" netmask: %"PRIu16" mtu: %"PRIu16"\r\n"
-			   "           tx: %05" PRIu32 " rx: %05" PRIu32 " txe: %05" PRIu32 " rxe: %05" PRIu32 "\r\n"
-			   "           drop: %05" PRIu32 " autherr: %05" PRIu32 " frame: %05" PRIu32 "\r\n"
-			   "           txb: %" PRIu32 " (%s) rxb: %" PRIu32 " (%s) \r\n\r\n",
-			   i->name, i->addr, i->netmask, i->mtu, i->tx, i->rx, i->tx_error, i->rx_error, i->drop,
-			   i->autherr, i->frame, i->txbytes, txbuf, i->rxbytes, rxbuf);
+				  "           tx: %05" PRIu32 " rx: %05" PRIu32 " txe: %05" PRIu32 " rxe: %05" PRIu32 "\r\n"
+				  "           drop: %05" PRIu32 " autherr: %05" PRIu32 " frame: %05" PRIu32 "\r\n"
+				  "           txb: %" PRIu32 " (%" PRIu32 "%c) rxb: %" PRIu32 " (%" PRIu32 "%c) \r\n\r\n",
+				  i->name, i->addr, i->netmask, i->mtu, i->tx, i->rx, i->tx_error, i->rx_error, i->drop,
+				  i->autherr, i->frame, i->txbytes, tx, tx_postfix, i->rxbytes, rx, rx_postfix);
 		i = i->next;
 	}
 }
