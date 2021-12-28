@@ -124,6 +124,17 @@ void csp_send_direct(csp_id_t idout, csp_packet_t * packet, csp_iface_t * routed
 
 	while ((iface = csp_iflist_get_by_subnet(idout.dst, iface)) != NULL) {
 		
+		/* Do not send back to same inteface (split horizon) 
+		 * This check is is similar to that below, but faster */
+		if (iface == routed_from) {
+			continue;
+		}
+
+		/* Do not send to interface with similar subnet (split horizon) */
+		if (csp_iflist_is_within_subnet(iface->addr, routed_from)) {
+			continue;
+		}
+
 		/* Apply outgoing interface address to packet */
 		idout.src = iface->addr;
 		
