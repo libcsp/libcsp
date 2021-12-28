@@ -12,7 +12,7 @@ uint8_t csp_dbg_rdp_print;
 uint8_t csp_dbg_packet_print;
 
 #if (CSP_ENABLE_CSP_PRINT)
-#if (CSP_HAVE_STDIO)
+#if (CSP_PRINT_STDIO)
 #include <stdarg.h>
 #include <stdio.h>
 __attribute__((weak)) void csp_print_func(const char * fmt, ...) {

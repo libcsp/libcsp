@@ -9,6 +9,7 @@ option('version', type: 'integer', value: 1, description: 'Which version of CSP 
 option('packet_padding_bytes', type: 'integer', value: 8, description: 'Number of bytes to include before the packet data (must be minimum 8)')
 option('enable_csp_print', type: 'boolean', value: true, description: 'Enable csp_print()')
 option('have_stdio', type: 'boolean', value: true, description: 'Use print and scan functions (some features may be missing without)')
+option('print_stdio', type: 'boolean', value: true, description: 'Use vprintf for csp_print_func')
 
 # Memory tuning parameters:
 # Try to balance these so there is enough memory to handle expected system usage plus some,
