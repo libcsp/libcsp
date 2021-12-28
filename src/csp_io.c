@@ -175,11 +175,6 @@ __attribute__((weak)) void csp_output_hook(csp_id_t idout, csp_packet_t * packet
 
 int csp_send_direct_iface(csp_id_t idout, csp_packet_t * packet, csp_iface_t * iface, uint16_t via, int from_me) {
 
-	if (iface == NULL) {
-		csp_dbg_conn_noroute++;
-		goto err;
-	}
-
 	csp_output_hook(idout, packet, iface, via, from_me);
 
 	/* Copy identifier to packet (before crc, xtea and hmac) */
