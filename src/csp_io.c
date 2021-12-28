@@ -120,7 +120,9 @@ void csp_id_copy(csp_id_t * target, csp_id_t * source) {
 	target->flags = source->flags;
 }
 
-int csp_send_direct(csp_id_t idout, csp_packet_t * packet, int from_me) {
+void csp_send_direct(csp_id_t idout, csp_packet_t * packet, csp_iface_t * routed_from) {
+
+	int from_me = (routed_from == NULL ? 1 : 0);
 
 	/* Try to find the destination on any local subnets */
 	int via = CSP_NO_VIA_ADDRESS;
@@ -148,7 +150,7 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, int from_me) {
 	/* If the above worked, we don't want to look at the routing table */
 	if (local_found == 1) {
 		csp_buffer_free(packet);
-		return CSP_ERR_NONE;
+		return;
 	}
 
 	/* Try to send via routing table */
@@ -156,14 +158,14 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, int from_me) {
 	if (route == NULL) {
 		csp_dbg_conn_noroute++;
 		csp_buffer_free(packet);
-		return CSP_ERR_NONE;
+		return;
 	}
 
 	if (csp_send_direct_iface(idout, packet, route->iface, route->via, from_me) != CSP_ERR_NONE) {
 		csp_buffer_free(packet);
 	}
 
-	return CSP_ERR_NONE;
+	return;
 	
 }
 
@@ -244,7 +246,6 @@ int csp_send_direct_iface(csp_id_t idout, csp_packet_t * packet, csp_iface_t * i
 
 tx_err:
 	iface->tx_error++;
-err:
 	return CSP_ERR_TX;
 }
 
@@ -268,10 +269,8 @@ void csp_send(csp_conn_t * conn, csp_packet_t * packet) {
 	}
 #endif
 
-	if (csp_send_direct(conn->idout, packet, 1) != CSP_ERR_NONE) {
-		csp_buffer_free(packet);
-		return;
-	}
+	csp_send_direct(conn->idout, packet, NULL);
+
 }
 
 void csp_send_prio(uint8_t prio, csp_conn_t * conn, csp_packet_t * packet) {
@@ -378,10 +377,8 @@ void csp_sendto(uint8_t prio, uint16_t dest, uint8_t dport, uint8_t src_port, ui
 	packet->id.sport = src_port;
 	packet->id.pri = prio;
 
-	if (csp_send_direct(packet->id, packet, 1) != CSP_ERR_NONE) {
-		csp_buffer_free(packet);
-		return;
-	}
+	csp_send_direct(packet->id, packet, NULL);
+
 }
 
 void csp_sendto_reply(const csp_packet_t * request_packet, csp_packet_t * reply_packet, uint32_t opts) {
