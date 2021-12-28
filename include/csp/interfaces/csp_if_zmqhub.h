@@ -13,7 +13,7 @@
 
 #include <csp/csp_interface.h>
 
-
+#define CSP_ZMQ_MTU 2048  // max payload data, see documentation
 
 /**
    zmqproxy default subscribe (rx) port.

@@ -12,8 +12,6 @@
 
 #include <csp/csp_id.h>
 
-#define CSP_ZMQ_MTU 2048  // max payload data, see documentation
-
 /* ZMQ driver & interface */
 typedef struct {
 	pthread_t rx_thread;
@@ -58,7 +56,7 @@ void * csp_zmqhub_task(void * param) {
 
 	zmq_driver_t * drv = param;
 	csp_packet_t * packet;
-	const uint32_t HEADER_SIZE = 4;
+	const uint32_t HEADER_SIZE = (csp_conf.version == 2) ? 6 : 4;
 
 	while (1) {
 		int ret;
@@ -81,7 +79,7 @@ void * csp_zmqhub_task(void * param) {
 		}
 
 		// Create new csp packet
-		packet = csp_buffer_get(datalen);
+		packet = csp_buffer_get(datalen - HEADER_SIZE);
 		if (packet == NULL) {
 			csp_print("RX %s: Failed to get csp_buffer(%u)\n", drv->iface.name, datalen);
 			zmq_msg_close(&msg);
