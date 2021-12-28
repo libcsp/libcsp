@@ -264,11 +264,8 @@ int csp_zmqhub_init_filter2(const char * ifname, const char * host, uint16_t add
 		// subscribe to all packets - no filter
 		ret = zmq_setsockopt(drv->subscriber, ZMQ_SUBSCRIBE, NULL, 0);
 		assert(ret == 0);
-		printf("Promisc\n");
 
 	} else {
-
-		printf("Filter\n");
 
 		/* This needs to be static, because ZMQ does not copy the filter value to the
 		 * outgoing packet for each setsockopt call */
