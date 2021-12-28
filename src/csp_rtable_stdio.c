@@ -1,5 +1,4 @@
-
-
+#include <stdio.h>
 #include <inttypes.h>
 
 #include <csp/csp.h>
@@ -8,9 +7,6 @@
 #include <csp/csp_iflist.h>
 #include <csp/interfaces/csp_if_lo.h>
 #include <csp_autoconfig.h>
-
-#if (CSP_HAVE_STDIO)
-#include <stdio.h> //! scanf()
 
 static int csp_rtable_parse(const char * rtable, int dry_run) {
 
@@ -119,17 +115,3 @@ int csp_rtable_save(char * buffer, size_t maxlen) {
 	csp_rtable_iterate(csp_rtable_save_route, &ctx);
 	return ctx.error;
 }
-
-static bool csp_rtable_print_route(void * ctx, csp_route_t * route) {
-	if (route->via == CSP_NO_VIA_ADDRESS) {
-		csp_print("%u/%u %s\r\n", route->address, route->netmask, route->iface->name);
-	} else {
-		csp_print("%u/%u %s %u\r\n", route->address, route->netmask, route->iface->name, route->via);
-	}
-	return true;
-}
-
-void csp_rtable_print(void) {
-	csp_rtable_iterate(csp_rtable_print_route, NULL);
-}
-#endif

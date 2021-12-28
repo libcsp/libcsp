@@ -22,6 +22,8 @@ conf.set10('CSP_USE_HMAC', get_option('use_hmac'))
 conf.set10('CSP_USE_PROMISC', get_option('use_promisc'))
 conf.set10('CSP_USE_DEDUP', get_option('use_dedup'))
 conf.set10('CSP_HAVE_STDIO', get_option('have_stdio'))
+conf.set10('CSP_ENABLE_CSP_PRINT', get_option('enable_csp_print'))
+conf.set10('CSP_PRINT_STDIO', get_option('print_stdio'))
 
 csp_deps = []
 csp_sources = []
@@ -91,7 +93,7 @@ subdir('examples')
 
 if get_option('enable_python3_bindings')
 
-	
+
 	py = import('python').find_installation('python3')
 	# py.dependency() doesn't work with version constraint. Use plain
 	# dependency() instead

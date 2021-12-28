@@ -233,13 +233,11 @@ int main(int argc, char * argv[]) {
 #endif
 
     if (rtable) {
-#if (CSP_HAVE_STDIO)
         int error = csp_rtable_load(rtable);
         if (error < 1) {
             csp_print("csp_rtable_load(%s) failed, error: %d\n", rtable, error);
             exit(1);
         }
-#endif
     } else if (default_iface) {
         csp_rtable_set(0, 0, default_iface, CSP_NO_VIA_ADDRESS);
     } else {
@@ -247,7 +245,6 @@ int main(int argc, char * argv[]) {
         server_address = address;
     }
 
-#if (CSP_HAVE_STDIO)
     csp_print("Connection table\r\n");
     csp_conn_print_table();
 
@@ -256,7 +253,6 @@ int main(int argc, char * argv[]) {
 
     csp_print("Route table\r\n");
     csp_iflist_print();
-#endif
 
     /* Start server thread */
     if ((server_address == 255) ||  /* no server address specified, I must be server */

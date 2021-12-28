@@ -351,14 +351,12 @@ int csp_conn_flags(csp_conn_t * conn) {
 	return conn->idin.flags;
 }
 
-#if (CSP_HAVE_STDIO)
-
-#include <stdio.h> // snprintf()
+#if (CSP_ENABLE_CSP_PRINT)
 
 void csp_conn_print_table(void) {
 
 	for (unsigned int i = 0; i < CSP_CONN_MAX; i++) {
-		csp_conn_t * conn = &arr_conn[i];
+		__attribute__((__unused__))csp_conn_t * conn = &arr_conn[i];
 		csp_print("[%02u %p] S:%u, %u -> %u, %u -> %u (%u) fl %x\r\n",
 		          i, conn, conn->state, conn->idin.src, conn->idin.dst,
 		          conn->idin.dport, conn->idin.sport, conn->sport_outgoing, conn->idin.flags);
@@ -370,6 +368,11 @@ void csp_conn_print_table(void) {
 #endif
 	}
 }
+
+#endif
+
+#if (CSP_HAVE_STDIO)
+#include <stdio.h> // snprintf
 
 int csp_conn_print_table_str(char * str_buf, int str_size) {
 

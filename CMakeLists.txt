@@ -17,6 +17,8 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
 endif()
 
 set(CSP_HAVE_STDIO 1)
+set(CSP_ENABLE_CSP_PRINT 1)
+set(CSP_PRINT_STDIO 0)
 set(CSP_QFIFO_LEN 15 CACHE STRING "Length of incoming queue for router task.")
 set(CSP_PORT_MAX_BIND 16 CACHE STRING "Length of incoming queue for router task")
 set(CSP_CONN_RXQUEUE_LEN 16 CACHE STRING "Number of packets in connection queue")
