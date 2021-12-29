@@ -46,8 +46,6 @@ void csp_bridge_work(void) {
 	}
 
 	/* Send to the interface directly, no hassle */
-	if (csp_send_direct_iface(packet->id, packet, destif, CSP_NO_VIA_ADDRESS, 0) != CSP_ERR_NONE) {
-		destif->tx_error++;
-		csp_buffer_free(packet);
-	}
+	csp_send_direct_iface(packet->id, packet, destif, CSP_NO_VIA_ADDRESS, 0);
+	
 }

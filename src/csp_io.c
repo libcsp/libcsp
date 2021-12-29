@@ -142,9 +142,7 @@ void csp_send_direct(csp_id_t idout, csp_packet_t * packet, csp_iface_t * routed
 		 * is found. But without looping the list twice. And without using stack memory.
 		 * Is this even possible? */
 		copy = csp_buffer_clone(packet);
-		if (csp_send_direct_iface(idout, copy, iface, via, from_me) != CSP_ERR_NONE) {
-			csp_buffer_free(copy);
-		}
+		csp_send_direct_iface(idout, copy, iface, via, from_me);
 
 		local_found = 1;
 
@@ -158,17 +156,9 @@ void csp_send_direct(csp_id_t idout, csp_packet_t * packet, csp_iface_t * routed
 
 	/* Try to send via routing table */
 	csp_route_t * route = csp_rtable_find_route(idout.dst);
-	if (route == NULL) {
-		csp_dbg_conn_noroute++;
-		csp_buffer_free(packet);
-		return;
+	if (route != NULL) {
+		csp_send_direct_iface(idout, packet, route->iface, route->via, from_me);
 	}
-
-	if (csp_send_direct_iface(idout, packet, route->iface, route->via, from_me) != CSP_ERR_NONE) {
-		csp_buffer_free(packet);
-	}
-
-	return;
 	
 }
 
@@ -178,7 +168,7 @@ __attribute__((weak)) void csp_output_hook(csp_id_t idout, csp_packet_t * packet
 	return;
 }
 
-int csp_send_direct_iface(csp_id_t idout, csp_packet_t * packet, csp_iface_t * iface, uint16_t via, int from_me) {
+void csp_send_direct_iface(csp_id_t idout, csp_packet_t * packet, csp_iface_t * iface, uint16_t via, int from_me) {
 
 	csp_output_hook(idout, packet, iface, via, from_me);
 
@@ -233,11 +223,11 @@ int csp_send_direct_iface(csp_id_t idout, csp_packet_t * packet, csp_iface_t * i
 	iface->tx++;
 	iface->txbytes += bytes;
 
-	return CSP_ERR_NONE;
+	return;
 
 tx_err:
 	iface->tx_error++;
-	return CSP_ERR_TX;
+	return;
 }
 
 void csp_send(csp_conn_t * conn, csp_packet_t * packet) {
