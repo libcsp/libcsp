@@ -1,6 +1,7 @@
 #include "csp_qfifo.h"
 #include "csp_io.h"
 #include "csp_promisc.h"
+#include "csp_dedup.h"
 
 csp_iface_t * bif_a;
 csp_iface_t * bif_b;
@@ -27,6 +28,11 @@ void csp_bridge_work(void) {
 
 	csp_packet_t * packet = input.packet;
 	if (packet == NULL) {
+		return;
+	}
+
+	if (csp_dedup_is_duplicate(packet)) {
+		csp_buffer_free(packet);
 		return;
 	}
 
