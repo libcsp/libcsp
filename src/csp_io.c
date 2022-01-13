@@ -158,7 +158,10 @@ void csp_send_direct(csp_id_t idout, csp_packet_t * packet, csp_iface_t * routed
 	csp_route_t * route = csp_rtable_find_route(idout.dst);
 	if (route != NULL) {
 		csp_send_direct_iface(idout, packet, route->iface, route->via, from_me);
+		return;
 	}
+
+	csp_buffer_free(packet);
 	
 }
 
@@ -226,6 +229,7 @@ void csp_send_direct_iface(csp_id_t idout, csp_packet_t * packet, csp_iface_t * 
 	return;
 
 tx_err:
+	csp_buffer_free(packet);
 	iface->tx_error++;
 	return;
 }
