@@ -74,7 +74,7 @@ static void pycsp_free_csp_conn(PyObject * obj) {
 }
 
 static void pycsp_free_csp_socket(PyObject * obj) {
-	csp_conn_t * socket = get_obj_as_socket(obj, true);
+	csp_conn_t * socket = (csp_conn_t *)get_obj_as_socket(obj, true);
 	if (socket) {
 		csp_close(socket);
 	}
@@ -130,11 +130,10 @@ static PyObject * pycsp_socket(PyObject * self, PyObject * args) {
 		return NULL;  // TypeError is thrown
 	}
 
-	csp_socket_t * socket = csp_socket(opts);
-	if (socket == NULL) {
-		return PyErr_Error("csp_socket() - no free sockets/connections", CSP_ERR_NOBUFS);
-	}
-	return PyCapsule_New(socket, SOCKET_CAPSULE, pycsp_free_csp_socket);
+	csp_socket_t socket = {0};
+	socket.opts = opts;
+
+	return PyCapsule_New((void *)&socket, SOCKET_CAPSULE, pycsp_free_csp_socket);
 }
 
 static PyObject * pycsp_accept(PyObject * self, PyObject * args) {
@@ -481,6 +480,7 @@ static int csp_route_start_task(void) {
 	pthread_attr_destroy(&attributes);
 
 	if (ret != 0) {
+		printf("Failed to start router task, error: %d", ret);
 		return ret;
 	}
 
