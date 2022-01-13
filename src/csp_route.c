@@ -236,7 +236,7 @@ int csp_route_work(void) {
 		idout.flags = packet->id.flags;
 
 		/* Create connection */
-		conn = csp_conn_new(packet->id, idout);
+		conn = csp_conn_new(packet->id, idout, CONN_SERVER);
 
 		if (!conn) {
 			csp_dbg_conn_out++;

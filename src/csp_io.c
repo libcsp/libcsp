@@ -25,39 +25,6 @@
 extern csp_queue_handle_t csp_promisc_queue;
 #endif
 
-csp_socket_t * csp_socket(uint32_t opts) {
-
-	/* Validate socket options */
-#if (CSP_USE_RDP == 0)
-	if (opts & CSP_SO_RDPREQ) {
-		csp_dbg_errno = CSP_DBG_ERR_UNSUPPORTED;
-		return NULL;
-	}
-#endif
-
-#if (CSP_USE_HMAC == 0)
-	if (opts & CSP_SO_HMACREQ) {
-		csp_dbg_errno = CSP_DBG_ERR_UNSUPPORTED;
-		return NULL;
-	}
-#endif
-
-	/* Drop packet if reserved flags are set */
-	if (opts & ~(CSP_SO_RDPREQ | CSP_SO_HMACREQ | CSP_SO_CRC32REQ | CSP_SO_CONN_LESS)) {
-		csp_dbg_errno = CSP_DBG_ERR_UNSUPPORTED;
-		return NULL;
-	}
-
-	/* Use CSP buffers instead? */
-	csp_socket_t * sock = NULL;//csp_conn_allocate(CONN_SERVER);
-	if (sock == NULL)
-		return NULL;
-
-	sock->opts = opts;
-
-	return sock;
-}
-
 csp_conn_t * csp_accept(csp_socket_t * sock, uint32_t timeout) {
 
 	if ((sock == NULL) || (sock->rx_queue == NULL)) {
