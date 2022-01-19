@@ -100,18 +100,35 @@ csp_conn_t * csp_conn_find_existing(csp_id_t * id) {
 		 * portability and dual use between different header formats.
 		 */
 
-		/* Connection must match dport */
-		if (conn->idin.dport != id->dport)
-			continue;
+		/* Outgoing connections are uniquely defined by the source port,
+		 * So only the incoming destination port must match. This means
+		 * that responses to broadcast addresses, are accepted as long
+		 * as the incoming port matches the unique source port of the 
+		 * connection */
+		if (conn->type == CONN_CLIENT) {
 
-		/* Connection must match sport */
-		if (conn->idin.sport != id->sport)
-			continue;
+			/* Connection must match dport */
+			if (conn->idin.dport != id->dport)
+				continue;
 
-		/* Connection must match destination */
-		if (conn->idin.dst != id->dst)
-			continue;
+		/* Incoming connections are uniquely defined by the source amd
+		 * destination port, as well as the source node. Incoming
+		 * connections can never come from a brodcast address */
+		} else {
 
+			/* Connection must match dport */
+			if (conn->idin.dport != id->dport)
+				continue;
+
+			/* Connection must match sport */
+			if (conn->idin.sport != id->sport)
+				continue;
+
+			/* Connection must match source */
+			if (conn->idin.src != id->src)
+				continue;
+
+		}
 
 		/* Connection must be open */
 		if (conn->state != CONN_OPEN)
@@ -236,34 +253,25 @@ csp_conn_t * csp_connect(uint8_t prio, uint16_t dest, uint8_t dport, uint32_t ti
 
 	/* Force options on all connections */
 	opts |= csp_conf.conn_dfl_so;
-
-	int source_addr = -1;
-	csp_iface_t * local_interface = csp_iflist_get_by_subnet(dest);
-	if (local_interface) {
-		source_addr = local_interface->addr;
-	} else {
-		csp_route_t * route = csp_rtable_find_route(dest);
-		if (route) {
-			source_addr = route->iface->addr;
-		}
-	}
-
-	if (source_addr == -1) {
-		csp_dbg_conn_noroute++;
-		return NULL;
-	}
 	
 	/* Generate identifier */
 	csp_id_t incoming_id, outgoing_id;
+
+	/* Use 0 as incoming id (this disables the input filter on destination node)
+	 * This means that for this outgoing connection, we accept the answer coming to whatever address
+	 * the outgoing interface has. CSP does not support "source address" on outgoing connections 
+	 * so the outgoing source address will be automatically applied after outgoing routing 
+	 * selects which interface the packet will leavve from */
+	incoming_id.dst = 0; 
+	outgoing_id.src = 0; 
+
 	incoming_id.pri = prio;
-	incoming_id.dst = source_addr;
-	incoming_id.src = dest;
-	incoming_id.sport = dport;
-	incoming_id.flags = 0;
 	outgoing_id.pri = prio;
+	incoming_id.src = dest;
 	outgoing_id.dst = dest;
-	outgoing_id.src = source_addr;
+	incoming_id.sport = dport;
 	outgoing_id.dport = dport;
+	incoming_id.flags = 0;
 	outgoing_id.flags = 0;
 
 	/* Set connection options */

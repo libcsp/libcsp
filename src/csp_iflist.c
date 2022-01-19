@@ -11,9 +11,17 @@
 /* Interfaces are stored in a linked list */
 static csp_iface_t * interfaces = NULL;
 
-csp_iface_t * csp_iflist_get_by_subnet(uint16_t addr) {
+csp_iface_t * csp_iflist_get_by_subnet(uint16_t addr, csp_iface_t * ifc) {
 
-	csp_iface_t * ifc = interfaces;
+	/* Head of list */
+	if (ifc == NULL) {
+		ifc = interfaces;
+
+	/* Otherwise, continue from user defined ifc */
+	} else {
+		ifc = ifc->next;
+	}
+
 	while (ifc) {
 
 		/* Reject searches involving subnets, if the netmask is invalud */

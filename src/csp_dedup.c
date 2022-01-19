@@ -6,6 +6,7 @@
 
 #include <csp/arch/csp_time.h>
 #include <csp/csp_crc32.h>
+#include <csp/csp_id.h>
 
 /* Check the last CSP_DEDUP_COUNT packets for duplicates */
 #define CSP_DEDUP_COUNT 16
@@ -20,7 +21,8 @@ static int csp_dedup_in = 0;
 
 bool csp_dedup_is_duplicate(csp_packet_t * packet) {
 	/* Calculate CRC32 for packet */
-	uint32_t crc = csp_crc32_memory((const uint8_t *)&packet->id, packet->length + sizeof(packet->id));
+	csp_id_prepend(packet);
+	uint32_t crc = csp_crc32_memory(packet->frame_begin, packet->frame_length);
 
 	/* Check if we have received this packet before */
 	for (int i = 0; i < CSP_DEDUP_COUNT; i++) {
@@ -29,8 +31,9 @@ bool csp_dedup_is_duplicate(csp_packet_t * packet) {
 		if (crc == csp_dedup_array[i]) {
 
 			/* Check the timestamp */
-			if (csp_get_ms() < csp_dedup_timestamp[i] + CSP_DEDUP_WINDOW_MS)
+			if (csp_get_ms() < csp_dedup_timestamp[i] + CSP_DEDUP_WINDOW_MS) {
 				return true;
+			}
 		}
 	}
 

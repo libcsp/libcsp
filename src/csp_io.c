@@ -114,26 +114,49 @@ void csp_id_copy(csp_id_t * target, csp_id_t * source) {
 
 int csp_send_direct(csp_id_t idout, csp_packet_t * packet, int from_me) {
 
-	int ret;
-
 	/* Try to find the destination on any local subnets */
-	csp_iface_t * local_interface = csp_iflist_get_by_subnet(idout.dst);
-	if (local_interface) {
-		idout.src = local_interface->addr;
-		ret = csp_send_direct_iface(idout, packet, local_interface, CSP_NO_VIA_ADDRESS, 1);
+	int via = CSP_NO_VIA_ADDRESS;
+	csp_iface_t * iface = NULL;
+	csp_packet_t * copy = NULL;
+	int local_found = 0;
 
-	/* Otherwise, resort to the routing table for help */		
-	} else {
-		csp_route_t * route = csp_rtable_find_route(idout.dst);
-		if (route == NULL) {
-			csp_dbg_conn_noroute++;
-			return CSP_ERR_TX;
+	while ((iface = csp_iflist_get_by_subnet(idout.dst, iface)) != NULL) {
+		
+		/* Apply outgoing interface address to packet */
+		idout.src = iface->addr;
+		
+		/* Todo: Find an elegant way to avoid making a copy when only a single destination interface
+		 * is found. But without looping the list twice. And without using stack memory.
+		 * Is this even possible? */
+		copy = csp_buffer_clone(packet);
+		if (csp_send_direct_iface(idout, copy, iface, via, from_me) != CSP_ERR_NONE) {
+			csp_buffer_free(copy);
 		}
-		idout.src = route->iface->addr;
-		ret = csp_send_direct_iface(idout, packet, route->iface, route->via, 1);
-	}
-	return ret;
 
+		local_found = 1;
+
+	}
+
+	/* If the above worked, we don't want to look at the routing table */
+	if (local_found == 1) {
+		csp_buffer_free(packet);
+		return CSP_ERR_NONE;
+	}
+
+	/* Try to send via routing table */
+	csp_route_t * route = csp_rtable_find_route(idout.dst);
+	if (route == NULL) {
+		csp_dbg_conn_noroute++;
+		csp_buffer_free(packet);
+		return CSP_ERR_NONE;
+	}
+
+	if (csp_send_direct_iface(idout, packet, route->iface, route->via, from_me) != CSP_ERR_NONE) {
+		csp_buffer_free(packet);
+	}
+
+	return CSP_ERR_NONE;
+	
 }
 
 __attribute__((weak)) void csp_output_hook(csp_id_t idout, csp_packet_t * packet, csp_iface_t * iface, uint16_t via, int from_me) {
@@ -201,6 +224,7 @@ int csp_send_direct_iface(csp_id_t idout, csp_packet_t * packet, csp_iface_t * i
 
 	iface->tx++;
 	iface->txbytes += bytes;
+
 	return CSP_ERR_NONE;
 
 tx_err:
