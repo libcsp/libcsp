@@ -27,6 +27,7 @@ struct data_s {
 	char * destination;
 	char * listen_port;
 	char * remote_port;
+	char * promisc;
 };
 
 static void csp_yaml_start_if(struct data_s * data) {
@@ -110,10 +111,12 @@ static void csp_yaml_end_if(struct data_s * data, unsigned int * dfl_addr) {
 			return;
 		}
 
-		csp_zmqhub_init(atoi(data->addr), data->server, 0, &iface);
-		strncpy((char *)iface->name, data->name, CSP_IFLIST_NAME_MAX);
+		int promisc = 0;
+		if (data->promisc) {
+			promisc = (strcmp("true", data->promisc) == 0) ? 1 : 0;
+		}
 
-		csp_iflist_add(iface);
+		csp_zmqhub_init_filter2(data->name, data->server, atoi(data->addr), atoi(data->netmask), promisc, &iface);
 
 	}
 #endif
@@ -190,6 +193,8 @@ static void csp_yaml_key_value(struct data_s * data, char * key, char * value) {
 		data->listen_port = value;
 	} else if (strcmp(key, "remote_port") == 0) {
 		data->remote_port = value;
+	} else if (strcmp(key, "promisc") == 0) {
+		data->promisc = value;
 	} else {
 		csp_print("Unkown key %s\n", key);
 	}

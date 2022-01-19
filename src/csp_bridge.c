@@ -1,6 +1,7 @@
 #include "csp_qfifo.h"
 #include "csp_io.h"
 #include "csp_promisc.h"
+#include "csp_dedup.h"
 
 csp_iface_t * bif_a;
 csp_iface_t * bif_b;
@@ -30,6 +31,11 @@ void csp_bridge_work(void) {
 		return;
 	}
 
+	if (csp_dedup_is_duplicate(packet)) {
+		csp_buffer_free(packet);
+		return;
+	}
+
 	csp_input_hook(input.iface, packet);
 
 	/* Here there be promiscuous mode */
@@ -46,8 +52,6 @@ void csp_bridge_work(void) {
 	}
 
 	/* Send to the interface directly, no hassle */
-	if (csp_send_direct_iface(packet->id, packet, destif, CSP_NO_VIA_ADDRESS, 0) != CSP_ERR_NONE) {
-		destif->tx_error++;
-		csp_buffer_free(packet);
-	}
+	csp_send_direct_iface(packet->id, packet, destif, CSP_NO_VIA_ADDRESS, 0);
+	
 }

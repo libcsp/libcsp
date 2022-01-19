@@ -92,6 +92,10 @@ csp_conn_t * csp_conn_find_existing(csp_id_t * id) {
 	for (int i = 0; i < CSP_CONN_MAX; i++) {
 		csp_conn_t * conn = &arr_conn[i];
 
+		/* Connection must be open */
+		if (conn->state != CONN_OPEN)
+			continue;
+
 		/**
 		 * This search looks verbose, Instead of a big if statement, it is written out as
 		 * conditions. This has been done for clarity. The least likely check is put first
@@ -115,7 +119,7 @@ csp_conn_t * csp_conn_find_existing(csp_id_t * id) {
 		 * destination port, as well as the source node. Incoming
 		 * connections can never come from a brodcast address */
 		} else {
-
+      
 			/* Connection must match dport */
 			if (conn->idin.dport != id->dport)
 				continue;
@@ -130,13 +134,7 @@ csp_conn_t * csp_conn_find_existing(csp_id_t * id) {
 
 		}
 
-		/* Connection must be open */
-		if (conn->state != CONN_OPEN)
-			continue;
-
-		/* Connection must be client */
-		if (conn->type != CONN_CLIENT)
-			continue;
+		
 
 		/* All conditions found! */
 		return conn;
@@ -189,10 +187,10 @@ csp_conn_t * csp_conn_allocate(csp_conn_type_t type) {
 	return conn;
 }
 
-csp_conn_t * csp_conn_new(csp_id_t idin, csp_id_t idout) {
+csp_conn_t * csp_conn_new(csp_id_t idin, csp_id_t idout, csp_conn_type_t type) {
 
 	/* Allocate connection structure */
-	csp_conn_t * conn = csp_conn_allocate(CONN_CLIENT);
+	csp_conn_t * conn = csp_conn_allocate(type);
 
 	if (conn) {
 		/* No lock is needed here, because nobody else *
@@ -305,7 +303,7 @@ csp_conn_t * csp_connect(uint8_t prio, uint16_t dest, uint8_t dport, uint32_t ti
 	}
 
 	/* Find a new connection */
-	csp_conn_t * conn = csp_conn_new(incoming_id, outgoing_id);
+	csp_conn_t * conn = csp_conn_new(incoming_id, outgoing_id, CONN_CLIENT);
 	if (conn == NULL) {
 		return NULL;
 	}

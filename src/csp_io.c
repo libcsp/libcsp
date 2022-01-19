@@ -25,39 +25,6 @@
 extern csp_queue_handle_t csp_promisc_queue;
 #endif
 
-csp_socket_t * csp_socket(uint32_t opts) {
-
-	/* Validate socket options */
-#if (CSP_USE_RDP == 0)
-	if (opts & CSP_SO_RDPREQ) {
-		csp_dbg_errno = CSP_DBG_ERR_UNSUPPORTED;
-		return NULL;
-	}
-#endif
-
-#if (CSP_USE_HMAC == 0)
-	if (opts & CSP_SO_HMACREQ) {
-		csp_dbg_errno = CSP_DBG_ERR_UNSUPPORTED;
-		return NULL;
-	}
-#endif
-
-	/* Drop packet if reserved flags are set */
-	if (opts & ~(CSP_SO_RDPREQ | CSP_SO_HMACREQ | CSP_SO_CRC32REQ | CSP_SO_CONN_LESS)) {
-		csp_dbg_errno = CSP_DBG_ERR_UNSUPPORTED;
-		return NULL;
-	}
-
-	/* Use CSP buffers instead? */
-	csp_socket_t * sock = NULL;//csp_conn_allocate(CONN_SERVER);
-	if (sock == NULL)
-		return NULL;
-
-	sock->opts = opts;
-
-	return sock;
-}
-
 csp_conn_t * csp_accept(csp_socket_t * sock, uint32_t timeout) {
 
 	if ((sock == NULL) || (sock->rx_queue == NULL)) {
@@ -142,9 +109,7 @@ void csp_send_direct(csp_id_t idout, csp_packet_t * packet, csp_iface_t * routed
 		 * is found. But without looping the list twice. And without using stack memory.
 		 * Is this even possible? */
 		copy = csp_buffer_clone(packet);
-		if (csp_send_direct_iface(idout, copy, iface, via, from_me) != CSP_ERR_NONE) {
-			csp_buffer_free(copy);
-		}
+		csp_send_direct_iface(idout, copy, iface, via, from_me);
 
 		local_found = 1;
 
@@ -158,17 +123,12 @@ void csp_send_direct(csp_id_t idout, csp_packet_t * packet, csp_iface_t * routed
 
 	/* Try to send via routing table */
 	csp_route_t * route = csp_rtable_find_route(idout.dst);
-	if (route == NULL) {
-		csp_dbg_conn_noroute++;
-		csp_buffer_free(packet);
+	if (route != NULL) {
+		csp_send_direct_iface(idout, packet, route->iface, route->via, from_me);
 		return;
 	}
 
-	if (csp_send_direct_iface(idout, packet, route->iface, route->via, from_me) != CSP_ERR_NONE) {
-		csp_buffer_free(packet);
-	}
-
-	return;
+	csp_buffer_free(packet);
 	
 }
 
@@ -178,7 +138,7 @@ __attribute__((weak)) void csp_output_hook(csp_id_t idout, csp_packet_t * packet
 	return;
 }
 
-int csp_send_direct_iface(csp_id_t idout, csp_packet_t * packet, csp_iface_t * iface, uint16_t via, int from_me) {
+void csp_send_direct_iface(csp_id_t idout, csp_packet_t * packet, csp_iface_t * iface, uint16_t via, int from_me) {
 
 	csp_output_hook(idout, packet, iface, via, from_me);
 
@@ -233,11 +193,12 @@ int csp_send_direct_iface(csp_id_t idout, csp_packet_t * packet, csp_iface_t * i
 	iface->tx++;
 	iface->txbytes += bytes;
 
-	return CSP_ERR_NONE;
+	return;
 
 tx_err:
+	csp_buffer_free(packet);
 	iface->tx_error++;
-	return CSP_ERR_TX;
+	return;
 }
 
 void csp_send(csp_conn_t * conn, csp_packet_t * packet) {

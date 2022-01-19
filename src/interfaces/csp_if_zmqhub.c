@@ -12,8 +12,6 @@
 
 #include <csp/csp_id.h>
 
-#define CSP_ZMQ_MTU 1024  // max payload data, see documentation
-
 /* ZMQ driver & interface */
 typedef struct {
 	pthread_t rx_thread;
@@ -58,7 +56,7 @@ void * csp_zmqhub_task(void * param) {
 
 	zmq_driver_t * drv = param;
 	csp_packet_t * packet;
-	const uint32_t HEADER_SIZE = 4;
+	const uint32_t HEADER_SIZE = (csp_conf.version == 2) ? 6 : 4;
 
 	while (1) {
 		int ret;
@@ -81,7 +79,7 @@ void * csp_zmqhub_task(void * param) {
 		}
 
 		// Create new csp packet
-		packet = csp_buffer_get(datalen);
+		packet = csp_buffer_get(datalen - HEADER_SIZE);
 		if (packet == NULL) {
 			csp_print("RX %s: Failed to get csp_buffer(%u)\n", drv->iface.name, datalen);
 			zmq_msg_close(&msg);
@@ -214,5 +212,95 @@ int csp_zmqhub_init_w_name_endpoints_rxfilter(const char * ifname,
 
 	return CSP_ERR_NONE;
 }
+
+int csp_zmqhub_init_filter2(const char * ifname, const char * host, uint16_t addr, uint16_t netmask, int promisc, csp_iface_t ** return_interface) {
+	
+	char pub[100];
+	csp_zmqhub_make_endpoint(host, CSP_ZMQPROXY_SUBSCRIBE_PORT, pub, sizeof(pub));
+
+	char sub[100];
+	csp_zmqhub_make_endpoint(host, CSP_ZMQPROXY_PUBLISH_PORT, sub, sizeof(sub));
+
+	int ret;
+	pthread_attr_t attributes;
+	zmq_driver_t * drv = calloc(1, sizeof(*drv));
+	assert(drv != NULL);
+
+	if (ifname == NULL) {
+		ifname = CSP_ZMQHUB_IF_NAME;
+	}
+
+	strncpy(drv->name, ifname, sizeof(drv->name) - 1);
+	drv->iface.name = drv->name;
+	drv->iface.driver_data = drv;
+	drv->iface.nexthop = csp_zmqhub_tx;
+	drv->iface.mtu = CSP_ZMQ_MTU;  // there is actually no 'max' MTU on ZMQ, but assuming the other end is based on the same code
+
+	drv->context = zmq_ctx_new();
+	assert(drv->context != NULL);
+
+	//csp_print("  ZMQ init %s: pub(tx): [%s], sub(rx): [%s]\n", drv->iface.name, pub, sub);
+
+	/* Publisher (TX) */
+	drv->publisher = zmq_socket(drv->context, ZMQ_PUB);
+	assert(drv->publisher != NULL);
+
+	/* Subscriber (RX) */
+	drv->subscriber = zmq_socket(drv->context, ZMQ_SUB);
+	assert(drv->subscriber != NULL);
+
+	/* Generate filters */
+	uint16_t hostmask = (1 << (csp_id_get_host_bits() - netmask)) - 1;
+	
+	/* Connect to server */
+	ret = zmq_connect(drv->publisher, pub);
+	assert(ret == 0);
+	zmq_connect(drv->subscriber, sub);
+	assert(ret == 0);
+
+
+	if (promisc) {
+
+		// subscribe to all packets - no filter
+		ret = zmq_setsockopt(drv->subscriber, ZMQ_SUBSCRIBE, NULL, 0);
+		assert(ret == 0);
+
+	} else {
+
+		/* This needs to be static, because ZMQ does not copy the filter value to the
+		 * outgoing packet for each setsockopt call */
+		static uint16_t filt[4][3];
+
+		for (int i = 0; i < 4; i++) {
+			//int i = CSP_PRIO_NORM;
+			filt[i][0] = __builtin_bswap16((i << 14) | addr);
+			filt[i][1] = __builtin_bswap16((i << 14) | addr | hostmask);
+			filt[i][2] = __builtin_bswap16((i << 14) | 16383);
+			ret = zmq_setsockopt(drv->subscriber, ZMQ_SUBSCRIBE, &filt[i][0], 2);
+			ret = zmq_setsockopt(drv->subscriber, ZMQ_SUBSCRIBE, &filt[i][1], 2);
+			ret = zmq_setsockopt(drv->subscriber, ZMQ_SUBSCRIBE, &filt[i][2], 2);
+		}
+
+	} 
+
+
+	/* Start RX thread */
+	ret = pthread_attr_init(&attributes);
+	assert(ret == 0);
+	ret = pthread_attr_setdetachstate(&attributes, PTHREAD_CREATE_DETACHED);
+	assert(ret == 0);
+	ret = pthread_create(&drv->rx_thread, &attributes, csp_zmqhub_task, drv);
+	assert(ret == 0);
+
+	/* Register interface */
+	csp_iflist_add(&drv->iface);
+
+	if (return_interface) {
+		*return_interface = &drv->iface;
+	}
+
+	return CSP_ERR_NONE;
+}
+
 
 #endif  // CSP_HAVE_LIBZMQ

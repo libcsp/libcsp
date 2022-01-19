@@ -13,7 +13,7 @@
 
 #include <csp/csp_interface.h>
 
-
+#define CSP_ZMQ_MTU 2048  // max payload data, see documentation
 
 /**
    zmqproxy default subscribe (rx) port.
@@ -90,3 +90,16 @@ int csp_zmqhub_init_w_name_endpoints_rxfilter(const char * ifname,
                                               uint32_t flags,
                                               csp_iface_t ** return_interface);
 
+
+/**
+ * Setup filtered ZMQ interface.
+ * The filter can be enabled with promisc = 0, or disabled with promisc = 1.
+ * 
+ * The filter only works with CSP 2.0 protocol, because the first two bytes are the
+ * priority and the destination address. ZMQ does not support masking, so the code
+ * actually subscribes to the address once for each priority. It also calculates
+ * the broadcast address and subscribes to that, aagin for each priority. Finally the
+ * global broadcast address is also subscribed to. meaning a total of 3 * 4 filters.
+ * 
+ */
+int csp_zmqhub_init_filter2(const char * ifname, const char * host, uint16_t addr, uint16_t netmask, int promisc, csp_iface_t ** return_interface);
