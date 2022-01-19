@@ -157,22 +157,10 @@ int csp_route_work(void) {
 	/* If the message is not to me, route the message to the correct interface */
 	if (!is_to_me) {
 
-		/* Find the destination interface */
-		csp_route_t * route = csp_rtable_find_route(packet->id.dst);
-
-		/* If the message resolves to the input interface, don't loop it back out */
-		if ((route == NULL) || ((route->iface == input.iface) && (input.iface->split_horizon_off == 0))) {
-			csp_buffer_free(packet);
-			return CSP_ERR_NONE;
-		}
-
 		/* Otherwise, actually send the message */
-		if (csp_send_direct(packet->id, packet, 0) != CSP_ERR_NONE) {
-			csp_buffer_free(packet);
-		}
-
-		/* Next message, please */
+		csp_send_direct(packet->id, packet, input.iface);
 		return CSP_ERR_NONE;
+
 	}
 
 	/* Discard packets with unsupported options */
