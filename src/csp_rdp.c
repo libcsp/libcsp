@@ -29,7 +29,7 @@
 #define RDP_RST 0x01
 
 #ifndef CSP_USE_RDP_FAST_CLOSE
-#define CSP_USE_RDP_FAST_CLOSE 0
+#define CSP_USE_RDP_FAST_CLOSE 1
 #endif
 
 #if (CSP_USE_RDP)
