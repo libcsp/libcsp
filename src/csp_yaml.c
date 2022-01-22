@@ -43,6 +43,17 @@ static void csp_yaml_end_if(struct data_s * data, unsigned int * dfl_addr) {
 
 	csp_iface_t * iface;
 
+	int addr = atoi(data->addr);
+
+	/* If dfl_addr is passed, we can either readout or override */
+	if ((dfl_addr != NULL) && (data->is_dfl)) {
+		if (*dfl_addr == 0) {
+			*dfl_addr = addr;
+		} else {
+			addr = *dfl_addr;
+		}
+	}
+
 	/* UART */
     if (strcmp(data->driver, "kiss") == 0) {
 
@@ -116,7 +127,7 @@ static void csp_yaml_end_if(struct data_s * data, unsigned int * dfl_addr) {
 			promisc = (strcmp("true", data->promisc) == 0) ? 1 : 0;
 		}
 
-		csp_zmqhub_init_filter2(data->name, data->server, atoi(data->addr), atoi(data->netmask), promisc, &iface);
+		csp_zmqhub_init_filter2(data->name, data->server, addr, atoi(data->netmask), promisc, &iface);
 
 	}
 #endif
@@ -146,25 +157,12 @@ static void csp_yaml_end_if(struct data_s * data, unsigned int * dfl_addr) {
         return;
     }
 
-	iface->addr = atoi(data->addr);
-
-	/* If dfl_addr is passed, we can either readout or override */
-	if ((dfl_addr != NULL) && (data->is_dfl)) {
-		if (*dfl_addr == 0) {
-			*dfl_addr = iface->addr;
-		} else {
-			iface->addr = *dfl_addr;
-		}
-	}
+	iface->addr = addr;
 	iface->netmask = atoi(data->netmask);
 	iface->name = data->name;
 
 	csp_print("  %s addr: %u netmask %u\n", iface->name, iface->addr, iface->netmask);
 
-	if (iface && data->is_dfl) {
-		csp_print("  Setting default route to %s\n", iface->name);
-		csp_rtable_set(0, 0, iface, CSP_NO_VIA_ADDRESS);
-	}
 }
 
 static void csp_yaml_key_value(struct data_s * data, char * key, char * value) {
