@@ -159,7 +159,7 @@ static void csp_yaml_end_if(struct data_s * data, unsigned int * dfl_addr) {
 
 	iface->addr = addr;
 	iface->netmask = atoi(data->netmask);
-	iface->name = data->name;
+	iface->name = strdup(data->name);
 
 	csp_print("  %s addr: %u netmask %u\n", iface->name, iface->addr, iface->netmask);
 
