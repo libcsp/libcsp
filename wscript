@@ -20,13 +20,13 @@ def options(ctx):
     gr.add_option('--install-csp', action='store_true', help='Installs CSP headers and lib')
 
     gr.add_option('--disable-output', action='store_true', help='Disable CSP output')
+    gr.add_option('--disable-print-stdio', action='store_true', help='Disable vprintf for csp_print_func')
     gr.add_option('--disable-stlib', action='store_true', help='Build objects only')
     gr.add_option('--enable-shlib', action='store_true', help='Build shared library')
     gr.add_option('--enable-rdp', action='store_true', help='Enable RDP support')
     gr.add_option('--enable-promisc', action='store_true', help='Enable promiscuous support')
     gr.add_option('--enable-crc32', action='store_true', help='Enable CRC32 support')
     gr.add_option('--enable-hmac', action='store_true', help='Enable HMAC-SHA1 support')
-    gr.add_option('--enable-xtea', action='store_true', help='Enable XTEA support')
     gr.add_option('--enable-python3-bindings', action='store_true', help='Enable Python3 bindings')
     gr.add_option('--enable-examples', action='store_true', help='Enable examples')
     gr.add_option('--enable-dedup', action='store_true', help='Enable packet deduplicator')
@@ -97,7 +97,6 @@ def configure(ctx):
     # Add files
     ctx.env.append_unique('FILES_CSP', ['src/crypto/csp_hmac.c',
                                         'src/crypto/csp_sha1.c',
-                                        'src/crypto/csp_xtea.c',
                                         'src/csp_rdp.c',
                                         'src/csp_rdp_queue.c',
                                         'src/csp_buffer.c',
@@ -124,8 +123,12 @@ def configure(ctx):
                                         'src/interfaces/csp_if_kiss.c',
                                         'src/interfaces/csp_if_i2c.c',
                                         'src/arch/{0}/**/*.c'.format(ctx.options.with_os),
-                                        'src/csp_rtable_stdio.c',
                                         'src/csp_rtable_cidr.c'])
+
+    # Add if stdio
+    if ctx.check(header_name="stdio.h", mandatory=False):
+        ctx.define('CSP_HAVE_STDIO', True)
+        ctx.env.append_unique('FILES_CSP', ['src/csp_rtable_stdio.c'])
 
     # Add if UDP
     if ctx.check(header_name="sys/socket.h", mandatory=False) and ctx.check(header_name="arpa/inet.h", mandatory=False):
@@ -167,10 +170,10 @@ def configure(ctx):
     ctx.define('CSP_RTABLE_SIZE', ctx.options.with_rtable_size)
 
     # Set defines for enabling features
-    ctx.define('CSP_HAVE_STDIO', not ctx.options.disable_output)
+    ctx.define('CSP_ENABLE_CSP_PRINT', not ctx.options.disable_output)
+    ctx.define('CSP_PRINT_STDIO', not ctx.options.disable_print_stdio)
     ctx.define('CSP_USE_RDP', ctx.options.enable_rdp)
     ctx.define('CSP_USE_HMAC', ctx.options.enable_hmac)
-    ctx.define('CSP_USE_XTEA', ctx.options.enable_xtea)
     ctx.define('CSP_USE_PROMISC', ctx.options.enable_promisc)
     ctx.define('CSP_USE_DEDUP', ctx.options.enable_dedup)
 

@@ -92,6 +92,10 @@ csp_conn_t * csp_conn_find_existing(csp_id_t * id) {
 	for (int i = 0; i < CSP_CONN_MAX; i++) {
 		csp_conn_t * conn = &arr_conn[i];
 
+		/* Connection must be open */
+		if (conn->state != CONN_OPEN)
+			continue;
+
 		/**
 		 * This search looks verbose, Instead of a big if statement, it is written out as
 		 * conditions. This has been done for clarity. The least likely check is put first
@@ -115,7 +119,7 @@ csp_conn_t * csp_conn_find_existing(csp_id_t * id) {
 		 * destination port, as well as the source node. Incoming
 		 * connections can never come from a brodcast address */
 		} else {
-
+      
 			/* Connection must match dport */
 			if (conn->idin.dport != id->dport)
 				continue;
@@ -130,13 +134,7 @@ csp_conn_t * csp_conn_find_existing(csp_id_t * id) {
 
 		}
 
-		/* Connection must be open */
-		if (conn->state != CONN_OPEN)
-			continue;
-
-		/* Connection must be client */
-		if (conn->type != CONN_CLIENT)
-			continue;
+		
 
 		/* All conditions found! */
 		return conn;
@@ -189,10 +187,10 @@ csp_conn_t * csp_conn_allocate(csp_conn_type_t type) {
 	return conn;
 }
 
-csp_conn_t * csp_conn_new(csp_id_t idin, csp_id_t idout) {
+csp_conn_t * csp_conn_new(csp_id_t idin, csp_id_t idout, csp_conn_type_t type) {
 
 	/* Allocate connection structure */
-	csp_conn_t * conn = csp_conn_allocate(CONN_CLIENT);
+	csp_conn_t * conn = csp_conn_allocate(type);
 
 	if (conn) {
 		/* No lock is needed here, because nobody else *
@@ -299,23 +297,13 @@ csp_conn_t * csp_connect(uint8_t prio, uint16_t dest, uint8_t dport, uint32_t ti
 #endif
 	}
 
-	if (opts & CSP_O_XTEA) {
-#if (CSP_USE_XTEA)
-		outgoing_id.flags |= CSP_FXTEA;
-		incoming_id.flags |= CSP_FXTEA;
-#else
-		csp_dbg_errno = CSP_DBG_ERR_UNSUPPORTED;
-		return NULL;
-#endif
-	}
-
 	if (opts & CSP_O_CRC32) {
 		outgoing_id.flags |= CSP_FCRC32;
 		incoming_id.flags |= CSP_FCRC32;
 	}
 
 	/* Find a new connection */
-	csp_conn_t * conn = csp_conn_new(incoming_id, outgoing_id);
+	csp_conn_t * conn = csp_conn_new(incoming_id, outgoing_id, CONN_CLIENT);
 	if (conn == NULL) {
 		return NULL;
 	}
@@ -369,14 +357,12 @@ int csp_conn_flags(csp_conn_t * conn) {
 	return conn->idin.flags;
 }
 
-#if (CSP_HAVE_STDIO)
-
-#include <stdio.h> // snprintf()
+#if (CSP_ENABLE_CSP_PRINT)
 
 void csp_conn_print_table(void) {
 
 	for (unsigned int i = 0; i < CSP_CONN_MAX; i++) {
-		csp_conn_t * conn = &arr_conn[i];
+		__attribute__((__unused__))csp_conn_t * conn = &arr_conn[i];
 		csp_print("[%02u %p] S:%u, %u -> %u, %u -> %u (%u) fl %x\r\n",
 		          i, conn, conn->state, conn->idin.src, conn->idin.dst,
 		          conn->idin.dport, conn->idin.sport, conn->sport_outgoing, conn->idin.flags);
@@ -388,6 +374,11 @@ void csp_conn_print_table(void) {
 #endif
 	}
 }
+
+#endif
+
+#if (CSP_HAVE_STDIO)
+#include <stdio.h> // snprintf
 
 int csp_conn_print_table_str(char * str_buf, int str_size) {
 

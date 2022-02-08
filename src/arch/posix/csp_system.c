@@ -13,6 +13,10 @@ uint32_t csp_memfree_hook(void) {
 	return total;
 }
 
+unsigned int csp_ps_hook(csp_packet_t * packet) {
+	return 0;
+}
+
 void csp_reboot_hook(void) {
 	sync();
 	reboot(LINUX_REBOOT_CMD_RESTART);

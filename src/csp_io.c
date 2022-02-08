@@ -14,7 +14,6 @@
 #include <csp/arch/csp_queue.h>
 #include <csp/arch/csp_time.h>
 #include <csp/crypto/csp_hmac.h>
-#include <csp/crypto/csp_xtea.h>
 
 #include "csp_port.h"
 #include "csp_conn.h"
@@ -25,46 +24,6 @@
 #if (CSP_USE_PROMISC)
 extern csp_queue_handle_t csp_promisc_queue;
 #endif
-
-csp_socket_t * csp_socket(uint32_t opts) {
-
-	/* Validate socket options */
-#if (CSP_USE_RDP == 0)
-	if (opts & CSP_SO_RDPREQ) {
-		csp_dbg_errno = CSP_DBG_ERR_UNSUPPORTED;
-		return NULL;
-	}
-#endif
-
-#if (CSP_USE_XTEA == 0)
-	if (opts & CSP_SO_XTEAREQ) {
-		csp_dbg_errno = CSP_DBG_ERR_UNSUPPORTED;
-		return NULL;
-	}
-#endif
-
-#if (CSP_USE_HMAC == 0)
-	if (opts & CSP_SO_HMACREQ) {
-		csp_dbg_errno = CSP_DBG_ERR_UNSUPPORTED;
-		return NULL;
-	}
-#endif
-
-	/* Drop packet if reserved flags are set */
-	if (opts & ~(CSP_SO_RDPREQ | CSP_SO_XTEAREQ | CSP_SO_HMACREQ | CSP_SO_CRC32REQ | CSP_SO_CONN_LESS)) {
-		csp_dbg_errno = CSP_DBG_ERR_UNSUPPORTED;
-		return NULL;
-	}
-
-	/* Use CSP buffers instead? */
-	csp_socket_t * sock = NULL;//csp_conn_allocate(CONN_SERVER);
-	if (sock == NULL)
-		return NULL;
-
-	sock->opts = opts;
-
-	return sock;
-}
 
 csp_conn_t * csp_accept(csp_socket_t * sock, uint32_t timeout) {
 
@@ -150,9 +109,7 @@ void csp_send_direct(csp_id_t idout, csp_packet_t * packet, csp_iface_t * routed
 		 * is found. But without looping the list twice. And without using stack memory.
 		 * Is this even possible? */
 		copy = csp_buffer_clone(packet);
-		if (csp_send_direct_iface(idout, copy, iface, via, from_me) != CSP_ERR_NONE) {
-			csp_buffer_free(copy);
-		}
+		csp_send_direct_iface(idout, copy, iface, via, from_me);
 
 		local_found = 1;
 
@@ -166,17 +123,12 @@ void csp_send_direct(csp_id_t idout, csp_packet_t * packet, csp_iface_t * routed
 
 	/* Try to send via routing table */
 	csp_route_t * route = csp_rtable_find_route(idout.dst);
-	if (route == NULL) {
-		csp_dbg_conn_noroute++;
-		csp_buffer_free(packet);
+	if (route != NULL) {
+		csp_send_direct_iface(idout, packet, route->iface, route->via, from_me);
 		return;
 	}
 
-	if (csp_send_direct_iface(idout, packet, route->iface, route->via, from_me) != CSP_ERR_NONE) {
-		csp_buffer_free(packet);
-	}
-
-	return;
+	csp_buffer_free(packet);
 	
 }
 
@@ -186,11 +138,11 @@ __attribute__((weak)) void csp_output_hook(csp_id_t idout, csp_packet_t * packet
 	return;
 }
 
-int csp_send_direct_iface(csp_id_t idout, csp_packet_t * packet, csp_iface_t * iface, uint16_t via, int from_me) {
+void csp_send_direct_iface(csp_id_t idout, csp_packet_t * packet, csp_iface_t * iface, uint16_t via, int from_me) {
 
 	csp_output_hook(idout, packet, iface, via, from_me);
 
-	/* Copy identifier to packet (before crc, xtea and hmac) */
+	/* Copy identifier to packet (before crc and hmac) */
 	csp_id_copy(&packet->id, &idout);
 
 #if (CSP_USE_PROMISC)
@@ -226,18 +178,6 @@ int csp_send_direct_iface(csp_id_t idout, csp_packet_t * packet, csp_iface_t * i
 			}
 		}
 
-		if (idout.flags & CSP_FXTEA) {
-#if (CSP_USE_XTEA)
-			/* Encrypt data */
-			if (csp_xtea_encrypt_packet(packet) != CSP_ERR_NONE) {
-				/* Encryption failed */
-				goto tx_err;
-			}
-#else
-			csp_dbg_errno = CSP_DBG_ERR_UNSUPPORTED;
-			goto tx_err;
-#endif
-		}
 	}
 
 	/* Store length before passing to interface */
@@ -253,11 +193,12 @@ int csp_send_direct_iface(csp_id_t idout, csp_packet_t * packet, csp_iface_t * i
 	iface->tx++;
 	iface->txbytes += bytes;
 
-	return CSP_ERR_NONE;
+	return;
 
 tx_err:
+	csp_buffer_free(packet);
 	iface->tx_error++;
-	return CSP_ERR_TX;
+	return;
 }
 
 void csp_send(csp_conn_t * conn, csp_packet_t * packet) {
@@ -361,16 +302,6 @@ void csp_sendto(uint8_t prio, uint16_t dest, uint8_t dport, uint8_t src_port, ui
 	if (opts & CSP_O_HMAC) {
 #if (CSP_USE_HMAC)
 		packet->id.flags |= CSP_FHMAC;
-#else
-		csp_dbg_errno = CSP_DBG_ERR_UNSUPPORTED;
-		csp_buffer_free(packet);
-		return;
-#endif
-	}
-
-	if (opts & CSP_O_XTEA) {
-#if (CSP_USE_XTEA)
-		packet->id.flags |= CSP_FXTEA;
 #else
 		csp_dbg_errno = CSP_DBG_ERR_UNSUPPORTED;
 		csp_buffer_free(packet);

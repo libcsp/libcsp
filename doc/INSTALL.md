@@ -38,8 +38,7 @@ When compiling for FreeRTOS, the path to the FreeRTOS header files must
 be specified with `--includes=PATH`.
 
 A number of optional features can be enabled by from the configure
-script. Support for XTEA encryption can e.g. be enabled with
-`--enable-xtea`. Run
+script. 
 `./waf configure --help` to list the
 available configure options.
 

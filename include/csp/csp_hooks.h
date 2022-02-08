@@ -10,6 +10,7 @@ void csp_reboot_hook(void);
 void csp_shutdown_hook(void);
 
 uint32_t csp_memfree_hook(void);
+unsigned int csp_ps_hook(csp_packet_t * packet);
 
 /** Implement these, if you use csp_if_tun */
 int csp_crypto_decrypt(uint8_t * ciphertext_in, uint8_t ciphertext_len, uint8_t * msg_out); // Returns -1 for failure, length if ok

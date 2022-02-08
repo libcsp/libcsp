@@ -4,7 +4,6 @@
 
 #include <csp/csp.h>
 #include <csp/csp_cmp.h>
-#include <csp/crypto/csp_xtea.h>
 #include <csp/interfaces/csp_if_zmqhub.h>
 #include <csp/interfaces/csp_if_kiss.h>
 #include <csp/drivers/usart.h>
@@ -581,20 +580,6 @@ static PyObject * pycsp_rdp_get_opt(PyObject * self, PyObject * args) {
 						 ack_delay_count);
 }
 
-static PyObject * pycsp_xtea_set_key(PyObject * self, PyObject * args) {
-	char * key;
-	uint32_t keylen;
-	if (!PyArg_ParseTuple(args, "si", &key, &keylen)) {
-		return NULL;  // TypeError is thrown
-	}
-
-	int res = csp_xtea_set_key(key, keylen);
-	if (res != CSP_ERR_NONE) {
-		return PyErr_Error("csp_xtea_set_key()", res);
-	}
-
-	Py_RETURN_NONE;
-}
 
 static PyObject * pycsp_rtable_set(PyObject * self, PyObject * args) {
 	uint16_t node;
@@ -929,16 +914,12 @@ static PyObject * pycsp_packet_get_length(PyObject * self, PyObject * packet_cap
 }
 
 static PyObject * pycsp_print_connections(PyObject * self, PyObject * args) {
-#if (CSP_HAVE_STDIO)
 	csp_conn_print_table();
-#endif
 	Py_RETURN_NONE;
 }
 
 static PyObject * pycsp_print_routes(PyObject * self, PyObject * args) {
-#if (CSP_HAVE_STDIO)
 	csp_rtable_print();
-#endif
 	Py_RETURN_NONE;
 }
 
@@ -978,7 +959,6 @@ static PyMethodDef methods[] = {
 	{"shutdown", pycsp_shutdown, METH_VARARGS, ""},
 	{"rdp_set_opt", pycsp_rdp_set_opt, METH_VARARGS, ""},
 	{"rdp_get_opt", pycsp_rdp_get_opt, METH_NOARGS, ""},
-	{"xtea_set_key", pycsp_xtea_set_key, METH_VARARGS, ""},
 
 	/* csp/csp_rtable.h */
 	{"rtable_set", pycsp_rtable_set, METH_VARARGS, ""},
@@ -1058,7 +1038,6 @@ PyMODINIT_FUNC PyInit_libcsp_py3(void) {
 	/* FLAGS */
 	PyModule_AddIntConstant(m, "CSP_FFRAG", CSP_FFRAG);
 	PyModule_AddIntConstant(m, "CSP_FHMAC", CSP_FHMAC);
-	PyModule_AddIntConstant(m, "CSP_FXTEA", CSP_FXTEA);
 	PyModule_AddIntConstant(m, "CSP_FRDP", CSP_FRDP);
 	PyModule_AddIntConstant(m, "CSP_FCRC32", CSP_FCRC32);
 
@@ -1068,8 +1047,6 @@ PyMODINIT_FUNC PyInit_libcsp_py3(void) {
 	PyModule_AddIntConstant(m, "CSP_SO_RDPPROHIB", CSP_SO_RDPPROHIB);
 	PyModule_AddIntConstant(m, "CSP_SO_HMACREQ", CSP_SO_HMACREQ);
 	PyModule_AddIntConstant(m, "CSP_SO_HMACPROHIB", CSP_SO_HMACPROHIB);
-	PyModule_AddIntConstant(m, "CSP_SO_XTEAREQ", CSP_SO_XTEAREQ);
-	PyModule_AddIntConstant(m, "CSP_SO_XTEAPROHIB", CSP_SO_XTEAPROHIB);
 	PyModule_AddIntConstant(m, "CSP_SO_CRC32REQ", CSP_SO_CRC32REQ);
 	PyModule_AddIntConstant(m, "CSP_SO_CRC32PROHIB", CSP_SO_CRC32PROHIB);
 	PyModule_AddIntConstant(m, "CSP_SO_CONN_LESS", CSP_SO_CONN_LESS);
@@ -1080,8 +1057,6 @@ PyMODINIT_FUNC PyInit_libcsp_py3(void) {
 	PyModule_AddIntConstant(m, "CSP_O_NORDP", CSP_O_NORDP);
 	PyModule_AddIntConstant(m, "CSP_O_HMAC", CSP_O_HMAC);
 	PyModule_AddIntConstant(m, "CSP_O_NOHMAC", CSP_O_NOHMAC);
-	PyModule_AddIntConstant(m, "CSP_O_XTEA", CSP_O_XTEA);
-	PyModule_AddIntConstant(m, "CSP_O_NOXTEA", CSP_O_NOXTEA);
 	PyModule_AddIntConstant(m, "CSP_O_CRC32", CSP_O_CRC32);
 	PyModule_AddIntConstant(m, "CSP_O_NOCRC32", CSP_O_NOCRC32);
 
@@ -1100,7 +1075,6 @@ PyMODINIT_FUNC PyInit_libcsp_py3(void) {
 	PyModule_AddIntConstant(m, "CSP_ERR_DRIVER", CSP_ERR_DRIVER);
 	PyModule_AddIntConstant(m, "CSP_ERR_AGAIN", CSP_ERR_AGAIN);
 	PyModule_AddIntConstant(m, "CSP_ERR_HMAC", CSP_ERR_HMAC);
-	PyModule_AddIntConstant(m, "CSP_ERR_XTEA", CSP_ERR_XTEA);
 	PyModule_AddIntConstant(m, "CSP_ERR_CRC32", CSP_ERR_CRC32);
 	PyModule_AddIntConstant(m, "CSP_ERR_SFP", CSP_ERR_SFP);
 

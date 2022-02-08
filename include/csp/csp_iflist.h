@@ -15,9 +15,13 @@ csp_iface_t * csp_iflist_get_by_addr(uint16_t addr);
 csp_iface_t * csp_iflist_get_by_subnet(uint16_t addr, csp_iface_t * from);
 int csp_iflist_is_within_subnet(uint16_t addr, csp_iface_t * ifc);
 
-void csp_iflist_print(void);
 csp_iface_t * csp_iflist_get(void);
 
 /* Convert bytes to readable string */
-int csp_bytesize(char *buffer, int buffer_len, unsigned long int bytes);
+unsigned long csp_bytesize(unsigned long bytes, char *postfix);
 
+#if (CSP_ENABLE_CSP_PRINT)
+void csp_iflist_print(void);
+#else
+inline void csp_iflist_print(void) {}
+#endif

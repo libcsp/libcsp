@@ -43,6 +43,17 @@ static void csp_yaml_end_if(struct data_s * data, unsigned int * dfl_addr) {
 
 	csp_iface_t * iface;
 
+	int addr = atoi(data->addr);
+
+	/* If dfl_addr is passed, we can either readout or override */
+	if ((dfl_addr != NULL) && (data->is_dfl)) {
+		if (*dfl_addr == 0) {
+			*dfl_addr = addr;
+		} else {
+			addr = *dfl_addr;
+		}
+	}
+
 	/* UART */
     if (strcmp(data->driver, "kiss") == 0) {
 
@@ -116,7 +127,7 @@ static void csp_yaml_end_if(struct data_s * data, unsigned int * dfl_addr) {
 			promisc = (strcmp("true", data->promisc) == 0) ? 1 : 0;
 		}
 
-		csp_zmqhub_init_filter2(data->name, data->server, atoi(data->addr), atoi(data->netmask), promisc, &iface);
+		csp_zmqhub_init_filter2(data->name, data->server, addr, atoi(data->netmask), promisc, &iface);
 
 	}
 #endif
@@ -146,55 +157,42 @@ static void csp_yaml_end_if(struct data_s * data, unsigned int * dfl_addr) {
         return;
     }
 
-	iface->addr = atoi(data->addr);
-
-	/* If dfl_addr is passed, we can either readout or override */
-	if ((dfl_addr != NULL) && (data->is_dfl)) {
-		if (*dfl_addr == 0) {
-			*dfl_addr = iface->addr;
-		} else {
-			iface->addr = *dfl_addr;
-		}
-	}
+	iface->addr = addr;
 	iface->netmask = atoi(data->netmask);
-	iface->name = data->name;
+	iface->name = strdup(data->name);
 
 	csp_print("  %s addr: %u netmask %u\n", iface->name, iface->addr, iface->netmask);
 
-	if (iface && data->is_dfl) {
-		csp_print("  Setting default route to %s\n", iface->name);
-		csp_rtable_set(0, 0, iface, CSP_NO_VIA_ADDRESS);
-	}
 }
 
 static void csp_yaml_key_value(struct data_s * data, char * key, char * value) {
 
 	if (strcmp(key, "name") == 0) {
-		data->name = value;
+		data->name = strdup(value);
 	} else if (strcmp(key, "driver") == 0) {
-		data->driver = value;
+		data->driver = strdup(value);
 	} else if (strcmp(key, "device") == 0) {
-		data->device = value;
+		data->device = strdup(value);
 	} else if (strcmp(key, "addr") == 0) {
-		data->addr = value;
+		data->addr = strdup(value);
 	} else if (strcmp(key, "netmask") == 0) {
-		data->netmask = value;
+		data->netmask = strdup(value);
 	} else if (strcmp(key, "server") == 0) {
-		data->server = value;
+		data->server = strdup(value);
 	} else if (strcmp(key, "default") == 0) {
-		data->is_dfl = value;
+		data->is_dfl = strdup(value);
 	} else if (strcmp(key, "baudrate") == 0) {
-		data->baudrate = value;
+		data->baudrate = strdup(value);
 	} else if (strcmp(key, "source") == 0) {
-		data->source = value;
+		data->source = strdup(value);
 	} else if (strcmp(key, "destination") == 0) {
-		data->destination = value;
+		data->destination = strdup(value);
 	} else if (strcmp(key, "listen_port") == 0) {
-		data->listen_port = value;
+		data->listen_port = strdup(value);
 	} else if (strcmp(key, "remote_port") == 0) {
-		data->remote_port = value;
+		data->remote_port = strdup(value);
 	} else if (strcmp(key, "promisc") == 0) {
-		data->promisc = value;
+		data->promisc = strdup(value);
 	} else {
 		csp_print("Unkown key %s\n", key);
 	}
@@ -215,42 +213,80 @@ void csp_yaml_init(char * filename, unsigned int * dfl_addr) {
 	yaml_event_t event;
 
 	yaml_parser_parse(&parser, &event);
-	if (event.type != YAML_STREAM_START_EVENT)
+	if (event.type != YAML_STREAM_START_EVENT) {
+		yaml_event_delete(&event);
+		yaml_parser_delete(&parser);
 		return;
+	}
+	yaml_event_delete(&event);
 
 	yaml_parser_parse(&parser, &event);
-	if (event.type != YAML_DOCUMENT_START_EVENT)
+	if (event.type != YAML_DOCUMENT_START_EVENT) {
+		yaml_event_delete(&event);
+		yaml_parser_delete(&parser);
 		return;
+	}
+	yaml_event_delete(&event);
 
 	yaml_parser_parse(&parser, &event);
-	if (event.type != YAML_SEQUENCE_START_EVENT)
+	if (event.type != YAML_SEQUENCE_START_EVENT) {
+		yaml_event_delete(&event);
+		yaml_parser_delete(&parser);
 		return;
+	}
+	yaml_event_delete(&event);
 
 	while (1) {
 
 		yaml_parser_parse(&parser, &event);
 
-		if (event.type == YAML_SEQUENCE_END_EVENT)
+		if (event.type == YAML_SEQUENCE_END_EVENT) {
+			yaml_event_delete(&event);
 			break;
+		}
 
 		if (event.type == YAML_MAPPING_START_EVENT) {
 			csp_yaml_start_if(&data);
+			yaml_event_delete(&event);
 			continue;
 		}
 
 		if (event.type == YAML_MAPPING_END_EVENT) {
 			csp_yaml_end_if(&data, dfl_addr);
+			yaml_event_delete(&event);
 			continue;
 		}
 
 		if (event.type == YAML_SCALAR_EVENT) {
-			yaml_char_t * key = event.data.scalar.value;
+			
+			/* Got key, parse the value too */
+			yaml_event_t event_val;
+			yaml_parser_parse(&parser, &event_val);
+			csp_yaml_key_value(&data, (char *) event.data.scalar.value, (char *) event_val.data.scalar.value);
+			yaml_event_delete(&event_val);
 
-			yaml_parser_parse(&parser, &event);
-			yaml_char_t * value = event.data.scalar.value;
+			yaml_event_delete(&event);
 
-			csp_yaml_key_value(&data, (char *)key, (char *)value);
 			continue;
 		}
 	}
+
+	/* Cleanup libyaml */
+	yaml_parser_delete(&parser);
+
+	/* Go through list of potentially allocated strings. Tedious cleanup */
+	free(data.name);
+	free(data.driver);
+	free(data.device);
+	free(data.addr);
+	free(data.netmask);
+	free(data.server);
+	free(data.is_dfl);
+	free(data.baudrate);
+	free(data.source);
+	free(data.destination);
+	free(data.listen_port);
+	free(data.remote_port);
+	free(data.promisc);
+
 }

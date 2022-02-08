@@ -29,7 +29,7 @@
 #define RDP_RST 0x01
 
 #ifndef CSP_USE_RDP_FAST_CLOSE
-#define CSP_USE_RDP_FAST_CLOSE 0
+#define CSP_USE_RDP_FAST_CLOSE 1
 #endif
 
 #if (CSP_USE_RDP)
@@ -133,7 +133,11 @@ static int csp_rdp_send_cmp(csp_conn_t * conn, csp_packet_t * packet, int flags,
 	}
 	header->seq_nr = htobe16(seq_nr);
 	header->ack_nr = htobe16(ack_nr);
-	header->flags = flags;
+
+	/* Add a bit of ephemeral data to avoid CMP's to be deduplicated */
+	static uint8_t csp_rdp_incr = 0;
+	//header->flags = flags;
+	header->flags |= csp_rdp_incr++ << 4 | flags;
 
 	/* Send copy to tx_queue, before sending packet to IF */
 	if (flags & RDP_SYN) {

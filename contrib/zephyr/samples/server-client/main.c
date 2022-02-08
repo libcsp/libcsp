@@ -27,7 +27,7 @@ void server(void) {
 
 	csp_print("Server task started\n");
 
-	/* Create socket with no specific socket options, e.g. accepts CRC32, HMAC, XTEA, etc. if enabled during compilation */
+	/* Create socket with no specific socket options, e.g. accepts CRC32, HMAC, etc. if enabled during compilation */
 	csp_socket_t sock = {0};
 
 	/* Bind socket to all ports, e.g. all incoming connections will be handled here */
