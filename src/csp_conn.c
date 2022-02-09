@@ -168,7 +168,7 @@ csp_conn_t * csp_conn_allocate(csp_conn_type_t type) {
 		i = (i + 1) % CSP_CONN_MAX;
 
 		int expected = CONN_CLOSED;
-		if (atomic_compare_exchange_weak(&arr_conn[i].state, &expected, CONN_OPEN)) {
+		if (atomic_compare_exchange_strong(&arr_conn[i].state, &expected, CONN_OPEN)) {
 			conn = &arr_conn[i];
 			csp_conn_last_given = i;
 			break;
