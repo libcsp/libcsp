@@ -192,6 +192,7 @@ static int csp_cmp_handler(csp_packet_t * packet) {
 
 		case CSP_CMP_PEEK:
 			ret = do_cmp_peek(cmp);
+			packet->length = cmp->peek.len + 7;
 			break;
 
 		case CSP_CMP_POKE:
