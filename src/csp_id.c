@@ -233,5 +233,8 @@ int csp_id_is_broadcast(uint16_t addr, uint16_t netmask) {
 	if ((addr & hostmask) == hostmask) {
 		return 1;
 	}
+	if (addr == csp_id_get_max_nodeid()) {
+		return 1;
+	}
 	return 0;
 }
