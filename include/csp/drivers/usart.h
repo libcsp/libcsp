@@ -35,6 +35,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <Windows.h>
 #endif
 
+#if (CSP_FREERTOS)
+#include "HL_sci.h"
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -44,8 +48,10 @@ extern "C" {
 */
 #if (CSP_WINDOWS)
     typedef HANDLE csp_usart_fd_t;
-#else
+#elif (CSP_POSIX)
     typedef int csp_usart_fd_t;
+#else
+    typedef sciBASE_t *csp_usart_fd_t;
 #endif
 
 /**
