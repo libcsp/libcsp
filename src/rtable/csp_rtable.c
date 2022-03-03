@@ -34,7 +34,7 @@ static int csp_rtable_parse(const char * rtable, int dry_run) {
 
 	/* Copy string before running strtok */
 	const size_t str_len = strnlen(rtable, 100);
-	char rtable_copy[str_len + 1];
+	char *rtable_copy = (char *)csp_malloc(str_len+1);
 	strncpy(rtable_copy, rtable, str_len);
 	rtable_copy[str_len] = 0;        
 
