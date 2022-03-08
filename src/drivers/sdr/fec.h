@@ -3,7 +3,7 @@
 
 #include <csp/csp_platform.h>
 #include "circular_buffer.h"
-
+#include <error_correctionWrapper.h>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -24,7 +24,13 @@ typedef enum {
     FEC_STATE_ERROR,
 } fec_state_t;
 
-fec_state_t fec_mpdu_to_csp(const void *mpdu, csp_packet_t **packet, uint8_t *id, int mtu);
+bool fec_mpdu_to_csp(const void *mpdu, csp_packet_t **packet, uint8_t *id, int mtu);
+
+void fec_create(rf_mode_number_t rfmode, error_correction_scheme_t error_correction_scheme);
+
+int fec_get_next_mpdu(void **);
+
+int fec_get_mtu();
 
 #ifdef __cplusplus
 }

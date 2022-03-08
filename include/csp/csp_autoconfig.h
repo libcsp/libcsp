@@ -29,7 +29,7 @@
 #ifdef MY_STRNLEN
    static inline size_t strnlen (const char *string, size_t length)
    {
-       char *ret = memchr (string, 0, length);
+       char *ret = (char *) memchr (string, 0, length);
        return ret ? ret - string : length;
    }
 #endif

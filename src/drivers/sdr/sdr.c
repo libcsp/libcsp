@@ -43,7 +43,6 @@ typedef struct {
 /* Unfortunately, FreeRTOS doesn't support a timer callback arg, so we have to
  * use static data.
  */
-static CircularBufferHandle mpdu_fifo;
 static sdr_context_t *tx_timer_ctx;
 
 static void tx_timer_cb( TimerHandle_t xTimer );
@@ -61,11 +60,6 @@ static void sdr_tx_thread(void *arg) {
     sdr_context_t *ctx = (sdr_context_t *) arg;
     csp_sdr_interface_data_t *ifdata = &ctx->ifdata;
 
-    mpdu_fifo = CircularBufferCreate(ifdata->mtu, MPDU_FIFO_SIZE);
-    if (!mpdu_fifo) {
-        ex2_log("can't create MPDU FIFO");
-        return;
-    }
     tx_timer_ctx = ctx;
   
     while (1) {
@@ -79,7 +73,7 @@ static void sdr_tx_thread(void *arg) {
 
         ex2_log("uhf Tx thread got a packet: len %d, data: %p", packet->length, (char *) packet->data);
         if (ifdata->config_flags & SDR_CONF_FEC) {
-            if (fec_csp_to_mpdu(mpdu_fifo, packet, ifdata->mtu)) {
+            if (fec_csp_to_mpdu(NULL, packet, ifdata->mtu)) {
                 if (xTimerStart(ctx->ifdata.tx_timer, 0) != pdPASS) {
                     ex2_log("could not start timer");
                     tx_timer_cb(ctx->ifdata.tx_timer);
@@ -99,13 +93,13 @@ static void tx_timer_cb( TimerHandle_t xTimer ) {
     /* Warning: although the FreeRTOS docs say we're running this callback in a
      * timer thread, it seems like any blocking call will mess things up.
      */
-    void *tail = CircularBufferNextTail(mpdu_fifo);
-    if (tail == 0) {
+    uint8_t *buf;
+    int mtu = fec_get_next_mpdu(&buf);
+    if (mtu == 0) {
         xTimerStop(xTimer, 0);
     }
     else {
-        (tx_timer_ctx->ifdata.tx_mac)(tx_timer_ctx->ifdata.mac_data, tail, tx_timer_ctx->ifdata.mtu);
-        CircularBufferReceive(mpdu_fifo);
+        (tx_timer_ctx->ifdata.tx_mac)(tx_timer_ctx->ifdata.mac_data, buf, mtu);
     }
 }
 
@@ -127,39 +121,10 @@ static void sdr_rx_thread(void *arg) {
 
         if (ifdata->config_flags & SDR_CONF_FEC) {
             fec_state_t state = fec_mpdu_to_csp(data, (uint8_t **) &packet, &id, ifdata->mtu);
-            switch(state) {
-            case FEC_STATE_IN_PROGRESS:
-                break;
-            case FEC_STATE_COMPLETE:
-                ex2_log("%s Rx: received a packet, csp id %d length %d", iface->name, packet->id, packet->length);
-                if (strcmp(iface->name, CSP_IF_SDR_LOOPBACK_NAME) == 0) {
-                    /* This is an unfortunate hack to be able to do loopback.
-                     * We have to change the outgoing packet destination (the 
-                     * device) to the incoming destination (us) or else CSP will
-                     * drop the packet.
-                     */
-                    packet->id.dst = conf->address;
-                }
+            if (state) {
                 csp_qfifo_write(packet, iface, NULL);
-                /* csp_qfifo_write disposes the packet for us. */
-                packet = 0;
-                break;
-            case FEC_STATE_INCOMPLETE:
-                /* oops! missed a MPDU! Finish of the CSP packet and try again. */
-                if (strcmp(iface->name, CSP_IF_SDR_LOOPBACK_NAME) == 0) {
-                    packet->id.dst = conf->address; // same hack as above
-                }
-                csp_qfifo_write(packet, iface, NULL);
-                packet = 0;
-                state = fec_mpdu_to_csp(data, (uint8_t **) &packet, &id, ifdata->mtu);
-                if (state != FEC_STATE_IN_PROGRESS) {
-                    ex2_log("off the rails :-(");
-                }
-                break;
-            default:
-                ex2_log("corrupt packet");
-                break;
             }
+
         }
         else {
             csp_packet_t *incoming = (csp_packet_t *) data;
@@ -178,6 +143,7 @@ static void sdr_rx_thread(void *arg) {
 }
 
 int csp_sdr_open_and_add_interface(const csp_sdr_conf_t *conf, const char *ifname, csp_iface_t **return_iface) {
+
     if (conf->baudrate < 0 || conf->baudrate >= SDR_UHF_END_BAUD) {
         return CSP_ERR_INVAL;
     }
