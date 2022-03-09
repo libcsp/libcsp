@@ -187,7 +187,7 @@ void csp_send_direct_iface(csp_id_t idout, csp_packet_t * packet, csp_iface_t * 
 	if (mtu > 0 && bytes > mtu)
 		goto tx_err;
 
-	if ((*iface->nexthop)(iface, via, packet) != CSP_ERR_NONE)
+	if ((*iface->nexthop)(iface, via, packet, from_me) != CSP_ERR_NONE)
 		goto tx_err;
 
 	iface->tx++;

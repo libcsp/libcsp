@@ -4,7 +4,7 @@
 #include <csp/csp_id.h>
 #include <csp/csp.h>
 
-int csp_i2c_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet) {
+int csp_i2c_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet, int from_me) {
 
 	/* Loopback */
 	if (packet->id.dst == iface->addr) {

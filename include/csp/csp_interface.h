@@ -8,7 +8,7 @@
  * Interface Tx function.
  * @return #CSP_ERR_NONE on success, otherwise an error code.
  */
-typedef int (*nexthop_t)(csp_iface_t * iface, uint16_t via, csp_packet_t * packet);
+typedef int (*nexthop_t)(csp_iface_t * iface, uint16_t via, csp_packet_t * packet, int from_me);
 
 /* This struct is referenced in documentation.  Update doc when you change this. */
 struct csp_iface_s {

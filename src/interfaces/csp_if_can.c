@@ -163,7 +163,7 @@ int csp_can1_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t 
 	return CSP_ERR_NONE;
 }
 
-int csp_can1_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet) {
+int csp_can1_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet, int from_me) {
 
 	/* Loopback */
 	if (packet->id.dst == iface->addr) {
@@ -368,7 +368,7 @@ int csp_can2_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t 
 	return CSP_ERR_NONE;
 }
 
-int csp_can2_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet) {
+int csp_can2_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet, int from_me) {
 
 	/* Loopback */
 	if (packet->id.dst == iface->addr) {
