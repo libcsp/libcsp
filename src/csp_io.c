@@ -132,6 +132,9 @@ void csp_send_direct(csp_id_t idout, csp_packet_t * packet, csp_iface_t * routed
 			return;
 		}
 
+		/* Apply outgoing interface address to packet */
+		idout.src = route->iface->addr;
+
 		csp_send_direct_iface(idout, packet, route->iface, route->via, from_me);
 		return;
 	}
@@ -146,6 +149,9 @@ void csp_send_direct(csp_id_t idout, csp_packet_t * packet, csp_iface_t * routed
 			csp_buffer_free(packet);
 			return;
 		}
+
+		/* Apply outgoing interface address to packet */
+		idout.src = dfl_if->addr;
 
 		csp_send_direct_iface(idout, packet, dfl_if, CSP_NO_VIA_ADDRESS, from_me);
 		return;
