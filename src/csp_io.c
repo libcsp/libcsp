@@ -91,6 +91,8 @@ void csp_send_direct(csp_id_t idout, csp_packet_t * packet, csp_iface_t * routed
 
 	while ((iface = csp_iflist_get_by_subnet(idout.dst, iface)) != NULL) {
 		
+		local_found = 1;
+
 		/* Do not send back to same inteface (split horizon) 
 		 * This check is is similar to that below, but faster */
 		if (iface == routed_from) {
@@ -114,7 +116,6 @@ void csp_send_direct(csp_id_t idout, csp_packet_t * packet, csp_iface_t * routed
 		csp_send_direct_iface(idout, copy, iface, via, from_me);
 
 		printf("To local %s\n", iface->name);
-		local_found = 1;
 
 	}
 
