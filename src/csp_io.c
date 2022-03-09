@@ -103,7 +103,9 @@ void csp_send_direct(csp_id_t idout, csp_packet_t * packet, csp_iface_t * routed
 		}
 
 		/* Apply outgoing interface address to packet */
-		idout.src = iface->addr;
+		if (from_me) {
+			idout.src = iface->addr;
+		}
 		
 		/* Todo: Find an elegant way to avoid making a copy when only a single destination interface
 		 * is found. But without looping the list twice. And without using stack memory.
@@ -133,7 +135,9 @@ void csp_send_direct(csp_id_t idout, csp_packet_t * packet, csp_iface_t * routed
 		}
 
 		/* Apply outgoing interface address to packet */
-		idout.src = route->iface->addr;
+		if (from_me) {
+			idout.src = route->iface->addr;
+		}
 
 		csp_send_direct_iface(idout, packet, route->iface, route->via, from_me);
 		return;
@@ -151,7 +155,9 @@ void csp_send_direct(csp_id_t idout, csp_packet_t * packet, csp_iface_t * routed
 		}
 
 		/* Apply outgoing interface address to packet */
-		idout.src = dfl_if->addr;
+		if (from_me) {
+			idout.src = dfl_if->addr;
+		}
 
 		csp_send_direct_iface(idout, packet, dfl_if, CSP_NO_VIA_ADDRESS, from_me);
 		return;
