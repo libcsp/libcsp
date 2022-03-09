@@ -124,6 +124,14 @@ void csp_send_direct(csp_id_t idout, csp_packet_t * packet, csp_iface_t * routed
 	/* Try to send via routing table */
 	csp_route_t * route = csp_rtable_find_route(idout.dst);
 	if (route != NULL) {
+
+		/* Do not send back to same inteface (split horizon) 
+		 * This check is is similar to that below, but faster */
+		if (route->iface == routed_from) {
+			csp_buffer_free(packet);
+			return;
+		}
+
 		csp_send_direct_iface(idout, packet, route->iface, route->via, from_me);
 		return;
 	}
@@ -131,6 +139,14 @@ void csp_send_direct(csp_id_t idout, csp_packet_t * packet, csp_iface_t * routed
 	/* Try to send via default interface */
 	csp_iface_t * dfl_if = csp_iflist_get_default();
 	if (dfl_if) {
+
+		/* Do not send back to same inteface (split horizon) 
+		 * This check is is similar to that below, but faster */
+		if (dfl_if == routed_from) {
+			csp_buffer_free(packet);
+			return;
+		}
+
 		csp_send_direct_iface(idout, packet, dfl_if, CSP_NO_VIA_ADDRESS, from_me);
 		return;
 	}
