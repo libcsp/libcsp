@@ -78,7 +78,7 @@ void csp_id_copy(csp_id_t * target, csp_id_t * source) {
 	target->sport = source->sport;
 	target->flags = source->flags;
 }
-#include <stdio.h>
+
 void csp_send_direct(csp_id_t idout, csp_packet_t * packet, csp_iface_t * routed_from) {
 
 	int from_me = (routed_from == NULL ? 1 : 0);
@@ -115,8 +115,6 @@ void csp_send_direct(csp_id_t idout, csp_packet_t * packet, csp_iface_t * routed
 		copy = csp_buffer_clone(packet);
 		csp_send_direct_iface(idout, copy, iface, via, from_me);
 
-		printf("To local %s\n", iface->name);
-
 	}
 
 	/* If the above worked, we don't want to look at the routing table */
@@ -142,7 +140,6 @@ void csp_send_direct(csp_id_t idout, csp_packet_t * packet, csp_iface_t * routed
 		}
 
 		csp_send_direct_iface(idout, packet, route->iface, route->via, from_me);
-		printf("To rtable %s\n", route->iface->name);
 		return;
 	}
 
@@ -163,7 +160,6 @@ void csp_send_direct(csp_id_t idout, csp_packet_t * packet, csp_iface_t * routed
 		}
 
 		csp_send_direct_iface(idout, packet, dfl_if, CSP_NO_VIA_ADDRESS, from_me);
-		printf("To dfl if %s\n", dfl_if->name);
 		return;
 	}
 
