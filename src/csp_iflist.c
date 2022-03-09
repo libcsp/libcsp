@@ -11,6 +11,16 @@
 /* Interfaces are stored in a linked list */
 static csp_iface_t * interfaces = NULL;
 
+static csp_iface_t * dfl_if = NULL;
+
+void csp_iflist_set_default(csp_iface_t * interface) {
+	dfl_if = interface;
+}
+
+csp_iface_t * csp_iflist_get_default(void) {
+	return dfl_if;
+}
+
 int csp_iflist_is_within_subnet(uint16_t addr, csp_iface_t * ifc) {
 
 	if (ifc == NULL) {
@@ -82,6 +92,14 @@ csp_iface_t * csp_iflist_get_by_name(const char * name) {
 		ifc = ifc->next;
 	}
 	return NULL;
+}
+
+csp_iface_t * csp_iflist_get_by_index(int idx) {
+	csp_iface_t * ifc = interfaces;
+	while(ifc && idx--) {
+		ifc = ifc->next;
+	}
+	return ifc;
 }
 
 int csp_iflist_add(csp_iface_t * ifc) {

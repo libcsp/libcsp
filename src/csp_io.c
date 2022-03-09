@@ -128,6 +128,13 @@ void csp_send_direct(csp_id_t idout, csp_packet_t * packet, csp_iface_t * routed
 		return;
 	}
 
+	/* Try to send via default interface */
+	csp_iface_t * dfl_if = csp_iflist_get_default();
+	if (dfl_if) {
+		csp_send_direct_iface(idout, packet, dfl_if, CSP_NO_VIA_ADDRESS, from_me);
+		return;
+	}
+
 	csp_buffer_free(packet);
 	
 }
