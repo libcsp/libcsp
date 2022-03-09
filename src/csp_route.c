@@ -140,7 +140,7 @@ int csp_route_work(void) {
 
 	/* The packet is to me, if the address matches that of the incoming interface,
 	 * or the address matches the broadcast address of the incoming interface */
-	int is_to_me = ((input.iface->addr == packet->id.dst) || (csp_id_is_broadcast(packet->id.dst, input.iface->netmask)));
+	int is_to_me = ((input.iface->addr == packet->id.dst) || (csp_id_is_broadcast(packet->id.dst, input.iface)));
 
 	/* Deduplication */
 	if ((csp_conf.dedup == CSP_DEDUP_ALL) ||
