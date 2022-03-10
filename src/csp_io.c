@@ -14,12 +14,14 @@
 #include <csp/arch/csp_queue.h>
 #include <csp/arch/csp_time.h>
 #include <csp/crypto/csp_hmac.h>
+#include <csp/csp_id.h>
 
 #include "csp_port.h"
 #include "csp_conn.h"
 #include "csp_promisc.h"
 #include "csp_qfifo.h"
 #include "csp_rdp.h"
+
 
 #if (CSP_USE_PROMISC)
 extern csp_queue_handle_t csp_promisc_queue;
@@ -107,6 +109,11 @@ void csp_send_direct(csp_id_t idout, csp_packet_t * packet, csp_iface_t * routed
 		/* Apply outgoing interface address to packet */
 		if ((from_me) && (idout.src == 0)) {
 			idout.src = iface->addr;
+		}
+
+		/* Rewrite routed brodcast (L3) to local (L2) when arriving at the interface */
+		if (csp_id_is_broadcast(idout.dst, iface)) {
+			idout.dst = csp_id_get_max_nodeid();
 		}
 		
 		/* Todo: Find an elegant way to avoid making a copy when only a single destination interface
