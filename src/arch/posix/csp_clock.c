@@ -1,6 +1,6 @@
 /*
 Cubesat Space Protocol - A small network-layer protocol designed for Cubesats
-Copyright (C) 2012 GomSpace ApS (http://www.gomspace.com)
+Copyright (C) 2012 Gomspace ApS (http://www.gomspace.com)
 Copyright (C) 2012 AAUSAT3 Project (http://aausat3.space.aau.dk) 
 
 This library is free software; you can redistribute it and/or
@@ -18,7 +18,28 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef _CSP_ROUTE_H_
-#define _CSP_ROUTE_H_
+#include <csp/arch/csp_clock.h>
 
-#endif // _CSP_ROUTE_H_
+#include <time.h>
+
+__attribute__((weak)) void csp_clock_get_time(csp_timestamp_t * time) {
+
+	struct timespec ts;
+	if (clock_gettime(CLOCK_REALTIME, &ts) == 0) {
+		time->tv_sec = ts.tv_sec;
+		time->tv_nsec = ts.tv_nsec;
+	} else {
+		time->tv_sec = 0;
+		time->tv_nsec = 0;
+	}
+}
+
+__attribute__((weak)) int csp_clock_set_time(const csp_timestamp_t * time) {
+
+	struct timespec ts = {.tv_sec = time->tv_sec, .tv_nsec = time->tv_nsec};
+	if (clock_settime(CLOCK_REALTIME, &ts) == 0) {
+		return CSP_ERR_NONE;
+	}
+	return CSP_ERR_INVAL; // CSP doesn't have any matching error codes
+
+}

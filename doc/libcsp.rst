@@ -1,5 +1,7 @@
 .. CSP Documentation master file.
 
+.. _libcsp:
+   
 **********************
 CubeSat Space Protocol
 **********************
@@ -10,7 +12,7 @@ CubeSat Space Protocol
    ../README
    history
    structure
-   interfaces
+   basic
    memory
    protocolstack
    topology

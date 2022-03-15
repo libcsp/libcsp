@@ -1,123 +1,61 @@
 Client and server example
 =========================
 
-The following examples show the initialization of the protocol stack and examples of client/server code.
+The example in `example/csp_server_client.c` provides a simple server/client setup, where the client sends a request to the server and receives a reply. The code can be compiled to an executable using `./examples/buildall.py`.
 
-Initialization Sequence
------------------------
+The example supports the drivers and interfaces in CSP:
 
-This code initializes the CSP buffer system, device drivers and router core. The example uses the CAN interface function csp_can_tx but the initialization is similar for other interfaces. The loopback interface does not require any explicit initialization.
+ - ZMQHUB: -z <host name|ip>
 
-.. code-block:: c
+   Requires no extra hardware, as it uses standard network. The zmqproxy will need to be started.
 
-   #include <csp/csp.h>
-   #include <csp/interfaces/csp_if_can.h>
-   
-   /* CAN configuration struct for SocketCAN interface "can0" */
-   struct csp_can_config can_conf = {.ifc = "can0"};
-   
-   /* Init buffer system with 10 packets of maximum 320 bytes each */
-   csp_buffer_init(10, 320);
-   
-   /* Init CSP with address 1 */
-   csp_init(1);
-   
-   /* Init the CAN interface with hardware filtering */
-   csp_can_init(CSP_CAN_MASKED, &can_conf)
-   
-   /* Setup default route to CAN interface */
-   csp_route_set(CSP_DEFAULT_ROUTE, &csp_can_tx, CSP_HOST_MAC);
-   
-   /* Start router task with 500 word stack, OS task priority 1 */
-   csp_route_start_task(500, 1);
+ - CAN: -c <can device>
 
-Server
-------
+   Requires a physical CAN interface. There are several CAN dongles on the market, for example https://www.peak-system.com/PCAN-USB.199.0.html.
 
-This example shows how to create a server task that listens for incoming connections. CSP should be initialized before starting this task. Note the use of `csp_service_handler()` as the default branch in the port switch case. The service handler will automatically reply to ICMP-like requests, such as pings and buffer status requests.
+   To achieve best performance and stabilty, following options can be set on the CAN device:
 
-.. code-block:: c
+      .. code-block:: none
 
-   void csp_task(void *parameters) {
-       /* Create socket without any socket options */
-       csp_socket_t *sock = csp_socket(CSP_SO_NONE);
-   
-       /* Bind all ports to socket */
-       csp_bind(sock, CSP_ANY);
-   
-       /* Create 10 connections backlog queue */
-       csp_listen(sock, 10);
-   
-       /* Pointer to current connection and packet */
-       csp_conn_t *conn;
-       csp_packet_t *packet;
-   
-       /* Process incoming connections */
-       while (1) {
-           /* Wait for connection, 10000 ms timeout */    
-           if ((conn = csp_accept(sock, 10000)) == NULL)
-               continue;
-   
-           /* Read packets. Timout is 1000 ms */
-           while ((packet = csp_read(conn, 1000)) != NULL) {
-               switch (csp_conn_dport(conn)) {
-                   case MY_PORT:
-                       /* Process packet here */
-                   default:
-                       /* Let the service handler reply pings, buffer use, etc. */
-                       csp_service_handler(conn, packet);
-                       break;
-               }
-           }
-   
-           /* Close current connection, and handle next */
-           csp_close(conn);
-       }
-   }
+	 linux: sudo ip link set dev can0 down
+	 linux: sudo ip link set dev can0 up type can bitrate 1000000 restart-ms 100
+	 linux: sudo ip link set dev can0 txqueuelen 100
 
-Client
-------
+ - KISS: -k <serial device>
 
-This example shows how to allocate a packet buffer, connect to another host and send the packet. CSP should be initialized before calling this function. RDP, XTEA, HMAC and CRC checksums can be enabled per connection, by setting the connection option to a bitwise OR of any combination of `CSP_O_RDP`, `CSP_O_XTEA`, `CSP_O_HMAC` and `CSP_O_CRC`.
+   Requires a serial interface, e.g. USB dongle.
 
-.. code-block:: c
 
-   int send_packet(void) {
-   
-       /* Get packet buffer for data */
-       csp_packet_t *packet = csp_buffer_get(data_size);
-       if (packet == NULL) {
-           /* Could not get buffer element */
-           printf("Failed to get buffer element\\n");
-           return -1;
-       }
-   
-       /* Connect to host HOST, port PORT with regular UDP-like protocol and 1000 ms timeout */
-       csp_conn_t *conn = csp_connect(CSP_PRIO_NORM, HOST, PORT, 1000, CSP_O_NONE);
-       if (conn == NULL) {
-           /* Connect failed */
-           printf("Connection failed\\n");
-           /* Remember to free packet buffer */
-           csp_buffer_free(packet);
-           return -1;
-       }
-   
-       /* Copy message to packet */
-       char *msg = "HELLO";
-       strcpy(packet->data, msg);
-   
-       /* Set packet length */
-       packet->length = strlen(msg);
-   
-       /* Send packet */
-       if (!csp_send(conn, packet, 1000)) {
-           /* Send failed */
-           printf("Send failed\\n");
-           csp_buffer_free(packet);
-       }
-   
-       /* Close connection */
-       csp_close(conn);
-   
-       return 0
-   }
+Running the example
+^^^^^^^^^^^^^^^^^^^
+If the example is started without any interfaces, it will use the loopback interface for communication between client and server::
+
+  ubuntu-18:~/libcsp$ ./build/csp_server_client 
+  1586816581.410181 Initialising CSP
+  Connection table
+  [00 0x55a00f7adee0] S:0, 0 -> 0, 0 -> 0, sock: (nil)
+  [01 0x55a00f7adf68] S:0, 0 -> 0, 0 -> 0, sock: (nil)
+  [02 0x55a00f7adff0] S:0, 0 -> 0, 0 -> 0, sock: (nil)
+  [03 0x55a00f7ae078] S:0, 0 -> 0, 0 -> 0, sock: (nil)
+  [04 0x55a00f7ae100] S:0, 0 -> 0, 0 -> 0, sock: (nil)
+  [05 0x55a00f7ae188] S:0, 0 -> 0, 0 -> 0, sock: (nil)
+  [06 0x55a00f7ae210] S:0, 0 -> 0, 0 -> 0, sock: (nil)
+  [07 0x55a00f7ae298] S:0, 0 -> 0, 0 -> 0, sock: (nil)
+  [08 0x55a00f7ae320] S:0, 0 -> 0, 0 -> 0, sock: (nil)
+  [09 0x55a00f7ae3a8] S:0, 0 -> 0, 0 -> 0, sock: (nil)
+  Interfaces
+  LOOP       tx: 00000 rx: 00000 txe: 00000 rxe: 00000
+             drop: 00000 autherr: 00000 frame: 00000
+             txb: 0 (0.0B) rxb: 0 (0.0B) MTU: 0
+
+  Route table
+  1/5 LOOP
+  0/0 LOOP
+  1586816581.410405 Server task started
+  1586816581.410453 Binding socket 0x55a00f7adf68 to port 25
+  1586816581.410543 Client task started
+  1586816582.410983 SERVICE: Ping received
+  1586816582.411135 Ping address: 1, result 0 [mS]
+  1586816582.411174 reboot system request sent to address: 1
+  1586816582.461341 csp_sys_reboot not supported - no user function set
+  1586816582.512532 Packet received on MY_SERVER_PORT: Hello World (1)

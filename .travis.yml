@@ -1,0 +1,60 @@
+# Travis CI
+
+language: c
+
+jobs:
+  include:
+    - name: Linux Ubuntu 16.04, GCC
+      os: linux
+      dist: xenial
+      before_install:
+        - sudo apt-get -y install libzmq3-dev libsocketcan-dev libsocketcan2
+      script:
+        - python examples/buildall.py
+        - ./build/csp_arch
+        - ./build/csp_server_client -t
+
+    - name: Linux Ubuntu 18.04, GCC
+      os: linux
+      dist: bionic
+      before_install:
+        - sudo apt-get -y install libzmq3-dev libsocketcan-dev libsocketcan2
+      script:
+        - python examples/buildall.py
+        - ./build/csp_arch
+        - ./build/csp_server_client -t
+
+    - name: Mac OS 10.13, XCode 9, GCC
+      os: osx
+      osx_image: xcode9.4.1
+      script:
+        - python examples/buildall.py macosx
+        - ./build/csp_arch
+        - ./build/csp_server_client -t
+
+    - name: Mac OS 10.14, XCode 10, GCC
+      os: osx
+      osx_image: xcode10.3
+      script:
+        - python examples/buildall.py macosx
+        - ./build/csp_arch
+        - ./build/csp_server_client -t
+
+    - name: Mac OS 10.14, XCode 11, GCC
+      os: osx
+      osx_image: xcode11.3
+      script:
+        - python examples/buildall.py macosx
+        - ./build/csp_arch
+        - ./build/csp_server_client -t
+
+    - name: Windows Server 10 (version 1803), MinGW GCC
+      os: windows
+      before_install:
+        - choco install python --version 3.8
+        - export PATH="/c/Python38:/c/Python38/Scripts:$PATH"
+        - python --version
+      script:
+        - python examples/buildall.py windows --check-c-compiler=gcc CC=gcc.exe
+        - build/csp_arch
+        - build/csp_server_client -t

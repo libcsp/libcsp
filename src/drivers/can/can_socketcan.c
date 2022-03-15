@@ -18,167 +18,220 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-/* SocketCAN driver */
-
-#include <stdint.h>
-#include <stdio.h>
-
-#include <stdint.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <time.h>
-#include <string.h>
-#include <errno.h>
+#include <csp/drivers/can_socketcan.h>
 
 #include <pthread.h>
-#include <semaphore.h>
-
-#include <sys/types.h>
+#include <stdlib.h>
 #include <sys/socket.h>
+#include <unistd.h>
+#include <errno.h>
 #include <sys/ioctl.h>
 #include <net/if.h>
-#include <sys/queue.h>
-#include <sys/uio.h>
-#include <sys/time.h>
-#include <net/if.h>
-
-#include <linux/can.h>
 #include <linux/can/raw.h>
-#include <linux/socket.h>
-
-#include <csp/csp.h>
-#include <csp/interfaces/csp_if_can.h>
-#include <csp/drivers/can.h>
-
-#ifdef CSP_HAVE_LIBSOCKETCAN
+#if (CSP_HAVE_LIBSOCKETCAN)
 #include <libsocketcan.h>
 #endif
 
-static int can_socket; /** SocketCAN socket handle */
+#include <csp/csp.h>
+#include <csp/arch/csp_thread.h>
 
-static void * socketcan_rx_thread(void * parameters)
+// CAN interface data, state, etc.
+typedef struct {
+	char name[CSP_IFLIST_NAME_MAX + 1];
+	csp_iface_t iface;
+	csp_can_interface_data_t ifdata;
+	pthread_t rx_thread;
+	int socket;
+} can_context_t;
+
+static void socketcan_free(can_context_t * ctx) {
+
+	if (ctx) {
+		if (ctx->socket >= 0) {
+			close(ctx->socket);
+		}
+		free(ctx);
+	}
+}
+
+static void * socketcan_rx_thread(void * arg)
 {
-	struct can_frame frame;
-	int nbytes;
+	can_context_t * ctx = arg;
 
 	while (1) {
 		/* Read CAN frame */
-		nbytes = read(can_socket, &frame, sizeof(frame));
+		struct can_frame frame;
+		int nbytes = read(ctx->socket, &frame, sizeof(frame));
 		if (nbytes < 0) {
-			csp_log_error("read: %s", strerror(errno));
+			csp_log_error("%s[%s]: read() failed, errno %d: %s", __FUNCTION__, ctx->name, errno, strerror(errno));
 			continue;
 		}
 
 		if (nbytes != sizeof(frame)) {
-			csp_log_warn("Read incomplete CAN frame");
+			csp_log_warn("%s[%s]: Read incomplete CAN frame, size: %d, expected: %u bytes", __FUNCTION__, ctx->name, nbytes, (unsigned int) sizeof(frame));
 			continue;
 		}
 
-		/* Frame type */
-		if (frame.can_id & (CAN_ERR_FLAG | CAN_RTR_FLAG) || !(frame.can_id & CAN_EFF_FLAG)) {
-			/* Drop error and remote frames */
-			csp_log_warn("Discarding ERR/RTR/SFF frame");
+		/* Drop frames with standard id (CSP uses extended) */
+		if (!(frame.can_id & CAN_EFF_FLAG)) {
+			continue;
+		}
+
+		/* Drop error and remote frames */
+		if (frame.can_id & (CAN_ERR_FLAG | CAN_RTR_FLAG)) {
+			csp_log_warn("%s[%s]: discarding ERR/RTR/SFF frame", __FUNCTION__, ctx->name);
 			continue;
 		}
 
 		/* Strip flags */
 		frame.can_id &= CAN_EFF_MASK;
 
-		/* Call RX callback */
-		csp_can_rx_frame((can_frame_t *)&frame, NULL);
+		/* Call RX callbacsp_can_rx_frameck */
+		csp_can_rx(&ctx->iface, frame.can_id, frame.data, frame.can_dlc, NULL);
 	}
 
 	/* We should never reach this point */
 	pthread_exit(NULL);
 }
 
-int can_send(can_id_t id, uint8_t data[], uint8_t dlc)
+
+static int csp_can_tx_frame(void * driver_data, uint32_t id, const uint8_t * data, uint8_t dlc)
 {
-	struct can_frame frame;
-	int i, tries = 0;
-
-	if (dlc > 8)
-		return -1;
-
-	/* Copy identifier */
-	frame.can_id = id | CAN_EFF_FLAG;
-
-	/* Copy data to frame */
-	for (i = 0; i < dlc; i++)
-		frame.data[i] = data[i];
-
-	/* Set DLC */
-	frame.can_dlc = dlc;
-
-	/* Send frame */
-	while (write(can_socket, &frame, sizeof(frame)) != sizeof(frame)) {
-		if (++tries < 1000 && errno == ENOBUFS) {
-			/* Wait 10 ms and try again */
-			usleep(10000);
-		} else {
-			csp_log_error("write: %s", strerror(errno));
-			break;
-		}
+	if (dlc > 8) {
+		return CSP_ERR_INVAL;
 	}
 
-	return 0;
+	struct can_frame frame = {.can_id = id | CAN_EFF_FLAG,
+                                  .can_dlc = dlc};
+        memcpy(frame.data, data, dlc);
+
+	uint32_t elapsed_ms = 0;
+        can_context_t * ctx = driver_data;
+	while (write(ctx->socket, &frame, sizeof(frame)) != sizeof(frame)) {
+		if ((errno != ENOBUFS) || (elapsed_ms >= 1000)) {
+			csp_log_warn("%s[%s]: write() failed, errno %d: %s", __FUNCTION__, ctx->name, errno, strerror(errno));
+			return CSP_ERR_TX;
+		}
+		csp_sleep_ms(5);
+		elapsed_ms += 5;
+	}
+
+	return CSP_ERR_NONE;
 }
 
-int can_init(uint32_t id, uint32_t mask, struct csp_can_config *conf)
+int csp_can_socketcan_open_and_add_interface(const char * device, const char * ifname, int bitrate, bool promisc, csp_iface_t ** return_iface)
 {
-	struct ifreq ifr;
-	struct sockaddr_can addr;
-	pthread_t rx_thread;
+	if (ifname == NULL) {
+		ifname = CSP_IF_CAN_DEFAULT_NAME;
+	}
 
-	csp_assert(conf && conf->ifc);
+	csp_log_info("INIT %s: device: [%s], bitrate: %d, promisc: %d",
+			ifname, device, bitrate, promisc);
 
-#ifdef CSP_HAVE_LIBSOCKETCAN
-	/* Set interface up */
-	if (conf->bitrate > 0) {
-		can_do_stop(conf->ifc);
-		can_set_bitrate(conf->ifc, conf->bitrate);
-		can_do_start(conf->ifc);
+#if (CSP_HAVE_LIBSOCKETCAN)
+	/* Set interface up - this may require increased OS privileges */
+	if (bitrate > 0) {
+		can_do_stop(device);
+		can_set_bitrate(device, bitrate);
+		can_set_restart_ms(device, 100);
+		can_do_start(device);
 	}
 #endif
 
+	can_context_t * ctx = calloc(1, sizeof(*ctx));
+	if (ctx == NULL) {
+		return CSP_ERR_NOMEM;
+	}
+	ctx->socket = -1;
+
+	strncpy(ctx->name, ifname, sizeof(ctx->name) - 1);
+	ctx->iface.name = ctx->name;
+	ctx->iface.interface_data = &ctx->ifdata;
+	ctx->iface.driver_data = ctx;
+	ctx->ifdata.tx_func = csp_can_tx_frame;
+
 	/* Create socket */
-	if ((can_socket = socket(PF_CAN, SOCK_RAW, CAN_RAW)) < 0) {
-		csp_log_error("socket: %s", strerror(errno));
-		return -1;
+	if ((ctx->socket = socket(PF_CAN, SOCK_RAW, CAN_RAW)) < 0) {
+		csp_log_error("%s[%s]: socket() failed, error: %s", __FUNCTION__, ctx->name, strerror(errno));
+		socketcan_free(ctx);
+		return CSP_ERR_INVAL;
 	}
 
 	/* Locate interface */
-	strncpy(ifr.ifr_name, conf->ifc, IFNAMSIZ - 1);
-	if (ioctl(can_socket, SIOCGIFINDEX, &ifr) < 0) {
-		csp_log_error("ioctl: %s", strerror(errno));
-		return -1;
+	struct ifreq ifr;
+	strncpy(ifr.ifr_name, device, IFNAMSIZ - 1);
+	if (ioctl(ctx->socket, SIOCGIFINDEX, &ifr) < 0) {
+		csp_log_error("%s[%s]: device: [%s], ioctl() failed, error: %s", __FUNCTION__, ctx->name, device, strerror(errno));
+		socketcan_free(ctx);
+		return CSP_ERR_INVAL;
 	}
-
+	struct sockaddr_can addr;
+	memset(&addr, 0, sizeof(addr));
 	/* Bind the socket to CAN interface */
 	addr.can_family = AF_CAN;
 	addr.can_ifindex = ifr.ifr_ifindex;
-	if (bind(can_socket, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
-		csp_log_error("bind: %s", strerror(errno));
-		return -1;
+	if (bind(ctx->socket, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
+		csp_log_error("%s[%s]: bind() failed, error: %s", __FUNCTION__, ctx->name, strerror(errno));
+		socketcan_free(ctx);
+		return CSP_ERR_INVAL;
 	}
 
-	/* Set promiscuous mode */
-	if (mask) {
-		struct can_filter filter;
-		filter.can_id   = id;
-		filter.can_mask = mask;
-		if (setsockopt(can_socket, SOL_CAN_RAW, CAN_RAW_FILTER, &filter, sizeof(filter)) < 0) {
-			csp_log_error("setsockopt: %s", strerror(errno));
-			return -1;
+	/* Set filter mode */
+	if (promisc == false) {
+
+		struct can_filter filter = {.can_id = CFP_MAKE_DST(csp_get_address()),
+						.can_mask = CFP_MAKE_DST((1 << CFP_HOST_SIZE) - 1)};
+
+		if (setsockopt(ctx->socket, SOL_CAN_RAW, CAN_RAW_FILTER, &filter, sizeof(filter)) < 0) {
+			csp_log_error("%s[%s]: setsockopt() failed, error: %s", __FUNCTION__, ctx->name, strerror(errno));
+			socketcan_free(ctx);
+			return CSP_ERR_INVAL;
 		}
 	}
 
-	/* Create receive thread */
-	if (pthread_create(&rx_thread, NULL, socketcan_rx_thread, NULL) != 0) {
-		csp_log_error("pthread_create: %s", strerror(errno));
-		return -1;
+	/* Add interface to CSP */
+        int res = csp_can_add_interface(&ctx->iface);
+	if (res != CSP_ERR_NONE) {
+		csp_log_error("%s[%s]: csp_can_add_interface() failed, error: %d", __FUNCTION__, ctx->name, res);
+		socketcan_free(ctx);
+		return res;
 	}
 
-	return 0;
+	/* Create receive thread */
+	if (pthread_create(&ctx->rx_thread, NULL, socketcan_rx_thread, ctx) != 0) {
+		csp_log_error("%s[%s]: pthread_create() failed, error: %s", __FUNCTION__, ctx->name, strerror(errno));
+		//socketcan_free(ctx); // we already added it to CSP (no way to remove it)
+		return CSP_ERR_NOMEM;
+	}
+
+	if (return_iface) {
+		*return_iface = &ctx->iface;
+	}
+
+	return CSP_ERR_NONE;
+}
+
+csp_iface_t * csp_can_socketcan_init(const char * device, int bitrate, bool promisc)
+{
+	csp_iface_t * return_iface;
+	int res = csp_can_socketcan_open_and_add_interface(device, CSP_IF_CAN_DEFAULT_NAME, bitrate, promisc, &return_iface);
+	return (res == CSP_ERR_NONE) ? return_iface : NULL;
+}
+
+int csp_can_socketcan_stop(csp_iface_t *iface)
+{
+	can_context_t * ctx = iface->driver_data;
+
+	int error = pthread_cancel(ctx->rx_thread);
+	if (error != 0) {
+		csp_log_error("%s[%s]: pthread_cancel() failed, error: %s", __FUNCTION__, ctx->name, strerror(errno));
+		return CSP_ERR_DRIVER;
+	}
+	error = pthread_join(ctx->rx_thread, NULL);
+	if (error != 0) {
+		csp_log_error("%s[%s]: pthread_join() failed, error: %s", __FUNCTION__, ctx->name, strerror(errno));
+		return CSP_ERR_DRIVER;
+	}
+        socketcan_free(ctx);
+	return CSP_ERR_NONE;
 }

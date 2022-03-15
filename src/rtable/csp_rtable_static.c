@@ -18,104 +18,56 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <stdio.h>
-#include <csp/csp.h>
-#include <stdio.h>
+#include "csp_rtable_internal.h"
 
-/* Local typedef for routing table */
-typedef struct __attribute__((__packed__)) csp_rtable_s {
-	csp_iface_t * interface;
-	uint8_t mac;
-} csp_rtable_t;
+#include <csp/csp_debug.h>
 
-/* Static storage context for routing table */
-static csp_rtable_t routes[CSP_ROUTE_COUNT] = {};
+/* Routing table (static array) */
+static csp_route_t rtable[CSP_DEFAULT_ROUTE + 1] = {};
 
-/**
- * Find entry in static routing table
- * This is done by table lookup with fallback to the default route
- * The reason why the csp_rtable_t struct is not returned directly
- * is that we wish to hide the storage format, mainly because of
- * the alternative routing table storage (cidr).
- * @param id Node
- * @return pointer to found routing entry
- */
-static csp_rtable_t * csp_rtable_find(uint8_t id) {
+const csp_route_t * csp_rtable_find_route(uint8_t dest_address) {
 
-	if (routes[id].interface != NULL) {
-		return &routes[id];
-	} else if (routes[CSP_DEFAULT_ROUTE].interface != NULL) {
-		return &routes[CSP_DEFAULT_ROUTE];
+	if (rtable[dest_address].iface != NULL) {
+		return &rtable[dest_address];
+	}
+	if (rtable[CSP_DEFAULT_ROUTE].iface != NULL) {
+		return &rtable[CSP_DEFAULT_ROUTE];
 	}
 	return NULL;
 
 }
 
-csp_iface_t * csp_rtable_find_iface(uint8_t id) {
-	csp_rtable_t * route = csp_rtable_find(id);
-	if (route == NULL)
-		return NULL;
-	return route->interface;
-}
+int csp_rtable_set_internal(uint8_t address, uint8_t netmask, csp_iface_t *ifc, uint8_t via) {
 
-uint8_t csp_rtable_find_mac(uint8_t id) {
-	csp_rtable_t * route = csp_rtable_find(id);
-	if (route == NULL)
-		return 255;
-	return route->mac;
-}
-
-void csp_rtable_clear(void) {
-	memset(routes, 0, sizeof(routes[0]) * CSP_ROUTE_COUNT);
-}
-
-void csp_route_table_load(uint8_t route_table_in[CSP_ROUTE_TABLE_SIZE]) {
-	memcpy(routes, route_table_in, sizeof(routes[0]) * CSP_ROUTE_COUNT);
-}
-
-void csp_route_table_save(uint8_t route_table_out[CSP_ROUTE_TABLE_SIZE]) {
-	memcpy(route_table_out, routes, sizeof(routes[0]) * CSP_ROUTE_COUNT);
-}
-
-int csp_rtable_set(uint8_t node, uint8_t mask, csp_iface_t *ifc, uint8_t mac) {
-
-	/* Don't add nothing */
-	if (ifc == NULL)
-		return CSP_ERR_INVAL;
-
-	/**
-	 * Check if the interface has been added.
-	 *
-	 * NOTE: For future implementations, interfaces should call
-	 * csp_route_add_if in its csp_if_<name>_init function, instead
-	 * of registering at first route_set, in order to make the interface
-	 * available to network based (CMP) route configuration.
-	 */
-	csp_iflist_add(ifc);
-
-	/* Set route */
-	if (node <= CSP_DEFAULT_ROUTE) {
-		routes[node].interface = ifc;
-		routes[node].mac = mac;
-	} else {
-		csp_log_error("Failed to set route: invalid node id %u", node);
+	/* Validates options */
+	if ((netmask != 0) && (netmask != CSP_ID_HOST_SIZE)) {
+		csp_log_error("%s: invalid netmask in route: address %u, netmask %u, interface %p, via %u", __FUNCTION__, address, netmask, ifc, via);
 		return CSP_ERR_INVAL;
 	}
 
+	/* Set route */
+        const unsigned int ri = (netmask == 0) ? CSP_DEFAULT_ROUTE : address;
+        rtable[ri].iface = ifc;
+        rtable[ri].via = via;
+
 	return CSP_ERR_NONE;
-
 }
 
-#ifdef CSP_DEBUG
-void csp_rtable_print(void) {
-	int i;
-	printf("Node  Interface  Address\r\n");
-	for (i = 0; i < CSP_DEFAULT_ROUTE; i++)
-		if (routes[i].interface != NULL)
-			printf("%4u  %-9s  %u\r\n", i,
-				routes[i].interface->name,
-				routes[i].mac == CSP_NODE_MAC ? i : routes[i].mac);
-	printf("   *  %-9s  %u\r\n", routes[CSP_DEFAULT_ROUTE].interface->name, routes[CSP_DEFAULT_ROUTE].mac);
+void csp_rtable_free(void) {
 
+	memset(rtable, 0, sizeof(rtable));
 }
-#endif
+
+void csp_rtable_iterate(csp_rtable_iterator_t iter, void * ctx) {
+
+	for (unsigned int i = 0; i < CSP_DEFAULT_ROUTE; ++i) {
+		if (rtable[i].iface != NULL) {
+			if (iter(ctx, i, CSP_ID_HOST_SIZE, &rtable[i]) == false) {
+				return; // stopped by user
+			}
+		}
+	}
+	if (rtable[CSP_DEFAULT_ROUTE].iface) {
+		iter(ctx, 0, 0, &rtable[CSP_DEFAULT_ROUTE]);
+	}
+}

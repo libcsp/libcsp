@@ -21,36 +21,50 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef _CSP_PLATFORM_H_
 #define _CSP_PLATFORM_H_
 
+/**
+   @file
+   Platform support.
+*/
+
+#include <csp/csp_types.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include <stdint.h>
-
 /* Set OS */
-#if defined(CSP_POSIX) || defined(CSP_WINDOWS) || defined(CSP_MACOSX)
+#if (CSP_POSIX || CSP_WINDOWS || CSP_MACOSX || __DOXYGEN__)
+	/** Base type. Mainly used for FreeRTOS calls to trigger task re-scheduling. */
 	#define CSP_BASE_TYPE int
-	#define CSP_MAX_DELAY (UINT32_MAX)
-	#define CSP_INFINITY (UINT32_MAX)
+	/** Max timeout time. On platforms supporting no timeouts (e.g. Linux), the timeout will be converted to \a forever. */
+	#define CSP_MAX_TIMEOUT (UINT32_MAX)
+	/** Declare critical lock. */
 	#define CSP_DEFINE_CRITICAL(lock) static csp_bin_sem_handle_t lock
+	/** Initialize critical lock. */
 	#define CSP_INIT_CRITICAL(lock) ({(csp_bin_sem_create(&lock) == CSP_SEMAPHORE_OK) ? CSP_ERR_NONE : CSP_ERR_NOMEM;})
+	/** Enter/take critical lock. */
 	#define CSP_ENTER_CRITICAL(lock) do { csp_bin_sem_wait(&lock, CSP_MAX_DELAY); } while(0)
+	/** Exit/release critical lock. */
 	#define CSP_EXIT_CRITICAL(lock) do { csp_bin_sem_post(&lock); } while(0)
-#elif defined(CSP_FREERTOS)
+#elif (CSP_FREERTOS)
 	#include "FreeRTOS.h"
 	#define CSP_BASE_TYPE portBASE_TYPE
-	#define CSP_MAX_DELAY portMAX_DELAY
-	#define CSP_INFINITY portMAX_DELAY
+	#define CSP_MAX_TIMEOUT portMAX_DELAY
 	#define CSP_DEFINE_CRITICAL(lock)
 	#define CSP_INIT_CRITICAL(lock) ({CSP_ERR_NONE;})
 	#define CSP_ENTER_CRITICAL(lock) do { portENTER_CRITICAL(); } while (0)
 	#define CSP_EXIT_CRITICAL(lock) do { portEXIT_CRITICAL(); } while (0)
 #else
-	#error "OS must be either CSP_POSIX, CSP_MACOSX, CSP_FREERTOS OR CSP_WINDOWS"
+	#error "OS must be either CSP_POSIX, CSP_MACOSX, CSP_FREERTOS or CSP_WINDOWS"
 #endif
+
+/** Legacy definition for #CSP_MAX_TIMEOUT. */
+#define CSP_MAX_DELAY CSP_MAX_TIMEOUT
+
+/** Legacy definition for #CSP_MAX_TIMEOUT. */
+#define CSP_INFINITY CSP_MAX_TIMEOUT
 
 #ifdef __cplusplus
-} /* extern "C" */
+}
 #endif
-
-#endif // _CSP_PLATFORM_H_
+#endif

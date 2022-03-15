@@ -20,15 +20,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 /* Code originally from Python's SHA1 Module, who based it on libtom.org */
 
-#include <stdint.h>
+#include <csp/crypto/csp_sha1.h>
+
 #include <string.h>
-
-/* CSP includes */
-#include <csp/csp.h>
-
-#include "csp_sha1.h"
-
-#ifdef CSP_USE_HMAC
 
 /* Rotate left macro */
 #define ROL(x,y)	(((x) << (y)) | ((x) >> (32-y)))
@@ -66,7 +60,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #define FF_2(a, b, c, d, e, i) do {e = (ROL(a, 5) + F2(b,c,d) + e + W[i] + 0x8f1bbcdcUL); b = ROL(b, 30);} while (0)
 #define FF_3(a, b, c, d, e, i) do {e = (ROL(a, 5) + F3(b,c,d) + e + W[i] + 0xca62c1d6UL); b = ROL(b, 30);} while (0)
 
-static void csp_sha1_compress(csp_sha1_state * sha1, const uint8_t * buf) {
+static void csp_sha1_compress(csp_sha1_state_t * sha1, const uint8_t * buf) {
 
 	uint32_t a, b, c, d, e, W[80], i;
 
@@ -133,7 +127,7 @@ static void csp_sha1_compress(csp_sha1_state * sha1, const uint8_t * buf) {
 
 }
 
-void csp_sha1_init(csp_sha1_state * sha1) {
+void csp_sha1_init(csp_sha1_state_t * sha1) {
 
    sha1->state[0] = 0x67452301UL;
    sha1->state[1] = 0xefcdab89UL;
@@ -145,32 +139,33 @@ void csp_sha1_init(csp_sha1_state * sha1) {
 
 }
 
-void csp_sha1_process(csp_sha1_state * sha1, const uint8_t * in, uint32_t inlen) {
+void csp_sha1_process(csp_sha1_state_t * sha1, const void * data, uint32_t inlen) {
 
+	const uint8_t * in = data;
 	uint32_t n;
 	while (inlen > 0) {
-		if (sha1->curlen == 0 && inlen >= SHA1_BLOCKSIZE) {
-		   csp_sha1_compress(sha1, in);
-		   sha1->length += SHA1_BLOCKSIZE * 8;
-		   in += SHA1_BLOCKSIZE;
-		   inlen -= SHA1_BLOCKSIZE;
+		if (sha1->curlen == 0 && inlen >= CSP_SHA1_BLOCKSIZE) {
+			csp_sha1_compress(sha1, in);
+			sha1->length += (CSP_SHA1_BLOCKSIZE * 8);
+			in += CSP_SHA1_BLOCKSIZE;
+			inlen -= CSP_SHA1_BLOCKSIZE;
 		} else {
-		   n = MIN(inlen, (SHA1_BLOCKSIZE - sha1->curlen));
-		   memcpy(sha1->buf + sha1->curlen, in, (size_t)n);
-		   sha1->curlen += n;
-		   in += n;
-		   inlen -= n;
-		   if (sha1->curlen == SHA1_BLOCKSIZE) {
-			  csp_sha1_compress(sha1, sha1->buf);
-			  sha1->length += 8*SHA1_BLOCKSIZE;
-			  sha1->curlen = 0;
-		   }
-	   }
+			n = MIN(inlen, (CSP_SHA1_BLOCKSIZE - sha1->curlen));
+			memcpy(sha1->buf + sha1->curlen, in, (size_t)n);
+			sha1->curlen += n;
+			in += n;
+			inlen -= n;
+			if (sha1->curlen == CSP_SHA1_BLOCKSIZE) {
+				csp_sha1_compress(sha1, sha1->buf);
+				sha1->length += (CSP_SHA1_BLOCKSIZE * 8);
+				sha1->curlen = 0;
+			}
+		}
 	}
 
 }
 
-void csp_sha1_done(csp_sha1_state * sha1, uint8_t * out) {
+void csp_sha1_done(csp_sha1_state_t * sha1, uint8_t * out) {
 
 	uint32_t i;
 
@@ -205,13 +200,12 @@ void csp_sha1_done(csp_sha1_state * sha1, uint8_t * out) {
 
 }
 
-void csp_sha1_memory(const uint8_t * msg, uint32_t len, uint8_t * hash) {
+void csp_sha1_memory(const void * msg, uint32_t len, uint8_t * hash) {
 
-	csp_sha1_state md;
+	csp_sha1_state_t md;
 	csp_sha1_init(&md);
 	csp_sha1_process(&md, msg, len);
 	csp_sha1_done(&md, hash);
 
 }
 
-#endif // CSP_USE_HMAC

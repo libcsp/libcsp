@@ -18,29 +18,22 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#include <inttypes.h>
-#include <stdint.h>
+#include <csp/interfaces/csp_if_i2c.h>
 
 #include <csp/csp.h>
 #include <csp/csp_endian.h>
-#include <csp/csp_interface.h>
-#include <csp/csp_error.h>
-#include <csp/interfaces/csp_if_i2c.h>
-#include <csp/drivers/i2c.h>
 
-static int csp_i2c_handle = 0;
+// Ensure certain fields in the csp_i2c_frame_t matches the fields in the csp_packet_t
+CSP_STATIC_ASSERT(offsetof(csp_i2c_frame_t, len) == offsetof(csp_packet_t, length), len_field_misaligned);
+CSP_STATIC_ASSERT(offsetof(csp_i2c_frame_t, data) == offsetof(csp_packet_t, id), data_field_misaligned);
 
-int csp_i2c_tx(csp_iface_t * interface, csp_packet_t * packet, uint32_t timeout) {
+int csp_i2c_tx(const csp_route_t * ifroute, csp_packet_t * packet) {
 
 	/* Cast the CSP packet buffer into an i2c frame */
-	i2c_frame_t * frame = (i2c_frame_t *) packet;
+	csp_i2c_frame_t * frame = (csp_i2c_frame_t *) packet;
 
 	/* Insert destination node into the i2c destination field */
-	if (csp_rtable_find_mac(packet->id.dst) == CSP_NODE_MAC) {
-		frame->dest = packet->id.dst;
-	} else {
-		frame->dest = csp_rtable_find_mac(packet->id.dst);
-	}
+	frame->dest = (ifroute->via != CSP_NO_VIA_ADDRESS) ? ifroute->via : packet->id.dst;
 
 	/* Save the outgoing id in the buffer */
 	packet->id.ext = csp_hton32(packet->id.ext);
@@ -51,15 +44,13 @@ int csp_i2c_tx(csp_iface_t * interface, csp_packet_t * packet, uint32_t timeout)
 
 	/* Some I2C drivers support X number of retries
 	 * CSP don't care about this. If it doesn't work the first
-	 * time, don'y use time on it.
+	 * time, don't use time on it.
 	 */
 	frame->retries = 0;
 
-	/* enqueue the frame */
-	if (i2c_send(csp_i2c_handle, frame, timeout) != E_NO_ERR)
-		return CSP_ERR_DRIVER;
-
-	return CSP_ERR_NONE;
+	/* send frame */
+        csp_i2c_interface_data_t * ifdata = ifroute->iface->interface_data;
+	return (ifdata->tx_func)(ifroute->iface->driver_data, frame);
 
 }
 
@@ -67,50 +58,55 @@ int csp_i2c_tx(csp_iface_t * interface, csp_packet_t * packet, uint32_t timeout)
  * When a frame is received, cast it to a csp_packet
  * and send it directly to the CSP new packet function.
  * Context: ISR only
- * @param frame
  */
-void csp_i2c_rx(i2c_frame_t * frame, void * pxTaskWoken) {
-
-	static csp_packet_t * packet;
+void csp_i2c_rx(csp_iface_t * iface, csp_i2c_frame_t * frame, void * pxTaskWoken) {
 
 	/* Validate input */
-	if (frame == NULL)
+	if (frame == NULL) {
 		return;
+	}
 
-	if ((frame->len < 4) || (frame->len > I2C_MTU)) {
-		csp_if_i2c.frame++;
-		csp_buffer_free_isr(frame);
+	if (frame->len < sizeof(csp_id_t)) {
+		iface->frame++;
+		(pxTaskWoken != NULL) ? csp_buffer_free_isr(frame) : csp_buffer_free(frame);
 		return;
 	}
 
 	/* Strip the CSP header off the length field before converting to CSP packet */
 	frame->len -= sizeof(csp_id_t);
 
+	if (frame->len > csp_buffer_data_size()) { // consistency check, should never happen
+		iface->rx_error++;
+		(pxTaskWoken != NULL) ? csp_buffer_free_isr(frame) : csp_buffer_free(frame);
+		return;
+	}
+
 	/* Convert the packet from network to host order */
-	packet = (csp_packet_t *) frame;
+	csp_packet_t * packet = (csp_packet_t *) frame;
 	packet->id.ext = csp_ntoh32(packet->id.ext);
 
 	/* Receive the packet in CSP */
-	csp_new_packet(packet, &csp_if_i2c, pxTaskWoken);
+	csp_qfifo_write(packet, iface, pxTaskWoken);
 
 }
 
-int csp_i2c_init(uint8_t addr, int handle, int speed) {
+int csp_i2c_add_interface(csp_iface_t * iface) {
 
-	/* Create i2c_handle */
-	csp_i2c_handle = handle;
-	if (i2c_init(csp_i2c_handle, I2C_MASTER, addr, speed, 10, 10, csp_i2c_rx) != E_NO_ERR)
-		return CSP_ERR_DRIVER;
+	if ((iface == NULL) || (iface->name == NULL) || (iface->interface_data == NULL)) {
+		return CSP_ERR_INVAL;
+	}
 
-	/* Register interface */
-	csp_iflist_add(&csp_if_i2c);
+	csp_i2c_interface_data_t * ifdata = iface->interface_data;
+	if (ifdata->tx_func == NULL) {
+		return CSP_ERR_INVAL;
+	}
 
-	return CSP_ERR_NONE;
+        const unsigned int max_data_size = csp_buffer_data_size();
+        if ((iface->mtu == 0) || (iface->mtu > max_data_size)) {
+		iface->mtu = max_data_size;
+	}
 
+        iface->nexthop = csp_i2c_tx;
+
+	return csp_iflist_add(iface);
 }
-
-/** Interface definition */
-csp_iface_t csp_if_i2c = {
-	.name = "I2C",
-	.nexthop = csp_i2c_tx,
-};

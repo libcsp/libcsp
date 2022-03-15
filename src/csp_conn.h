@@ -21,29 +21,31 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef _CSP_CONN_H_
 #define _CSP_CONN_H_
 
+#include <csp/csp.h>
+#include <csp/arch/csp_queue.h>
+#include <csp/arch/csp_semaphore.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include <stdint.h>
+#ifndef CSP_USE_RDP_FAST_CLOSE
+#define CSP_USE_RDP_FAST_CLOSE 0
+#endif
 
-#include <csp/csp.h>
-
-#include <csp/arch/csp_queue.h>
-#include <csp/arch/csp_semaphore.h>
-
-/** @brief Connection states */
+/** Connection states */
 typedef enum {
 	CONN_CLOSED = 0,
 	CONN_OPEN = 1,
 } csp_conn_state_t;
 
-/** @brief Connection types */
+/** Connection types */
 typedef enum {
 	CONN_CLIENT = 0,
 	CONN_SERVER = 1,
 } csp_conn_type_t;
 
+/** RDP Connection states */
 typedef enum {
 	RDP_CLOSED = 0,
 	RDP_SYN_SENT,
@@ -52,10 +54,17 @@ typedef enum {
 	RDP_CLOSE_WAIT,
 } csp_rdp_state_t;
 
-/** @brief RDP Connection header
- *  @note Do not try to pack this struct, the posix sem handle will stop working */
+#define CSP_RDP_CLOSED_BY_USERSPACE  0x01
+#define CSP_RDP_CLOSED_BY_PROTOCOL   0x02
+#define CSP_RDP_CLOSED_BY_TIMEOUT    0x04
+#define CSP_RDP_CLOSED_BY_ALL        (CSP_RDP_CLOSED_BY_USERSPACE | CSP_RDP_CLOSED_BY_PROTOCOL | CSP_RDP_CLOSED_BY_TIMEOUT)
+
+/**
+ * RDP Connection
+ */
 typedef struct {
 	csp_rdp_state_t state;		/**< Connection state */
+	uint8_t closed_by;		/**< Tracks 'who' have closed the RDP connection */
 	uint16_t snd_nxt;		/**< The sequence number of the next segment that is to be sent */
 	uint16_t snd_una;		/**< The sequence number of the oldest unacknowledged segment */
 	uint16_t snd_iss;		/**< The initial send sequence number */
@@ -77,24 +86,21 @@ typedef struct {
 /** @brief Connection struct */
 struct csp_conn_s {
 	csp_conn_type_t type;		/* Connection type (CONN_CLIENT or CONN_SERVER) */
-	csp_conn_state_t state;		/* Connection state (SOCKET_OPEN or SOCKET_CLOSED) */
-	csp_mutex_t lock;		/* Connection structure lock */
+	csp_conn_state_t state;		/* Connection state (CONN_OPEN or CONN_CLOSED) */
 	csp_id_t idin;			/* Identifier received */
 	csp_id_t idout;			/* Identifier transmitted */
-#ifdef CSP_USE_QOS
+#if (CSP_USE_QOS)
 	csp_queue_handle_t rx_event;	/* Event queue for RX packets */
 #endif
 	csp_queue_handle_t rx_queue[CSP_RX_QUEUES]; /* Queue for RX packets */
 	csp_queue_handle_t socket;	/* Socket to be "woken" when first packet is ready */
 	uint32_t timestamp;		/* Time the connection was opened */
 	uint32_t opts;			/* Connection or socket options */
-#ifdef CSP_USE_RDP
+#if (CSP_USE_RDP)
 	csp_rdp_t rdp;			/* RDP state */
 #endif
 };
 
-int csp_conn_lock(csp_conn_t * conn, uint32_t timeout);
-int csp_conn_unlock(csp_conn_t * conn);
 int csp_conn_enqueue_packet(csp_conn_t * conn, csp_packet_t * packet);
 int csp_conn_init(void);
 csp_conn_t * csp_conn_allocate(csp_conn_type_t type);
@@ -102,9 +108,12 @@ csp_conn_t * csp_conn_find(uint32_t id, uint32_t mask);
 csp_conn_t * csp_conn_new(csp_id_t idin, csp_id_t idout);
 void csp_conn_check_timeouts(void);
 int csp_conn_get_rxq(int prio);
+int csp_conn_close(csp_conn_t * conn, uint8_t closed_by);
+
+const csp_conn_t * csp_conn_get_array(size_t * size); // for test purposes only!
+void csp_conn_free_resources(void);
 
 #ifdef __cplusplus
-} /* extern "C" */
+}
 #endif
-
-#endif // _CSP_CONN_H_
+#endif

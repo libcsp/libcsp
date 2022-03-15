@@ -1,7 +1,7 @@
 /*
 Cubesat Space Protocol - A small network-layer protocol designed for Cubesats
 Copyright (C) 2012 Gomspace ApS (http://www.gomspace.com)
-Copyright (C) 2012 AAUSAT3 Project (http://aausat3.space.aau.dk) 
+Copyright (C) 2012 AAUSAT3 Project (http://aausat3.space.aau.dk)
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
@@ -31,13 +31,12 @@ http://code.google.com/p/c-pthread-queue/
 #include <mach/clock.h>
 #include <mach/mach.h>
 
-/* CSP includes */
 #include <csp/arch/posix/pthread_queue.h>
 
 pthread_queue_t * pthread_queue_create(int length, size_t item_size) {
-	
+
 	pthread_queue_t * q = malloc(sizeof(pthread_queue_t));
-	
+
 	if (q != NULL) {
 		q->buffer = malloc(length*item_size);
 		if (q->buffer != NULL) {
@@ -58,7 +57,7 @@ pthread_queue_t * pthread_queue_create(int length, size_t item_size) {
 	}
 
 	return q;
-	
+
 }
 
 void pthread_queue_delete(pthread_queue_t * q) {
@@ -73,8 +72,8 @@ void pthread_queue_delete(pthread_queue_t * q) {
 
 }
 
-int pthread_queue_enqueue(pthread_queue_t * queue, void * value, uint32_t timeout) {
-	
+int pthread_queue_enqueue(pthread_queue_t * queue, const void * value, uint32_t timeout) {
+
 	int ret;
 
 	/* Calculate timeout */
@@ -108,23 +107,23 @@ int pthread_queue_enqueue(pthread_queue_t * queue, void * value, uint32_t timeou
 		}
 	}
 
-	/* Coby object from input buffer */
+	/* Copy object from input buffer */
 	memcpy(queue->buffer+(queue->in * queue->item_size), value, queue->item_size);
 	queue->items++;
 	queue->in = (queue->in + 1) % queue->size;
 	pthread_mutex_unlock(&(queue->mutex));
-	
+
 	/* Nofify blocked threads */
 	pthread_cond_broadcast(&(queue->cond_empty));
-	
+
 	return PTHREAD_QUEUE_OK;
-	
+
 }
 
 int pthread_queue_dequeue(pthread_queue_t * queue, void * buf, uint32_t timeout) {
 
 	int ret;
-	
+
 	/* Calculate timeout */
 	struct timespec ts;
 	clock_serv_t cclock;
@@ -134,17 +133,17 @@ int pthread_queue_dequeue(pthread_queue_t * queue, void * buf, uint32_t timeout)
 	mach_port_deallocate(mach_task_self(), cclock);
 	ts.tv_sec = mts.tv_sec;
 	ts.tv_nsec = mts.tv_nsec;
-	
+
 	uint32_t sec = timeout / 1000;
 	uint32_t nsec = (timeout - 1000 * sec) * 1000000;
 
 	ts.tv_sec += sec;
-	
+
 	if (ts.tv_nsec + nsec > 1000000000)
 		ts.tv_sec++;
 
 	ts.tv_nsec = (ts.tv_nsec + nsec) % 1000000000;
-	
+
 	/* Get queue lock */
 	pthread_mutex_lock(&(queue->mutex));
 	while (queue->items == 0) {
@@ -155,17 +154,17 @@ int pthread_queue_dequeue(pthread_queue_t * queue, void * buf, uint32_t timeout)
 		}
 	}
 
-	/* Coby object to output buffer */
+	/* Copy object to output buffer */
 	memcpy(buf, queue->buffer+(queue->out * queue->item_size), queue->item_size);
 	queue->items--;
 	queue->out = (queue->out + 1) % queue->size;
 	pthread_mutex_unlock(&(queue->mutex));
-	
+
 	/* Nofify blocked threads */
 	pthread_cond_broadcast(&(queue->cond_full));
 
 	return PTHREAD_QUEUE_OK;
-	
+
 }
 
 int pthread_queue_items(pthread_queue_t * queue) {
@@ -173,7 +172,7 @@ int pthread_queue_items(pthread_queue_t * queue) {
 	pthread_mutex_lock(&(queue->mutex));
 	int items = queue->items;
 	pthread_mutex_unlock(&(queue->mutex));
-	
+
 	return items;
-	
+
 }
