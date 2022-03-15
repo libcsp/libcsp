@@ -27,6 +27,8 @@
 #include "util/service_utilities.h"
 #include "circular_buffer.h"
 #include "fec.h"
+#include "rfModeWrapper.h"
+#include "error_correctionWrapper.h"
 
 typedef struct {
     char name[CSP_IFLIST_NAME_MAX + 1];
@@ -38,12 +40,15 @@ typedef struct {
 #define SDR_RX_QUEUE_SIZE 8
 #define MPDU_FIFO_SIZE 16
 
-#define SDR_STACK_SIZE 256
+#define TX_TASK_SIZE 512
+#define SDR_STACK_SIZE 512
 
 /* Unfortunately, FreeRTOS doesn't support a timer callback arg, so we have to
  * use static data.
  */
 static sdr_context_t *tx_timer_ctx;
+
+SemaphoreHandle_t tx_timer_sem;
 
 static void tx_timer_cb( TimerHandle_t xTimer );
 
@@ -89,18 +94,27 @@ static void sdr_tx_thread(void *arg) {
     }
 }
 
+static void tx_timer_task(void *arg) {
+    uint8_t *buf;
+    sdr_context_t *ctx = (sdr_context_t *) arg;
+
+    while (1) {
+        xSemaphoreTake(tx_timer_sem, portMAX_DELAY);
+        int mtu = fec_get_next_mpdu(&buf);
+        if (mtu == 0) {
+            xTimerStop(ctx->ifdata.tx_timer, 0);
+        }
+        else {
+            (ctx->ifdata.tx_mac)(ctx->ifdata.mac_data, buf, mtu);
+        }
+    }
+}
+
 static void tx_timer_cb( TimerHandle_t xTimer ) {
     /* Warning: although the FreeRTOS docs say we're running this callback in a
      * timer thread, it seems like any blocking call will mess things up.
      */
-    uint8_t *buf;
-    int mtu = fec_get_next_mpdu(&buf);
-    if (mtu == 0) {
-        xTimerStop(xTimer, 0);
-    }
-    else {
-        (tx_timer_ctx->ifdata.tx_mac)(tx_timer_ctx->ifdata.mac_data, buf, mtu);
-    }
+    xSemaphoreGive(tx_timer_sem);
 }
 
 static void sdr_rx_thread(void *arg) {
@@ -169,6 +183,9 @@ int csp_sdr_open_and_add_interface(const csp_sdr_conf_t *conf, const char *ifnam
         return res;
     }
 
+    tx_timer_sem = xSemaphoreCreateBinary();
+    xTaskCreate(tx_timer_task, "sdr_time_tx", TX_TASK_SIZE, ctx, configMAX_PRIORITIES - 1, NULL);
+
     ifdata->tx_queue = xQueueCreate((unsigned portBASE_TYPE) SDR_TX_QUEUE_SIZE,
                                         (unsigned portBASE_TYPE)sizeof(void*));
     ifdata->tx_sema = xSemaphoreCreateBinary();
@@ -184,6 +201,8 @@ int csp_sdr_open_and_add_interface(const csp_sdr_conf_t *conf, const char *ifnam
     if (return_iface) {
         *return_iface = &ctx->iface;
     }
+
+    fec_create(RF_MODE_3, NO_FEC);
 
     return CSP_ERR_NONE;
 }
