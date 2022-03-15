@@ -1,11 +1,8 @@
 #ifndef CSP_INTERFACES_CSP_IF_SDR_H
 #define CSP_INTERFACES_CSP_IF_SDR_H
 
-#include <FreeRTOS.h>
-#include <os_queue.h>
-#include <os_semphr.h>
-#include <os_task.h>
-#include <os_timer.h>
+#include <csp/arch/csp_queue.h>
+#include <csp/arch/csp_semaphore.h>
 #include <string.h> // for memchr in csp_autoconfig.h
 #include <csp/csp_platform.h>
 
@@ -26,7 +23,7 @@
    @param[in] len length of \a data.
    @return #CSP_ERR_NONE on success, otherwise an error code.
 */
-typedef int (*csp_sdr_driver_tx_t)(void *driver_data, const uint8_t * data, size_t len);
+typedef int (*csp_sdr_driver_tx_t)(int, const void * data, size_t len);
 
 enum {
     SDR_CONF_FEC = 1 << 0,
@@ -38,17 +35,15 @@ typedef struct {
     uint16_t mtu;
     uint32_t baudrate;
     /** Transmitter fields */
-    xQueueHandle tx_queue;
-    TickType_t tx_timeout;
+    csp_queue_handle_t tx_queue;
+    int tx_timeout;
     /** Semaphore to block CSP sender until data has been queued for sending */
-    SemaphoreHandle_t tx_sema;
-    /** The timer paces the low-level transmits based on the baudrate */
-    TimerHandle_t tx_timer;
+    csp_bin_sem_handle_t tx_sema;
     /** Low level transmit function */
     csp_sdr_driver_tx_t tx_mac;
     void *mac_data;
     /** Receiver fields */
-    xQueueHandle rx_queue;
+    csp_queue_handle_t rx_queue;
     /** Low level buffer state */
     uint16_t rx_mpdu_index;
     uint8_t rx_mpdu[SDR_UHF_MAX_MTU];

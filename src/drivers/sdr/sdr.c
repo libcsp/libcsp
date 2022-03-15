@@ -48,6 +48,8 @@ typedef struct {
  */
 static sdr_context_t *tx_timer_ctx;
 
+/** The timer paces the low-level transmits based on the baudrate */
+TimerHandle_t tx_timer;
 SemaphoreHandle_t tx_timer_sem;
 
 static void tx_timer_cb( TimerHandle_t xTimer );
@@ -79,9 +81,9 @@ static void sdr_tx_thread(void *arg) {
         ex2_log("uhf Tx thread got a packet: len %d, data: %p", packet->length, (char *) packet->data);
         if (ifdata->config_flags & SDR_CONF_FEC) {
             if (fec_csp_to_mpdu(NULL, packet, ifdata->mtu)) {
-                if (xTimerStart(ctx->ifdata.tx_timer, 0) != pdPASS) {
+                if (xTimerStart(tx_timer), 0) != pdPASS) {
                     ex2_log("could not start timer");
-                    tx_timer_cb(ctx->ifdata.tx_timer);
+                    tx_timer_cb(tx_timer));
                 }
             }
         }
@@ -102,7 +104,7 @@ static void tx_timer_task(void *arg) {
         xSemaphoreTake(tx_timer_sem, portMAX_DELAY);
         int mtu = fec_get_next_mpdu(&buf);
         if (mtu == 0) {
-            xTimerStop(ctx->ifdata.tx_timer, 0);
+            xTimerStop(tx_timer), 0);
         }
         else {
             (ctx->ifdata.tx_mac)(ctx->ifdata.mac_data, buf, mtu);
@@ -191,7 +193,7 @@ int csp_sdr_open_and_add_interface(const csp_sdr_conf_t *conf, const char *ifnam
     ifdata->tx_sema = xSemaphoreCreateBinary();
 
     int timer_period = sdr_uhf_baud_rate_delay[conf->baudrate]/portTICK_PERIOD_MS;
-    ifdata->tx_timer = xTimerCreate("UHF-pacer", timer_period, pdTRUE, (void *) 0, tx_timer_cb);
+    tx_timer = xTimerCreate("UHF-pacer", timer_period, pdTRUE, (void *) 0, tx_timer_cb);
     xTaskCreate(sdr_tx_thread, "sdr_tx", SDR_STACK_SIZE, ctx, 0, NULL);
 
     ifdata->rx_queue = xQueueCreate((unsigned portBASE_TYPE) SDR_RX_QUEUE_SIZE,

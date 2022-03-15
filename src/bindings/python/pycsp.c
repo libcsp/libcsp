@@ -27,6 +27,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/drivers/usart.h>
 #include <csp/drivers/can_socketcan.h>
 #include <csp/csp_endian.h>
+#include <csp/drivers/sdr.h>
 
 #define SOCKET_CAPSULE      "csp_socket_t"
 #define CONNECTION_CAPSULE  "csp_conn_t"
@@ -841,6 +842,26 @@ static PyObject* pycsp_kiss_init(PyObject *self, PyObject *args) {
     Py_RETURN_NONE;
 }
 
+static PyObject* pycsp_sdr_init(PyObject *self, PyObject *args) {
+    //char* device;
+    //uint32_t baudrate = 500000;
+    //uint32_t mtu = 512;
+    //const char* if_name = CSP_IF_KISS_DEFAULT_NAME;
+    //if (!PyArg_ParseTuple(args, "s|IIs", &device, &baudrate, &mtu, &if_name)) {
+    //    return NULL; // TypeError is thrown
+    //}
+    const char *if_name = "UHF";
+    csp_sdr_conf_t uhf_conf = {.use_fec = 1,
+                               .mtu = SDR_UHF_MAX_MTU,
+                               .baudrate = SDR_UHF_9600_BAUD };
+    int res = csp_sdr_open_and_add_interface(&uhf_conf, if_name, NULL);
+    if (res != CSP_ERR_NONE) {
+        return PyErr_Error("csp_sdr_open_and_add_interface()", res);
+    }
+
+    Py_RETURN_NONE;
+}
+
 static PyObject* pycsp_packet_set_data(PyObject *self, PyObject *args) {
     PyObject* packet_capsule;
     Py_buffer data;
@@ -949,6 +970,8 @@ static PyMethodDef methods[] = {
     /* csp/interfaces/csp_if_zmqhub.h */
     {"zmqhub_init",         pycsp_zmqhub_init,         METH_VARARGS, ""},
     {"kiss_init",           pycsp_kiss_init,           METH_VARARGS, ""},
+    {"sdr_init",            pycsp_sdr_init,           METH_VARARGS, ""},
+
 
     /* csp/drivers/can_socketcan.h */
     {"can_socketcan_init",  pycsp_can_socketcan_init,  METH_VARARGS, ""},
