@@ -29,6 +29,7 @@
 #include "fec.h"
 #include "rfModeWrapper.h"
 #include "error_correctionWrapper.h"
+#include "os_timer.h"
 
 typedef struct {
     char name[CSP_IFLIST_NAME_MAX + 1];
@@ -81,9 +82,9 @@ static void sdr_tx_thread(void *arg) {
         ex2_log("uhf Tx thread got a packet: len %d, data: %p", packet->length, (char *) packet->data);
         if (ifdata->config_flags & SDR_CONF_FEC) {
             if (fec_csp_to_mpdu(NULL, packet, ifdata->mtu)) {
-                if (xTimerStart(tx_timer), 0) != pdPASS) {
+                if (xTimerStart(tx_timer, 0) != pdPASS) {
                     ex2_log("could not start timer");
-                    tx_timer_cb(tx_timer));
+                    tx_timer_cb(tx_timer);
                 }
             }
         }
@@ -104,7 +105,7 @@ static void tx_timer_task(void *arg) {
         xSemaphoreTake(tx_timer_sem, portMAX_DELAY);
         int mtu = fec_get_next_mpdu(&buf);
         if (mtu == 0) {
-            xTimerStop(tx_timer), 0);
+            xTimerStop(tx_timer, 0);
         }
         else {
             (ctx->ifdata.tx_mac)(ctx->ifdata.mac_data, buf, mtu);
@@ -138,7 +139,17 @@ static void sdr_rx_thread(void *arg) {
         if (ifdata->config_flags & SDR_CONF_FEC) {
             fec_state_t state = fec_mpdu_to_csp(data, (uint8_t **) &packet, &id, ifdata->mtu);
             if (state) {
+                ex2_log("%s Rx: received a packet, csp length %d", iface->name, packet->length);
+                if (strcmp(iface->name, CSP_IF_SDR_LOOPBACK_NAME) == 0) {
+                    /* This is an unfortunate hack to be able to do loopback.
+                     * We have to change the outgoing packet destination (the
+                     * device) to the incoming destination (us) or else CSP will
+                     * drop the packet.
+                     */
+                    packet->id.dst = conf->address;
+                }
                 csp_qfifo_write(packet, iface, NULL);
+                //csp_buffer_free(packet);
             }
 
         }
