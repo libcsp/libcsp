@@ -23,8 +23,10 @@ int csp_sdr_tx(const csp_route_t *ifroute, csp_packet_t *packet) {
 static void csp_sdr_usart_rx(void *cb_data, uint8_t *buf, size_t len, void *pxTaskWoken) {
     csp_iface_t *iface = (csp_iface_t *) cb_data;
     csp_sdr_interface_data_t *ifdata = iface->interface_data;
-    ifdata->rx_mpdu[ifdata->rx_mpdu_index] = *buf;
-    ifdata->rx_mpdu_index++;
+    while (len--) {  
+        ifdata->rx_mpdu[ifdata->rx_mpdu_index] = *buf;
+        ifdata->rx_mpdu_index++;
+    }
     if (ifdata->rx_mpdu_index >= SDR_UHF_MAX_MTU) {
         ifdata->rx_mpdu_index = 0;
         if (csp_queue_enqueue(ifdata->rx_queue, ifdata->rx_mpdu, QUEUE_NO_WAIT) != true) {
@@ -53,9 +55,11 @@ int csp_sdr_add_interface(csp_iface_t * iface) {
             return res;
         }
     }
+    #ifndef CSP_POSIX
     else if (strcmp(iface->name, CSP_IF_SDR_LOOPBACK_NAME) == 0) {
         ifdata->mac_data = sdr_loopback_open(iface);
     }
+    #endif // CSP_POSIX
 
     iface->nexthop = csp_sdr_tx;
 

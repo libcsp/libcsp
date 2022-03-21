@@ -6,12 +6,11 @@
 extern "C" {
 #endif
 #include <csp/csp_platform.h>
-#include "circular_buffer.h"
 #include <error_correctionWrapper.h>
 #include <rfModeWrapper.h>
 #include <stdbool.h>
 
-bool fec_csp_to_mpdu(CircularBufferHandle fifo, csp_packet_t *packet, int mtu);
+bool fec_csp_to_mpdu(csp_packet_t *packet, int mtu);
 
 /* MPDU->CSP reconstructor state machine */
 typedef enum {

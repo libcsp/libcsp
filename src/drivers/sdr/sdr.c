@@ -21,15 +21,18 @@
 #include <csp/csp.h>
 #include <csp/csp_interface.h>
 #include <csp/arch/csp_malloc.h>
+#include <csp/arch/csp_thread.h>
+#include <csp/arch/csp_queue.h>
+#include <csp/arch/csp_semaphore.h>
 #include <csp/drivers/sdr.h>
-#include "os_queue.h"
-#include "os_task.h"
-#include "util/service_utilities.h"
-#include "circular_buffer.h"
 #include "fec.h"
 #include "rfModeWrapper.h"
 #include "error_correctionWrapper.h"
-#include "os_timer.h"
+
+#ifdef CSP_POSIX
+#include <stdio.h>
+#define ex2_log printf
+#endif // CSP_POSIX
 
 typedef struct {
     char name[CSP_IFLIST_NAME_MAX + 1];
@@ -44,17 +47,6 @@ typedef struct {
 #define TX_TASK_SIZE 512
 #define SDR_STACK_SIZE 512
 
-/* Unfortunately, FreeRTOS doesn't support a timer callback arg, so we have to
- * use static data.
- */
-static sdr_context_t *tx_timer_ctx;
-
-/** The timer paces the low-level transmits based on the baudrate */
-TimerHandle_t tx_timer;
-SemaphoreHandle_t tx_timer_sem;
-
-static void tx_timer_cb( TimerHandle_t xTimer );
-
 /* From the EnduroSat manual, these delays assume the UART speed is 19.2KBaud */
 static int sdr_uhf_baud_rate_delay[] = {
     [SDR_UHF_1200_BAUD] = 920,
@@ -64,63 +56,57 @@ static int sdr_uhf_baud_rate_delay[] = {
     [SDR_UHF_19200_BAUD] = 60
 };
 
-static void sdr_tx_thread(void *arg) {
+static void *sdr_tx_thread(void *arg) {
     sdr_context_t *ctx = (sdr_context_t *) arg;
     csp_sdr_interface_data_t *ifdata = &ctx->ifdata;
-
-    tx_timer_ctx = ctx;
   
     while (1) {
-        QueueHandle_t txq = ifdata->tx_queue;
         csp_packet_t *packet = 0;
-        if (xQueueReceive(txq, &packet, portMAX_DELAY) != pdPASS) {
+        if (csp_queue_dequeue(ifdata->tx_queue, &packet, CSP_MAX_DELAY) != true) {
             ex2_log("queue receive failed");
-            xSemaphoreGive(ifdata->tx_sema);
+            csp_bin_sem_post(&(ifdata->tx_sema));
             continue;
         }
 
         ex2_log("uhf Tx thread got a packet: len %d, data: %p", packet->length, (char *) packet->data);
         if (ifdata->config_flags & SDR_CONF_FEC) {
-            if (fec_csp_to_mpdu(NULL, packet, ifdata->mtu)) {
-                if (xTimerStart(tx_timer, 0) != pdPASS) {
+            if (fec_csp_to_mpdu(packet, ifdata->mtu)) {
+                uint8_t *buf;
+                int delay_time = sdr_uhf_baud_rate_delay[ifdata->baudrate];
+                int mtu = fec_get_next_mpdu((void **)&buf);
+                while (mtu != 0) {
+                    #ifdef CSP_POSIX
+                    (ctx->ifdata.tx_mac)((long)ctx->ifdata.mac_data, buf, mtu);
+                    #endif // CSP_POSIX
+                    #ifdef CSP_FREERTOS
+                    (ctx->ifdata.tx_mac)((int)ctx->ifdata.mac_data, buf, mtu);
+                    #endif // CSP_FREERTOS
+                    mtu = fec_get_next_mpdu((void **)&buf);
+                    csp_sleep_ms(delay_time);
+                }
+                
+                /*if (xTimerStart(tx_timer, 0) != true) {
                     ex2_log("could not start timer");
                     tx_timer_cb(tx_timer);
-                }
+                }*/
             }
         }
         else {
             /* Without FEC, just write the entire CSP packet */
-            (ifdata->tx_mac)(ifdata->mac_data, (const uint8_t *) packet, packet->length);
+            #ifdef CSP_POSIX
+            (ifdata->tx_mac)((long)ifdata->mac_data, (const uint8_t *) packet, packet->length);
+            #endif // CSP_POSIX
+            #ifdef CSP_FREERTOS
+            (ifdata->tx_mac)((int)ifdata->mac_data, (const uint8_t *) packet, packet->length);
+            #endif // CSP_FREERTOS
         }
         /* Unblock the sender so it can free the packet */
-        xSemaphoreGive(ifdata->tx_sema);
+        csp_bin_sem_post(&(ifdata->tx_sema));
     }
+    return 0; // so CSP stops complaining
 }
 
-static void tx_timer_task(void *arg) {
-    uint8_t *buf;
-    sdr_context_t *ctx = (sdr_context_t *) arg;
-
-    while (1) {
-        xSemaphoreTake(tx_timer_sem, portMAX_DELAY);
-        int mtu = fec_get_next_mpdu(&buf);
-        if (mtu == 0) {
-            xTimerStop(tx_timer, 0);
-        }
-        else {
-            (ctx->ifdata.tx_mac)(ctx->ifdata.mac_data, buf, mtu);
-        }
-    }
-}
-
-static void tx_timer_cb( TimerHandle_t xTimer ) {
-    /* Warning: although the FreeRTOS docs say we're running this callback in a
-     * timer thread, it seems like any blocking call will mess things up.
-     */
-    xSemaphoreGive(tx_timer_sem);
-}
-
-static void sdr_rx_thread(void *arg) {
+static void *sdr_rx_thread(void *arg) {
     static uint8_t data[SDR_UHF_MAX_MTU];
     sdr_context_t *ctx = (sdr_context_t *) arg;
     csp_iface_t *iface = &ctx->iface;
@@ -131,13 +117,13 @@ static void sdr_rx_thread(void *arg) {
     uint8_t id = 0;
 
     while (1) {
-        if (xQueueReceive(ifdata->rx_queue, data, portMAX_DELAY) != pdPASS) {
+        if (csp_queue_dequeue(ifdata->rx_queue, data, CSP_MAX_TIMEOUT) != true) {
             ex2_log("SDR loopback: queue receive failed");
             continue;
         }
 
         if (ifdata->config_flags & SDR_CONF_FEC) {
-            fec_state_t state = fec_mpdu_to_csp(data, (uint8_t **) &packet, &id, ifdata->mtu);
+            fec_state_t state = fec_mpdu_to_csp(data, &packet, &id, ifdata->mtu);
             if (state) {
                 ex2_log("%s Rx: received a packet, csp length %d", iface->name, packet->length);
                 if (strcmp(iface->name, CSP_IF_SDR_LOOPBACK_NAME) == 0) {
@@ -167,6 +153,7 @@ static void sdr_rx_thread(void *arg) {
             csp_qfifo_write(packet, iface, NULL);
         }
     }
+    return 0; // so CSP stops complaining
 }
 
 int csp_sdr_open_and_add_interface(const csp_sdr_conf_t *conf, const char *ifname, csp_iface_t **return_iface) {
@@ -186,7 +173,7 @@ int csp_sdr_open_and_add_interface(const csp_sdr_conf_t *conf, const char *ifnam
     if (conf->use_fec)
         ifdata->config_flags = SDR_CONF_FEC;
     ifdata->mtu = conf->mtu;
-    ifdata->baudrate = conf->baudrate;
+    ifdata->baudrate = conf->uart_baudrate;
     ctx->iface.interface_data = &ctx->ifdata;
     ctx->iface.driver_data = ctx;
 
@@ -196,20 +183,15 @@ int csp_sdr_open_and_add_interface(const csp_sdr_conf_t *conf, const char *ifnam
         return res;
     }
 
-    tx_timer_sem = xSemaphoreCreateBinary();
-    xTaskCreate(tx_timer_task, "sdr_time_tx", TX_TASK_SIZE, ctx, configMAX_PRIORITIES - 1, NULL);
+    ifdata->tx_queue = csp_queue_create((unsigned CSP_BASE_TYPE) SDR_TX_QUEUE_SIZE,
+                                        (unsigned CSP_BASE_TYPE)sizeof(void*));
+    csp_bin_sem_create(&(ifdata->tx_sema));
 
-    ifdata->tx_queue = xQueueCreate((unsigned portBASE_TYPE) SDR_TX_QUEUE_SIZE,
-                                        (unsigned portBASE_TYPE)sizeof(void*));
-    ifdata->tx_sema = xSemaphoreCreateBinary();
+    csp_thread_create((csp_thread_func_t)sdr_tx_thread, "sdr_tx", SDR_STACK_SIZE, ctx, 0, NULL);
 
-    int timer_period = sdr_uhf_baud_rate_delay[conf->baudrate]/portTICK_PERIOD_MS;
-    tx_timer = xTimerCreate("UHF-pacer", timer_period, pdTRUE, (void *) 0, tx_timer_cb);
-    xTaskCreate(sdr_tx_thread, "sdr_tx", SDR_STACK_SIZE, ctx, 0, NULL);
-
-    ifdata->rx_queue = xQueueCreate((unsigned portBASE_TYPE) SDR_RX_QUEUE_SIZE,
-                                         (unsigned portBASE_TYPE) conf->mtu);
-    xTaskCreate(sdr_rx_thread, "sdr_rx", SDR_STACK_SIZE, ctx, 0, NULL);
+    ifdata->rx_queue = csp_queue_create((unsigned CSP_BASE_TYPE) SDR_RX_QUEUE_SIZE,
+                                         (unsigned CSP_BASE_TYPE) conf->mtu);
+    csp_thread_create((csp_thread_func_t)sdr_rx_thread, "sdr_rx", SDR_STACK_SIZE, ctx, 0, NULL);
 
     if (return_iface) {
         *return_iface = &ctx->iface;

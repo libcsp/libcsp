@@ -167,10 +167,12 @@ int getbaud(int ifd) {
 }
 #endif
 
-int csp_usart_write(csp_usart_fd_t fd, const void * data, size_t data_length) {
+static csp_usart_fd_t send_fd;
 
-	if (fd >= 0) {
-		int res = write(fd, data, data_length);
+int csp_usart_write(csp_usart_fd_t fd, const void * data, size_t data_length) {
+	printf("\n%d\n", send_fd);
+	if (send_fd >= 0) {
+		int res = write(send_fd, data, data_length);
 		if (res >= 0) {
 			return res;
 		}
@@ -262,7 +264,8 @@ int csp_usart_open(const csp_usart_conf_t *conf, csp_usart_callback_t rx_callbac
 			return CSP_ERR_NOMEM;
 		}
 	}
-
+	printf("FD: %d\n\n", fd);
+	send_fd = fd;
         if (return_fd) {
             *return_fd = fd;
 	}

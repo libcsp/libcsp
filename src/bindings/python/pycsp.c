@@ -853,7 +853,8 @@ static PyObject* pycsp_sdr_init(PyObject *self, PyObject *args) {
     const char *if_name = "UHF";
     csp_sdr_conf_t uhf_conf = {.use_fec = 1,
                                .mtu = SDR_UHF_MAX_MTU,
-                               .baudrate = SDR_UHF_9600_BAUD };
+                               .baudrate = SDR_UHF_9600_BAUD,
+                               .uart_baudrate = 115200 };
     int res = csp_sdr_open_and_add_interface(&uhf_conf, if_name, NULL);
     if (res != CSP_ERR_NONE) {
         return PyErr_Error("csp_sdr_open_and_add_interface()", res);

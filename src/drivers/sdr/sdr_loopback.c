@@ -1,17 +1,14 @@
-#include <FreeRTOS.h>
-#include <os_task.h>
-#include <os_queue.h>
 #include <string.h>
 #include <csp/csp_interface.h>
 #include <csp/arch/csp_malloc.h>
 #include <csp/drivers/sdr.h>
-#include <util/service_utilities.h>
+#include <csp/arch/csp_queue.h>
 
-static int sdr_loopback_tx(void *iface, const uint8_t *data, size_t len) {
+static int sdr_loopback_tx(int iface, const void *data, size_t len) {
     csp_sdr_interface_data_t *ifdata = ((csp_iface_t *) iface)->interface_data;
 
     /* The UHF payload is always MTU bytes */
-    if (xQueueSend(ifdata->rx_queue, data, QUEUE_NO_WAIT) != pdPASS) {
+    if (csp_queue_enqueue(ifdata->rx_queue, (const uint8_t *)data, QUEUE_NO_WAIT) != true) {
         return CSP_ERR_NOBUFS;
     }
 
