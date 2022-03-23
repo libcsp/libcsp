@@ -93,7 +93,8 @@ void csp_sciNotification(sciBASE_t *sci, unsigned flags) {
     case SCI_RX_INT:
         xQueueSendToBackFromISR( sciData, &incomingData, &xHigherPriorityTaskWoken );
         sciReceive(sci, sizeof(uint8_t), &incomingData);
-        uhf_pipe_timer_reset_from_isr(&xHigherPriorityTaskWoken);
+        // TODO: Make this work
+        //uhf_pipe_timer_reset_from_isr(&xHigherPriorityTaskWoken);
         portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
         break;
     case SCI_TX_INT:
