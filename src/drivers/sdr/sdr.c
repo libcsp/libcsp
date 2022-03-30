@@ -20,6 +20,7 @@
 #include <string.h>
 #include <csp/csp.h>
 #include <csp/csp_interface.h>
+#include <csp/csp_endian.h>
 #include <csp/arch/csp_malloc.h>
 #include <csp/arch/csp_thread.h>
 #include <csp/arch/csp_queue.h>
@@ -68,7 +69,9 @@ static void *sdr_tx_thread(void *arg) {
             continue;
         }
 
-        ex2_log("uhf Tx thread got a packet: len %d, data: %p", packet->length, (char *) packet->data);
+        uint16_t plen = csp_ntoh16(packet->length);
+        csp_id_t idout;
+        idout.ext = csp_ntoh32(packet->id.ext);
         if (ifdata->config_flags & SDR_CONF_FEC) {
             if (fec_csp_to_mpdu(packet, ifdata->mtu)) {
                 uint8_t *buf;
@@ -94,10 +97,10 @@ static void *sdr_tx_thread(void *arg) {
         else {
             /* Without FEC, just write the entire CSP packet */
             #ifdef CSP_POSIX
-            (ifdata->tx_mac)((long)ifdata->mac_data, (const uint8_t *) packet, packet->length);
+            (ifdata->tx_mac)((long)ifdata->mac_data, (const uint8_t *) packet, plen);
             #endif // CSP_POSIX
             #ifdef CSP_FREERTOS
-            (ifdata->tx_mac)((int)ifdata->mac_data, (const uint8_t *) packet, packet->length);
+            (ifdata->tx_mac)((int)ifdata->mac_data, (const uint8_t *) packet, plen);
             #endif // CSP_FREERTOS
         }
         /* Unblock the sender so it can free the packet */
@@ -125,7 +128,7 @@ static void *sdr_rx_thread(void *arg) {
         if (ifdata->config_flags & SDR_CONF_FEC) {
             fec_state_t state = fec_mpdu_to_csp(data, &packet, &id, ifdata->mtu);
             if (state) {
-                ex2_log("%s Rx: received a packet, csp length %d", iface->name, packet->length);
+                ex2_log("%s Rx: received a packet, csp length %d", iface->name, csp_ntoh16(packet->length));
                 if (strcmp(iface->name, CSP_IF_SDR_LOOPBACK_NAME) == 0) {
                     /* This is an unfortunate hack to be able to do loopback.
                      * We have to change the outgoing packet destination (the
@@ -141,15 +144,16 @@ static void *sdr_rx_thread(void *arg) {
         }
         else {
             csp_packet_t *incoming = (csp_packet_t *) data;
-            packet = csp_buffer_get(incoming->length);
+            uint16_t plen = csp_ntoh16(incoming->length);
+            packet = csp_buffer_get(plen);
             if (!packet) {
                 ex2_log("no more CSP packets");
                 break;
             }
             packet->length = incoming->length;
-            ex2_log("%s Rx: received a packet, csp length %d", iface->name, packet->length);
+            ex2_log("%s Rx: received a packet, csp length %d", iface->name, plen);
 
-            memcpy(packet->data, incoming->data, incoming->length);
+            memcpy(packet->data, incoming->data, plen);
             csp_qfifo_write(packet, iface, NULL);
         }
     }
