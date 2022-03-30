@@ -1014,7 +1014,7 @@ int csp_rdp_send(csp_conn_t * conn, csp_packet_t * packet) {
 				"rst %u, seq_nr %5u, ack_nr %5u, packet_len %u (%u)",
 				conn, conn->rdp.state, tx_header->syn, tx_header->ack, tx_header->eak,
 				tx_header->rst, csp_ntoh16(tx_header->seq_nr), csp_ntoh16(tx_header->ack_nr),
-				packet->length, (unsigned int)(packet->length - sizeof(rdp_header_t)));
+				csp_ntoh16(packet->length), (unsigned int)(csp_ntoh16(packet->length) - sizeof(rdp_header_t)));
 
 	conn->rdp.snd_nxt++;
 	return CSP_ERR_NONE;
