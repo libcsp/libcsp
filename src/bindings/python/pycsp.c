@@ -599,7 +599,6 @@ static PyObject* pycsp_buffer_get(PyObject *self, PyObject *args) {
     if (!PyArg_ParseTuple(args, "n", &size)) {
         return NULL; // TypeError is thrown
     }
-
     void* packet = csp_buffer_get(size);
     if (packet == NULL) {
         return PyErr_Error("csp_buffer_get() - no free buffers or data overrun", CSP_ERR_NOMEM);
@@ -857,7 +856,7 @@ static PyObject* pycsp_packet_set_data(PyObject *self, PyObject *args) {
     }
 
     memcpy(packet->data, data.buf, data.len);
-    packet->length = data.len;
+    packet->length = csp_hton16((uint16_t) data.len);
 
     Py_RETURN_NONE;
 }
@@ -867,7 +866,7 @@ static PyObject* pycsp_packet_get_data(PyObject *self, PyObject *packet_capsule)
     if (packet == NULL) {
         return NULL; // TypeError is thrown
     }
-    return Py_BuildValue("y#", packet->data, packet->length);
+    return Py_BuildValue("y#", packet->data, csp_ntoh16(packet->length));
 }
 
 static PyObject* pycsp_packet_get_length(PyObject *self, PyObject *packet_capsule) {
@@ -875,7 +874,7 @@ static PyObject* pycsp_packet_get_length(PyObject *self, PyObject *packet_capsul
     if (packet == NULL) {
         return NULL; // TypeError is thrown
     }
-    return Py_BuildValue("H", packet->length);
+    return Py_BuildValue("H", csp_ntoh16(packet->length));
 }
 
 static PyObject* pycsp_print_connections(PyObject *self, PyObject *args) {

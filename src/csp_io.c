@@ -180,15 +180,15 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, const csp_route_t * i
 	csp_iface_t * ifout = ifroute->iface;
 
 	csp_log_packet("OUT: S %u, D %u, Dp %u, Sp %u, Pr %u, Fl 0x%02X, Sz %u VIA: %s (%u)",
-                       idout.src, idout.dst, idout.dport, idout.sport, idout.pri, idout.flags, packet->length, ifout->name, (ifroute->via != CSP_NO_VIA_ADDRESS) ? ifroute->via : idout.dst);
+                       idout.src, idout.dst, idout.dport, idout.sport, idout.pri, idout.flags, csp_ntoh16(packet->length), ifout->name, (ifroute->via != CSP_NO_VIA_ADDRESS) ? ifroute->via : idout.dst);
 
 	/* Copy identifier to packet (before crc, xtea and hmac) */
-	packet->id.ext = idout.ext;
+	packet->id.ext = csp_hton32(idout.ext);
 
 #if (CSP_USE_PROMISC)
 	/* Loopback traffic is added to promisc queue by the router */
 	if (idout.dst != csp_get_address() && idout.src == csp_get_address()) {
-		packet->id.ext = idout.ext;
+	        packet->id.ext = csp_hton32(idout.ext);
 		csp_promisc_add(packet);
 	}
 #endif
@@ -241,7 +241,7 @@ int csp_send_direct(csp_id_t idout, csp_packet_t * packet, const csp_route_t * i
 	}
 
 	/* Store length before passing to interface */
-	uint16_t bytes = packet->length;
+	uint16_t bytes = csp_ntoh16(packet->length);
 	uint16_t mtu = ifout->mtu;
 
 	if (mtu > 0 && bytes > mtu)
@@ -297,7 +297,7 @@ int csp_transaction_persistent(csp_conn_t * conn, uint32_t timeout, void * outbu
 	/* Copy the request */
 	if (outlen > 0 && outbuf != NULL)
 		memcpy(packet->data, outbuf, outlen);
-	packet->length = outlen;
+	packet->length = csp_hton16(outlen);
 
 	if (!csp_send(conn, packet, timeout)) {
 		csp_buffer_free(packet);
@@ -312,14 +312,14 @@ int csp_transaction_persistent(csp_conn_t * conn, uint32_t timeout, void * outbu
 	if (packet == NULL)
 		return 0;
 
-	if ((inlen != -1) && ((int)packet->length != inlen)) {
-		csp_log_error("Reply length %u expected %u", packet->length, inlen);
+	int length = csp_ntoh16(packet->length);
+	if ((inlen != -1) && (length != inlen)) {
+		csp_log_error("Reply length %u expected %u", length, inlen);
 		csp_buffer_free(packet);
 		return 0;
 	}
 
-	memcpy(inbuf, packet->data, packet->length);
-	int length = packet->length;
+	memcpy(inbuf, packet->data, length);
 	csp_buffer_free(packet);
 	return length;
 
@@ -353,7 +353,9 @@ csp_packet_t * csp_recvfrom(csp_socket_t * socket, uint32_t timeout) {
 
 int csp_sendto(uint8_t prio, uint8_t dest, uint8_t dport, uint8_t src_port, uint32_t opts, csp_packet_t * packet, uint32_t timeout) {
 
-	packet->id.flags = 0;
+        csp_id_t idout;
+	idout.ext = csp_ntoh32(packet->id.ext);
+	idout.flags = 0;
 
 	if (opts & CSP_O_RDP) {
 		csp_log_error("Attempt to create RDP packet on connection-less socket");
@@ -362,7 +364,7 @@ int csp_sendto(uint8_t prio, uint8_t dest, uint8_t dport, uint8_t src_port, uint
 
 	if (opts & CSP_O_HMAC) {
 #if (CSP_USE_HMAC)
-		packet->id.flags |= CSP_FHMAC;
+		idout.flags |= CSP_FHMAC;
 #else
 		csp_log_error("Attempt to create HMAC authenticated packet, but CSP was compiled without HMAC support");
 		return CSP_ERR_NOTSUP;
@@ -371,7 +373,7 @@ int csp_sendto(uint8_t prio, uint8_t dest, uint8_t dport, uint8_t src_port, uint
 
 	if (opts & CSP_O_XTEA) {
 #if (CSP_USE_XTEA)
-		packet->id.flags |= CSP_FXTEA;
+		idout.flags |= CSP_FXTEA;
 #else
 		csp_log_error("Attempt to create XTEA encrypted packet, but CSP was compiled without XTEA support");
 		return CSP_ERR_NOTSUP;
@@ -380,19 +382,19 @@ int csp_sendto(uint8_t prio, uint8_t dest, uint8_t dport, uint8_t src_port, uint
 
 	if (opts & CSP_O_CRC32) {
 #if (CSP_USE_CRC32)
-		packet->id.flags |= CSP_FCRC32;
+		idout.flags |= CSP_FCRC32;
 #else
 		csp_log_error("Attempt to create CRC32 validated packet, but CSP was compiled without CRC32 support");
 		return CSP_ERR_NOTSUP;
 #endif
 	}
 
-	packet->id.dst = dest;
-	packet->id.dport = dport;
-	packet->id.src = csp_conf.address;
-	packet->id.sport = src_port;
-	packet->id.pri = prio;
-
+	idout.dst = dest;
+	idout.dport = dport;
+	idout.src = csp_conf.address;
+	idout.sport = src_port;
+	idout.pri = prio;
+	packet->id.ext = csp_hton32(idout.ext);
 	if (csp_send_direct(packet->id, packet, csp_rtable_find_route(dest), timeout) != CSP_ERR_NONE)
 		return CSP_ERR_NOTSUP;
 	
@@ -404,5 +406,7 @@ int csp_sendto_reply(const csp_packet_t * request_packet, csp_packet_t * reply_p
 	if (request_packet == NULL)
 		return CSP_ERR_INVAL;
 
-	return csp_sendto(request_packet->id.pri, request_packet->id.src, request_packet->id.sport, request_packet->id.dport, opts, reply_packet, timeout);
+	csp_id_t request_id;
+	request_id.ext = csp_ntoh32(request_packet->id.ext);
+	return csp_sendto(request_id.pri, request_id.src, request_id.sport, request_id.dport, opts, reply_packet, timeout);
 }
