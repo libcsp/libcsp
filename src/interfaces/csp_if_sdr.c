@@ -24,7 +24,7 @@ static void csp_sdr_usart_rx(void *cb_data, uint8_t *buf, size_t len, void *pxTa
     csp_iface_t *iface = (csp_iface_t *) cb_data;
     csp_sdr_interface_data_t *ifdata = iface->interface_data;
     while (len--) {  
-        ifdata->rx_mpdu[ifdata->rx_mpdu_index] = *buf;
+        ifdata->rx_mpdu[ifdata->rx_mpdu_index] = *buf++;
         ifdata->rx_mpdu_index++;
     }
     if (ifdata->rx_mpdu_index >= SDR_UHF_MAX_MTU) {
