@@ -31,7 +31,7 @@ void csp_bin_sem_init(csp_bin_sem_t * sem);
  * @param[in] timeout timeout in mS. Use #CSP_MAX_TIMEOUT for no timeout, e.g. wait forever until locked.
  * @return #CSP_SEMAPHORE_OK on success, otherwise #CSP_SEMAPHORE_ERROR
  */
-int csp_bin_sem_wait(csp_bin_sem_t * sem, unsigned int timeout);
+int csp_bin_sem_wait(csp_bin_sem_t * sem, uint32_t timeout);
 
 /**
  * Signal/unlock semaphore
