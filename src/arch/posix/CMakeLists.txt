@@ -1,6 +1,7 @@
 target_sources(libcsp PRIVATE
   csp_clock.c
   csp_queue.c
+  csp_rand.c
   csp_semaphore.c
   csp_system.c
   csp_time.c

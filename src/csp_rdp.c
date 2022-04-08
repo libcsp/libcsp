@@ -17,6 +17,7 @@
 #include <csp/csp_error.h>
 #include <csp/arch/csp_queue.h>
 #include <csp/arch/csp_time.h>
+#include <csp/arch/csp_rand.h>
 
 #include "csp_port.h"
 #include "csp_conn.h"
@@ -835,8 +836,7 @@ retry:
 	}
 
 	/* Randomize ISS */
-	unsigned int seed = csp_get_ms();
-	conn->rdp.snd_iss = (uint16_t)rand_r(&seed);
+	conn->rdp.snd_iss = csp_rand16();
 	conn->rdp.snd_nxt = conn->rdp.snd_iss + 1;
 	conn->rdp.snd_una = conn->rdp.snd_iss;
 

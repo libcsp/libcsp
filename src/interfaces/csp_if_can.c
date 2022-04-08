@@ -1,6 +1,7 @@
 
 
 #include <csp/interfaces/csp_if_can.h>
+#include <csp/arch/csp_rand.h>
 
 #include <string.h>
 #include <stdlib.h>
@@ -47,8 +48,8 @@ int csp_can1_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t 
 
 	/* Test: random packet loss */
 	if (0) {
-		int random = rand();
-		if (random < RAND_MAX * 0.00005) {
+		int random = csp_rand16();
+		if (random < UINT16_MAX * 0.00005) {
 			return CSP_ERR_DRIVER;
 		}
 	}
