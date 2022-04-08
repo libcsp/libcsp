@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <inttypes.h>
+#include <string.h>
 
 #include <csp/csp.h>
 #include <csp/csp_debug.h>
@@ -13,14 +14,13 @@ static int csp_rtable_parse(const char * rtable, int dry_run) {
 	int valid_entries = 0;
 
 	/* Copy string before running strtok */
-	const size_t str_len = strnlen(rtable, 100);
+	const size_t str_len = strlen(rtable);
 	char rtable_copy[str_len + 1];
 	strncpy(rtable_copy, rtable, str_len);
 	rtable_copy[str_len] = 0;
 
 	/* Get first token */
-	char * saveptr;
-	char * str = strtok_r(rtable_copy, ",", &saveptr);
+	char * str = strtok(rtable_copy, ",");
 	while ((str) && (strlen(str) > 1)) {
 		unsigned int address, via;
 		int netmask;
@@ -41,7 +41,7 @@ static int csp_rtable_parse(const char * rtable, int dry_run) {
 
 		csp_iface_t * ifc = csp_iflist_get_by_name(name);
 		if ((address > csp_id_get_max_nodeid()) || (netmask > (int)csp_id_get_host_bits()) || (ifc == NULL)) {
-			csp_dbg_errno = CSP_DBG_ERR_INVALID_RTABLE_ENTRY; 
+			csp_dbg_errno = CSP_DBG_ERR_INVALID_RTABLE_ENTRY;
 			return CSP_ERR_INVAL;
 		}
 
@@ -53,7 +53,7 @@ static int csp_rtable_parse(const char * rtable, int dry_run) {
 			}
 		}
 		valid_entries++;
-		str = strtok_r(NULL, ",", &saveptr);
+		str = strtok(NULL, ",");
 	}
 
 	return valid_entries;
