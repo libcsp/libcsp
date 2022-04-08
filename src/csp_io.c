@@ -79,7 +79,7 @@ void csp_id_copy(csp_id_t * target, csp_id_t * source) {
 	target->flags = source->flags;
 }
 
-void csp_send_direct(csp_id_t idout, csp_packet_t * packet, csp_iface_t * routed_from) {
+void csp_send_direct(csp_id_t* idout, csp_packet_t * packet, csp_iface_t * routed_from) {
 
 	int from_me = (routed_from == NULL ? 1 : 0);
 
@@ -89,9 +89,9 @@ void csp_send_direct(csp_id_t idout, csp_packet_t * packet, csp_iface_t * routed
 	csp_packet_t * copy = NULL;
 	int local_found = 0;
 
-	while ((iface = csp_iflist_get_by_subnet(idout.dst, iface)) != NULL) {
-		
-		/* Do not send back to same inteface (split horizon) 
+	while ((iface = csp_iflist_get_by_subnet(idout->dst, iface)) != NULL) {
+
+		/* Do not send back to same inteface (split horizon)
 		 * This check is is similar to that below, but faster */
 		if (iface == routed_from) {
 			continue;
@@ -103,8 +103,9 @@ void csp_send_direct(csp_id_t idout, csp_packet_t * packet, csp_iface_t * routed
 		}
 
 		/* Apply outgoing interface address to packet */
-		idout.src = iface->addr;
-		
+		idout->src = iface->addr;
+
+
 		/* Todo: Find an elegant way to avoid making a copy when only a single destination interface
 		 * is found. But without looping the list twice. And without using stack memory.
 		 * Is this even possible? */
@@ -122,31 +123,34 @@ void csp_send_direct(csp_id_t idout, csp_packet_t * packet, csp_iface_t * routed
 	}
 
 	/* Try to send via routing table */
-	csp_route_t * route = csp_rtable_find_route(idout.dst);
+	csp_route_t * route = csp_rtable_find_route(idout->dst);
 	if (route != NULL) {
-		if (idout.src == 0) {
-			idout.src = route->iface->addr;
+		if (idout->src == 0) {
+			idout->src = route->iface->addr;
 		}
 		csp_send_direct_iface(idout, packet, route->iface, route->via, from_me);
 		return;
 	}
 
 	csp_buffer_free(packet);
-	
+
 }
 
-__attribute__((weak)) void csp_output_hook(csp_id_t idout, csp_packet_t * packet, csp_iface_t * iface, uint16_t via, int from_me) {
+__attribute__((weak)) void csp_output_hook(csp_id_t * idout, csp_packet_t * packet, csp_iface_t * iface, uint16_t via, int from_me) {
 	csp_print_packet("OUT: S %u, D %u, Dp %u, Sp %u, Pr %u, Fl 0x%02X, Sz %u VIA: %s (%u)\n",
-				idout.src, idout.dst, idout.dport, idout.sport, idout.pri, idout.flags, packet->length, iface->name, (via != CSP_NO_VIA_ADDRESS) ? via : idout.dst);
+				idout->src, idout->dst, idout->dport, idout->sport, idout->pri, idout->flags, packet->length, iface->name, (via != CSP_NO_VIA_ADDRESS) ? via : idout->dst);
 	return;
 }
 
-void csp_send_direct_iface(csp_id_t idout, csp_packet_t * packet, csp_iface_t * iface, uint16_t via, int from_me) {
+void csp_send_direct_iface(csp_id_t* idout, csp_packet_t * packet, csp_iface_t * iface, uint16_t via, int from_me) {
 
 	csp_output_hook(idout, packet, iface, via, from_me);
 
 	/* Copy identifier to packet (before crc and hmac) */
-	csp_id_copy(&packet->id, &idout);
+	if(idout != &packet->id) {
+		csp_id_copy(&packet->id, idout);
+	}
+
 
 #if (CSP_USE_PROMISC)
 	/* Loopback traffic is added to promisc queue by the router */
@@ -157,9 +161,8 @@ void csp_send_direct_iface(csp_id_t idout, csp_packet_t * packet, csp_iface_t * 
 
 	/* Only encrypt packets from the current node */
 	if (from_me) {
-
 		/* Append HMAC */
-		if (idout.flags & CSP_FHMAC) {
+		if (idout->flags & CSP_FHMAC) {
 #if (CSP_USE_HMAC)
 			/* Calculate and add HMAC (does not include header for backwards compatability with csp1.x) */
 			if (csp_hmac_append(packet, false) != CSP_ERR_NONE) {
@@ -173,7 +176,7 @@ void csp_send_direct_iface(csp_id_t idout, csp_packet_t * packet, csp_iface_t * 
 		}
 
 		/* Append CRC32 */
-		if (idout.flags & CSP_FCRC32) {
+		if (idout->flags & CSP_FCRC32) {
 			/* Calculate and add CRC32 (does not include header for backwards compatability with csp1.x) */
 			if (csp_crc32_append(packet) != CSP_ERR_NONE) {
 				/* CRC32 append failed */
@@ -224,7 +227,7 @@ void csp_send(csp_conn_t * conn, csp_packet_t * packet) {
 	}
 #endif
 
-	csp_send_direct(conn->idout, packet, NULL);
+	csp_send_direct(&conn->idout, packet, NULL);
 
 }
 
@@ -322,7 +325,7 @@ void csp_sendto(uint8_t prio, uint16_t dest, uint8_t dport, uint8_t src_port, ui
 	packet->id.sport = src_port;
 	packet->id.pri = prio;
 
-	csp_send_direct(packet->id, packet, NULL);
+	csp_send_direct(&packet->id, packet, NULL);
 
 }
 
@@ -334,6 +337,5 @@ void csp_sendto_reply(const csp_packet_t * request_packet, csp_packet_t * reply_
 	if (opts & CSP_O_SAME) {
 		reply_packet->id.flags = request_packet->id.flags;
 	}
-
-	return csp_sendto(request_packet->id.pri, request_packet->id.src, request_packet->id.sport, request_packet->id.dport, opts, reply_packet);
+	csp_sendto(request_packet->id.pri, request_packet->id.src, request_packet->id.sport, request_packet->id.dport, opts, reply_packet);
 }

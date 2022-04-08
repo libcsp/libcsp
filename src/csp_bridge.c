@@ -52,6 +52,6 @@ void csp_bridge_work(void) {
 	}
 
 	/* Send to the interface directly, no hassle */
-	csp_send_direct_iface(packet->id, packet, destif, CSP_NO_VIA_ADDRESS, 0);
-	
+	csp_send_direct_iface(&packet->id, packet, destif, CSP_NO_VIA_ADDRESS, 0);
+
 }

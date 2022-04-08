@@ -157,7 +157,7 @@ static int csp_rdp_send_cmp(csp_conn_t * conn, csp_packet_t * packet, int flags,
 					 packet->length, (unsigned int)(packet->length - sizeof(rdp_header_t)));
 
 	/* Send packet to IF */
-	csp_send_direct(idout, packet, NULL);
+	csp_send_direct(&idout, packet, NULL);
 
 	/* Update last ACK time stamp */
 	if (flags & RDP_ACK) {
@@ -478,7 +478,7 @@ void csp_rdp_check_timeouts(csp_conn_t * conn) {
 			/* Send copy to tx_queue */
 			packet->timestamp_tx = csp_get_ms();
 			csp_packet_t * new_packet = csp_buffer_clone(packet);
-			csp_send_direct(conn->idout, new_packet, NULL);
+			csp_send_direct(&conn->idout, new_packet, NULL);
 		}
 
 		/* Requeue the TX element */
