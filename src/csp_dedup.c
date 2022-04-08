@@ -15,8 +15,8 @@
 #define CSP_DEDUP_WINDOW_MS 100
 
 /* Store packet CRC's in a ringbuffer */
-static uint32_t csp_dedup_array[CSP_DEDUP_COUNT] = {};
-static uint32_t csp_dedup_timestamp[CSP_DEDUP_COUNT] = {};
+static uint32_t csp_dedup_array[CSP_DEDUP_COUNT] = {0};
+static uint32_t csp_dedup_timestamp[CSP_DEDUP_COUNT] = {0};
 static int csp_dedup_in = 0;
 
 bool csp_dedup_is_duplicate(csp_packet_t * packet) {
