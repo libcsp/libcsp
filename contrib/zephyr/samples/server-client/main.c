@@ -181,10 +181,10 @@ void main(void) {
 	csp_conn_print_table();
 
 	csp_print("Interfaces\r\n");
-	csp_rtable_print();
+	csp_iflist_print();
 
 	csp_print("Route table\r\n");
-	csp_iflist_print();
+	csp_rtable_print();
 
 	/* Start server thread */
 	if ((server_address == 255) ||	/* no server address specified, I must be server */
