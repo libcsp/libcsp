@@ -31,7 +31,7 @@ void server(void) {
 
 	/* Create socket with no specific socket options, e.g. accepts CRC32, HMAC, etc. if enabled during compilation */
 	csp_socket_t sock = {0};
-    
+
 	/* Bind socket to all ports, e.g. all incoming connections will be handled here */
 	csp_bind(&sock, CSP_ANY);
 
@@ -249,10 +249,10 @@ int main(int argc, char * argv[]) {
     csp_conn_print_table();
 
     csp_print("Interfaces\r\n");
-    csp_rtable_print();
+    csp_iflist_print();
 
     csp_print("Route table\r\n");
-    csp_iflist_print();
+    csp_rtable_print();
 
     /* Start server thread */
     if ((server_address == 255) ||  /* no server address specified, I must be server */
