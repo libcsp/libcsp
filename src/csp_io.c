@@ -124,6 +124,9 @@ void csp_send_direct(csp_id_t idout, csp_packet_t * packet, csp_iface_t * routed
 	/* Try to send via routing table */
 	csp_route_t * route = csp_rtable_find_route(idout.dst);
 	if (route != NULL) {
+		if (idout.src == 0) {
+			idout.src = route->iface->addr;
+		}
 		csp_send_direct_iface(idout, packet, route->iface, route->via, from_me);
 		return;
 	}
