@@ -13,16 +13,15 @@
 typedef struct csp_skbf_s {
 	unsigned int refcount;
 	void * skbf_addr;
-	char skbf_data[];  // -> csp_packet_t
+	char skbf_data[sizeof(csp_packet_t)];
 } csp_skbf_t;
 
-#define SKBUF_SIZE CSP_BUFFER_ALIGN *((sizeof(csp_skbf_t) + CSP_BUFFER_SIZE + CSP_BUFFER_PACKET_OVERHEAD + (CSP_BUFFER_ALIGN - 1)) / CSP_BUFFER_ALIGN)
+#define SKBUF_SIZE CSP_BUFFER_ALIGN * ((sizeof(csp_skbf_t)+ (CSP_BUFFER_ALIGN - 1)) / CSP_BUFFER_ALIGN)
 
 // Queue of free CSP buffers
 static csp_queue_handle_t csp_buffers;
 
 void csp_buffer_init(void) {
-
 	/**
 	 * Chunk of memory allocated for CSP buffers:
 	 * This is marked as .noinit, because csp buffers can never be assumed zeroed out
@@ -126,7 +125,7 @@ void csp_buffer_free(void * packet) {
 		return;
 	}
 
-	csp_skbf_t * buf = (void *)(((uint8_t *)packet) - sizeof(csp_skbf_t));
+	csp_skbf_t * buf = (void *)(((uint8_t *)packet) + sizeof(csp_packet_t) - sizeof(csp_skbf_t));
 
 	if (((uintptr_t)buf % CSP_BUFFER_ALIGN) > 0) {
 		csp_dbg_errno = CSP_DBG_ERR_CORRUPT_BUFFER;
@@ -171,7 +170,7 @@ int csp_buffer_remaining(void) {
 }
 
 size_t csp_buffer_size(void) {
-	return (CSP_BUFFER_SIZE + CSP_BUFFER_PACKET_OVERHEAD);
+	return sizeof(csp_packet_t);
 }
 
 size_t csp_buffer_data_size(void) {
