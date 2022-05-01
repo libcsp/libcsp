@@ -155,12 +155,9 @@ typedef struct csp_packet_s {
 	 * csp_buffer_init(), and can later be accessed by csp_buffer_data_size()
 	 */
 	union {
-		/** Access data as uint8_t. */
-		uint8_t data[0];
-		/** Access data as uint16_t */
-		uint16_t data16[0];
-		/** Access data as uint32_t */
-		uint32_t data32[0];
+		uint8_t data[CSP_BUFFER_SIZE];
+		uint16_t data16[CSP_BUFFER_SIZE / 2];
+		uint32_t data32[CSP_BUFFER_SIZE / 4];
 	};
 
 } csp_packet_t;
@@ -172,7 +169,7 @@ typedef struct csp_packet_s {
    The overhead is the difference between the total buffer size (returned by csp_buffer_size()) and the data part
    of the #csp_packet_t (returned by csp_buffer_data_size()).
 */
-#define CSP_BUFFER_PACKET_OVERHEAD      (sizeof(csp_packet_t) - sizeof(((csp_packet_t *)0)->data))
+#define CSP_BUFFER_PACKET_OVERHEAD      (sizeof(csp_packet_t) - CSP_BUFFER_SIZE)
 
 /** Forward declaration of CSP interface, see #csp_iface_s for details. */
 typedef struct csp_iface_s csp_iface_t;
