@@ -35,7 +35,6 @@ enum csp_dedup_types {
 */
 typedef struct csp_conf_s {
 	uint8_t version;            /**< Protocol version to use (either 1 or 2) */
-	uint16_t address;           /**< CSP address of the system */
 	const char *hostname;       /**< Host name, returned by the #CSP_CMP_IDENT request */
 	const char *model;          /**< Model, returned by the #CSP_CMP_IDENT request */
 	const char *revision;       /**< Revision, returned by the #CSP_CMP_IDENT request */
@@ -62,13 +61,6 @@ void csp_free_resources(void);
    @return Active CSP configuration (read-only).
 */
 const csp_conf_t * csp_get_conf(void);
-
-/**
-   Get the system's own address.
-   @return system's own address
-*/
-uint16_t csp_get_address(void);
-
 
 /**
  * Copy csp id fields from source to target object

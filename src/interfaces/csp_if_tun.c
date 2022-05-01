@@ -11,7 +11,7 @@ __attribute__((weak)) int csp_crypto_encrypt(uint8_t * msg_begin, uint8_t msg_le
 	return -1;
 }
 
-static int csp_if_tun_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet) {
+static int csp_if_tun_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet, int from_me) {
 
 	csp_if_tun_conf_t * ifconf = iface->driver_data;
 

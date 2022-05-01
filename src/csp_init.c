@@ -11,18 +11,23 @@
 
 csp_conf_t csp_conf = {
 	.version = 2,
-	.address = 0,
 	.hostname = "",
 	.model = "",
 	.revision = "",
 	.conn_dfl_so = CSP_O_NONE,
 	.dedup = CSP_DEDUP_OFF};
 
-uint16_t csp_get_address(void) {
-	return csp_conf.address;
-}
-
 void csp_init(void) {
+
+	/* Validation of version */
+	if ((csp_conf.version == 0) || (csp_conf.version > 2)) {
+		csp_conf.version = 2;
+	}
+
+	/* Validation of dedup */
+	if (csp_conf.dedup > CSP_DEDUP_ALL) {
+		csp_conf.dedup = CSP_DEDUP_OFF;
+	}
 
 	csp_buffer_init();
 	csp_conn_init();
@@ -38,7 +43,6 @@ void csp_init(void) {
 }
 
 void csp_free_resources(void) {
-
 	csp_rtable_free();
 }
 

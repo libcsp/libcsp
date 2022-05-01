@@ -14,12 +14,14 @@
 #include <csp/arch/csp_queue.h>
 #include <csp/arch/csp_time.h>
 #include <csp/crypto/csp_hmac.h>
+#include <csp/csp_id.h>
 
 #include "csp_port.h"
 #include "csp_conn.h"
 #include "csp_promisc.h"
 #include "csp_qfifo.h"
 #include "csp_rdp.h"
+
 
 #if (CSP_USE_PROMISC)
 extern csp_queue_handle_t csp_promisc_queue;
@@ -91,6 +93,8 @@ void csp_send_direct(csp_id_t* idout, csp_packet_t * packet, csp_iface_t * route
 
 	while ((iface = csp_iflist_get_by_subnet(idout->dst, iface)) != NULL) {
 
+		local_found = 1;
+
 		/* Do not send back to same inteface (split horizon)
 		 * This check is is similar to that below, but faster */
 		if (iface == routed_from) {
@@ -103,16 +107,20 @@ void csp_send_direct(csp_id_t* idout, csp_packet_t * packet, csp_iface_t * route
 		}
 
 		/* Apply outgoing interface address to packet */
-		idout->src = iface->addr;
+		if ((from_me) && (idout->src == 0)) {
+			idout->src = iface->addr;
+		}
 
-
+		/* Rewrite routed brodcast (L3) to local (L2) when arriving at the interface */
+		if (csp_id_is_broadcast(idout->dst, iface)) {
+			idout->dst = csp_id_get_max_nodeid();
+		}
+		
 		/* Todo: Find an elegant way to avoid making a copy when only a single destination interface
 		 * is found. But without looping the list twice. And without using stack memory.
 		 * Is this even possible? */
 		copy = csp_buffer_clone(packet);
 		csp_send_direct_iface(idout, copy, iface, via, from_me);
-
-		local_found = 1;
 
 	}
 
@@ -125,10 +133,40 @@ void csp_send_direct(csp_id_t* idout, csp_packet_t * packet, csp_iface_t * route
 	/* Try to send via routing table */
 	csp_route_t * route = csp_rtable_find_route(idout->dst);
 	if (route != NULL) {
-		if (idout->src == 0) {
+
+		/* Do not send back to same inteface (split horizon) 
+		 * This check is is similar to that below, but faster */
+		if (route->iface == routed_from) {
+			csp_buffer_free(packet);
+			return;
+		}
+
+		/* Apply outgoing interface address to packet */
+		if ((from_me) && (idout->src == 0)) {
 			idout->src = route->iface->addr;
 		}
+
 		csp_send_direct_iface(idout, packet, route->iface, route->via, from_me);
+		return;
+	}
+
+	/* Try to send via default interface */
+	csp_iface_t * dfl_if = csp_iflist_get_default();
+	if (dfl_if) {
+
+		/* Do not send back to same inteface (split horizon) 
+		 * This check is is similar to that below, but faster */
+		if (dfl_if == routed_from) {
+			csp_buffer_free(packet);
+			return;
+		}
+
+		/* Apply outgoing interface address to packet */
+		if ((from_me) && (idout->src == 0)) {
+			idout->src = dfl_if->addr;
+		}
+
+		csp_send_direct_iface(idout, packet, dfl_if, CSP_NO_VIA_ADDRESS, from_me);
 		return;
 	}
 
@@ -193,7 +231,7 @@ void csp_send_direct_iface(csp_id_t* idout, csp_packet_t * packet, csp_iface_t *
 	if (mtu > 0 && bytes > mtu)
 		goto tx_err;
 
-	if ((*iface->nexthop)(iface, via, packet) != CSP_ERR_NONE)
+	if ((*iface->nexthop)(iface, via, packet, from_me) != CSP_ERR_NONE)
 		goto tx_err;
 
 	iface->tx++;

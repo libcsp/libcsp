@@ -15,5 +15,4 @@ unsigned int csp_id_get_host_bits(void);
 unsigned int csp_id_get_max_nodeid(void);
 unsigned int csp_id_get_max_port(void);
 
-int csp_id_is_broadcast(uint16_t addr, uint16_t netmask);
-
+int csp_id_is_broadcast(uint16_t addr, csp_iface_t * iface);

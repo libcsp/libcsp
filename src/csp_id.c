@@ -228,9 +228,14 @@ unsigned int csp_id_get_max_port(void) {
 	return ((1 << (CSP_ID2_PORT_SIZE)) - 1);
 }
 
-int csp_id_is_broadcast(uint16_t addr, uint16_t netmask) {
-	uint16_t hostmask = (1 << (csp_id_get_host_bits() - netmask)) - 1;
-	if ((addr & hostmask) == hostmask) {
+int csp_id_is_broadcast(uint16_t addr, csp_iface_t * iface) {
+	uint16_t hostmask = (1 << (csp_id_get_host_bits() - iface->netmask)) - 1;
+	uint16_t netmask = (1 << csp_id_get_host_bits()) - 1 - hostmask;
+	if (((addr & hostmask) == hostmask) && ((addr & netmask) == (iface->addr & netmask))) {
+		return 1;
+	}
+
+	if (addr == csp_id_get_max_nodeid()) {
 		return 1;
 	}
 	return 0;

@@ -20,7 +20,7 @@
 #define TFESC    0xDD
 #define TNC_DATA 0x00
 
-int csp_kiss_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet) {
+int csp_kiss_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet, int from_me) {
 
 	csp_kiss_interface_data_t * ifdata = iface->interface_data;
 	void * driver = iface->driver_data;
