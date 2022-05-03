@@ -38,8 +38,9 @@ typedef struct {
     xTaskHandle rx_thread;
 } usart_context_t;
 
-xQueueHandle sciData;
-uint8_t incomingData;
+static xQueueHandle sciData;
+static uint8_t incomingData;
+static bool uhf_command_mode = false;
 
 SemaphoreHandle_t tx_semphr;
 
@@ -51,9 +52,22 @@ void usart_rx_thread(void * arg) {
     // Receive loop
     while (1) {
         if (xQueueReceive(sciData, &rxByte, portMAX_DELAY)){
-            ctx->rx_callback(ctx->user_data, &rxByte, sizeof(uint8_t), NULL);
+            if(!uhf_command_mode){
+                ctx->rx_callback(ctx->user_data, &rxByte, sizeof(uint8_t), NULL);
+            }else{
+                uhf_command_mode_callback(rxByte);
+            }
+
         }
     }
+}
+
+void uhf_enter_direct_command_mode(){
+    uhf_command_mode = true;
+}
+
+void uhf_exit_direct_command_mode(){
+    uhf_command_mode = false;
 }
 
 int csp_usart_write(csp_usart_fd_t fd, const void * data, size_t data_length) {
