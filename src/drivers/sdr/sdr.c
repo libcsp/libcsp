@@ -70,8 +70,7 @@ static void *sdr_tx_thread(void *arg) {
         }
 
         uint16_t plen = csp_ntoh16(packet->length);
-        csp_id_t idout;
-        idout.ext = csp_ntoh32(packet->id.ext);
+        //idout.ext = csp_ntoh32(packet->id.ext);
         if (ifdata->config_flags & SDR_CONF_FEC) {
             if (fec_csp_to_mpdu(packet, ifdata->mtu)) {
                 uint8_t *buf;
