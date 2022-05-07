@@ -3,8 +3,8 @@
 
 #include <csp/arch/csp_queue.h>
 #include <csp/arch/csp_semaphore.h>
-#include <string.h> // for memchr in csp_autoconfig.h
 #include <csp/csp_platform.h>
+#include <csp/drivers/sdr.h>
 
 #define CSP_IF_SDR_UHF_NAME "UHF"
 #define CSP_IF_SDR_SBAND_NAME "S-BAND"
@@ -23,34 +23,21 @@
    @param[in] len length of \a data.
    @return #CSP_ERR_NONE on success, otherwise an error code.
 */
-typedef int (*csp_sdr_driver_tx_t)(int, const void * data, size_t len);
-
-enum {
-    SDR_CONF_FEC = 1 << 0,
-};
+typedef int (*csp_sdr_driver_tx_t)(CSP_BASE_TYPE fd, const void * data, size_t data_length);
+typedef void (*csp_sdr_driver_rx_t) (void * data, uint8_t *buf, size_t len, void *pxTaskWoken);
 
 typedef struct {
-    /* Configuration */
-    uint16_t config_flags;
-    uint16_t mtu;
-    uint32_t baudrate;
-    /** Transmitter fields */
-    csp_queue_handle_t tx_queue;
+    sdr_uhf_baud_rate_t uhf_baudrate;
     int tx_timeout;
-    /** Semaphore to block CSP sender until data has been queued for sending */
-    csp_bin_sem_handle_t tx_sema;
-    /** Low level transmit function */
-    csp_sdr_driver_tx_t tx_mac;
-    void *mac_data;
-    /** Receiver fields */
+    CSP_BASE_TYPE fd;
+    /** Low Level Transmit Function */
+    csp_sdr_driver_tx_t tx_func;
+    /** Low level Receive function */
+    csp_sdr_driver_rx_t rx_func;
     csp_queue_handle_t rx_queue;
-    /** Low level buffer state */
-    uint16_t rx_mpdu_index;
-    uint8_t rx_mpdu[SDR_UHF_MAX_MTU];
+    void *mac_data;
 } csp_sdr_interface_data_t;
 
-int csp_sdr_add_interface(csp_iface_t *iface);
-
-void* sdr_loopback_open(csp_iface_t *iface);
+int csp_sdr_open_and_add_interface(const csp_sdr_conf_t *conf, const char *ifname, csp_iface_t **return_iface);
 
 #endif /* CSP_INTERFACES_CSP_IF_SDR_H */

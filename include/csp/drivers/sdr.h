@@ -1,8 +1,6 @@
 #ifndef CSP_DRIVERS_SDR_H
 #define CSP_DRIVERS_SDR_H
 
-#include <csp/interfaces/csp_if_sdr.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -17,13 +15,17 @@ typedef enum {
 } sdr_uhf_baud_rate_t;
 
 typedef struct csp_sdr_conf {
-    uint16_t use_fec;
     uint16_t mtu;
     sdr_uhf_baud_rate_t baudrate;
     int uart_baudrate;
+    char *device_file;
 } csp_sdr_conf_t;
 
-int csp_sdr_open_and_add_interface(const csp_sdr_conf_t *conf, const char *ifname, csp_iface_t **return_iface);
+int csp_sdr_tx(const csp_route_t *ifroute, csp_packet_t *packet);
+
+void csp_sdr_rx(void *cb_data, void *buf, size_t len, void *pxTaskWoken);
+
+int csp_sdr_driver_init(csp_iface_t * iface);
 
 #ifdef __cplusplus
 }

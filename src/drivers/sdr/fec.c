@@ -1,6 +1,5 @@
-#include "fec.h"
+#include "csp/drivers/fec.h"
 #include <csp/csp_buffer.h>
-#include <csp/drivers/sdr.h>
 #include "MACWrapper.h"
 #include "rfModeWrapper.h"
 #include <stdbool.h>
@@ -11,8 +10,6 @@
 extern "C" {
 #endif
 
-static mac_t *my_mac;
-
 // each packet starts like this
 struct mpdu {
     uint8_t csp_id; // what CSP packet we came from
@@ -21,11 +18,11 @@ struct mpdu {
     uint8_t payload[0];
 };
 
-bool fec_csp_to_mpdu(csp_packet_t *packet, int mtu) {
+bool fec_csp_to_mpdu(mac_t *my_mac, csp_packet_t *packet, int mtu) {
     return receive_csp_packet(my_mac, packet);
 }
 
-bool fec_mpdu_to_csp(const void *buf, csp_packet_t **packet, uint8_t *id, int mtu) {
+bool fec_mpdu_to_csp(mac_t *my_mac, const void *buf, csp_packet_t **packet, int mtu) {
     if (process_uhf_packet(my_mac, (const uint8_t *)buf, mtu) == CSP_PACKET_READY) {
         const uint8_t *rawCSP = get_raw_csp_packet_buffer(my_mac);
         *packet = csp_buffer_clone((void *)rawCSP);//(csp_packet_t *)newpacket;
@@ -34,12 +31,12 @@ bool fec_mpdu_to_csp(const void *buf, csp_packet_t **packet, uint8_t *id, int mt
     return false;
 }
 
-void fec_create(rf_mode_number_t rfmode, error_correction_scheme_t error_correction_scheme) {
-    my_mac = mac_create(rfmode, error_correction_scheme);
+mac_t *fec_create(rf_mode_number_t rfmode, error_correction_scheme_t error_correction_scheme) {
+    return mac_create(rfmode, error_correction_scheme);
 }
 
 // Returns 0 if none exist, else returns mpdu size
-int fec_get_next_mpdu(void **buf) {
+int fec_get_next_mpdu(mac_t *my_mac, void **buf) {
     static uint32_t index = 0;
     const uint32_t length = mpdu_payloads_buffer_length(my_mac);
     if (index >= length) {

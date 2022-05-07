@@ -27,7 +27,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/drivers/usart.h>
 #include <csp/drivers/can_socketcan.h>
 #include <csp/csp_endian.h>
-#include <csp/drivers/sdr.h>
+#include <csp/interfaces/csp_if_sdr.h>
+#include <csp/drivers/fec.h>
 
 #define SOCKET_CAPSULE      "csp_socket_t"
 #define CONNECTION_CAPSULE  "csp_conn_t"
@@ -850,10 +851,10 @@ static PyObject* pycsp_sdr_init(PyObject *self, PyObject *args) {
     //    return NULL; // TypeError is thrown
     //}
     const char *if_name = "UHF";
-    csp_sdr_conf_t uhf_conf = {.use_fec = 1,
-                               .mtu = SDR_UHF_MAX_MTU,
+    csp_sdr_conf_t uhf_conf = {.mtu = fec_get_mtu(),
                                .baudrate = SDR_UHF_9600_BAUD,
-                               .uart_baudrate = 115200 };
+                               .uart_baudrate = 115200,
+                               .device_file = (char *)"/dev/ttyUSB0"};
     int res = csp_sdr_open_and_add_interface(&uhf_conf, if_name, NULL);
     if (res != CSP_ERR_NONE) {
         return PyErr_Error("csp_sdr_open_and_add_interface()", res);
