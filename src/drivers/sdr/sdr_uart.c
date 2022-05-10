@@ -56,7 +56,9 @@ static int sdr_uhf_baud_rate_delay[] = {
 int csp_sdr_tx(const csp_route_t *ifroute, csp_packet_t *packet) {
     csp_iface_t *iface = (csp_iface_t *)ifroute->iface;
     csp_sdr_interface_data_t *ifdata = (csp_sdr_interface_data_t *)ifroute->iface->interface_data;
-    if (fec_csp_to_mpdu(ifdata->mac_data, packet, iface->mtu)) {
+    csp_sdr_conf_t *sdr_conf = (csp_sdr_conf_t *)iface->driver_data;
+
+    if (fec_csp_to_mpdu(ifdata->mac_data, packet, sdr_conf->mtu)) {
         uint8_t *buf;
         int delay_time = sdr_uhf_baud_rate_delay[ifdata->uhf_baudrate];
         size_t mtu = (size_t)fec_get_next_mpdu(ifdata->mac_data, (void **)&buf);
@@ -84,15 +86,16 @@ void csp_sdr_rx(void *cb_data, void *buf, size_t len, void *pxTaskWoken) {
 CSP_DEFINE_TASK(csp_sdr_rx_task) {
     csp_iface_t *iface = (csp_iface_t *)param;
     csp_sdr_interface_data_t *ifdata = (csp_sdr_interface_data_t *)iface->interface_data;
+    csp_sdr_conf_t *sdr_conf = (csp_sdr_conf_t *)iface->driver_data;
     uint8_t *recv_buf;
-    recv_buf = csp_malloc(iface->mtu);
+    recv_buf = csp_malloc(sdr_conf->mtu);
     csp_packet_t *packet = 0;
     const csp_conf_t *conf = csp_get_conf();
 
     while (1) {
-        memset(recv_buf, 0, iface->mtu);
+        memset(recv_buf, 0, sdr_conf->mtu);
 
-        int remaining = iface->mtu;
+        int remaining = sdr_conf->mtu;
         int recv_index = 0;
         while (remaining--) {
             if (csp_queue_dequeue(ifdata->rx_queue, &recv_buf[recv_index], CSP_MAX_TIMEOUT) != true) {
@@ -102,7 +105,7 @@ CSP_DEFINE_TASK(csp_sdr_rx_task) {
             recv_index++;
         }
         
-        bool state = fec_mpdu_to_csp(ifdata->mac_data, recv_buf, &packet, iface->mtu);
+        bool state = fec_mpdu_to_csp(ifdata->mac_data, recv_buf, &packet, sdr_conf->mtu);
         if (state) {
             ex2_log("%s Rx: received a packet, csp length %d", iface->name, csp_ntoh16(packet->length));
             if (strcmp(iface->name, CSP_IF_SDR_LOOPBACK_NAME) == 0) {
@@ -136,7 +139,7 @@ int csp_sdr_driver_init(csp_iface_t *iface) {
     conf->databits = 8;
     conf->stopbits = 2;
 
-    ifdata->rx_queue = csp_queue_create(iface->mtu, 1);
+    ifdata->rx_queue = csp_queue_create(((csp_sdr_conf_t *)iface->driver_data)->mtu, 1);
     csp_thread_create(csp_sdr_rx_task, "sdr_rx", RX_TASK_STACK_SIZE, (void *)iface, 0, NULL);
 
     csp_usart_fd_t return_fd;
