@@ -20,7 +20,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <csp/csp_buffer.h>
 
-#include <csp/csp_endian.h>
 #include <csp/csp_debug.h>
 #include <csp/arch/csp_queue.h>
 #include <csp/arch/csp_malloc.h>
@@ -203,7 +202,7 @@ void *csp_buffer_clone(void *buffer) {
 		return NULL;
 	}
 
-	csp_packet_t *clone = csp_buffer_get(csp_ntoh16(packet->length));
+	csp_packet_t *clone = csp_buffer_get(packet->length);
 	if (clone) {
 		memcpy(clone, packet, csp_buffer_size());
 	}
