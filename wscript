@@ -147,7 +147,7 @@ def configure(ctx):
                                             'src/drivers/usart/usart_{0}.c'.format(ctx.options.with_driver_usart)])
     # Add SDR driver
     if ctx.options.enable_SDR:
-        ctx.env.append_unique('FILES_CSP', ['src/drivers/sdr/sdr.c',
+        ctx.env.append_unique('FILES_CSP', ['src/drivers/sdr/sdr_uart.c',
                                             'src/drivers/sdr/fec.c',
                                             #'src/drivers/sdr/sdr_loopback.c',
                                             'ex2_sdr/lib/wrapper/MACWrapper.cpp',

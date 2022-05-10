@@ -30,6 +30,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/interfaces/csp_if_sdr.h>
 #include <csp/drivers/fec.h>
 
+#include <sys/types.h>
+#include <unistd.h>
+
 #define SOCKET_CAPSULE      "csp_socket_t"
 #define CONNECTION_CAPSULE  "csp_conn_t"
 #define PACKET_CAPSULE      "csp_packet_t"
@@ -843,18 +846,21 @@ static PyObject* pycsp_kiss_init(PyObject *self, PyObject *args) {
 }
 
 static PyObject* pycsp_sdr_init(PyObject *self, PyObject *args) {
-    //char* device;
-    //uint32_t baudrate = 500000;
-    //uint32_t mtu = 512;
-    //const char* if_name = CSP_IF_KISS_DEFAULT_NAME;
-    //if (!PyArg_ParseTuple(args, "s|IIs", &device, &baudrate, &mtu, &if_name)) {
-    //    return NULL; // TypeError is thrown
-    //}
-    const char *if_name = "UHF";
+    pid_t pid = getpid();
+
+    printf("pid: %d\n", pid);
+    char* device;
+    uint32_t uart_baudrate = 0;
+    const char *if_name = CSP_IF_SDR_UHF_NAME;
+    sdr_uhf_baud_rate_t uhf_baudrate;
+    if (!PyArg_ParseTuple(args, "s|IIs", &device, &uart_baudrate, &uhf_baudrate, &if_name)) {
+        return NULL; // TypeError is thrown
+    }
+
     csp_sdr_conf_t uhf_conf = {.mtu = fec_get_mtu(),
-                               .baudrate = SDR_UHF_9600_BAUD,
-                               .uart_baudrate = 115200,
-                               .device_file = (char *)"/dev/ttyUSB0"};
+                               .baudrate = uhf_baudrate,
+                               .uart_baudrate = uart_baudrate,
+                               .device_file = device};
     int res = csp_sdr_open_and_add_interface(&uhf_conf, if_name, NULL);
     if (res != CSP_ERR_NONE) {
         return PyErr_Error("csp_sdr_open_and_add_interface()", res);
@@ -1081,7 +1087,18 @@ PyMODINIT_FUNC PyInit_libcsp_py3(void) {
     PyModule_AddIntConstant(m, "CSP_NODE_MAC", CSP_NODE_MAC);
     PyModule_AddIntConstant(m, "CSP_NO_VIA_ADDRESS", CSP_NO_VIA_ADDRESS);
     PyModule_AddIntConstant(m, "CSP_MAX_TIMEOUT", CSP_MAX_TIMEOUT);
-    
+
+    /* SDR consts */
+    PyModule_AddStringConstant(m, "CSP_IF_SDR_UHF_NAME", CSP_IF_SDR_UHF_NAME);
+    PyModule_AddStringConstant(m, "CSP_IF_SDR_SBAND_NAME", CSP_IF_SDR_SBAND_NAME);
+    PyModule_AddStringConstant(m, "CSP_IF_SDR_LOOPBACK_NAME", CSP_IF_SDR_LOOPBACK_NAME);
+    PyModule_AddIntConstant(m, "SDR_UHF_1200_BAUD", SDR_UHF_1200_BAUD);
+    PyModule_AddIntConstant(m, "SDR_UHF_2400_BAUD", SDR_UHF_2400_BAUD);
+    PyModule_AddIntConstant(m, "SDR_UHF_4800_BAUD", SDR_UHF_4800_BAUD);
+    PyModule_AddIntConstant(m, "SDR_UHF_9600_BAUD", SDR_UHF_9600_BAUD);
+    PyModule_AddIntConstant(m, "SDR_UHF_19200_BAUD", SDR_UHF_19200_BAUD);
+    PyModule_AddIntConstant(m, "SDR_UHF_END_BAUD", SDR_UHF_END_BAUD);
+
     return m;
 }
 
