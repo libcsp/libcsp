@@ -144,7 +144,7 @@ int csp_sdr_driver_init(csp_iface_t *iface) {
 
     csp_usart_fd_t return_fd;
     int res = csp_usart_open(conf, (csp_usart_callback_t)csp_sdr_rx, iface, &return_fd);
-    ifdata->fd = return_fd;
+    ifdata->fd = (CSP_BASE_TYPE) return_fd;
     if (res != CSP_ERR_NONE) {
         csp_free(conf);
         return res;

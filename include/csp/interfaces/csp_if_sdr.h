@@ -40,4 +40,6 @@ typedef struct {
 
 int csp_sdr_open_and_add_interface(const csp_sdr_conf_t *conf, const char *ifname, csp_iface_t **return_iface);
 
+void sdr_loopback_open(csp_iface_t*);
+
 #endif /* CSP_INTERFACES_CSP_IF_SDR_H */

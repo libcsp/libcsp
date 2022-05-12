@@ -13,7 +13,7 @@ static int sdr_loopback_tx(CSP_BASE_TYPE fd, const void *buf, size_t len) {
     uint8_t *data = (uint8_t *)buf;
     while (len--) {
         if (csp_queue_enqueue(ifdata->rx_queue, (const uint8_t *)data, QUEUE_NO_WAIT) != true) {
-            return;
+            return CSP_ERR_TIMEDOUT;
         }
         data++;
     }

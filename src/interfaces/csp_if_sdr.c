@@ -14,7 +14,7 @@
 
 int csp_sdr_open_and_add_interface(const csp_sdr_conf_t *conf, const char *ifname, csp_iface_t **return_iface) {
 
-    if (conf->baudrate < 0 || conf->baudrate >= SDR_UHF_END_BAUD) {
+    if (conf->baudrate == 0 || conf->baudrate >= SDR_UHF_END_BAUD) {
         return CSP_ERR_INVAL;
     }
 
