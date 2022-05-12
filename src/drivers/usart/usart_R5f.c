@@ -108,11 +108,12 @@ void csp_sciNotification(sciBASE_t *sci, unsigned flags) {
         xQueueSendToBackFromISR( sciData, &incomingData, &xHigherPriorityTaskWoken );
         sciReceive(sci, sizeof(uint8_t), &incomingData);
         // TODO: Make this work
-        //uhf_pipe_timer_reset_from_isr(&xHigherPriorityTaskWoken);
+        if(!uhf_command_mode) uhf_pipe_timer_reset_from_isr(&xHigherPriorityTaskWoken, incomingData);
         portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
         break;
     case SCI_TX_INT:
         xSemaphoreGiveFromISR(tx_semphr, &xHigherPriorityTaskWoken);
+        if(!uhf_command_mode) uhf_pipe_timer_reset_from_isr(&xHigherPriorityTaskWoken, NULL);
         portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
         break;
     }
