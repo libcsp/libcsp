@@ -6,6 +6,7 @@
 #include <stdbool.h>
 #include "radio.h"
 #include <error_correctionWrapper.h>
+#include <string.h>
 
 #ifdef __cplusplus
 extern "C" {

@@ -29,7 +29,6 @@
 #include <csp/drivers/sdr.h>
 #include "csp/drivers/fec.h"
 #include <csp/drivers/usart.h>
-#include "logger/logger.h"
 
 #ifdef CSP_POSIX
 #include <stdio.h>
@@ -76,14 +75,13 @@ void csp_sdr_rx(void *cb_data, void *buf, size_t len, void *pxTaskWoken) {
     csp_iface_t *iface = (csp_iface_t *) cb_data;
     csp_sdr_interface_data_t *ifdata = (csp_sdr_interface_data_t *)iface->interface_data;
     uint8_t *ptr = buf;
-    for (int i=0; i<len; i++) {
+    for (size_t i=0; i<len; i++) {
         ifdata->rx_mpdu[ifdata->rx_mpdu_index] = ptr[i];
         ifdata->rx_mpdu_index++;
         if (ifdata->rx_mpdu_index >= SDR_UHF_MAX_MTU) {
             ifdata->rx_mpdu_index = 0;
-            if (csp_queue_enqueue(ifdata->rx_queue, ifdata->rx_mpdu, QUEUE_NO_WAIT) != pdPASS) {
-                return CSP_ERR_NOBUFS;
-            }
+            // This is an isr, if this fails there's nothing that can be done
+            csp_queue_enqueue(ifdata->rx_queue, ifdata->rx_mpdu, QUEUE_NO_WAIT);
         }
     }
 }
