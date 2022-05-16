@@ -29,6 +29,7 @@
 #include <csp/drivers/sdr.h>
 #include "csp/drivers/fec.h"
 #include <csp/drivers/usart.h>
+#include "logger/logger.h"
 
 #ifdef CSP_POSIX
 #include <stdio.h>
@@ -74,12 +75,16 @@ int csp_sdr_tx(const csp_route_t *ifroute, csp_packet_t *packet) {
 void csp_sdr_rx(void *cb_data, void *buf, size_t len, void *pxTaskWoken) {
     csp_iface_t *iface = (csp_iface_t *) cb_data;
     csp_sdr_interface_data_t *ifdata = (csp_sdr_interface_data_t *)iface->interface_data;
-    uint8_t *data = (uint8_t *)buf;
-    while (len--) {
-        if (csp_queue_enqueue(ifdata->rx_queue, (const uint8_t *)data, QUEUE_NO_WAIT) != true) {
-            return;
+    uint8_t *ptr = buf;
+    for (int i=0; i<len; i++) {
+        ifdata->rx_mpdu[ifdata->rx_mpdu_index] = ptr[i];
+        ifdata->rx_mpdu_index++;
+        if (ifdata->rx_mpdu_index >= SDR_UHF_MAX_MTU) {
+            ifdata->rx_mpdu_index = 0;
+            if (csp_queue_enqueue(ifdata->rx_queue, ifdata->rx_mpdu, QUEUE_NO_WAIT) != pdPASS) {
+                return CSP_ERR_NOBUFS;
+            }
         }
-        data++;
     }
 }
 
@@ -93,21 +98,12 @@ CSP_DEFINE_TASK(csp_sdr_rx_task) {
     const csp_conf_t *conf = csp_get_conf();
 
     while (1) {
-        memset(recv_buf, 0, sdr_conf->mtu);
-
-        int remaining = sdr_conf->mtu;
-        int recv_index = 0;
-        while (remaining--) {
-            if (csp_queue_dequeue(ifdata->rx_queue, &recv_buf[recv_index], CSP_MAX_TIMEOUT) != true) {
-                ex2_log("SDR recv: queue receive failed");
-                continue;
-            } 
-            recv_index++;
+        if (csp_queue_dequeue(ifdata->rx_queue, recv_buf, CSP_MAX_TIMEOUT) != true) {
+            continue;
         }
-        
+
         bool state = fec_mpdu_to_csp(ifdata->mac_data, recv_buf, &packet, sdr_conf->mtu);
         if (state) {
-            ex2_log("%s Rx: received a packet, csp length %d", iface->name, csp_ntoh16(packet->length));
             if (strcmp(iface->name, CSP_IF_SDR_LOOPBACK_NAME) == 0) {
                 /* This is an unfortunate hack to be able to do loopback.
                     * We have to change the outgoing packet destination (the
@@ -139,7 +135,7 @@ int csp_sdr_driver_init(csp_iface_t *iface) {
     conf->databits = 8;
     conf->stopbits = 2;
 
-    ifdata->rx_queue = csp_queue_create(((csp_sdr_conf_t *)iface->driver_data)->mtu, 1);
+    ifdata->rx_queue = csp_queue_create(2, ((csp_sdr_conf_t *)iface->driver_data)->mtu);
     csp_thread_create(csp_sdr_rx_task, "sdr_rx", RX_TASK_STACK_SIZE, (void *)iface, 0, NULL);
 
     csp_usart_fd_t return_fd;

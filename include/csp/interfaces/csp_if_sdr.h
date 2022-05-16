@@ -36,6 +36,9 @@ typedef struct {
     csp_sdr_driver_rx_t rx_func;
     csp_queue_handle_t rx_queue;
     void *mac_data;
+    /** Low level buffer state */
+    uint16_t rx_mpdu_index;
+    uint8_t rx_mpdu[SDR_UHF_MAX_MTU];
 } csp_sdr_interface_data_t;
 
 int csp_sdr_open_and_add_interface(const csp_sdr_conf_t *conf, const char *ifname, csp_iface_t **return_iface);
