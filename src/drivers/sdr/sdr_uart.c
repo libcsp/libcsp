@@ -72,13 +72,16 @@ int csp_sdr_tx(const csp_route_t *ifroute, csp_packet_t *packet) {
 }
 
 void csp_sdr_rx(void *cb_data, void *buf, size_t len, void *pxTaskWoken) {
+    static int total_recv = 0;
+    total_recv += len;
     csp_iface_t *iface = (csp_iface_t *) cb_data;
+    csp_sdr_conf_t *conf = (csp_sdr_conf_t *)iface->driver_data;
     csp_sdr_interface_data_t *ifdata = (csp_sdr_interface_data_t *)iface->interface_data;
     uint8_t *ptr = buf;
     for (size_t i=0; i<len; i++) {
         ifdata->rx_mpdu[ifdata->rx_mpdu_index] = ptr[i];
         ifdata->rx_mpdu_index++;
-        if (ifdata->rx_mpdu_index >= SDR_UHF_MAX_MTU) {
+        if (ifdata->rx_mpdu_index >= conf->mtu) {
             ifdata->rx_mpdu_index = 0;
             // This is an isr, if this fails there's nothing that can be done
             csp_queue_enqueue(ifdata->rx_queue, ifdata->rx_mpdu, QUEUE_NO_WAIT);
