@@ -30,7 +30,7 @@ valid_loglevel = ['error', 'warn', 'info', 'debug']
 
 def options(ctx):
     # Load compiler
-    ctx.load('compiler_c')
+    ctx.load('compiler_c compiler_cxx')
 
     ctx.add_option('--toolchain', default=None, help='Set toolchain prefix')
 
@@ -60,6 +60,7 @@ def options(ctx):
     gr.add_option('--enable-can-socketcan', action='store_true', help='Enable Linux socketcan driver')
     gr.add_option('--with-driver-usart', default=None, metavar='DRIVER',
                   help='Build USART driver. [windows, linux, None]')
+    gr.add_option('--enable-SDR', action='store_true', help='Enable SDR and FEC drivers')
 
     # OS
     gr.add_option('--with-os', metavar='OS', default='posix',
@@ -73,6 +74,7 @@ def options(ctx):
 
 
 def configure(ctx):
+    print(dir(ctx))
     # Validate options
     if ctx.options.with_os not in valid_os:
         ctx.fatal('--with-os must be either: ' + str(valid_os))
@@ -85,7 +87,7 @@ def configure(ctx):
         ctx.env.CC = ctx.options.toolchain + 'gcc'
         ctx.env.AR = ctx.options.toolchain + 'ar'
 
-    ctx.load('compiler_c')
+    ctx.load('compiler_c compiler_cxx')
 
     # Set git revision define
     git_rev = os.popen('git describe --long --always 2> /dev/null || echo unknown').read().strip()
@@ -101,7 +103,7 @@ def configure(ctx):
     # Setup CFLAGS
     if (len(ctx.stack_path) <= 1) and (len(ctx.env.CFLAGS) == 0):
         ctx.env.prepend_value('CFLAGS', ["-std=gnu99", "-g", "-Os", "-Wall", "-Wextra", "-Wshadow", "-Wcast-align",
-                                         "-Wwrite-strings", "-Wno-unused-parameter", "-Werror"])
+                                         "-Wwrite-strings", "-Wno-unused-parameter", "-Werror", "-lstdc++", "-fPIC"])
 
     # Setup default include path and any extra defined
     ctx.env.append_unique('INCLUDES_CSP', ['include'] + ctx.options.includes.split(','))
@@ -143,6 +145,46 @@ def configure(ctx):
     if ctx.options.with_driver_usart:
         ctx.env.append_unique('FILES_CSP', ['src/drivers/usart/usart_kiss.c',
                                             'src/drivers/usart/usart_{0}.c'.format(ctx.options.with_driver_usart)])
+    # Add SDR driver
+    if ctx.options.enable_SDR:
+        ctx.env.append_unique('FILES_CSP', ['src/drivers/sdr/sdr_uart.c',
+                                            'src/drivers/sdr/fec.c',
+                                            #'src/drivers/sdr/sdr_loopback.c',
+                                            'ex2_sdr/lib/wrapper/MACWrapper.cpp',
+                                            'ex2_sdr/lib/error_control/error_correction.cpp',
+                                            'ex2_sdr/lib/error_control/ConvolutionalCodecHD.cpp',
+                                            'ex2_sdr/lib/error_control/FEC.cpp',
+                                            'ex2_sdr/lib/error_control/NoFEC.cpp',
+                                            'ex2_sdr/lib/error_control/QCLDPC.cpp',
+                                            'ex2_sdr/lib/error_control/golay.cpp',
+                                            'ex2_sdr/lib/pdu/pdu.cpp',
+                                            'ex2_sdr/lib/mac_layer/mac.cpp',
+                                            'ex2_sdr/lib/mac_layer/pdu/mpdu.cpp',
+                                            'ex2_sdr/lib/mac_layer/pdu/mpduHeader.cpp',
+                                            'ex2_sdr/lib/utilities/vectorTools.cpp',
+                                            'ex2_sdr/lib/phy_layer/pdu/ppdu_f.cpp',
+                                            'ex2_sdr/lib/phy_layer/pdu/ppdu_u8.cpp',
+                                            'ex2_sdr/lib/wrapper/MACWrapper.cpp',
+                                            'ex2_sdr/third_party/viterbi/viterbi.cpp'])
+        # Set up includes for FEC work
+        ctx.env.append_unique('INCLUDES_CSP',
+                             ['ex2_sdr/include/wrapper/',
+                             'ex2_sdr/include/HAL',
+                             'ex2_sdr/include/configuration',
+                             'ex2_sdr/include/error_control',
+                             'ex2_sdr/include/mac_layer',
+                             'ex2_sdr/include/mac_layer/pdu',
+                             'ex2_sdr/include/math',
+                             'ex2_sdr/include/pdu',
+                             'ex2_sdr/include/phy_layer',
+                             'ex2_sdr/include/phy_layer/pdu',
+                             'ex2_sdr/include/utilities',
+                             'ex2_sdr/include/wrapper',
+                             'ex2_sdr/include',
+                             'ex2_sdr/third_party/viterbi',
+                             'include/csp'])
+        print(ctx.env['INCLUDES_CSP'])
+
 
     # Add ZMQ
     if ctx.options.enable_if_zmqhub:

@@ -29,8 +29,9 @@
 #ifdef MY_STRNLEN
    static inline size_t strnlen (const char *string, size_t length)
    {
-       char *ret = memchr (string, 0, length);
-       return ret ? ret - string : length;
+       size_t i = 0;
+       for ( ; i < length && string[i] != '\0'; ++i);
+       return i;
    }
 #endif
 #endif /* W_INCLUDE_CSP_CSP_AUTOCONFIG_H_WAF */

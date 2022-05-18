@@ -86,7 +86,7 @@ int csp_usart_open(const csp_usart_conf_t *conf, csp_usart_callback_t rx_callbac
     ctx->rx_callback = rx_callback;
     ctx->user_data = user_data;
     ctx->fd = CSP_SCI;
-    return_fd = CSP_SCI;
+    *return_fd = CSP_SCI;
     sciData = xQueueCreate((unsigned portBASE_TYPE)32,
             (unsigned portBASE_TYPE)sizeof(uint8_t));
     tx_semphr = xSemaphoreCreateBinary();
