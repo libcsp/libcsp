@@ -19,7 +19,6 @@ typedef struct csp_sdr_conf {
     sdr_uhf_baud_rate_t baudrate;
     int uart_baudrate;
     char *device_file;
-    csp_usart_conf_t csp_usart_conf;
 } csp_sdr_conf_t;
 
 int csp_sdr_tx(const csp_route_t *ifroute, csp_packet_t *packet);
