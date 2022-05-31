@@ -61,6 +61,8 @@ def options(ctx):
     gr.add_option('--with-driver-usart', default=None, metavar='DRIVER',
                   help='Build USART driver. [windows, linux, None]')
     gr.add_option('--enable-SDR', action='store_true', help='Enable SDR and FEC drivers')
+    gr.add_option('--SDR-use-gnuradio', action='store_true', help='Use gnuradio driver with SDR')
+    gr.add_option('--SDR-use-uart', action='store_true', help='Use uart driver with SDR')
 
     # OS
     gr.add_option('--with-os', metavar='OS', default='posix',
@@ -147,8 +149,17 @@ def configure(ctx):
                                             'src/drivers/usart/usart_{0}.c'.format(ctx.options.with_driver_usart)])
     # Add SDR driver
     if ctx.options.enable_SDR:
-        ctx.env.append_unique('FILES_CSP', ['src/drivers/sdr/sdr_uart.c',
-                                            'src/drivers/sdr/fec.c',
+        if ctx.options.SDR_use_gnuradio and ctx.options.SDR_use_uart:
+            ctx.fatal("Must use only one of --SDR-use-uart or --SDR-use-gnuradio with --enable-SDR")
+        if not ctx.options.SDR_use_gnuradio and not ctx.options.SDR_use_uart:
+            ctx.fatal("Must use --SDR-use-uart or --SDR-use-gnuradio with --enable-SDR")
+
+        if ctx.options.SDR_use_gnuradio:
+            ctx.env.append_unique("FILES_CSP", ['src/drivers/sdr/gnuradio.c'])
+        if ctx.options.SDR_use_uart:
+            ctx.env.append_unique("FILES_CSP", ['src/drivers/sdr/sdr_uart.c'])
+
+        ctx.env.append_unique('FILES_CSP', ['src/drivers/sdr/fec.c',
                                             #'src/drivers/sdr/sdr_loopback.c',
                                             'ex2_sdr/lib/wrapper/MACWrapper.cpp',
                                             'ex2_sdr/lib/error_control/error_correction.cpp',
@@ -183,8 +194,6 @@ def configure(ctx):
                              'ex2_sdr/include',
                              'ex2_sdr/third_party/viterbi',
                              'include/csp'])
-        print(ctx.env['INCLUDES_CSP'])
-
 
     # Add ZMQ
     if ctx.options.enable_if_zmqhub:
