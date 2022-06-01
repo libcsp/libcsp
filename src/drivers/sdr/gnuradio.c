@@ -16,6 +16,7 @@
  * @author Josh Lazaruk
  * @date 2022-05-12
  */
+#include <csp/csp.h>
 
 #ifdef CSP_POSIX
 #include <stdio.h>
@@ -24,7 +25,6 @@
 
 #ifdef SDR_GNURADIO
 #include <assert.h>
-#include <csp/csp.h>
 #include <csp/csp_interface.h>
 #include <csp/interfaces/csp_if_sdr.h>
 #include <csp/csp_endian.h>
