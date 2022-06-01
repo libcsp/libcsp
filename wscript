@@ -76,7 +76,6 @@ def options(ctx):
 
 
 def configure(ctx):
-    print(dir(ctx))
     # Validate options
     if ctx.options.with_os not in valid_os:
         ctx.fatal('--with-os must be either: ' + str(valid_os))
@@ -156,8 +155,11 @@ def configure(ctx):
 
         if ctx.options.SDR_use_gnuradio:
             ctx.env.append_unique("FILES_CSP", ['src/drivers/sdr/gnuradio.c'])
+            ctx.define("SDR_GNURADIO", ctx.options.SDR_use_gnuradio)
         if ctx.options.SDR_use_uart:
             ctx.env.append_unique("FILES_CSP", ['src/drivers/sdr/sdr_uart.c'])
+            ctx.define("SDR_UART", ctx.options.SDR_use_uart)
+
 
         ctx.env.append_unique('FILES_CSP', ['src/drivers/sdr/fec.c',
                                             #'src/drivers/sdr/sdr_loopback.c',
