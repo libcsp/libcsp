@@ -35,7 +35,6 @@
 #define ex2_log printf
 #endif // CSP_POSIX
 
-#define SDR_UART
 #ifdef SDR_UART
 
 #ifdef CSP_FREERTOS
