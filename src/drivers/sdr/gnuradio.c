@@ -102,6 +102,7 @@ int csp_gnuradio_tx(int fd, const void * data, size_t len){
     radio_command[PREAMBLE_LEN + SYNCWORD_LEN + CRC16_LEN + len + 1] = ((uint16_t)crc_res >> 0) & 0xFF;
 
     //send to gnuradio via zmq
+    printf("sending packet to gnuradio\n");
     rc = zmq_send(publisher, radio_command, RADIO_LEN, 0);
     assert(rc == RADIO_LEN);
 
@@ -130,18 +131,20 @@ CSP_DEFINE_TASK(csp_gnuradio_rx_task) {
     csp_iface_t *iface = (csp_iface_t *)param;
     csp_sdr_interface_data_t *ifdata = (csp_sdr_interface_data_t *)iface->interface_data;
     csp_sdr_conf_t *sdr_conf = (csp_sdr_conf_t *)iface->driver_data;
-    uint8_t *recv_buf;
+    uint8_t *recv_buf[129];
     recv_buf = csp_malloc(sdr_conf->mtu);
     csp_packet_t *packet = 0;
 
     // Receive loop
     while (1){
-        rc = zmq_recv(subscriber, recv_buf, sdr_conf->mtu, 0);//Need to test how/if this is blocking
+        //+1 weirdness to discard "length" field
+        rc = zmq_recv(subscriber, recv_buf, sdr_conf->mtu + 1, 0);//Need to test how/if this is blocking
         //^^^TODO: verify that gnuradio passes frame correctly and sync word and length bytes ignored
+        printf("received packet from gnuradio\n");
 
         assert(rc != -1);
 
-        bool state = fec_mpdu_to_csp(ifdata->mac_data, recv_buf, &packet, sdr_conf->mtu);
+        bool state = fec_mpdu_to_csp(ifdata->mac_data, recv_buf + 1, &packet, sdr_conf->mtu);
         if (state) {
             ex2_log("%s Rx: received a packet, csp length %d", iface->name, csp_ntoh16(packet->length));
             csp_qfifo_write(packet, iface, NULL);
