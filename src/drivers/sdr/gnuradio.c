@@ -131,12 +131,12 @@ CSP_DEFINE_TASK(csp_gnuradio_rx_task) {
     csp_iface_t *iface = (csp_iface_t *)param;
     csp_sdr_interface_data_t *ifdata = (csp_sdr_interface_data_t *)iface->interface_data;
     csp_sdr_conf_t *sdr_conf = (csp_sdr_conf_t *)iface->driver_data;
-    uint8_t *recv_buf[129];
-    recv_buf = csp_malloc(sdr_conf->mtu);
+    recv_buf = csp_malloc(sdr_conf->mtu + 1);
     csp_packet_t *packet = 0;
 
     // Receive loop
     while (1){
+
         //+1 weirdness to discard "length" field
         rc = zmq_recv(subscriber, recv_buf, sdr_conf->mtu + 1, 0);//Need to test how/if this is blocking
         //^^^TODO: verify that gnuradio passes frame correctly and sync word and length bytes ignored
