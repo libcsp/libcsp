@@ -17,7 +17,12 @@
  * @date 2022-05-12
  */
 
+#ifdef CSP_POSIX
+#include <stdio.h>
+#define ex2_log printf
+#endif // CSP_POSIX
 
+#ifdef SDR_GNURADIO
 #include <assert.h>
 #include <csp/csp.h>
 #include <csp/csp_interface.h>
@@ -33,19 +38,7 @@
 
 #include <zmq.h>
 
-#ifdef CSP_POSIX
-#include <stdio.h>
-#define ex2_log printf
-#endif // CSP_POSIX
-
-#define SDR_GNURADIO
-#ifdef SDR_GNURADIO
-
-#ifdef CSP_FREERTOS
-#define RX_TASK_STACK_SIZE 512
-#else
 #define RX_TASK_STACK_SIZE 4096
-#endif
 
 #define PREAMBLE_B 0xAA
 #define SYNCWORD 0x7E
