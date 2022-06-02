@@ -36,7 +36,7 @@ works by looking at a 32-bit CSP header which contains the destination
 and source address together with port numbers for the connection. The
 router supports both local destination and forwarding to an external
 destination. Messages will never exit the router on the same interface
-that they arrives at, this concept is called split horizon, and helps
+that they arrived at, this concept is called split horizon, and helps
 prevent routing loops.
 
 The main purpose of the router is to accept incoming packets and deliver
