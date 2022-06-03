@@ -20,13 +20,11 @@
 #include <string.h>
 #include <csp/csp.h>
 #include <csp/csp_interface.h>
-#include <csp/interfaces/csp_if_sdr.h>
-#include <csp/csp_endian.h>
 #include <csp/arch/csp_malloc.h>
 #include <csp/arch/csp_thread.h>
 #include <csp/arch/csp_queue.h>
 #include <csp/drivers/sdr.h>
-#include "csp/drivers/csp_fec.h"
+#include <csp/drivers/csp_fec.h>
 #include <csp/drivers/usart.h>
 #include <sdr_driver.h>
 

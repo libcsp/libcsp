@@ -33,7 +33,7 @@ int csp_uhf_open_and_add_interface(const sdr_uhf_conf_t *uhf_conf, const char *i
     iface->interface_data = sdr_uhf_conf;
     sdr_uhf_conf->if_data = ifdata;
 
-    int rc = sdr_uart_driver_init(sdr_uhf_conf);
+    int rc = csp_sdr_driver_init(iface);
     if (rc) {
         csp_free(sdr_uhf_conf);
         sdr_uhf_conf = 0;
