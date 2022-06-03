@@ -25,10 +25,10 @@
 #include <csp/arch/csp_malloc.h>
 #include <csp/arch/csp_thread.h>
 #include <csp/arch/csp_queue.h>
-#include <csp/arch/csp_semaphore.h>
 #include <csp/drivers/sdr.h>
-#include "csp/drivers/fec.h"
+#include "csp/drivers/csp_fec.h"
 #include <csp/drivers/usart.h>
+#include <sdr_driver.h>
 
 #ifdef CSP_POSIX
 #include <stdio.h>
@@ -56,13 +56,12 @@ static int sdr_uhf_baud_rate_delay[] = {
 };
 
 int csp_sdr_tx(const csp_route_t *ifroute, csp_packet_t *packet) {
-    csp_iface_t *iface = (csp_iface_t *)ifroute->iface;
-    csp_sdr_interface_data_t *ifdata = (csp_sdr_interface_data_t *)ifroute->iface->interface_data;
-    csp_sdr_conf_t *sdr_conf = (csp_sdr_conf_t *)iface->driver_data;
+    sdr_uhf_conf_t *sdr_conf = (sdr_uhf_conf_t *)ifroute->iface->interface_data;
+    sdr_interface_data_t *ifdata = sdr_conf->if_data;
 
     if (fec_csp_to_mpdu(ifdata->mac_data, packet, sdr_conf->mtu)) {
         uint8_t *buf;
-        int delay_time = sdr_uhf_baud_rate_delay[ifdata->uhf_baudrate];
+        int delay_time = sdr_uhf_baud_rate_delay[sdr_conf->uhf_baudrate];
         size_t mtu = (size_t)fec_get_next_mpdu(ifdata->mac_data, (void **)&buf);
         while (mtu != 0) {
             (ifdata->tx_func)(ifdata->fd, buf, mtu);
@@ -74,43 +73,10 @@ int csp_sdr_tx(const csp_route_t *ifroute, csp_packet_t *packet) {
     return CSP_ERR_NONE;
 }
 
-void csp_sdr_rx(void *cb_data, void *buf, size_t len, void *pxTaskWoken) {
-    static int total_recv = 0;
-    total_recv += len;
-    csp_iface_t *iface = (csp_iface_t *) cb_data;
-    csp_sdr_conf_t *conf = (csp_sdr_conf_t *)iface->driver_data;
-    csp_sdr_interface_data_t *ifdata = (csp_sdr_interface_data_t *)iface->interface_data;
-    uint8_t *ptr = buf;
-    for (size_t i=0; i<len; i++) {
-        ifdata->rx_mpdu[ifdata->rx_mpdu_index] = ptr[i];
-        ifdata->rx_mpdu_index++;
-        if (ifdata->rx_mpdu_index >= conf->mtu) {
-            ifdata->rx_mpdu_index = 0;
-            // This is an isr, if this fails there's nothing that can be done
-            csp_queue_enqueue(ifdata->rx_queue, ifdata->rx_mpdu, QUEUE_NO_WAIT);
-        }
-    }
-
-    //Discard transceiver pipe mode status updates
-    //Could probably be done differently to use less cpu
-    if(ifdata->rx_mpdu_index == (PIPE_ENTER_MSG_LEN)){
-        char pipe_enter_msg[PIPE_ENTER_MSG_LEN] = {'+', 'P', 'I', 'P', 'E', ' ', '7', '8', '7', '8', 'B', '8', 'A', 'E', 0x0D};
-        if(strncmp((char *)ifdata->rx_mpdu, pipe_enter_msg, PIPE_ENTER_MSG_LEN) == 0){
-            ifdata->rx_mpdu_index = 0;
-        }
-    }
-    if(ifdata->rx_mpdu_index == (PIPE_EXIT_MSG_LEN)){
-        char pipe_exit_msg[PIPE_EXIT_MSG_LEN] = {'+', 'E', 'S', 'T', 'T', 'C', ' ', 'C', 'F', 'B', '5', '2', 'D', '3', '5', 0x0D};
-        if(strncmp((char *)(ifdata->rx_mpdu), pipe_exit_msg, PIPE_EXIT_MSG_LEN) == 0){
-            ifdata->rx_mpdu_index = 0;
-        }
-    }
-}
-
 CSP_DEFINE_TASK(csp_sdr_rx_task) {
     csp_iface_t *iface = (csp_iface_t *)param;
-    csp_sdr_interface_data_t *ifdata = (csp_sdr_interface_data_t *)iface->interface_data;
-    csp_sdr_conf_t *sdr_conf = (csp_sdr_conf_t *)iface->driver_data;
+    sdr_uhf_conf_t *sdr_conf = (sdr_uhf_conf_t *)iface->interface_data;
+    sdr_interface_data_t *ifdata = sdr_conf->if_data;
     uint8_t *recv_buf;
     recv_buf = csp_malloc(sdr_conf->mtu);
     csp_packet_t *packet = 0;
@@ -123,7 +89,7 @@ CSP_DEFINE_TASK(csp_sdr_rx_task) {
 
         bool state = fec_mpdu_to_csp(ifdata->mac_data, recv_buf, &packet, sdr_conf->mtu);
         if (state) {
-            if (strcmp(iface->name, CSP_IF_SDR_LOOPBACK_NAME) == 0) {
+            if (strcmp(iface->name, SDR_IF_LOOPBACK_NAME) == 0) {
                 /* This is an unfortunate hack to be able to do loopback.
                     * We have to change the outgoing packet destination (the
                     * device) to the incoming destination (us) or else CSP will
@@ -136,40 +102,48 @@ CSP_DEFINE_TASK(csp_sdr_rx_task) {
     }
 }
 
-
-int csp_sdr_driver_init(csp_iface_t *iface) {
-
-    if ((iface == NULL) || (iface->name == NULL) || (iface->interface_data == NULL)) {
-        return CSP_ERR_INVAL;
-    }
-    csp_sdr_interface_data_t *ifdata = (csp_sdr_interface_data_t *)iface->interface_data;
-    ifdata->tx_func = (csp_sdr_driver_tx_t) csp_usart_write;
-
-    csp_usart_conf_t *conf = csp_calloc(1, sizeof(csp_usart_conf_t));
-    if (!conf)
+int sdr_uart_driver_init(sdr_uhf_conf_t *sdr_conf) {
+    csp_usart_conf_t *uart_conf = csp_calloc(1, sizeof(csp_usart_conf_t));
+     if (!uart_conf)
         return CSP_ERR_NOMEM;
-    csp_sdr_conf_t *sdr_conf = (csp_sdr_conf_t *)iface->driver_data;
-    conf->device = sdr_conf->device_file;
-    conf->baudrate = sdr_conf->uart_baudrate;
-    conf->databits = 8;
-    conf->stopbits = 2;
 
-    ifdata->rx_queue = csp_queue_create(2, ((csp_sdr_conf_t *)iface->driver_data)->mtu);
-    csp_thread_create(csp_sdr_rx_task, "sdr_rx", RX_TASK_STACK_SIZE, (void *)iface, 0, NULL);
+    uart_conf->device = sdr_conf->device_file;
+    uart_conf->baudrate = sdr_conf->uart_baudrate;
+    uart_conf->databits = 8;
+    uart_conf->stopbits = 2;
 
     csp_usart_fd_t return_fd;
-    int res = csp_usart_open(conf, (csp_usart_callback_t)csp_sdr_rx, iface, &return_fd);
-    ifdata->fd = (CSP_BASE_TYPE) return_fd;
+    int res = csp_usart_open(uart_conf, (csp_usart_callback_t)sdr_rx_isr, sdr_conf, &return_fd);
     if (res != CSP_ERR_NONE) {
-        csp_free(conf);
+        csp_free(uart_conf);
         return res;
     }
 
-    #ifndef CSP_POSIX
-    else if (strcmp(iface->name, CSP_IF_SDR_LOOPBACK_NAME) == 0) {
-        sdr_loopback_open(iface);
-    }
-    #endif // CSP_POSIX
+    sdr_interface_data_t *ifdata = sdr_conf->if_data;
+    ifdata->fd = (uintptr_t) return_fd;
+    ifdata->tx_func = (sdr_tx_t) csp_usart_write;
 
-    return 0;
+    return CSP_ERR_NONE;
+}
+
+int csp_sdr_driver_init(csp_iface_t *iface) {
+    if ((iface == NULL) || (iface->interface_data == NULL)) {
+        return CSP_ERR_INVAL;
+    }
+
+    sdr_uhf_conf_t *sdr_conf = iface->interface_data;
+    int rc = sdr_uart_driver_init(sdr_conf);
+    if (rc != CSP_ERR_NONE) {
+        return rc;
+    }
+
+    sdr_interface_data_t *ifdata = sdr_conf->if_data;
+    ifdata->rx_queue = csp_queue_create(2, sdr_conf->mtu);
+    ifdata->mac_data = fec_create(RF_MODE_3, NO_FEC);
+    ifdata->rx_mpdu_index = 0;
+    ifdata->rx_mpdu = csp_malloc(sdr_conf->mtu);
+
+    csp_thread_create(csp_sdr_rx_task, "sdr_rx", RX_TASK_STACK_SIZE, (void *)iface, 0, NULL);
+
+    return CSP_ERR_NONE;
 }
