@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/csp.h>
 #include <csp/csp_cmp.h>
 #include <csp/crypto/csp_xtea.h>
+#include <csp/crypto/csp_hmac.h>
 #include <csp/interfaces/csp_if_zmqhub.h>
 #include <csp/interfaces/csp_if_kiss.h>
 #include <csp/drivers/usart.h>
@@ -536,6 +537,21 @@ static PyObject* pycsp_rdp_get_opt(PyObject *self, PyObject *args) {
                          ack_delay_count);
 }
 
+static PyObject* pycsp_hmac_set_key(PyObject *self, PyObject *args) {
+    char* key;
+    uint32_t keylen;
+    if (!PyArg_ParseTuple(args, "si", &key, &keylen)) {
+        return NULL; // TypeError is thrown
+    }
+
+    int res = csp_hmac_set_key(key, keylen);
+    if (res != CSP_ERR_NONE) {
+        return PyErr_Error("csp_hmac_set_key()", res);
+    }
+
+    Py_RETURN_NONE;
+}
+
 static PyObject* pycsp_xtea_set_key(PyObject *self, PyObject *args) {
     char* key;
     uint32_t keylen;
@@ -955,6 +971,7 @@ static PyMethodDef methods[] = {
     {"rdp_set_opt",         pycsp_rdp_set_opt,         METH_VARARGS, ""},
     {"rdp_get_opt",         pycsp_rdp_get_opt,         METH_NOARGS,  ""},
     {"xtea_set_key",        pycsp_xtea_set_key,        METH_VARARGS, ""},
+    {"hmac_set_key",        pycsp_hmac_set_key,        METH_VARARGS, ""},
 
     /* csp/csp_rtable.h */
     {"rtable_set",          pycsp_rtable_set,          METH_VARARGS, ""},
