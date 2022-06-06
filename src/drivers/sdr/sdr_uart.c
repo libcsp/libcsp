@@ -24,7 +24,6 @@
 #include <csp/arch/csp_thread.h>
 #include <csp/arch/csp_queue.h>
 #include <csp/drivers/sdr.h>
-#include <csp/drivers/csp_fec.h>
 #include <csp/drivers/usart.h>
 #include <sdr_driver.h>
 
@@ -111,37 +110,14 @@ int sdr_uart_driver_init(sdr_uhf_conf_t *sdr_conf) {
     uart_conf->stopbits = 2;
 
     csp_usart_fd_t return_fd;
-    int res = csp_usart_open(uart_conf, (csp_usart_callback_t)sdr_rx_isr, sdr_conf, &return_fd);
+    int res = csp_usart_open(uart_conf, sdr_rx_isr, sdr_conf, &return_fd);
     if (res != CSP_ERR_NONE) {
         csp_free(uart_conf);
         return res;
     }
 
-    sdr_interface_data_t *ifdata = sdr_conf->if_data;
     ifdata->fd = (uintptr_t) return_fd;
     ifdata->tx_func = (sdr_tx_t) csp_usart_write;
-
-    return CSP_ERR_NONE;
-}
-
-int csp_sdr_driver_init(csp_iface_t *iface) {
-    if ((iface == NULL) || (iface->interface_data == NULL)) {
-        return CSP_ERR_INVAL;
-    }
-
-    sdr_uhf_conf_t *sdr_conf = iface->interface_data;
-    int rc = sdr_uart_driver_init(sdr_conf);
-    if (rc != CSP_ERR_NONE) {
-        return rc;
-    }
-
-    sdr_interface_data_t *ifdata = sdr_conf->if_data;
-    ifdata->rx_queue = csp_queue_create(2, sdr_conf->mtu);
-    ifdata->mac_data = fec_create(RF_MODE_3, NO_FEC);
-    ifdata->rx_mpdu_index = 0;
-    ifdata->rx_mpdu = csp_malloc(sdr_conf->mtu);
-
-    csp_thread_create(csp_sdr_rx_task, "sdr_rx", RX_TASK_STACK_SIZE, (void *)iface, 0, NULL);
 
     return CSP_ERR_NONE;
 }
