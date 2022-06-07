@@ -37,6 +37,7 @@ int csp_uhf_open_and_add_interface(const sdr_uhf_conf_t *conf, const char *ifnam
         csp_free(ifdata);
         return CSP_ERR_NOMEM;
     }
+    iface->interface_data = ifdata;
 
     iface->name = ifname;
     iface->mtu = csp_buffer_data_size() + sizeof(csp_packet_t);

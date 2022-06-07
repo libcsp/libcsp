@@ -110,7 +110,7 @@ int sdr_uart_driver_init(sdr_uhf_conf_t *sdr_conf) {
     uart_conf->stopbits = 2;
 
     csp_usart_fd_t return_fd;
-    int res = csp_usart_open(uart_conf, sdr_rx_isr, sdr_conf, &return_fd);
+    int res = csp_usart_open(uart_conf, sdr_rx_isr, ifdata, &return_fd);
     if (res != CSP_ERR_NONE) {
         csp_free(uart_conf);
         return res;
