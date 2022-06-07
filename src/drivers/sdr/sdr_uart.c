@@ -67,6 +67,7 @@ int csp_sdr_tx(const csp_route_t *ifroute, csp_packet_t *packet) {
             csp_sleep_ms(delay_time);
         }
     }
+    csp_buffer_free(packet);
     return CSP_ERR_NONE;
 }
 
