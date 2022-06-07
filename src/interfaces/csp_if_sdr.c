@@ -6,6 +6,7 @@
 #include <csp/arch/csp_malloc.h>
 #include <csp/interfaces/csp_if_sdr.h>
 #include <csp/drivers/sdr.h>
+#include <csp/csp_endian.h>
 #include <sdr_driver.h>
 
 int csp_if_sdr_tx(const csp_route_t *ifroute, csp_packet_t *packet) {
@@ -21,7 +22,11 @@ int csp_if_sdr_tx(const csp_route_t *ifroute, csp_packet_t *packet) {
 void csp_if_sdr_rx(void *udata, uint8_t *data, size_t len) {
     sdr_interface_data_t *ifdata = (sdr_interface_data_t *)udata;
     csp_iface_t *iface = ifdata->iface;
-    csp_qfifo_write((csp_packet_t *)data, iface, NULL);
+    csp_packet_t *packet = (csp_packet_t *)data;
+    packet->length = csp_ntoh16(packet->length);
+    packet->id.ext = csp_ntoh32(packet->id.ext);
+    csp_packet_t *clone = csp_buffer_clone(packet);
+    csp_qfifo_write(clone, iface, NULL);
 }
 
 int csp_uhf_open_and_add_interface(const sdr_uhf_conf_t *conf, const char *ifname, csp_iface_t **return_iface) {
