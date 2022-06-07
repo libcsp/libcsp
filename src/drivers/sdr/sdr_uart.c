@@ -35,8 +35,6 @@
 #define ex2_log printf
 #endif // CSP_POSIX
 
-#ifdef SDR_UART
-
 #ifdef CSP_FREERTOS
 #define RX_TASK_STACK_SIZE 512
 #else
@@ -155,5 +153,3 @@ int csp_sdr_driver_init(csp_iface_t *iface) {
 
     return 0;
 }
-
-#endif /* SDR_UART */
