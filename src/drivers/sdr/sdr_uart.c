@@ -35,6 +35,7 @@
 #define ex2_log printf
 #endif // CSP_POSIX
 
+#define SDR_UART
 #ifdef SDR_UART
 
 #ifdef CSP_FREERTOS
@@ -42,6 +43,9 @@
 #else
 #define RX_TASK_STACK_SIZE 4096
 #endif
+
+#define FILTER_MSG_LENGTH 15
+int lasttime = 0;
 
 /* From the EnduroSat manual, these delays assume the UART speed is 19.2KBaud */
 static int sdr_uhf_baud_rate_delay[] = {
@@ -84,6 +88,23 @@ void csp_sdr_rx(void *cb_data, void *buf, size_t len, void *pxTaskWoken) {
             ifdata->rx_mpdu_index = 0;
             // This is an isr, if this fails there's nothing that can be done
             csp_queue_enqueue(ifdata->rx_queue, ifdata->rx_mpdu, QUEUE_NO_WAIT);
+        }
+    }
+    //if pdu doesn't fill up immediately, discard it because it's not a pdu
+//    int delay_ticks = 100;
+//    if(ifdata->rx_mpdu_index > 0){
+//        if((xTaskGetTickCount() - lasttime) > delay_ticks){
+//            ifdata->rx_mpdu_index = 0;
+//        }
+//    }
+//    lasttime = xTaskGetTickCount();
+
+    if(ifdata->rx_mpdu_index == (FILTER_MSG_LENGTH)){
+        uint8_t buf[FILTER_MSG_LENGTH] = {0};
+        uint8_t badword[FILTER_MSG_LENGTH] = {'+', 'P', 'I', 'P', 'E', ' ', '7', '8', '7', '8', 'B', '8', 'A', 'E', 0x0D};
+        strncpy( (char *)buf, (char *)ifdata->rx_mpdu, FILTER_MSG_LENGTH);
+        if(strncmp((char *)buf, (char *)badword, FILTER_MSG_LENGTH) == 0){
+            ifdata->rx_mpdu_index = 0;
         }
     }
 }
