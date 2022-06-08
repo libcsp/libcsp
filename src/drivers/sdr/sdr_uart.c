@@ -47,7 +47,8 @@ static int sdr_uhf_baud_rate_delay[] = {
     [SDR_UHF_2400_BAUD] = 460,
     [SDR_UHF_4800_BAUD] = 240,
     [SDR_UHF_9600_BAUD] = 120,
-    [SDR_UHF_19200_BAUD] = 60
+    [SDR_UHF_19200_BAUD] = 60,
+    [SDR_UHF_TEST_BAUD] = 20,
 };
 
 int csp_sdr_tx(const csp_route_t *ifroute, csp_packet_t *packet) {

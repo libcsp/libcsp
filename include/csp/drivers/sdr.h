@@ -11,6 +11,7 @@ typedef enum {
     SDR_UHF_4800_BAUD,
     SDR_UHF_9600_BAUD,
     SDR_UHF_19200_BAUD,
+    SDR_UHF_TEST_BAUD,
     SDR_UHF_END_BAUD,
 } sdr_uhf_baud_rate_t;
 
