@@ -41,6 +41,10 @@
 #define RX_TASK_STACK_SIZE 4096
 #endif
 
+#define PIPE_ENTER_MSG_LEN 15
+#define PIPE_EXIT_MSG_LEN 16
+int lasttime = 0;
+
 /* From the EnduroSat manual, these delays assume the UART speed is 19.2KBaud */
 static int sdr_uhf_baud_rate_delay[] = {
     [SDR_UHF_1200_BAUD] = 920,
@@ -84,6 +88,21 @@ void csp_sdr_rx(void *cb_data, void *buf, size_t len, void *pxTaskWoken) {
             ifdata->rx_mpdu_index = 0;
             // This is an isr, if this fails there's nothing that can be done
             csp_queue_enqueue(ifdata->rx_queue, ifdata->rx_mpdu, QUEUE_NO_WAIT);
+        }
+    }
+
+    //Discard transceiver pipe mode status updates
+    //Could probably be done differently to use less cpu
+    if(ifdata->rx_mpdu_index == (PIPE_ENTER_MSG_LEN)){
+        char pipe_enter_msg[PIPE_ENTER_MSG_LEN] = {'+', 'P', 'I', 'P', 'E', ' ', '7', '8', '7', '8', 'B', '8', 'A', 'E', 0x0D};
+        if(strncmp((char *)ifdata->rx_mpdu, pipe_enter_msg, PIPE_ENTER_MSG_LEN) == 0){
+            ifdata->rx_mpdu_index = 0;
+        }
+    }
+    if(ifdata->rx_mpdu_index == (PIPE_EXIT_MSG_LEN)){
+        char pipe_exit_msg[PIPE_EXIT_MSG_LEN] = {'+', 'E', 'S', 'T', 'T', 'C', ' ', 'C', 'F', 'B', '5', '2', 'D', '3', '5', 0x0D};
+        if(strncmp((char *)(ifdata->rx_mpdu), pipe_exit_msg, PIPE_EXIT_MSG_LEN) == 0){
+            ifdata->rx_mpdu_index = 0;
         }
     }
 }
