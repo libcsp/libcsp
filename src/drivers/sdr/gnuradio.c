@@ -77,7 +77,7 @@ uint16_t crc16(uint8_t * pData, int length)
 int csp_gnuradio_tx(int fd, const void * data, size_t len){
     
     if((int)len != PACKET_LEN){
-        while(1); //todo support len != 128 one day, maybe
+        exit(); //todo support len != 128 one day, maybe
     }
     //apply framing according to UHF user manual protocol
     uint8_t * crc_command = csp_calloc(LEN_ID_LEN + len, sizeof(uint8_t));
@@ -114,7 +114,7 @@ int csp_gnuradio_tx(int fd, const void * data, size_t len){
     int status = system("cat output2.bin | nc -w 1 127.0.0.1 1235");
     if(status == -1){
         printf("System call failed\n");
-        while(1);
+        exit();
     }
     csp_free(crc_command);
 
@@ -153,7 +153,7 @@ CSP_DEFINE_TASK(csp_gnuradio_rx_task) {
         int status = read(sockfd, recv_buf, buflen);
         if(status == -1){
             printf("tcp read failed\n");
-            while(1);
+            exit();
         }
 
         if(recv_buf[0] == 128){//length indicator byte signifying full-length packet
@@ -193,7 +193,7 @@ int csp_gnuradio_open(void) {
     // connect the client socket to server socket
     if (connect(sockfd, (SA*)&servaddr, sizeof(servaddr)) != 0) {
         printf("connection with the gnuradio TCP server failed...\n");
-        while(1);
+        exit();
     }
     else
         printf("Connected to the gnuradio TCP server..\n");
