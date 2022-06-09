@@ -59,10 +59,6 @@
 #define RADIO_LEN PREAMBLE_LEN + SYNCWORD_LEN + LEN_ID_LEN + PACKET_LEN + CRC16_LEN + POSTAMBLE_LEN
 //^^radio_len = preamble + sync word + length indicator + data + crc + postamble
 
-// static void *context;
-// static void *publisher;
-// static void *subscriber;
-// static int rc;
 static int sockfd;
 
 uint16_t crc16(uint8_t * pData, int length)
@@ -74,7 +70,6 @@ uint16_t crc16(uint8_t * pData, int length)
         for (i=0; i < 8; i++)
             wCrc = wCrc & 0x8000 ? (wCrc << 1) ^ 0x1021 : wCrc << 1;
     }
-    printf("done crc16\n");
     return wCrc & 0xffff;
 }
 
@@ -82,28 +77,21 @@ uint16_t crc16(uint8_t * pData, int length)
 int csp_gnuradio_tx(int fd, const void * data, size_t len){
     
     if((int)len != PACKET_LEN){
-        while(1); //improve error handling
+        while(1); //todo support len != 128 one day, maybe
     }
     //apply framing according to UHF user manual protocol
-    uint8_t crc_command[LEN_ID_LEN + PACKET_LEN] = {0};
-    crc_command[0] = PACKET_LEN;
-    
-    printf("129B packet: ");
+    uint8_t * crc_command = csp_calloc(LEN_ID_LEN + len, sizeof(uint8_t));
+    crc_command[0] = (uint8_t)len;
 
-    for(int i = 0; i < PACKET_LEN; i++) {
+    for(size_t i = 0; i < len; i++) {
         crc_command[LEN_ID_LEN+i] = ((uint8_t *)data)[i];
-        printf("%02X ", crc_command[i]);
     }
-    printf("%02X ", crc_command[PACKET_LEN]);
-        
-    printf("\n");
 
-    uint16_t crc_res = crc16(crc_command, LEN_ID_LEN + PACKET_LEN);
+    uint16_t crc_res = crc16(crc_command, LEN_ID_LEN + len);
 
     uint8_t radio_command[RADIO_LEN] = {0};
     for(int i = 0; i < PREAMBLE_LEN; i++){
-      radio_command[i] = PREAMBLE_B;
-      
+        radio_command[i] = PREAMBLE_B;
     }
 
     for(int i = POSTAMBLE_LEN; i > 0; i--){
@@ -111,16 +99,15 @@ int csp_gnuradio_tx(int fd, const void * data, size_t len){
     }
 
     radio_command[PREAMBLE_LEN] = SYNCWORD;
-    radio_command[PREAMBLE_LEN + SYNCWORD_LEN] = PACKET_LEN;
-    for( int i = 0; i < PACKET_LEN; i++) {
+    radio_command[PREAMBLE_LEN + SYNCWORD_LEN] = len;
+    for(size_t i = 0; i < len; i++) {
         radio_command[PREAMBLE_LEN + SYNCWORD_LEN + LEN_ID_LEN + i] = ((uint8_t *)data)[i];
     }
 
-    radio_command[PREAMBLE_LEN + SYNCWORD_LEN + LEN_ID_LEN + PACKET_LEN] = ((uint16_t)crc_res >> 8) & 0xFF;
-    radio_command[PREAMBLE_LEN + SYNCWORD_LEN + LEN_ID_LEN + PACKET_LEN + 1] = ((uint16_t)crc_res >> 0) & 0xFF;
+    radio_command[PREAMBLE_LEN + SYNCWORD_LEN + LEN_ID_LEN + len] = ((uint16_t)crc_res >> 8) & 0xFF;
+    radio_command[PREAMBLE_LEN + SYNCWORD_LEN + LEN_ID_LEN + len + 1] = ((uint16_t)crc_res >> 0) & 0xFF;
     
     //send to radio via tcp
-    printf("sending csp packet to gnuradio\n");
     FILE *fptr = fopen("output2.bin","w");
     fwrite(radio_command, sizeof(uint8_t), RADIO_LEN, fptr);
     fclose(fptr);
@@ -129,6 +116,7 @@ int csp_gnuradio_tx(int fd, const void * data, size_t len){
         printf("System call failed\n");
         while(1);
     }
+    csp_free(crc_command);
 
     return CSP_ERR_NONE;
 }
