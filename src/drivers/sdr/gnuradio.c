@@ -76,8 +76,9 @@ uint16_t crc16(uint8_t * pData, int length)
 //format and send 128B frame to gnuradio via zmq
 int csp_gnuradio_tx(int fd, const void * data, size_t len){
     
-    if((int)len != PACKET_LEN){
-        exit(); //todo support len != 128 one day, maybe
+    if(len != PACKET_LEN){
+        printf("packet received by gnuradio driver != 128B\n")
+        exit(1); //todo support len != 128 one day, maybe
     }
     //apply framing according to UHF user manual protocol
     uint8_t * crc_command = csp_calloc(LEN_ID_LEN + len, sizeof(uint8_t));
@@ -156,7 +157,7 @@ CSP_DEFINE_TASK(csp_gnuradio_rx_task) {
             exit();
         }
 
-        if(recv_buf[0] == 128){//length indicator byte signifying full-length packet
+        if(recv_buf[0] == sdr_conf->mtu){//length indicator byte signifying full-length packet
             bool state = fec_mpdu_to_csp(ifdata->mac_data, recv_buf + 1, &packet, sdr_conf->mtu);
             if (state) {
                 ex2_log("%s Rx: received a packet, csp length %d", iface->name, csp_ntoh16(packet->length));
