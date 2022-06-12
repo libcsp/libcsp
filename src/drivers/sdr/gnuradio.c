@@ -35,6 +35,14 @@
 #include <csp/arch/csp_semaphore.h>
 #include <csp/drivers/sdr.h>
 #include "csp/drivers/fec.h"
+#include <netdb.h>
+#include <fcntl.h> 
+#include <stdlib.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#define SA struct sockaddr
 
 #include <zmq.h>
 
@@ -51,10 +59,7 @@
 #define RADIO_LEN PREAMBLE_LEN + SYNCWORD_LEN + LEN_ID_LEN + PACKET_LEN + CRC16_LEN + POSTAMBLE_LEN
 //^^radio_len = preamble + sync word + length indicator + data + crc + postamble
 
-static void *context;
-static void *publisher;
-static void *subscriber;
-static int rc;
+static int sockfd;
 
 uint16_t crc16(uint8_t * pData, int length)
 {
@@ -70,15 +75,16 @@ uint16_t crc16(uint8_t * pData, int length)
 
 //format and send 128B frame to gnuradio via zmq
 int csp_gnuradio_tx(int fd, const void * data, size_t len){
-
+    
     if(len != PACKET_LEN){
-        while(1); //improve error handling
+        printf("packet received by gnuradio driver != 128B\n")
+        exit(1); //todo support len != 128 one day, maybe
     }
-
     //apply framing according to UHF user manual protocol
-    uint8_t crc_command[PACKET_LEN] = {0};
-    crc_command[0] = len;
-    for(int i = 0; i < (int)len; i++) {
+    uint8_t * crc_command = csp_calloc(LEN_ID_LEN + len, sizeof(uint8_t));
+    crc_command[0] = (uint8_t)len;
+
+    for(size_t i = 0; i < len; i++) {
         crc_command[LEN_ID_LEN+i] = ((uint8_t *)data)[i];
     }
 
@@ -86,24 +92,32 @@ int csp_gnuradio_tx(int fd, const void * data, size_t len){
 
     uint8_t radio_command[RADIO_LEN] = {0};
     for(int i = 0; i < PREAMBLE_LEN; i++){
-      radio_command[i] = PREAMBLE_B;
+        radio_command[i] = PREAMBLE_B;
     }
+
     for(int i = POSTAMBLE_LEN; i > 0; i--){
         radio_command[RADIO_LEN - i] = PREAMBLE_B;
     }
 
     radio_command[PREAMBLE_LEN] = SYNCWORD;
     radio_command[PREAMBLE_LEN + SYNCWORD_LEN] = len;
-    for( int i = 0; i < (int)len; i++) {
-        radio_command[PREAMBLE_LEN + SYNCWORD_LEN + CRC16_LEN + i] = ((uint8_t *)data)[i];
+    for(size_t i = 0; i < len; i++) {
+        radio_command[PREAMBLE_LEN + SYNCWORD_LEN + LEN_ID_LEN + i] = ((uint8_t *)data)[i];
     }
 
-    radio_command[PREAMBLE_LEN + SYNCWORD_LEN + CRC16_LEN + len] = ((uint16_t)crc_res >> 8) & 0xFF;
-    radio_command[PREAMBLE_LEN + SYNCWORD_LEN + CRC16_LEN + len + 1] = ((uint16_t)crc_res >> 0) & 0xFF;
-
-    //send to gnuradio via zmq
-    rc = zmq_send(publisher, radio_command, RADIO_LEN, 0);
-    assert(rc == RADIO_LEN);
+    radio_command[PREAMBLE_LEN + SYNCWORD_LEN + LEN_ID_LEN + len] = ((uint16_t)crc_res >> 8) & 0xFF;
+    radio_command[PREAMBLE_LEN + SYNCWORD_LEN + LEN_ID_LEN + len + 1] = ((uint16_t)crc_res >> 0) & 0xFF;
+    
+    //send to radio via tcp
+    FILE *fptr = fopen("output2.bin","w");
+    fwrite(radio_command, sizeof(uint8_t), RADIO_LEN, fptr);
+    fclose(fptr);
+    int status = system("cat output2.bin | nc -w 1 127.0.0.1 1235");
+    if(status == -1){
+        printf("System call failed\n");
+        exit();
+    }
+    csp_free(crc_command);
 
     return CSP_ERR_NONE;
 }
@@ -130,51 +144,65 @@ CSP_DEFINE_TASK(csp_gnuradio_rx_task) {
     csp_iface_t *iface = (csp_iface_t *)param;
     csp_sdr_interface_data_t *ifdata = (csp_sdr_interface_data_t *)iface->interface_data;
     csp_sdr_conf_t *sdr_conf = (csp_sdr_conf_t *)iface->driver_data;
-    uint8_t *recv_buf;
-    recv_buf = csp_malloc(sdr_conf->mtu);
+    uint8_t buflen = sdr_conf->mtu + 1;//+1 weirdness to discard "length" field
+    uint8_t * recv_buf = csp_malloc(buflen);
     csp_packet_t *packet = 0;
 
     // Receive loop
     while (1){
-        rc = zmq_recv(subscriber, recv_buf, sdr_conf->mtu, 0);//Need to test how/if this is blocking
-        //^^^TODO: verify that gnuradio passes frame correctly and sync word and length bytes ignored
-
-        assert(rc != -1);
-
-        bool state = fec_mpdu_to_csp(ifdata->mac_data, recv_buf, &packet, sdr_conf->mtu);
-        if (state) {
-            ex2_log("%s Rx: received a packet, csp length %d", iface->name, csp_ntoh16(packet->length));
-            csp_qfifo_write(packet, iface, NULL);
+        bzero(recv_buf, buflen);
+        int status = read(sockfd, recv_buf, buflen);
+        if(status == -1){
+            printf("tcp read failed\n");
+            exit();
         }
+
+        if(recv_buf[0] == sdr_conf->mtu){//length indicator byte signifying full-length packet
+            bool state = fec_mpdu_to_csp(ifdata->mac_data, recv_buf + 1, &packet, sdr_conf->mtu);
+            if (state) {
+                ex2_log("%s Rx: received a packet, csp length %d", iface->name, csp_ntoh16(packet->length));
+                csp_qfifo_write(packet, iface, NULL);
+            }
+        }
+
+
     }
     return NULL;
 }
 
-//Inits zmq tx(pub) and rx(sub)
+//Inits tcp tx and rx
 //starts rx thread
 int csp_gnuradio_open(void) {
 
-    context = zmq_ctx_new();
-
-    //Init zmq tx(pub)
-    publisher = zmq_socket(context, ZMQ_PUB);
-    rc = zmq_bind(publisher, "tcp://127.0.0.1:1234");
-    assert(rc == 0);
-
-    // and rx(sub)
-    subscriber = zmq_socket(context, ZMQ_SUB);
-    rc = zmq_connect(subscriber, "tcp://127.0.0.1:4321");
-    assert(rc == 0);
-    rc = zmq_setsockopt(subscriber, ZMQ_SUBSCRIBE, "", 0);
-    assert(rc == 0);
+    struct sockaddr_in servaddr;
+   
+    // socket create and verification
+    sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    if (sockfd == -1) {
+        printf("TCP socket w/ gnuradio creation failed...\n");
+        exit(0);
+    }
+    else
+        printf("TCP socket w/ gnuradio successfully created..\n");
+    bzero(&servaddr, sizeof(servaddr));
+   
+    // assign IP, PORT
+    servaddr.sin_family = AF_INET;
+    servaddr.sin_addr.s_addr = inet_addr("127.0.0.1");
+    servaddr.sin_port = htons(4321);
+   
+    // connect the client socket to server socket
+    if (connect(sockfd, (SA*)&servaddr, sizeof(servaddr)) != 0) {
+        printf("connection with the gnuradio TCP server failed...\n");
+        exit();
+    }
+    else
+        printf("Connected to the gnuradio TCP server..\n");
 
     return CSP_ERR_NONE;
 
 }
 
-//Inits zmq tx(pub) and rx(sub)
-//starts rx thread
-//int csp_sdr_driver_init(const csp_usart_conf_t *conf, csp_usart_callback_t rx_callback, void * user_data,  csp_usart_fd_t* return_fd) {
 int csp_sdr_driver_init(csp_iface_t * iface){
 
     if ((iface == NULL) || (iface->name == NULL) || (iface->interface_data == NULL)) {
@@ -184,12 +212,11 @@ int csp_sdr_driver_init(csp_iface_t * iface){
     ifdata->tx_func = (csp_sdr_driver_tx_t) csp_gnuradio_tx;
 
     ifdata->rx_queue = csp_queue_create(((csp_sdr_conf_t *)iface->driver_data)->mtu, 1);
-    csp_thread_create(csp_gnuradio_rx_task, "gnuradio_rx", RX_TASK_STACK_SIZE, (void *)iface, 0, NULL);
-
     int res = csp_gnuradio_open();
     if (res != CSP_ERR_NONE) {
         return res;
     }
+    csp_thread_create(csp_gnuradio_rx_task, "gnuradio_rx", RX_TASK_STACK_SIZE, (void *)iface, 0, NULL);
 
     return 0;
 }
