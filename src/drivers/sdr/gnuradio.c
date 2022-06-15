@@ -77,7 +77,7 @@ uint16_t crc16(uint8_t * pData, int length)
 int csp_gnuradio_tx(int fd, const void * data, size_t len){
     
     if(len != PACKET_LEN){
-        printf("packet received by gnuradio driver != 128B\n")
+        printf("packet received by gnuradio driver != 128B\n");
         exit(1); //todo support len != 128 one day, maybe
     }
     //apply framing according to UHF user manual protocol
@@ -115,7 +115,7 @@ int csp_gnuradio_tx(int fd, const void * data, size_t len){
     int status = system("cat output2.bin | nc -w 1 127.0.0.1 1235");
     if(status == -1){
         printf("System call failed\n");
-        exit();
+        exit(1);
     }
     csp_free(crc_command);
 
@@ -154,7 +154,7 @@ CSP_DEFINE_TASK(csp_gnuradio_rx_task) {
         int status = read(sockfd, recv_buf, buflen);
         if(status == -1){
             printf("tcp read failed\n");
-            exit();
+            exit(1);
         }
 
         if(recv_buf[0] == sdr_conf->mtu){//length indicator byte signifying full-length packet
@@ -180,7 +180,7 @@ int csp_gnuradio_open(void) {
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd == -1) {
         printf("TCP socket w/ gnuradio creation failed...\n");
-        exit(0);
+        exit(1);
     }
     else
         printf("TCP socket w/ gnuradio successfully created..\n");
@@ -194,7 +194,7 @@ int csp_gnuradio_open(void) {
     // connect the client socket to server socket
     if (connect(sockfd, (SA*)&servaddr, sizeof(servaddr)) != 0) {
         printf("connection with the gnuradio TCP server failed...\n");
-        exit();
+        exit(1);
     }
     else
         printf("Connected to the gnuradio TCP server..\n");
