@@ -178,7 +178,8 @@ def configure(ctx):
                                             'ex2_sdr/lib/phy_layer/pdu/ppdu_f.cpp',
                                             'ex2_sdr/lib/phy_layer/pdu/ppdu_u8.cpp',
                                             'ex2_sdr/lib/wrapper/MACWrapper.cpp',
-                                            'ex2_sdr/third_party/viterbi/viterbi.cpp'])
+                                            'ex2_sdr/third_party/viterbi/viterbi.cpp',
+                                            'ex2_sdr/lib/mac_layer/pdu/mpduUtility.cpp'])
         # Set up includes for FEC work
         ctx.env.append_unique('INCLUDES_CSP',
                              ['ex2_sdr/include/wrapper/',
