@@ -21,11 +21,14 @@ static int csp_if_udp_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packe
 	csp_if_udp_conf_t * ifconf = iface->driver_data;
 
 	if (ifconf->sockfd == 0) {
+		csp_print("Sockfd null\n");
 		csp_buffer_free(packet);
 		return CSP_ERR_NONE;
 	}
 
 	csp_id_prepend(packet);
+	ifconf->peer_addr.sin_family = AF_INET;
+	ifconf->peer_addr.sin_port = htons(ifconf->rport);
 	sendto(ifconf->sockfd, packet->frame_begin, packet->frame_length, MSG_CONFIRM, (struct sockaddr *)&ifconf->peer_addr, sizeof(ifconf->peer_addr));
 	csp_buffer_free(packet);
 
@@ -66,7 +69,7 @@ void * csp_if_udp_rx_loop(void * param) {
 	csp_iface_t * iface = param;
 	csp_if_udp_conf_t * ifconf = iface->driver_data;
 
-	while (ifconf->sockfd < 0) {
+	while (ifconf->sockfd == 0) {
 
 		ifconf->sockfd = socket(AF_INET, SOCK_DGRAM, PF_PACKET);
 
@@ -76,7 +79,7 @@ void * csp_if_udp_rx_loop(void * param) {
 		server_addr.sin_port = htons(ifconf->lport);
 
 		bind(ifconf->sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr));
-		
+
 		if (ifconf->sockfd < 0) {
 			csp_print("  UDP server waiting for port %d\n", ifconf->lport);
 			sleep(1);
@@ -108,8 +111,6 @@ void csp_if_udp_init(csp_iface_t * iface, csp_if_udp_conf_t * ifconf) {
 	if (inet_aton(ifconf->host, &ifconf->peer_addr.sin_addr) == 0) {
 		csp_print("  Unknown peer address %s\n", ifconf->host);
 	}
-	ifconf->peer_addr.sin_family = AF_INET;
-	ifconf->peer_addr.sin_port = htons(ifconf->rport);
 
 	csp_print("  UDP peer address: %s:%d (listening on port %d)\n", inet_ntoa(ifconf->peer_addr.sin_addr), ifconf->rport, ifconf->lport);
 
