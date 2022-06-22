@@ -103,6 +103,7 @@ static void csp_yaml_end_if(struct data_s * data, unsigned int * dfl_addr) {
 		}
 
 		iface = malloc(sizeof(csp_iface_t));
+		memset(iface, 0, sizeof(csp_iface_t));
 		csp_if_udp_conf_t * udp_conf = malloc(sizeof(csp_if_udp_conf_t));
 		udp_conf->host = data->server;
 		udp_conf->lport = atoi(data->listen_port);
