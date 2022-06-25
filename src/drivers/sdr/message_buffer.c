@@ -1,7 +1,6 @@
 #include <string.h>
 #include <csp/arch/csp_malloc.h>
 #include "message_buffer.h"
-#include "util/service_utilities.h"
 
 MessageBufferHandle_t xMessageBufferCreate(size_t xBufferSizeBytes) {
     MessageBufferHandle_t msgbuf = csp_calloc(1, sizeof(struct message_buffer));

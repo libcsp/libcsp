@@ -55,7 +55,9 @@ void usart_rx_thread(void * arg) {
             if(!uhf_command_mode){
                 ctx->rx_callback(ctx->user_data, &rxByte, sizeof(uint8_t), NULL);
             }else{
+#ifndef UHF_IS_STUBBED
                 uhf_command_mode_callback(rxByte);
+#endif
             }
 
         }
