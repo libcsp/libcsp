@@ -38,10 +38,6 @@
 #define RX_TASK_STACK_SIZE 4096
 #endif
 
-#define PIPE_ENTER_MSG_LEN 15
-#define PIPE_EXIT_MSG_LEN 16
-int lasttime = 0;
-
 /* From the EnduroSat manual, these delays assume the UART speed is 19.2KBaud */
 static int sdr_uhf_baud_rate_delay[] = {
     [SDR_UHF_1200_BAUD] = 920,
@@ -109,15 +105,16 @@ int sdr_uart_driver_init(sdr_uhf_conf_t *sdr_conf) {
     uart_conf->databits = 8;
     uart_conf->stopbits = 2;
 
+    sdr_interface_data_t *if_data = sdr_conf->if_data; 
     csp_usart_fd_t return_fd;
-    int res = csp_usart_open(uart_conf, sdr_rx_isr, ifdata, &return_fd);
+    int res = csp_usart_open(uart_conf, sdr_rx_isr, if_data, &return_fd);
     if (res != CSP_ERR_NONE) {
         csp_free(uart_conf);
         return res;
     }
 
-    ifdata->fd = (uintptr_t) return_fd;
-    ifdata->tx_func = (sdr_tx_t) csp_usart_write;
+    if_data->fd = (uintptr_t) return_fd;
+    if_data->tx_func = (sdr_tx_t) csp_usart_write;
 
     return CSP_ERR_NONE;
 }
