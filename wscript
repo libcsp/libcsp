@@ -122,6 +122,7 @@ def configure(ctx):
 
     ctx.define_cond('CSP_FREERTOS', ctx.options.with_os == 'freertos')
     ctx.define_cond('CSP_POSIX', ctx.options.with_os == 'posix')
+    ctx.define_cond('OS_POSIX', ctx.options.with_os == 'posix')
     ctx.define_cond('CSP_WINDOWS', ctx.options.with_os == 'windows')
     ctx.define_cond('CSP_MACOSX', ctx.options.with_os == 'macosx')
 
@@ -160,7 +161,7 @@ def configure(ctx):
             ctx.env.append_unique("FILES_CSP", ['src/drivers/sdr/sdr_uart.c'])
             ctx.define("SDR_UART", ctx.options.SDR_use_uart)
 
-        ctx.env.append_unique('FILES_CSP', ['src/drivers/sdr/fec.c',
+        ctx.env.append_unique('FILES_CSP', ['src/drivers/sdr/csp_fec.c',
                                             'ex2_sdr/lib/driver/sdr_driver.c',
                                             'ex2_sdr/lib/driver/sdr_uart.c',
                                             'ex2_sdr/lib/driver/sdr_init.c',
