@@ -11,8 +11,11 @@
 
 int csp_if_sdr_tx(const csp_route_t *ifroute, csp_packet_t *packet) {
     sdr_interface_data_t *ifdata = (sdr_interface_data_t *)ifroute->iface->interface_data;
+    uint16_t len = packet->length;
+	packet->id.ext = csp_hton32(packet->id.ext);
+	packet->length = csp_hton16(len);
 
-    if (sdr_uhf_tx(ifdata, (uint8_t *)packet, packet->length) == 0) {
+    if (sdr_uhf_tx(ifdata, (uint8_t *)packet, len) == 0) {
         return CSP_ERR_NONE;
     } else {
         return CSP_ERR_TX;
@@ -46,6 +49,9 @@ int csp_uhf_open_and_add_interface(const sdr_uhf_conf_t *conf, const char *ifnam
 
     iface->name = ifname;
     iface->mtu = csp_buffer_data_size() + sizeof(csp_packet_t);
+
+    sdr_uhf_conf_t *sdr_conf = ifdata->sdr_conf;
+    sdr_conf->rx_callback = csp_if_sdr_rx;
 
     iface->nexthop = csp_if_sdr_tx;
     csp_iflist_add(iface);

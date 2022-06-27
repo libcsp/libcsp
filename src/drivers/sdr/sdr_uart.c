@@ -19,82 +19,10 @@
 
 #include <string.h>
 #include <csp/csp.h>
-#include <csp/csp_interface.h>
 #include <csp/arch/csp_malloc.h>
-#include <csp/arch/csp_thread.h>
-#include <csp/arch/csp_queue.h>
 #include <csp/drivers/sdr.h>
-#include <csp/drivers/csp_fec.h>
 #include <csp/drivers/usart.h>
 #include <sdr_driver.h>
-
-#ifdef CSP_POSIX
-#include <stdio.h>
-#define ex2_log printf
-#endif // CSP_POSIX
-
-#ifdef CSP_FREERTOS
-#define RX_TASK_STACK_SIZE 512
-#else
-#define RX_TASK_STACK_SIZE 4096
-#endif
-
-/* From the EnduroSat manual, these delays assume the UART speed is 19.2KBaud */
-static int sdr_uhf_baud_rate_delay[] = {
-    [SDR_UHF_1200_BAUD] = 920,
-    [SDR_UHF_2400_BAUD] = 460,
-    [SDR_UHF_4800_BAUD] = 240,
-    [SDR_UHF_9600_BAUD] = 120,
-    [SDR_UHF_19200_BAUD] = 60,
-    [SDR_UHF_TEST_BAUD] = 20,
-};
-
-int csp_sdr_tx(const csp_route_t *ifroute, csp_packet_t *packet) {
-    sdr_uhf_conf_t *sdr_conf = (sdr_uhf_conf_t *)ifroute->iface->interface_data;
-    sdr_interface_data_t *ifdata = sdr_conf->if_data;
-
-    if (fec_csp_to_mpdu(ifdata->mac_data, packet, sdr_conf->mtu)) {
-        uint8_t *buf;
-        int delay_time = sdr_uhf_baud_rate_delay[sdr_conf->uhf_baudrate];
-        size_t mtu = (size_t)fec_get_next_mpdu(ifdata->mac_data, (void **)&buf);
-        while (mtu != 0) {
-            (ifdata->tx_func)(ifdata->fd, buf, mtu);
-            mtu = fec_get_next_mpdu(ifdata->mac_data, (void **)&buf);
-            csp_sleep_ms(delay_time);
-        }
-    }
-    csp_buffer_free(packet);
-    return CSP_ERR_NONE;
-}
-
-CSP_DEFINE_TASK(csp_sdr_rx_task) {
-    csp_iface_t *iface = (csp_iface_t *)param;
-    sdr_uhf_conf_t *sdr_conf = (sdr_uhf_conf_t *)iface->interface_data;
-    sdr_interface_data_t *ifdata = sdr_conf->if_data;
-    uint8_t *recv_buf;
-    recv_buf = csp_malloc(sdr_conf->mtu);
-    csp_packet_t *packet = 0;
-    const csp_conf_t *conf = csp_get_conf();
-
-    while (1) {
-        if (csp_queue_dequeue(ifdata->rx_queue, recv_buf, CSP_MAX_TIMEOUT) != true) {
-            continue;
-        }
-
-        bool state = fec_mpdu_to_csp(ifdata->mac_data, recv_buf, &packet, sdr_conf->mtu);
-        if (state) {
-            if (strcmp(iface->name, SDR_IF_LOOPBACK_NAME) == 0) {
-                /* This is an unfortunate hack to be able to do loopback.
-                    * We have to change the outgoing packet destination (the
-                    * device) to the incoming destination (us) or else CSP will
-                    * drop the packet.
-                    */
-                packet->id.dst = conf->address;
-            }
-            csp_qfifo_write(packet, iface, NULL);
-        }
-    }
-}
 
 int sdr_uart_driver_init(sdr_interface_data_t *ifdata) {
     csp_usart_conf_t *uart_conf = csp_calloc(1, sizeof(csp_usart_conf_t));
