@@ -1,7 +1,0 @@
-{
-	"mesonbuild.buildFolder": "builddir",
-	"files.associations": {
-		"*.h": "c",
-		"*.c": "c",
-	},
-}
