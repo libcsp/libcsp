@@ -24,6 +24,7 @@
 #include <csp/arch/csp_thread.h>
 #include <csp/arch/csp_queue.h>
 #include <csp/drivers/sdr.h>
+#include <csp/drivers/csp_fec.h>
 #include <csp/drivers/usart.h>
 #include <sdr_driver.h>
 
@@ -95,26 +96,26 @@ CSP_DEFINE_TASK(csp_sdr_rx_task) {
     }
 }
 
-int sdr_uart_driver_init(sdr_uhf_conf_t *sdr_conf) {
+int sdr_uart_driver_init(sdr_interface_data_t *ifdata) {
     csp_usart_conf_t *uart_conf = csp_calloc(1, sizeof(csp_usart_conf_t));
-     if (!uart_conf)
+    if (!uart_conf)
         return CSP_ERR_NOMEM;
 
+    sdr_uhf_conf_t *sdr_conf = ifdata->sdr_conf;
     uart_conf->device = sdr_conf->device_file;
     uart_conf->baudrate = sdr_conf->uart_baudrate;
     uart_conf->databits = 8;
     uart_conf->stopbits = 2;
 
-    sdr_interface_data_t *if_data = sdr_conf->if_data; 
     csp_usart_fd_t return_fd;
-    int res = csp_usart_open(uart_conf, sdr_rx_isr, if_data, &return_fd);
+    int res = csp_usart_open(uart_conf, sdr_rx_isr, ifdata, &return_fd);
     if (res != CSP_ERR_NONE) {
         csp_free(uart_conf);
         return res;
     }
 
-    if_data->fd = (uintptr_t) return_fd;
-    if_data->tx_func = (sdr_tx_t) csp_usart_write;
+    ifdata->fd = (uintptr_t) return_fd;
+    ifdata->tx_func = (sdr_tx_t) csp_usart_write;
 
     return CSP_ERR_NONE;
 }
