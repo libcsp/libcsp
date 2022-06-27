@@ -22,3 +22,4 @@ builddir
 GPATH
 GRTAGS
 GTAGS
+.vscode/
