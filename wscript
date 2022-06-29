@@ -155,7 +155,7 @@ def configure(ctx):
             ctx.fatal("Must use --SDR-use-uart or --SDR-use-gnuradio with --enable-SDR")
 
         if ctx.options.SDR_use_gnuradio:
-            ctx.env.append_unique("FILES_CSP", ['src/drivers/sdr/gnuradio.c'])
+            ctx.env.append_unique("FILES_CSP", ['ex2_sdr/lib/driver/gnuradio.c'])
             ctx.define("SDR_GNURADIO", ctx.options.SDR_use_gnuradio)
         if ctx.options.SDR_use_uart:
             ctx.env.append_unique("FILES_CSP", ['src/drivers/sdr/sdr_uart.c'])
