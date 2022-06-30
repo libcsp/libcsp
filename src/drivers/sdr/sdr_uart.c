@@ -20,7 +20,6 @@
 #include <string.h>
 #include <csp/csp.h>
 #include <csp/arch/csp_malloc.h>
-#include <csp/drivers/sdr.h>
 #include <csp/drivers/usart.h>
 #include <sdr_driver.h>
 
@@ -29,9 +28,9 @@ int sdr_uart_driver_init(sdr_interface_data_t *ifdata) {
     if (!uart_conf)
         return CSP_ERR_NOMEM;
 
-    sdr_uhf_conf_t *sdr_conf = ifdata->sdr_conf;
-    uart_conf->device = sdr_conf->device_file;
-    uart_conf->baudrate = sdr_conf->uart_baudrate;
+    sdr_uhf_conf_t *uhf_conf = &(ifdata->sdr_conf->uhf_conf);
+    uart_conf->device = uhf_conf->device_file;
+    uart_conf->baudrate = uhf_conf->uart_baudrate;
     uart_conf->databits = 8;
     uart_conf->stopbits = 2;
 
