@@ -28,7 +28,6 @@
 #include "HL_sys_common.h"
 #include "HL_system.h"
 #include "system.h"
-#include "uhf_uart.h"
 
 #define CSP_TX_TIMEOUT_MS 1000
 
