@@ -122,6 +122,7 @@ def configure(ctx):
 
     ctx.define_cond('CSP_FREERTOS', ctx.options.with_os == 'freertos')
     ctx.define_cond('CSP_POSIX', ctx.options.with_os == 'posix')
+    ctx.define_cond('OS_POSIX', ctx.options.with_os == 'posix')
     ctx.define_cond('CSP_WINDOWS', ctx.options.with_os == 'windows')
     ctx.define_cond('CSP_MACOSX', ctx.options.with_os == 'macosx')
 
@@ -154,15 +155,19 @@ def configure(ctx):
             ctx.fatal("Must use --SDR-use-uart or --SDR-use-gnuradio with --enable-SDR")
 
         if ctx.options.SDR_use_gnuradio:
-            ctx.env.append_unique("FILES_CSP", ['src/drivers/sdr/gnuradio.c'])
+            ctx.env.append_unique("FILES_CSP", ['ex2_sdr/lib/driver/gnuradio.c'])
             ctx.define("SDR_GNURADIO", ctx.options.SDR_use_gnuradio)
         if ctx.options.SDR_use_uart:
             ctx.env.append_unique("FILES_CSP", ['src/drivers/sdr/sdr_uart.c'])
             ctx.define("SDR_UART", ctx.options.SDR_use_uart)
 
-
-        ctx.env.append_unique('FILES_CSP', ['src/drivers/sdr/fec.c',
-                                            #'src/drivers/sdr/sdr_loopback.c',
+        ctx.env.append_unique('FILES_CSP', ['src/drivers/sdr/csp_fec.c',
+                                            'ex2_sdr/lib/driver/sdr_driver.c',
+                                            'ex2_sdr/lib/driver/sdr_uart.c',
+                                            'ex2_sdr/lib/driver/sdr_init.c',
+                                            'ex2_sdr/lib/driver/sdr_loopback.c',
+                                            'ex2_sdr/lib/driver/fec.c',
+                                            'ex2_sdr/lib/driver/osal.c',
                                             'ex2_sdr/lib/wrapper/MACWrapper.cpp',
                                             'ex2_sdr/lib/error_control/error_correction.cpp',
                                             'ex2_sdr/lib/error_control/ConvolutionalCodecHD.cpp',
@@ -179,7 +184,8 @@ def configure(ctx):
                                             'ex2_sdr/lib/phy_layer/pdu/ppdu_u8.cpp',
                                             'ex2_sdr/lib/wrapper/MACWrapper.cpp',
                                             'ex2_sdr/third_party/viterbi/viterbi.cpp',
-                                            'ex2_sdr/lib/mac_layer/pdu/mpduUtility.cpp'])
+                                            'ex2_sdr/lib/mac_layer/pdu/mpduUtility.cpp',
+                                            'ex2_sdr/lib/utilities/osal.c'])
         # Set up includes for FEC work
         ctx.env.append_unique('INCLUDES_CSP',
                              ['ex2_sdr/include/wrapper/',
@@ -194,6 +200,7 @@ def configure(ctx):
                              'ex2_sdr/include/phy_layer/pdu',
                              'ex2_sdr/include/utilities',
                              'ex2_sdr/include/wrapper',
+                             'ex2_sdr/include/driver',
                              'ex2_sdr/include',
                              'ex2_sdr/third_party/viterbi',
                              'include/csp'])
