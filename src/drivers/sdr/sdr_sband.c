@@ -24,7 +24,7 @@
 #include <logger/logger.h>
 
 static int sband_tx(int fd, const void *data, size_t len) {
-#ifdef SBAND_IS_STUBBED
+#if SBAND_IS_STUBBED == 0
     char buf[96];
     char *msg = buf;
     const uint8_t *ptr = data;
