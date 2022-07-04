@@ -29,7 +29,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/drivers/can_socketcan.h>
 #include <csp/csp_endian.h>
 #include <csp/interfaces/csp_if_sdr.h>
-#include <csp/drivers/fec.h>
+#include <fec.h>
 
 #include <sys/types.h>
 #include <unistd.h>
@@ -868,17 +868,17 @@ static PyObject* pycsp_sdr_init(PyObject *self, PyObject *args) {
     printf("pid: %d\n", pid);
     char* device;
     uint32_t uart_baudrate = 0;
-    const char *if_name = CSP_IF_SDR_UHF_NAME;
+    const char *if_name = SDR_IF_UHF_NAME;
     sdr_uhf_baud_rate_t uhf_baudrate;
     if (!PyArg_ParseTuple(args, "s|IIs", &device, &uart_baudrate, &uhf_baudrate, &if_name)) {
         return NULL; // TypeError is thrown
     }
 
-    csp_sdr_conf_t uhf_conf = {.mtu = fec_get_mtu(),
-                               .baudrate = uhf_baudrate,
-                               .uart_baudrate = uart_baudrate,
-                               .device_file = device};
-    int res = csp_sdr_open_and_add_interface(&uhf_conf, if_name, NULL);
+    sdr_conf_t sdr_conf;
+    sdr_conf.uhf_conf.uhf_baudrate = uhf_baudrate;
+    sdr_conf.uhf_conf.uart_baudrate = uart_baudrate;
+    sdr_conf.uhf_conf.device_file = device;
+    int res = csp_sdr_open_and_add_interface(&sdr_conf, if_name, NULL);
     if (res != CSP_ERR_NONE) {
         return PyErr_Error("csp_sdr_open_and_add_interface()", res);
     }
@@ -1107,9 +1107,9 @@ PyMODINIT_FUNC PyInit_libcsp_py3(void) {
     PyModule_AddIntConstant(m, "CSP_MAX_TIMEOUT", CSP_MAX_TIMEOUT);
 
     /* SDR consts */
-    PyModule_AddStringConstant(m, "CSP_IF_SDR_UHF_NAME", CSP_IF_SDR_UHF_NAME);
-    PyModule_AddStringConstant(m, "CSP_IF_SDR_SBAND_NAME", CSP_IF_SDR_SBAND_NAME);
-    PyModule_AddStringConstant(m, "CSP_IF_SDR_LOOPBACK_NAME", CSP_IF_SDR_LOOPBACK_NAME);
+    PyModule_AddStringConstant(m, "SDR_IF_UHF_NAME", SDR_IF_UHF_NAME);
+    PyModule_AddStringConstant(m, "SDR_IF_SBAND_NAME", SDR_IF_SBAND_NAME);
+    PyModule_AddStringConstant(m, "SDR_IF_LOOPBACK_NAME", SDR_IF_LOOPBACK_NAME);
     PyModule_AddIntConstant(m, "SDR_UHF_1200_BAUD", SDR_UHF_1200_BAUD);
     PyModule_AddIntConstant(m, "SDR_UHF_2400_BAUD", SDR_UHF_2400_BAUD);
     PyModule_AddIntConstant(m, "SDR_UHF_4800_BAUD", SDR_UHF_4800_BAUD);
