@@ -164,10 +164,9 @@ def configure(ctx):
         ctx.env.append_unique('FILES_CSP', ['src/drivers/sdr/csp_fec.c',
                                             'ex2_sdr/lib/driver/sdr_driver.c',
                                             'ex2_sdr/lib/driver/sdr_uart.c',
-                                            'ex2_sdr/lib/driver/sdr_init.c',
                                             'ex2_sdr/lib/driver/sdr_loopback.c',
                                             'ex2_sdr/lib/driver/fec.c',
-                                            'ex2_sdr/lib/driver/osal.c',
+                                            'ex2_sdr/lib/driver/sdr_init.c'
                                             'ex2_sdr/lib/wrapper/MACWrapper.cpp',
                                             'ex2_sdr/lib/error_control/error_correction.cpp',
                                             'ex2_sdr/lib/error_control/ConvolutionalCodecHD.cpp',
@@ -185,7 +184,8 @@ def configure(ctx):
                                             'ex2_sdr/lib/wrapper/MACWrapper.cpp',
                                             'ex2_sdr/third_party/viterbi/viterbi.cpp',
                                             'ex2_sdr/lib/mac_layer/pdu/mpduUtility.cpp',
-                                            'ex2_sdr/lib/utilities/osal.c'])
+                                            'ex2_sdr/lib/utilities/osal.c',
+                                            'ex2_sdr/lib/driver/sdr_init.c'])
         # Set up includes for FEC work
         ctx.env.append_unique('INCLUDES_CSP',
                              ['ex2_sdr/include/wrapper/',

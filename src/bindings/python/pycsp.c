@@ -874,11 +874,11 @@ static PyObject* pycsp_sdr_init(PyObject *self, PyObject *args) {
         return NULL; // TypeError is thrown
     }
 
-    sdr_uhf_conf_t uhf_conf = {.mtu = fec_get_mtu(),
-                               .uhf_baudrate = uhf_baudrate,
-                               .uart_baudrate = uart_baudrate,
-                               .device_file = device};
-    int res = csp_uhf_open_and_add_interface(&uhf_conf, if_name, NULL);
+    sdr_conf_t sdr_conf;
+    sdr_conf.uhf_conf.uhf_baudrate = uhf_baudrate;
+    sdr_conf.uhf_conf.uart_baudrate = uart_baudrate;
+    sdr_conf.uhf_conf.device_file = device;
+    int res = csp_sdr_open_and_add_interface(&sdr_conf, if_name, NULL);
     if (res != CSP_ERR_NONE) {
         return PyErr_Error("csp_sdr_open_and_add_interface()", res);
     }
