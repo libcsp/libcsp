@@ -56,7 +56,7 @@ void usart_rx_thread(void * arg) {
             if(!uhf_command_mode){
                 ctx->rx_callback(ctx->user_data, &rxByte, sizeof(uint8_t), NULL);
             }else{
-#ifndef UHF_IS_STUBBED
+#if UHF_IS_STUBBED == 0
                 uhf_command_mode_callback(rxByte);
 #endif
             }
@@ -110,14 +110,14 @@ void csp_sciNotification(sciBASE_t *sci, unsigned flags) {
     case SCI_RX_INT:
         xQueueSendToBackFromISR( sciData, &incomingData, &xHigherPriorityTaskWoken );
         sciReceive(sci, sizeof(uint8_t), &incomingData);
-#ifndef UHF_IS_STUBBED
+#if UHF_IS_STUBBED == 0
         if(!uhf_command_mode) uhf_pipe_timer_reset_from_isr(&xHigherPriorityTaskWoken, incomingData);
 #endif
         portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
         break;
     case SCI_TX_INT:
         xSemaphoreGiveFromISR(tx_semphr, &xHigherPriorityTaskWoken);
-#ifndef UHF_IS_STUBBED
+#if UHF_IS_STUBBED == 0
         if(!uhf_command_mode) uhf_pipe_timer_reset_from_isr(&xHigherPriorityTaskWoken, NULL);
 #endif
         portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
