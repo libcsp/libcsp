@@ -24,7 +24,7 @@
 #include <logger/logger.h>
 
 static int sband_tx(int fd, const void *data, size_t len) {
-#if SBAND_IS_STUBBED == 0
+#if SBAND_IS_STUBBED == 1
     char buf[96];
     char *msg = buf;
     const uint8_t *ptr = data;
@@ -42,6 +42,8 @@ static int sband_tx(int fd, const void *data, size_t len) {
 int sdr_sband_driver_init(sdr_interface_data_t *ifdata) {
     ifdata->fd = (uintptr_t) 0;
     ifdata->tx_func = sband_tx;
+
+    memset(&(ifdata->sdr_conf->sband_conf), 0, sizeof(sdr_sband_conf_t));
 
     return 0;
 }
