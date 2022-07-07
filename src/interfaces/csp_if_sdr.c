@@ -18,6 +18,7 @@ static int csp_if_uhf_tx(const csp_route_t *ifroute, csp_packet_t *packet) {
     if (sdr_uhf_tx(ifdata, (uint8_t *)packet, len + sizeof(csp_packet_t))) {
         return CSP_ERR_TX;
     }
+    csp_buffer_free(packet);
     return CSP_ERR_NONE;
 }
 
@@ -30,6 +31,7 @@ static int csp_if_sband_tx(const csp_route_t *ifroute, csp_packet_t *packet) {
     if (sdr_sband_tx(ifdata, (uint8_t *)packet, len + sizeof(csp_packet_t))) {
         return CSP_ERR_TX;
     }
+    csp_buffer_free(packet);
     return CSP_ERR_NONE;
 }
 
