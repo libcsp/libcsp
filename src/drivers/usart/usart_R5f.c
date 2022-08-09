@@ -28,7 +28,9 @@
 #include "HL_sys_common.h"
 #include "HL_system.h"
 #include "system.h"
+#if UHF_IS_STUBBED == 0
 #include "uhf_uart.h"
+#endif
 
 #define CSP_TX_TIMEOUT_MS 1000
 
