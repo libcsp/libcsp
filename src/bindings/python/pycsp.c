@@ -862,10 +862,18 @@ static PyObject* pycsp_kiss_init(PyObject *self, PyObject *args) {
     Py_RETURN_NONE;
 }
 
-static PyObject* pycsp_sdr_init(PyObject *self, PyObject *args) {
-    pid_t pid = getpid();
+static PyObject* pycsp_sband_init(PyObject *self, PyObject *args) {
+    csp_iface_t *sband_iface = 0;
+    sdr_conf_t sdr_conf = {0};
+    int error = csp_sdr_open_and_add_interface(&sdr_conf, SDR_IF_SBAND_NAME, &sband_iface);
+    if (error != CSP_ERR_NONE) {
+        return PyErr_Error("csp_sdr_open_and_add_interface()", error);
+    }
+    Py_RETURN_NONE;
 
-    printf("pid: %d\n", pid);
+}
+
+static PyObject* pycsp_uhf_init(PyObject *self, PyObject *args) {
     char* device;
     uint32_t uart_baudrate = 0;
     const char *if_name = SDR_IF_UHF_NAME;
@@ -874,7 +882,7 @@ static PyObject* pycsp_sdr_init(PyObject *self, PyObject *args) {
         return NULL; // TypeError is thrown
     }
 
-    sdr_conf_t sdr_conf;
+    sdr_conf_t sdr_conf = {0};
     sdr_conf.uhf_conf.uhf_baudrate = uhf_baudrate;
     sdr_conf.uhf_conf.uart_baudrate = uart_baudrate;
     sdr_conf.uhf_conf.device_file = device;
@@ -884,6 +892,10 @@ static PyObject* pycsp_sdr_init(PyObject *self, PyObject *args) {
     }
 
     Py_RETURN_NONE;
+}
+
+static PyObject* pycsp_sdr_init(PyObject *self, PyObject *args) {
+    return pycsp_uhf_init(self, args);
 }
 
 static PyObject* pycsp_packet_set_data(PyObject *self, PyObject *args) {
@@ -995,7 +1007,9 @@ static PyMethodDef methods[] = {
     /* csp/interfaces/csp_if_zmqhub.h */
     {"zmqhub_init",         pycsp_zmqhub_init,         METH_VARARGS, ""},
     {"kiss_init",           pycsp_kiss_init,           METH_VARARGS, ""},
-    {"sdr_init",            pycsp_sdr_init,           METH_VARARGS, ""},
+    {"sdr_init",            pycsp_sdr_init,            METH_VARARGS, ""},
+    {"uhf_init",            pycsp_uhf_init,            METH_VARARGS, ""},
+    {"sband_init",          pycsp_sband_init,           METH_VARARGS, ""},
 
 
     /* csp/drivers/can_socketcan.h */
