@@ -20,7 +20,7 @@ if(LIBZMQ_FOUND)
   target_link_libraries(if_zmq PRIVATE ${LIBZMQ_LIBRARIES})
   target_link_libraries(libcsp PRIVATE if_zmq)
   if(BUILD_SHARED_LIBS)
-    set_property(TARGET driver_can PROPERTY POSITION_INDEPENDENT_CODE ON)
+    set_property(TARGET if_zmq PROPERTY POSITION_INDEPENDENT_CODE ON)
   endif()
 endif()
 
