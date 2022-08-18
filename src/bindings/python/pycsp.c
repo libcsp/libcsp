@@ -865,6 +865,11 @@ static PyObject* pycsp_kiss_init(PyObject *self, PyObject *args) {
 static PyObject* pycsp_sband_init(PyObject *self, PyObject *args) {
     csp_iface_t *sband_iface = 0;
     sdr_conf_t sdr_conf = {0};
+    bool using_fec;
+    if (!PyArg_ParseTuple(args, "b", &using_fec)) {
+        return NULL; // TypeError is thrown
+    }
+    sdr_conf.use_fec = using_fec;
     int error = csp_sdr_open_and_add_interface(&sdr_conf, SDR_IF_SBAND_NAME, &sband_iface);
     if (error != CSP_ERR_NONE) {
         return PyErr_Error("csp_sdr_open_and_add_interface()", error);
@@ -878,11 +883,13 @@ static PyObject* pycsp_uhf_init(PyObject *self, PyObject *args) {
     uint32_t uart_baudrate = 0;
     const char *if_name = SDR_IF_UHF_NAME;
     sdr_uhf_baud_rate_t uhf_baudrate;
-    if (!PyArg_ParseTuple(args, "s|IIs", &device, &uart_baudrate, &uhf_baudrate, &if_name)) {
+    bool use_fec;
+    if (!PyArg_ParseTuple(args, "s|IIsb", &device, &uart_baudrate, &uhf_baudrate, &if_name, &use_fec)) {
         return NULL; // TypeError is thrown
     }
 
     sdr_conf_t sdr_conf = {0};
+    sdr_conf.use_fec = use_fec;
     sdr_conf.uhf_conf.uhf_baudrate = uhf_baudrate;
     sdr_conf.uhf_conf.uart_baudrate = uart_baudrate;
     sdr_conf.uhf_conf.device_file = device;
