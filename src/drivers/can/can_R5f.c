@@ -26,6 +26,8 @@
 #include "HL_sys_core.h"
 #include "HL_can.h"
 
+#define CAN_COUNTER_MAX 10000
+
 typedef struct {
     char name[CSP_IFLIST_NAME_MAX + 1];
     csp_iface_t iface;
@@ -58,45 +60,86 @@ static int csp_can_tx_frame(void * driver_data, uint32_t id, const uint8_t * dat
     }
     id = id | 0b01100000000000000000000000000000;
     canBASE_t *canREG = canREG1;
+    uint16_t can_counter = 0;
     switch (dlc) {
     case 8:
-        while (canIsTxMessagePending(canREG, canMESSAGE_BOX1));
+        while(canIsTxMessagePending(canREG, canMESSAGE_BOX1)){
+            can_counter++;
+            if(can_counter > CAN_COUNTER_MAX){
+                return CSP_ERR_TIMEDOUT;
+            }
+        }
         canUpdateID(canREG, canMESSAGE_BOX1, id);
         uint32_t x = canGetID(canREG, canMESSAGE_BOX1);
         canTransmit(canREG, canMESSAGE_BOX1, data);
         break;
     case 7:
-        while (canIsTxMessagePending(canREG, canMESSAGE_BOX3));
+        while(canIsTxMessagePending(canREG, canMESSAGE_BOX3)){
+            can_counter++;
+            if(can_counter > CAN_COUNTER_MAX){
+                return CSP_ERR_TIMEDOUT;
+            }
+        }
         canUpdateID(canREG, canMESSAGE_BOX3, id);
         canTransmit(canREG, canMESSAGE_BOX3, data);
         break;
     case 6:
-        while (canIsTxMessagePending(canREG, canMESSAGE_BOX5));
+        while(canIsTxMessagePending(canREG, canMESSAGE_BOX5)){
+            can_counter++;
+            if(can_counter > CAN_COUNTER_MAX){
+                return CSP_ERR_TIMEDOUT;
+            }
+        }
         canUpdateID(canREG, canMESSAGE_BOX5, id);
         canTransmit(canREG, canMESSAGE_BOX5, data);
         break;
     case 5:
-        while (canIsTxMessagePending(canREG, canMESSAGE_BOX7));
+        while(canIsTxMessagePending(canREG, canMESSAGE_BOX7)){
+            can_counter++;
+            if(can_counter > CAN_COUNTER_MAX){
+                return CSP_ERR_TIMEDOUT;
+            }
+        }
         canUpdateID(canREG, canMESSAGE_BOX7, id);
         canTransmit(canREG, canMESSAGE_BOX7, data);
         break;
     case 4:
-        while (canIsTxMessagePending(canREG, canMESSAGE_BOX9));
+        while(canIsTxMessagePending(canREG, canMESSAGE_BOX9)){
+            can_counter++;
+            if(can_counter > CAN_COUNTER_MAX){
+                return CSP_ERR_TIMEDOUT;
+            }
+        }
         canUpdateID(canREG, canMESSAGE_BOX9, id);
         canTransmit(canREG, canMESSAGE_BOX9, data);
         break;
     case 3:
-        while (canIsTxMessagePending(canREG, canMESSAGE_BOX11));
+        while(canIsTxMessagePending(canREG, canMESSAGE_BOX11)){
+            can_counter++;
+            if(can_counter > CAN_COUNTER_MAX){
+                return CSP_ERR_TIMEDOUT;
+            }
+        }
         canUpdateID(canREG, canMESSAGE_BOX11, id);
         canTransmit(canREG, canMESSAGE_BOX11, data);
         break;
     case 2:
-        while (canIsTxMessagePending(canREG, canMESSAGE_BOX13));
+        while(canIsTxMessagePending(canREG, canMESSAGE_BOX13)){
+            can_counter++;
+            if(can_counter > CAN_COUNTER_MAX){
+                return CSP_ERR_TIMEDOUT;
+            }
+        }
         canUpdateID(canREG, canMESSAGE_BOX13, id);
         canTransmit(canREG, canMESSAGE_BOX13, data);
         break;
     case 1:
-        while (canIsTxMessagePending(canREG, canMESSAGE_BOX15));
+        while(canIsTxMessagePending(canREG, canMESSAGE_BOX15)){
+            can_counter++;
+            if(can_counter > CAN_COUNTER_MAX){
+                return CSP_ERR_TIMEDOUT;
+            }
+        }
         canUpdateID(canREG, canMESSAGE_BOX15, id);
         canTransmit(canREG, canMESSAGE_BOX15, data);
         break;
