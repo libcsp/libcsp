@@ -120,7 +120,9 @@ void csp_send_direct(csp_id_t* idout, csp_packet_t * packet, csp_iface_t * route
 		 * is found. But without looping the list twice. And without using stack memory.
 		 * Is this even possible? */
 		copy = csp_buffer_clone(packet);
-		csp_send_direct_iface(idout, copy, iface, via, from_me);
+		if (copy != NULL) {
+			csp_send_direct_iface(idout, copy, iface, via, from_me);
+		}
 
 	}
 
