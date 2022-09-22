@@ -187,7 +187,9 @@ void canMessageNotification(canBASE_t *node, uint32 messageBox)
     rxFrame.id = canGetID(node, messageBox);
     canGetDataAndSize(node, messageBox, rxFrame.data, &rxSize);
     rxFrame.dlc = rxSize;
-    xQueueSendToBackFromISR(canData, &rxFrame, &xHigherPriorityTaskWoken);
+    if (canData) {
+        xQueueSendToBackFromISR(canData, &rxFrame, &xHigherPriorityTaskWoken);
+    }
     portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
 #endif /* CSP_FREERTOS */
