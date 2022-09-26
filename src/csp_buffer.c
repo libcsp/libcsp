@@ -33,7 +33,7 @@ void csp_buffer_init(void) {
 	}
 }
 
-void * csp_buffer_get_isr(size_t _data_size) {
+csp_packet_t * csp_buffer_get_isr(size_t _data_size) {
 
 	if (_data_size > CSP_BUFFER_SIZE)
 		return NULL;
@@ -56,7 +56,7 @@ void * csp_buffer_get_isr(size_t _data_size) {
 	return &buffer->skbf_data;
 }
 
-void * csp_buffer_get(size_t _data_size) {
+csp_packet_t * csp_buffer_get(size_t _data_size) {
 
 	if (_data_size > CSP_BUFFER_SIZE) {
 		csp_dbg_errno = CSP_DBG_ERR_MTU_EXCEEDED;
