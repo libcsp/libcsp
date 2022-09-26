@@ -15,7 +15,7 @@
    @param[in] data_size minimum data size of requested buffer.
    @return Buffer (pointer to #csp_packet_t) or NULL if no buffers available or size too big.
 */
-void * csp_buffer_get(size_t data_size);
+csp_packet_t * csp_buffer_get(size_t data_size);
 
 /**
    Get free buffer (from ISR context).
@@ -23,7 +23,7 @@ void * csp_buffer_get(size_t data_size);
    @param[in] data_size minimum data size of requested buffer.
    @return Buffer (pointer to #csp_packet_t) or NULL if no buffers available or size too big.
 */
-void * csp_buffer_get_isr(size_t data_size);
+csp_packet_t * csp_buffer_get_isr(size_t data_size);
 
 /**
    Free buffer (from task context).

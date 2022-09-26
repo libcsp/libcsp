@@ -13,7 +13,7 @@
 typedef struct csp_skbf_s {
 	unsigned int refcount;
 	void * skbf_addr;
-	char skbf_data[sizeof(csp_packet_t)];
+	csp_packet_t skbf_data;
 } csp_skbf_t;
 
 #define SKBUF_SIZE CSP_BUFFER_ALIGN * ((sizeof(csp_skbf_t)+ (CSP_BUFFER_ALIGN - 1)) / CSP_BUFFER_ALIGN)
@@ -39,7 +39,7 @@ void csp_buffer_init(void) {
 	}
 }
 
-void * csp_buffer_get_isr(size_t _data_size) {
+csp_packet_t * csp_buffer_get_isr(size_t _data_size) {
 
 	if (_data_size > CSP_BUFFER_SIZE)
 		return NULL;
@@ -59,10 +59,10 @@ void * csp_buffer_get_isr(size_t _data_size) {
 	}
 
 	buffer->refcount = 1;
-	return buffer->skbf_data;
+	return &buffer->skbf_data;
 }
 
-void * csp_buffer_get(size_t _data_size) {
+csp_packet_t * csp_buffer_get(size_t _data_size) {
 
 	if (_data_size > CSP_BUFFER_SIZE) {
 		csp_dbg_errno = CSP_DBG_ERR_MTU_EXCEEDED;
@@ -82,7 +82,7 @@ void * csp_buffer_get(size_t _data_size) {
 	}
 
 	buffer->refcount = 1;
-	return buffer->skbf_data;
+	return &buffer->skbf_data;
 }
 
 void csp_buffer_free_isr(void * packet) {
