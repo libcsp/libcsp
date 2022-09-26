@@ -59,6 +59,7 @@ csp_packet_t * csp_buffer_get_isr(size_t _data_size) {
 	}
 
 	buffer->refcount = 1;
+	buffer->skbf_data.length = _data_size;
 	return &buffer->skbf_data;
 }
 
@@ -82,6 +83,7 @@ csp_packet_t * csp_buffer_get(size_t _data_size) {
 	}
 
 	buffer->refcount = 1;
+	buffer->skbf_data.length = _data_size;
 	return &buffer->skbf_data;
 }
 
