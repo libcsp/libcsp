@@ -1138,7 +1138,7 @@ PyMODINIT_FUNC PyInit_libcsp_py3(void) {
     PyModule_AddIntConstant(m, "SDR_UHF_19200_BAUD", SDR_UHF_19200_BAUD);
     PyModule_AddIntConstant(m, "SDR_UHF_TEST_BAUD", SDR_UHF_TEST_BAUD);
     PyModule_AddIntConstant(m, "SDR_UHF_END_BAUD", SDR_UHF_END_BAUD);
-    PyModule_AddIntConstant(m, "SDR_UHF_GND_STATION_BAUD", SDR_UHF_GND_STATION_BAUD);
+    PyModule_AddIntConstant(m, "SDR_UHF_GNURADIO_BAUD", SDR_UHF_GNURADIO_BAUD);
 
     return m;
 }
