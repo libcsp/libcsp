@@ -335,7 +335,7 @@ int csp_can2_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t 
 	}
 
 	/* Check for overflow */
-	if (packet->frame_length + dlc > iface->mtu) {
+	if (packet->frame_length + dlc - 6 > iface->mtu) {
 		csp_dbg_can_errno = CSP_DBG_CAN_ERR_RX_OVF;
 		iface->frame++;
 		csp_can_pbuf_free(ifdata, packet, 1, task_woken);
