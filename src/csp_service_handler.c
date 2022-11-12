@@ -20,8 +20,6 @@
 #include <csp/csp_id.h>
 #include <csp/arch/csp_time.h>
 
-#define CSP_RPS_MTU 196
-
 /**
  * The CSP CMP mempy function is used to, override the function used to
  * read/write memory by peek and poke.

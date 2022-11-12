@@ -107,13 +107,9 @@ static int csp_if_tun_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packe
 
 }
 
-
 void csp_if_tun_init(csp_iface_t * iface, csp_if_tun_conf_t * ifconf) {
 
 	iface->driver_data = ifconf;
-
-	/* MTU is datasize */
-	iface->mtu = csp_buffer_data_size();
 
 	/* Regsiter interface */
 	iface->name = "TUN",

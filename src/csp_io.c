@@ -228,10 +228,6 @@ void csp_send_direct_iface(csp_id_t* idout, csp_packet_t * packet, csp_iface_t *
 
 	/* Store length before passing to interface */
 	uint16_t bytes = packet->length;
-	uint16_t mtu = iface->mtu;
-
-	if (mtu > 0 && bytes > mtu)
-		goto tx_err;
 
 	if ((*iface->nexthop)(iface, via, packet, from_me) != CSP_ERR_NONE)
 		goto tx_err;

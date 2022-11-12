@@ -56,8 +56,6 @@ typedef struct {
 /**
    Add interface.
 
-   If the MTU is not set, it will be set to the csp_buffer_data_size() - sizeof(uint32_t), to make room for the CRC32 added to the packet.
-
    @param[in] iface CSP interface, initialized with name and inteface_data pointing to a valid #csp_kiss_interface_data_t.
    @return #CSP_ERR_NONE on success, otherwise an error code.
 */

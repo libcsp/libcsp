@@ -35,16 +35,16 @@ static int csp_if_udp_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packe
 	return CSP_ERR_NONE;
 }
 
-int csp_if_udp_rx_work(int sockfd, size_t mtu, csp_iface_t * iface) {
+int csp_if_udp_rx_work(int sockfd, size_t unused, csp_iface_t * iface) {
 
-	csp_packet_t * packet = csp_buffer_get(mtu);
+	csp_packet_t * packet = csp_buffer_get(0);
 	if (packet == NULL) {
 		return CSP_ERR_NOMEM;
 	}
 
 	/* Setup RX frane to point to ID */
 	int header_size = csp_id_setup_rx(packet);
-	int received_len = recvfrom(sockfd, (char *)packet->frame_begin, mtu + header_size, MSG_WAITALL, NULL, NULL);
+	int received_len = recvfrom(sockfd, (char *)packet->frame_begin, sizeof(packet->data) + header_size, MSG_WAITALL, NULL, NULL);
 	
 	if (received_len <= 4) {
 		csp_buffer_free(packet);
@@ -90,7 +90,7 @@ void * csp_if_udp_rx_loop(void * param) {
 
 	while (1) {
 		int ret;
-		ret = csp_if_udp_rx_work(ifconf->sockfd, iface->mtu, iface);
+		ret = csp_if_udp_rx_work(ifconf->sockfd, 0, iface);
 		if (ret == CSP_ERR_INVAL) {
 			iface->rx_error++;
 		} else if (ret == CSP_ERR_NOMEM) {
@@ -124,9 +124,6 @@ void csp_if_udp_init(csp_iface_t * iface, csp_if_udp_conf_t * ifconf) {
 		csp_print("csp_if_udp_init: pthread_attr_setdetachstate failed: %s: %d\n", strerror(ret), ret);
 	}
 	ret = pthread_create(&ifconf->server_handle, &attributes, csp_if_udp_rx_loop, iface);
-
-	/* MTU is datasize */
-	iface->mtu = csp_buffer_data_size();
 
 	/* Regsiter interface */
 	iface->name = "UDP",
