@@ -12,18 +12,18 @@
 /**
    Get free buffer (from task context).
 
-   @param[in] data_size minimum data size of requested buffer.
-   @return Buffer (pointer to #csp_packet_t) or NULL if no buffers available or size too big.
+   @param[in] data_size OBSOLETE ignored field, csp packets have a fixed size now
+   @return Buffer (pointer to #csp_packet_t) or NULL if no buffers available
 */
-csp_packet_t * csp_buffer_get(size_t data_size);
+csp_packet_t * csp_buffer_get(size_t unused);
 
 /**
    Get free buffer (from ISR context).
 
-   @param[in] data_size minimum data size of requested buffer.
-   @return Buffer (pointer to #csp_packet_t) or NULL if no buffers available or size too big.
+   @param[in] data_size OBSOLETE ignored field, csp packets have a fixed size now
+   @return Buffer (pointer to #csp_packet_t) or NULL if no buffers available
 */
-csp_packet_t * csp_buffer_get_isr(size_t data_size);
+csp_packet_t * csp_buffer_get_isr(size_t unused);
 
 /**
    Free buffer (from task context).

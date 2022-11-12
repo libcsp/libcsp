@@ -33,10 +33,7 @@ void csp_buffer_init(void) {
 	}
 }
 
-csp_packet_t * csp_buffer_get_isr(size_t _data_size) {
-
-	if (_data_size > CSP_BUFFER_SIZE)
-		return NULL;
+csp_packet_t * csp_buffer_get_isr(size_t unused) {
 
 	csp_skbf_t * buffer = NULL;
 	int task_woken = 0;
@@ -56,12 +53,7 @@ csp_packet_t * csp_buffer_get_isr(size_t _data_size) {
 	return &buffer->skbf_data;
 }
 
-csp_packet_t * csp_buffer_get(size_t _data_size) {
-
-	if (_data_size > CSP_BUFFER_SIZE) {
-		csp_dbg_errno = CSP_DBG_ERR_MTU_EXCEEDED;
-		return NULL;
-	}
+csp_packet_t * csp_buffer_get(size_t unused) {
 
 	csp_skbf_t * buffer = NULL;
 	csp_queue_dequeue(csp_buffers, &buffer, 0);
