@@ -57,7 +57,7 @@ static int csp_rdp_close_internal(csp_conn_t * conn, uint8_t closed_by, bool sen
  */
 static rdp_header_t * csp_rdp_header_add(csp_packet_t * packet) {
 	rdp_header_t * header;
-	if ((packet->length + sizeof(*header)) > csp_buffer_data_size()) {
+	if ((packet->length + sizeof(*header)) > sizeof(packet->data)) {
 		return NULL;
 	}
 	header = (rdp_header_t *)&packet->data[packet->length];

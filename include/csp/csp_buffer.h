@@ -52,19 +52,6 @@ void * csp_buffer_clone(void *buffer);
 */
 int csp_buffer_remaining(void);
 
-/**
-   Return the size of a CSP buffer.
-   @return size of a CSP buffer, sizeof(#csp_packet_t) + data_size.
-*/
-size_t csp_buffer_size(void);
-
-/**
-   Return the data size of a CSP buffer.
-   The data size is set by csp_init().
-   @return data size of a CSP buffer
-*/
-size_t csp_buffer_data_size(void);
-
 void csp_buffer_init(void);
 
 

@@ -887,7 +887,7 @@ static PyObject * pycsp_packet_set_data(PyObject * self, PyObject * args) {
 	if (packet == NULL) {
 		return NULL;  // TypeError is thrown
 	}
-	if (data.len > (int)csp_buffer_data_size()) {
+	if (data.len > (int)sizeof(packet->data)) {
 		return PyErr_Error("packet_set_data() - exceeding data size", CSP_ERR_INVAL);
 	}
 
@@ -921,10 +921,6 @@ static PyObject * pycsp_print_connections(PyObject * self, PyObject * args) {
 static PyObject * pycsp_print_routes(PyObject * self, PyObject * args) {
 	csp_rtable_print();
 	Py_RETURN_NONE;
-}
-
-static PyObject * pycsp_get_buffer_stats(PyObject * self, PyObject * args) {
-	return Py_BuildValue("iii", (int)csp_buffer_remaining(), (int)csp_buffer_size(), (int)csp_buffer_data_size());
 }
 
 static PyMethodDef methods[] = {

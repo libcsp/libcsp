@@ -135,7 +135,7 @@ void * csp_buffer_clone(void * buffer) {
 
 	csp_packet_t * clone = csp_buffer_get(packet->length);
 	if (clone) {
-		memcpy(clone, packet, csp_buffer_size());
+		memcpy(clone, packet, sizeof(csp_packet_t));
 	}
 
 	return clone;
@@ -143,12 +143,4 @@ void * csp_buffer_clone(void * buffer) {
 
 int csp_buffer_remaining(void) {
 	return csp_queue_size(csp_buffers);
-}
-
-size_t csp_buffer_size(void) {
-	return sizeof(csp_packet_t);
-}
-
-size_t csp_buffer_data_size(void) {
-	return CSP_BUFFER_SIZE;
 }

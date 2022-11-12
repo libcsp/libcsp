@@ -83,8 +83,6 @@ typedef struct {
 
         /**
          * Data part of packet.
-         * When using the csp_buffer API, the size of the data part is set by
-         * csp_buffer_init(), and can later be accessed by csp_buffer_data_size()
          */
         union {
                 /** Access data as uint8_t. */

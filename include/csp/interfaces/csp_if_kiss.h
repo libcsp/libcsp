@@ -39,8 +39,6 @@ typedef enum {
    KISS interface data (state information).
 */
 typedef struct {
-	/** Max Rx length */
-	unsigned int max_rx_length;
 	/** Tx function */
 	csp_kiss_driver_tx_t tx_func;
 	/** Rx mode/state. */
