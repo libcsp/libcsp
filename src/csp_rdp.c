@@ -114,22 +114,23 @@ static inline int csp_rdp_time_after(uint32_t time, uint32_t cmp) {
  * The following function is used to send empty messages,
  * with ACK, SYN or RST flag.
  */
-static int csp_rdp_send_cmp(csp_conn_t * conn, csp_packet_t * packet, int flags, int seq_nr, int ack_nr) {
+static void csp_rdp_send_cmp(csp_conn_t * conn, csp_packet_t * packet, int flags, int seq_nr, int ack_nr) {
 
 	/* Generate message */
 	if (!packet) {
-		packet = csp_buffer_get(20);
+		packet = csp_buffer_get(0);
 		if (!packet)
-			return CSP_ERR_NOMEM;
+			return;
 		packet->length = 0;
 	}
 
 	/* Add RDP header */
 	rdp_header_t * header = csp_rdp_header_add(packet);
 	if (header == NULL) {
-		csp_rdp_error("RDP %p: No space for RDP header (cmp)", conn);
+		/* Silently throw soft error message and drop packet */
+		csp_dbg_errno = CSP_DBG_ERR_RDP_INTERNAL;
 		csp_buffer_free(packet);
-		return CSP_ERR_NOMEM;
+		return;
 	}
 	header->seq_nr = htobe16(seq_nr);
 	header->ack_nr = htobe16(ack_nr);
@@ -142,7 +143,8 @@ static int csp_rdp_send_cmp(csp_conn_t * conn, csp_packet_t * packet, int flags,
 	/* Send copy to tx_queue, before sending packet to IF */
 	if (flags & RDP_SYN) {
 		csp_packet_t * rdp_packet = csp_buffer_clone(packet);
-		if (rdp_packet == NULL) return CSP_ERR_NOMEM;
+		if (rdp_packet == NULL) 
+			return;
 		rdp_packet->timestamp_tx = csp_get_ms();
 		csp_rdp_queue_tx_add(conn, rdp_packet);
 	}
@@ -165,25 +167,25 @@ static int csp_rdp_send_cmp(csp_conn_t * conn, csp_packet_t * packet, int flags,
 		conn->rdp.ack_timestamp = csp_get_ms();
 	}
 
-	return CSP_ERR_NONE;
 }
 
 /**
  * EXTENDED ACKNOWLEDGEMENTS
  * The following function sends an extended ACK packet
  */
-static int csp_rdp_send_eack(csp_conn_t * conn) {
+static void csp_rdp_send_eack(csp_conn_t * conn) {
 
 	/* Allocate message */
-	csp_packet_t * packet_eack = csp_buffer_get(100);
-	if (packet_eack == NULL) return CSP_ERR_NOMEM;
+	csp_packet_t * packet_eack = csp_buffer_get(0);
+	if (packet_eack == NULL)
+		return;
 	packet_eack->length = 0;
 
 	/* Loop through RX queue */
 	int i, count;
 	csp_packet_t * packet;
 	count = csp_rdp_queue_rx_size();
-	unsigned int space_available = 100 - (packet_eack->length + sizeof(rdp_header_t));
+	unsigned int space_available = 100 - sizeof(rdp_header_t);
 
 	for (i = 0; i < count; i++) {
 
@@ -207,18 +209,19 @@ static int csp_rdp_send_eack(csp_conn_t * conn) {
 		csp_rdp_queue_rx_add(conn, packet);
 	}
 
-	return csp_rdp_send_cmp(conn, packet_eack, RDP_ACK | RDP_EAK, conn->rdp.snd_nxt, conn->rdp.rcv_cur);
+	csp_rdp_send_cmp(conn, packet_eack, RDP_ACK | RDP_EAK, conn->rdp.snd_nxt, conn->rdp.rcv_cur);
 }
 
 /**
  * SYN Packet
  * The following function sends a SYN packet
  */
-static int csp_rdp_send_syn(csp_conn_t * conn) {
+static void csp_rdp_send_syn(csp_conn_t * conn) {
 
 	/* Allocate message */
-	csp_packet_t * packet = csp_buffer_get(100);
-	if (packet == NULL) return CSP_ERR_NOMEM;
+	csp_packet_t * packet = csp_buffer_get(0);
+	if (packet == NULL)
+		return;
 
 	/* Generate contents */
 	packet->data32[0] = htobe32(csp_rdp_window_size);
@@ -229,7 +232,7 @@ static int csp_rdp_send_syn(csp_conn_t * conn) {
 	packet->data32[5] = htobe32(csp_rdp_ack_delay_count);
 	packet->length = 6 * sizeof(uint32_t);
 
-	return csp_rdp_send_cmp(conn, packet, RDP_SYN, conn->rdp.snd_iss, 0);
+	csp_rdp_send_cmp(conn, packet, RDP_SYN, conn->rdp.snd_iss, 0);
 }
 
 static inline int csp_rdp_receive_data(csp_conn_t * conn, csp_packet_t * packet) {
@@ -847,8 +850,7 @@ retry:
 
 	/* Send SYN message */
 	conn->rdp.state = RDP_SYN_SENT;
-	if (csp_rdp_send_syn(conn) != CSP_ERR_NONE)
-		goto error;
+	csp_rdp_send_syn(conn);
 
 	/* Wait for router task to release semaphore */
 	csp_rdp_protocol("RDP %p: AC: Waiting for SYN/ACK reply...\n", conn);
