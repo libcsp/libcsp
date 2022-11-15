@@ -8,6 +8,10 @@
 #include <assert.h>
 #include <stdlib.h>
 
+void csp_panic(const char * msg) {
+    csp_print("csp_panic: %s\n", msg);
+    exit(1);
+}
 
 int main(int argc, char * argv[]) {
 

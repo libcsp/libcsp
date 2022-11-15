@@ -20,12 +20,24 @@ extern "C" {
 csp_packet_t * csp_buffer_get(size_t unused);
 
 /**
+ * Get a buffer or get killed (from task context)
+ * @return Buffer (pointer to #csp_packet_t)
+ */
+csp_packet_t * csp_buffer_get_always(void);
+
+/**
  * Get free buffer (from ISR context).
  *
  * @param[in] unused OBSOLETE ignored field, csp packets have a fixed size now
  * @return Buffer pointer to #csp_packet_t or NULL if no buffers available
  */
 csp_packet_t * csp_buffer_get_isr(size_t unused);
+
+/**
+ * Get a buffer or get killed (from ISR context)
+ * @return Buffer (pointer to #csp_packet_t)
+ */
+csp_packet_t * csp_buffer_get_always_isr(void);
 
 /**
  * Free buffer (from task context).
