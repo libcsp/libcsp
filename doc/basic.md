@@ -48,6 +48,10 @@ version is for task-context and
 interrupt-context. Using fixed size buffer elements that are
 preallocated is again a question of speed and safety.
 
+if you use `csp_buffer_get_always()` instead csp will panic if there is
+not enough available buffers. This ensures that incoming hardware
+always gets a buffer, or the system will reboot.
+
 Definition of a buffer element `csp_packet_t`:
 
 ```c

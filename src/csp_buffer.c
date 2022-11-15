@@ -1,4 +1,3 @@
-#include <csp/csp.h>
 #include <csp/csp_buffer.h>
 
 #include <string.h>
@@ -6,6 +5,8 @@
 #include <csp/arch/csp_queue.h>
 #include <csp/csp_debug.h>
 #include "csp_macro.h"
+#include <csp/csp_hooks.h>
+#include <csp/csp_id.h>
 
 /** Internal buffer header */
 typedef struct csp_skbf_s {
@@ -35,31 +36,30 @@ void csp_buffer_init(void) {
 	}
 }
 
-csp_packet_t * csp_buffer_get_isr(size_t unused) {
+static csp_packet_t * csp_buffer_get_actual(int reserve, int isr) {
 
-	csp_skbf_t * buffer = NULL;
-	int task_woken = 0;
-	csp_queue_dequeue_isr(csp_buffers, &buffer, &task_woken);
-	if (buffer == NULL) {
-		csp_dbg_buffer_out++;
+	/* Get buffers remaining */
+	int remain;
+	if (isr) {
+		remain = csp_queue_size_isr(csp_buffers);
+	} else {
+		remain = csp_queue_size(csp_buffers);
+	}
+	/* Respect if remaining is lower than the reserve requested */
+	if (remain < reserve) {
 		return NULL;
 	}
 
-	if (buffer != buffer->skbf_addr) {
-		csp_dbg_errno = CSP_DBG_ERR_CORRUPT_BUFFER;
-		/* Best option here must be to leak the invalid buffer */
-		return NULL;
+	/* Now fetch a buffer */
+	csp_skbf_t * buffer = NULL;
+	if (isr) {
+		int task_woken = 0;
+		csp_queue_dequeue_isr(csp_buffers, &buffer, &task_woken);
+	} else {
+		csp_queue_dequeue(csp_buffers, &buffer, 0);
 	}
 
-	buffer->refcount = 1;
-	csp_id_clear(&buffer->skbf_data.id);
-	return &buffer->skbf_data;
-}
-
-csp_packet_t * csp_buffer_get(size_t unused) {
-
-	csp_skbf_t * buffer = NULL;
-	csp_queue_dequeue(csp_buffers, &buffer, 0);
+	/* We might be out of buffers */
 	if (buffer == NULL) {
 		csp_dbg_buffer_out++;
 		return NULL;
@@ -164,4 +164,40 @@ void csp_buffer_refc_inc(void * buffer) {
 
 int csp_buffer_remaining(void) {
 	return csp_queue_size(csp_buffers);
+}
+
+/* CSP will use every remaining buffer in an attempt to allocate a packet
+ * buffer. Including the last two, that is normally reserved.
+ * This can be important for ensuring a node is always reachable, so a
+ * failure to allocate will cause a panic and a reboot */
+
+csp_packet_t * csp_buffer_get_always(void) {
+	csp_packet_t * packet = csp_buffer_get_actual(0, 0);
+	if (packet == NULL) {
+		csp_panic("Out of buffers");
+		while(1);
+	}
+	return packet;
+}
+
+csp_packet_t * csp_buffer_get_always_isr(void) {
+	csp_packet_t * packet = csp_buffer_get_actual(0, 1);
+	if (packet == NULL) {
+		csp_panic("Out of buffers");
+		while(1);
+	}
+	return packet;
+}
+
+/* CSP will try to reserve the last two buffers for calls which can take it,
+ * examples are client funktions that are allowed to fail and have adequate
+ * error checking. Or services which are allowed to timeout of memory becomes
+ * sparse. */
+
+csp_packet_t * csp_buffer_get(size_t unused) {
+	return csp_buffer_get_actual(2, 0);
+}
+
+csp_packet_t * csp_buffer_get_isr(size_t unused) {
+	return csp_buffer_get_actual(2, 1);
 }

@@ -1,13 +1,17 @@
-
-
 #include <csp/interfaces/csp_if_lo.h>
 #include <csp/arch/csp_time.h>
+#include <csp/csp_hooks.h>
 #include <csp/csp_id.h>
 #include "csp/autoconfig.h"
+#include "csp_macro.h"
 #include "csp_conn.h"
 #include "csp_qfifo.h"
 #include "csp_port.h"
 #include "csp_rdp_queue.h"
+
+__weak void csp_panic(const char * msg) {
+	return;
+}
 
 csp_conf_t csp_conf = {
 	.version = 2,

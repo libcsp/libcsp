@@ -93,9 +93,9 @@ void csp_kiss_rx(csp_iface_t * iface, const uint8_t * buf, size_t len, void * px
 					break;
 				}
 
-				/* Try to allocate new buffer */
+				/* Always allocate new buffer */
 				if (ifdata->rx_packet == NULL) {
-					ifdata->rx_packet = pxTaskWoken ? csp_buffer_get_isr(0) : csp_buffer_get(0);  // CSP only supports one size
+					ifdata->rx_packet = pxTaskWoken ? csp_buffer_get_always_isr() : csp_buffer_get_always();
 				}
 
 				/* If no more memory, skip frame */

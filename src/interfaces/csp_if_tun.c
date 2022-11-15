@@ -17,7 +17,7 @@ static int csp_if_tun_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packe
 	csp_if_tun_conf_t * ifconf = iface->driver_data;
 
 	/* Allocate new frame */
-	csp_packet_t * new_packet = csp_buffer_get(0);
+	csp_packet_t * new_packet = csp_buffer_get_always();
 	if (new_packet == NULL) {
 		csp_buffer_free(packet);
 		return CSP_ERR_NONE;
@@ -118,3 +118,4 @@ void csp_if_tun_init(csp_iface_t * iface, csp_if_tun_conf_t * ifconf) {
 	csp_iflist_add(iface);
 
 }
+
