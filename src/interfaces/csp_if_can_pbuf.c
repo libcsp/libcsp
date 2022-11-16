@@ -45,7 +45,7 @@ void csp_can_pbuf_free(csp_can_interface_data_t * ifdata, csp_packet_t * buffer,
 
 csp_packet_t * csp_can_pbuf_new(csp_can_interface_data_t * ifdata, uint32_t id, int * task_woken) {
 
-	csp_can_pbuf_cleanup(ifdata);
+	csp_can_pbuf_cleanup(ifdata, task_woken);
 
 	uint32_t now = (task_woken) ? csp_get_ms_isr() : csp_get_ms();
 
@@ -65,9 +65,9 @@ csp_packet_t * csp_can_pbuf_new(csp_can_interface_data_t * ifdata, uint32_t id, 
 	return packet;
 }
 
-void csp_can_pbuf_cleanup(csp_can_interface_data_t * ifdata) {
+void csp_can_pbuf_cleanup(csp_can_interface_data_t * ifdata, int * task_woken) {
 
-	uint32_t now = csp_get_ms();
+	uint32_t now = (task_woken) ? csp_get_ms_isr() : csp_get_ms();
 
 	csp_packet_t * packet = ifdata->pbufs;
 	csp_packet_t * prev = NULL;
@@ -84,7 +84,7 @@ void csp_can_pbuf_cleanup(csp_can_interface_data_t * ifdata) {
 				ifdata->pbufs = packet->next;
 			}
 
-			csp_buffer_free(packet);
+			(task_woken) ? csp_buffer_free_isr(packet) : csp_buffer_free(packet);
 		}
 
 		prev = packet;
