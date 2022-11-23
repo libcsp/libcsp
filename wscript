@@ -184,6 +184,7 @@ def configure(ctx):
                                             'ex2_sdr/lib/wrapper/MACWrapper.cpp',
                                             'ex2_sdr/third_party/viterbi/viterbi.cpp',
                                             'ex2_sdr/lib/mac_layer/pdu/mpduUtility.cpp',
+                                            'ex2_sdr/lib/phy_layer/rfMode.cpp',
                                             'ex2_sdr/lib/utilities/osal.c',
                                             'ex2_sdr/lib/utilities/sband.c',
                                             'ex2_sdr/lib/driver/sdr_init.c'])
