@@ -78,7 +78,7 @@ void csp_kiss_rx(csp_iface_t * iface, const uint8_t * buf, size_t len, void * px
 		uint8_t inputbyte = *buf++;
 
 		/* If packet was too long, truncate and restart */
-		if (&ifdata->rx_packet->frame_begin[ifdata->rx_length] >= &ifdata->rx_packet->data[sizeof(ifdata->rx_packet->data)]) {
+		if (ifdata->rx_packet != NULL && &ifdata->rx_packet->frame_begin[ifdata->rx_length] >= &ifdata->rx_packet->data[sizeof(ifdata->rx_packet->data)]) {
 			iface->rx_error++;
 			ifdata->rx_mode = KISS_MODE_NOT_STARTED;
 			ifdata->rx_length = 0;
