@@ -3,10 +3,10 @@ Hooks in CSP
 
 All hooks in CSP are weak linked functions. Some of them have default implementations,
 and your program can build and run fine without implementing the hook yourself. Others
-are relying on the user to provide the functions, and linker will fail because no 
+are relying on the user to provide the functions, and linker will fail because no
 implementation was found.
 
-Usage of any of the builting weak functions, will require that you link CSP with 
+Usage of any of the builtin weak functions, will require that you link CSP with
 -Wl,--link-whole.
 
 TODO: implement a static assert, to catch when the program has been linked without any
@@ -21,11 +21,11 @@ void csp_output_hook(csp_id_t* idout, csp_packet_t * packet, csp_iface_t * iface
 void csp_input_hook(csp_iface_t * iface, csp_packet_t * packet);
 ```
 
-CSP contains a default implementation of `csp_print` which calls `printf`. This can be overriden by implementing
+CSP contains a default implementation of `csp_print` which calls `printf`. This can be overridden by implementing
 `csp_print` in your own application.
 
 `input/output_hook` are called by the router on all incoming packets, and by the sender on all outgoing packets.
-The defailt is to print out a message if the global `csp_dbg_print_packet == 1`
+The default is to print out a message if the global `csp_dbg_print_packet == 1`
 
 Crypto
 ------
@@ -53,7 +53,7 @@ to get the timestamp from the kernel.
 Callback functions in CSP
 =================================
 
-These callbacks is configured runtine, by passing a function pointer to a setter function:
+These callbacks are configured in runtime, by passing a function pointer to a setter function:
 
 ```c
 

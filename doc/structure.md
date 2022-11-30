@@ -25,4 +25,4 @@ following table:
 | `libcsp/src/transport`          | Transport layer: UDP, RDP                           |
 | `libcsp/utils`                  | Utilities, Python scripts for decoding CSP headers. |
 | `libcsp/examples`               | CSP examples, C/Python, zmqproxy                    |
-| `libcsp/doc`                    | RST based documention (this documentation)          |
+| `libcsp/doc`                    | RST based documentation (this documentation)          |

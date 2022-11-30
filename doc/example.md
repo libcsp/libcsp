@@ -19,7 +19,7 @@ The example supports the drivers and interfaces in CSP:
     the market, for example
     <https://www.peak-system.com/PCAN-USB.199.0.html>.
 
-    To achieve best performance and stabilty, following options can be
+    To achieve best performance and stability, following options can be
     set on the CAN device:
 
     ```
