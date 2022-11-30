@@ -11,7 +11,7 @@ LibCSP is not to provide CAN, I2C or UART drivers for all platforms,
 however some drivers has only been included for some specific platforms.
 If you do not find your driver supported, it is quite simple to add a
 driver that conforms to the CSP interface. For good stability and
-performance interrupt driven drivers are preferred in favor of polled
+performance, interrupt driven drivers are preferred in favor of polled
 drivers. Where applicable also DMA usage is recommended.
 
 ## Layer 2: MAC interfaces

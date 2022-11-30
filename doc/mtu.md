@@ -33,7 +33,7 @@ transferred over the CAN bus.
 
 Okay, but what if you want to transfer 1000 bytes, and the network
 maximum MTU is 256? Well, since CSP does not include streaming sockets,
-only packet’s. Somebody will have to split that data up into chunks. It
+only packets, somebody will have to split that data up into chunks. It
 might be that your application have special knowledge about the datatype
 you are transmitting, and that it makes sense to split the 1000 byte
 content into 10 chunks of 100 byte status messages. This, application
