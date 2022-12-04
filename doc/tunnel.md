@@ -2,14 +2,14 @@ CSP tunnels
 ===========
 
 The `csp_if_tun` interface supports encapsulating and encryption of packets between two endpoints.
-The inpsiration comes from IPsec.
+The inspiration comes from IPsec.
 
 The usage is best explained using a little example. So lets start with a satellite and a ground station
 
 0/8 satellite bus (node id 0-63)
 64/8 mission control bus (node id 64-127)
 
-Lets say we wish to create an encrypted tunned between these two. We define a new "open" network to sit
+Let's say we wish to create an encrypted tunned between these two. We define a new "open" network to sit
 between the satellite and the ground station
 
 128/8 open / insecure transport network (128-195)

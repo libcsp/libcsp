@@ -1,7 +1,7 @@
 # The basics of CSP
 
 The following diagram shows a conceptual overview of the different
-blocks in CSP. The shown inferface is CAN
+blocks in CSP. The shown interface is CAN
 (src/interfaces/csp_if_can.c, driver:
 src/drivers/can/can_socketcan.c).
 
@@ -153,7 +153,7 @@ from the connection pool:
 >   - server accepting an incoming connection
 >     `csp_accept()`
 
-An applications receive queue is located on the connection and is also
+An application's receive queue is located on the connection and is also
 allocated once during initialization. The length of the queue is the
 same for all queues, and specified in the configuration.
 
@@ -184,14 +184,14 @@ broken down into following steps:
 
 > 1.  the driver layer forwards the raw data frames to the interface, in
 >     this case CAN frames
-> 2.  the interface will aquire a free buffer (e.g.
+> 2.  the interface will acquire a free buffer (e.g.
 >     `csp_buffer_get_isr()`) for
 >     assembling the CAN frames into a complete packet
 > 3.  once the interface has successfully assembled a packet, the packet
 >     is queued for routing - primarily to decouple the interface, e.g.
->     if the interfacec/drivers uses interrupt (ISR).
+>     if the interfaces/drivers uses interrupt (ISR).
 > 4.  the router picks up the packet from the incoming queue and routes
->     it on - this can either to a local destination, or another
+>     it on - this can either be to a local destination, or another
 >     interface.
 > 5.  the application waits for new packets at its Rx queue, by calling
 >     `csp_read()` or
@@ -209,7 +209,7 @@ routing table, which results in a
 the interface (`csp_iface_t`) the packet
 is to be sent on, and an optional `via`
 address. The `via` address is used, when
-the sender cannot direcly reach the receiver on one of its connected
+the sender cannot directly reach the receiver on one of its connected
 networks, e.g. sending a packet from the satellite to the ground - the
 radio will be the `via` address.
 
@@ -251,7 +251,7 @@ Here are some examples:
 >     and send it to address 30 (`via`).
 >     The original destination address 10 is not changed in the CSP
 >     header of the packet.
->   - "16/1 CAN 4" (CIDR only) route all destinations addresses 16-31 to
+>   - "16/1 CAN 4" (CIDR only) route all destination addresses 16-31 to
 >     address 4 on the CAN interface.
 >   - "0/0 CAN" default route, if no other matching route is found,
 >     route packet onto the CAN interface.

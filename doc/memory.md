@@ -12,7 +12,7 @@ tasks, etc.
 Once the initiallization is complete, there are only a few functions
 that uses dynamic allocation, such as:
 
-  - `csp_sfp_recv()` - sending larger memory chuncks than can fit into a
+  - `csp_sfp_recv()` - sending larger memory chunks than can fit into a
     single CSP message.
   - `csp_rtable` (cidr only) - adding new elements may allocate memory.
 
