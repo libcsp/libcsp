@@ -253,7 +253,7 @@ int csp_zmqhub_init_filter2(const char * ifname, const char * host, uint16_t add
 	/* Connect to server */
 	ret = zmq_connect(drv->publisher, pub);
 	assert(ret == 0);
-	zmq_connect(drv->subscriber, sub);
+	ret = zmq_connect(drv->subscriber, sub);
 	assert(ret == 0);
 
 
