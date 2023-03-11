@@ -7,19 +7,10 @@
 
 #include <csp_autoconfig.h>
 #include <csp/csp_debug.h>
+#include <csp/interfaces/csp_if_lo.h>
 
 /* Interfaces are stored in a linked list */
 static csp_iface_t * interfaces = NULL;
-
-static csp_iface_t * dfl_if = NULL;
-
-void csp_iflist_set_default(csp_iface_t * interface) {
-	dfl_if = interface;
-}
-
-csp_iface_t * csp_iflist_get_default(void) {
-	return dfl_if;
-}
 
 int csp_iflist_is_within_subnet(uint16_t addr, csp_iface_t * ifc) {
 
@@ -67,6 +58,65 @@ csp_iface_t * csp_iflist_get_by_subnet(uint16_t addr, csp_iface_t * ifc) {
 
 	return NULL;
 
+}
+
+csp_iface_t * csp_iflist_get_by_isdfl(csp_iface_t * ifc) {
+
+	/* Head of list */
+	if (ifc == NULL) {
+		ifc = interfaces;
+
+	/* Otherwise, continue from user defined ifc */
+	} else {
+		ifc = ifc->next;
+	}
+
+	while (ifc) {
+
+		if (ifc->is_default == 1) {
+			return ifc;
+		}
+
+		ifc = ifc->next;
+		continue;
+
+	}
+
+	return NULL;
+
+}
+
+csp_iface_t * csp_iflist_iterate(csp_iface_t * ifc) {
+
+	/* Head of list */
+	if (ifc == NULL) {
+		ifc = interfaces;
+
+	/* Otherwise, continue from user defined ifc */
+	} else {
+		ifc = ifc->next;
+	}
+
+	return ifc;
+
+}
+
+void csp_iflist_check_dfl(void) {
+
+	csp_iface_t * iface = csp_iflist_get_by_isdfl(NULL);
+
+	/* If we find a default interface, we assume user has setup the configuration correctly */
+	if (iface != NULL) {
+		return;
+	}
+
+	/* If there was not found a default interface, go through all interfaces and set them as default (except for LOOP) */
+	while ((iface = csp_iflist_iterate(iface)) != NULL) {
+		if (iface == &csp_if_lo) {
+			continue;
+		}
+		iface->is_default = 1;
+	}
 }
 
 csp_iface_t * csp_iflist_get_by_addr(uint16_t addr) {

@@ -271,7 +271,7 @@ struct csp_iface_s {
 	void * interface_data;      // Interface data, only known/used by the interface layer, e.g. state information.
 	void * driver_data;         // Driver data, only known/used by the driver layer, e.g. device/channel references.
 	nexthop_t nexthop;          // Next hop (Tx) function
-	uint8_t split_horizon_off;  // Disable the route-loop prevention
+   uint8_t is_default;         // Set default IF flag (CSP supports multiple defaults)
 	uint32_t tx;                // Successfully transmitted packets
 	uint32_t rx;                // Successfully received packets
 	uint32_t tx_error;          // Transmit errors (packets)

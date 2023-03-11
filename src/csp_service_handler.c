@@ -68,10 +68,11 @@ static int do_cmp_route_set_v1(struct csp_cmp_message * cmp) {
 	if (ifc == NULL) {
 		return CSP_ERR_INVAL;
 	}
-
+#if CSP_HAVE_RTABLE
 	if (csp_rtable_set(cmp->route_set_v1.dest_node, csp_id_get_host_bits(), ifc, cmp->route_set_v1.next_hop_via) != CSP_ERR_NONE) {
 		return CSP_ERR_INVAL;
 	}
+#endif
 
 	return CSP_ERR_NONE;
 }
@@ -83,9 +84,11 @@ static int do_cmp_route_set_v2(struct csp_cmp_message * cmp) {
 		return CSP_ERR_INVAL;
 	}
 
+#if CSP_HAVE_RTABLE
 	if (csp_rtable_set(be16toh(cmp->route_set_v2.dest_node), be16toh(cmp->route_set_v2.netmask), ifc, be16toh(cmp->route_set_v2.next_hop_via)) != CSP_ERR_NONE) {
 		return CSP_ERR_INVAL;
 	}
+#endif
 
 	return CSP_ERR_NONE;
 }

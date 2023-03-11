@@ -133,6 +133,7 @@ void csp_send_direct(csp_id_t* idout, csp_packet_t * packet, csp_iface_t * route
 	}
 
 	/* Try to send via routing table */
+#if CSP_HAVE_RTABLE
 	csp_route_t * route = csp_rtable_find_route(idout->dst);
 	if (route != NULL) {
 
@@ -151,25 +152,31 @@ void csp_send_direct(csp_id_t* idout, csp_packet_t * packet, csp_iface_t * route
 		csp_send_direct_iface(idout, packet, route->iface, route->via, from_me);
 		return;
 	}
+#endif
 
-	/* Try to send via default interface */
-	csp_iface_t * dfl_if = csp_iflist_get_default();
-	if (dfl_if) {
+	/* Try to send via default interfaces */
+	while ((iface = csp_iflist_get_by_isdfl(iface)) != NULL) {
 
 		/* Do not send back to same inteface (split horizon) 
 		 * This check is is similar to that below, but faster */
-		if (dfl_if == routed_from) {
+		if (iface == routed_from) {
 			csp_buffer_free(packet);
 			return;
 		}
 
 		/* Apply outgoing interface address to packet */
 		if ((from_me) && (idout->src == 0)) {
-			idout->src = dfl_if->addr;
+			idout->src = iface->addr;
 		}
 
-		csp_send_direct_iface(idout, packet, dfl_if, CSP_NO_VIA_ADDRESS, from_me);
-		return;
+		/* Todo: Find an elegant way to avoid making a copy when only a single destination interface
+		 * is found. But without looping the list twice. And without using stack memory.
+		 * Is this even possible? */
+		copy = csp_buffer_clone(packet);
+		if (copy != NULL) {
+			csp_send_direct_iface(idout, copy, iface, via, from_me);
+		}
+
 	}
 
 	csp_buffer_free(packet);
