@@ -161,12 +161,9 @@ static void csp_yaml_end_if(struct data_s * data, unsigned int * dfl_addr) {
 	iface->addr = addr;
 	iface->netmask = atoi(data->netmask);
 	iface->name = strdup(data->name);
+	iface->is_default = (data->is_dfl) ? 1 : 0;
 
-	if (data->is_dfl) {
-		csp_iflist_set_default(iface);
-	}
-
-	csp_print("  %s addr: %u netmask %u %s\n", iface->name, iface->addr, iface->netmask, (data->is_dfl) ? "DFL" : "");
+	csp_print("  %s addr: %u netmask %u %s\n", iface->name, iface->addr, iface->netmask, (iface->is_default) ? "DFL" : "");
 
 }
 
