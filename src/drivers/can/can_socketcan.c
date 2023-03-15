@@ -2,6 +2,7 @@
 
 #include <csp/drivers/can_socketcan.h>
 
+#include <stdio.h>
 #include <pthread.h>
 #include <stdlib.h>
 #include <csp/csp_debug.h>
@@ -11,6 +12,7 @@
 #include <sys/ioctl.h>
 #include <net/if.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include <linux/can/raw.h>
 #if (CSP_HAVE_LIBSOCKETCAN)
 #include <libsocketcan.h>
@@ -41,11 +43,28 @@ static void * socketcan_rx_thread(void * arg) {
 	can_context_t * ctx = arg;
 
 	while (1) {
+
+		/* Use select for non blocking reads */
+		fd_set input;
+		FD_ZERO(&input);
+		FD_SET(ctx->socket, &input);
+		struct timeval timeout;
+		timeout.tv_sec = 10;
+		int n = select(ctx->socket + 1, &input, NULL, NULL, &timeout);
+		if (n == -1) {
+			printf("CAN read error\n");
+			continue;
+		} else if (n == 0) {
+			//printf("CAN idle\n");
+			continue;
+		}
+
 		/* Read CAN frame */
 		struct can_frame frame;
-		int nbytes = read(ctx->socket, &frame, sizeof(frame));
+		int nbytes = read(ctx->socket, &frame, sizeof(frame)); 
 		if (nbytes < 0) {
 			csp_print("%s[%s]: read() failed, errno %d: %s\n", __FUNCTION__, ctx->name, errno, strerror(errno));
+			sleep(1);
 			continue;
 		}
 
@@ -174,6 +193,9 @@ int csp_can_socketcan_open_and_add_interface(const char * device, const char * i
 		socketcan_free(ctx);
 		return CSP_ERR_INVAL;
 	}
+
+	fcntl(ctx->socket, F_SETFL, O_NONBLOCK);
+
 	struct sockaddr_can addr;
 	memset(&addr, 0, sizeof(addr));
 	/* Bind the socket to CAN interface */
