@@ -237,7 +237,7 @@ int csp_zmqhub_init_filter2(const char * ifname, const char * host, uint16_t add
 	drv->context = zmq_ctx_new();
 	assert(drv->context != NULL);
 
-	//csp_print("  ZMQ init %s: pub(tx): [%s], sub(rx): [%s]\n", drv->iface.name, pub, sub);
+	csp_print("  ZMQ init %s: pub(tx): [%s], sub(rx): [%s]\n", drv->iface.name, pub, sub);
 
 	/* Publisher (TX) */
 	drv->publisher = zmq_socket(drv->context, ZMQ_PUB);
