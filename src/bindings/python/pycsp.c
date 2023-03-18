@@ -102,7 +102,7 @@ static PyObject * pycsp_service_handler(PyObject * self, PyObject * args) {
 
 static PyObject * pycsp_init(PyObject * self, PyObject * args) {
 
-	if (!PyArg_ParseTuple(args, "bsss", &csp_conf.address, &csp_conf.hostname, &csp_conf.model, &csp_conf.revision)) {
+	if (!PyArg_ParseTuple(args, "bsss", &csp_conf.hostname, &csp_conf.model, &csp_conf.revision)) {
 		return NULL;
 	}
 
@@ -988,7 +988,6 @@ static PyMethodDef methods[] = {
 	{"packet_set_data", pycsp_packet_set_data, METH_VARARGS, ""},
 	{"print_connections", pycsp_print_connections, METH_NOARGS, ""},
 	{"print_routes", pycsp_print_routes, METH_NOARGS, ""},
-	{"get_buffer_stats", pycsp_get_buffer_stats, METH_NOARGS, ""},
 
 	/* sentinel */
 	{NULL, NULL, 0, NULL}};
