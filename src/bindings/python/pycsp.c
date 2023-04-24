@@ -540,7 +540,7 @@ static PyObject* pycsp_rdp_get_opt(PyObject *self, PyObject *args) {
 static PyObject* pycsp_hmac_set_key(PyObject *self, PyObject *args) {
     char* key;
     uint32_t keylen;
-    if (!PyArg_ParseTuple(args, "si", &key, &keylen)) {
+    if (!PyArg_ParseTuple(args, "yi", &key, &keylen)) {
         return NULL; // TypeError is thrown
     }
 
@@ -555,7 +555,7 @@ static PyObject* pycsp_hmac_set_key(PyObject *self, PyObject *args) {
 static PyObject* pycsp_xtea_set_key(PyObject *self, PyObject *args) {
     char* key;
     uint32_t keylen;
-    if (!PyArg_ParseTuple(args, "si", &key, &keylen)) {
+    if (!PyArg_ParseTuple(args, "yi", &key, &keylen)) {
         return NULL; // TypeError is thrown
     }
 
