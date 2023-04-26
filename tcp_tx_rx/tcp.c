@@ -35,20 +35,36 @@ int socket_send(int hSocket, char* request, short len_request) {
     return send(hSocket, request, len_request, 0);
 }
 
-int socket_receive(int hSocket,char* Rsp,short RvcSize)
+int socket_receive(int hSocket,char* response, short RvcSize)
 {
-    int shortRetval = -1;
+    int retval = -1;
+
+    // timeval {
+    //   seconds
+    //   useconds
+    // }
     struct timeval tv;
-    tv.tv_sec = 20;  /* 20 Secs Timeout */
+    tv.tv_sec = 20;     // 20 second timeout
     tv.tv_usec = 0;
+
+    // Enums from socket-constants.h
     if(setsockopt(hSocket, SOL_SOCKET, SO_RCVTIMEO,(char *)&tv,sizeof(tv)) < 0)
     {
         printf("Time Out\n");
         return -1;
     }
-    shortRetval = recv(hSocket, Rsp, RvcSize, 0);
-    printf("Response %s\n",Rsp);
-    return shortRetval;
+
+             // recv() is a blocking function, which will block
+             // the thread until data is received
+    retval = recv(
+            hSocket,    // file descriptor of the socket
+            response,   // buffer for storing the response
+            RvcSize,    // maximum size of the response buffer
+            0           // flags:
+        );
+
+    printf("response: %s\n", response);
+    return retval;
 }
 
 int main(int argc, char *argv[])
@@ -73,7 +89,7 @@ int main(int argc, char *argv[])
     }
     printf("Sucessfully conected with server\n");
     printf("Enter the Message: ");
-    gets(SendToServer);
+    fgets(SendToServer, 100, stdin);
     //Send data to the server
     socket_send(hSocket, SendToServer, strlen(SendToServer));
     //Received the data from the server
