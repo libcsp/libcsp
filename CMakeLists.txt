@@ -10,11 +10,13 @@ set_target_properties(libcsp PROPERTIES C_STANDARD 11)
 set_target_properties(libcsp PROPERTIES C_EXTENSIONS ON)
 target_compile_options(libcsp PRIVATE -Wall -Wextra)
 
-set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS Debug Release MinSizeRel)
-if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
-  message(STATUS "No build type selected, default to MinSizeRel")
-  set(CMAKE_BUILD_TYPE MinSizeRel CACHE STRING "Build Type" FORCE)
-endif()
+#set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS Debug Release MinSizeRel)
+#if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+#  message(STATUS "No build type selected, default to MinSizeRel")
+#  set(CMAKE_BUILD_TYPE MinSizeRel CACHE STRING "Build Type" FORCE)
+#endif()
+
+set(CMAKE_BUILD_TYPE Debug)
 
 set(CSP_HAVE_STDIO 1)
 set(CSP_ENABLE_CSP_PRINT 1)
