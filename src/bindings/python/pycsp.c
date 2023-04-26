@@ -29,7 +29,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/drivers/can_socketcan.h>
 #include <csp/csp_endian.h>
 #include <csp/interfaces/csp_if_sdr.h>
-#include <fec.h>
 
 #include <sys/types.h>
 #include <unistd.h>
@@ -901,8 +900,23 @@ static PyObject* pycsp_uhf_init(PyObject *self, PyObject *args) {
     Py_RETURN_NONE;
 }
 
-static PyObject* pycsp_sdr_init(PyObject *self, PyObject *args) {
-    return pycsp_uhf_init(self, args);
+static PyObject* pycsp_uhf_fec_ctl(PyObject *self, PyObject *args) {
+    bool use_fec;
+    if (!PyArg_ParseTuple(args, "b", &use_fec)) {
+        return NULL; // TypeError is thrown
+    }
+
+    csp_iface_t *iface = csp_iflist_get_by_name(SDR_IF_UHF_NAME);
+    if (!iface) {
+        return PyErr_Error("uhf_fec_ctl: interface not found", 2);
+    }
+
+    bool rc = sdr_fec_ctl(iface->interface_data, use_fec);
+    if (!rc) {
+        return PyErr_Error("uhf_fec_ctl()", 1);
+    }
+    Py_RETURN_NONE;
+
 }
 
 static PyObject* pycsp_packet_set_data(PyObject *self, PyObject *args) {
@@ -1014,9 +1028,9 @@ static PyMethodDef methods[] = {
     /* csp/interfaces/csp_if_zmqhub.h */
     {"zmqhub_init",         pycsp_zmqhub_init,         METH_VARARGS, ""},
     {"kiss_init",           pycsp_kiss_init,           METH_VARARGS, ""},
-    {"sdr_init",            pycsp_sdr_init,            METH_VARARGS, ""},
     {"uhf_init",            pycsp_uhf_init,            METH_VARARGS, ""},
-    {"sband_init",          pycsp_sband_init,           METH_VARARGS, ""},
+    {"sband_init",          pycsp_sband_init,          METH_VARARGS, ""},
+    {"uhf_fec_ctl",         pycsp_uhf_fec_ctl,         METH_VARARGS, ""},
 
 
     /* csp/drivers/can_socketcan.h */
