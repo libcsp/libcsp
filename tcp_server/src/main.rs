@@ -4,8 +4,7 @@ use std::str;
 
 fn main() {
     // TcpListener implements a server
-    let listener = TcpListener::bind("127.0.0.1:8080").unwrap();
-    println!("Server listening on port 8080");
+    let listener = TcpListener::bind("127.0.0.1:8080").unwrap(); println!("Server listening on port 8080");
 
     for stream in listener.incoming() {
         let mut stream = stream.unwrap();

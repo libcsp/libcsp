@@ -8,26 +8,48 @@
 #include <unistd.h>
 
 short socket_create(void) {
-    printf("creating socket");
+    printf("creating socket...\n");
     return socket(AF_INET, SOCK_STREAM, 0);
 }
 
-int socket_connect(int hSocket) {
-    int ServerPort = 8080;
-    struct sockaddr_in remote = {0};
+/**
+ * @brief
+ * Connects to a socket, expecting a server as the endpoint
+ *
+ *
+ * @param hSocket  socket to connect to
+ * @return int: exit code from connect
+ */
+int socket_connect(int hSocket, int port) {
+
+
+    // TODO: Fix hardcoded port
+    struct sockaddr_in remote = {0};        // all members set to zero
+
+    // TODO: Fix hardcoded address
     remote.sin_addr.s_addr = inet_addr("127.0.0.1");
-    remote.sin_family = AF_INET;
-    remote.sin_port = htons(ServerPort);
+    remote.sin_family = AF_INET;		   // address family: IPV4
+    remote.sin_port = htons(port); // htons: converts port to big-endian for networking
     return connect(
         hSocket, (struct sockaddr *)&remote, sizeof(struct sockaddr_in)
     );
 }
 
+/**
+ * @brief
+ * Sends the request data to the server as a request
+ *
+ * @param hSocket: Socket connected to server
+ * @param request: Send data
+ * @param len_request: length of the send data in bytes
+ * @return int
+ */
 int socket_send(int hSocket, char* request, short len_request) {
     struct timeval tv;
     tv.tv_sec = 20;
     tv.tv_usec = 0;
 
+    // if setting the socket options fails
     if(setsockopt(hSocket, SOL_SOCKET, SO_SNDTIMEO, (char *)&tv, sizeof(tv)) < 0) {
         printf("timeout!\n");
         return -1;
@@ -35,6 +57,15 @@ int socket_send(int hSocket, char* request, short len_request) {
     return send(hSocket, request, len_request, 0);
 }
 
+/**
+ * @brief
+ * receive from server connected to the socket
+ *
+ * @param hSocket
+ * @param response
+ * @param RvcSize
+ * @return int
+ */
 int socket_receive(int hSocket,char* response, short RvcSize)
 {
     int retval = -1;
@@ -50,7 +81,7 @@ int socket_receive(int hSocket,char* response, short RvcSize)
     // Enums from socket-constants.h
     if(setsockopt(hSocket, SOL_SOCKET, SO_RCVTIMEO,(char *)&tv,sizeof(tv)) < 0)
     {
-        printf("Time Out\n");
+        printf("timeout!\n");
         return -1;
     }
 
@@ -69,10 +100,12 @@ int socket_receive(int hSocket,char* response, short RvcSize)
 
 int main(int argc, char *argv[])
 {
+    int port = 8080;
     int hSocket, read_size;
     struct sockaddr_in server;
-    char SendToServer[100] = {0};
-    char server_reply[200] = {0};
+    char send_data[100] = {0};
+    char receive_data[200] = {0};
+
     //Create socket
     hSocket = socket_create();
     if(hSocket == -1)
@@ -80,25 +113,32 @@ int main(int argc, char *argv[])
         printf("Could not create socket\n");
         return 1;
     }
-    printf("Socket is created\n");
+    printf("socket %d created\n", hSocket);
+
     //Connect to remote server
-    if (socket_connect(hSocket) < 0)
+    // returns -1 on error
+    if (socket_connect(hSocket, port) < 0)
     {
         perror("connect failed.\n");
         return 1;
     }
-    printf("Sucessfully conected with server\n");
-    printf("Enter the Message: ");
-    fgets(SendToServer, 100, stdin);
-    //Send data to the server
-    socket_send(hSocket, SendToServer, strlen(SendToServer));
-    //Received the data from the server
-    read_size = socket_receive(hSocket, server_reply, 200);
-    printf("Server Response : %s\n\n",server_reply);
-    close(hSocket);
-    shutdown(hSocket,0);
-    shutdown(hSocket,1);
-    shutdown(hSocket,2);
+
+    printf("connected with server on port %d\n", port);
+    printf("Enter data: ");
+    fgets(send_data, 100, stdin);
+
+    // send data on socket hSocket from send_data buffer
+    socket_send(hSocket, send_data, strlen(send_data));
+
+    // receive data into receive_data buffer
+    read_size = socket_receive(hSocket, receive_data, 200);
+    printf("Server Response : %s\n\n",receive_data);
+
+    close(hSocket);                 // closes the file descriptor for the socket
+    shutdown(hSocket,SHUT_RD);      // shutdown connection on all three methods
+    shutdown(hSocket,SHUT_WR);
+    shutdown(hSocket,SHUT_RDWR);
+
     return 0;
 }
 
