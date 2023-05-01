@@ -25,7 +25,7 @@ if yaml_dep.found()
 	csp_sources += files('csp_yaml.c')
 endif
 
-if get_option('have_stdio')
+if get_option('have_stdio') and get_option('have_rtable')
 	csp_sources += files('csp_rtable_stdio.c')
 endif
 
