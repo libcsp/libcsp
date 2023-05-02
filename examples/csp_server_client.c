@@ -5,10 +5,13 @@
 
 #include <csp/csp.h>
 #include <csp/drivers/usart.h>
-#include <csp/drivers/tcp_kiss.h>
 #include <csp/drivers/can_socketcan.h>
 #include <csp/interfaces/csp_if_zmqhub.h>
 
+#include <sys/socket.h>
+#include <sys/time.h>
+#include <arpa/inet.h>
+#include <csp/drivers/tcp_kiss.h>
 
 /* These three functions must be provided in arch specific way */
 int router_start(void);
@@ -206,7 +209,7 @@ int main(int argc, char * argv[]) {
         csp_tcp_conf_t conf = {
             .address = LOCALHOST,
             .port = TEST_PORT,
-            .socket = socket_create(),
+            .socket = socket(AF_INET, SOCK_STREAM, 0),
         };
         int error = csp_tcp_open_and_add_kiss_interface(&conf, CSP_IF_KISS_DEFAULT_NAME, &default_iface);
         if(error != CSP_ERR_NONE) {
