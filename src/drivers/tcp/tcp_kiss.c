@@ -3,6 +3,7 @@
 #include <csp/csp.h>
 
 #include <csp/interfaces/csp_if_kiss.h>
+#include <csp/drivers/tcp_kiss.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,18 +14,9 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 
-typedef struct csp_tcp_conf {
-    int port;
-    short socket;
-    char * address;
-} csp_tcp_conf_t;
 
-typedef struct {
-	char name[CSP_IFLIST_NAME_MAX + 1];
-	csp_iface_t iface;
-	csp_kiss_interface_data_t ifdata;
-    csp_tcp_conf_t tcp_driver;
-} tcp_kiss_context_t;
+#define LOCALHOST "127.0.0.1"
+#define TEST_PORT 8080
 
 int csp_tcp_open(const csp_tcp_conf_t *conf) {
     struct sockaddr_in remote = {0};         // all members set to zero
@@ -56,7 +48,7 @@ int csp_tcp_receive(const csp_tcp_conf_t *conf, void *receive_data, int length) 
     int retval = -1;
 
     // timeval {
-    //   seconds
+    //   secondques
     //   useconds
     // }
     struct timeval tv;
@@ -94,8 +86,40 @@ static void tcp_kiss_driver_rx(void * user_data, uint8_t * data, size_t data_siz
 	csp_kiss_rx(&ctx->iface, data, data_size, NULL);
 }
 
+/**
+ * @brief 
+ *  I think this function builds out an iface struct
+ * 
+ * @param conf 
+ * @param ifname 
+ * @param return_iface 
+ * @return int 
+ */
 int csp_tcp_open_and_add_kiss_interface(const csp_tcp_conf_t *conf, const char * ifname, csp_iface_t ** return_iface) {
 
+// struct csp_iface_s {
+
+// 	uint16_t addr;              // Host address on this subnet
+// 	uint16_t netmask;           // Subnet mask
+// 	const char * name;          // Name, max compare length is #CSP_IFLIST_NAME_MAX
+// 	void * interface_data;      // Interface data, only known/used by the interface layer, e.g. state information.
+// 	void * driver_data;         // Driver data, only known/used by the driver layer, e.g. device/channel references.
+// 	nexthop_t nexthop;          // Next hop (Tx) function
+// 	uint16_t mtu;               // Maximum Transmission Unit of interface
+// 	uint8_t split_horizon_off;  // Disable the route-loop prevention
+// 	uint32_t tx;                // Successfully transmitted packets
+// 	uint32_t rx;                // Successfully received packets
+// 	uint32_t tx_error;          // Transmit errors (packets)
+// 	uint32_t rx_error;          // Receive errors, e.g. too large message
+// 	uint32_t drop;              // Dropped packets
+// 	uint32_t autherr;           // Authentication errors (packets)
+// 	uint32_t frame;             // Frame format errors (packets)
+// 	uint32_t txbytes;           // Transmitted bytes
+// 	uint32_t rxbytes;           // Received bytes
+// 	uint32_t irq;               // Interrupts
+// 	struct csp_iface_s * next;  // Internal, interfaces are stored in a linked list
+// };
+    
 	if (ifname == NULL) {
 		ifname = CSP_IF_KISS_DEFAULT_NAME;
 	}
@@ -113,9 +137,10 @@ int csp_tcp_open_and_add_kiss_interface(const csp_tcp_conf_t *conf, const char *
 
 	int res = csp_kiss_add_interface(&ctx->iface);
 	if (res == CSP_ERR_NONE) {
-		res = csp_usart_open(conf, tcp_kiss_driver_rx, ctx);
+        res = csp_tcp_open(&conf);
 	}
 
+    // if return_iface is not null?
 	if (return_iface) {
 		*return_iface = &ctx->iface;
 	}

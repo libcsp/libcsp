@@ -5,6 +5,7 @@
 
 #include <csp/csp.h>
 #include <csp/drivers/usart.h>
+#include <csp/drivers/tcp_kiss.h>
 #include <csp/drivers/can_socketcan.h>
 #include <csp/interfaces/csp_if_zmqhub.h>
 
@@ -16,6 +17,8 @@ int client_start(void);
 
 /* Server port, the port the server listens on for incoming connections from the client. */
 #define MY_SERVER_PORT		10
+#define LOCALHOST "127.0.0.1"
+#define TEST_PORT 8080
 
 /* Commandline options */
 static uint8_t server_address = 255;
@@ -199,7 +202,18 @@ int main(int argc, char * argv[]) {
 
     /* Add interface(s) */
     csp_iface_t * default_iface = NULL;
-    if (kiss_device) {
+    if(strcmp(kiss_device, "TCP") == 0) {
+        csp_tcp_conf_t conf = {
+            .address = LOCALHOST,
+            .port = TEST_PORT,
+            .socket = socket_create(),
+        };
+        int error = csp_tcp_open_and_add_kiss_interface(&conf, CSP_IF_KISS_DEFAULT_NAME, &default_iface);
+        if(error != CSP_ERR_NONE) {
+            csp_print("failed to add KISS interface [%s], error: %d\n", kiss_device, error);
+            exit(1);
+        }
+    } else if (kiss_device) {
         csp_usart_conf_t conf = {
             .device = kiss_device,
             .baudrate = 115200, /* supported on all platforms */
@@ -208,6 +222,7 @@ int main(int argc, char * argv[]) {
             .paritysetting = 0,
             .checkparity = 0};
         int error = csp_usart_open_and_add_kiss_interface(&conf, CSP_IF_KISS_DEFAULT_NAME,  &default_iface);
+        if(error != CSP_ERR_NONE) {
             csp_print("failed to add KISS interface [%s], error: %d\n", kiss_device, error);
             exit(1);
         }
