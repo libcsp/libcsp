@@ -7,6 +7,7 @@
 #include <csp/drivers/usart.h>
 #include <csp/drivers/can_socketcan.h>
 #include <csp/interfaces/csp_if_zmqhub.h>
+#include <csp/interfaces/csp_if_udp.h>
 
 #include <sys/socket.h>
 #include <sys/time.h>
@@ -148,6 +149,7 @@ int main(int argc, char * argv[]) {
     const char * can_device = NULL;
 #endif
     const char * kiss_device = NULL;
+    int udp_port = 0;
 #if (CSP_HAVE_LIBZMQ)
     const char * zmq_device = NULL;
 #endif
@@ -177,6 +179,9 @@ int main(int argc, char * argv[]) {
             case 't':
                 test_mode = true;
                 break;
+            case 'u':
+                udp_port = atoi(optarg);
+                break;
             case 'R':
                 rtable = optarg;
                 break;
@@ -189,6 +194,7 @@ int main(int argc, char * argv[]) {
                        " -k <kiss-device> add KISS device (serial)\n"
                        " -z <zmq-device>  add ZMQ device, e.g. \"localhost\"\n"
                        " -R <rtable>      set routing table\n"
+                    //    " -u <port>        add UDP port on localhost\n"
                        " -t               enable test mode\n");
                 exit(1);
                 break;
@@ -205,18 +211,19 @@ int main(int argc, char * argv[]) {
 
     /* Add interface(s) */
     csp_iface_t * default_iface = NULL;
-    if(strcmp(kiss_device, "TCP") == 0) {
-        csp_tcp_conf_t conf = {
-            .address = LOCALHOST,
-            .port = TEST_PORT,
-            .socket = socket(AF_INET, SOCK_STREAM, 0),
-        };
-        int error = csp_tcp_open_and_add_kiss_interface(&conf, CSP_IF_KISS_DEFAULT_NAME, &default_iface);
-        if(error != CSP_ERR_NONE) {
-            csp_print("failed to add KISS interface [%s], error: %d\n", kiss_device, error);
-            exit(1);
-        }
-    } else if (kiss_device) {
+    // if(strcmp(kiss_device, "TCP") == 0) {
+    //     csp_tcp_conf_t conf = {
+    //         .address = LOCALHOST,
+    //         .port = TEST_PORT,
+    //         .socket = socket(AF_INET, SOCK_STREAM, 0),
+    //     };
+    //     int error = csp_tcp_open_and_add_kiss_interface(&conf, CSP_IF_KISS_DEFAULT_NAME, &default_iface);
+    //     if(error != CSP_ERR_NONE) {
+    //         csp_print("failed to add KISS interface [%s], error: %d\n", kiss_device, error);
+    //         exit(1);
+    //     }
+    // } else if (kiss_device) {
+    if (kiss_device) {
         csp_usart_conf_t conf = {
             .device = kiss_device,
             .baudrate = 115200, /* supported on all platforms */
@@ -230,6 +237,22 @@ int main(int argc, char * argv[]) {
             exit(1);
         }
     }
+
+    if (udp_port) {
+        csp_if_udp_conf_t conf = {
+            .host = LOCALHOST,
+            .lport = TEST_PORT,
+            .rport = TEST_PORT,
+            .server_handle = NULL,
+            .peer_addr = {
+                .sin_addr.s_addr = inet_addr(LOCALHOST),
+                .sin_family = AF_INET,
+                .sin_port = TEST_PORT,
+            }
+        };
+        csp_if_udp_init(&default_iface, &conf);
+    }
+
 #if (CSP_HAVE_LIBSOCKETCAN)
     if (can_device) {
         int error = csp_can_socketcan_open_and_add_interface(can_device, CSP_IF_CAN_DEFAULT_NAME, 0, false, &default_iface);
