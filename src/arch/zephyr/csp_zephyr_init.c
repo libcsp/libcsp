@@ -1,11 +1,11 @@
 
 
-#include <zephyr.h>
-#include <init.h>
-#include <posix/time.h>
+#include <zephyr/kernel.h>
+#include <zephyr/init.h>
+#include <zephyr/posix/time.h>
 #include <csp/csp_debug.h>
 
-#include <logging/log.h>
+#include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(libcsp);
 
 static int libcsp_zephyr_init(const struct device * unused) {

@@ -1,7 +1,7 @@
 
 
 #include <csp/arch/csp_time.h>
-#include <zephyr.h>
+#include <zephyr/kernel.h>
 
 uint32_t csp_get_ms(void) {
 	return k_uptime_get_32();

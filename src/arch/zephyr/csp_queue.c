@@ -2,8 +2,8 @@
 
 #include <csp/arch/csp_queue.h>
 
-#include <zephyr.h>
-#include <logging/log.h>
+#include <zephyr/kernel.h>
+#include <zephyr/logging/log.h>
 LOG_MODULE_DECLARE(libcsp);
 
 csp_queue_handle_t csp_queue_create_static(int length, size_t item_size,
