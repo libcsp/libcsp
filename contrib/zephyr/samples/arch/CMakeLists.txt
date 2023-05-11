@@ -6,4 +6,4 @@ find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 project(csp_arch)
 
 target_sources(app PRIVATE ../../../examples/csp_arch.c)
-target_link_libraries(app PRIVATE libcsp)
+target_link_libraries(app PRIVATE csp)
