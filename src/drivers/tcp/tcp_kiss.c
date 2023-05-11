@@ -72,7 +72,6 @@ int csp_tcp_receive(const csp_tcp_conf_t *conf, void *receive_data, int length) 
 }
 
 static int tcp_kiss_driver_tx(void * driver_data, const unsigned char * data, size_t data_length) {
-
 	tcp_kiss_context_t *ctx = driver_data;
 	if (csp_tcp_send( &(ctx->tcp_driver), data, data_length) == (int)data_length) {
 		return CSP_ERR_NONE;
@@ -81,7 +80,6 @@ static int tcp_kiss_driver_tx(void * driver_data, const unsigned char * data, si
 }
 
 static void tcp_kiss_driver_rx(void * user_data, uint8_t * data, size_t data_size, void * pxTaskWoken) {
-
 	tcp_kiss_context_t * ctx = user_data;
 	csp_kiss_rx(&ctx->iface, data, data_size, NULL);
 }

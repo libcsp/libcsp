@@ -8,6 +8,7 @@
 #include <csp/drivers/can_socketcan.h>
 #include <csp/interfaces/csp_if_zmqhub.h>
 #include <csp/interfaces/csp_if_udp.h>
+#include <csp/csp_interface.h>
 
 #include <sys/socket.h>
 #include <sys/time.h>
@@ -155,10 +156,10 @@ int main(int argc, char * argv[]) {
 #endif
     const char * rtable = NULL;
     int opt;
-    while ((opt = getopt(argc, argv, "a:d:r:c:k:z:tR:h")) != -1) {
+    while ((opt = getopt(argc, argv, "a:d:r:c:k:z:tR:h:u")) != -1) {
         switch (opt) {
             case 'a':
-                address = atoi(optarg);
+                address = 8080;
                 break;
             case 'r':
                 server_address = atoi(optarg);
@@ -180,7 +181,7 @@ int main(int argc, char * argv[]) {
                 test_mode = true;
                 break;
             case 'u':
-                udp_port = atoi(optarg);
+                udp_port = 8080;
                 break;
             case 'R':
                 rtable = optarg;
@@ -201,7 +202,7 @@ int main(int argc, char * argv[]) {
         }
     }
 
-    csp_print("Initialising CSP");
+    csp_print("Initialising CSP\n");
 
     /* Init CSP */
     csp_init();
@@ -211,18 +212,7 @@ int main(int argc, char * argv[]) {
 
     /* Add interface(s) */
     csp_iface_t * default_iface = NULL;
-    // if(strcmp(kiss_device, "TCP") == 0) {
-    //     csp_tcp_conf_t conf = {
-    //         .address = LOCALHOST,
-    //         .port = TEST_PORT,
-    //         .socket = socket(AF_INET, SOCK_STREAM, 0),
-    //     };
-    //     int error = csp_tcp_open_and_add_kiss_interface(&conf, CSP_IF_KISS_DEFAULT_NAME, &default_iface);
-    //     if(error != CSP_ERR_NONE) {
-    //         csp_print("failed to add KISS interface [%s], error: %d\n", kiss_device, error);
-    //         exit(1);
-    //     }
-    // } else if (kiss_device) {
+    csp_iface_t * udp_iface;
     if (kiss_device) {
         csp_usart_conf_t conf = {
             .device = kiss_device,
@@ -239,6 +229,8 @@ int main(int argc, char * argv[]) {
     }
 
     if (udp_port) {
+        csp_print("Got Here\n");
+        udp_iface = (csp_iface_t*)malloc(sizeof(csp_iface_t));
         csp_if_udp_conf_t conf = {
             .host = LOCALHOST,
             .lport = TEST_PORT,
@@ -250,7 +242,8 @@ int main(int argc, char * argv[]) {
                 .sin_port = TEST_PORT,
             }
         };
-        csp_if_udp_init(&default_iface, &conf);
+        csp_if_udp_init(udp_iface, &conf);
+        csp_rtable_set(0, 0, udp_iface, CSP_NO_VIA_ADDRESS);
     }
 
 #if (CSP_HAVE_LIBSOCKETCAN)
@@ -295,10 +288,10 @@ int main(int argc, char * argv[]) {
     csp_rtable_print();
 
     /* Start server thread */
-    if ((server_address == 255) ||  /* no server address specified, I must be server */
-        (default_iface == NULL)) {  /* no interfaces specified -> run server & client via loopback */
-        server_start();
-    }
+    // if ((server_address == 255) ||  /* no server address specified, I must be server */
+    //    (default_iface == NULL)) {  /* no interfaces specified -> run server & client via loopback */
+    //      server_start();
+    //  }
 
     /* Start client thread */
     if ((server_address != 255) ||  /* server address specified, I must be client */

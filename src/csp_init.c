@@ -38,7 +38,7 @@ void csp_init(void) {
 
 	/* Loopback */
 	csp_if_lo.netmask = csp_id_get_host_bits();
-	csp_iflist_add(&csp_if_lo);
+	//csp_iflist_add(&csp_if_lo);
 
 }
 

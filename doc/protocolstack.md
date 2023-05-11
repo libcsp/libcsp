@@ -113,7 +113,6 @@ a few additional features:
   - Flow Control
   - Data-buffering
   - Packet re-ordering
-  - Retransmission
   - Windowing
   - Extended Acknowledgment
 
