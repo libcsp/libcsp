@@ -1,7 +1,7 @@
 #include "../../csp_semaphore.h"
 #include <csp/csp_debug.h>
 
-#include <zephyr.h>
+#include <zephyr/kernel.h>
 
 static int csp_bin_sem_errno_to_csp(int val) {
 	int ret;

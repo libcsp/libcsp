@@ -1,7 +1,7 @@
 #include <csp/csp_types.h>
-#include <zephyr.h>
-#include <posix/time.h>
-#include <logging/log.h>
+#include <zephyr/kernel.h>
+#include <zephyr/posix/time.h>
+#include <zephyr/logging/log.h>
 LOG_MODULE_DECLARE(libcsp);
 
 __attribute__((weak)) void csp_clock_get_time(csp_timestamp_t * time) {

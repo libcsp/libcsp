@@ -15,7 +15,7 @@
     #include <task.h>
     typedef TaskHandle_t csp_bin_sem_t;
 #elif (CSP_ZEPHYR)
-    #include <zephyr.h>
+    #include <zephyr/kernel.h>
     typedef struct k_sem csp_bin_sem_t;
 #endif
 
