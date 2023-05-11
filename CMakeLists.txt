@@ -42,12 +42,13 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Zephyr")
   set(CSP_ZEPHYR 1)
 endif()
 
-include(CheckIncludeFiles)
-check_include_files(sys/socket.h HAVE_SYS_SOCKET_H)
-check_include_files(arpa/inet.h HAVE_ARPA_INET_H)
-
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND
     CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
+
+  include(CheckIncludeFiles)
+  check_include_files(sys/socket.h HAVE_SYS_SOCKET_H)
+  check_include_files(arpa/inet.h HAVE_ARPA_INET_H)
+
   find_package(Threads REQUIRED)
   find_package(PkgConfig)
 
