@@ -2,6 +2,8 @@ if(CONFIG_LIBCSP)
   set(CMAKE_SYSTEM_NAME "Zephyr")
   set(CMAKE_BUILD_TYPE None)
 
+  set(CSP_PRINT_STDIO OFF)
+
   # check_include_file() doesn't work in Zephyr module
   # https://github.com/zephyrproject-rtos/zephyr/issues/31193
   # predefine it
