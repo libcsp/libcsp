@@ -10,24 +10,24 @@ if(CONFIG_LIBCSP)
   add_subdirectory(../.. build)
 
   # Zephyr compiler options
-  target_include_directories(libcsp PRIVATE
+  target_include_directories(csp PRIVATE
     $<TARGET_PROPERTY:zephyr_interface,INTERFACE_INCLUDE_DIRECTORIES>
     )
 
-  target_include_directories(libcsp SYSTEM PRIVATE
+  target_include_directories(csp SYSTEM PRIVATE
     $<TARGET_PROPERTY:zephyr_interface,INTERFACE_SYSTEM_INCLUDE_DIRECTORIES>
     )
 
-  target_compile_definitions(libcsp PRIVATE
+  target_compile_definitions(csp PRIVATE
     $<TARGET_PROPERTY:zephyr_interface,INTERFACE_COMPILE_DEFINITIONS>
     )
 
-  target_compile_options(libcsp PRIVATE
+  target_compile_options(csp PRIVATE
     $<TARGET_PROPERTY:zephyr_interface,INTERFACE_COMPILE_OPTIONS>
     -fno-builtin -Wno-shadow -Wno-cast-align
     )
 
-  add_dependencies(libcsp ${SYSCALL_LIST_H_TARGET})
-  zephyr_append_cmake_library(libcsp)
-  target_link_libraries(libcsp PUBLIC zephyr_interface)
+  add_dependencies(csp ${SYSCALL_LIST_H_TARGET})
+  zephyr_append_cmake_library(csp)
+  target_link_libraries(csp PUBLIC zephyr_interface)
 endif()
