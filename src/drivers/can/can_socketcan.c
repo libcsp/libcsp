@@ -148,7 +148,7 @@ int csp_can_socketcan_set_promisc(const bool promisc, can_context_t * ctx) {
 }
 
 
-int csp_can_socketcan_open_and_add_interface(const char * device, const char * ifname, int bitrate, bool promisc, csp_iface_t ** return_iface) {
+int csp_can_socketcan_open_and_add_interface(const char * device, const char * ifname, unsigned int node_id, int bitrate, bool promisc, csp_iface_t ** return_iface) {
 	if (ifname == NULL) {
 		ifname = CSP_IF_CAN_DEFAULT_NAME;
 	}
@@ -173,6 +173,7 @@ int csp_can_socketcan_open_and_add_interface(const char * device, const char * i
 
 	strncpy(ctx->name, ifname, sizeof(ctx->name) - 1);
 	ctx->iface.name = ctx->name;
+	ctx->iface.addr = node_id;
 	ctx->iface.interface_data = &ctx->ifdata;
 	ctx->iface.driver_data = ctx;
 	ctx->ifdata.tx_func = csp_can_tx_frame;
@@ -235,9 +236,9 @@ int csp_can_socketcan_open_and_add_interface(const char * device, const char * i
 	return CSP_ERR_NONE;
 }
 
-csp_iface_t * csp_can_socketcan_init(const char * device, int bitrate, bool promisc) {
+csp_iface_t * csp_can_socketcan_init(const char * device, unsigned int node_id, int bitrate, bool promisc) {
 	csp_iface_t * return_iface;
-	int res = csp_can_socketcan_open_and_add_interface(device, CSP_IF_CAN_DEFAULT_NAME, bitrate, promisc, &return_iface);
+	int res = csp_can_socketcan_open_and_add_interface(device, CSP_IF_CAN_DEFAULT_NAME, node_id, bitrate, promisc, &return_iface);
 	return (res == CSP_ERR_NONE) ? return_iface : NULL;
 }
 

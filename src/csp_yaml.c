@@ -143,7 +143,7 @@ static void csp_yaml_end_if(struct data_s * data, unsigned int * dfl_addr) {
 			return;
 		}
 
-		int error = csp_can_socketcan_open_and_add_interface(data->device, data->name, 1000000, true, &iface);
+		int error = csp_can_socketcan_open_and_add_interface(data->device, data->name, addr, 1000000, true, &iface);
 		if (error != CSP_ERR_NONE) {
 			csp_print("failed to add CAN interface [%s], error: %d", data->device, error);
 			return;
