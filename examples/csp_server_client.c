@@ -215,7 +215,7 @@ int main(int argc, char * argv[]) {
     }
 #if (CSP_HAVE_LIBSOCKETCAN)
     if (can_device) {
-        int error = csp_can_socketcan_open_and_add_interface(can_device, CSP_IF_CAN_DEFAULT_NAME, 0, false, &default_iface);
+        int error = csp_can_socketcan_open_and_add_interface(can_device, CSP_IF_CAN_DEFAULT_NAME, 0, false, false, &default_iface);
         if (error != CSP_ERR_NONE) {
             csp_print("failed to add CAN interface [%s], error: %d\n", can_device, error);
             exit(1);
