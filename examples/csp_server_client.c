@@ -145,7 +145,9 @@ int main(int argc, char * argv[]) {
 #if (CSP_HAVE_LIBZMQ)
     const char * zmq_device = NULL;
 #endif
+#if (CSP_HAVE_RTABLE)
     const char * rtable = NULL;
+#endif
     int opt;
     while ((opt = getopt(argc, argv, "a:d:r:c:k:z:tR:h")) != -1) {
         switch (opt) {
@@ -171,9 +173,11 @@ int main(int argc, char * argv[]) {
             case 't':
                 test_mode = true;
                 break;
+#if (CSP_HAVE_RTABLE)
             case 'R':
                 rtable = optarg;
                 break;
+#endif
             default:
                 csp_print("Usage:\n"
                        " -a <address>     local CSP address\n"
@@ -215,7 +219,7 @@ int main(int argc, char * argv[]) {
     }
 #if (CSP_HAVE_LIBSOCKETCAN)
     if (can_device) {
-        int error = csp_can_socketcan_open_and_add_interface(can_device, CSP_IF_CAN_DEFAULT_NAME, 0, false, false, &default_iface);
+        int error = csp_can_socketcan_open_and_add_interface(can_device, CSP_IF_CAN_DEFAULT_NAME, address, 1000000, true, &default_iface);
         if (error != CSP_ERR_NONE) {
             csp_print("failed to add CAN interface [%s], error: %d\n", can_device, error);
             exit(1);
@@ -232,6 +236,7 @@ int main(int argc, char * argv[]) {
     }
 #endif
 
+#if (CSP_HAVE_RTABLE)
     if (rtable) {
         int error = csp_rtable_load(rtable);
         if (error < 1) {
@@ -244,15 +249,19 @@ int main(int argc, char * argv[]) {
         /* no interfaces configured - run server and client in process, using loopback interface */
         server_address = address;
     }
+#endif
 
     csp_print("Connection table\r\n");
     csp_conn_print_table();
 
+
     csp_print("Interfaces\r\n");
     csp_iflist_print();
 
+#if (CSP_HAVE_RTABLE)
     csp_print("Route table\r\n");
     csp_rtable_print();
+#endif
 
     /* Start server thread */
     if ((server_address == 255) ||  /* no server address specified, I must be server */
