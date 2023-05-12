@@ -1,12 +1,6 @@
 #pragma once
 
-void csp_id1_prepend(csp_packet_t * packet);
-int csp_id1_strip(csp_packet_t * packet);
-void csp_id1_setup_rx(csp_packet_t * packet);
-
-void csp_id2_prepend(csp_packet_t * packet);
-int csp_id2_strip(csp_packet_t * packet);
-void csp_id2_setup_rx(csp_packet_t * packet);
+#include <csp/csp.h>
 
 void csp_id_prepend(csp_packet_t * packet);
 int csp_id_strip(csp_packet_t * packet);

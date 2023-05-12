@@ -39,7 +39,7 @@
 
 #define CSP_ID1_HEADER_SIZE 4
 
-void csp_id1_prepend(csp_packet_t * packet) {
+static void csp_id1_prepend(csp_packet_t * packet) {
 
 	/* Pack into 32-bit using host endian */
 	uint32_t id1 = ((packet->id.pri << CSP_ID1_PRIO_OFFSET) |
@@ -58,7 +58,7 @@ void csp_id1_prepend(csp_packet_t * packet) {
 	memcpy(packet->frame_begin, &id1, CSP_ID1_HEADER_SIZE);
 }
 
-int csp_id1_strip(csp_packet_t * packet) {
+static int csp_id1_strip(csp_packet_t * packet) {
 
 	if (packet->frame_length < CSP_ID1_HEADER_SIZE) {
 		return -1;
@@ -84,7 +84,7 @@ int csp_id1_strip(csp_packet_t * packet) {
 	return 0;
 }
 
-void csp_id1_setup_rx(csp_packet_t * packet) {
+static void csp_id1_setup_rx(csp_packet_t * packet) {
 	packet->frame_begin = packet->data - CSP_ID1_HEADER_SIZE;
 	packet->frame_length = 0;
 }
@@ -120,7 +120,7 @@ void csp_id1_setup_rx(csp_packet_t * packet) {
 
 #define CSP_ID2_HEADER_SIZE 6
 
-void csp_id2_prepend(csp_packet_t * packet) {
+static void csp_id2_prepend(csp_packet_t * packet) {
 
 	/* Pack into 64-bit using host endian */
 	uint64_t id2 = ((((uint64_t)packet->id.pri) << CSP_ID2_PRIO_OFFSET) |
@@ -140,7 +140,7 @@ void csp_id2_prepend(csp_packet_t * packet) {
 	memcpy(packet->frame_begin, &id2, CSP_ID2_HEADER_SIZE);
 }
 
-int csp_id2_strip(csp_packet_t * packet) {
+static int csp_id2_strip(csp_packet_t * packet) {
 
 	if (packet->frame_length < CSP_ID2_HEADER_SIZE) {
 		return -1;
@@ -169,7 +169,7 @@ int csp_id2_strip(csp_packet_t * packet) {
 	return 0;
 }
 
-void csp_id2_setup_rx(csp_packet_t * packet) {
+static void csp_id2_setup_rx(csp_packet_t * packet) {
 	packet->frame_begin = packet->data - CSP_ID2_HEADER_SIZE;
 	packet->frame_length = 0;
 }

@@ -87,13 +87,13 @@ int csp_can1_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t 
 
 			iface->frame++;
 
-			csp_id1_setup_rx(packet);
+			csp_id_setup_rx(packet);
 
 			/* Copy CSP identifier (header) */
 			memcpy(packet->frame_begin, data, sizeof(uint32_t));
 			packet->frame_length += sizeof(uint32_t);
 
-			csp_id1_strip(packet);
+			csp_id_strip(packet);
 
 			/* Copy CSP length (of data) */
 			memcpy(&(packet->length), data + sizeof(uint32_t), sizeof(packet->length));
@@ -296,7 +296,7 @@ int csp_can2_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t 
 		}
 
 		iface->frame++;
-		csp_id2_setup_rx(packet);
+		csp_id_setup_rx(packet);
 
 		/* Copy first 2 bytes from CFP 2.0 header:
 		 * Because the id field has already been converted in memory to a 32-bit
@@ -355,7 +355,7 @@ int csp_can2_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t 
 	if (id & (CFP2_END_MASK << CFP2_END_OFFSET)) {
 
 		/* Parse CSP header into csp_id type */
-		csp_id2_strip(packet);
+		csp_id_strip(packet);
 
 		/* Rewrite incoming L2 broadcast to local node */
 		if (packet->id.dst == 0x3FFF) {
