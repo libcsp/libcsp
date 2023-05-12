@@ -249,6 +249,8 @@ int main(int argc, char * argv[]) {
         /* no interfaces configured - run server and client in process, using loopback interface */
         server_address = address;
     }
+#else
+server_address = address;
 #endif
 
     csp_print("Connection table\r\n");
