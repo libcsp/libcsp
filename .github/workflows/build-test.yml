@@ -7,7 +7,7 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
-          - ubuntu-18.04
+          #- ubuntu-18.04
           #- macos-latest
         arch:
           - posix
@@ -15,9 +15,9 @@ jobs:
           - meson
           - cmake
           - waf
-        exclude:
-          - os: ubuntu-18.04
-            buildsystem: meson
+        #exclude:
+        #  - os: ubuntu-18.04
+        #    buildsystem: meson
     runs-on: ${{ matrix.os }}
     steps:
       - name: Setup packages on Linux
