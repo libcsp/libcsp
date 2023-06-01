@@ -2,6 +2,8 @@ if(CONFIG_LIBCSP)
   set(CMAKE_SYSTEM_NAME "Zephyr")
   set(CMAKE_BUILD_TYPE None)
 
+  set(CSP_PRINT_STDIO OFF)
+
   # check_include_file() doesn't work in Zephyr module
   # https://github.com/zephyrproject-rtos/zephyr/issues/31193
   # predefine it
@@ -9,25 +11,10 @@ if(CONFIG_LIBCSP)
 
   add_subdirectory(../.. build)
 
-  # Zephyr compiler options
-  target_include_directories(libcsp PRIVATE
-    $<TARGET_PROPERTY:zephyr_interface,INTERFACE_INCLUDE_DIRECTORIES>
-    )
+  zephyr_interface_library_named(libcsp)
+  target_include_directories(libcsp INTERFACE ${ZEPHYR_CURRENT_MODULE_DIR}/include)
+  target_include_directories(libcsp INTERFACE ${CMAKE_CURRENT_BINARY_DIR}/build)
 
-  target_include_directories(libcsp SYSTEM PRIVATE
-    $<TARGET_PROPERTY:zephyr_interface,INTERFACE_SYSTEM_INCLUDE_DIRECTORIES>
-    )
-
-  target_compile_definitions(libcsp PRIVATE
-    $<TARGET_PROPERTY:zephyr_interface,INTERFACE_COMPILE_DEFINITIONS>
-    )
-
-  target_compile_options(libcsp PRIVATE
-    $<TARGET_PROPERTY:zephyr_interface,INTERFACE_COMPILE_OPTIONS>
-    -fno-builtin -Wno-shadow -Wno-cast-align
-    )
-
-  add_dependencies(libcsp ${SYSCALL_LIST_H_TARGET})
-  zephyr_append_cmake_library(libcsp)
-  target_link_libraries(libcsp PUBLIC zephyr_interface)
+  zephyr_append_cmake_library(csp)
+  target_link_libraries(csp PUBLIC zephyr_interface)
 endif()

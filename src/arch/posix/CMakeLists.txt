@@ -1,4 +1,4 @@
-target_sources(libcsp PRIVATE
+target_sources(csp PRIVATE
   csp_clock.c
   csp_queue.c
   csp_semaphore.c
@@ -8,4 +8,4 @@ target_sources(libcsp PRIVATE
   )
 
 find_package(Threads REQUIRED)
-target_link_libraries(libcsp PRIVATE Threads::Threads)
+target_link_libraries(csp PRIVATE Threads::Threads)
