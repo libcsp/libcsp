@@ -39,7 +39,7 @@ if __name__ == "__main__":
         # "1.2.3"         - Revision, returned by CSP identity requests
     # See "include\csp\csp.h" - lines 42-80 for more detail
     # See "src\bindings\python\pycsp.c" - lines 128-156 for more detail
-    libcsp.init(options.address, "host", "model", "1.2.3")
+    libcsp.init("host", "model", "1.2.3")
 
     if options.can:
         # add CAN interface

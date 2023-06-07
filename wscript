@@ -73,7 +73,7 @@ def configure(ctx):
 
     # Setup CFLAGS
     if (len(ctx.stack_path) <= 1) and (len(ctx.env.CFLAGS) == 0):
-        ctx.env.prepend_value('CFLAGS', ["-std=gnu11", "-g", "-Os", "-Wall", "-Wextra", "-Wshadow", "-Wcast-align",
+        ctx.env.prepend_value('CFLAGS', ["-std=gnu11", "-g", "-O0", "-Wall", "-Wextra", "-Wshadow", "-Wcast-align",
                                          "-Wwrite-strings", "-Wno-unused-parameter", "-Werror"])
 
     # Setup default include path and any extra defined

@@ -42,6 +42,7 @@ def build_with_waf():
         '--enable-hmac',
         '--enable-dedup',
         '--enable-can-socketcan',
+        '--enable-python3-bindings',
         '--with-driver-usart=linux',
         '--enable-if-zmqhub',
         '--enable-examples',
