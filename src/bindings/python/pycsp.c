@@ -73,10 +73,6 @@ static void pycsp_free_csp_conn(PyObject * obj) {
 }
 
 static void pycsp_free_csp_socket(PyObject * obj) {
-	csp_conn_t * socket = (csp_conn_t *)get_obj_as_socket(obj, true);
-	if (socket) {
-		csp_close(socket);
-	}
 	PyCapsule_SetPointer(obj, &CSP_POINTER_HAS_BEEN_FREED);
 }
 
