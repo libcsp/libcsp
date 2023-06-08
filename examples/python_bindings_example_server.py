@@ -126,5 +126,4 @@ if __name__ == "__main__":
     libcsp.print_routes()
 
     # start CSP server in a thread
-    #threading.Thread(target=csp_server).start()
-    csp_server()
+    threading.Thread(target=csp_server).start()
