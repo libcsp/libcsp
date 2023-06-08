@@ -130,6 +130,11 @@ static PyObject * pycsp_socket(PyObject * self, PyObject * args) {
 	}
 
 	csp_socket_t * socket = malloc(sizeof(*socket));
+
+	if (socket == NULL) {
+		return NULL;
+	}
+
 	memset(socket, 0, sizeof(*socket));
 	socket->opts = opts;
 
