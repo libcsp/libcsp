@@ -27,7 +27,7 @@ def server_task(*args: Any) -> None:
 
         while (packet := csp.read(conn, 50)) is not None:
             if csp.conn_dport(conn) == 10:
-                _print('Recieved on 10')
+                _print(f'Recieved on 10: {csp.packet_get_data(packet).decode("utf-8")}')
                 csp.buffer_free(packet)
             else:
                 csp.service_handler(conn, packet)
@@ -54,10 +54,10 @@ def client_task(addr: int) -> None:
         if packet is None:
             raise Exception('Failed to get CSP buffer')
         
-        data = bytes(f'Hello World {chr(count)}', 'ascii') + b'\x00'
+        data = bytearray(f'Hello World {chr(count)}', 'ascii') + b'\x00'
         count += 1
 
-        #packet.length = len(data)
+        csp.packet_set_data(packet, data)
         csp.send(conn, packet)
         csp.close(conn)
 
