@@ -73,6 +73,10 @@ static void pycsp_free_csp_conn(PyObject * obj) {
 }
 
 static void pycsp_free_csp_socket(PyObject * obj) {
+	csp_socket_t * socket = get_obj_as_socket(obj, true);
+	if (socket) {
+		free(socket);
+	}
 	PyCapsule_SetPointer(obj, &CSP_POINTER_HAS_BEEN_FREED);
 }
 
@@ -125,10 +129,11 @@ static PyObject * pycsp_socket(PyObject * self, PyObject * args) {
 		return NULL;  // TypeError is thrown
 	}
 
-	csp_socket_t socket = {0};
-	socket.opts = opts;
+	csp_socket_t * socket = malloc(sizeof(*socket));
+	memset(socket, 0, sizeof(*socket));
+	socket->opts = opts;
 
-	return PyCapsule_New((void *)&socket, SOCKET_CAPSULE, pycsp_free_csp_socket);
+	return PyCapsule_New((void *)socket, SOCKET_CAPSULE, pycsp_free_csp_socket);
 }
 
 static PyObject * pycsp_accept(PyObject * self, PyObject * args) {
