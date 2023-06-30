@@ -130,11 +130,6 @@ int csp_route_work(void) {
 
 	csp_input_hook(input.iface, packet);
 
-	/* Here there be promiscuous mode */
-#if (CSP_USE_PROMISC)
-	csp_promisc_add(packet);
-#endif
-
 	/* Count the message */
 	input.iface->rx++;
 	input.iface->rxbytes += packet->length;
@@ -154,6 +149,11 @@ int csp_route_work(void) {
 			return CSP_ERR_NONE;
 		}
 	}
+
+	/* Here there be promiscuous mode */
+#if (CSP_USE_PROMISC)
+	csp_promisc_add(packet);
+#endif
 
 	/* If the message is not to me, route the message to the correct interface */
 	if (!is_to_me) {
