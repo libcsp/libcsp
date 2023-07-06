@@ -833,6 +833,7 @@ static PyObject * pycsp_cmp_clock_get(PyObject * self, PyObject * args) {
 						 be32toh(msg.clock.tv_nsec));
 }
 
+#if CSP_HAVE_LIBZMQ
 static PyObject * pycsp_zmqhub_init(PyObject * self, PyObject * args) {
 	uint16_t addr;
 	char * host;
@@ -847,6 +848,7 @@ static PyObject * pycsp_zmqhub_init(PyObject * self, PyObject * args) {
 
 	Py_RETURN_NONE;
 }
+#endif
 
 static PyObject * pycsp_can_socketcan_init(PyObject * self, PyObject * args) {
 	char * ifc;
@@ -985,8 +987,10 @@ static PyMethodDef methods[] = {
 	{"cmp_clock_set", pycsp_cmp_clock_set, METH_VARARGS, ""},
 	{"cmp_clock_get", pycsp_cmp_clock_get, METH_VARARGS, ""},
 
-	/* csp/interfaces/csp_if_zmqhub.h */
+/* csp/interfaces/csp_if_zmqhub.h */
+#if CSP_HAVE_LIBZMQ
 	{"zmqhub_init", pycsp_zmqhub_init, METH_VARARGS, ""},
+#endif
 	{"kiss_init", pycsp_kiss_init, METH_VARARGS, ""},
 
 	/* csp/drivers/can_socketcan.h */
