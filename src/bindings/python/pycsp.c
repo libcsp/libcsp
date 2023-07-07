@@ -588,12 +588,22 @@ static PyObject * pycsp_rdp_get_opt(PyObject * self, PyObject * args) {
 }
 
 static PyObject * pycsp_rtable_set(PyObject * self, PyObject * args) {
-	uint16_t node;
-	int mask;
+	unsigned int node;
+	unsigned int mask;
 	char * interface_name;
-	uint16_t via = CSP_NO_VIA_ADDRESS;
-	if (!PyArg_ParseTuple(args, "his|b", &node, &mask, &interface_name, &via)) {
+	unsigned int via = CSP_NO_VIA_ADDRESS;
+	if (!PyArg_ParseTuple(args, "IIs|I", &node, &mask, &interface_name, &via)) {
 		return NULL;  // TypeError is thrown
+	}
+
+	/* Reading directly into a uint16_t could invoke undefined behaviour,
+	 * as Python only works with short/int/long. In theory it is
+	 * perfectly legal for an architecture to define short as 64-bits, which
+	 * would cause a buffer overflow when used with a uint16_t. Unlikely,
+	 * but still good to be on the safe side. */
+	if (node > UINT16_MAX || via > UINT16_MAX || mask > INT_MAX) {
+		PyErr_SetNone(PyExc_OverflowError);
+		return NULL;
 	}
 
 	int res = csp_rtable_set(node, mask, csp_iflist_get_by_name(interface_name), via);
