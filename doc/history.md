@@ -19,7 +19,10 @@ uses CSP:
   - AAUSAT-3
   - EgyCubeSat
   - EuroLuna
-  - NUTS
+  - Orbit NTNU
+  - Selfiesat
+  - FramSat-1
+  - FramSat-1.5
   - Hawaiian Space Flight Laboratory
   - GomSpace GOMX-3, GOMX-4 A & B
 
