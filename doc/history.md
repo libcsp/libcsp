@@ -19,6 +19,7 @@ uses CSP:
   - AAUSAT-3
   - EgyCubeSat
   - EuroLuna
+  - NUTS (discontinued)
   - Orbit NTNU
   - Selfiesat
   - FramSat-1
