@@ -4,11 +4,13 @@ import threading
 import libcsp_py3 as csp
 from typing import Any, Callable
 
+
 def printer(node: str, color: str) -> Callable:
     def f(inp: str) -> None:
         print(f'{color}[{node.upper()}]: {inp}\033[0m')
 
     return f
+
 
 def server_task(*args: Any) -> None:
     _print = printer('server', '\033[96m')
@@ -27,12 +29,14 @@ def server_task(*args: Any) -> None:
 
         while (packet := csp.read(conn, 50)) is not None:
             if csp.conn_dport(conn) == 10:
-                _print(f'Recieved on 10: {csp.packet_get_data(packet).decode("utf-8")}')
+                _print(
+                    f'Recieved on 10: {csp.packet_get_data(packet).decode("utf-8")}')
                 csp.buffer_free(packet)
             else:
                 csp.service_handler(conn, packet)
 
         csp.close(conn)
+
 
 def client_task(addr: int) -> None:
     _print = printer('client', '\033[92m')
@@ -49,17 +53,18 @@ def client_task(addr: int) -> None:
         conn = csp.connect(csp.CSP_PRIO_NORM, addr, 10, 1000, csp.CSP_O_NONE)
         if conn is None:
             raise Exception('Connection failed')
-        
+
         packet = csp.buffer_get(100)
         if packet is None:
             raise Exception('Failed to get CSP buffer')
-        
+
         data = bytearray(f'Hello World {chr(count)}', 'ascii') + b'\x00'
         count += 1
 
         csp.packet_set_data(packet, data)
         csp.send(conn, packet)
         csp.close(conn)
+
 
 def main() -> None:
     csp.init("", "", "")
@@ -72,6 +77,7 @@ def main() -> None:
         t.start()
 
     print('Server and client started')
+
 
 if __name__ == '__main__':
     import sys
