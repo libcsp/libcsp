@@ -47,6 +47,15 @@ extern uint8_t csp_dbg_can_errno;
 #define CSP_DBG_CAN_ERR_INCOMPLETE 5
 #define CSP_DBG_CAN_ERR_UNKNOWN 6
 
+/* ETH protocol specific errno */
+extern uint8_t csp_dbg_eth_errno;
+#define CSP_DBG_ETH_ERR_FRAME_LOST 1
+#define CSP_DBG_ETH_ERR_RX_OVF 2
+#define CSP_DBG_ETH_ERR_RX_OUT 3
+#define CSP_DBG_ETH_ERR_SHORT_BEGIN 4
+#define CSP_DBG_ETH_ERR_INCOMPLETE 5
+#define CSP_DBG_ETH_ERR_UNKNOWN 6
+
 /* Toogle flags for rdp and packet print */
 extern uint8_t csp_dbg_rdp_print;
 extern uint8_t csp_dbg_packet_print;
