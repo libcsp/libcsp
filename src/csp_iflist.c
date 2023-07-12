@@ -126,6 +126,26 @@ int csp_iflist_add(csp_iface_t * ifc) {
 	return CSP_ERR_NONE;
 }
 
+void csp_iflist_remove(csp_iface_t * ifc) {
+	if (ifc == NULL) {
+		return;
+	}
+
+	if (ifc == interfaces) {
+		interfaces = ifc->next;
+		ifc->next = NULL;
+	} else {
+		for (csp_iface_t * cur = interfaces; cur; cur = cur->next) {
+			if (cur->next == ifc) {
+				cur->next = ifc->next;
+				ifc->next = NULL;
+
+				break;
+			}
+		}
+	}
+}
+
 csp_iface_t * csp_iflist_get(void) {
 	return interfaces;
 }
