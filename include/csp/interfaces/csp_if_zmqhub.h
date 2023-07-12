@@ -13,6 +13,11 @@
 
 #include <csp/csp_interface.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 #define CSP_ZMQ_MTU 2048  // max payload data, see documentation
 
 /**
@@ -103,3 +108,7 @@ int csp_zmqhub_init_w_name_endpoints_rxfilter(const char * ifname,
  *
  */
 int csp_zmqhub_init_filter2(const char * ifname, const char * host, uint16_t addr, uint16_t netmask, int promisc, csp_iface_t ** return_interface);
+
+#ifdef __cplusplus
+}
+#endif

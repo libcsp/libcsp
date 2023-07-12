@@ -13,6 +13,10 @@
 
 #include <csp/csp_iflist.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define CSP_NO_VIA_ADDRESS	0xFFFF
 
 typedef struct csp_route_s {
@@ -96,4 +100,8 @@ void csp_rtable_print(void);
 
 #else
 inline void csp_rtable_print(void) {}
+#endif
+
+#ifdef __cplusplus
+}
 #endif

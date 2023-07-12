@@ -2,6 +2,10 @@
 
 #include <csp/csp_interface.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
    Add interface to the list.
 
@@ -35,4 +39,8 @@ unsigned long csp_bytesize(unsigned long bytes, char *postfix);
 void csp_iflist_print(void);
 #else
 inline void csp_iflist_print(void) {}
+#endif
+
+#ifdef __cplusplus
+}
 #endif

@@ -5,6 +5,10 @@
 #include <pthread.h>
 #include <netinet/in.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct {
 
 	/* Should be set before calling if_udp_init */
@@ -30,3 +34,7 @@ typedef struct {
  *   Outgoing CSP packets will be transferred to the peer specified by the host argument
  */
 void csp_if_udp_init(csp_iface_t * iface, csp_if_udp_conf_t * ifconf);
+
+#ifdef __cplusplus
+}
+#endif

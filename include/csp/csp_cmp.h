@@ -1,5 +1,3 @@
-
-
 #pragma once
 
 /**
@@ -9,7 +7,9 @@
 
 #include <csp/csp.h>
 
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
    CMP type.
@@ -196,3 +196,7 @@ static inline int csp_cmp_peek(uint16_t node, uint32_t timeout, struct csp_cmp_m
 static inline int csp_cmp_poke(uint16_t node, uint32_t timeout, struct csp_cmp_message *msg) {
     return csp_cmp(node, timeout, CSP_CMP_POKE, CMP_SIZE(poke) - sizeof(msg->poke.data) + msg->poke.len, msg);
 }
+
+#ifdef __cplusplus
+}
+#endif

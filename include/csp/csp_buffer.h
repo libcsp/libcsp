@@ -1,5 +1,3 @@
-
-
 #pragma once
 
 /**
@@ -8,6 +6,10 @@
 */
 
 #include <csp/csp_types.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
    Get free buffer (from task context).
@@ -67,4 +69,6 @@ size_t csp_buffer_data_size(void);
 
 void csp_buffer_init(void);
 
-
+#ifdef __cplusplus
+}
+#endif

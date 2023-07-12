@@ -1,5 +1,3 @@
-
-
 #pragma once
 
 /**
@@ -8,6 +6,10 @@
 */
 
 #include <csp/csp.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
    Append CRC32 checksum to packet
@@ -31,3 +33,6 @@ int csp_crc32_verify(csp_packet_t * packet);
 */
 uint32_t csp_crc32_memory(const uint8_t * addr, uint32_t length);
 
+#ifdef __cplusplus
+}
+#endif

@@ -13,6 +13,10 @@
 #include <csp/csp_error.h>
 #include <csp/arch/csp_queue.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct {
 	uint32_t tv_sec;
 	uint32_t tv_nsec;
@@ -48,7 +52,7 @@ typedef enum {
    CSP identifier/header.
 */
 typedef struct  __attribute__((packed)) {
-	uint8_t pri; 
+	uint8_t pri;
 	uint8_t flags;
 	uint16_t src;
 	uint16_t dst;
@@ -133,7 +137,7 @@ typedef struct csp_packet_s {
 		};
 
 	};
-	
+
 	uint16_t length;			// Data length
 	csp_id_t id;				// CSP id (unpacked version CPU readable)
 
@@ -219,3 +223,7 @@ typedef csp_memptr_t (*csp_memcpy_fnc_t)(csp_memptr_t, csp_const_memptr_t, size_
    Compile check/asserts.
 */
 #define CSP_STATIC_ASSERT(condition, name)   typedef char name[(condition) ? 1 : -1]
+
+#ifdef __cplusplus
+}
+#endif

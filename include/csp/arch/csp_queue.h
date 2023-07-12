@@ -1,5 +1,3 @@
-
-
 #pragma once
 
 #include <inttypes.h>
@@ -9,6 +7,10 @@
 #if (CSP_FREERTOS)
 #include <FreeRTOS.h>
 #include <queue.h>
+#endif
+
+#ifdef __cplusplus
+extern "C" {
 #endif
 
 #define CSP_QUEUE_OK 0
@@ -78,3 +80,7 @@ int csp_queue_size(csp_queue_handle_t handle);
 int csp_queue_size_isr(csp_queue_handle_t handle);
 
 int csp_queue_free(csp_queue_handle_t handle);
+
+#ifdef __cplusplus
+}
+#endif
