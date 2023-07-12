@@ -2,6 +2,10 @@
 
 #include <csp/csp_types.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define CSP_IFLIST_NAME_MAX 10
 
 /**
@@ -50,3 +54,7 @@ struct csp_iface_s {
    @param[out] pxTaskWoken Valid reference if called from ISR, otherwise NULL!
 */
 void csp_qfifo_write(csp_packet_t * packet, csp_iface_t * iface, void * pxTaskWoken);
+
+#ifdef __cplusplus
+}
+#endif

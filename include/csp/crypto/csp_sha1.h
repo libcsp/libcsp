@@ -1,5 +1,3 @@
-
-
 #pragma once
 
 /**
@@ -11,7 +9,9 @@
 
 #include <csp/csp_types.h>
 
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /** The SHA1 block size in bytes */
 #define CSP_SHA1_BLOCKSIZE	64
@@ -61,3 +61,7 @@ void csp_sha1_done(csp_sha1_state_t * state, uint8_t * sha1);
    @param[out] sha1 user supplied buffer of minimum #CSP_SHA1_DIGESTSIZE bytes.
 */
 void csp_sha1_memory(const void * data, uint32_t length, uint8_t * sha1);
+
+#ifdef __cplusplus
+}
+#endif

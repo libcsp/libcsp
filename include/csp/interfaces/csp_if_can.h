@@ -5,7 +5,7 @@
 
    CAN interface.
 
-   CAN frames contains at most 8 bytes of data, so in order to transmit CSP 
+   CAN frames contains at most 8 bytes of data, so in order to transmit CSP
    packets larger than this, a fragmentation protocol is required.
    The CAN Fragmentation Protocol (CFP) is based on CAN2.0B, using all 29 bits of the
    identifier. The CAN identifier is divided into these fields:
@@ -28,6 +28,9 @@
 
 #include <csp/csp_interface.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 
 /**
@@ -156,7 +159,7 @@
 
    @param[in] driver_data driver data from #csp_iface_t
    @param[in] id CAM message id.
-   @param[in] data CAN data 
+   @param[in] data CAN data
    @param[in] dlc data length of \a data.
    @return #CSP_ERR_NONE on success, otherwise an error code.
 */
@@ -206,3 +209,7 @@ int csp_can_tx(csp_iface_t * iface, uint16_t via, csp_packet_t *packet);
    @return #CSP_ERR_NONE on success, otherwise an error code.
 */
 int csp_can_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t dlc, int *pxTaskWoken);
+
+#ifdef __cplusplus
+}
+#endif

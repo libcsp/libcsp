@@ -1,5 +1,3 @@
-
-
 #pragma once
 
 /**
@@ -11,7 +9,9 @@
 
 #include <csp/crypto/csp_sha1.h>
 
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
    Number of bytes from the HMAC calculation, that is appended to the CSP message.
@@ -55,3 +55,7 @@ int csp_hmac_memory(const void * key, uint32_t keylen, const void * data, uint32
  * @return #CSP_ERR_NONE on success, otherwise an error code.
  */
 int csp_hmac_set_key(const void * key, uint32_t keylen);
+
+#ifdef __cplusplus
+}
+#endif

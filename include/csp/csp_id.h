@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void csp_id1_prepend(csp_packet_t * packet);
 int csp_id1_strip(csp_packet_t * packet);
 void csp_id1_setup_rx(csp_packet_t * packet);
@@ -16,3 +20,7 @@ unsigned int csp_id_get_max_nodeid(void);
 unsigned int csp_id_get_max_port(void);
 
 int csp_id_is_broadcast(uint16_t addr, csp_iface_t * iface);
+
+#ifdef __cplusplus
+}
+#endif

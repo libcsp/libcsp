@@ -1,5 +1,3 @@
-
-
 #pragma once
 
 /**
@@ -14,7 +12,9 @@
 
 #include <csp/csp_types.h>
 
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
    Enable promiscuous packet queue.
@@ -36,3 +36,7 @@ void csp_promisc_disable(void);
    @return Packet (free with csp_buffer_free() or re-use packet), NULL on error or timeout.
 */
 csp_packet_t *csp_promisc_read(uint32_t timeout);
+
+#ifdef __cplusplus
+}
+#endif

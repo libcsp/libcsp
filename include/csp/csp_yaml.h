@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * Setup the CSP stack based on a yaml configuration file
  *
@@ -10,3 +14,7 @@
  *
  */
 void csp_yaml_init(char * filename, unsigned int * dfl_addr);
+
+#ifdef __cplusplus
+}
+#endif

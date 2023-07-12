@@ -1,5 +1,3 @@
-
-
 #pragma once
 
 /**
@@ -14,6 +12,10 @@
 #include <csp/csp_iflist.h>
 #include <csp/csp_sfp.h>
 #include <csp/csp_promisc.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /** Max timeout */
 #define CSP_MAX_TIMEOUT (UINT32_MAX)
@@ -450,5 +452,9 @@ inline int csp_conn_print_table_str(char * str_buf, int str_size) {
 	}
 
 	return CSP_ERR_NONE;
+}
+#endif
+
+#ifdef __cplusplus
 }
 #endif

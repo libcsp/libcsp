@@ -10,7 +10,9 @@
 
 #include <csp/interfaces/csp_if_can.h>
 
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
    Open CAN socket and add CSP interface.
@@ -45,3 +47,6 @@ csp_iface_t * csp_can_socketcan_init(const char * device, int bitrate, bool prom
 */
 int csp_can_socketcan_stop(csp_iface_t * iface);
 
+#ifdef __cplusplus
+}
+#endif

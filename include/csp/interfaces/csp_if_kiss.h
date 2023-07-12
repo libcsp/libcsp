@@ -8,7 +8,9 @@
 
 #include <csp/csp_interface.h>
 
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
    Default name of KISS interface.
@@ -31,7 +33,7 @@ typedef int (*csp_kiss_driver_tx_t)(void *driver_data, const uint8_t * data, siz
 typedef enum {
 	KISS_MODE_NOT_STARTED,  //!< No start detected
 	KISS_MODE_STARTED,      //!< Started on a KISS frame
-	KISS_MODE_ESCAPED,      //!< Rx escape character 
+	KISS_MODE_ESCAPED,      //!< Rx escape character
 	KISS_MODE_SKIP_FRAME,   //!< Skip remaining frame, wait for end character
 } csp_kiss_mode_t;
 
@@ -81,3 +83,7 @@ int csp_kiss_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet, int fr
    @param[out] pxTaskWoken Valid reference if called from ISR, otherwise NULL!
 */
 void csp_kiss_rx(csp_iface_t * iface, const uint8_t * buf, size_t len, void * pxTaskWoken);
+
+#ifdef __cplusplus
+}
+#endif

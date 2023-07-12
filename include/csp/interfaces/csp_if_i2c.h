@@ -1,5 +1,3 @@
-
-
 #pragma once
 
 /**
@@ -10,6 +8,9 @@
 
 #include <csp/csp_interface.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 
 /**
@@ -66,3 +67,7 @@ int csp_i2c_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet, int fro
    @param[out] pxTaskWoken Valid reference if called from ISR, otherwise NULL!
 */
 void csp_i2c_rx(csp_iface_t * iface, csp_packet_t * frame, void * pxTaskWoken);
+
+#ifdef __cplusplus
+}
+#endif
