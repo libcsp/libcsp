@@ -304,27 +304,17 @@ int csp_eth_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet, int fro
 
 	eh->ether_type = ifdata->eth_type;
 
-printf("\n%s:%d TX ETH TYPE %02x %02x  %04x\n", __FILE__, __LINE__, (unsigned)sendbuf[12], (unsigned)sendbuf[13], (unsigned)eh->ether_type);
 
 	csp_id_prepend(packet);
 
-int cdpp = csp_dbg_packet_print;
-csp_dbg_packet_print = 2;
-csp_print_packet("S %u, D %u, Dp %u, Sp %u, Pr %u, Fl 0x%02X, Sz %" PRIu16 " VIA: %s, %p %p %u\n",
-                packet->id.src, packet->id.dst, packet->id.dport,
-                packet->id.sport, packet->id.pri, packet->id.flags, packet->length, iface->name, 
-                packet, packet->frame_begin, packet->frame_length);
-for (size_t i = 0; i < packet->frame_length; ++i) {
-    printf(" %02x", *(uint8_t*)(packet->frame_begin + i));
-    if (i % 32 == 31) {
-        printf("\n");
+    if (eth_debug) {
+        printf("\n%s:%d TX ETH TYPE %02x %02x  %04x\n", __FILE__, __LINE__, (unsigned)sendbuf[12], (unsigned)sendbuf[13], (unsigned)eh->ether_type);
+        csp_print_packet("S %u, D %u, Dp %u, Sp %u, Pr %u, Fl 0x%02X, Sz %" PRIu16 " VIA: %s, %p %p %u\n",
+                        packet->id.src, packet->id.dst, packet->id.dport,
+                        packet->id.sport, packet->id.pri, packet->id.flags, packet->length, iface->name, 
+                        packet, packet->frame_begin, packet->frame_length);
+        csp_hex_dump("csp_eth_tx packet", (void*)packet->frame_begin, packet->frame_length);
     }
-}
-printf("\n");
-csp_dbg_packet_print = cdpp;
-
-printf("%s:%d packet %p begin:%p frame_length:%u length:%u\n", __FILE__, __LINE__, packet, packet->frame_begin, (unsigned)packet->frame_length, (unsigned)packet->length);
-csp_hex_dump("csp_eth_tx packet", (void*)packet->frame_begin, packet->frame_length);
 
     uint16_t offset = 0;
     uint16_t seg_offset = 0;
@@ -369,8 +359,6 @@ int csp_eth_add_interface(csp_iface_t * iface) {
     if (ifdata) {
 	    ifdata->packet_id = 0;
     }
-
-
 
     iface->nexthop = csp_eth_tx;
 
