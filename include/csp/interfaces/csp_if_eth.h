@@ -1,53 +1,62 @@
 #pragma once
 
 /**
-   @file
+ @file
 
-   Ethernet (ETH) interface.
+Ethernet (ETH) interface.
 
-   Ethernet frames holds up to 1500 bytes, and may be limited by an MTU value that is lower, so in order to transmit CSP 
-   packets larger than this, a segmentation protocol is required. The Ethernet standard assumes that this is handled by
-   an upper lat protocol, like bt the IP protocol.
-   This Ethernet driver therefore implements a CSP segmentation protocol that is called \b EFP. It is similar to CAN CFP.  
+Ethernet frames holds up to 1500 bytes, and may be limited by an MTU value that is lower, so in order to transmit CSP 
+packets larger than this, a segmentation protocol is required. The Ethernet standard assumes that this is handled by
+an upper lat protocol, like bt the IP protocol.
+This Ethernet driver therefore implements a CSP segmentation protocol that is called \b EFP. It is similar to CAN CFP.  
 
-   Each packet segment is prepended an \b EFP header with the following content: 
+Each packet segment is prepended an \b EFP header with the following content: 
 
-   - Version:           1 bit
-   - Unused:            2 bit
-   - SegmentId:         5 bit
-   - PacketId:          8 bit
-   - PacketLengthMSB:   8 bit
-   - PacketLengthLSB:   8 bit
+- Version:           1 bit
+- Unused:            2 bit
+- SegmentId:         5 bit
+- PacketId:          8 bit
+- PacketLengthMSB:   8 bit
+- PacketLengthLSB:   8 bit
 
-   The \b Version is zero. EFP discard Ethernet frames with the leading bit being 1. For a potential new protocol to 
-   coexist with EFP the first bit in the meader must be 1. 
-   The \b Unused bits must be zero.  
-   The \b SegmentId is a sequential number that starts at zero for each packet and increments by one for each segment. 
-   It wraps around to zero at 32, implying that the larges CSP packet size that can be handled is 32 * MTU.
-   The \b PacketId is a sequential number that is same for all segments of the same packet, and increments by one
-   for every new packet. It wraps around to zero at 256, implying that the protocol can handle up to 256 packets
-   that are processed in parallel.
-   The \b PacketLengthMSB and \b PacketLengthLSB holds the packet length most and least significant bits.
+The \b Version is zero. EFP discard Ethernet frames with the leading bit being 1. For a potential new protocol to 
+coexist with EFP the first bit in the meader must be 1. 
+The \b Unused bits must be zero.  
+The \b SegmentId is a sequential number that starts at zero for each packet and increments by one for each segment. 
+It wraps around to zero at 32, implying that the larges CSP packet size that can be handled is 32 * MTU.
+The \b PacketId is a sequential number that is same for all segments of the same packet, and increments by one
+for every new packet. It wraps around to zero at 256, implying that the protocol can handle up to 256 packets
+that are processed in parallel.
+The \b PacketLengthMSB and \b PacketLengthLSB holds the packet length most and least significant bits.
 
-   The protocol assumes that a single segment is sent per Ethernet frame. If smaller than the Ethernet payload length
-   zero-padding is applied. Padding may only occur when transferring the last segment.
-   The protocol allows for segments being received out of order.
+The protocol assumes that a single segment is sent per Ethernet frame. If smaller than the Ethernet payload length
+zero-padding is applied. Padding may only occur when transferring the last segment.
+The protocol allows for segments being received out of order.
 
-   The protocol differs from CAN CFP by not explicitly storing CSP source and destination addresses in the EFP header.
-   The packets are processed individually, not per CSP connection.  
+The protocol differs from CAN CFP by not explicitly storing CSP source and destination addresses in the EFP header.
+The packets are processed individually, not per CSP connection.  
 */
 
 #include <csp/csp_interface.h>
 
 extern bool eth_debug;
 
-/**
-   Default interface name.
-*/
-#define CSP_IF_ETH_DEFAULT_NAME "ETH"
-
-// 0x88B5 : IEEE Std 802 - Local Experimental Ethertype
+// 0x88B5 : IEEE Std 802 - Local Experimental Ethertype  (RFC 5342)
 #define ETH_TYPE_CSP 0x88B5
+
+#if CSP_POSIX
+
+void csp_if_eth_init(csp_iface_t * iface, const char * device, const char * ifname, int mtu, bool promisc);
+
+void * csp_if_eth_rx_loop(void * param);
+
+
+#else
+
+/**
+ Default interface name.
+*/
+//#define CSP_IF_ETH_DEFAULT_NAME "ETH"
 
 /* Max number of payload bytes per ETH frame */
 #define ETH_FRAME_SIZE_MAX 1500
@@ -102,3 +111,5 @@ int csp_eth_add_interface(csp_iface_t * iface);
 void csp_if_eth_dma_rx_callback(void * pbuf, size_t pbuf_size);
 
 void csp_if_eth_rx_loop(csp_iface_t * iface);
+
+#endif
