@@ -30,7 +30,7 @@ typedef struct {
 static csp_port_t ports[CSP_PORT_MAX_BIND + 2] = {0};
 
 csp_callback_t csp_port_get_callback(unsigned int port) {
-	
+
 	if (port > CSP_PORT_MAX_BIND) {
 		return NULL;
 	}
@@ -128,4 +128,33 @@ int csp_bind_callback(csp_callback_t callback, uint8_t port) {
 
 	return 0;
 
+}
+
+int csp_socket_close(csp_socket_t * sock) {
+	if (sock == NULL) {
+		return CSP_ERR_NONE;
+	}
+
+	if (sock->rx_queue != NULL) {
+		csp_packet_t * packet = NULL;
+
+		while (csp_queue_dequeue(sock->rx_queue, &packet, 0) == CSP_QUEUE_OK) {
+			if (packet != NULL) {
+				csp_buffer_free(packet);
+			}
+		}
+		csp_queue_free(sock->rx_queue);
+	}
+
+	for (size_t i = 0; i < CSP_PORT_MAX_BIND + 2; i++) {
+		csp_port_t * port = &ports[i];
+
+		if (port->state == PORT_OPEN && port->socket == sock) {
+			port->state = PORT_CLOSED;
+			port->socket = NULL;
+			break;
+		}
+	}
+
+	return CSP_ERR_NONE;
 }
