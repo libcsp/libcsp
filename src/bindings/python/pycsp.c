@@ -104,7 +104,7 @@ static PyObject * pycsp_service_handler(PyObject * self, PyObject * args) {
 
 static PyObject * pycsp_init(PyObject * self, PyObject * args) {
 	if (!PyArg_ParseTuple(args, "sss|bIb", &csp_conf.hostname, &csp_conf.model,
-		&csp_conf.revision, &csp_conf.version, &csp_conf.conn_dfl_so, &csp_conf.dedup)) {
+						  &csp_conf.revision, &csp_conf.version, &csp_conf.conn_dfl_so, &csp_conf.dedup)) {
 		return NULL;
 	}
 
@@ -585,7 +585,6 @@ static PyObject * pycsp_rdp_get_opt(PyObject * self, PyObject * args) {
 						 ack_timeout,
 						 ack_delay_count);
 }
-
 
 static PyObject * pycsp_rtable_set(PyObject * self, PyObject * args) {
 	uint16_t node;
