@@ -200,6 +200,14 @@ csp_conn_t *csp_connect(uint8_t prio, uint16_t dst, uint8_t dst_port, uint32_t t
 int csp_close(csp_conn_t *conn);
 
 /**
+   Close a socket, freeing it's RX queue and unbinding it from the associated
+   port.
+   @param[in] sock Socket
+   @return #CSP_ERR_NONE on success, otherwise an error code.
+ */
+int csp_socket_close(csp_socket_t* sock);
+
+/**
    Return destination port of connection.
    @param[in] conn connection
    @return destination port of an incoming connection
