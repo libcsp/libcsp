@@ -99,7 +99,7 @@ if __name__ == "__main__":
         # "1.2.3"         - Revision, returned by CSP identity requests
     # See "include\csp\csp.h" - lines 42-80 for more detail
     # See "src\bindings\python\pycsp.c" - lines 128-156 for more detail
-    libcsp.init(27, "test_service", "bindings", "1.2.3")
+    libcsp.init("test_service", "bindings", "1.2.3")
     
     # init zmqhub with parameters: {address (using 255 means all addresses)} {host name/ip}
     # subscribe and publish endpoints are created on the default ports using the {host}
