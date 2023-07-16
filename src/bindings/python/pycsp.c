@@ -886,7 +886,7 @@ static PyObject * pycsp_kiss_init(PyObject * self, PyObject * args) {
 static PyObject * pycsp_packet_set_data(PyObject * self, PyObject * args) {
 	PyObject * packet_capsule;
 	Py_buffer data;
-	if (!PyArg_ParseTuple(args, "Ow*", &packet_capsule, &data)) {
+	if (!PyArg_ParseTuple(args, "Oy*", &packet_capsule, &data)) {
 		return NULL;  // TypeError is thrown
 	}
 

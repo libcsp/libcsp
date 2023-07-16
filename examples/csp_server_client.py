@@ -60,7 +60,7 @@ def client_task(addr: int) -> None:
         if packet is None:
             raise Exception('Failed to get CSP buffer')
 
-        data = bytearray(f'Hello World {chr(count)}', 'ascii') + b'\x00'
+        data = bytes(f'Hello World {chr(count)}', 'ascii') + b'\x00'
         count += 1
 
         csp.packet_set_data(packet, data)
