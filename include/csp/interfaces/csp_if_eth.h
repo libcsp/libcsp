@@ -39,77 +39,29 @@ The packets are processed individually, not per CSP connection.
 
 #include <csp/csp_interface.h>
 
-extern bool eth_debug;
-
 // 0x88B5 : IEEE Std 802 - Local Experimental Ethertype  (RFC 5342)
-#define ETH_TYPE_CSP 0x88B5
+#define CSP_ETH_TYPE_CSP 0x88B5
 
-#if CSP_POSIX
+/* Size of buffer that must be greater than the size of an ethernet frame
+   carrying a maximum sized (~2k) CSP packet */
+#define CSP_ETH_BUF_SIZE    3000
 
-void csp_if_eth_init(csp_iface_t * iface, const char * device, const char * ifname, int mtu, bool promisc);
+/* Max number of payload bytes per ETH frame, which is the Ethernet MTU */
+#define CSP_ETH_FRAME_SIZE_MAX 1500
 
-void * csp_if_eth_rx_loop(void * param);
+/** 
+ * Declarations same as found in Linux net/ethernet.h and linux/if_ether.h 
+ */
 
+#define CSP_ETH_ALEN	6		    /* Octets in one ethernet addr	 */
 
-#else
+struct csp_eth_header
+{
+uint8_t  ether_dhost[CSP_ETH_ALEN];	/* destination eth addr	*/
+uint8_t  ether_shost[CSP_ETH_ALEN];	/* source ether addr	*/
+uint16_t ether_type;                /* packet type ID field	*/
+} __attribute__ ((__packed__));
 
-/**
- Default interface name.
-*/
-//#define CSP_IF_ETH_DEFAULT_NAME "ETH"
+void arp_set_addr(uint16_t csp_addr, uint8_t * mac_addr);
 
-/* Max number of payload bytes per ETH frame */
-#define ETH_FRAME_SIZE_MAX 1500
-
-/**
-   Send ETH frame (implemented by driver).
-
-   Used by csp_eth_tx() to send Ethernet frames.
-
-   @param[in] driver_data driver data from #csp_iface_t
-   @param[in] data Ethernet payload data 
-   @param[in] data_size size of \a data.
-   @return #CSP_ERR_NONE on success, otherwise an error code.
-*/
-typedef int (*csp_eth_driver_tx_t)(void * driver_data, const uint8_t * data, size_t data_size);
-
-/**
-   Interface data (state information).
-*/
-typedef struct {
-    /* Signal to CSP functions */
-    bool init_done;
-
-    /*** Ethernet MAC address */
-    uint8_t mac_addr[6];
-
-    /** Ethernet type (protocol) field */
-    uint16_t eth_type;
-
-    /** EFP max frame size, which is the Ethernet MTU */
-    uint16_t mtu;
-
-    /** Packet id that is sanme for all segnments of same packet. 
-     * Must be uniqueue among currently processed packets from given CSP source address. 
-     */
-    uint8_t packet_id;
-
-    /** Tx function */
-    csp_eth_driver_tx_t tx_func;
-    /** PBUF queue */
-    csp_packet_t * pbufs;
-} csp_eth_interface_data_t;
-
-/**
-   Add interface.
-
-   @param[in] iface CSP interface, initialized with name and inteface_data pointing to a valid #csp_eth_interface_data_t structure.
-   @return #CSP_ERR_NONE on success, otherwise an error code.
-*/
-int csp_eth_add_interface(csp_iface_t * iface);
-
-void csp_if_eth_dma_rx_callback(void * pbuf, size_t pbuf_size);
-
-void csp_if_eth_rx_loop(csp_iface_t * iface);
-
-#endif
+void arp_get_addr(uint16_t csp_addr, uint8_t * mac_addr);
