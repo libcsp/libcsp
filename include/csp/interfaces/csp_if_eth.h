@@ -55,12 +55,13 @@ The packets are processed individually, not per CSP connection.
 
 #define CSP_ETH_ALEN	6		    /* Octets in one ethernet addr	 */
 
-struct csp_eth_header
+struct csp_eth_header_s
 {
-uint8_t  ether_dhost[CSP_ETH_ALEN];	/* destination eth addr	*/
-uint8_t  ether_shost[CSP_ETH_ALEN];	/* source ether addr	*/
-uint16_t ether_type;                /* packet type ID field	*/
+    uint8_t  ether_dhost[CSP_ETH_ALEN];	/* destination eth addr	*/
+    uint8_t  ether_shost[CSP_ETH_ALEN];	/* source ether addr	*/
+    uint16_t ether_type;                /* packet type ID field	*/
 } __attribute__ ((__packed__));
+typedef struct csp_eth_header_s csp_eth_header_t;
 
 void arp_set_addr(uint16_t csp_addr, uint8_t * mac_addr);
 

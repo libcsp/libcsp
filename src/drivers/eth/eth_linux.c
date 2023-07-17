@@ -40,8 +40,8 @@ int csp_if_eth_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet, int 
     static uint8_t sendbuf[CSP_ETH_BUF_SIZE];
 
     /* Construct the Ethernet header */
-    struct csp_eth_header *eh = (struct csp_eth_header *) sendbuf;
-    uint16_t head_size = sizeof(struct csp_eth_header);
+    csp_eth_header_t *eh = (csp_eth_header_t *) sendbuf;
+    uint16_t head_size = sizeof(csp_eth_header_t);
 
     memcpy(eh->ether_shost, if_mac.ifr_hwaddr.sa_data, CSP_ETH_ALEN);
 
@@ -105,8 +105,8 @@ void * csp_if_eth_rx_loop(void * param) {
     static uint8_t recvbuf[CSP_ETH_BUF_SIZE];
 
     /* Ethernet header */
-    struct csp_eth_header * eh = (struct csp_eth_header *)recvbuf;
-    uint16_t head_size = sizeof(struct csp_eth_header);
+    csp_eth_header_t * eh = (csp_eth_header_t *)recvbuf;
+    uint16_t head_size = sizeof(csp_eth_header_t);
 
     while(1) {
 
