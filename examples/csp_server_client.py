@@ -9,7 +9,8 @@ from typing import Any, Callable
 
 def printer(node: str, color: str) -> Callable:
     def f(inp: str) -> None:
-        print(f'{color}[{node.upper()}]: {inp}\033[0m')
+        print('{color}[{name}]: {inp}\033[0m'.format(
+            color=color, name=node.upper(), inp=inp))
 
     return f
 
@@ -31,8 +32,8 @@ def server_task(*args: Any) -> None:
 
         while (packet := csp.read(conn, 50)) is not None:
             if csp.conn_dport(conn) == 10:
-                _print(
-                    f'Recieved on 10: {csp.packet_get_data(packet).decode("utf-8")}')
+                _print('Recieved on 10: {}'.format(
+                    csp.packet_get_data(packet).decode('utf-8')))
                 csp.buffer_free(packet)
             else:
                 csp.service_handler(conn, packet)
@@ -50,7 +51,7 @@ def client_task(addr: int) -> None:
         time.sleep(1)
 
         ping = csp.ping(addr, 1000, 100, csp.CSP_O_NONE)
-        _print(f'Ping {addr}: {ping}ms')
+        _print('Ping {addr}: {ping}ms'.format(addr=addr, ping=ping))
 
         conn = csp.connect(csp.CSP_PRIO_NORM, addr, 10, 1000, csp.CSP_O_NONE)
         if conn is None:
@@ -60,7 +61,7 @@ def client_task(addr: int) -> None:
         if packet is None:
             raise Exception('Failed to get CSP buffer')
 
-        data = bytes(f'Hello World {chr(count)}', 'ascii') + b'\x00'
+        data = bytes('Hello World {}'.format(chr(count)), 'ascii') + b'\x00'
         count += 1
 
         csp.packet_set_data(packet, data)
