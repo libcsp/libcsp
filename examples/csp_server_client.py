@@ -15,7 +15,7 @@ def printer(node: str, color: str) -> Callable:
     return f
 
 
-def server_task(*args: Any) -> None:
+def server_task(addr: int, port: int) -> None:
     _print = printer('server', '\033[96m')
     _print('Starting server task')
 
@@ -31,14 +31,16 @@ def server_task(*args: Any) -> None:
             continue
 
         while (packet := csp.read(conn, 50)) is not None:
-            if csp.conn_dport(conn) == 10:
-                _print('Recieved on 10: {}'.format(
-                    csp.packet_get_data(packet).decode('utf-8')))
+            if csp.conn_dport(conn) == port:
+                _print('Recieved on {port}: {data}'.format(
+                    port=port,
+                    data=csp.packet_get_data(packet).decode('utf-8'))
+                )
             else:
                 csp.service_handler(conn, packet)
 
 
-def client_task(addr: int) -> None:
+def client_task(addr: int, port: int) -> None:
     _print = printer('client', '\033[92m')
     _print('Starting client task')
 
@@ -50,7 +52,7 @@ def client_task(addr: int) -> None:
         ping = csp.ping(addr, 1000, 100, csp.CSP_O_NONE)
         _print('Ping {addr}: {ping}ms'.format(addr=addr, ping=ping))
 
-        conn = csp.connect(csp.CSP_PRIO_NORM, addr, 10, 1000, csp.CSP_O_NONE)
+        conn = csp.connect(csp.CSP_PRIO_NORM, addr, port, 1000, csp.CSP_O_NONE)
         if conn is None:
             raise Exception('Connection failed')
 
@@ -70,9 +72,10 @@ def main() -> None:
     csp.route_start_task()
 
     serv_addr = 0
+    serv_port = 10
 
     for task in (server_task, client_task):
-        t = threading.Thread(target=task, args=(serv_addr,))
+        t = threading.Thread(target=task, args=(serv_addr, serv_port))
         t.start()
 
     print('Server and client started')
