@@ -271,7 +271,7 @@ static PyObject * pycsp_transaction(PyObject * self, PyObject * args) {
 	Py_buffer inbuf;
 	Py_buffer outbuf;
 	int allow_any_incoming_length = 0;
-	if (!PyArg_ParseTuple(args, "bhbIw*w*|i", &prio, &dest, &port, &timeout, &outbuf, &inbuf, &allow_any_incoming_length)) {
+	if (!PyArg_ParseTuple(args, "bHbIw*w*|i", &prio, &dest, &port, &timeout, &outbuf, &inbuf, &allow_any_incoming_length)) {
 		return NULL;  // TypeError is thrown
 	}
 
@@ -295,7 +295,7 @@ static PyObject * pycsp_sendto(PyObject * self, PyObject * args) {
 	uint8_t src_port;
 	uint32_t opts;
 	PyObject * packet_capsule;
-	if (!PyArg_ParseTuple(args, "bhbbIO", &prio, &dest, &dport, &src_port, &opts, &packet_capsule)) {
+	if (!PyArg_ParseTuple(args, "bHbbIO", &prio, &dest, &dport, &src_port, &opts, &packet_capsule)) {
 		Py_RETURN_NONE;
 	}
 	csp_packet_t * packet = get_obj_as_packet(packet_capsule, false);
@@ -363,7 +363,7 @@ static PyObject * pycsp_connect(PyObject * self, PyObject * args) {
 	uint8_t dport;
 	uint32_t timeout;
 	uint32_t opts;
-	if (!PyArg_ParseTuple(args, "bhbII", &prio, &dest, &dport, &timeout, &opts)) {
+	if (!PyArg_ParseTuple(args, "bHbII", &prio, &dest, &dport, &timeout, &opts)) {
 		return NULL;  // TypeError is thrown
 	}
 
@@ -422,8 +422,8 @@ static PyObject * pycsp_conn_src(PyObject * self, PyObject * conn_capsule) {
 
 static PyObject * pycsp_listen(PyObject * self, PyObject * args) {
 	PyObject * socket_capsule;
-	size_t conn_queue_len = 10;
-	if (!PyArg_ParseTuple(args, "O|n", &socket_capsule, &conn_queue_len)) {
+	unsigned long conn_queue_len = 10;
+	if (!PyArg_ParseTuple(args, "O|k", &socket_capsule, &conn_queue_len)) {
 		return NULL;  // TypeError is thrown
 	}
 
@@ -506,7 +506,7 @@ static PyObject * pycsp_ping(PyObject * self, PyObject * args) {
 	uint32_t timeout = 1000;
 	unsigned int size = 10;
 	uint8_t conn_options = CSP_O_NONE;
-	if (!PyArg_ParseTuple(args, "h|IIb", &node, &timeout, &size, &conn_options)) {
+	if (!PyArg_ParseTuple(args, "H|IIb", &node, &timeout, &size, &conn_options)) {
 		return NULL;  // TypeError is thrown
 	}
 
@@ -524,7 +524,7 @@ static PyObject * pycsp_ping(PyObject * self, PyObject * args) {
 
 static PyObject * pycsp_reboot(PyObject * self, PyObject * args) {
 	uint16_t node;
-	if (!PyArg_ParseTuple(args, "h", &node)) {
+	if (!PyArg_ParseTuple(args, "H", &node)) {
 		return NULL;  // TypeError is thrown
 	}
 
@@ -534,7 +534,7 @@ static PyObject * pycsp_reboot(PyObject * self, PyObject * args) {
 
 static PyObject * pycsp_shutdown(PyObject * self, PyObject * args) {
 	uint16_t node;
-	if (!PyArg_ParseTuple(args, "h", &node)) {
+	if (!PyArg_ParseTuple(args, "H", &node)) {
 		return NULL;  // TypeError is thrown
 	}
 
@@ -591,7 +591,7 @@ static PyObject * pycsp_rtable_set(PyObject * self, PyObject * args) {
 	int mask;
 	char * interface_name;
 	uint16_t via = CSP_NO_VIA_ADDRESS;
-	if (!PyArg_ParseTuple(args, "his|b", &node, &mask, &interface_name, &via)) {
+	if (!PyArg_ParseTuple(args, "His|H", &node, &mask, &interface_name, &via)) {
 		return NULL;  // TypeError is thrown
 	}
 
@@ -635,8 +635,8 @@ static PyObject * pycsp_rtable_load(PyObject * self, PyObject * args) {
 }
 
 static PyObject * pycsp_buffer_get(PyObject * self, PyObject * args) {
-	size_t size;
-	if (!PyArg_ParseTuple(args, "n", &size)) {
+	unsigned long size;
+	if (!PyArg_ParseTuple(args, "k", &size)) {
 		return NULL;  // TypeError is thrown
 	}
 
@@ -669,7 +669,7 @@ static PyObject * pycsp_buffer_remaining(PyObject * self, PyObject * args) {
 static PyObject * pycsp_cmp_ident(PyObject * self, PyObject * args) {
 	uint16_t node;
 	uint32_t timeout = 1000;
-	if (!PyArg_ParseTuple(args, "h|i", &node, &timeout)) {
+	if (!PyArg_ParseTuple(args, "H|I", &node, &timeout)) {
 		return NULL;  // TypeError is thrown
 	}
 
@@ -697,7 +697,7 @@ static PyObject * pycsp_cmp_route_set(PyObject * self, PyObject * args) {
 	uint8_t addr;
 	uint8_t via;
 	char * ifstr;
-	if (!PyArg_ParseTuple(args, "hibbs", &node, &timeout, &addr, &via, &ifstr)) {
+	if (!PyArg_ParseTuple(args, "HIbbs", &node, &timeout, &addr, &via, &ifstr)) {
 		return NULL;  // TypeError is thrown
 	}
 
@@ -724,7 +724,7 @@ static PyObject * pycsp_cmp_peek(PyObject * self, PyObject * args) {
 	uint32_t addr;
 	uint8_t len;
 	Py_buffer outbuf;
-	if (!PyArg_ParseTuple(args, "hiIbw*", &node, &timeout, &addr, &len, &outbuf)) {
+	if (!PyArg_ParseTuple(args, "HIIbw*", &node, &timeout, &addr, &len, &outbuf)) {
 		Py_RETURN_NONE;
 	}
 
@@ -757,7 +757,7 @@ static PyObject * pycsp_cmp_poke(PyObject * self, PyObject * args) {
 	uint32_t addr;
 	Py_buffer inbuf;
 
-	if (!PyArg_ParseTuple(args, "hiIbw*", &node, &timeout, &addr, &len, &inbuf)) {
+	if (!PyArg_ParseTuple(args, "HIIbw*", &node, &timeout, &addr, &len, &inbuf)) {
 		Py_RETURN_NONE;
 	}
 
@@ -785,7 +785,7 @@ static PyObject * pycsp_cmp_clock_set(PyObject * self, PyObject * args) {
 	uint32_t sec;
 	uint32_t nsec;
 	uint32_t timeout = 1000;
-	if (!PyArg_ParseTuple(args, "hII|I", &node, &sec, &nsec, &timeout)) {
+	if (!PyArg_ParseTuple(args, "HII|I", &node, &sec, &nsec, &timeout)) {
 		Py_RETURN_NONE;
 	}
 
@@ -812,7 +812,7 @@ static PyObject * pycsp_cmp_clock_set(PyObject * self, PyObject * args) {
 static PyObject * pycsp_cmp_clock_get(PyObject * self, PyObject * args) {
 	uint16_t node;
 	uint32_t timeout = 1000;
-	if (!PyArg_ParseTuple(args, "h|I", &node, &timeout)) {
+	if (!PyArg_ParseTuple(args, "H|I", &node, &timeout)) {
 		Py_RETURN_NONE;
 	}
 
@@ -836,7 +836,7 @@ static PyObject * pycsp_cmp_clock_get(PyObject * self, PyObject * args) {
 static PyObject * pycsp_zmqhub_init(PyObject * self, PyObject * args) {
 	uint16_t addr;
 	char * host;
-	if (!PyArg_ParseTuple(args, "hs", &addr, &host)) {
+	if (!PyArg_ParseTuple(args, "Hs", &addr, &host)) {
 		return NULL;  // TypeError is thrown
 	}
 
