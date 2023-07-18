@@ -135,6 +135,16 @@ int csp_socket_close(csp_socket_t * sock) {
 		return CSP_ERR_NONE;
 	}
 
+	for (size_t i = 0; i < CSP_PORT_MAX_BIND + 2; i++) {
+		csp_port_t * port = &ports[i];
+
+		if (port->state == PORT_OPEN && port->socket == sock) {
+			port->state = PORT_CLOSED;
+			port->socket = NULL;
+			break;
+		}
+	}
+
 	if (sock->rx_queue != NULL) {
 		csp_packet_t * packet = NULL;
 
@@ -144,16 +154,6 @@ int csp_socket_close(csp_socket_t * sock) {
 			}
 		}
 		csp_queue_free(sock->rx_queue);
-	}
-
-	for (size_t i = 0; i < CSP_PORT_MAX_BIND + 2; i++) {
-		csp_port_t * port = &ports[i];
-
-		if (port->state == PORT_OPEN && port->socket == sock) {
-			port->state = PORT_CLOSED;
-			port->socket = NULL;
-			break;
-		}
 	}
 
 	return CSP_ERR_NONE;
