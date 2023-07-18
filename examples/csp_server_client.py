@@ -34,11 +34,8 @@ def server_task(*args: Any) -> None:
             if csp.conn_dport(conn) == 10:
                 _print('Recieved on 10: {}'.format(
                     csp.packet_get_data(packet).decode('utf-8')))
-                csp.buffer_free(packet)
             else:
                 csp.service_handler(conn, packet)
-
-        csp.close(conn)
 
 
 def client_task(addr: int) -> None:
@@ -66,7 +63,6 @@ def client_task(addr: int) -> None:
 
         csp.packet_set_data(packet, data)
         csp.send(conn, packet)
-        csp.close(conn)
 
 
 def main() -> None:
