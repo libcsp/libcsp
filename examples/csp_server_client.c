@@ -147,7 +147,7 @@ int main(int argc, char * argv[]) {
 #endif
     const char * rtable = NULL;
     int opt;
-    while ((opt = getopt(argc, argv, "a:d:r:c:k:z:tR:h")) != -1) {
+    while ((opt = getopt(argc, argv, "a:r:c:k:z:tR:h")) != -1) {
         switch (opt) {
             case 'a':
                 address = atoi(optarg);
