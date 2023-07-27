@@ -177,7 +177,6 @@ int main(int argc, char * argv[]) {
             default:
                 csp_print("Usage:\n"
                        " -a <address>     local CSP address\n"
-                       " -d <debug-level> debug level, 0 - 6\n"
                        " -r <address>     run client against server address\n"
                        " -c <can-device>  add CAN device\n"
                        " -k <kiss-device> add KISS device (serial)\n"
