@@ -42,7 +42,9 @@ on many cubesats.
 
 The implementation of `libcsp` is written
 with simplicity in mind, but it's compile time configuration allows it
-to have some rather advanced features as well:
+to have some rather advanced features as well.
+
+You can find documentation of the library [here](doc/libcsp.md).
 
 ## Features
 
