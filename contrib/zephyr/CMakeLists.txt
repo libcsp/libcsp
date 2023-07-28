@@ -13,6 +13,10 @@ if(CONFIG_LIBCSP)
     set(CSP_USE_RTABLE ON)
   endif()
 
+  if(CONFIG_CSP_HAVE_CAN)
+    set(HAVE_ZEPHYR_CAN ON)
+  endif()
+
   add_subdirectory(../.. build)
 
   zephyr_interface_library_named(libcsp)
