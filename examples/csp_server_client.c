@@ -134,6 +134,18 @@ void client(void) {
 }
 /* End of client task */
 
+static void print_usage(void)
+{
+	csp_print("Usage:\n"
+			  " -a <address>     local CSP address\n"
+			  " -r <address>     run client against server address\n"
+			  " -c <can-device>  add CAN device\n"
+			  " -k <kiss-device> add KISS device (serial)\n"
+			  " -z <zmq-device>  add ZMQ device, e.g. \"localhost\"\n"
+			  " -R <rtable>      set routing table\n"
+			  " -t               enable test mode\n"
+}
+
 /* main - initialization of CSP and start of server/client tasks */
 int main(int argc, char * argv[]) {
 
@@ -175,14 +187,7 @@ int main(int argc, char * argv[]) {
                 rtable = optarg;
                 break;
             default:
-                csp_print("Usage:\n"
-                       " -a <address>     local CSP address\n"
-                       " -r <address>     run client against server address\n"
-                       " -c <can-device>  add CAN device\n"
-                       " -k <kiss-device> add KISS device (serial)\n"
-                       " -z <zmq-device>  add ZMQ device, e.g. \"localhost\"\n"
-                       " -R <rtable>      set routing table\n"
-                       " -t               enable test mode\n");
+				print_usage();
                 exit(1);
                 break;
         }
