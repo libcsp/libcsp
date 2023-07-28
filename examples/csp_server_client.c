@@ -144,6 +144,7 @@ static void print_usage(void)
 			  " -z <zmq-device>  add ZMQ device, e.g. \"localhost\"\n"
 			  " -R <rtable>      set routing table\n"
 			  " -t               enable test mode\n"
+			  " -h               print help\n");
 }
 
 /* main - initialization of CSP and start of server/client tasks */
@@ -185,6 +186,10 @@ int main(int argc, char * argv[]) {
                 break;
             case 'R':
                 rtable = optarg;
+                break;
+            case 'h':
+				print_usage();
+				exit(0);
                 break;
             default:
 				print_usage();
