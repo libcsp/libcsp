@@ -1,7 +1,7 @@
 name: FreeRTOS Build and Test
 on: [push, pull_request]
 jobs:
-  run-test:
+  build-freertos:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
