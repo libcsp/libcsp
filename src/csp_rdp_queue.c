@@ -67,13 +67,13 @@ csp_packet_t * csp_rdp_queue_tx_get(csp_conn_t * conn) {
             return NULL;
         }
 
-        if (packet->conn == conn) {    
+        if (packet->conn == conn) {
             return packet;
         } else {
             csp_rdp_queue_tx_add(conn, packet);
         }
     }
-    return NULL;    
+    return NULL;
 }
 
 int csp_rdp_queue_rx_size(void) {
@@ -102,7 +102,5 @@ csp_packet_t * csp_rdp_queue_rx_get(csp_conn_t * conn) {
         }
     }
     return NULL;
-    
-}
 
-		
+}
