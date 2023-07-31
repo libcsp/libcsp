@@ -55,14 +55,86 @@ The packets are processed individually, not per CSP connection.
 
 #define CSP_ETH_ALEN	6		    /* Octets in one ethernet addr	 */
 
-struct csp_eth_header_s
+/**
+ * Definition of ethernet header, including reqired MAC addresses
+ * Frame data is required to proceed in memory space after this struct
+ */
+typedef struct csp_eth_header_s
 {
     uint8_t  ether_dhost[CSP_ETH_ALEN];	/* destination eth addr	*/
     uint8_t  ether_shost[CSP_ETH_ALEN];	/* source ether addr	*/
     uint16_t ether_type;                /* packet type ID field	*/
-} __attribute__ ((__packed__));
-typedef struct csp_eth_header_s csp_eth_header_t;
+    uint16_t packet_id;
+    uint16_t src_addr;
+    uint16_t seg_size;
+    uint16_t packet_length;
+    uint8_t frame_begin[];
+} __attribute__ ((__packed__)) csp_eth_header_t;
 
-void arp_set_addr(uint16_t csp_addr, uint8_t * mac_addr);
+/**
+ * Send ETH frame (implemented by driver).
 
-void arp_get_addr(uint16_t csp_addr, uint8_t * mac_addr);
+ * Used by csp_eth_tx() to send ETH frames.
+
+ * @param[in] driver_data driver data from #csp_iface_t
+ * @param[in] eth_frame CSP Ethernet frame to transmit 
+ * @return #CSP_ERR_NONE on success, otherwise an error code.
+*/
+typedef int (*csp_eth_driver_tx_t)(void * driver_data, csp_eth_header_t * eth_frame);
+
+/**
+ * CSP Interface data.
+ */
+typedef struct {
+    csp_iface_t iface;
+    bool promisc;
+    uint16_t tx_mtu;
+    csp_eth_driver_tx_t tx_func;
+    csp_packet_t * pbufs;
+    uint8_t if_mac[CSP_ETH_ALEN];
+} csp_eth_interface_data_t;
+
+/**
+ * Pack and byteswapp CSP ethernet header element as required
+ */
+bool csp_eth_pack_header(csp_eth_header_t * buf, 
+                         uint16_t packet_id, uint16_t src_addr,
+                         uint16_t seg_size, uint16_t packet_length);
+
+/**
+ * Unpack CSP ethernet header element
+ */
+bool csp_eth_unpack_header(csp_eth_header_t * buf, 
+                           uint32_t * packet_id,
+                           uint16_t * seg_size, uint16_t * packet_length);
+
+/**
+ * Store MAC address for given CSP node
+ */
+void csp_eth_arp_set_addr(uint8_t * mac_addr, uint16_t csp_addr);
+
+/**
+ * Find MAC address for given CSP node
+ */
+void csp_eth_arp_get_addr(uint8_t * mac_addr, uint16_t csp_addr);
+
+/**
+ * Send CSP packet over CAN (nexthop).
+ *
+ * This function will split the CSP packet into several fragments and call csp_eth_tx_frame() for sending each fragment.
+ * @return #CSP_ERR_NONE on success, otherwise an error code.
+ */
+int csp_eth_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet, int from_me);
+
+/**
+ * Process received CSP ethernet frame.
+
+ * Called from driver when a single ethernet frame has been received. The function will gather the fragments into a single
+ * CSP packet and route it on when complete.
+
+ * @param[in] iface incoming interface.
+ * @param[in] eth_frame received ETH data.
+ * @param[out] pxTaskWoken Valid reference if called from ISR, otherwise NULL!
+ * @return #CSP_ERR_NONE on success, otherwise an error code.
+*/
+int csp_eth_rx(csp_iface_t * iface, csp_eth_header_t * eth_frame, uint32_t received_len, int * task_woken);

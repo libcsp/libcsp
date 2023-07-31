@@ -20,6 +20,35 @@
  */
 bool eth_debug = false;
 
+bool csp_eth_pack_header(csp_eth_header_t * buf, 
+                            uint16_t packet_id, uint16_t src_addr,
+                            uint16_t seg_size, uint16_t packet_length) {
+
+    if (buf == NULL) return false;
+
+    buf->packet_id = htobe16(packet_id);
+    buf->src_addr = htobe16(src_addr);
+    buf->seg_size = htobe16(seg_size);
+    buf->packet_length = htobe16(packet_length);
+
+    return true;
+}
+
+bool csp_if_eth_unpack_header(csp_eth_header_t * buf, 
+                              uint32_t * packet_id,
+                              uint16_t * seg_size, uint16_t * packet_length) {
+
+    if (packet_id == NULL) return false;
+    if (seg_size == NULL) return false;
+    if (packet_length == NULL) return false;
+
+    *packet_id = buf->packet_id << 16 | buf->src_addr;
+    *seg_size = be16toh(buf->seg_size);
+    *packet_length = be16toh(buf->packet_length);
+
+    return true;
+}
+
 /**
  * Address resolution (ARP)
  * All received (ETH MAC, CSP src) are recorded and used to map destination address to MAC addresses,
@@ -60,7 +89,7 @@ void arp_print()
     csp_print("\n");
 }
 
-void arp_set_addr(uint16_t csp_addr, uint8_t * mac_addr)
+void csp_eth_arp_set_addr(uint8_t * mac_addr, uint16_t csp_addr)
 {
     arp_list_entry_t * last_arp = 0;
     for (arp_list_entry_t * arp = arp_list; arp; arp = arp->next) {
@@ -88,7 +117,7 @@ void arp_set_addr(uint16_t csp_addr, uint8_t * mac_addr)
 
 }
 
-void arp_get_addr(uint16_t csp_addr, uint8_t * mac_addr)
+void csp_eth_arp_get_addr(uint8_t * mac_addr, uint16_t csp_addr)
 {
     for (arp_list_entry_t * arp = arp_list; arp ; arp = arp->next) {
         if (arp->csp_addr == csp_addr) {
@@ -98,4 +127,147 @@ void arp_get_addr(uint16_t csp_addr, uint8_t * mac_addr)
     }
     // Defaults to returning the broadcast address
     memset(mac_addr, 0xff, CSP_ETH_ALEN);
+}
+
+int csp_eth_rx(csp_iface_t * iface, csp_eth_header_t * eth_frame, uint32_t received_len, int * task_woken) {
+
+	csp_eth_interface_data_t * ifdata = iface->interface_data;
+
+    csp_packet_t * pbuf_list = ifdata->pbufs;
+
+    /* Packet ID on RX side is a concatenation of packet ID on TX side and the source address */
+    uint32_t packet_id = 0;
+    uint16_t seg_size = 0;
+    uint16_t frame_length = 0;
+    csp_if_eth_unpack_header(eth_frame, &packet_id, &seg_size, &frame_length);
+
+    if (seg_size == 0) {
+        csp_print("eth rx seg_size is zero\n");
+        return CSP_ERR_INVAL;
+    }
+
+    if (seg_size > frame_length) {
+        csp_print("eth rx seg_size(%u) > frame_length(%u)\n", (unsigned)seg_size, (unsigned)frame_length);
+        return CSP_ERR_INVAL;
+    }
+
+    if (sizeof(csp_eth_header_t) + seg_size > received_len) {
+        csp_print("eth rx sizeof(csp_eth_frame_t) + seg_size(%u) > received(%u)\n",
+            sizeof(csp_eth_header_t), (unsigned)seg_size, (unsigned)received_len);
+        return CSP_ERR_INVAL;
+    }
+
+    if (frame_length == 0) {
+        csp_print("eth rx frame_length is zero\n");
+        return CSP_ERR_INVAL;
+    }
+
+    /* Add packet segment */
+    csp_packet_t * packet = csp_if_eth_pbuf_get(&pbuf_list, packet_id, task_woken);
+
+    if (packet->frame_length == 0) {
+        /* First segment */
+        packet->frame_length = frame_length;
+        packet->rx_count = 0;
+    }
+
+    if (frame_length != packet->frame_length) {
+        csp_print("eth rx inconsistent frame_length\n");
+        return CSP_ERR_INVAL;
+    }
+
+    if (packet->rx_count + seg_size > packet->frame_length) {
+        csp_print("eth rx data received exceeds frame_length\n");
+        return CSP_ERR_INVAL;
+    }
+
+    memcpy(packet->frame_begin + packet->rx_count, eth_frame->frame_begin, seg_size);
+    packet->rx_count += seg_size;
+
+    /* Send packet when fully received */
+
+    if (packet->rx_count < packet->frame_length) {
+        return CSP_ERR_NONE;
+    }
+
+    csp_if_eth_pbuf_remove(&pbuf_list, packet);
+
+    if (csp_id_strip(packet) != 0) {
+        csp_print("eth rx packet discarded due to error in ID field\n");
+        iface->rx_error++;
+        csp_buffer_free(packet);
+        return CSP_ERR_INVAL;
+    }
+
+    /* Record CSP and MAC addresses of source */
+    csp_eth_arp_set_addr(eth_frame->ether_shost, packet->id.src);
+
+    if (packet->id.dst != iface->addr && !ifdata->promisc) {
+        csp_buffer_free(packet);
+        return CSP_ERR_NONE;
+    }
+
+    csp_qfifo_write(packet, iface, NULL);
+
+    if (eth_debug) csp_if_eth_pbuf_list_print(&pbuf_list);
+
+    /* Remove potentially stalled partial packets */
+
+    csp_if_eth_pbuf_list_cleanup(&pbuf_list);
+
+    return CSP_ERR_NONE;
+}
+
+int csp_eth_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet, int from_me) {
+
+	csp_eth_interface_data_t * ifdata = iface->interface_data;
+
+    /* Loopback */
+    if (packet->id.dst == iface->addr) {
+        csp_qfifo_write(packet, iface, NULL);
+        return CSP_ERR_NONE;
+    }
+
+    static uint16_t packet_id = 0;
+    static uint8_t sendbuf[CSP_ETH_BUF_SIZE];
+    csp_eth_header_t *eth_frame = (csp_eth_header_t *) sendbuf;
+
+    csp_eth_arp_get_addr(eth_frame->ether_dhost, packet->id.dst);
+
+    eth_frame->ether_type = htobe16(CSP_ETH_TYPE_CSP);
+    memcpy(eth_frame->ether_shost, ifdata->if_mac, CSP_ETH_ALEN);
+
+    if (eth_debug) csp_print("%s:%d TX ETH TYPE %02x %02x  %04x\n", __FILE__, __LINE__, (unsigned)sendbuf[12], (unsigned)sendbuf[13], (unsigned)eth_frame->ether_type);
+
+    csp_id_prepend(packet);
+
+    packet_id++;
+
+    uint16_t offset = 0;
+    const uint16_t seg_size_max = ifdata->tx_mtu - sizeof(csp_eth_header_t);
+
+    while (offset < packet->frame_length) {
+
+        uint16_t seg_size = packet->frame_length - offset;
+        if (seg_size > seg_size_max) {
+            seg_size = seg_size_max;
+        }
+        
+        csp_eth_pack_header(eth_frame, packet_id, packet->id.src, seg_size, packet->frame_length);
+
+        memcpy(eth_frame->frame_begin, packet->frame_begin + offset, seg_size);
+
+		if ((ifdata->tx_func)(iface->driver_data, eth_frame) != CSP_ERR_NONE) {
+			iface->tx_error++;
+			/* Does not free on return */
+			return CSP_ERR_DRIVER;
+        }
+
+        if (eth_debug) csp_hex_dump("tx", sendbuf, sizeof(csp_eth_header_t) + seg_size);
+
+        offset += seg_size;
+    }
+
+    csp_buffer_free(packet);
+    return CSP_ERR_NONE;
 }

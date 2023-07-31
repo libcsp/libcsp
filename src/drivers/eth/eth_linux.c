@@ -18,203 +18,85 @@
 /* (netinet/ether.h) protocol setting used for promiscuous mode */
 #define ETH_P_ALL	0x0003		/* Every packet (be careful!!!) */
 
-// Global variables assumes a SINGLE ethernet device
-static int sockfd = -1;
-
-static struct ifreq if_idx;
-static struct ifreq if_mac;
-
-static uint16_t tx_mtu = 0;
-
 extern bool eth_debug;
 
-int csp_if_eth_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet, int from_me) {
+typedef struct {
+	char name[CSP_IFLIST_NAME_MAX + 1];
+	csp_eth_interface_data_t ifdata;
+    int sockfd;
+    struct ifreq if_idx;
+} eth_context_t;
 
-    /* Loopback */
-    if (packet->id.dst == iface->addr) {
-        csp_qfifo_write(packet, iface, NULL);
-        return CSP_ERR_NONE;
-    }
+int csp_eth_tx_frame(void * driver_data, csp_eth_header_t *eth_frame) {
 
-    static uint8_t packet_id = 0;
-    static uint8_t sendbuf[CSP_ETH_BUF_SIZE];
-
-    /* Construct the Ethernet header */
-    csp_eth_header_t *eh = (csp_eth_header_t *) sendbuf;
-    uint16_t head_size = sizeof(csp_eth_header_t);
-
-    memcpy(eh->ether_shost, if_mac.ifr_hwaddr.sa_data, CSP_ETH_ALEN);
-
-    arp_get_addr(packet->id.dst, (uint8_t*)(eh->ether_dhost)); 
-
-    eh->ether_type = htons(CSP_ETH_TYPE_CSP);
-
-    if (eth_debug) csp_print("%s:%d TX ETH TYPE %02x %02x  %04x\n", __FILE__, __LINE__, (unsigned)sendbuf[12], (unsigned)sendbuf[13], (unsigned)eh->ether_type);
+    const eth_context_t * ctx = (eth_context_t*)driver_data;
 
     /* Destination socket address */
     struct sockaddr_ll socket_address = {};
-    socket_address.sll_ifindex = if_idx.ifr_ifindex;
+    socket_address.sll_ifindex = ctx->if_idx.ifr_ifindex;
     socket_address.sll_halen = CSP_ETH_ALEN;
-    memcpy(socket_address.sll_addr, eh->ether_dhost, CSP_ETH_ALEN);
+    memcpy(socket_address.sll_addr, eth_frame->ether_dhost, CSP_ETH_ALEN);
 
-    csp_id_prepend(packet);
+    uint32_t txsize = sizeof(csp_eth_header_t) + be16toh(eth_frame->seg_size);
 
-    packet_id++;
-
-    uint16_t offset = 0;
-    uint16_t seg_offset = 0;
-    uint16_t seg_size_max = tx_mtu - (head_size + CSP_IF_ETH_PBUF_HEAD_SIZE);
-    uint16_t seg_size = 0;
-
-    while (offset < packet->frame_length) {
-
-        seg_size = packet->frame_length - offset;
-        if (seg_size > seg_size_max) {
-            seg_size = seg_size_max;
-        }
-        
-        /* The ethernet header is the same */
-        seg_offset = head_size; 
-
-        seg_offset += csp_if_eth_pbuf_pack_head(&sendbuf[seg_offset], packet_id, packet->id.src, seg_size, packet->frame_length);
-
-        memcpy(&sendbuf[seg_offset], packet->frame_begin + offset, seg_size);
-        seg_offset += seg_size;
-
-        if (eth_debug) csp_hex_dump("tx", sendbuf, seg_offset);
-
-        if (sendto(sockfd, sendbuf, seg_offset, 0, (struct sockaddr*)&socket_address, sizeof(struct sockaddr_ll)) < 0) {
-            csp_buffer_free(packet);
-            return CSP_ERR_DRIVER;
-        }
-
-        offset += seg_size;
+    if (sendto(ctx->sockfd, (void*)eth_frame, txsize, 0, (struct sockaddr*)&socket_address, sizeof(struct sockaddr_ll)) < 0) {
+        return CSP_ERR_DRIVER;
     }
 
-    csp_buffer_free(packet);
     return CSP_ERR_NONE;
 }
 
-void * csp_if_eth_rx_loop(void * param) {
+void * csp_eth_rx_loop(void * param) {
 
-    static csp_iface_t * iface;
-    iface = param;
-
-    csp_packet_t * pbuf_list = 0;
+    eth_context_t * ctx = param;
 
     static uint8_t recvbuf[CSP_ETH_BUF_SIZE];
-
-    /* Ethernet header */
-    csp_eth_header_t * eh = (csp_eth_header_t *)recvbuf;
-    uint16_t head_size = sizeof(csp_eth_header_t);
+    csp_eth_header_t * eth_frame = (csp_eth_header_t *)recvbuf;
 
     while(1) {
 
         /* Receive packet segment */ 
 
-        int received_len = recvfrom(sockfd, recvbuf, CSP_ETH_BUF_SIZE, 0, NULL, NULL);
+        uint32_t received_len = recvfrom(ctx->sockfd, recvbuf, CSP_ETH_BUF_SIZE, 0, NULL, NULL);
 
         if (eth_debug) csp_hex_dump("rx", recvbuf, received_len);
 
-        /* Filter : ether head (14) + packet length + CSP head */
-        if (received_len < head_size + CSP_IF_ETH_PBUF_HEAD_SIZE + 6) {
+        /* Filter : ether header (14) + packet length + CSP header */
+        if (received_len < sizeof(csp_eth_header_t)) {
             continue;
         }
 
         /* Filter on CSP protocol id */
-        if ((ntohs(eh->ether_type) != CSP_ETH_TYPE_CSP)) {
-            continue;
-        }
-        
-        uint16_t seg_offset = head_size;
-
-        uint16_t packet_id = 0;
-        uint16_t src_addr = 0;
-        uint16_t seg_size = 0;
-        uint16_t frame_length = 0;
-        seg_offset += csp_if_eth_pbuf_unpack_head(&recvbuf[seg_offset], &packet_id, &src_addr, &seg_size, &frame_length);
-
-        if (seg_size == 0) {
-            csp_print("eth rx seg_size is zero\n");
+        if ((be16toh(eth_frame->ether_type) != CSP_ETH_TYPE_CSP)) {
             continue;
         }
 
-        if (seg_size > frame_length) {
-            csp_print("eth rx seg_size(%u) > frame_length(%u)\n", (unsigned)seg_size, (unsigned)frame_length);
-            continue;
-        }
-
-        if (seg_offset + seg_size > received_len) {
-            csp_print("eth rx seg_offset(%u) + seg_size(%u) > received(%u)\n",
-                (unsigned)seg_offset, (unsigned)seg_size, (unsigned)received_len);
-            continue;
-        }
-
-        if (frame_length == 0) {
-            csp_print("eth rx frame_length is zero\n");
-            continue;
-        }
-
-        /* Add packet segment */
-
-        csp_packet_t * packet = csp_if_eth_pbuf_get(&pbuf_list, csp_if_eth_pbuf_id_as_int32(&recvbuf[head_size]), true);
-
-        if (packet->frame_length == 0) {
-            /* First segment */
-            packet->frame_length = frame_length;
-            packet->rx_count = 0;
-        }
-
-        if (frame_length != packet->frame_length) {
-            csp_print("eth rx inconsistent frame_length\n");
-            continue;
-        }
-
-        if (packet->rx_count + seg_size > packet->frame_length) {
-            csp_print("eth rx data received exceeds frame_length\n");
-            continue;
-        }
-
-        memcpy(packet->frame_begin + packet->rx_count, &recvbuf[seg_offset], seg_size);
-        packet->rx_count += seg_size;
-        seg_offset += seg_size;
-
-        /* Send packet when fully received */
-
-        if (packet->rx_count == packet->frame_length) {
-
-            csp_if_eth_pbuf_remove(&pbuf_list, packet);
-
-            if (csp_id_strip(packet) != 0) {
-                csp_print("eth rx packet discarded due to error in ID field\n");
-                iface->rx_error++;
-                csp_buffer_free(packet);
-                continue;
-            }
-
-            // Record (CSP,MAC) addresses of source
-            arp_set_addr(packet->id.src, eh->ether_shost);
-
-            csp_qfifo_write(packet, iface, NULL);
-
-        }
-
-        if (eth_debug) csp_if_eth_pbuf_list_print(&pbuf_list);
-
-        /* Remove potentially stalled partial packets */
-
-        csp_if_eth_pbuf_list_cleanup(&pbuf_list);
+        csp_eth_rx(&ctx->ifdata.iface, eth_frame, received_len, NULL);
     }
 
     return NULL;
 }
 
-void csp_if_eth_init(csp_iface_t * iface, const char * device, const char * ifname, int mtu, bool promisc) {
+int csp_eth_init(const char * device, const char * ifname, int mtu, unsigned int node_id, bool promisc, csp_iface_t ** return_iface) {
 
-    /* Ether header 14 byte, seg header 4 byte, arbitrarily min 22 bytes for data */
-    if (mtu < 40) {
-        csp_print("csp_if_eth_init: mtu < 40\n");
-        return;
+	eth_context_t * ctx = calloc(1, sizeof(*ctx));
+	if (ctx == NULL) {
+		return CSP_ERR_NOMEM;
+	}
+	
+	strncpy(ctx->name, ifname, sizeof(ctx->name) - 1);
+	ctx->ifdata.iface.name = ctx->name;
+    ctx->ifdata.tx_func = &csp_eth_tx_frame;
+    ctx->ifdata.iface.nexthop = &csp_eth_tx,
+	ctx->ifdata.iface.addr = node_id;
+	ctx->ifdata.iface.driver_data = ctx;
+    ctx->ifdata.iface.interface_data = &ctx->ifdata;
+    ctx->ifdata.promisc = promisc;
+
+    /* Ether header 14 byte, seg header 4 byte, CSP header 6 byte */
+    if (mtu < 24) {
+        csp_print("csp_if_eth_init: mtu < 24\n");
+        return CSP_ERR_INVAL;
     }
 
 
@@ -223,74 +105,79 @@ void csp_if_eth_init(csp_iface_t * iface, const char * device, const char * ifna
      */
 
     /* Open RAW socket to send on */
-    uint16_t protocol = promisc ? ETH_P_ALL : CSP_ETH_TYPE_CSP;
-    if ((sockfd = socket(AF_PACKET, SOCK_RAW, htons(protocol))) == -1) {
+    if ((ctx->sockfd = socket(AF_PACKET, SOCK_RAW, htobe16(CSP_ETH_TYPE_CSP))) == -1) {
         perror("socket");
-        return;
+        printf("Use command 'setcap cap_net_raw+ep ./csh'\n");
+        return CSP_ERR_INVAL;
     }
 
     /* Get the index of the interface to send on */
-    memset(&if_idx, 0, sizeof(struct ifreq));
-    strncpy(if_idx.ifr_name, device, IFNAMSIZ-1);
-    if (ioctl(sockfd, SIOCGIFINDEX, &if_idx) < 0) {
+    memset(&ctx->if_idx, 0, sizeof(struct ifreq));
+    strncpy(ctx->if_idx.ifr_name, device, IFNAMSIZ-1);
+    if (ioctl(ctx->sockfd, SIOCGIFINDEX, &ctx->if_idx) < 0) {
         perror("SIOCGIFINDEX");
-        return;
+        return CSP_ERR_INVAL;
     }
 
+    struct ifreq if_mac;
     /* Get the MAC address of the interface to send on */
     memset(&if_mac, 0, sizeof(struct ifreq));
     strncpy(if_mac.ifr_name, device, IFNAMSIZ-1);
-    if (ioctl(sockfd, SIOCGIFHWADDR, &if_mac) < 0) {
+    if (ioctl(ctx->sockfd, SIOCGIFHWADDR, &if_mac) < 0) {
         perror("SIOCGIFHWADDR");
-        return;
+        return CSP_ERR_INVAL;
     }
 
-    csp_print("%s %s idx %d mac %02hhx:%02hhx:%02hhx:%02hhx:%02hhx:%02hhx Promisc:%u\n", ifname, device, if_idx.ifr_ifindex, 
-        ((uint8_t *)&if_mac.ifr_hwaddr.sa_data)[0],
-        ((uint8_t *)&if_mac.ifr_hwaddr.sa_data)[1],
-        ((uint8_t *)&if_mac.ifr_hwaddr.sa_data)[2],
-        ((uint8_t *)&if_mac.ifr_hwaddr.sa_data)[3],
-        ((uint8_t *)&if_mac.ifr_hwaddr.sa_data)[4],
-        ((uint8_t *)&if_mac.ifr_hwaddr.sa_data)[5],
-        (unsigned)promisc);
+    memcpy(&ctx->ifdata.if_mac, if_mac.ifr_hwaddr.sa_data, sizeof(ctx->ifdata.if_mac));
+
+    csp_print("INIT %s %s idx %d node %d mac %02hhx:%02hhx:%02hhx:%02hhx:%02hhx:%02hhx\n", 
+        ifname, device, ctx->if_idx.ifr_ifindex, node_id,
+        ((uint8_t *)if_mac.ifr_hwaddr.sa_data)[0],
+        ((uint8_t *)if_mac.ifr_hwaddr.sa_data)[1],
+        ((uint8_t *)if_mac.ifr_hwaddr.sa_data)[2],
+        ((uint8_t *)if_mac.ifr_hwaddr.sa_data)[3],
+        ((uint8_t *)if_mac.ifr_hwaddr.sa_data)[4],
+        ((uint8_t *)if_mac.ifr_hwaddr.sa_data)[5]);
 
     /* Allow the socket to be reused - incase connection is closed prematurely */
     int sockopt;
-    if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &sockopt, sizeof sockopt) == -1) {
+    if (setsockopt(ctx->sockfd, SOL_SOCKET, SO_REUSEADDR, &sockopt, sizeof sockopt) == -1) {
         perror("setsockopt");
-        close(sockfd);
-        return;
+        close(ctx->sockfd);
+        return CSP_ERR_INVAL;
     }
 
     /* Bind to device */
-    if (setsockopt(sockfd, SOL_SOCKET, SO_BINDTODEVICE, device, IFNAMSIZ-1) == -1)	{
+    if (setsockopt(ctx->sockfd, SOL_SOCKET, SO_BINDTODEVICE, device, IFNAMSIZ-1) == -1)	{
         perror("SO_BINDTODEVICE");
-        close(sockfd);
-        return;
+        close(ctx->sockfd);
+        return CSP_ERR_INVAL;
     }
 
     /* fill sockaddr_ll struct to prepare binding */
     struct sockaddr_ll my_addr;
     my_addr.sll_family = AF_PACKET;
-    my_addr.sll_protocol = htons(CSP_ETH_TYPE_CSP);
-    my_addr.sll_ifindex = if_idx.ifr_ifindex;
+    my_addr.sll_protocol = htobe16(CSP_ETH_TYPE_CSP);
+    my_addr.sll_ifindex = ctx->if_idx.ifr_ifindex;
 
     /* bind socket  */
-    bind(sockfd, (struct sockaddr *)&my_addr, sizeof(struct sockaddr_ll));
+    bind(ctx->sockfd, (struct sockaddr *)&my_addr, sizeof(struct sockaddr_ll));
 
-    tx_mtu = mtu;
+    ctx->ifdata.tx_mtu = mtu;
 
     /* Start server thread */
     static pthread_t server_handle;
-    pthread_create(&server_handle, NULL, &csp_if_eth_rx_loop, iface);
+    pthread_create(&server_handle, NULL, &csp_eth_rx_loop, ctx);
 
     /**
      * CSP INTERFACE
      */
 
     /* Register interface */
-    iface->name = strdup(ifname),
-    iface->nexthop = &csp_if_eth_tx,
-    csp_iflist_add(iface);
+    csp_iflist_add(&ctx->ifdata.iface);
 
-}
+	if (return_iface) {
+		*return_iface = &ctx->ifdata.iface;
+	}
+
+    return CSP_ERR_NONE;}
