@@ -5,6 +5,8 @@
 #include <csp/csp.h>
 #include <csp/drivers/usart.h>
 #include <zephyr/logging/log.h>
+#include <csp/drivers/can_zephyr.h>
+#include <zephyr/device.h>
 
 LOG_MODULE_REGISTER(csp_sample_server_client);
 
@@ -136,9 +138,11 @@ void client(void) {
 /* main - initialization of CSP and start of server/client tasks */
 int main(void) {
 
+	int ret;
 	uint8_t address = 0;
 	const char * kiss_device = NULL;
 	const char * rtable = NULL;
+	csp_iface_t * can_iface = NULL;
 
 	LOG_INF("Initialising CSP");
 
@@ -164,6 +168,38 @@ int main(void) {
 			exit(1);
 		}
 		default_iface->is_default = 1;
+	}
+
+	if (IS_ENABLED(CONFIG_CSP_HAVE_CAN)) {
+		/*
+		 * In this sample, CAN parameter (address, device, IF name, bitrate) is fixed.
+		 * We will improve it so that you can specify each parameter later.
+		 * And run as the server, if you want to run as the client, please change the
+		 * server address to any address not 255.
+		 */
+		const char * ifname = "CAN0";
+		address = 10;
+		server_address = 255;
+		const struct device * device = DEVICE_DT_GET(DT_NODELABEL(can0));
+		uint32_t bitrate = 1000000;
+
+		/*
+		 * In the Zephyr, CSP users can specify the filter settings for any destination
+		 * address and mask. In this sample, it is set to filter only packets received
+		 * by me. If you want to receive all packets, please change the filter address
+		 * and mask. (For example, filter_addr: 0x3FFF, filter_mask: 0x0000)
+		 */
+		uint16_t filter_addr = address;
+		uint16_t filter_mask = 0x3FFF;
+
+		int error = csp_can_open_and_add_interface(device, ifname, address, bitrate,
+							   filter_addr, filter_mask, &can_iface);
+		if (error != CSP_ERR_NONE) {
+			LOG_ERR("failed to add CAN interface [%s], error: %d\n", ifname, error);
+			exit(1);
+		}
+		can_iface->is_default = 1;
+		default_iface = can_iface;
 	}
 
 	if (IS_ENABLED(CONFIG_CSP_USE_RTABLE)) {
@@ -218,12 +254,19 @@ int main(void) {
 			/* Test mode is intended for checking that host & client can exchange packets over loopback */
 			if (server_received < 5) {
 				LOG_INF("Server received %u packets", server_received);
-				exit(1);
+				ret = 1;
+				goto end;
 			}
 			LOG_INF("Server received %u packets", server_received);
-			exit(0);
+			ret = 0;
+			goto end;
 		}
 	}
 
-	return 0;
+end:
+	if (IS_ENABLED(CONFIG_CSP_HAVE_CAN)) {
+		csp_can_stop(can_iface);
+	}
+
+	return ret;
 }
