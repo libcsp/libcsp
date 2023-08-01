@@ -191,6 +191,9 @@ int main(int argc, char * argv[]) {
 
     csp_print("Initialising CSP");
 
+    /* Set local CSP Address thorough the csp_conf */
+    csp_conf.address = address;
+
     /* Init CSP */
     csp_init();
 
