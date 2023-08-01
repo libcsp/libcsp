@@ -134,7 +134,7 @@ void client(void) {
 /* End of client task */
 
 /* main - initialization of CSP and start of server/client tasks */
-void main(void) {
+int main(void) {
 
 	uint8_t address = 0;
 	const char * kiss_device = NULL;
@@ -225,5 +225,5 @@ void main(void) {
 		}
 	}
 
-	return;
+	return 0;
 }
