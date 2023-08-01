@@ -154,6 +154,7 @@ int csp_can_socketcan_open_and_add_interface(const char * device, const char * i
 
 	strncpy(ctx->name, ifname, sizeof(ctx->name) - 1);
 	ctx->iface.name = ctx->name;
+	ctx->iface.addr = csp_get_address();
 	ctx->iface.interface_data = &ctx->ifdata;
 	ctx->iface.driver_data = ctx;
 	ctx->ifdata.tx_func = csp_can_tx_frame;
