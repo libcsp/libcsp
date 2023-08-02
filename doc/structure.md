@@ -12,7 +12,6 @@ following table:
 | `libcsp/src`                    | Source modules and internal header files            |
 | `libcsp/src/arch`               | Architecture (platform) specific code               |
 | `libcsp/src/arch/freertos`      | FreeRTOS                                            |
-| `libcsp/src/arch/macosx`        | Mac OS X                                            |
 | `libcsp/src/arch/posix`         | Posix (Linux)                                       |
 | `libcsp/src/arch/windows`       | Windows                                             |
 | `libcsp/src/bindings/python`    | Python3 wrapper for libcsp                          |
