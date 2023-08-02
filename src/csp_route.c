@@ -105,8 +105,8 @@ static void _print_packet(const char * title, csp_iface_t * iface, csp_packet_t 
     /* Excludes output of packets on stdbuf port */
 	if (packet &&
 		packet->id.src && !((packet->id.sport == 15) || (packet->id.dport == 15))) {
-        csp_print_packet("%s: S %u, D %u, Dp %u, Sp %u, Pr %u, Fl 0x%02X, Sz %" PRIu16 " VIA: %s, Tms %u\n",
-                        title, packet->id.src, packet->id.dst, packet->id.dport,
+        csp_print_packet("INP: S %u, D %u, Dp %u, Sp %u, Pr %u, Fl 0x%02X, Sz %" PRIu16 " VIA: %s, Tms %u\n",
+                        packet->id.src, packet->id.dst, packet->id.dport,
                         packet->id.sport, packet->id.pri, packet->id.flags, packet->length, 
                         iface ? iface->name : "unknown", csp_get_ms());
 	}
