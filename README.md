@@ -14,8 +14,8 @@ The protocol is based on a 32-bit header containing both transport and
 network-layer information. Its implementation is designed for, but not
 limited to, embedded systems such as the 8-bit AVR microprocessor and
 the 32-bit ARM and AVR from Atmel. The implementation is written in GNU
-C and is currently ported to run on FreeRTOS, Linux (POSIX), MacOS and
-Windows. The primiary platforms being used are FreeRTOS and Linux.
+C and is currently ported to run on FreeRTOS, Linux (POSIX).
+The primiary platforms being used are FreeRTOS and Linux.
 
 The idea is to give sub-system developers of cubesats the same features
 of a TCP/IP stack, but without adding the huge overhead of the IP
@@ -57,7 +57,7 @@ You can find documentation of the library [here](doc/libcsp.md).
   - Very Small Footprint in regards to code and memory required
   - Zero-copy buffer and queue system
   - Modular network interface system
-  - OS abstraction, currently ported to: FreeRTOS, Linux (POSIX), MacOS
+  - OS abstraction, currently ported to: FreeRTOS, Linux (POSIX)
     and Windows
   - Broadcast traffic
   - Promiscuous mode
@@ -66,4 +66,3 @@ You can find documentation of the library [here](doc/libcsp.md).
 ## Software license
 
 The source code is available under MIT license, see LICENSE for license text
-
