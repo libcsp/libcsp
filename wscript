@@ -85,10 +85,6 @@ def configure(ctx):
     # Platform/OS specifics
     if ctx.options.with_os == 'posix':
         ctx.env.append_unique('LIBS', ['rt', 'pthread', 'util'])
-    elif ctx.options.with_os == 'macosx':
-        ctx.env.append_unique('LIBS', ['pthread'])
-        if ctx.env.CC_VERSION[0] == '9':
-            ctx.env.append_unique('CFLAGS', ['-Wno-missing-field-initializers'])
 
     ctx.define_cond('CSP_FREERTOS', ctx.options.with_os == 'freertos')
     ctx.define_cond('CSP_POSIX', ctx.options.with_os == 'posix')
