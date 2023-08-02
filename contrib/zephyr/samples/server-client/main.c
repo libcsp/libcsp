@@ -22,7 +22,7 @@ void client_start(void);
 static uint8_t server_address = 255;
 
 /* test mode, used for verifying that host & client can exchange packets over the loopback interface */
-static bool test_mode = true;
+static bool test_mode = false;
 static unsigned int server_received = 0;
 
 /* Server task - handles requests from clients */
@@ -217,6 +217,8 @@ int main(void) {
 	if (!default_iface) {
 		/* no interfaces configured - run server and client in process, using loopback interface */
 		server_address = address;
+		/* run as test mode only use loopback interface */
+		test_mode = true;
 	}
 
 	/*
