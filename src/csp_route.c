@@ -100,25 +100,10 @@ static int csp_route_security_check(uint32_t security_opts, csp_iface_t * iface,
 	return CSP_ERR_NONE;
 }
 
-static void _print_packet(const char * title, csp_iface_t * iface, csp_packet_t * packet)
-{
-    /* Excludes output of packets on stdbuf port */
-	if (packet &&
-		packet->id.src && !((packet->id.sport == 15) || (packet->id.dport == 15))) {
-        csp_print_packet("INP: S %u, D %u, Dp %u, Sp %u, Pr %u, Fl 0x%02X, Sz %" PRIu16 " VIA: %s, Tms %u\n",
-                        packet->id.src, packet->id.dst, packet->id.dport,
-                        packet->id.sport, packet->id.pri, packet->id.flags, packet->length, 
-                        iface ? iface->name : "unknown", csp_get_ms());
-	}
-}
-
 __attribute__((weak)) void csp_input_hook(csp_iface_t * iface, csp_packet_t * packet) {
-	_print_packet("INP", iface, packet);
-}
-
-__attribute__((weak)) void csp_route_hook(const char * title, csp_iface_t * iface, csp_packet_t * packet)
-{
-	if (csp_dbg_packet_print >= 2) _print_packet(title, iface, packet);
+	csp_print_packet("INP: S %u, D %u, Dp %u, Sp %u, Pr %u, Fl 0x%02X, Sz %" PRIu16 " VIA: %s, Tms %u\n",
+				   packet->id.src, packet->id.dst, packet->id.dport,
+				   packet->id.sport, packet->id.pri, packet->id.flags, packet->length, iface->name, csp_get_ms());
 }
 
 int csp_route_work(void) {
@@ -160,7 +145,6 @@ int csp_route_work(void) {
 		if (csp_dedup_is_duplicate(packet)) {
 			/* Discard packet */
 			input.iface->drop++;
-			csp_route_hook("DEDUP", input.iface, packet);
 			csp_buffer_free(packet);
 			return CSP_ERR_NONE;
 		}
@@ -175,7 +159,6 @@ int csp_route_work(void) {
 	if (!is_to_me) {
 
 		/* Otherwise, actually send the message */
-		csp_route_hook("SENDDIR", input.iface, packet);
 		csp_send_direct(&packet->id, packet, input.iface);
 		return CSP_ERR_NONE;
 
@@ -183,7 +166,6 @@ int csp_route_work(void) {
 
 	/* Discard packets with unsupported options */
 	if (csp_route_check_options(input.iface, packet) != CSP_ERR_NONE) {
-		csp_route_hook("NOROUTE", input.iface, packet);
 		csp_buffer_free(packet);
 		return CSP_ERR_NONE;
 	}
@@ -195,12 +177,10 @@ int csp_route_work(void) {
 	if (callback) {
 
 		if (csp_route_security_check(CSP_SO_CRC32REQ, input.iface, packet) < 0) {
-			csp_route_hook("SECFAIL", input.iface, packet);
 			csp_buffer_free(packet);
 			return CSP_ERR_NONE;
 		}
 
-		csp_route_hook("CALLBACK", input.iface, packet);
 		callback(packet);
 		return CSP_ERR_NONE;
 	}
@@ -216,15 +196,12 @@ int csp_route_work(void) {
 	if (socket && (socket->opts & CSP_SO_CONN_LESS)) {
 
 		if (csp_route_security_check(socket->opts, input.iface, packet) < 0) {
-			csp_route_hook("SOCKSECFAIL", input.iface, packet);
 			csp_buffer_free(packet);
 			return CSP_ERR_NONE;
 		}
 
-		csp_route_hook("SOCKENQ", input.iface, packet);
 		if (csp_queue_enqueue(socket->rx_queue, &packet, 0) != CSP_QUEUE_OK) {
 			csp_dbg_conn_ovf++;
-			csp_route_hook("SOCKENQERR", input.iface, packet);
 			csp_buffer_free(packet);
 			return 0;
 		}
@@ -240,14 +217,12 @@ int csp_route_work(void) {
 
 		/* Reject packet if no matching socket is found */
 		if (!socket) {
-			csp_route_hook("NEWCONNNOSOCK", input.iface, packet);
 			csp_buffer_free(packet);
 			return CSP_ERR_NONE;
 		}
 
 		/* Run security check on incoming packet */
 		if (csp_route_security_check(socket->opts, input.iface, packet) < 0) {
-			csp_route_hook("NEWCONNSECFAIL", input.iface, packet);
 			csp_buffer_free(packet);
 			return CSP_ERR_NONE;
 		}
@@ -266,7 +241,6 @@ int csp_route_work(void) {
 
 		if (!conn) {
 			csp_dbg_conn_out++;
-			csp_route_hook("CONNCRERR", input.iface, packet);
 			csp_buffer_free(packet);
 			return CSP_ERR_NONE;
 		}
@@ -280,7 +254,6 @@ int csp_route_work(void) {
 
 		/* Run security check on incoming packet */
 		if (csp_route_security_check(conn->opts, input.iface, packet) < 0) {
-			csp_route_hook("CONNSECFAIL", input.iface, packet);
 			csp_buffer_free(packet);
 			return CSP_ERR_NONE;
 		}
@@ -289,7 +262,6 @@ int csp_route_work(void) {
 #if (CSP_USE_RDP)
 	/* Pass packet to RDP module */
 	if (packet->id.flags & CSP_FRDP) {
-		csp_route_hook("TORDP", input.iface, packet);
 		bool close_connection = csp_rdp_new_packet(conn, packet);
 		if (close_connection) {
 			csp_close(conn);
@@ -299,10 +271,8 @@ int csp_route_work(void) {
 #endif
 
 	/* Otherwise, enqueue directly */
-	csp_route_hook("CONNENQ", input.iface, packet);
 	if (csp_conn_enqueue_packet(conn, packet) < 0) {
 		csp_dbg_conn_ovf++;
-		csp_route_hook("CONNENQERR", input.iface, packet);
 		csp_buffer_free(packet);
 		return CSP_ERR_NONE;
 	}
