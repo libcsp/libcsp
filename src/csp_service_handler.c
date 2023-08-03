@@ -1,15 +1,6 @@
-
-
 #include <csp/csp.h>
 
 #include <csp/csp_debug.h>
-#ifdef __GNUC__
-#ifndef alloca
-#define alloca __builtin_alloca
-#endif
-#else
-#include <alloca.h>
-#endif
 #include <string.h>
 
 #include <csp/csp_cmp.h>
