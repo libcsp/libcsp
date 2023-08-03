@@ -132,8 +132,19 @@ void csp_eth_arp_get_addr(uint8_t * mac_addr, uint16_t csp_addr)
 int csp_eth_rx(csp_iface_t * iface, csp_eth_header_t * eth_frame, uint32_t received_len, int * task_woken) {
 
 	csp_eth_interface_data_t * ifdata = iface->interface_data;
-
     csp_packet_t * pbuf_list = ifdata->pbufs;
+
+    if (eth_debug) csp_hex_dump("rx", (void*)eth_frame, received_len);
+
+    /* Filter on CSP protocol id */
+    if ((be16toh(eth_frame->ether_type) != CSP_ETH_TYPE_CSP)) {
+        return CSP_ERR_INVAL;
+    }
+
+    /* Filter : ether header (14) + packet length + CSP header */
+    if (received_len < sizeof(csp_eth_header_t)) {
+        return CSP_ERR_INVAL;
+    }
 
     /* Packet ID on RX side is a concatenation of packet ID on TX side and the source address */
     uint32_t packet_id = 0;

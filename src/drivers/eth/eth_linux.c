@@ -59,18 +59,6 @@ void * csp_eth_rx_loop(void * param) {
 
         uint32_t received_len = recvfrom(ctx->sockfd, recvbuf, CSP_ETH_BUF_SIZE, 0, NULL, NULL);
 
-        if (eth_debug) csp_hex_dump("rx", recvbuf, received_len);
-
-        /* Filter : ether header (14) + packet length + CSP header */
-        if (received_len < sizeof(csp_eth_header_t)) {
-            continue;
-        }
-
-        /* Filter on CSP protocol id */
-        if ((be16toh(eth_frame->ether_type) != CSP_ETH_TYPE_CSP)) {
-            continue;
-        }
-
         csp_eth_rx(&ctx->ifdata.iface, eth_frame, received_len, NULL);
     }
 
