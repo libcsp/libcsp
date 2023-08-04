@@ -6,6 +6,7 @@
 */
 
 #include <csp/csp.h>
+#include <csp/csp_macro.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -117,7 +118,7 @@ struct csp_cmp_message {
 			uint16_t netmask;
 			char interface[CSP_CMP_ROUTE_IFACE_LEN];
 		} route_set_v2;
-		struct __attribute__((__packed__)) {
+		struct __packed {
 			char interface[CSP_CMP_ROUTE_IFACE_LEN];
 			uint32_t tx;
 			uint32_t rx;
@@ -142,7 +143,7 @@ struct csp_cmp_message {
 		} poke;
 		csp_timestamp_t clock;
 	};
-} __attribute__ ((packed));
+} __packed;
 
 /**
    Macro for calculating total size of management message.
