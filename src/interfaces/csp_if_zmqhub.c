@@ -4,7 +4,7 @@
 
 #include <zmq.h>
 #include <assert.h>
-#include <malloc.h>
+#include <stdlib.h>
 
 #include <csp/csp.h>
 #include <csp/csp_debug.h>

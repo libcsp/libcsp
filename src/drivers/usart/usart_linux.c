@@ -9,7 +9,6 @@
 #include <termios.h>
 #include <fcntl.h>
 #include <sys/time.h>
-#include <malloc.h>
 
 #include <csp/csp.h>
 #include <pthread.h>

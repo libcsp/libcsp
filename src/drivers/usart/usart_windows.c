@@ -3,7 +3,7 @@
 #include <csp/csp_debug.h>
 #include <windows.h>
 #include <process.h>
-#include <malloc.h>
+#include <stdlib.h>
 
 #include <csp/csp.h>
 
