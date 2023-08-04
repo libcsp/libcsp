@@ -4,7 +4,7 @@
 #include <zephyr/logging/log.h>
 LOG_MODULE_DECLARE(libcsp);
 
-__attribute__((weak)) void csp_clock_get_time(csp_timestamp_t * time) {
+__weak void csp_clock_get_time(csp_timestamp_t * time) {
 	struct timespec ts;
 	int ret;
 
@@ -19,7 +19,7 @@ __attribute__((weak)) void csp_clock_get_time(csp_timestamp_t * time) {
 	}
 }
 
-__attribute__((weak)) int csp_clock_set_time(const csp_timestamp_t * time) {
+__weak int csp_clock_set_time(const csp_timestamp_t * time) {
 	int ret;
 	struct timespec ts;
 

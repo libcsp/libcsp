@@ -1,5 +1,3 @@
-
-
 #include "csp_io.h"
 
 #include <stdlib.h>
@@ -15,6 +13,7 @@
 #include <csp/arch/csp_time.h>
 #include <csp/crypto/csp_hmac.h>
 #include <csp/csp_id.h>
+#include <csp/csp_macro.h>
 
 #include "csp_port.h"
 #include "csp_conn.h"
@@ -174,7 +173,7 @@ void csp_send_direct(csp_id_t* idout, csp_packet_t * packet, csp_iface_t * route
 
 }
 
-__attribute__((weak)) void csp_output_hook(csp_id_t * idout, csp_packet_t * packet, csp_iface_t * iface, uint16_t via, int from_me) {
+__weak void csp_output_hook(csp_id_t * idout, csp_packet_t * packet, csp_iface_t * iface, uint16_t via, int from_me) {
 	csp_print_packet("OUT: S %u, D %u, Dp %u, Sp %u, Pr %u, Fl 0x%02X, Sz %u VIA: %s (%u)\n",
 				idout->src, idout->dst, idout->dport, idout->sport, idout->pri, idout->flags, packet->length, iface->name, (via != CSP_NO_VIA_ADDRESS) ? via : idout->dst);
 	return;
