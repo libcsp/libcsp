@@ -141,7 +141,6 @@ int csp_eth_rx(csp_iface_t * iface, csp_eth_header_t * eth_frame, uint32_t recei
         return CSP_ERR_INVAL;
     }
 
-    /* Filter : ether header (14) + packet length + CSP header */
     if (received_len < sizeof(csp_eth_header_t)) {
         return CSP_ERR_INVAL;
     }
@@ -164,7 +163,7 @@ int csp_eth_rx(csp_iface_t * iface, csp_eth_header_t * eth_frame, uint32_t recei
 
     if (sizeof(csp_eth_header_t) + seg_size > received_len) {
         csp_print("eth rx sizeof(csp_eth_frame_t) + seg_size(%u) > received(%u)\n",
-            sizeof(csp_eth_header_t), (unsigned)seg_size, (unsigned)received_len);
+            (unsigned)seg_size, (unsigned)received_len);
         return CSP_ERR_INVAL;
     }
 
@@ -206,7 +205,7 @@ int csp_eth_rx(csp_iface_t * iface, csp_eth_header_t * eth_frame, uint32_t recei
     if (csp_id_strip(packet) != 0) {
         csp_print("eth rx packet discarded due to error in ID field\n");
         iface->rx_error++;
-        csp_buffer_free(packet);
+        (task_woken) ? csp_buffer_free_isr(packet) : csp_buffer_free(packet);
         return CSP_ERR_INVAL;
     }
 
@@ -214,16 +213,15 @@ int csp_eth_rx(csp_iface_t * iface, csp_eth_header_t * eth_frame, uint32_t recei
     csp_eth_arp_set_addr(eth_frame->ether_shost, packet->id.src);
 
     if (packet->id.dst != iface->addr && !ifdata->promisc) {
-        csp_buffer_free(packet);
+        (task_woken) ? csp_buffer_free_isr(packet) : csp_buffer_free(packet);
         return CSP_ERR_NONE;
     }
 
-    csp_qfifo_write(packet, iface, NULL);
+    csp_qfifo_write(packet, iface, task_woken);
 
     if (eth_debug) csp_if_eth_pbuf_list_print(&pbuf_list);
 
     /* Remove potentially stalled partial packets */
-
     csp_if_eth_pbuf_list_cleanup(&pbuf_list);
 
     return CSP_ERR_NONE;
@@ -240,15 +238,12 @@ int csp_eth_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet, int fro
     }
 
     static uint16_t packet_id = 0;
-    static uint8_t sendbuf[CSP_ETH_BUF_SIZE];
-    csp_eth_header_t *eth_frame = (csp_eth_header_t *) sendbuf;
+    csp_eth_header_t *eth_frame = ifdata->tx_buf;
 
     csp_eth_arp_get_addr(eth_frame->ether_dhost, packet->id.dst);
 
     eth_frame->ether_type = htobe16(CSP_ETH_TYPE_CSP);
     memcpy(eth_frame->ether_shost, ifdata->if_mac, CSP_ETH_ALEN);
-
-    if (eth_debug) csp_print("%s:%d TX ETH TYPE %02x %02x  %04x\n", __FILE__, __LINE__, (unsigned)sendbuf[12], (unsigned)sendbuf[13], (unsigned)eth_frame->ether_type);
 
     csp_id_prepend(packet);
 
@@ -258,12 +253,11 @@ int csp_eth_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet, int fro
     const uint16_t seg_size_max = ifdata->tx_mtu - sizeof(csp_eth_header_t);
 
     while (offset < packet->frame_length) {
-
         uint16_t seg_size = packet->frame_length - offset;
         if (seg_size > seg_size_max) {
             seg_size = seg_size_max;
         }
-        
+
         csp_eth_pack_header(eth_frame, packet_id, packet->id.src, seg_size, packet->frame_length);
 
         memcpy(eth_frame->frame_begin, packet->frame_begin + offset, seg_size);
@@ -274,7 +268,7 @@ int csp_eth_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet, int fro
 			return CSP_ERR_DRIVER;
         }
 
-        if (eth_debug) csp_hex_dump("tx", sendbuf, sizeof(csp_eth_header_t) + seg_size);
+        if (eth_debug) csp_hex_dump("tx", eth_frame, sizeof(csp_eth_header_t) + offset + seg_size);
 
         offset += seg_size;
     }

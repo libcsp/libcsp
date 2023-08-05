@@ -90,6 +90,7 @@ typedef struct {
     bool promisc;
     uint16_t tx_mtu;
     csp_eth_driver_tx_t tx_func;
+    csp_eth_header_t * tx_buf;
     csp_packet_t * pbufs;
     uint8_t if_mac[CSP_ETH_ALEN];
 } csp_eth_interface_data_t;

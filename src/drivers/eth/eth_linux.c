@@ -65,6 +65,8 @@ void * csp_eth_rx_loop(void * param) {
     return NULL;
 }
 
+static uint8_t csp_eth_tx_buffer[CSP_ETH_BUF_SIZE];
+
 int csp_eth_init(const char * device, const char * ifname, int mtu, unsigned int node_id, bool promisc, csp_iface_t ** return_iface) {
 
 	eth_context_t * ctx = calloc(1, sizeof(*ctx));
@@ -75,6 +77,7 @@ int csp_eth_init(const char * device, const char * ifname, int mtu, unsigned int
 	strncpy(ctx->name, ifname, sizeof(ctx->name) - 1);
 	ctx->ifdata.iface.name = ctx->name;
     ctx->ifdata.tx_func = &csp_eth_tx_frame;
+    ctx->ifdata.tx_buf = (csp_eth_header_t*)&csp_eth_tx_buffer;
     ctx->ifdata.iface.nexthop = &csp_eth_tx,
 	ctx->ifdata.iface.addr = node_id;
 	ctx->ifdata.iface.driver_data = ctx;
