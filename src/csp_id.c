@@ -19,10 +19,8 @@
  *
  */
 
-#define CSP_ID1_PRIO_SIZE  2
 #define CSP_ID1_HOST_SIZE  5
 #define CSP_ID1_PORT_SIZE  6
-#define CSP_ID1_FLAGS_SIZE 8
 
 #define CSP_ID1_PRIO_MASK    0x3
 #define CSP_ID1_PRIO_OFFSET  30
@@ -100,10 +98,8 @@ void csp_id1_setup_rx(csp_packet_t * packet) {
  *
  */
 
-#define CSP_ID2_PRIO_SIZE  2
 #define CSP_ID2_HOST_SIZE  14
 #define CSP_ID2_PORT_SIZE  6
-#define CSP_ID2_FLAGS_SIZE 6
 
 #define CSP_ID2_PRIO_MASK    0x3
 #define CSP_ID2_PRIO_OFFSET  46
@@ -225,7 +221,11 @@ unsigned int csp_id_get_max_nodeid(void) {
 }
 
 unsigned int csp_id_get_max_port(void) {
-	return ((1 << (CSP_ID2_PORT_SIZE)) - 1);
+	if (csp_conf.version == 2) {
+		return ((1 << (CSP_ID2_PORT_SIZE)) - 1);
+	} else {
+		return ((1 << (CSP_ID1_PORT_SIZE)) - 1);
+	}
 }
 
 int csp_id_is_broadcast(uint16_t addr, csp_iface_t * iface) {
