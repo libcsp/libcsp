@@ -3,7 +3,7 @@
 #include <csp/interfaces/csp_if_lo.h>
 #include <csp/arch/csp_time.h>
 #include <csp/csp_id.h>
-#include <csp_autoconfig.h>
+#include "csp/autoconfig.h"
 #include "csp_conn.h"
 #include "csp_qfifo.h"
 #include "csp_port.h"

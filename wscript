@@ -77,7 +77,7 @@ def configure(ctx):
                                          "-Wwrite-strings", "-Wno-unused-parameter", "-Werror"])
 
     # Setup default include path and any extra defined
-    ctx.env.append_unique('INCLUDES_CSP', ['.', 'include'] + ctx.options.includes.split(','))
+    ctx.env.append_unique('INCLUDES_CSP', ['include'] + ctx.options.includes.split(','))
 
     # Store OS as env variable
     ctx.env.OS = ctx.options.with_os
@@ -178,7 +178,7 @@ def configure(ctx):
     ctx.define('CSP_USE_DEDUP', ctx.options.enable_dedup)
 
 
-    ctx.write_config_header('csp_autoconfig.h')
+    ctx.write_config_header('include/csp/autoconfig.h')
 
 def build(ctx):
 
@@ -187,10 +187,10 @@ def build(ctx):
     if ctx.options.install_csp:
         install_path = '${PREFIX}/lib'
         ctx.install_files('${PREFIX}/include/csp',
-                          ctx.path.ant_glob('include/csp/**'),
+                          ctx.path.ant_glob('include/csp/**/*.h'),
                           cwd=ctx.path.find_dir('include/csp'),
                           relative_trick=True)
-        ctx.install_files('${PREFIX}/include/csp', 'csp_autoconfig.h', cwd=ctx.bldnode)
+        ctx.install_files('${PREFIX}/include/csp', 'include/csp/autoconfig.h', cwd=ctx.bldnode)
 
     ctx(export_includes=ctx.env.INCLUDES_CSP, name='csp_h')
 

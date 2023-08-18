@@ -2,7 +2,7 @@
 
 #include <inttypes.h>
 #include <stddef.h>
-#include <csp_autoconfig.h>
+#include "csp/autoconfig.h"
 
 #if (CSP_FREERTOS)
 #include <FreeRTOS.h>

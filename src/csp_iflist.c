@@ -5,7 +5,7 @@
 
 #include <string.h>
 
-#include <csp_autoconfig.h>
+#include "csp/autoconfig.h"
 #include <csp/csp_debug.h>
 
 /* Interfaces are stored in a linked list */
