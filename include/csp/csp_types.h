@@ -9,7 +9,7 @@
 #include <stddef.h>
 #include <stdbool.h>
 
-#include <csp_autoconfig.h> // -> CSP_X defines (compile configuration)
+#include "csp/autoconfig.h" // -> CSP_X defines (compile configuration)
 #include <csp/csp_error.h>
 #include <csp/arch/csp_queue.h>
 

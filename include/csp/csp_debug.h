@@ -1,6 +1,6 @@
 #pragma once
 
-#include <csp_autoconfig.h>
+#include "csp/autoconfig.h"
 #include <inttypes.h>
 
 #ifdef __cplusplus

@@ -57,7 +57,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND
 endif()
 
 file(REAL_PATH include csp_inc)
-list(APPEND csp_inc ${CMAKE_CURRENT_BINARY_DIR})
+list(APPEND csp_inc ${CMAKE_CURRENT_BINARY_DIR}/include)
 target_include_directories(csp PUBLIC ${csp_inc})
 
 if(CSP_POSIX)
@@ -81,4 +81,4 @@ if(${CSP_ENABLE_PYTHON3_BINDINGS})
   endif()
 endif()
 
-configure_file(csp_autoconfig.h.in csp_autoconfig.h)
+configure_file(csp_autoconfig.h.in include/csp/autoconfig.h)

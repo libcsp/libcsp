@@ -5,7 +5,7 @@
 #include <csp/arch/csp_queue.h>
 #include <csp/csp_debug.h>
 #include <csp/csp_buffer.h>
-#include <csp_autoconfig.h>
+#include "csp/autoconfig.h"
 
 static csp_static_queue_t qfifo_queue __attribute__((section(".noinit")));
 static csp_queue_handle_t qfifo_queue_handle __attribute__((section(".noinit")));

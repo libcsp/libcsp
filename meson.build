@@ -54,7 +54,7 @@ endif
 csp_deps += clib
 
 # Include paths
-csp_inc = include_directories(['.', 'include'])
+csp_inc = include_directories('include')
 
 # Default compile options
 csp_c_args = ['-Wshadow',
@@ -63,8 +63,7 @@ csp_c_args = ['-Wshadow',
 	      '-Wno-unused-parameter']
 
 subdir('src')
-
-csp_config_h = configure_file(output: 'csp_autoconfig.h', configuration: conf, install_dir: 'csp/')
+subdir('include/csp')
 
 if not meson.is_subproject()
   install_subdir('include', install_dir : '.')

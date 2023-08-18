@@ -13,7 +13,7 @@ if(CONFIG_LIBCSP)
 
   zephyr_interface_library_named(libcsp)
   target_include_directories(libcsp INTERFACE ${ZEPHYR_CURRENT_MODULE_DIR}/include)
-  target_include_directories(libcsp INTERFACE ${CMAKE_CURRENT_BINARY_DIR}/build)
+  target_include_directories(libcsp INTERFACE ${CMAKE_CURRENT_BINARY_DIR}/build/include)
 
   zephyr_append_cmake_library(csp)
   target_link_libraries(csp PUBLIC zephyr_interface)
