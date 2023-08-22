@@ -392,7 +392,6 @@ int csp_can2_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet, int fr
 
 	uint32_t can_id = 0;
 	uint8_t frame_buf_inp = 0;
-	uint8_t frame_buf_avail = CAN_FRAME_SIZE;
 
 	/* Pack mandatory fields of header */
 	can_id = (((packet->id.pri & CFP2_PRIO_MASK) << CFP2_PRIO_OFFSET) |
@@ -415,7 +414,6 @@ int csp_can2_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet, int fr
 	*header_extension = htobe32(*header_extension);
 
 	frame_buf_inp += 4;
-	frame_buf_avail -= 4;
 
 	/* Copy first bytes of data field (max 4) */
 	int data_bytes = (packet->length >= 4) ? 4 : packet->length;
