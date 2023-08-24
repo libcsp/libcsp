@@ -27,12 +27,12 @@ static csp_route_t * csp_rtable_find_exact(uint16_t addr, uint16_t netmask, csp_
 csp_route_t * csp_rtable_get_by_mask(csp_route_t * route, uint16_t best_mask) {
 
 	if (route == NULL) {
-		route = &rtable[0];
+		route = rtable;
 	}
 
-	for (int i = route - rtable; i < rtable_inptr; i++) {
-		if (rtable[i].netmask == best_mask) {
-			return &rtable[i];
+	for (csp_route_t * ptr = route; ptr < rtable + CSP_RTABLE_SIZE; ptr++) {
+		if (ptr->netmask == best_mask) {
+			return ptr;
 		}
 	}
 
