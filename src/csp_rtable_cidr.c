@@ -26,8 +26,14 @@ static csp_route_t * csp_rtable_find_exact(uint16_t addr, uint16_t netmask, csp_
 
 csp_route_t * csp_rtable_get_by_mask(csp_route_t * route, uint16_t best_mask) {
 
+	if (best_mask == 0) {
+		return NULL;
+	}
+
 	if (route == NULL) {
 		route = rtable;
+	} else {
+		route++;
 	}
 
 	for (; route < rtable + rtable_inptr; route++) {
