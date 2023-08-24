@@ -24,6 +24,47 @@ static csp_route_t * csp_rtable_find_exact(uint16_t addr, uint16_t netmask, csp_
 	return NULL;
 }
 
+csp_route_t * csp_rtable_get_by_mask(csp_route_t * route, uint16_t best_mask) {
+
+	if (route == NULL) {
+		route = &rtable[0];
+	}
+
+	for (int i = route - rtable; i < rtable_inptr; i++) {
+		if (rtable[i].netmask == best_mask) {
+			return &rtable[i];
+		}
+	}
+
+	return NULL;
+}
+
+uint16_t csp_rtable_find_best_mask(uint16_t addr) {
+
+	/* Remember best result */
+	uint16_t best_result_mask = 0;
+
+	/* Start search */
+	for (int i = 0; i < rtable_inptr; i++) {
+
+		uint16_t hostbits = (1 << (csp_id_get_host_bits() - rtable[i].netmask)) - 1;
+		uint16_t netbits = ~hostbits;
+
+		/* Match network addresses */
+		uint16_t net_a = rtable[i].address & netbits;
+		uint16_t net_b = addr & netbits;
+
+		/* We have a match */
+		if (net_a == net_b) {
+			if (rtable[i].netmask >= best_result_mask) {
+				best_result_mask = rtable[i].netmask;
+			}
+		}
+	}
+
+    return best_result_mask;
+}
+
 csp_route_t * csp_rtable_find_route(uint16_t addr) {
 
 	/* Remember best result */

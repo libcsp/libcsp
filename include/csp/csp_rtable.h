@@ -22,6 +22,15 @@ typedef struct csp_route_s {
    csp_iface_t * iface;
 } csp_route_t;
 
+/**
+   Find best netmask match from address
+*/
+uint16_t csp_rtable_find_best_mask(uint16_t addr);
+/**
+   Loop through routes and find matches with mask
+*/
+csp_route_t * csp_rtable_get_by_mask(csp_route_t * route, uint16_t best_mask);
+
 csp_route_t * csp_rtable_find_route(uint16_t dest_address);
 
 /**
