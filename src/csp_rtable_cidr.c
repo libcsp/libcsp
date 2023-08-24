@@ -30,9 +30,9 @@ csp_route_t * csp_rtable_get_by_mask(csp_route_t * route, uint16_t best_mask) {
 		route = rtable;
 	}
 
-	for (csp_route_t * ptr = route; ptr < rtable + CSP_RTABLE_SIZE; ptr++) {
-		if (ptr->netmask == best_mask) {
-			return ptr;
+	for (; route < rtable + rtable_inptr; route++) {
+		if (route->netmask == best_mask) {
+			return route;
 		}
 	}
 
