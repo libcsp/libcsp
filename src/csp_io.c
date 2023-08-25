@@ -138,6 +138,8 @@ void csp_send_direct(csp_id_t* idout, csp_packet_t * packet, csp_iface_t * route
 	csp_route_t * route = csp_rtable_find_route(idout->dst);
 	while (route != NULL) {
 
+		route_found = 1;
+
 		/* Do not send back to same inteface (split horizon)
 		 * This check is is similar to that below, but faster */
 		if (route->iface == routed_from) {
@@ -159,7 +161,7 @@ void csp_send_direct(csp_id_t* idout, csp_packet_t * packet, csp_iface_t * route
 			csp_send_direct_iface(idout, packet, route->iface, route->via, from_me);
 		}
 
-        route = csp_rtable_search_backward(route);
+		route = csp_rtable_search_backward(route);
 	}
 	/* If the above worked, we don't want to look at default interfaces */
 	if (route_found == 1) {
@@ -175,7 +177,7 @@ void csp_send_direct(csp_id_t* idout, csp_packet_t * packet, csp_iface_t * route
 		/* Do not send back to same inteface (split horizon) 
 		 * This check is is similar to that below, but faster */
 		if (iface == routed_from) {
-            continue;
+			continue;
 		}
 
 		/* Do not send to interface with similar subnet (split horizon) */
