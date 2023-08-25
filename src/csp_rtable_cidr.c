@@ -24,6 +24,23 @@ static csp_route_t * csp_rtable_find_exact(uint16_t addr, uint16_t netmask, csp_
 	return NULL;
 }
 
+csp_route_t * csp_rtable_search_backward(csp_route_t * start_route) {
+
+    if (start_route == NULL || start_route <= rtable) {
+        return NULL;
+    }
+
+    /* Start searching backward from the route before start_route */
+    for (csp_route_t * route = start_route - 1; route >= rtable; route--) {
+
+        if (route->netmask == start_route->netmask && route->address == start_route->address) {
+            return route;
+        }
+    }
+
+    return NULL;
+}
+
 csp_route_t * csp_rtable_find_route(uint16_t addr) {
 
 	/* Remember best result */

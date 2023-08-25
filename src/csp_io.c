@@ -132,16 +132,21 @@ void csp_send_direct(csp_id_t* idout, csp_packet_t * packet, csp_iface_t * route
 		return;
 	}
 
-	/* Try to send via routing table */
 #if CSP_HAVE_RTABLE
+	/* Try to send via routing table */
+	int route_found = 0;
 	csp_route_t * route = csp_rtable_find_route(idout->dst);
-	if (route != NULL) {
+	while (route != NULL) {
 
-		/* Do not send back to same inteface (split horizon) 
+		/* Do not send back to same inteface (split horizon)
 		 * This check is is similar to that below, but faster */
 		if (route->iface == routed_from) {
-			csp_buffer_free(packet);
-			return;
+			continue;
+		}
+
+		/* Do not send to interface with similar subnet (split horizon) */
+		if (csp_iflist_is_within_subnet(route->iface->addr, routed_from)) {
+			continue;
 		}
 
 		/* Apply outgoing interface address to packet */
@@ -149,9 +154,19 @@ void csp_send_direct(csp_id_t* idout, csp_packet_t * packet, csp_iface_t * route
 			idout->src = route->iface->addr;
 		}
 
-		csp_send_direct_iface(idout, packet, route->iface, route->via, from_me);
+		copy = csp_buffer_clone(packet);
+		if (copy != NULL) {
+			csp_send_direct_iface(idout, packet, route->iface, route->via, from_me);
+		}
+
+        route = csp_rtable_search_backward(route);
+	}
+	/* If the above worked, we don't want to look at default interfaces */
+	if (route_found == 1) {
+		csp_buffer_free(packet);
 		return;
 	}
+
 #endif
 
 	/* Try to send via default interfaces */
@@ -160,8 +175,12 @@ void csp_send_direct(csp_id_t* idout, csp_packet_t * packet, csp_iface_t * route
 		/* Do not send back to same inteface (split horizon) 
 		 * This check is is similar to that below, but faster */
 		if (iface == routed_from) {
-			csp_buffer_free(packet);
-			return;
+            continue;
+		}
+
+		/* Do not send to interface with similar subnet (split horizon) */
+		if (csp_iflist_is_within_subnet(iface->addr, routed_from)) {
+			continue;
 		}
 
 		/* Apply outgoing interface address to packet */

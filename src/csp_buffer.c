@@ -135,10 +135,27 @@ void * csp_buffer_clone(void * buffer) {
 
 	csp_packet_t * clone = csp_buffer_get(packet->length);
 	if (clone) {
-		memcpy(clone, packet, sizeof(csp_packet_t));
+		size_t size = sizeof(csp_packet_t) - CSP_BUFFER_SIZE + CSP_PACKET_PADDING_BYTES + packet->length;
+		memcpy(clone, packet, size > sizeof(csp_packet_t) ? sizeof(csp_packet_t) : size);
 	}
 
 	return clone;
+}
+
+void csp_buffer_refc_inc(void * buffer) {
+
+	if (!buffer) {
+		csp_dbg_errno = CSP_DBG_ERR_INVALID_POINTER;
+		return;
+	}
+
+	csp_skbf_t * buf = buffer - offsetof(csp_skbf_t, skbf_data);
+	if (buf->skbf_addr != buf) {
+		csp_dbg_errno = CSP_DBG_ERR_CORRUPT_BUFFER;
+		return;
+	}
+    buf->refcount++;
+
 }
 
 int csp_buffer_remaining(void) {
