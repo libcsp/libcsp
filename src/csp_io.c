@@ -158,7 +158,7 @@ void csp_send_direct(csp_id_t* idout, csp_packet_t * packet, csp_iface_t * route
 
 		copy = csp_buffer_clone(packet);
 		if (copy != NULL) {
-			csp_send_direct_iface(idout, packet, route->iface, route->via, from_me);
+			csp_send_direct_iface(idout, copy, route->iface, route->via, from_me);
 		}
 
 		route = csp_rtable_search_backward(route);
