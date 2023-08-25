@@ -23,14 +23,9 @@ typedef struct csp_route_s {
 } csp_route_t;
 
 /**
-   Find best netmask match from address
+   Loop through routes backwards and find routes that match on addr and mask from start_route
 */
-uint16_t csp_rtable_find_best_mask(uint16_t addr);
-/**
-   Loop through routes and find matches with mask
-*/
-csp_route_t * csp_rtable_get_by_mask(csp_route_t * route, uint16_t best_mask);
-
+csp_route_t * csp_rtable_search_backward(csp_route_t * start_route);
 csp_route_t * csp_rtable_find_route(uint16_t dest_address);
 
 /**

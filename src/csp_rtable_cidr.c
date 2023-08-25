@@ -24,51 +24,21 @@ static csp_route_t * csp_rtable_find_exact(uint16_t addr, uint16_t netmask, csp_
 	return NULL;
 }
 
-csp_route_t * csp_rtable_get_by_mask(csp_route_t * route, uint16_t best_mask) {
+csp_route_t * csp_rtable_search_backward(csp_route_t * start_route) {
 
-	if (best_mask == 0) {
-		return NULL;
-	}
+    if (start_route == NULL || start_route <= rtable) {
+        return NULL;
+    }
 
-	if (route == NULL) {
-		route = rtable;
-	} else {
-		route++;
-	}
+    /* Start searching backward from the route before start_route */
+    for (csp_route_t * route = start_route - 1; route >= rtable; route--) {
 
-	for (; route < rtable + rtable_inptr; route++) {
-		if (route->netmask == best_mask) {
-			return route;
-		}
-	}
+        if (route->netmask == start_route->netmask && route->address == start_route->address) {
+            return route;
+        }
+    }
 
-	return NULL;
-}
-
-uint16_t csp_rtable_find_best_mask(uint16_t addr) {
-
-	/* Remember best result */
-	uint16_t best_result_mask = 0;
-
-	/* Start search */
-	for (int i = 0; i < rtable_inptr; i++) {
-
-		uint16_t hostbits = (1 << (csp_id_get_host_bits() - rtable[i].netmask)) - 1;
-		uint16_t netbits = ~hostbits;
-
-		/* Match network addresses */
-		uint16_t net_a = rtable[i].address & netbits;
-		uint16_t net_b = addr & netbits;
-
-		/* We have a match */
-		if (net_a == net_b) {
-			if (rtable[i].netmask >= best_result_mask) {
-				best_result_mask = rtable[i].netmask;
-			}
-		}
-	}
-
-    return best_result_mask;
+    return NULL;
 }
 
 csp_route_t * csp_rtable_find_route(uint16_t addr) {
