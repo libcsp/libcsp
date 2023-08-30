@@ -1,11 +1,12 @@
-#include <csp/csp_debug.h>
 #include <string.h>
 #include <unistd.h>
 #include <stdlib.h>
 
 #include <csp/csp.h>
 #include <csp/drivers/usart.h>
+#include <zephyr/logging/log.h>
 
+LOG_MODULE_REGISTER(csp_sample_server_client);
 
 /* These three functions must be provided in arch specific way */
 void router_start(void);
@@ -25,7 +26,7 @@ static unsigned int server_received = 0;
 /* Server task - handles requests from clients */
 void server(void) {
 
-	csp_print("Server task started\n");
+	LOG_INF("Server task started");
 
 	/* Create socket with no specific socket options, e.g. accepts CRC32, HMAC, etc. if enabled during compilation */
 	csp_socket_t sock = {0};
@@ -52,7 +53,7 @@ void server(void) {
 			switch (csp_conn_dport(conn)) {
 			case MY_SERVER_PORT:
 				/* Process packet here */
-				csp_print("Packet received on MY_SERVER_PORT: %s\n", (char *) packet->data);
+				LOG_INF("Packet received on MY_SERVER_PORT: %s", (char *) packet->data);
 				csp_buffer_free(packet);
 				++server_received;
 				break;
@@ -77,7 +78,7 @@ void server(void) {
 /* Client task sending requests to server task */
 void client(void) {
 
-	csp_print("Client task started");
+	LOG_INF("Client task started");
 
 	unsigned int count = 'A';
 
@@ -87,12 +88,12 @@ void client(void) {
 
 		/* Send ping to server, timeout 1000 mS, ping size 100 bytes */
 		int result = csp_ping(server_address, 1000, 100, CSP_O_NONE);
-		csp_print("Ping address: %u, result %d [mS]\n", server_address, result);
+		LOG_INF("Ping address: %u, result %d [mS]", server_address, result);
 		(void) result;
 
 		/* Send reboot request to server, the server has no actual implementation of csp_sys_reboot() and fails to reboot */
 		csp_reboot(server_address);
-		csp_print("reboot system request sent to address: %u\n", server_address);
+		LOG_INF("reboot system request sent to address: %u", server_address);
 
 		/* Send data packet (string) to server */
 
@@ -100,7 +101,7 @@ void client(void) {
 		csp_conn_t * conn = csp_connect(CSP_PRIO_NORM, server_address, MY_SERVER_PORT, 1000, CSP_O_NONE);
 		if (conn == NULL) {
 			/* Connect failed */
-			csp_print("Connection failed\n");
+			LOG_ERR("Connection failed");
 			return;
 		}
 
@@ -108,7 +109,7 @@ void client(void) {
 		csp_packet_t * packet = csp_buffer_get(100);
 		if (packet == NULL) {
 			/* Could not get buffer element */
-			csp_print("Failed to get CSP buffer\n");
+			LOG_ERR("Failed to get CSP buffer");
 			return;
 		}
 
@@ -139,7 +140,7 @@ void main(void) {
 	const char * kiss_device = NULL;
 	const char * rtable = NULL;
 
-	csp_print("Initialising CSP");
+	LOG_INF("Initialising CSP");
 
 	/* Init CSP */
 	csp_init();
@@ -159,7 +160,7 @@ void main(void) {
 			.checkparity = 0};
 		int error = csp_usart_open_and_add_kiss_interface(&conf, CSP_IF_KISS_DEFAULT_NAME,	&default_iface);
 		if (error != CSP_ERR_NONE) {
-			csp_print("failed to add KISS interface [%s], error: %d\n", kiss_device, error);
+			LOG_ERR("failed to add KISS interface [%s], error: %d", kiss_device, error);
 			exit(1);
 		}
 		default_iface->is_default = 1;
@@ -169,7 +170,7 @@ void main(void) {
 		if (rtable) {
 			int error = csp_rtable_load(rtable);
 			if (error < 1) {
-				csp_print("csp_rtable_load(%s) failed, error: %d\n", rtable, error);
+				LOG_ERR("csp_rtable_load(%s) failed, error: %d", rtable, error);
 				exit(1);
 			}
 		} else if (default_iface) {
@@ -182,14 +183,18 @@ void main(void) {
 		server_address = address;
 	}
 
-	csp_print("Connection table\r\n");
+	/*
+	 * In the Zephyr port, we have disabled stdio usage and unified logging with the Zephyr
+	 * logging API. As a result, the following functions currently do not print anything.
+	 */
+	LOG_INF("Connection table");
 	csp_conn_print_table();
 
-	csp_print("Interfaces\r\n");
+	LOG_INF("Interfaces");
 	csp_iflist_print();
 
 	if (IS_ENABLED(CONFIG_CSP_USE_RTABLE)) {
-		csp_print("Route table\r\n");
+		LOG_INF("Route table");
 		csp_rtable_print();
 	}
 
@@ -212,10 +217,10 @@ void main(void) {
 		if (test_mode) {
 			/* Test mode is intended for checking that host & client can exchange packets over loopback */
 			if (server_received < 5) {
-				csp_print("Server received %u packets\n", server_received);
+				LOG_INF("Server received %u packets", server_received);
 				exit(1);
 			}
-			csp_print("Server received %u packets\n", server_received);
+			LOG_INF("Server received %u packets", server_received);
 			exit(0);
 		}
 	}
