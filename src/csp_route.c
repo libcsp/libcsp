@@ -175,7 +175,7 @@ int csp_route_work(void) {
 	csp_callback_t callback = csp_port_get_callback(packet->id.dport);
 	if (callback) {
 
-		if (csp_route_security_check(CSP_SO_NONE, input.iface, packet) < 0) {
+		if (csp_route_security_check(CSP_SO_CRC32REQ, input.iface, packet) < 0) {
 			csp_buffer_free(packet);
 			return CSP_ERR_NONE;
 		}

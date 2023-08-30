@@ -16,11 +16,7 @@ static int csp_if_tun_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packe
 	csp_if_tun_conf_t * ifconf = iface->driver_data;
 
 	/* Allocate new frame */
-	csp_packet_t * new_packet = csp_buffer_get(packet->frame_length);
-	if (new_packet == NULL) {
-		csp_buffer_free(packet);
-		return CSP_ERR_NONE;
-	}
+	csp_packet_t * new_packet = csp_buffer_get_always();
 
 	if (packet->id.dst == ifconf->tun_src) {
 
@@ -107,13 +103,9 @@ static int csp_if_tun_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packe
 
 }
 
-
 void csp_if_tun_init(csp_iface_t * iface, csp_if_tun_conf_t * ifconf) {
 
 	iface->driver_data = ifconf;
-
-	/* MTU is datasize */
-	iface->mtu = csp_buffer_data_size();
 
 	/* Regsiter interface */
 	iface->name = "TUN",

@@ -126,7 +126,7 @@ int csp_hmac_set_key(const void * key, uint32_t keylen) {
 
 int csp_hmac_append(csp_packet_t * packet, bool include_header) {
 
-	if ((packet->length + (unsigned int)CSP_HMAC_LENGTH) > csp_buffer_data_size()) {
+	if ((packet->length + (unsigned int)CSP_HMAC_LENGTH) > sizeof(packet->data)) {
 		return CSP_ERR_NOMEM;
 	}
 

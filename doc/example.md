@@ -53,7 +53,7 @@ loopback interface for communication between client and server:
     Interfaces
     LOOP       tx: 00000 rx: 00000 txe: 00000 rxe: 00000
                drop: 00000 autherr: 00000 frame: 00000
-               txb: 0 (0.0B) rxb: 0 (0.0B) MTU: 0
+               txb: 0 (0.0B) rxb: 0 (0.0B)
 
     Route table
     1/5 LOOP

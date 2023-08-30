@@ -62,7 +62,7 @@ void * csp_zmqhub_task(void * param) {
 		int ret;
 		zmq_msg_t msg;
 
-		ret = zmq_msg_init_size(&msg, CSP_ZMQ_MTU + HEADER_SIZE);
+		ret = zmq_msg_init_size(&msg, sizeof(packet->data) + HEADER_SIZE);
 		assert(ret == 0);
 
 		// Receive data
@@ -170,7 +170,6 @@ int csp_zmqhub_init_w_name_endpoints_rxfilter(const char * ifname,
 	drv->iface.name = drv->name;
 	drv->iface.driver_data = drv;
 	drv->iface.nexthop = csp_zmqhub_tx;
-	drv->iface.mtu = CSP_ZMQ_MTU;  // there is actually no 'max' MTU on ZMQ, but assuming the other end is based on the same code
 
 	drv->context = zmq_ctx_new();
 	assert(drv->context != NULL);
@@ -234,7 +233,6 @@ int csp_zmqhub_init_filter2(const char * ifname, const char * host, uint16_t add
 	drv->iface.name = drv->name;
 	drv->iface.driver_data = drv;
 	drv->iface.nexthop = csp_zmqhub_tx;
-	drv->iface.mtu = CSP_ZMQ_MTU;  // there is actually no 'max' MTU on ZMQ, but assuming the other end is based on the same code
 
 	drv->context = zmq_ctx_new();
 	assert(drv->context != NULL);

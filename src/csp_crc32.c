@@ -62,7 +62,7 @@ int csp_crc32_append(csp_packet_t * packet) {
 
 	uint32_t crc;
 
-	if ((packet->length + sizeof(crc)) > csp_buffer_data_size()) {
+	if ((packet->length + sizeof(crc)) > sizeof(packet->data)) {
 		return CSP_ERR_NOMEM;
 	}
 

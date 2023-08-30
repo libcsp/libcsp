@@ -70,7 +70,7 @@ void csp_ping_noreply(uint16_t node) {
 		return;
 
 	/* Open connection */
-	csp_conn_t * conn = csp_connect(CSP_PRIO_NORM, node, CSP_PING, 0, 0);
+	csp_conn_t * conn = csp_connect(CSP_PRIO_NORM, node, CSP_PING, 0, CSP_O_CRC32);
 	if (conn == NULL) {
 		csp_buffer_free(packet);
 		return;
@@ -85,18 +85,18 @@ void csp_ping_noreply(uint16_t node) {
 
 void csp_reboot(uint16_t node) {
 	uint32_t magic_word = htobe32(CSP_REBOOT_MAGIC);
-	csp_transaction(CSP_PRIO_NORM, node, CSP_REBOOT, 0, &magic_word, sizeof(magic_word), NULL, 0);
+	csp_transaction_w_opts(CSP_PRIO_NORM, node, CSP_REBOOT, 0, &magic_word, sizeof(magic_word), NULL, 0, CSP_O_CRC32);
 }
 
 void csp_shutdown(uint16_t node) {
 	uint32_t magic_word = htobe32(CSP_REBOOT_SHUTDOWN_MAGIC);
-	csp_transaction(CSP_PRIO_NORM, node, CSP_REBOOT, 0, &magic_word, sizeof(magic_word), NULL, 0);
+	csp_transaction_w_opts(CSP_PRIO_NORM, node, CSP_REBOOT, 0, &magic_word, sizeof(magic_word), NULL, 0, CSP_O_CRC32);
 }
 
 void csp_ps(uint16_t node, uint32_t timeout) {
 
 	/* Open connection */
-	csp_conn_t * conn = csp_connect(CSP_PRIO_NORM, node, CSP_PS, 0, 0);
+	csp_conn_t * conn = csp_connect(CSP_PRIO_NORM, node, CSP_PS, 0, CSP_O_CRC32);
 	if (conn == NULL) {
 		return;
 	}
@@ -124,7 +124,7 @@ void csp_ps(uint16_t node, uint32_t timeout) {
 		}
 
 		/* We have a reply, ensure data is 0 (zero) termianted */
-		const unsigned int length = (packet->length < csp_buffer_data_size()) ? packet->length : (csp_buffer_data_size() - 1);
+		const unsigned int length = (packet->length < sizeof(packet->data)) ? packet->length : (sizeof(packet->data) - 1);
 		packet->data[length] = 0;
 		csp_print("%s", packet->data);
 
@@ -142,7 +142,7 @@ out:
 
 int csp_get_memfree(uint16_t node, uint32_t timeout, uint32_t * size) {
 
-	int status = csp_transaction(CSP_PRIO_NORM, node, CSP_MEMFREE, timeout, NULL, 0, size, sizeof(*size));
+	int status = csp_transaction_w_opts(CSP_PRIO_NORM, node, CSP_MEMFREE, timeout, NULL, 0, size, sizeof(*size), CSP_O_CRC32);
 	if (status == sizeof(*size)) {
 		*size = be32toh(*size);
 		return CSP_ERR_NONE;
@@ -164,7 +164,7 @@ void csp_memfree(uint16_t node, uint32_t timeout) {
 
 int csp_get_buf_free(uint16_t node, uint32_t timeout, uint32_t * size) {
 
-	int status = csp_transaction(CSP_PRIO_NORM, node, CSP_BUF_FREE, timeout, NULL, 0, size, sizeof(*size));
+	int status = csp_transaction_w_opts(CSP_PRIO_NORM, node, CSP_BUF_FREE, timeout, NULL, 0, size, sizeof(*size), CSP_O_CRC32);
 	if (status == sizeof(*size)) {
 		*size = be32toh(*size);
 		return CSP_ERR_NONE;
@@ -186,7 +186,7 @@ void csp_buf_free(uint16_t node, uint32_t timeout) {
 
 int csp_get_uptime(uint16_t node, uint32_t timeout, uint32_t * uptime) {
 
-	int status = csp_transaction(CSP_PRIO_NORM, node, CSP_UPTIME, timeout, NULL, 0, uptime, sizeof(*uptime));
+	int status = csp_transaction_w_opts(CSP_PRIO_NORM, node, CSP_UPTIME, timeout, NULL, 0, uptime, sizeof(*uptime), CSP_O_CRC32);
 	if (status == sizeof(*uptime)) {
 		*uptime = be32toh(*uptime);
 		return CSP_ERR_NONE;
@@ -209,7 +209,7 @@ void csp_uptime(uint16_t node, uint32_t timeout) {
 int csp_cmp(uint16_t node, uint32_t timeout, uint8_t code, int msg_size, struct csp_cmp_message * msg) {
 	msg->type = CSP_CMP_REQUEST;
 	msg->code = code;
-	int status = csp_transaction(CSP_PRIO_NORM, node, CSP_CMP, timeout, msg, msg_size, msg, msg_size);
+	int status = csp_transaction_w_opts(CSP_PRIO_NORM, node, CSP_CMP, timeout, msg, msg_size, msg, msg_size, CSP_O_CRC32);
 	if (status == 0) {
 		return CSP_ERR_TIMEDOUT;
 	}

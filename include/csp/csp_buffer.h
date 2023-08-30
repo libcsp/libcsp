@@ -14,18 +14,30 @@ extern "C" {
 /**
    Get free buffer (from task context).
 
-   @param[in] data_size minimum data size of requested buffer.
-   @return Buffer (pointer to #csp_packet_t) or NULL if no buffers available or size too big.
+   @param[in] data_size OBSOLETE ignored field, csp packets have a fixed size now
+   @return Buffer (pointer to #csp_packet_t) or NULL if no buffers available
 */
-void * csp_buffer_get(size_t data_size);
+csp_packet_t * csp_buffer_get(size_t unused);
+
+/**
+   Get a buffer or get killed (from task context)
+   @return Buffer (pointer to #csp_packet_t)
+*/
+csp_packet_t * csp_buffer_get_always(void);
 
 /**
    Get free buffer (from ISR context).
 
-   @param[in] data_size minimum data size of requested buffer.
-   @return Buffer (pointer to #csp_packet_t) or NULL if no buffers available or size too big.
+   @param[in] data_size OBSOLETE ignored field, csp packets have a fixed size now
+   @return Buffer (pointer to #csp_packet_t) or NULL if no buffers available
 */
-void * csp_buffer_get_isr(size_t data_size);
+csp_packet_t * csp_buffer_get_isr(size_t unused);
+
+/**
+   Get a buffer or get killed (from ISR context)
+   @return Buffer (pointer to #csp_packet_t)
+*/
+csp_packet_t * csp_buffer_get_always_isr(void);
 
 /**
    Free buffer (from task context).
@@ -53,19 +65,6 @@ void * csp_buffer_clone(void *buffer);
    @return number of remaining/free buffers
 */
 int csp_buffer_remaining(void);
-
-/**
-   Return the size of a CSP buffer.
-   @return size of a CSP buffer, sizeof(#csp_packet_t) + data_size.
-*/
-size_t csp_buffer_size(void);
-
-/**
-   Return the data size of a CSP buffer.
-   The data size is set by csp_init().
-   @return data size of a CSP buffer
-*/
-size_t csp_buffer_data_size(void);
 
 void csp_buffer_init(void);
 

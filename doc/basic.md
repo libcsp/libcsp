@@ -48,6 +48,10 @@ version is for task-context and
 interrupt-context. Using fixed size buffer elements that are
 preallocated is again a question of speed and safety.
 
+if you use `csp_buffer_get_always()` instead csp will panic if there is
+not enough available buffers. This ensures that incoming hardware
+always gets a buffer, or the system will reboot.
+
 Definition of a buffer element `csp_packet_t`:
 
 ```c
@@ -83,8 +87,6 @@ typedef struct {
 
         /**
          * Data part of packet.
-         * When using the csp_buffer API, the size of the data part is set by
-         * csp_buffer_init(), and can later be accessed by csp_buffer_data_size()
          */
         union {
                 /** Access data as uint8_t. */
@@ -273,7 +275,6 @@ struct csp_iface_s {
 	void * interface_data;      // Interface data, only known/used by the interface layer, e.g. state information.
 	void * driver_data;         // Driver data, only known/used by the driver layer, e.g. device/channel references.
 	nexthop_t nexthop;          // Next hop (Tx) function
-	uint16_t mtu;               // Maximum Transmission Unit of interface
 	uint8_t split_horizon_off;  // Disable the route-loop prevention
 	uint32_t tx;                // Successfully transmitted packets
 	uint32_t rx;                // Successfully received packets
