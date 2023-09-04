@@ -38,7 +38,7 @@ When compiling for FreeRTOS, the path to the FreeRTOS header files must
 be specified with `--includes=PATH`.
 
 A number of optional features can be enabled by from the configure
-script. 
+script.
 `./waf configure --help` to list the
 available configure options.
 
@@ -61,3 +61,22 @@ cmake -GNinja -B builddir
 cd builddir
 ninja
 ```
+
+To install the compiled libcsp.so and header files to the install directory,
+you run the following command:
+
+```shell
+ninja install
+```
+
+By default, it will be installed in `/usr/local/lib` and `/usr/local/include`,
+but if you wish to change it, you can specify `-DCMAKE_INSTALL_PREFIX=<path>`
+during the build process, and it will be installed in `<path>/lib` and `<path>/include`.
+
+To install only the libcsp.so runtime library,
+use the following command:
+
+```shell
+cmake --install builddir --component runtime
+```
+
