@@ -82,3 +82,11 @@ if(${CSP_ENABLE_PYTHON3_BINDINGS})
 endif()
 
 configure_file(csp_autoconfig.h.in include/csp/autoconfig.h)
+
+if(NOT CMAKE_SYSTEM_NAME STREQUAL "Zephyr")
+  install(TARGETS csp LIBRARY COMPONENT runtime)
+  install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/;${CMAKE_CURRENT_SOURCE_DIR}/include/;
+    TYPE INCLUDE
+    FILES_MATCHING PATTERN "*.h*"
+  )
+endif()
