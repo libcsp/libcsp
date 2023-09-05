@@ -74,7 +74,7 @@ int csp_eth_init(const char * device, const char * ifname, int mtu, unsigned int
 		return CSP_ERR_NOMEM;
 	}
 	
-	strncpy(ctx->name, ifname, sizeof(ctx->name) - 1);
+	strcpy(ctx->name, ifname);
 	ctx->ifdata.iface.name = ctx->name;
     ctx->ifdata.tx_func = &csp_eth_tx_frame;
     ctx->ifdata.tx_buf = (csp_eth_header_t*)&csp_eth_tx_buffer;
