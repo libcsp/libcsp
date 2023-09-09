@@ -154,9 +154,7 @@ typedef struct csp_packet_s {
 	uint8_t header[CSP_PACKET_PADDING_BYTES];
 
 	/**
-	 * Data part of packet.
-	 * When using the csp_buffer API, the size of the data part is set by
-	 * csp_buffer_init(), and can later be accessed by csp_buffer_data_size()
+	 * Data part of packet:
 	 */
 	union {
 		uint8_t data[CSP_BUFFER_SIZE];
@@ -167,13 +165,6 @@ typedef struct csp_packet_s {
 } csp_packet_t;
 
 #define CSP_RDP_HEADER_SIZE 5
-
-/**
-   Size of the packet overhead in #csp_packet_t.
-   The overhead is the difference between the total buffer size (returned by csp_buffer_size()) and the data part
-   of the #csp_packet_t (returned by csp_buffer_data_size()).
-*/
-#define CSP_BUFFER_PACKET_OVERHEAD      (sizeof(csp_packet_t) - CSP_BUFFER_SIZE)
 
 /** Forward declaration of CSP interface, see #csp_iface_s for details. */
 typedef struct csp_iface_s csp_iface_t;

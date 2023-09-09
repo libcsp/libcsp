@@ -20,6 +20,7 @@ typedef struct {
 	pthread_t server_handle;
 	struct sockaddr_in peer_addr;
 
+	int sockfd;
 } csp_if_udp_conf_t;
 
 /**

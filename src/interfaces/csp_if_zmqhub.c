@@ -22,6 +22,9 @@ typedef struct {
 	csp_iface_t iface;
 } zmq_driver_t;
 
+
+#define CURVE_KEYLEN 41
+
 /* Linux is fast, so we keep it simple by having a single lock */
 static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 
@@ -62,7 +65,7 @@ void * csp_zmqhub_task(void * param) {
 		int ret;
 		zmq_msg_t msg;
 
-		ret = zmq_msg_init_size(&msg, CSP_ZMQ_MTU + HEADER_SIZE);
+		ret = zmq_msg_init_size(&msg, sizeof(packet->data) + HEADER_SIZE);
 		assert(ret == 0);
 
 		// Receive data
@@ -98,6 +101,7 @@ void * csp_zmqhub_task(void * param) {
 		if (csp_id_strip(packet) != 0) {
 			drv->iface.rx_error++;
 			csp_buffer_free(packet);
+		    zmq_msg_close(&msg);
 			continue;
 		}
 
@@ -170,8 +174,6 @@ int csp_zmqhub_init_w_name_endpoints_rxfilter(const char * ifname, uint16_t addr
 	drv->iface.name = drv->name;
 	drv->iface.driver_data = drv;
 	drv->iface.nexthop = csp_zmqhub_tx;
-	drv->iface.mtu = CSP_ZMQ_MTU;  // there is actually no 'max' MTU on ZMQ, but assuming the other end is based on the same code
-	drv->iface.addr = addr;
 
 	drv->context = zmq_ctx_new();
 	assert(drv->context != NULL);
@@ -214,13 +216,13 @@ int csp_zmqhub_init_w_name_endpoints_rxfilter(const char * ifname, uint16_t addr
 	return CSP_ERR_NONE;
 }
 
-int csp_zmqhub_init_filter2(const char * ifname, const char * host, uint16_t addr, uint16_t netmask, int promisc, csp_iface_t ** return_interface) {
+int csp_zmqhub_init_filter2(const char * ifname, const char * host, uint16_t addr, uint16_t netmask, int promisc, csp_iface_t ** return_interface, char * sec_key) {
 	
 	char pub[100];
-	csp_zmqhub_make_endpoint(host, CSP_ZMQPROXY_SUBSCRIBE_PORT, pub, sizeof(pub));
+	csp_zmqhub_make_endpoint(host, CSP_ZMQPROXY_SUBSCRIBE_PORT + (sec_key != NULL), pub, sizeof(pub));
 
 	char sub[100];
-	csp_zmqhub_make_endpoint(host, CSP_ZMQPROXY_PUBLISH_PORT, sub, sizeof(sub));
+	csp_zmqhub_make_endpoint(host, CSP_ZMQPROXY_PUBLISH_PORT + (sec_key != NULL), sub, sizeof(sub));
 
 	int ret;
 	pthread_attr_t attributes;
@@ -235,13 +237,11 @@ int csp_zmqhub_init_filter2(const char * ifname, const char * host, uint16_t add
 	drv->iface.name = drv->name;
 	drv->iface.driver_data = drv;
 	drv->iface.nexthop = csp_zmqhub_tx;
-	drv->iface.mtu = CSP_ZMQ_MTU;  // there is actually no 'max' MTU on ZMQ, but assuming the other end is based on the same code
-	drv->iface.addr = addr;
-	
+
 	drv->context = zmq_ctx_new();
 	assert(drv->context != NULL);
 
-	//csp_print("  ZMQ init %s: pub(tx): [%s], sub(rx): [%s]\n", drv->iface.name, pub, sub);
+	csp_print("  ZMQ init %s: addr: %u, pub(tx): [%s], sub(rx): [%s]\n", drv->iface.name, addr, pub, sub);
 
 	/* Publisher (TX) */
 	drv->publisher = zmq_socket(drv->context, ZMQ_PUB);
@@ -251,13 +251,27 @@ int csp_zmqhub_init_filter2(const char * ifname, const char * host, uint16_t add
 	drv->subscriber = zmq_socket(drv->context, ZMQ_SUB);
 	assert(drv->subscriber != NULL);
 
+    /* If shared secret key provided */
+    if(sec_key){
+        char pub_key[41];
+        zmq_curve_public(pub_key, sec_key);
+	    /* Publisher (TX) */
+        zmq_setsockopt(drv->publisher, ZMQ_CURVE_SERVERKEY, pub_key, CURVE_KEYLEN);
+        zmq_setsockopt(drv->publisher, ZMQ_CURVE_PUBLICKEY, pub_key, CURVE_KEYLEN);
+        zmq_setsockopt(drv->publisher, ZMQ_CURVE_SECRETKEY, sec_key, CURVE_KEYLEN);
+	    /* Subscriber (RX) */
+        zmq_setsockopt(drv->subscriber, ZMQ_CURVE_SERVERKEY, pub_key, CURVE_KEYLEN);
+        zmq_setsockopt(drv->subscriber, ZMQ_CURVE_PUBLICKEY, pub_key, CURVE_KEYLEN);
+        zmq_setsockopt(drv->subscriber, ZMQ_CURVE_SECRETKEY, sec_key, CURVE_KEYLEN);
+    }
+
 	/* Generate filters */
 	uint16_t hostmask = (1 << (csp_id_get_host_bits() - netmask)) - 1;
 	
 	/* Connect to server */
 	ret = zmq_connect(drv->publisher, pub);
 	assert(ret == 0);
-	zmq_connect(drv->subscriber, sub);
+	ret = zmq_connect(drv->subscriber, sub);
 	assert(ret == 0);
 
 

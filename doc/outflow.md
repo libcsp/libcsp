@@ -27,6 +27,5 @@ copies id to packet
         copies id to packet <- This is duplicate of csp_sendto()
         calls promisc
         applies: crc, hmac
-        mtu check
         calls nexthop
 ```

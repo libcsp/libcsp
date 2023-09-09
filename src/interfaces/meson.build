@@ -1,5 +1,6 @@
 csp_sources += files('csp_if_lo.c')
 csp_sources += files(['csp_if_can.c', 'csp_if_can_pbuf.c'])
+csp_sources += files(['csp_if_eth.c', 'csp_if_eth_pbuf.c'])
 csp_sources += files('csp_if_kiss.c')
 csp_sources += files('csp_if_tun.c')
 csp_sources += files('csp_if_i2c.c')

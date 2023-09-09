@@ -108,7 +108,8 @@ int csp_zmqhub_init_w_name_endpoints_rxfilter(const char * ifname, uint16_t addr
  * global broadcast address is also subscribed to. meaning a total of 3 * 4 filters.
  *
  */
-int csp_zmqhub_init_filter2(const char * ifname, const char * host, uint16_t addr, uint16_t netmask, int promisc, csp_iface_t ** return_interface);
+
+int csp_zmqhub_init_filter2(const char * ifname, const char * host, uint16_t addr, uint16_t netmask, int promisc, csp_iface_t ** return_interface, char * sec_key);
 
 #ifdef __cplusplus
 }

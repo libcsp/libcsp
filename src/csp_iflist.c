@@ -7,19 +7,10 @@
 
 #include "csp/autoconfig.h"
 #include <csp/csp_debug.h>
+#include <csp/interfaces/csp_if_lo.h>
 
 /* Interfaces are stored in a linked list */
 static csp_iface_t * interfaces = NULL;
-
-static csp_iface_t * dfl_if = NULL;
-
-void csp_iflist_set_default(csp_iface_t * interface) {
-	dfl_if = interface;
-}
-
-csp_iface_t * csp_iflist_get_default(void) {
-	return dfl_if;
-}
 
 int csp_iflist_is_within_subnet(uint16_t addr, csp_iface_t * ifc) {
 
@@ -67,6 +58,65 @@ csp_iface_t * csp_iflist_get_by_subnet(uint16_t addr, csp_iface_t * ifc) {
 
 	return NULL;
 
+}
+
+csp_iface_t * csp_iflist_get_by_isdfl(csp_iface_t * ifc) {
+
+	/* Head of list */
+	if (ifc == NULL) {
+		ifc = interfaces;
+
+	/* Otherwise, continue from user defined ifc */
+	} else {
+		ifc = ifc->next;
+	}
+
+	while (ifc) {
+
+		if (ifc->is_default == 1) {
+			return ifc;
+		}
+
+		ifc = ifc->next;
+		continue;
+
+	}
+
+	return NULL;
+
+}
+
+csp_iface_t * csp_iflist_iterate(csp_iface_t * ifc) {
+
+	/* Head of list */
+	if (ifc == NULL) {
+		ifc = interfaces;
+
+	/* Otherwise, continue from user defined ifc */
+	} else {
+		ifc = ifc->next;
+	}
+
+	return ifc;
+
+}
+
+void csp_iflist_check_dfl(void) {
+
+	csp_iface_t * iface = csp_iflist_get_by_isdfl(NULL);
+
+	/* If we find a default interface, we assume user has setup the configuration correctly */
+	if (iface != NULL) {
+		return;
+	}
+
+	/* If there was not found a default interface, go through all interfaces and set them as default (except for LOOP) */
+	while ((iface = csp_iflist_iterate(iface)) != NULL) {
+		if (iface == &csp_if_lo) {
+			continue;
+		}
+		iface->is_default = 1;
+	}
 }
 
 csp_iface_t * csp_iflist_get_by_addr(uint16_t addr) {
@@ -177,11 +227,11 @@ void csp_iflist_print(void) {
 	while (i) {
 		tx = csp_bytesize(i->txbytes, &tx_postfix);
 		rx = csp_bytesize(i->rxbytes, &rx_postfix);
-		csp_print("%-10s addr: %"PRIu16" netmask: %"PRIu16" mtu: %"PRIu16"\r\n"
+		csp_print("%-10s addr: %"PRIu16" netmask: %"PRIu16" dfl: %" PRIu32 "\r\n"
 				  "           tx: %05" PRIu32 " rx: %05" PRIu32 " txe: %05" PRIu32 " rxe: %05" PRIu32 "\r\n"
 				  "           drop: %05" PRIu32 " autherr: %05" PRIu32 " frame: %05" PRIu32 "\r\n"
 				  "           txb: %" PRIu32 " (%" PRIu32 "%c) rxb: %" PRIu32 " (%" PRIu32 "%c) \r\n\r\n",
-				  i->name, i->addr, i->netmask, i->mtu, i->tx, i->rx, i->tx_error, i->rx_error, i->drop,
+				  i->name, i->addr, i->netmask, i->is_default, i->tx, i->rx, i->tx_error, i->rx_error, i->drop,
 				  i->autherr, i->frame, i->txbytes, tx, tx_postfix, i->rxbytes, rx, rx_postfix);
 		i = i->next;
 	}

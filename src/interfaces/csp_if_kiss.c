@@ -28,7 +28,7 @@ int csp_kiss_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet, int fr
 	/* Lock (before modifying packet) */
 	csp_usart_lock(driver);
 
-	/* Add CRC32 checksum - the MTU setting ensures there are space */
+	/* Add CRC32 checksum */
 	csp_crc32_append(packet);
 
 	/* Save the outgoing id in the buffer */
@@ -77,8 +77,8 @@ void csp_kiss_rx(csp_iface_t * iface, const uint8_t * buf, size_t len, void * px
 		/* Input */
 		uint8_t inputbyte = *buf++;
 
-		/* If packet was too long */
-		if (ifdata->rx_length >= ifdata->max_rx_length) {
+		/* If packet was too long, truncate and restart */
+		if (ifdata->rx_packet != NULL && &ifdata->rx_packet->frame_begin[ifdata->rx_length] >= &ifdata->rx_packet->data[sizeof(ifdata->rx_packet->data)]) {
 			iface->rx_error++;
 			ifdata->rx_mode = KISS_MODE_NOT_STARTED;
 			ifdata->rx_length = 0;
@@ -200,16 +200,10 @@ int csp_kiss_add_interface(csp_iface_t * iface) {
 		return CSP_ERR_INVAL;
 	}
 
-	ifdata->max_rx_length = csp_buffer_data_size();
 	ifdata->rx_length = 0;
 	ifdata->rx_mode = KISS_MODE_NOT_STARTED;
 	ifdata->rx_first = false;
 	ifdata->rx_packet = NULL;
-
-	const unsigned int max_data_size = csp_buffer_data_size() - sizeof(uint32_t);  // compensate for the added CRC32
-	if ((iface->mtu == 0) || (iface->mtu > max_data_size)) {
-		iface->mtu = max_data_size;
-	}
 
 	iface->nexthop = csp_kiss_tx;
 

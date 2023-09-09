@@ -4,6 +4,7 @@
 
 #include <csp/csp_crc32.h>
 #include <endian.h>
+#include <csp/arch/csp_time.h>
 #include <csp/arch/csp_queue.h>
 #include <csp/crypto/csp_hmac.h>
 #include <csp/csp_id.h>
@@ -98,10 +99,11 @@ static int csp_route_security_check(uint32_t security_opts, csp_iface_t * iface,
 	return CSP_ERR_NONE;
 }
 
+
 __weak void csp_input_hook(csp_iface_t * iface, csp_packet_t * packet) {
-	csp_print_packet("INP: S %u, D %u, Dp %u, Sp %u, Pr %u, Fl 0x%02X, Sz %" PRIu16 " VIA: %s\n",
+	csp_print_packet("INP: S %u, D %u, Dp %u, Sp %u, Pr %u, Fl 0x%02X, Sz %" PRIu16 " VIA: %s, Tms %u\n",
 				   packet->id.src, packet->id.dst, packet->id.dport,
-				   packet->id.sport, packet->id.pri, packet->id.flags, packet->length, iface->name);
+				   packet->id.sport, packet->id.pri, packet->id.flags, packet->length, iface->name, csp_get_ms());
 }
 
 int csp_route_work(void) {
@@ -128,11 +130,6 @@ int csp_route_work(void) {
 
 	csp_input_hook(input.iface, packet);
 
-	/* Here there be promiscuous mode */
-#if (CSP_USE_PROMISC)
-	csp_promisc_add(packet);
-#endif
-
 	/* Count the message */
 	input.iface->rx++;
 	input.iface->rxbytes += packet->length;
@@ -152,6 +149,11 @@ int csp_route_work(void) {
 			return CSP_ERR_NONE;
 		}
 	}
+
+	/* Here there be promiscuous mode */
+#if (CSP_USE_PROMISC)
+	csp_promisc_add(packet);
+#endif
 
 	/* If the message is not to me, route the message to the correct interface */
 	if (!is_to_me) {
@@ -174,7 +176,7 @@ int csp_route_work(void) {
 	csp_callback_t callback = csp_port_get_callback(packet->id.dport);
 	if (callback) {
 
-		if (csp_route_security_check(CSP_SO_NONE, input.iface, packet) < 0) {
+		if (csp_route_security_check(CSP_SO_CRC32REQ, input.iface, packet) < 0) {
 			csp_buffer_free(packet);
 			return CSP_ERR_NONE;
 		}

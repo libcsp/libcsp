@@ -42,10 +42,6 @@ void csp_init(void) {
 
 }
 
-void csp_free_resources(void) {
-	csp_rtable_free();
-}
-
 const csp_conf_t * csp_get_conf(void) {
 	return &csp_conf;
 }

@@ -15,7 +15,6 @@ csp_sources += files([
 	'csp_promisc.c',
 	'csp_qfifo.c',
 	'csp_route.c',
-	'csp_rtable_cidr.c',
 	'csp_service_handler.c',
 	'csp_services.c',
 	'csp_id.c',
@@ -26,8 +25,12 @@ if yaml_dep.found()
 	csp_sources += files('csp_yaml.c')
 endif
 
-if get_option('have_stdio')
+if get_option('have_stdio') and get_option('have_rtable')
 	csp_sources += files('csp_rtable_stdio.c')
+endif
+
+if get_option('have_rtable')
+	csp_sources += files('csp_rtable_cidr.c')
 endif
 
 subdir('arch')

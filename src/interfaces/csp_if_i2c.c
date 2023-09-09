@@ -44,14 +44,10 @@ void csp_i2c_rx(csp_iface_t * iface, csp_packet_t * packet, void * pxTaskWoken) 
 		return;
 	}
 
+	/* We dont need to check for overflow, since this is already done at the driver level when inserting data into the buffer */
+
 	/* Strip the CSP header off the length field before converting to CSP packet */
     csp_id_strip(packet);
-
-	if (packet->frame_length > csp_buffer_data_size()) {  // consistency check, should never happen
-		iface->rx_error++;
-		(pxTaskWoken != NULL) ? csp_buffer_free_isr(packet) : csp_buffer_free(packet);
-		return;
-	}
 
 	/* Receive the packet in CSP */
 	csp_qfifo_write(packet, iface, pxTaskWoken);
@@ -66,11 +62,6 @@ int csp_i2c_add_interface(csp_iface_t * iface) {
 	csp_i2c_interface_data_t * ifdata = iface->interface_data;
 	if (ifdata->tx_func == NULL) {
 		return CSP_ERR_INVAL;
-	}
-
-	const unsigned int max_data_size = csp_buffer_data_size();
-	if ((iface->mtu == 0) || (iface->mtu > max_data_size)) {
-		iface->mtu = max_data_size;
 	}
 
 	iface->nexthop = csp_i2c_tx;

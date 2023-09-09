@@ -87,20 +87,20 @@ int csp_can1_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t 
 
 			iface->frame++;
 
-			csp_id1_setup_rx(packet);
+			csp_id_setup_rx(packet);
 
 			/* Copy CSP identifier (header) */
 			memcpy(packet->frame_begin, data, sizeof(uint32_t));
 			packet->frame_length += sizeof(uint32_t);
 
-			csp_id1_strip(packet);
+			csp_id_strip(packet);
 
 			/* Copy CSP length (of data) */
 			memcpy(&(packet->length), data + sizeof(uint32_t), sizeof(packet->length));
 			packet->length = be16toh(packet->length);
 
-			/* Check if frame exceeds MTU */
-			if (packet->length > iface->mtu) {
+			/* Overflow: check if incoming frame data length is larger than buffer length  */
+			if (packet->length > sizeof(packet->data)) {
 				iface->rx_error++;
 				csp_can_pbuf_free(ifdata, packet, 1, task_woken);
 				break;
@@ -146,8 +146,16 @@ int csp_can1_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t 
 			if (packet->rx_count != packet->length)
 				break;
 
+			/* Rewrite incoming L2 broadcast to local node */
+			if (packet->id.dst == 0x1F) {
+				packet->id.dst = iface->addr;
+			}
+
 			/* Free packet buffer */
 			csp_can_pbuf_free(ifdata, packet, 0, task_woken);
+
+            /* Clear timestamp_rx for L3 as L2 last_used is not needed anymore */
+            packet->timestamp_rx = 0;
 
 			/* Data is available */
 			csp_qfifo_write(packet, iface, task_woken);
@@ -291,7 +299,7 @@ int csp_can2_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t 
 		}
 
 		iface->frame++;
-		csp_id2_setup_rx(packet);
+		csp_id_setup_rx(packet);
 
 		/* Copy first 2 bytes from CFP 2.0 header:
 		 * Because the id field has already been converted in memory to a 32-bit
@@ -334,8 +342,8 @@ int csp_can2_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t 
 		packet->rx_count = (packet->rx_count + 1) & CFP2_FC_MASK;
 	}
 
-	/* Check for overflow */
-	if (packet->frame_length + dlc > iface->mtu) {
+	/* Check for overflow. The frame input + dlc must not exceed the end of the packet data field */
+	if (&packet->frame_begin[packet->frame_length] + dlc > &packet->data[sizeof(packet->data)]) {
 		csp_dbg_can_errno = CSP_DBG_CAN_ERR_RX_OVF;
 		iface->frame++;
 		csp_can_pbuf_free(ifdata, packet, 1, task_woken);
@@ -350,7 +358,7 @@ int csp_can2_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t 
 	if (id & (CFP2_END_MASK << CFP2_END_OFFSET)) {
 
 		/* Parse CSP header into csp_id type */
-		csp_id2_strip(packet);
+		csp_id_strip(packet);
 
 		/* Rewrite incoming L2 broadcast to local node */
 		if (packet->id.dst == 0x3FFF) {
@@ -472,12 +480,6 @@ int csp_can_add_interface(csp_iface_t * iface) {
 	if (ifdata->tx_func == NULL) {
 		return CSP_ERR_INVAL;
 	}
-
-	/* We reserve 8 bytes of the data field, for CFP information:
-	 * In reality we dont use as much, its between 3 and 6 depending
-	 * on CFP format.
-	 */
-	iface->mtu = csp_buffer_data_size() - 8;
 
 	ifdata->cfp_packet_counter = 0;
 

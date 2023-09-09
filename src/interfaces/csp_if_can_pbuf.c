@@ -89,6 +89,7 @@ void csp_can_pbuf_cleanup(csp_can_interface_data_t * ifdata, int * task_woken) {
 			} else {
 				csp_buffer_free_isr(packet);
 			}
+
 		}
 
 		prev = packet;

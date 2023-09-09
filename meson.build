@@ -24,6 +24,7 @@ conf.set10('CSP_USE_DEDUP', get_option('use_dedup'))
 conf.set10('CSP_HAVE_STDIO', get_option('have_stdio'))
 conf.set10('CSP_ENABLE_CSP_PRINT', get_option('enable_csp_print'))
 conf.set10('CSP_PRINT_STDIO', get_option('print_stdio'))
+conf.set10('CSP_HAVE_RTABLE', get_option('have_rtable'))
 
 csp_deps = []
 csp_sources = []

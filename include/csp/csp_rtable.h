@@ -26,6 +26,10 @@ typedef struct csp_route_s {
    csp_iface_t * iface;
 } csp_route_t;
 
+/**
+   Loop through routes backwards and find routes that match on addr and mask from start_route
+*/
+csp_route_t * csp_rtable_search_backward(csp_route_t * start_route);
 csp_route_t * csp_rtable_find_route(uint16_t dest_address);
 
 /**

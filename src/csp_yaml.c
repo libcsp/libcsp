@@ -103,6 +103,7 @@ static void csp_yaml_end_if(struct data_s * data, unsigned int * dfl_addr) {
 		}
 
 		iface = malloc(sizeof(csp_iface_t));
+		memset(iface, 0, sizeof(csp_iface_t));
 		csp_if_udp_conf_t * udp_conf = malloc(sizeof(csp_if_udp_conf_t));
 		udp_conf->host = data->server;
 		udp_conf->lport = atoi(data->listen_port);
@@ -127,7 +128,7 @@ static void csp_yaml_end_if(struct data_s * data, unsigned int * dfl_addr) {
 			promisc = (strcmp("true", data->promisc) == 0) ? 1 : 0;
 		}
 
-		csp_zmqhub_init_filter2(data->name, data->server, addr, atoi(data->netmask), promisc, &iface);
+		csp_zmqhub_init_filter2(data->name, data->server, addr, atoi(data->netmask), promisc, &iface, NULL);
 
 	}
 #endif
@@ -142,7 +143,7 @@ static void csp_yaml_end_if(struct data_s * data, unsigned int * dfl_addr) {
 			return;
 		}
 
-		int error = csp_can_socketcan_open_and_add_interface(data->device, data->name, 1000000, true, &iface);
+		int error = csp_can_socketcan_open_and_add_interface(data->device, data->name, addr, 1000000, true, &iface);
 		if (error != CSP_ERR_NONE) {
 			csp_print("failed to add CAN interface [%s], error: %d", data->device, error);
 			return;
@@ -160,12 +161,9 @@ static void csp_yaml_end_if(struct data_s * data, unsigned int * dfl_addr) {
 	iface->addr = addr;
 	iface->netmask = atoi(data->netmask);
 	iface->name = strdup(data->name);
+	iface->is_default = (data->is_dfl) ? 1 : 0;
 
-	if (data->is_dfl) {
-		csp_iflist_set_default(iface);
-	}
-
-	csp_print("  %s addr: %u netmask %u %s\n", iface->name, iface->addr, iface->netmask, (data->is_dfl) ? "DFL" : "");
+	csp_print("  %s addr: %u netmask %u %s\n", iface->name, iface->addr, iface->netmask, (iface->is_default) ? "DFL" : "");
 
 }
 
@@ -208,8 +206,10 @@ void csp_yaml_init(char * filename, unsigned int * dfl_addr) {
 
 	csp_print("  Reading config from %s\n", filename);
 	FILE * file = fopen(filename, "rb");
-	if (file == NULL)
+	if (file == NULL) {
+		printf("  ERROR: failed to find CSP config file\n");
 		return;
+	}
 
 	yaml_parser_t parser;
 	yaml_parser_initialize(&parser);
