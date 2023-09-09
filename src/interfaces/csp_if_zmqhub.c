@@ -142,7 +142,7 @@ int csp_zmqhub_init_w_endpoints(uint16_t addr,
 	uint16_t * rxfilter = NULL;
 	unsigned int rxfilter_count = 0;
 
-	return csp_zmqhub_init_w_name_endpoints_rxfilter(NULL,
+	return csp_zmqhub_init_w_name_endpoints_rxfilter(NULL, addr,
 													 rxfilter, rxfilter_count,
 													 publisher_endpoint,
 													 subscriber_endpoint,
@@ -150,7 +150,7 @@ int csp_zmqhub_init_w_endpoints(uint16_t addr,
 													 return_interface);
 }
 
-int csp_zmqhub_init_w_name_endpoints_rxfilter(const char * ifname,
+int csp_zmqhub_init_w_name_endpoints_rxfilter(const char * ifname, uint16_t addr,
 											  const uint16_t rxfilter[], unsigned int rxfilter_count,
 											  const char * publish_endpoint,
 											  const char * subscribe_endpoint,
@@ -171,6 +171,7 @@ int csp_zmqhub_init_w_name_endpoints_rxfilter(const char * ifname,
 	drv->iface.driver_data = drv;
 	drv->iface.nexthop = csp_zmqhub_tx;
 	drv->iface.mtu = CSP_ZMQ_MTU;  // there is actually no 'max' MTU on ZMQ, but assuming the other end is based on the same code
+	drv->iface.addr = addr;
 
 	drv->context = zmq_ctx_new();
 	assert(drv->context != NULL);
@@ -235,7 +236,8 @@ int csp_zmqhub_init_filter2(const char * ifname, const char * host, uint16_t add
 	drv->iface.driver_data = drv;
 	drv->iface.nexthop = csp_zmqhub_tx;
 	drv->iface.mtu = CSP_ZMQ_MTU;  // there is actually no 'max' MTU on ZMQ, but assuming the other end is based on the same code
-
+	drv->iface.addr = addr;
+	
 	drv->context = zmq_ctx_new();
 	assert(drv->context != NULL);
 
