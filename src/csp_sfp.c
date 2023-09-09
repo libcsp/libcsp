@@ -1,6 +1,6 @@
 #include <csp/csp_sfp.h>
 
-#include <malloc.h>
+#include <stdlib.h>
 
 #include <csp/csp_buffer.h>
 #include <csp/csp_debug.h>

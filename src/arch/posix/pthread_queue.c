@@ -9,7 +9,7 @@ http://code.google.com/p/c-pthread-queue/
 
 #include <errno.h>
 #include <string.h>
-#include <malloc.h>
+#include <stdlib.h>
 
 #include <csp/csp.h>
 
@@ -218,5 +218,3 @@ int pthread_queue_free(pthread_queue_t * queue) {
 
 	return free;
 }
-
-
