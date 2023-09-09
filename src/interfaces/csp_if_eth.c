@@ -68,7 +68,7 @@ static size_t arp_used = 0;
 
 static arp_list_entry_t * arp_list = 0; 
 
-arp_list_entry_t * arp_alloc() {
+arp_list_entry_t * arp_alloc(void) {
     
     if (arp_used >= ARP_MAX_ENTRIES) {
         return 0;
@@ -101,7 +101,7 @@ void csp_eth_arp_set_addr(uint8_t * mac_addr, uint16_t csp_addr)
     }
 
     // Create and add a new ARP entry
-    arp_list_entry_t * new_arp = arp_alloc(sizeof(arp_list_entry_t));
+    arp_list_entry_t * new_arp = arp_alloc();
 
     if (new_arp) {
         new_arp->csp_addr = csp_addr;
