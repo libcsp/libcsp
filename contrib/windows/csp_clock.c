@@ -6,7 +6,7 @@
 
 #include <csp/csp_debug.h>
 
-//__attribute__((weak)) void csp_clock_get_time(csp_timestamp_t * time) {
+//__weak void csp_clock_get_time(csp_timestamp_t * time) {
 void csp_clock_get_time(csp_timestamp_t * time) {
 
 	FILETIME ftime;  // 64-bit, representing the number of 100-nanosecond intervals since January 1, 1601 (UTC).
@@ -17,7 +17,7 @@ void csp_clock_get_time(csp_timestamp_t * time) {
 	time->tv_nsec = (itime.QuadPart % (1000ULL * 1000ULL * 10ULL)) * 100ULL;
 }
 
-//__attribute__((weak)) int csp_clock_set_time(const csp_timestamp_t * time) {
+//__weak int csp_clock_set_time(const csp_timestamp_t * time) {
 int csp_clock_set_time(const csp_timestamp_t * time) {
 	return CSP_ERR_NOTSUP;
 }

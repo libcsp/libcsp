@@ -2,12 +2,13 @@
 #include <csp/csp.h>
 #include <csp/csp_id.h>
 #include <csp/csp_hooks.h>
+#include <csp/csp_macro.h>
 
-__attribute__((weak)) int csp_crypto_decrypt(uint8_t * ciphertext_in, uint8_t ciphertext_len, uint8_t * msg_out) {
+__weak int csp_crypto_decrypt(uint8_t * ciphertext_in, uint8_t ciphertext_len, uint8_t * msg_out) {
 	return -1;
 }
 
-__attribute__((weak)) int csp_crypto_encrypt(uint8_t * msg_begin, uint8_t msg_len, uint8_t * ciphertext_out) {
+__weak int csp_crypto_encrypt(uint8_t * msg_begin, uint8_t msg_len, uint8_t * ciphertext_out) {
 	return -1;
 }
 
@@ -121,4 +122,3 @@ void csp_if_tun_init(csp_iface_t * iface, csp_if_tun_conf_t * ifconf) {
 	csp_iflist_add(iface);
 
 }
-

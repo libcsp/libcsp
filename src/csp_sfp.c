@@ -1,16 +1,15 @@
-
-
 #include <csp/csp_sfp.h>
 
 #include <malloc.h>
 
 #include <csp/csp_buffer.h>
 #include <csp/csp_debug.h>
+#include <csp/csp_macro.h>
 #include <endian.h>
 
 #include "csp_conn.h"
 
-typedef struct __attribute__((__packed__)) {
+typedef struct __packed {
 	uint32_t offset;
 	uint32_t totalsize;
 } sfp_header_t;

@@ -1,10 +1,9 @@
-
-
 #include <csp/csp_hooks.h>
+#include <csp/csp_macro.h>
 
 #include <time.h>
 
-__attribute__((weak)) void csp_clock_get_time(csp_timestamp_t * time) {
+__weak void csp_clock_get_time(csp_timestamp_t * time) {
 
 	struct timespec ts;
 	if (clock_gettime(CLOCK_REALTIME, &ts) == 0) {
@@ -16,7 +15,7 @@ __attribute__((weak)) void csp_clock_get_time(csp_timestamp_t * time) {
 	}
 }
 
-__attribute__((weak)) int csp_clock_set_time(const csp_timestamp_t * time) {
+__weak int csp_clock_set_time(const csp_timestamp_t * time) {
 
 	struct timespec ts = {.tv_sec = time->tv_sec, .tv_nsec = time->tv_nsec};
 	if (clock_settime(CLOCK_REALTIME, &ts) == 0) {

@@ -51,7 +51,7 @@ typedef enum {
 /**
    CSP identifier/header.
 */
-typedef struct  __attribute__((packed)) {
+typedef struct  __packed {
 	uint8_t pri;
 	uint8_t flags;
 	uint16_t src;
