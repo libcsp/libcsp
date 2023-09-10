@@ -2,7 +2,7 @@
 #include <csp/csp.h>
 #include <csp/csp_id.h>
 #include <csp/csp_hooks.h>
-#include <csp/csp_macro.h>
+#include "csp_macro.h"
 
 __weak int csp_crypto_decrypt(uint8_t * ciphertext_in, uint8_t ciphertext_len, uint8_t * msg_out) {
 	return -1;

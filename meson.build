@@ -55,7 +55,7 @@ endif
 csp_deps += clib
 
 # Include paths
-csp_inc = include_directories('include')
+csp_inc = include_directories('include', 'src')
 
 # Default compile options
 csp_c_args = ['-Wshadow',

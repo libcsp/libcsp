@@ -77,7 +77,7 @@ def configure(ctx):
                                          "-Wwrite-strings", "-Wno-unused-parameter", "-Werror"])
 
     # Setup default include path and any extra defined
-    ctx.env.append_unique('INCLUDES_CSP', ['include'] + ctx.options.includes.split(','))
+    ctx.env.append_unique('INCLUDES_CSP', ['include', 'src'] + ctx.options.includes.split(','))
 
     # Store OS as env variable
     ctx.env.OS = ctx.options.with_os

@@ -4,7 +4,7 @@
 
 #include <csp/arch/csp_queue.h>
 #include <csp/csp_debug.h>
-#include <csp/csp_macro.h>
+#include "csp_macro.h"
 
 /** Internal buffer header */
 typedef struct csp_skbf_s {

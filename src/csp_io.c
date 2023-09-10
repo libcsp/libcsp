@@ -13,7 +13,7 @@
 #include <csp/arch/csp_time.h>
 #include <csp/crypto/csp_hmac.h>
 #include <csp/csp_id.h>
-#include <csp/csp_macro.h>
+#include "csp_macro.h"
 
 #include "csp_port.h"
 #include "csp_conn.h"
