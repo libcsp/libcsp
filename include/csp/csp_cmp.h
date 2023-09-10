@@ -6,7 +6,6 @@
 */
 
 #include <csp/csp.h>
-#include <csp/csp_macro.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -95,10 +94,10 @@ extern "C" {
    CSP management protocol description.
 */
 struct csp_cmp_message {
-        //! CMP request type.
-        uint8_t type;
-        //! CMP request code.
-        uint8_t code;
+	//! CMP request type.
+	uint8_t type;
+	//! CMP request code.
+	uint8_t code;
 	union {
 		struct {
 			char hostname[CSP_HOSTNAME_LEN];
@@ -107,7 +106,7 @@ struct csp_cmp_message {
 			char date[CSP_CMP_IDENT_DATE_LEN];
 			char time[CSP_CMP_IDENT_TIME_LEN];
 		} ident;
-      struct {
+		struct {
 			uint8_t dest_node;
 			uint8_t next_hop_via;
 			char interface[CSP_CMP_ROUTE_IFACE_LEN];
@@ -118,7 +117,7 @@ struct csp_cmp_message {
 			uint16_t netmask;
 			char interface[CSP_CMP_ROUTE_IFACE_LEN];
 		} route_set_v2;
-		struct __packed {
+		struct __attribute__((__packed__)) {
 			char interface[CSP_CMP_ROUTE_IFACE_LEN];
 			uint32_t tx;
 			uint32_t rx;
@@ -143,7 +142,7 @@ struct csp_cmp_message {
 		} poke;
 		csp_timestamp_t clock;
 	};
-} __packed;
+} __attribute__((__packed__));
 
 /**
    Macro for calculating total size of management message.

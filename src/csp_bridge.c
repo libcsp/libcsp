@@ -1,4 +1,4 @@
-#include <csp/csp_macro.h>
+#include "csp_macro.h"
 
 #include "csp_qfifo.h"
 #include "csp_io.h"
