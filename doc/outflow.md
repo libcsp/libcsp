@@ -1,5 +1,4 @@
-
-OUTGOING PACKET FLOW
+Outgoing Packet Flow
 ====================
 
 ```

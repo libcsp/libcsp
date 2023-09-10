@@ -1,0 +1,6 @@
+clang==14
+myst-parser
+sphinx_c_autodoc
+sphinxcontrib-apidoc
+sphinx-rtd-theme
+sphinx_design
