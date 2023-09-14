@@ -1,14 +1,6 @@
-#pragma once
-
-#include "csp/autoconfig.h"
-#include <inttypes.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-/**
- * NEW DEBUG API:
+/****************************************************************************
+ * File: csp_debug.h
+ * Description: NEW DEBUG API
  *
  * Based on counters, and error numbers.
  * This gets rid of a lot of verbose debugging strings while
@@ -19,7 +11,16 @@ extern "C" {
  *   2) Having accurate error counters is NOT a priority. They are only there for debugging purposes.
  *   3) Not all compilers have support for <stdatomic.h> yet.
  *
- */
+ ****************************************************************************/
+#pragma once
+
+#include "csp/autoconfig.h"
+#include <inttypes.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 /** Error counters */
 extern uint8_t csp_dbg_buffer_out;

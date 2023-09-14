@@ -1,12 +1,10 @@
+/****************************************************************************
+ * File: eth_linux.h
+ * Description: Posix ETH driver
+ * Using this driver require user elevation.
+ * Guideline for doung this is given at run-time
+ ****************************************************************************/
 #pragma once
-
-/**
-   @file
-
-   Posix ETH driver
-
-   Using this driver require user elevation. Guideline for doung this is given at run-time
-*/
 
 #include <csp/interfaces/csp_if_eth.h>
 
