@@ -146,7 +146,7 @@ static void print_usage(void)
 #if (CSP_HAVE_LIBZMQ)
 			  " -z <zmq-device>  add ZMQ device, e.g. \"localhost\"\n"
 #endif
-#if (CSP_HAVE_RTABLE)
+#if (CSP_USE_RTABLE)
 			  " -R <rtable>      set routing table\n"
 #endif
 			  " -t               enable test mode\n"
@@ -164,7 +164,7 @@ int main(int argc, char * argv[]) {
 #if (CSP_HAVE_LIBZMQ)
     const char * zmq_device = NULL;
 #endif
-#if (CSP_HAVE_RTABLE)
+#if (CSP_USE_RTABLE)
     const char * rtable = NULL;
 #endif
     int opt;
@@ -192,7 +192,7 @@ int main(int argc, char * argv[]) {
             case 't':
                 test_mode = true;
                 break;
-#if (CSP_HAVE_RTABLE)
+#if (CSP_USE_RTABLE)
             case 'R':
                 rtable = optarg;
                 break;
@@ -251,7 +251,7 @@ int main(int argc, char * argv[]) {
     }
 #endif
 
-#if (CSP_HAVE_RTABLE)
+#if (CSP_USE_RTABLE)
     if (rtable) {
         int error = csp_rtable_load(rtable);
         if (error < 1) {
@@ -275,7 +275,7 @@ server_address = address;
     csp_print("Interfaces\r\n");
     csp_iflist_print();
 
-#if (CSP_HAVE_RTABLE)
+#if (CSP_USE_RTABLE)
     csp_print("Route table\r\n");
     csp_rtable_print();
 #endif
