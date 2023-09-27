@@ -231,6 +231,7 @@ int main(int argc, char * argv[]) {
             csp_print("failed to add KISS interface [%s], error: %d\n", kiss_device, error);
             exit(1);
         }
+        default_iface->is_default = 1;
     }
 #if (CSP_HAVE_LIBSOCKETCAN)
     if (can_device) {
@@ -239,6 +240,7 @@ int main(int argc, char * argv[]) {
             csp_print("failed to add CAN interface [%s], error: %d\n", can_device, error);
             exit(1);
         }
+        default_iface->is_default = 1;
     }
 #endif
 #if (CSP_HAVE_LIBZMQ)
@@ -248,6 +250,7 @@ int main(int argc, char * argv[]) {
             csp_print("failed to add ZMQ interface [%s], error: %d\n", zmq_device, error);
             exit(1);
         }
+        default_iface->is_default = 1;
     }
 #endif
 
