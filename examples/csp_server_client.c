@@ -139,10 +139,16 @@ static void print_usage(void)
 	csp_print("Usage:\n"
 			  " -a <address>     local CSP address\n"
 			  " -r <address>     run client against server address\n"
+#if (CSP_HAVE_LIBSOCKETCAN)
 			  " -c <can-device>  add CAN device\n"
+#endif
 			  " -k <kiss-device> add KISS device (serial)\n"
+#if (CSP_HAVE_LIBZMQ)
 			  " -z <zmq-device>  add ZMQ device, e.g. \"localhost\"\n"
+#endif
+#if (CSP_HAVE_RTABLE)
 			  " -R <rtable>      set routing table\n"
+#endif
 			  " -t               enable test mode\n"
 			  " -h               print help\n");
 }
