@@ -190,11 +190,11 @@ int main(int argc, char * argv[]) {
             case 'R':
                 rtable = optarg;
                 break;
+#endif
             case 'h':
 				print_usage();
 				exit(0);
                 break;
-#endif
             default:
 				print_usage();
                 exit(1);
