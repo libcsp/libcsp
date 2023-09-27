@@ -33,6 +33,7 @@ option(CSP_USE_RDP "Reliable Datagram Protocol" ON)
 option(CSP_USE_HMAC "Hash-based message authentication code" ON)
 option(CSP_USE_PROMISC "Promiscious mode" ON)
 option(CSP_USE_DEDUP "Packet deduplication" ON)
+option(CSP_HAVE_RTABLE "Use routing table" OFF)
 
 option(CSP_ENABLE_PYTHON3_BINDINGS "Build Python3 binding" OFF)
 
