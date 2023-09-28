@@ -1,3 +1,7 @@
+/****************************************************************************
+ * File: csp_iflist.h
+ * Description: Interfaces management
+ ****************************************************************************/
 #pragma once
 
 #include <csp/csp_interface.h>
@@ -7,17 +11,22 @@ extern "C" {
 #endif
 
 /**
-   Add interface to the list.
-
-   @param[in] iface interface. The interface must remain valid as long as the application is running.
-   @return #CSP_ERR_NONE on success, otherwise an error code.
-*/
+ * Add interface to the list.
+ *
+ * Parameters:
+ *	face (csp_iface_t *) [in]: interface. The interface must remain valid as long
+ *							   as the application is running.
+ *
+ * Returns
+ *	int: #CSP_ERR_NONE on success, otherwise an error code.
+ */
 int csp_iflist_add(csp_iface_t * iface);
 
 /**
- * @brief Remove interface from the list.
+ * Remove interface from the list.
  *
- * @param[in] ifc Interface to remove. NULL will be gracefully handled.
+ * Parameters:
+ *	ifc (csp_iface_t *) [in]: Interface to remove. NULL will be gracefully handled.
  */
 void csp_iflist_remove(csp_iface_t * ifc);
 
@@ -30,10 +39,15 @@ int csp_iflist_is_within_subnet(uint16_t addr, csp_iface_t * ifc);
 
 csp_iface_t * csp_iflist_get(void);
 
-/* Convert bytes to readable string */
+/**
+ *  Convert bytes to readable string
+ */
 unsigned long csp_bytesize(unsigned long bytes, char *postfix);
 
-/* Runs over the list of interfaces, and if no default interface is found set default on ALL interfaces */
+/**
+ * Runs over the list of interfaces, and if no default interface is found
+ * set default on ALL interfaces
+ */
 void csp_iflist_check_dfl(void);
 
 #if (CSP_ENABLE_CSP_PRINT)
