@@ -263,13 +263,12 @@ int main(int argc, char * argv[]) {
         }
     } else if (default_iface) {
         csp_rtable_set(0, 0, default_iface, CSP_NO_VIA_ADDRESS);
-    } else {
+    }
+#endif
+    if (!default_iface) {
         /* no interfaces configured - run server and client in process, using loopback interface */
         server_address = address;
     }
-#else
-server_address = address;
-#endif
 
     csp_print("Connection table\r\n");
     csp_conn_print_table();
