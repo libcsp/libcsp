@@ -1,5 +1,9 @@
 # The Protocol Stack
 
+```{contents}
+:depth: 3
+```
+
 The CSP protocol stack includes functionality on all layers of the
 TCP/IP model:
 

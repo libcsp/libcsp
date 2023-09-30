@@ -1,5 +1,4 @@
-Outgoing Packet Flow
-====================
+# Outgoing Packet Flow
 
 ```
 csp_send()

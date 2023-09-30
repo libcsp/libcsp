@@ -1,7 +1,6 @@
 # Client and server example
 
-The example in
-`example/csp_server_client.c` provides a
+The example in `examples/csp_server_client.c` provides a
 simple server/client setup, where the client sends a request to the
 server and receives a reply. The code can be compiled to an executable
 using `./examples/buildall.py`.
