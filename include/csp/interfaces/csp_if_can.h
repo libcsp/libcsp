@@ -1,30 +1,30 @@
+/****************************************************************************
+ * **File:** interfaces/csp_if_can.h
+ *
+ * **Description:** CAN interface
+ *
+ * CAN frames contains at most 8 bytes of data, so in order to transmit CSP
+ * packets larger than this, a fragmentation protocol is required.
+ * The CAN Fragmentation Protocol (CFP) is based on CAN2.0B, using all 29 bits
+ * of the identifier. The CAN identifier is divided into these fields:
+ *
+ * - Source:       5 bits
+ * - Destination:  5 bits
+ * - Type:         1 bit
+ * - Remain:       8 bits
+ * - Identifier:   10 bits
+ *
+ * The Source and Destination fields must match the source and destiantion addressses
+ * in the CSP packet. The Type field is used to distinguish the first and subsequent
+ * frames in a fragmented CSP packet. Type is BEGIN (0) for the first fragment and
+ * MORE (1) for all other fragments. The Remain field indicates number of remaining
+ * fragments, and must be decremented by one for each fragment sent. The identifier
+ * field serves the same purpose as in the Internet Protocol, and should be an auto
+ * incrementing integer to uniquely separate sessions.
+ *
+ * Other CAN communication using a standard 11 bit identifier, can co-exist on the wire.
+ ****************************************************************************/
 #pragma once
-
-/**
-   @file
-
-   CAN interface.
-
-   CAN frames contains at most 8 bytes of data, so in order to transmit CSP
-   packets larger than this, a fragmentation protocol is required.
-   The CAN Fragmentation Protocol (CFP) is based on CAN2.0B, using all 29 bits of the
-   identifier. The CAN identifier is divided into these fields:
-
-   - Source:       5 bits
-   - Destination:  5 bits
-   - Type:         1 bit
-   - Remain:       8 bits
-   - Identifier:   10 bits
-
-   The \b Source and \b Destination fields must match the source and destiantion addressses in the CSP packet.
-   The \b Type field is used to distinguish the first and subsequent frames in a fragmented CSP
-   packet. Type is BEGIN (0) for the first fragment and MORE (1) for all other fragments.
-   The \b Remain field indicates number of remaining fragments, and must be decremented by one for each fragment sent.
-   The \b identifier field serves the same purpose as in the Internet Protocol, and should be an auto incrementing
-   integer to uniquely separate sessions.
-
-   Other CAN communication using a standard 11 bit identifier, can co-exist on the wire.
-*/
 
 #include <csp/csp_interface.h>
 
@@ -39,7 +39,7 @@ extern "C" {
 */
 /** Host - source/destination address. */
 #define CFP_HOST_SIZE		5
-/** Type - \a begin fragment or \a more fragments. */
+/** Type - begin fragment or more fragments. */
 #define CFP_TYPE_SIZE		1
 /** Remaining fragments */
 #define CFP_REMAIN_SIZE		8
@@ -85,8 +85,8 @@ extern "C" {
 
 /** Mask to uniquely separate connections */
 #define CFP_ID_CONN_MASK   (CFP_MAKE_SRC((uint32_t)(1 << CFP_HOST_SIZE) - 1) | \
-             CFP_MAKE_DST((uint32_t)(1 << CFP_HOST_SIZE) - 1) | \
-             CFP_MAKE_ID((uint32_t)(1 << CFP_ID_SIZE) - 1))
+			 CFP_MAKE_DST((uint32_t)(1 << CFP_HOST_SIZE) - 1) | \
+			 CFP_MAKE_ID((uint32_t)(1 << CFP_ID_SIZE) - 1))
 
 
 /**
@@ -142,70 +142,86 @@ extern "C" {
  * Fields used to uniquely define a CSP packet within each fragment header
  */
 #define CFP2_ID_CONN_MASK ((CFP2_DST_MASK << CFP2_DST_OFFSET) | \
-                           (CFP2_SENDER_MASK << CFP2_SENDER_OFFSET) | \
-                     (CFP2_PRIO_MASK << CFP2_PRIO_OFFSET) | \
-                           (CFP2_SC_MASK << CFP2_SC_OFFSET))
+						   (CFP2_SENDER_MASK << CFP2_SENDER_OFFSET) | \
+					 (CFP2_PRIO_MASK << CFP2_PRIO_OFFSET) | \
+						   (CFP2_SC_MASK << CFP2_SC_OFFSET))
 
 
 /**
-   Default interface name.
-*/
+ * Default interface name.
+ */
 #define CSP_IF_CAN_DEFAULT_NAME "CAN"
 
 /**
-   Send CAN frame (implemented by driver).
-
-   Used by csp_can_tx() to send CAN frames.
-
-   @param[in] driver_data driver data from #csp_iface_t
-   @param[in] id CAM message id.
-   @param[in] data CAN data
-   @param[in] dlc data length of \a data.
-   @return #CSP_ERR_NONE on success, otherwise an error code.
-*/
+ * Send CAN frame (implemented by driver).
+ *
+ * Used by csp_can_tx() to send CAN frames.
+ *
+ * Parameters:
+ *	driver_data (void *) [in]: driver data from #csp_iface_t
+ *	id (uint32_t) [in]: CAM message id.
+ *	data (const uint8_t *) [in]: CAN data
+ *	dlc (uint8_t) [in]: data length of \a data.
+ *
+ * Returns:
+ *	int: #CSP_ERR_NONE on success, otherwise an error code.
+ */
 typedef int (*csp_can_driver_tx_t)(void * driver_data, uint32_t id, const uint8_t * data, uint8_t dlc);
 
 /**
-   Interface data (state information).
-*/
+ * Interface data (state information).
+ */
 typedef struct {
-    /** CFP Identification number - same number on all fragments from same CSP packet. */
-    uint32_t cfp_packet_counter;
-    /** Tx function */
-    csp_can_driver_tx_t tx_func;
-    /** PBUF queue */
-    csp_packet_t * pbufs;
+	uint32_t cfp_packet_counter; /**< CFP Identification number - same number on all fragments from same CSP packet. */
+	csp_can_driver_tx_t tx_func; /**< Tx function */
+	csp_packet_t * pbufs; /**< PBUF queue */
 } csp_can_interface_data_t;
 
 /**
-   Add interface.
-
-   @param[in] iface CSP interface, initialized with name and inteface_data pointing to a valid #csp_can_interface_data_t structure.
-   @return #CSP_ERR_NONE on success, otherwise an error code.
+ * Add interface.
+ *
+ * Parameters:
+ *	iface (csp_iface_t *) [in]: CSP interface, initialized with name and inteface_data
+ * 								pointing to a valid #csp_can_interface_data_t structure.
+ *
+ * Returns:
+ *	int: #CSP_ERR_NONE on success, otherwise an error code.
 */
 int csp_can_add_interface(csp_iface_t * iface);
 
 /**
-   Send CSP packet over CAN (nexthop).
-
-   This function will split the CSP packet into several fragments and call csp_can_tx_fram() for sending each fragment.
-   @return #CSP_ERR_NONE on success, otherwise an error code.
-*/
+ * Send CSP packet over CAN (nexthop).
+ *
+ * This function will split the CSP packet into several fragments and call
+ * csp_can_tx_fram() for sending each fragment.
+ *
+ * Parameters:
+ *	iface (csp_iface_t *) [in]: CSP interface
+ *	via (uint16_t) [in]:
+ *	packet (csp_packet_t *) [in]: CSP packet
+ *
+ * Returns:
+ *	int: #CSP_ERR_NONE on success, otherwise an error code.
+ */
 int csp_can_tx(csp_iface_t * iface, uint16_t via, csp_packet_t *packet);
 
 /**
-   Process received CAN frame.
-
-   Called from driver when a single CAN frame (up to 8 bytes) has been received. The function will gather the fragments into a single
-   CSP packet and route it on when complete.
-
-   @param[in] iface incoming interface.
-   @param[in] id received CAN message identifier.
-   @param[in] data received CAN data.
-   @param[in] dlc length of received \a data.
-   @param[out] pxTaskWoken Valid reference if called from ISR, otherwise NULL!
-   @return #CSP_ERR_NONE on success, otherwise an error code.
-*/
+ * Process received CAN frame.
+ *
+ * Called from driver when a single CAN frame (up to 8 bytes) has been received.
+ * The function will gather the fragments into a single
+ * CSP packet and route it on when complete.
+ *
+ * Parameters:
+ *	iface (csp_iface_t *) [in]: incoming interface.
+ *	id (uint32_t) [in]: received CAN message identifier.
+ *	data (const uint8_t *) [in]: received CAN data.
+ *	dlc (uint8_t) [in]: length of received \a data.
+ *	pxTaskWoken (int *) [out]: Valid reference if called from ISR, otherwise NULL!
+ *
+ * Returns:
+ *	int: #CSP_ERR_NONE on success, otherwise an error code.
+ */
 int csp_can_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t dlc, int *pxTaskWoken);
 
 #ifdef __cplusplus

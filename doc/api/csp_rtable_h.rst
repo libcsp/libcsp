@@ -1,7 +1,7 @@
 Routing table
 =============
 
-**File:** csp_rtable.h
+.. autocmodule:: csp_rtable.h
 
 Interface Functions
 -------------------

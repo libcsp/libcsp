@@ -1,9 +1,10 @@
 /*****************************************************************************
- * File:
- * Description: Simple Fragmentation Protocol (SFP).
+ * **File:** csp_sfp.h
  *
- *  The SFP API can transfer a blob of data across an established CSP connection,
- *  by chopping the data into smaller chuncks of data, that can fit into a single CSP message.
+ * **Description:** Simple Fragmentation Protocol (SFP).
+ *
+ * The SFP API can transfer a blob of data across an established CSP connection,
+ * by chopping the data into smaller chuncks of data, that can fit into a single CSP message.
  *
  * SFP will add a small header to each packet, containing information about the transfer.
  * SFP is usually sent over a RDP connection (which also adds a header),

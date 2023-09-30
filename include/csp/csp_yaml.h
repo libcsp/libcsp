@@ -1,3 +1,8 @@
+/*****************************************************************************
+ * **File:** csp_yaml.h
+ *
+ * **Description:** Configure CSP stack from YAML configuration file
+ ****************************************************************************/
 #pragma once
 
 #ifdef __cplusplus

@@ -1,6 +1,7 @@
 /****************************************************************************
- * File: csp_iflist.h
- * Description: Interfaces management
+ * **File:** csp_iflist.h
+ *
+ * **Description:** Interfaces management
  ****************************************************************************/
 #pragma once
 

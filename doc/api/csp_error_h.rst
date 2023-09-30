@@ -1,7 +1,7 @@
 Error Codes
 ===========
 
-**File:** csp_error.h
+.. autocmodule:: csp_error.h
 
 .. autocmacro:: csp_error.h::CSP_ERR_NONE
 .. autocmacro:: csp_error.h::CSP_ERR_NOMEM

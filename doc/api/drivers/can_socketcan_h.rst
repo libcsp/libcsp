@@ -1,7 +1,7 @@
 Socket CAN driver (Linux)
 =========================
 
-**File:** drivers/can_socketcan.h
+.. autocmodule:: drivers/can_socketcan.h
 
 Interface Functions
 -------------------

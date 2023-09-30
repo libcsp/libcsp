@@ -1,7 +1,7 @@
 CSP Interface
 =============
 
-**File:** csp_interface.h
+.. autocmodule:: csp_interface.h
 
 .. contents::
     :depth: 3

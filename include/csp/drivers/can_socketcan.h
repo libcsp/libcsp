@@ -1,7 +1,9 @@
 /****************************************************************************
- * File: csp_socketcan.h
- * Description: Socket CAN driver (Linux).
- * This driver requires the libsocketcan library.
+ * **File:** drivers/csp_socketcan.h
+ *
+ * **Description:** Socket CAN driver (Linux).
+ *
+ * .. note:: This driver requires the libsocketcan library.
  ****************************************************************************/
 #pragma once
 

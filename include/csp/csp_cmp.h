@@ -1,6 +1,7 @@
 /*****************************************************************************
- * File: csp_cmp.h
- * Description: CSP Management Protocol (CMP).
+ * **File:** csp_cmp.h
+ *
+ * **Description:** CSP Management Protocol (CMP).
  ****************************************************************************/
 #pragma once
 

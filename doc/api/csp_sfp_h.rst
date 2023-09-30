@@ -1,7 +1,7 @@
 Small Fragmentation Protocol (SFP)
 ==================================
 
-**File:** csp_sfp.h
+.. autocmodule:: csp_sfp.h
 
 Interface Functions
 -------------------

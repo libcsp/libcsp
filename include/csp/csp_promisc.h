@@ -1,9 +1,9 @@
 /****************************************************************************
- * File: csp_promisc.h
- * Description: Promiscuous packet queue
+ * **File:** csp_promisc.h
  *
- * This function is used to enable promiscuous mode for incoming packets, e.g. router, bridge.
- * If enabled, a copy of all incoming packets are cloned (using csp_buffer_clone()) and placed in a
+ * **Description:** Promiscuous packet queue. This feature is used to enable
+ * promiscuous mode for incoming packets, e.g. router, bridge. If enabled, a copy
+ * of all incoming packets are cloned (using csp_buffer_clone()) and placed in a
  * FIFO queue, that can be read using csp_promisc_read().
  ****************************************************************************/
 #pragma once

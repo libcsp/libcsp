@@ -1,7 +1,7 @@
 CRC32 Support
 =============
 
-**File:** csp_crc32.h
+.. autocmodule:: csp_crc32.h
 
 Interface Functions
 -------------------
