@@ -1,7 +1,7 @@
 CSP Library Header
 ==================
 
-**File:** csp.h
+.. autocmodule:: csp.h
 
 .. contents::
     :depth: 3

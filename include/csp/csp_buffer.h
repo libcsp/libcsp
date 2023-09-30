@@ -1,6 +1,7 @@
 /****************************************************************************
- * File: csp_buffer.h
- * Description: Message buffer.
+ * **File:** csp_buffer.h
+ *
+ * **Description:** Message buffer.
  ****************************************************************************/
 #pragma once
 

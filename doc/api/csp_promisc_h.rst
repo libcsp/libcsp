@@ -1,7 +1,7 @@
 Promiscuous packet queue
 ========================
 
-**File:** csp_promisc.h
+.. autocmodule:: csp_promisc.h
 
 Interface Functions
 -------------------

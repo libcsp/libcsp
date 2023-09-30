@@ -1,7 +1,7 @@
 Interfaces management
 =====================
 
-**File:** csp_iflist.h
+.. autocmodule:: csp_iflist.h
 
 Interface Functions
 -------------------

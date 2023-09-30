@@ -1,6 +1,7 @@
 /****************************************************************************
- * File: csp_interface.h
- * Description: CSP Interface
+ * **File:** csp_interface.h
+ *
+ * **Description:** CSP Interface
  ****************************************************************************/
 #pragma once
 

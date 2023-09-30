@@ -1,10 +1,11 @@
 /****************************************************************************
- * File: csp_rtable.h
- * Description: Routing table
- * The routing table maps a CSP destination address to an interface (and optional a via address).
+ * **File:** csp_rtable.h
  *
- * Normal routing: If the route's via address is set to #CSP_NO_VIA_ADDRESS, the packet will be sent directly to the destination address
- * specified in the CSP header, otherwise the packet will be sent the to the route's via address.
+ * **Description:** Routing table. The routing table maps a CSP destination address
+ * to an interface (and optional a via address). Normal routing: If the route's
+ * via address is set to #CSP_NO_VIA_ADDRESS, the packet will be sent directly to
+ * the destination address specified in the CSP header, otherwise the packet
+ * will be sent the to the route's via address.
  ****************************************************************************/
 #pragma once
 

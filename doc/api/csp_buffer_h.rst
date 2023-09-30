@@ -1,7 +1,7 @@
 CSP Buffer
 ==========
 
-**File:** csp_buffer.h
+.. autocmodule:: csp_buffer.h
 
 Interface Functions
 -------------------

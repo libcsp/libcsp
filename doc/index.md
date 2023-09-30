@@ -41,6 +41,9 @@ api/csp_crc32_h
 api/csp_hooks_h
 api/csp_yaml_h
 api/drivers/drivers
+api/crypto/crypto
+api/interfaces/interfaces
+api/arch/arch
 ```
 
 ```{toctree}

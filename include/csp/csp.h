@@ -1,6 +1,7 @@
 /*****************************************************************************
- * File: csp.h
- * Description: CSP Library Header File
+ * **File:** csp.h
+ *
+ * **Description:** CSP Library Header File
  ****************************************************************************/
 #pragma once
 

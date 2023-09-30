@@ -1,5 +1,5 @@
-csp_debug.h
-===========
+CSP Debug
+=========
 
 .. autocmodule:: csp_debug.h
     :members:

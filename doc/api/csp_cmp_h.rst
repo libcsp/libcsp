@@ -1,7 +1,7 @@
 CSP Management Protocol (CMP)
 =============================
 
-**File:** csp_cmp.h
+.. autocmodule:: csp_cmp.h
 
 .. contents::
     :depth: 3
