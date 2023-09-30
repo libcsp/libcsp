@@ -5,3 +5,5 @@ sphinx_c_autodoc
 sphinxcontrib-apidoc
 sphinx-rtd-theme
 sphinx_design
+sphinx_git
+sphinx_copybutton
