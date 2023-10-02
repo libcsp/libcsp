@@ -30,4 +30,9 @@ config APP_LINK_WITH_LIBCSP
 	help
 	  Add libcsp header files to the 'app' include path.
 
+config CSP_USE_RTABLE
+	bool "Use CSP static routing table"
+	help
+	  This option enables to use the CSP static routing table
+
 endif # LIBCSP

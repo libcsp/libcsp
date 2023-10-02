@@ -9,6 +9,10 @@ if(CONFIG_LIBCSP)
   # predefine it
   set(HAVE_SYS_SOCKET_H OFF)
 
+  if(CONFIG_CSP_USE_RTABLE)
+    set(CSP_USE_RTABLE ON)
+  endif()
+
   add_subdirectory(../.. build)
 
   zephyr_interface_library_named(libcsp)

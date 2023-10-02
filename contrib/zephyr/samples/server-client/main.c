@@ -162,17 +162,22 @@ void main(void) {
 			csp_print("failed to add KISS interface [%s], error: %d\n", kiss_device, error);
 			exit(1);
 		}
+		default_iface->is_default = 1;
 	}
 
-	if (rtable) {
-		int error = csp_rtable_load(rtable);
-		if (error < 1) {
-			csp_print("csp_rtable_load(%s) failed, error: %d\n", rtable, error);
-			exit(1);
+	if (IS_ENABLED(CONFIG_CSP_USE_RTABLE)) {
+		if (rtable) {
+			int error = csp_rtable_load(rtable);
+			if (error < 1) {
+				csp_print("csp_rtable_load(%s) failed, error: %d\n", rtable, error);
+				exit(1);
+			}
+		} else if (default_iface) {
+			csp_rtable_set(0, 0, default_iface, CSP_NO_VIA_ADDRESS);
 		}
-	} else if (default_iface) {
-		csp_rtable_set(0, 0, default_iface, CSP_NO_VIA_ADDRESS);
-	} else {
+	}
+
+	if (!default_iface) {
 		/* no interfaces configured - run server and client in process, using loopback interface */
 		server_address = address;
 	}
@@ -183,8 +188,10 @@ void main(void) {
 	csp_print("Interfaces\r\n");
 	csp_iflist_print();
 
-	csp_print("Route table\r\n");
-	csp_rtable_print();
+	if (IS_ENABLED(CONFIG_CSP_USE_RTABLE)) {
+		csp_print("Route table\r\n");
+		csp_rtable_print();
+	}
 
 	/* Start server thread */
 	if ((server_address == 255) ||	/* no server address specified, I must be server */
