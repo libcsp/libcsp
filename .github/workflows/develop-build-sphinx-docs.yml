@@ -19,12 +19,9 @@ jobs:
           pip3 install -r requirements.txt
 
       - name: Build
-        working-directory: ./doc
         run: |
-          mkdir build
-          cd build
-          cmake ..
-          make
+          cmake -B build-docs -S doc
+          cmake --build build-docs
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
@@ -32,5 +29,5 @@ jobs:
         with:
           publish_branch: gh-pages
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./build-docs
+          publish_dir: ./build-docs/html
           force_orphan: true
