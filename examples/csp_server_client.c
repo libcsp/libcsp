@@ -22,6 +22,8 @@ static uint8_t server_address = 255;
 
 /* test mode, used for verifying that host & client can exchange packets over the loopback interface */
 static bool test_mode = false;
+static bool server_mode = false;
+static bool client_mode = false;
 static unsigned int server_received = 0;
 
 /* Server task - handles requests from clients */
@@ -79,7 +81,7 @@ void server(void) {
 /* Client task sending requests to server task */
 void client(void) {
 
-	csp_print("Client task started");
+	csp_print("Client task started\n");
 
 	unsigned int count = 'A';
 
@@ -150,7 +152,9 @@ static void print_usage(void)
 			  " -R <rtable>      set routing table\n"
 #endif
 			  " -t               enable test mode\n"
-			  " -h               print help\n");
+			  " -h               print help\n"
+			  " -s               enable server mode\n"
+			  " -l               enable client mode\n");
 }
 
 /* main - initialization of CSP and start of server/client tasks */
@@ -168,7 +172,7 @@ int main(int argc, char * argv[]) {
     const char * rtable = NULL;
 #endif
     int opt;
-    while ((opt = getopt(argc, argv, "a:r:c:k:z:tR:h")) != -1) {
+    while ((opt = getopt(argc, argv, "a:r:c:k:z:tR:sR:lR:h")) != -1) {
         switch (opt) {
             case 'a':
                 address = atoi(optarg);
@@ -192,6 +196,12 @@ int main(int argc, char * argv[]) {
             case 't':
                 test_mode = true;
                 break;
+            case 's':
+                server_mode = true;
+                break;
+            case 'l':
+                client_mode = true;
+                break;
 #if (CSP_USE_RTABLE)
             case 'R':
                 rtable = optarg;
@@ -208,7 +218,7 @@ int main(int argc, char * argv[]) {
         }
     }
 
-    csp_print("Initialising CSP");
+    csp_print("Initialising CSP\n");
 
     /* Init CSP */
     csp_init();
@@ -245,7 +255,7 @@ int main(int argc, char * argv[]) {
 #endif
 #if (CSP_HAVE_LIBZMQ)
     if (zmq_device) {
-        int error = csp_zmqhub_init(0, zmq_device, 0, &default_iface);
+        int error = csp_zmqhub_init(address, zmq_device, 0, &default_iface);
         if (error != CSP_ERR_NONE) {
             csp_print("failed to add ZMQ interface [%s], error: %d\n", zmq_device, error);
             exit(1);
@@ -283,13 +293,13 @@ int main(int argc, char * argv[]) {
 #endif
 
     /* Start server thread */
-    if ((server_address == 255) ||  /* no server address specified, I must be server */
+    if ((server_mode) ||  /* server mode specified, I must be server */
         (default_iface == NULL)) {  /* no interfaces specified -> run server & client via loopback */
         server_start();
     }
 
     /* Start client thread */
-    if ((server_address != 255) ||  /* server address specified, I must be client */
+    if ((client_mode) ||  /* client mode specified, I must be client */
         (default_iface == NULL)) {  /* no interfaces specified -> run server & client via loopback */
         client_start();
     }
