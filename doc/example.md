@@ -6,12 +6,12 @@ simple server/client setup, where the client sends a request to the
 server and receives a reply. The code can be compiled to an executable
 using `./examples/buildall.py`.
 
-The example supports the drivers and interfaces in CSP:
+The example supports these drivers and interfaces in CSP:
 
   - ZMQHUB: `-z <host name|ip>`
 
     Requires no extra hardware, as it uses standard network. The
-    zmqproxy will need to be started.
+    `zmqproxy` will need to be started.
 
   - CAN: `-c <can device>`
 
@@ -34,35 +34,92 @@ The example supports the drivers and interfaces in CSP:
 
 ## Running the example
 
-If the example is started without any interfaces, it will use the
+If the example is started without any interfaces or additional configuration, it will use the
 loopback interface for communication between client and server:
 
-    ubuntu-18:~/libcsp$ ./build/csp_server_client
-    1586816581.410181 Initialising CSP
+    root@b21b36a935b5:/libcsp# ./build/example/csp_server_client
+    Initialising CSP
     Connection table
-    [00 0x55a00f7adee0] S:0, 0 -> 0, 0 -> 0, sock: (nil)
-    [01 0x55a00f7adf68] S:0, 0 -> 0, 0 -> 0, sock: (nil)
-    [02 0x55a00f7adff0] S:0, 0 -> 0, 0 -> 0, sock: (nil)
-    [03 0x55a00f7ae078] S:0, 0 -> 0, 0 -> 0, sock: (nil)
-    [04 0x55a00f7ae100] S:0, 0 -> 0, 0 -> 0, sock: (nil)
-    [05 0x55a00f7ae188] S:0, 0 -> 0, 0 -> 0, sock: (nil)
-    [06 0x55a00f7ae210] S:0, 0 -> 0, 0 -> 0, sock: (nil)
-    [07 0x55a00f7ae298] S:0, 0 -> 0, 0 -> 0, sock: (nil)
-    [08 0x55a00f7ae320] S:0, 0 -> 0, 0 -> 0, sock: (nil)
-    [09 0x55a00f7ae3a8] S:0, 0 -> 0, 0 -> 0, sock: (nil)
+    [00 0x7fbd8f574080] S:0, 0 -> 0, 0 -> 0 (17) fl 0
+    [01 0x7fbd8f574198] S:0, 0 -> 0, 0 -> 0 (18) fl 0
+    [02 0x7fbd8f5742b0] S:0, 0 -> 0, 0 -> 0 (19) fl 0
+    [03 0x7fbd8f5743c8] S:0, 0 -> 0, 0 -> 0 (20) fl 0
+    [04 0x7fbd8f5744e0] S:0, 0 -> 0, 0 -> 0 (21) fl 0
+    [05 0x7fbd8f5745f8] S:0, 0 -> 0, 0 -> 0 (22) fl 0
+    [06 0x7fbd8f574710] S:0, 0 -> 0, 0 -> 0 (23) fl 0
+    [07 0x7fbd8f574828] S:0, 0 -> 0, 0 -> 0 (24) fl 0
     Interfaces
-    LOOP       tx: 00000 rx: 00000 txe: 00000 rxe: 00000
+    LOOP       addr: 0 netmask: 14 dfl: 0
+               tx: 00000 rx: 00000 txe: 00000 rxe: 00000
                drop: 00000 autherr: 00000 frame: 00000
-               txb: 0 (0.0B) rxb: 0 (0.0B)
+               txb: 0 (0B) rxb: 0 (0B) 
 
-    Route table
-    1/5 LOOP
-    0/0 LOOP
-    1586816581.410405 Server task started
-    1586816581.410453 Binding socket 0x55a00f7adf68 to port 25
-    1586816581.410543 Client task started
-    1586816582.410983 SERVICE: Ping received
-    1586816582.411135 Ping address: 1, result 0 [mS]
-    1586816582.411174 reboot system request sent to address: 1
-    1586816582.461341 csp_sys_reboot not supported - no user function set
-    1586816582.512532 Packet received on MY_SERVER_PORT: Hello World (1)
+    Client task started
+    Server task started
+    Ping address: 0, result 2 [mS]
+    reboot system request sent to address: 0
+    Packet received on MY_SERVER_PORT: Hello world A
+
+## Running the example with ZMQHUB interface
+
+To run the example with ZMQHUB interfaces, start the `zmqproxy`, client and server in three separate processes.
+
+    root@b21b36a935b5:/libcsp# ./build/examples/zmqproxy 
+    Subscriber task listening on tcp://0.0.0.0:6000
+    Publisher task listening on tcp://0.0.0.0:7000
+    Capture/logging task listening on tcp://0.0.0.0:6000
+    Packet: Src 3, Dst 2, Dport 1, Sport 18, Pri 2, Flags 0x00, Size 100
+    Packet: Src 2, Dst 3, Dport 18, Sport 1, Pri 2, Flags 0x00, Size 100
+    Packet: Src 3, Dst 2, Dport 4, Sport 19, Pri 2, Flags 0x01, Size 8
+    Packet: Src 3, Dst 2, Dport 10, Sport 20, Pri 2, Flags 0x00, Size 14
+
+    root@b21b36a935b5:/libcsp# ./build/examples/csp_server_client -z localhost -a 2 -s
+    Initialising CSP
+    Connection table
+    [00 0x7f266ec1d080] S:0, 0 -> 0, 0 -> 0 (17) fl 0
+    [01 0x7f266ec1d198] S:0, 0 -> 0, 0 -> 0 (18) fl 0
+    [02 0x7f266ec1d2b0] S:0, 0 -> 0, 0 -> 0 (19) fl 0
+    [03 0x7f266ec1d3c8] S:0, 0 -> 0, 0 -> 0 (20) fl 0
+    [04 0x7f266ec1d4e0] S:0, 0 -> 0, 0 -> 0 (21) fl 0
+    [05 0x7f266ec1d5f8] S:0, 0 -> 0, 0 -> 0 (22) fl 0
+    [06 0x7f266ec1d710] S:0, 0 -> 0, 0 -> 0 (23) fl 0
+    [07 0x7f266ec1d828] S:0, 0 -> 0, 0 -> 0 (24) fl 0
+    Interfaces
+    LOOP      addr: 0 netmask: 14 dfl: 0
+              tx: 00000 rx: 00000 txe: 00000 rxe: 00000
+              drop: 00000 autherr: 00000 frame: 00000
+              txb: 0 (0B) rxb: 0 (0B) 
+
+    ZMQHUB    addr: 2 netmask: 0 dfl: 1
+              tx: 00000 rx: 00000 txe: 00000 rxe: 00000
+              drop: 00000 autherr: 00000 frame: 00000
+              txb: 0 (0B) rxb: 0 (0B) 
+
+    Server task started
+    Packet received on MY_SERVER_PORT: Hello world A
+
+    root@b21b36a935b5:/libcsp# ./build/examples/csp_server_client -z localhost -a 3 -r 2 -l
+    Initialising CSP
+    Connection table
+    [00 0x7f471efc1080] S:0, 0 -> 0, 0 -> 0 (17) fl 0
+    [01 0x7f471efc1198] S:0, 0 -> 0, 0 -> 0 (18) fl 0
+    [02 0x7f471efc12b0] S:0, 0 -> 0, 0 -> 0 (19) fl 0
+    [03 0x7f471efc13c8] S:0, 0 -> 0, 0 -> 0 (20) fl 0
+    [04 0x7f471efc14e0] S:0, 0 -> 0, 0 -> 0 (21) fl 0
+    [05 0x7f471efc15f8] S:0, 0 -> 0, 0 -> 0 (22) fl 0
+    [06 0x7f471efc1710] S:0, 0 -> 0, 0 -> 0 (23) fl 0
+    [07 0x7f471efc1828] S:0, 0 -> 0, 0 -> 0 (24) fl 0
+    Interfaces
+    LOOP      addr: 0 netmask: 14 dfl: 0
+              tx: 00000 rx: 00000 txe: 00000 rxe: 00000
+              drop: 00000 autherr: 00000 frame: 00000
+              txb: 0 (0B) rxb: 0 (0B) 
+
+    ZMQHUB    addr: 3 netmask: 0 dfl: 1
+              tx: 00000 rx: 00000 txe: 00000 rxe: 00000
+              drop: 00000 autherr: 00000 frame: 00000
+              txb: 0 (0B) rxb: 0 (0B) 
+
+    Client task started
+    Ping address: 2, result 8 [mS]
+    reboot system request sent to address: 2
