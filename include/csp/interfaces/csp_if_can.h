@@ -157,14 +157,11 @@ extern "C" {
  *
  * Used by csp_can_tx() to send CAN frames.
  *
- * Parameters:
- *	driver_data (void *) [in]: driver data from #csp_iface_t
- *	id (uint32_t) [in]: CAM message id.
- *	data (const uint8_t *) [in]: CAN data
- *	dlc (uint8_t) [in]: data length of \a data.
- *
- * Returns:
- *	int: #CSP_ERR_NONE on success, otherwise an error code.
+ * @param[in] driver_data driver data from #csp_iface_t
+ * @param[in] id CAM message id.
+ * @param[in] data CAN data
+ * @param[in] dlc data length of \a data.
+ * @return #CSP_ERR_NONE on success, otherwise an error code.
  */
 typedef int (*csp_can_driver_tx_t)(void * driver_data, uint32_t id, const uint8_t * data, uint8_t dlc);
 
@@ -180,12 +177,9 @@ typedef struct {
 /**
  * Add interface.
  *
- * Parameters:
- *	iface (csp_iface_t *) [in]: CSP interface, initialized with name and inteface_data
+ * @param[in] iface CSP interface, initialized with name and inteface_data
  * 								pointing to a valid #csp_can_interface_data_t structure.
- *
- * Returns:
- *	int: #CSP_ERR_NONE on success, otherwise an error code.
+ * @return #CSP_ERR_NONE on success, otherwise an error code.
 */
 int csp_can_add_interface(csp_iface_t * iface);
 
@@ -195,13 +189,10 @@ int csp_can_add_interface(csp_iface_t * iface);
  * This function will split the CSP packet into several fragments and call
  * csp_can_tx_fram() for sending each fragment.
  *
- * Parameters:
- *	iface (csp_iface_t *) [in]: CSP interface
- *	via (uint16_t) [in]:
- *	packet (csp_packet_t *) [in]: CSP packet
- *
- * Returns:
- *	int: #CSP_ERR_NONE on success, otherwise an error code.
+ * @param[in] iface CSP interface
+ * @param[in] via
+ * @param[in] packet CSP packet
+ * @return #CSP_ERR_NONE on success, otherwise an error code.
  */
 int csp_can_tx(csp_iface_t * iface, uint16_t via, csp_packet_t *packet);
 
@@ -212,15 +203,12 @@ int csp_can_tx(csp_iface_t * iface, uint16_t via, csp_packet_t *packet);
  * The function will gather the fragments into a single
  * CSP packet and route it on when complete.
  *
- * Parameters:
- *	iface (csp_iface_t *) [in]: incoming interface.
- *	id (uint32_t) [in]: received CAN message identifier.
- *	data (const uint8_t *) [in]: received CAN data.
- *	dlc (uint8_t) [in]: length of received \a data.
- *	pxTaskWoken (int *) [out]: Valid reference if called from ISR, otherwise NULL!
- *
- * Returns:
- *	int: #CSP_ERR_NONE on success, otherwise an error code.
+ * @param[in] iface incoming interface.
+ * @param[in] id received CAN message identifier.
+ * @param[in] data received CAN data.
+ * @param[in] dlc length of received \a data.
+ * @param[out] pxTaskWoken Valid reference if called from ISR, otherwise NULL!
+ * @return #CSP_ERR_NONE on success, otherwise an error code.
  */
 int csp_can_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t dlc, int *pxTaskWoken);
 

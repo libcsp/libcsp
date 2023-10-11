@@ -40,30 +40,24 @@ extern "C" {
 /**
  * Format endpoint connection string for ZMQ.
  *
- * Parameters:
- *	host (const char *) [in]: host name of IP.
- *	port (uint16_t) [in]: IP port.
- *	buf (char *) [out]: user allocated buffer for receiving formatted string.
- *	buf_size (size_t) [in]: size of buf.
- *
- * Returns:
- *	int: #CSP_ERR_NONE on succcess. #CSP_ERR_NOMEM if supplied buffer too small.
+ * @param[in] host host name of IP.
+ * @param[in] port IP port.
+ * @param[out] buf user allocated buffer for receiving formatted string.
+ * @param[in] buf_size size of buf.
+ * @return #CSP_ERR_NONE on succcess. #CSP_ERR_NOMEM if supplied buffer too small.
  */
 int csp_zmqhub_make_endpoint(const char * host, uint16_t port, char * buf, size_t buf_size);
 
 /**
  * Setup ZMQ interface.
  *
- * Parameters:
- *	addr (uint16_t) [in]: only receive messages matching this address (255 means all).
- * 						  This is set as rx_filter in call to
- *	host (const char *) [in]: host name or IP of zmqproxy host. Endpoints are
- * 							  created using the host and the default subscribe/publish ports.
- *	flags (uint32_t) [in]: flags for controlling features on the connection.
- *	return_interface (csp_iface_t **) [out]: created CSP interface.
- *
- * Returns:
- *	int: #CSP_ERR_NONE on succcess - else assert.
+ * @param[in] addr only receive messages matching this address (255 means all).
+ * 			       This is set as rx_filter in call to
+ * @param[in] host host name or IP of zmqproxy host. Endpoints are
+ * 				   created using the host and the default subscribe/publish ports.
+ * @param[in] flags flags for controlling features on the connection.
+ * @param[out] return_interface created CSP interface.
+ * @return #CSP_ERR_NONE on succcess - else assert.
  */
 int csp_zmqhub_init(uint16_t addr,
 					const char * host,
@@ -73,18 +67,15 @@ int csp_zmqhub_init(uint16_t addr,
 /**
  * Setup ZMQ interface.
  *
- * Parameters:
- *	addr (uint16_t) [in]: only receive messages matching this address (255 means all).
+ * @param[in] addr only receive messages matching this address (255 means all).
  * 						  This is set as a \a rx_filter.
- *	publish_endpoint (const char *) [in]: publish (tx) endpoint -> connect to
+ * @param[in] publish_endpoint publish (tx) endpoint -> connect to
  * 										  zmqproxy's subscribe port #CSP_ZMQPROXY_SUBSCRIBE_PORT.
- *	subscribe_endpoint (const char *) [in]: subscribe (rx) endpoint -> connect
+ * @param[in] subscribe_endpoint subscribe (rx) endpoint -> connect
  * 											to zmqproxy's publish port #CSP_ZMQPROXY_PUBLISH_PORT.
- *	flags (uint32_t) [in]: flags for controlling features on the connection.
- *	return_interface (csp_iface_t **) []: created CSP interface.
- *
- * Returns:
- *	int: #CSP_ERR_NONE on succcess - else assert.
+ * @param[in] flags flags for controlling features on the connection.
+ * @param[out] return_interface created CSP interface.
+ * @return #CSP_ERR_NONE on succcess - else assert.
  */
 int csp_zmqhub_init_w_endpoints(uint16_t addr,
 								const char * publish_endpoint,
@@ -95,21 +86,18 @@ int csp_zmqhub_init_w_endpoints(uint16_t addr,
 /**
  * Setup ZMQ interface.
  *
- * Parameters:
- *	ifname (const char *) [in]: Name of CSP interface, use NULL for default
+ * @param[in] ifname Name of CSP interface, use NULL for default
  * 								name #CSP_ZMQHUB_IF_NAME.
- *	addr (uint16_t) [in]: Address assigned to the CSP interface.
+ * @param[in] addr Address assigned to the CSP interface.
  *	rx_filter (const uint16_t) [in]: Rx filters, use NULL for no filters - receive all messages.
  *	rx_filter_count (unsigned int) [in]: Number of Rx filters in \a rx_filter.
- *	publish_endpoint (const char *) [in]: publish (tx) endpoint -> connect to
+ * @param[in] publish_endpoint publish (tx) endpoint -> connect to
  * 										zmqproxy's subscribe port #CSP_ZMQPROXY_SUBSCRIBE_PORT.
- *	subscribe_endpoint (const char *) [in]: subscribe (rx) endpoint -> connect to zmqproxy's
+ * @param[in] subscribe_endpoint subscribe (rx) endpoint -> connect to zmqproxy's
  * 										publish port #CSP_ZMQPROXY_PUBLISH_PORT.
- *	flags (uint32_t) [in]: flags for controlling features on the connection.
- *	return_interface (csp_iface_t **) [out]: created CSP interface.
- *
- * Returns:
- *	int: #CSP_ERR_NONE on succcess - else assert.
+ * @param[in] flags flags for controlling features on the connection.
+ * @param[out] return_interface created CSP interface.
+ * @return #CSP_ERR_NONE on succcess - else assert.
  */
 int csp_zmqhub_init_w_name_endpoints_rxfilter(const char * ifname, uint16_t addr,
 											  const uint16_t rx_filter[], unsigned int rx_filter_count,

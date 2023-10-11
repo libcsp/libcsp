@@ -17,11 +17,8 @@ extern "C" {
 /**
  * Enable promiscuous packet queue.
  *
- * Parameters:
- *	queue_size (unsigned int) [in]: Size (max length) of queue for incoming packets.
- *
- * Returns:
- *	int: #CSP_ERR_NONE on success, otherwise an error code.
+ * @param[in]queue_size: Size (max length) of queue for incoming packets.
+ * @return #CSP_ERR_NONE on success, otherwise an error code.
  */
 int csp_promisc_enable(unsigned int queue_size);
 
@@ -35,11 +32,8 @@ void csp_promisc_disable(void);
  *
  * Returns the first packet from the promiscuous packet queue.
  *
- * Parameters:
- *	timeout (uint32_t) [in]: Timeout in ms to wait for a packet.
- *
- * Returns:
- *	csp_packet_t *: Packet (free with csp_buffer_free() or re-use packet), NULL on error or timeout.
+ * @param[in] timeout Timeout in ms to wait for a packet.
+ * @return Packet (free with csp_buffer_free() or re-use packet), NULL on error or timeout.
  */
 csp_packet_t *csp_promisc_read(uint32_t timeout);
 

@@ -25,14 +25,12 @@ extern "C" {
  * The function must free the frame/packet using csp_buffer_free(),
  * if the send succeeds (returning #CSP_ERR_NONE).
  *
- * Parameters:
- *	driver_data (void *) [in]: driver data from #csp_iface_t
- *	frame (csp_packet_t *) [in]: destination, length and data. This is actually
- * 								a #csp_packet_t buffer, casted to #csp_i2c_frame_t.
+ * @param[in] driver_data driver data from #csp_iface_t
+ * @param[in] frame destination, length and data. This is actually
+ * 			  a #csp_packet_t buffer, casted to #csp_i2c_frame_t.
  *
- * Returns:
- *	int: #CSP_ERR_NONE on success, or an error code.
-*/
+ * @return #CSP_ERR_NONE on success, or an error code.
+ */
 typedef int (*csp_i2c_driver_tx_t)(void * driver_data, csp_packet_t * frame);
 
 /**
@@ -45,19 +43,16 @@ typedef struct {
 /**
  * Add interface.
  *
- * Parameters:
- *	iface (csp_iface_t *) [in]: CSP interface, initialized with name and
+ * @param[in] iface CSP interface, initialized with name and
  * 								inteface_data pointing to a valid #csp_i2c_interface_data_t.
- * Returns:
- *	int: #CSP_ERR_NONE on success, otherwise an error code.
-*/
+ * @return #CSP_ERR_NONE on success, otherwise an error code.
+ */
 int csp_i2c_add_interface(csp_iface_t * iface);
 
 /**
  * Send CSP packet over I2C (nexthop).
  *
- * Returns:
- *	int: #CSP_ERR_NONE on success, otherwise an error code.
+ * @return #CSP_ERR_NONE on success, otherwise an error code.
  */
 int csp_i2c_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet, int from_me);
 
@@ -68,10 +63,9 @@ int csp_i2c_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet, int fro
  *
  * Called from driver, when a frame has been received.
  *
- * Parameters:
- *	iface (csp_iface_t *) [in]: incoming interface.
- *	frame (csp_packet_t *) [in]: received data, routed on as a #csp_packet_t.
- *	pxTaskWoken (void *) [out]: Valid reference if called from ISR, otherwise NULL!
+ * @param[in] iface incoming interface.
+ * @param[in] frame received data, routed on as a #csp_packet_t.
+ * @param[out] pxTaskWoken Valid reference if called from ISR, otherwise NULL!
  */
 void csp_i2c_rx(csp_iface_t * iface, csp_packet_t * frame, void * pxTaskWoken);
 

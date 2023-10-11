@@ -153,16 +153,13 @@ struct csp_cmp_message {
 /**
  * Generic send management message request.
  *
- * Parameters:
- *  node (uint16_t) [in]: address of subsystem.
- *  timeout (uint32_t) [in]: timeout in mS to wait for reply..
- *  code (uint8_t) [in]: request code.
- *  msg_size (int) [in]: size of \a msg.
- *  msg (struct csp_cmp_message *) [in,out]: data.
- *
- * Returns:
- * int: #CSP_ERR_NONE on success, otherwise an error code.
-*/
+ *	@param[in] node address of subsystem.
+ *	@param[in] timeout timeout in mS to wait for reply..
+ *	@param[in] code request code.
+ *	@param[in] msg_size size of \a msg.
+ *	@param[in,out] msg data.
+ *	@return #CSP_ERR_NONE on success, otherwise an error code
+ */
 int csp_cmp(uint16_t node, uint32_t timeout, uint8_t code, int msg_size, struct csp_cmp_message *msg);
 
 /**
@@ -182,13 +179,10 @@ CMP_MESSAGE(CSP_CMP_ROUTE_SET_V2, route_set_v2)
 /**
  * Peek (read) memory on remote node.
  *
- * Parameters:
- *	node (uint16_t) [in]: address of subsystem.
- *	timeout (uint32_t) [in]: timeout in mS to wait for reply..
- *	msg (struct csp_cmp_message *) [in/out]: memory address and number of bytes to peek. (msg peeked/read memory)
- *
- * Returns:
- * 	int: #CSP_ERR_NONE on success, otherwise an error code.
+ *	@param[in] node address of subsystem.
+ *	@param[in] timeout timeout in mS to wait for reply..
+ *	@param[in/out] msg memory address and number of bytes to peek. (msg peeked/read memory)
+ *	@return #CSP_ERR_NONE on success, otherwise an error code.
  */
 static inline int csp_cmp_peek(uint16_t node, uint32_t timeout, struct csp_cmp_message *msg) {
 	return csp_cmp(node, timeout, CSP_CMP_PEEK, CMP_SIZE(peek) - sizeof(msg->peek.data) + msg->peek.len, msg);
@@ -197,13 +191,10 @@ static inline int csp_cmp_peek(uint16_t node, uint32_t timeout, struct csp_cmp_m
 /**
  * Poke (write) memory on remote node.
  *
- * Parameters:
- *	node (uint16_t) [in]: address of subsystem.
- *	timeout (uint32_t) [in]: timeout in mS to wait for reply..
- *	msg (struct csp_cmp_message *) [in]: memory address, number of bytes and the actual bytes to poke/write.
- *
- * Returns:
- *	int: #CSP_ERR_NONE on success, otherwise an error code.
+ *	@param[in] node address of subsystem.
+ *	@param[in] timeout timeout in mS to wait for reply..
+ *	@param[in] msg memory address, number of bytes and the actual bytes to poke/write.
+ *	@return #CSP_ERR_NONE on success, otherwise an error code.
  */
 static inline int csp_cmp_poke(uint16_t node, uint32_t timeout, struct csp_cmp_message *msg) {
 	return csp_cmp(node, timeout, CSP_CMP_POKE, CMP_SIZE(poke) - sizeof(msg->poke.data) + msg->poke.len, msg);

@@ -16,14 +16,13 @@ extern "C" {
 /**
  * Interface Tx function.
  *
- * Returns:
- *	int: #CSP_ERR_NONE on success, otherwise an error code.
+ * @return #CSP_ERR_NONE on success, otherwise an error code.
  */
 typedef int (*nexthop_t)(csp_iface_t * iface, uint16_t via, csp_packet_t * packet, int from_me);
 
 /**
- *  This struct is referenced in documentation.
- *  Update doc when you change this.
+ * This struct is referenced in documentation.
+ * Update doc when you change this.
  */
 struct csp_iface_s {
 
@@ -64,10 +63,10 @@ struct csp_iface_s {
  * This function is fire and forget, it returns void, meaning that the \a packet will always be
  * either accepted or dropped, so the memory will always be freed.
  *
- * Parameters:
- *	packet (csp_packet_t *) [in]: A pointer to the incoming packet
- *	iface (csp_iface_t *) [in]: A pointer to the incoming interface TX function.
- *	pxTaskWoken (void *) [out]: Valid reference if called from ISR, otherwise NULL!
+ * @param[in] packet A pointer to the incoming packet
+ * @param[in] iface A pointer to the incoming interface TX function.
+ * @param[in] pxTaskWoken Valid reference if called from ISR, otherwise NULL!
+ *
  */
 void csp_qfifo_write(csp_packet_t * packet, csp_iface_t * iface, void * pxTaskWoken);
 

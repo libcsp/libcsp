@@ -114,7 +114,6 @@ typedef struct  __packed {
  * 			 lower layers may add additional data causing increased length (e.g. CRC32), convert
  * 			 the CSP id to different endian (e.g. I2C), etc.
  *
- *
  */
 typedef struct csp_packet_s {
 

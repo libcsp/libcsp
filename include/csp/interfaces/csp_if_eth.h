@@ -76,13 +76,13 @@ typedef struct csp_eth_header_s
 
 /**
  * Send ETH frame (implemented by driver).
-
+ *
  * Used by csp_eth_tx() to send ETH frames.
-
+ *
  * @param[in] driver_data driver data from #csp_iface_t
  * @param[in] eth_frame CSP Ethernet frame to transmit
  * @return #CSP_ERR_NONE on success, otherwise an error code.
-*/
+ */
 typedef int (*csp_eth_driver_tx_t)(void * driver_data, csp_eth_header_t * eth_frame);
 
 /**
@@ -128,8 +128,7 @@ void csp_eth_arp_get_addr(uint8_t * mac_addr, uint16_t csp_addr);
  * This function will split the CSP packet into several fragments and call
  * csp_eth_tx_frame() for sending each fragment.
  *
- * Returns:
- *  int: #CSP_ERR_NONE on success, otherwise an error code.
+ * @return #CSP_ERR_NONE on success, otherwise an error code.
  */
 int csp_eth_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet, int from_me);
 
@@ -140,13 +139,10 @@ int csp_eth_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet, int fro
  * The function will gather the fragments into a single CSP packet and route
  * it on when complete.
  *
- * Parameters:
- *	iface (csp_iface_t *) [in]: incoming interface.
- *	eth_frame (csp_eth_header_t *) [in]: received ETH data.
- *	received_len (uint32_t) [in]: received ETH data length.
- *	pxTaskWoken (task_woken) [out]: Valid reference if called from ISR, otherwise NULL!
- *
- * Returns:
- *	int: #CSP_ERR_NONE on success, otherwise an error code.
+ * @param[in] iface incoming interface.
+ * @param[in] eth_frame received ETH data.
+ * @param[in] received_len received ETH data length.
+ * @param[out] pxTaskWoken Valid reference if called from ISR, otherwise NULL!
+ * @return #CSP_ERR_NONE on success, otherwise an error code.
  */
 int csp_eth_rx(csp_iface_t * iface, csp_eth_header_t * eth_frame, uint32_t received_len, int * task_woken);
