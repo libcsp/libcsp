@@ -43,11 +43,10 @@ typedef struct csp_usart_conf {
 /**
  * Callback for returning data to application.
  *
- * Parameters:
- *	user_data (void *) [in]: User data
- *	buf (uint8_t *) [in]: data received.
- *	len (size_t) [in]: data length (number of bytes in \a buf).
- *	pxTaskWoken (void *) [out]: Valid reference if called from ISR, otherwise NULL!
+ * @param[in] user_data User data
+ * @param[in] buf data received.
+ * @param[in] len data length (number of bytes in \a buf).
+ * @param[out] pxTaskWoken Valid reference if called from ISR, otherwise NULL!
  */
 typedef void (*csp_usart_callback_t) (void * user_data, uint8_t *buf, size_t len, void *pxTaskWoken);
 
@@ -57,42 +56,34 @@ typedef void (*csp_usart_callback_t) (void * user_data, uint8_t *buf, size_t len
  *
  * .. note:: On read failure, exit() will be called - terminating the process.
  *
- * Parameters:
- *	conf (const csp_usart_conf_t *) [in]: UART configuration.
- *	rx_callback (csp_usart_callback_t) [in]: receive data callback.
- *	user_data (void *) [in]: reference forwarded to the rx_callback function.
- *	fd (csp_usart_fd_t *) [out]: the opened file descriptor.
- *
- * Returns:
- *	int: #CSP_ERR_NONE on success, otherwise an error code.
+ * @param[in] conf UART configuration.
+ * @param[in] rx_callback receive data callback.
+ * @param[in] user_data reference forwarded to the rx_callback function.
+ * @param[out] fd the opened file descriptor.
+ * @return #CSP_ERR_NONE on success, otherwise an error code.
  */
 int csp_usart_open(const csp_usart_conf_t *conf, csp_usart_callback_t rx_callback, void * user_data, csp_usart_fd_t * fd);
 
 /**
  * Write data on open UART.
  *
- * Parameters:
- *	data (const void *) [in]: Outbound data to send over the USART interface.
- *	data_length (size_t) [in]: Outbound data length.
- *
- * Returns:
- *	int: number of bytes written on success, a negative value on failure.
+ * @param[in] data Outbound data to send over the USART interface.
+ * @param[in] data_length Outbound data length.
+ * @return number of bytes written on success, a negative value on failure.
  */
 int csp_usart_write(csp_usart_fd_t fd, const void * data, size_t data_length);
 
 /**
  * Lock the device, so only a single user can write to the serial port at a time
  *
- * Parameters:
- *	driver_data (void *) [in]: Driver data
+ * @param[in] driver_data Driver data
  */
 void csp_usart_lock(void * driver_data);
 
 /**
  * Unlock the USART again
  *
- * Parameters:
- *	driver_data (void *) [in]: Driver data
+ * @param[in] driver_data Driver data
  */
 void csp_usart_unlock(void * driver_data);
 
@@ -103,13 +94,10 @@ void csp_usart_unlock(void * driver_data);
  *
  * .. note:: On read failures, exit() will be called - terminating the process.
  *
- * Parameters:
- *	conf (const csp_usart_conf_t *) [in]: UART configuration.
- *	ifname (const char *) [in]: internface name (will be copied), or use NULL for default name.
- *	return_iface (csp_iface_t **) [out]: the added interface.
- *
- * Returns:
- *	int: #CSP_ERR_NONE on success, otherwise an error code.
+ * @param[in] conf UART configuration.
+ * @param[in] ifname internface name (will be copied), or use NULL for default name.
+ * @param[out] return_iface the added interface.
+ * @return #CSP_ERR_NONE on success, otherwise an error code.
  */
 int csp_usart_open_and_add_kiss_interface(const csp_usart_conf_t *conf, const char * ifname, csp_iface_t ** return_iface);
 

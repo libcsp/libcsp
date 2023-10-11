@@ -19,13 +19,10 @@ extern "C" {
 /**
  * Send KISS frame (implemented by driver).
  *
- * Parameters:
- *	driver_data (void *) [in]: driver data from #csp_iface_t
- *	data (const uint8_t *) [in]: data to send
- *	len (size_t) [in]: length of \a data.
- *
- * Returns:
- *	int: #CSP_ERR_NONE on success, otherwise an error code.
+ * @param[in] driver_data driver data from #csp_iface_t
+ * @param[in] data data to send
+ * @param[in] len length of \a data.
+ * @return #CSP_ERR_NONE on success, otherwise an error code.
  */
 typedef int (*csp_kiss_driver_tx_t)(void *driver_data, const uint8_t * data, size_t len);
 
@@ -54,19 +51,16 @@ typedef struct {
 /**
  * Add interface.
  *
- * Parameters:
- *	iface (csp_iface_t *) [in]: CSP interface, initialized with name and
+ * @param[in] iface CSP interface, initialized with name and
  * 								inteface_data pointing to a valid #csp_kiss_interface_data_t.
- * Returns:
- *	int: #CSP_ERR_NONE on success, otherwise an error code.
+ * @return #CSP_ERR_NONE on success, otherwise an error code.
  */
 int csp_kiss_add_interface(csp_iface_t * iface);
 
 /**
  * Send CSP packet over KISS (nexthop).
  *
- * Returns:
- *	int: #CSP_ERR_NONE on success, otherwise an error code.
+ * @return #CSP_ERR_NONE on success, otherwise an error code.
  */
 int csp_kiss_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet, int from_me);
 
@@ -76,11 +70,10 @@ int csp_kiss_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet, int fr
  * Called from driver when a chunk of data has been received. Once a complete
  * frame has been received, the CSP packet will be routed on.
  *
- * Parameters:
- *	iface (csp_iface_t *) [in]: incoming interface.
- *	buf (const uint8_t *) [in]: reveived data.
- *	len (size_t) [in]: length of \a buf.
- *	pxTaskWoken (void *) [out]: Valid reference if called from ISR, otherwise NULL!
+ * @param[in] iface incoming interface.
+ * @param[in] buf reveived data.
+ * @param[in] len length of \a buf.
+ * @param[out] pxTaskWoken Valid reference if called from ISR, otherwise NULL!
  */
 void csp_kiss_rx(csp_iface_t * iface, const uint8_t * buf, size_t len, void * pxTaskWoken);
 

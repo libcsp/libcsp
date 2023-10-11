@@ -32,37 +32,33 @@ typedef struct {
 /**
  * Initialize the hash state
  *
- * Parameters:
- *	state (csp_sha1_state_t *) [in]: hash state.
+ * @param[in] state hash state.
  */
 void csp_sha1_init(csp_sha1_state_t * state);
 
 /**
  * Process a block of memory through the hash.
  *
- * Parameters:
- *	state (csp_sha1_state_t *) [in]: hash state
- *	data (const void *) [in]: data.
- *	length (uint32_t) [in]: length of data.
+ * @param[in] state hash state
+ * @param[in] data data.
+ * @param[in] length length of data.
  */
 void csp_sha1_process(csp_sha1_state_t * state, const void * data, uint32_t length);
 
 /**
  * Terminate the hash calculation and get the SHA1.
  *
- * Parameters:
- *	state (csp_sha1_state_t *) [in]: hash state
- *	sha1 (uint8_t *) [out]: user supplied buffer of minimum #CSP_SHA1_DIGESTSIZE bytes.
+ * @param[in] state hash state
+ * @param[out] sha1 user supplied buffer of minimum #CSP_SHA1_DIGESTSIZE bytes.
  */
 void csp_sha1_done(csp_sha1_state_t * state, uint8_t * sha1);
 
 /**
  * Calculate SHA1 hash of block of memory.
  *
- * Parameters:
- *	data (const void *) [in]: data.
- *	length (uint32_t) [in]: length of data.
- *	sha1 (uint8_t *) [out]: user supplied buffer of minimum #CSP_SHA1_DIGESTSIZE bytes.
+ * @param[in] data data.
+ * @param[in] length length of data.
+ * @param[out] sha1 user supplied buffer of minimum #CSP_SHA1_DIGESTSIZE bytes.
  */
 void csp_sha1_memory(const void * data, uint32_t length, uint8_t * sha1);
 

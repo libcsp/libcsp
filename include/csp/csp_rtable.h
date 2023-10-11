@@ -33,14 +33,11 @@ csp_route_t * csp_rtable_find_route(uint16_t dest_address);
 /**
  * Set route to destination address/node.
  *
- * Parameters:
- *	dest_address (uint16_t) [in]: destination address.
- *	mask (int) [in]: number of bits in netmask (set to -1 for maximum number of bits)
- *	ifc (csp_iface_t *) [in]: interface.
- *	via (uint16_t) [in]: assosicated via address.
- *
- * Returns:
- *	int: #CSP_ERR_NONE on success, or an error code.
+ * @param[in] dest_address destination address.
+ * @param[in]mask number of bits in netmask (set to -1 for maximum number of bits)
+ * @param[in] ifc interface.
+ * @param[in] via assosicated via address.
+ * @return #CSP_ERR_NONE on success, or an error code.
  */
 int csp_rtable_set(uint16_t dest_address, int netmask, csp_iface_t *ifc, uint16_t via);
 
@@ -49,12 +46,9 @@ int csp_rtable_set(uint16_t dest_address, int netmask, csp_iface_t *ifc, uint16_
  * Save routing table as a string (readable format).
  * @see csp_rtable_load() for additional information, e.g. format.
  *
- * Parameters:
- *	buffer (char *) [out]: user supplied buffer.
- * 	buffer_size (size_t) [in]: size of \a buffer.
- *
- * Returns:
- *	int: #CSP_ERR_NONE on success, or an error code.
+ * @param[out] buffer user supplied buffer.
+ * @param[in] buffer_size size of \a buffer.
+ * @return #CSP_ERR_NONE on success, or an error code.
  */
 int csp_rtable_save(char * buffer, size_t buffer_size);
 
@@ -65,22 +59,16 @@ int csp_rtable_save(char * buffer, size_t buffer_size);
  * Example: "0/0 CAN, 8 KISS, 10 I2C 10", same as "0/0 CAN, 8/5 KISS, 10/5 I2C 10".
  * @see csp_rtable_save(), csp_rtable_clear(), csp_rtable_free()
  *
- * Parameters:
- *	rtable (const char *) [in]: routing table (nul terminated)
- *
- * Returns:
- *	int: CSP_ERR or number of entries.
+ * @param[in] rtable routing table (nul terminated)
+ * @return CSP_ERR or number of entries.
  */
 int csp_rtable_load(const char * rtable);
 
 /**
  * Check string for valid routing elements.
  *
- * Parameters:
- *	rtable (const char *) [in]: routing table (nul terminated)
- *
- * Returns:
- *	int: CSP_ERR or number of entries.
+ * @param[in] rtable routing table (nul terminated)
+ * @return CSP_ERR or number of entries.
  */
 int csp_rtable_check(const char * rtable);
 

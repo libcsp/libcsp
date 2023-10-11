@@ -14,20 +14,15 @@ extern "C" {
 /**
  * Add interface to the list.
  *
- * Parameters:
- *	face (csp_iface_t *) [in]: interface. The interface must remain valid as long
- *							   as the application is running.
- *
- * Returns
- *	int: #CSP_ERR_NONE on success, otherwise an error code.
+ * @param[in] iface The interface must remain valid as long as the application is running.
+ * @return #CSP_ERR_NONE on success, otherwise an error code.
  */
 int csp_iflist_add(csp_iface_t * iface);
 
 /**
  * Remove interface from the list.
  *
- * Parameters:
- *	ifc (csp_iface_t *) [in]: Interface to remove. NULL will be gracefully handled.
+ * @param[in] ifc Interface to remove. NULL will be gracefully handled.
  */
 void csp_iflist_remove(csp_iface_t * ifc);
 
@@ -41,7 +36,7 @@ int csp_iflist_is_within_subnet(uint16_t addr, csp_iface_t * ifc);
 csp_iface_t * csp_iflist_get(void);
 
 /**
- *  Convert bytes to readable string
+ * Convert bytes to readable string
  */
 unsigned long csp_bytesize(unsigned long bytes, char *postfix);
 
