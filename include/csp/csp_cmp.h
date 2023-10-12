@@ -6,6 +6,7 @@
 #pragma once
 
 #include <csp/csp.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
