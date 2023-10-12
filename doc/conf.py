@@ -44,7 +44,7 @@ exclude_patterns = []
 
 # -- API C files -------------------------------------------------------------
 c_autodoc_roots = ['../include/csp']
-
+c_autodoc_compilation_args = ["-I./../include/"]
 
 # -- Options for HTML output -------------------------------------------------
 
