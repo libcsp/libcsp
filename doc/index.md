@@ -45,6 +45,7 @@ api/arch/arch
 :hidden:
 
 basic
+license
 history
 memory
 mtu
@@ -62,7 +63,6 @@ hooks
 codestyle
 structure
 changelog
-license
 ```
 
 ```{toctree}
