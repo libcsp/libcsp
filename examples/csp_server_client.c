@@ -18,7 +18,8 @@ int client_start(void);
 #define MY_SERVER_PORT		10
 
 /* Commandline options */
-static uint8_t server_address = 255;
+static uint8_t server_address = 0;
+static uint8_t client_address = 0;
 
 /* test mode, used for verifying that host & client can exchange packets over the loopback interface */
 static bool test_mode = false;
@@ -79,7 +80,7 @@ void server(void) {
 /* Client task sending requests to server task */
 void client(void) {
 
-	csp_print("Client task started");
+	csp_print("Client task started\n");
 
 	unsigned int count = 'A';
 
@@ -137,8 +138,6 @@ void client(void) {
 static void print_usage(void)
 {
 	csp_print("Usage:\n"
-			  " -a <address>     local CSP address\n"
-			  " -r <address>     run client against server address\n"
 #if (CSP_HAVE_LIBSOCKETCAN)
 			  " -c <can-device>  add CAN device\n"
 #endif
@@ -150,13 +149,14 @@ static void print_usage(void)
 			  " -R <rtable>      set routing table\n"
 #endif
 			  " -t               enable test mode\n"
+			  " -s               enable server mode and set the server address; if used with -l, sets the address of the server that the client should connect to\n"
+			  " -l               enable client mode and set the client address\n"
 			  " -h               print help\n");
 }
 
 /* main - initialization of CSP and start of server/client tasks */
 int main(int argc, char * argv[]) {
 
-    uint8_t address = 0;
 #if (CSP_HAVE_LIBSOCKETCAN)
     const char * can_device = NULL;
 #endif
@@ -168,14 +168,8 @@ int main(int argc, char * argv[]) {
     const char * rtable = NULL;
 #endif
     int opt;
-    while ((opt = getopt(argc, argv, "a:r:c:k:z:tR:h")) != -1) {
+    while ((opt = getopt(argc, argv, "c:k:z:R:ts:l:h")) != -1) {
         switch (opt) {
-            case 'a':
-                address = atoi(optarg);
-                break;
-            case 'r':
-                server_address = atoi(optarg);
-                break;
 #if (CSP_HAVE_LIBSOCKETCAN)
             case 'c':
                 can_device = optarg;
@@ -189,14 +183,20 @@ int main(int argc, char * argv[]) {
                 zmq_device = optarg;
                 break;
 #endif
-            case 't':
-                test_mode = true;
-                break;
 #if (CSP_USE_RTABLE)
             case 'R':
                 rtable = optarg;
                 break;
 #endif
+            case 't':
+                test_mode = true;
+                break;
+            case 's':
+                server_address = atoi(optarg);
+                break;
+            case 'l':
+                client_address = atoi(optarg);
+                break;
             case 'h':
 				print_usage();
 				exit(0);
@@ -208,7 +208,27 @@ int main(int argc, char * argv[]) {
         }
     }
 
-    csp_print("Initialising CSP");
+    /* Determine local address */
+    uint8_t address = 0;
+    char mode = 'x';
+    if (client_address && !server_address) {
+        csp_print("Error: If client mode is enabled, a server address must be specified with -s.\n");
+        print_usage();
+        exit(1);
+    } else if (!client_address && server_address) {
+        // Server mode
+        mode = 's';
+        address = server_address;
+    } else if (client_address && server_address) {
+        // Client mode
+        mode = 'c';
+        address = client_address;
+    } else {
+        // Loopback mode
+        mode = 'l';
+    }
+
+    csp_print("Initialising CSP\n");
 
     /* Init CSP */
     csp_init();
@@ -265,14 +285,9 @@ int main(int argc, char * argv[]) {
         csp_rtable_set(0, 0, default_iface, CSP_NO_VIA_ADDRESS);
     }
 #endif
-    if (!default_iface) {
-        /* no interfaces configured - run server and client in process, using loopback interface */
-        server_address = address;
-    }
 
     csp_print("Connection table\r\n");
     csp_conn_print_table();
-
 
     csp_print("Interfaces\r\n");
     csp_iflist_print();
@@ -283,14 +298,14 @@ int main(int argc, char * argv[]) {
 #endif
 
     /* Start server thread */
-    if ((server_address == 255) ||  /* no server address specified, I must be server */
-        (default_iface == NULL)) {  /* no interfaces specified -> run server & client via loopback */
+    if ((mode == 's') ||  /* server mode specified, I must be server */
+        (mode == 'l')) {  /* loopback mode -> run server & client via loopback */
         server_start();
     }
 
     /* Start client thread */
-    if ((server_address != 255) ||  /* server address specified, I must be client */
-        (default_iface == NULL)) {  /* no interfaces specified -> run server & client via loopback */
+    if ((mode == 'c') ||  /* client mode specified, I must be client */
+        (mode == 'l')) {  /* loopback mode -> run server & client via loopback */
         client_start();
     }
 
