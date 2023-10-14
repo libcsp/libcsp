@@ -1,5 +1,5 @@
 /****************************************************************************
- * **File:** csp_rtable.h
+ * **File:** csp/csp_rtable.h
  *
  * **Description:** Routing table. The routing table maps a CSP destination address
  * to an interface (and optional a via address). Normal routing: If the route's

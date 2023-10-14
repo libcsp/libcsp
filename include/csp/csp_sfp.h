@@ -1,5 +1,5 @@
 /*****************************************************************************
- * **File:** csp_sfp.h
+ * **File:** csp/csp_sfp.h
  *
  * **Description:** Simple Fragmentation Protocol (SFP).
  *

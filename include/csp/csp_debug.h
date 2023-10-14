@@ -1,5 +1,5 @@
 /****************************************************************************
- * **File:** csp_debug.h
+ * **File:** csp/csp_debug.h
  *
  * **Description:** NEW DEBUG API
  *

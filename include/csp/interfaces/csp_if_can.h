@@ -1,5 +1,5 @@
 /****************************************************************************
- * **File:** interfaces/csp_if_can.h
+ * **File:** csp/interfaces/csp_if_can.h
  *
  * **Description:** CAN interface
  *

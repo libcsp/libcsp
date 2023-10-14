@@ -1,5 +1,5 @@
 /****************************************************************************
- * **File:** csp_promisc.h
+ * **File:** csp/csp_promisc.h
  *
  * **Description:** Promiscuous packet queue. This feature is used to enable
  * promiscuous mode for incoming packets, e.g. router, bridge. If enabled, a copy

@@ -1,5 +1,5 @@
 /****************************************************************************
- * **File:** drivers/csp_socketcan.h
+ * **File:** csp/drivers/csp_socketcan.h
  *
  * **Description:** Socket CAN driver (Linux).
  *
