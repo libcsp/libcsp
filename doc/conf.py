@@ -7,6 +7,7 @@
 # -- Imports -----------------------------------------------------------------
 from pathlib import Path
 import clang.cindex as cl
+import pygit2
 
 # -- Path setup --------------------------------------------------------------
 cl.Config.set_library_file('/usr/lib/llvm-14/lib/libclang-14.so')
@@ -69,15 +70,7 @@ html_theme_options = {
     'sticky_navigation': True
 }
 
-def get_active_branch_name():
-    head_dir = Path("../") / ".git" / "HEAD"
-    with head_dir.open("r") as f:
-        content = f.read().splitlines()
-
-    for line in content:
-        if line[0:4] == "ref:":
-            return line.partition("refs/heads/")[2]
-version = get_active_branch_name()
+version = pygit2.Repository('.').head.shorthand
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
