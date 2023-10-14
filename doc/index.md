@@ -12,7 +12,6 @@ hide-toc: true
 :hidden:
 
 INSTALL
-CI
 ```
 
 ```{toctree}
@@ -62,6 +61,7 @@ hooks
 
 codestyle
 structure
+CI
 changelog
 ```
 
