@@ -8,12 +8,6 @@ hide-toc: true
 ```
 
 ```{toctree}
-:hidden:
-
-history
-```
-
-```{toctree}
 :caption: Setup
 :hidden:
 
@@ -51,6 +45,7 @@ api/arch/arch
 :hidden:
 
 basic
+history
 memory
 mtu
 outflow
