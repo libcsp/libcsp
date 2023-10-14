@@ -1,5 +1,5 @@
 /****************************************************************************
- * **File:** interfaces/csp_if_eth_pbuf.h
+ * **File:** csp/interfaces/csp_if_eth_pbuf.h
  *
  * **Description:** Packet buffer header
  *

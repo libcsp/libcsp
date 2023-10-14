@@ -1,5 +1,5 @@
 /****************************************************************************
- * **File:** drivers/usart.h
+ * **File:** csp/drivers/usart.h
  *
  * **Description:** USART driver
  *

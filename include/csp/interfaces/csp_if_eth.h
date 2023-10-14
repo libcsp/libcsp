@@ -1,5 +1,5 @@
 /****************************************************************************
- * **File:** interfaces/csp_if_eth.h
+ * **File:** csp/interfaces/csp_if_eth.h
  *
  * **Description:** Ethernet (ETH) interface.
  *

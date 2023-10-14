@@ -1,5 +1,5 @@
 /****************************************************************************
- * **File:** crypto/csp_hmac.h
+ * **File:** csp/crypto/csp_hmac.h
  *
  * **Description:** HMAC support.
  *

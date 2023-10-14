@@ -1,5 +1,5 @@
 /****************************************************************************
- * **File:** crypto/csp_sha1.h
+ * **File:** csp/crypto/csp_sha1.h
  *
  * **Description:** SHA1 support. Code originally from Python's SHA1 Module, who
  * based it on libtom.org.

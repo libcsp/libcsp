@@ -1,5 +1,5 @@
 /****************************************************************************
- * **File:** interfaces/csp_if_zmqhub.h
+ * **File:** csp/interfaces/csp_if_zmqhub.h
  *
  * **Description:** ZMQ (ZeroMQ) interface.
  *

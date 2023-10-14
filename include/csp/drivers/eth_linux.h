@@ -1,5 +1,5 @@
 /****************************************************************************
- * **File:** drivers/eth_linux.h
+ * **File:** csp/drivers/eth_linux.h
  *
  * **Description:** Posix ETH driver
  *
