@@ -14,13 +14,11 @@ ENV LANGUAGE en_US.UTF-8
 # Install libxdp & libbpf
 RUN mkdir /home/libcsp_sphinx_docs && \
 	cd /home/libcsp_sphinx_docs && \
-	git clone https://github.com/IlievIliya92/libcsp.git --branch develop && \
-	cd libcsp/doc && \
-	pip3 install -r requirements.txt && \
-	mkdir build && \
-	cd build && \
-	cmake .. && \
-	make
+	git clone https://github.com/libcsp/libcsp.git --branch develop && \
+	cd libcsp && \
+	pip3 install -r doc/requirements.txt && \
+	cmake -B build-docs -S doc && \
+	cmake --build build-docs
 
 # Set working directory
 WORKDIR /home/libcsp_sphinx_docs
