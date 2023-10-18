@@ -44,18 +44,43 @@ static const uint32_t crc_tab[256] = {
 	0xF36E6F75, 0x0105EC76, 0x12551F82, 0xE03E9C81, 0x34F4F86A, 0xC69F7B69, 0xD5CF889D, 0x27A40B9E,
 	0x79B737BA, 0x8BDCB4B9, 0x988C474D, 0x6AE7C44E, 0xBE2DA0A5, 0x4C4623A6, 0x5F16D052, 0xAD7D5351};
 
-uint32_t csp_crc32_memory(const uint8_t * data, uint32_t length) {
-	uint32_t crc;
+void csp_crc32_init(csp_crc32_t * crc) {
 
-	crc = 0xFFFFFFFF;
-	while (length--)
+	if (crc) {
+		(*crc) = 0xFFFFFFFF;
+	}
+}
+
+void csp_crc32_update(csp_crc32_t * crc, const uint8_t * data, uint32_t length) {
+
+	if (crc) {
+		while (length--) {
 #ifdef __AVR__
-		crc = pgm_read_dword(&crc_tab[(crc ^ *data++) & 0xFFL]) ^ (crc >> 8);
+			crc = pgm_read_dword(&crc_tab[(crc ^ *data++) & 0xFFL]) ^ (crc >> 8);
 #else
-		crc = crc_tab[(crc ^ *data++) & 0xFFL] ^ (crc >> 8);
+			(*crc) = crc_tab[((*crc) ^ *data++) & 0xFFL] ^ ((*crc) >> 8);
 #endif
+		}
+	}
+}
 
-	return (crc ^ 0xFFFFFFFF);
+uint32_t csp_crc32_final(csp_crc32_t *crc) {
+
+	if (crc) {
+		return ((*crc) ^ 0xFFFFFFFF);
+	}
+
+	return 0;
+}
+
+uint32_t csp_crc32_memory(const uint8_t * data, uint32_t length) {
+
+	csp_crc32_t crc;
+
+	csp_crc32_init(&crc);
+	csp_crc32_update(&crc, data, length);
+
+	return csp_crc32_final(&crc);
 }
 
 int csp_crc32_append(csp_packet_t * packet) {
