@@ -6,6 +6,7 @@ on:
       - develop
 jobs:
   build-docs:
+    if: github.repository_owner == 'libcsp'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the repository
