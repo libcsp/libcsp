@@ -492,6 +492,17 @@ int csp_can_add_interface(csp_iface_t * iface) {
 	return csp_iflist_add(iface);
 }
 
+int csp_can_remove_interface(csp_iface_t * iface) {
+
+	if (iface == NULL) {
+		return CSP_ERR_INVAL;
+	}
+
+	csp_iflist_remove(iface);
+
+	return CSP_ERR_NONE;
+}
+
 int csp_can_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t dlc, int * task_woken) {
 	if (csp_conf.version == 1) {
 		return csp_can1_rx(iface, id, data, dlc, task_woken);
