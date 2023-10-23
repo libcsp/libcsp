@@ -73,7 +73,7 @@ To run the example with ZMQHUB interfaces, start the `zmqproxy`, client and serv
     Packet: Src 3, Dst 2, Dport 4, Sport 19, Pri 2, Flags 0x01, Size 8
     Packet: Src 3, Dst 2, Dport 10, Sport 20, Pri 2, Flags 0x00, Size 14
 
-    libcsp$ ./build/examples/csp_server_client -z localhost -s 2
+    libcsp$ ./build/examples/csp_server -z localhost -a 2
     Initialising CSP
     Connection table
     [00 0x7f266ec1d080] S:0, 0 -> 0, 0 -> 0 (17) fl 0
@@ -96,9 +96,9 @@ To run the example with ZMQHUB interfaces, start the `zmqproxy`, client and serv
               txb: 0 (0B) rxb: 0 (0B)
 
     Server task started
-    Packet received on MY_SERVER_PORT: Hello world A
+    Packet received on SERVER_PORT: Hello world A
 
-    libcsp$ ./build/examples/csp_server_client -z localhost -s 2 -l 3
+    libcsp$ ./build/examples/csp_client -z localhost -a 3 -C 2
     Initialising CSP
     Connection table
     [00 0x7f471efc1080] S:0, 0 -> 0, 0 -> 0 (17) fl 0

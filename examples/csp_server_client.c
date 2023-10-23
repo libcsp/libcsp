@@ -18,8 +18,7 @@ int client_start(void);
 #define MY_SERVER_PORT		10
 
 /* Commandline options */
-static uint8_t server_address = 0;
-static uint8_t client_address = 0;
+static uint8_t server_address = 255;
 
 /* test mode, used for verifying that host & client can exchange packets over the loopback interface */
 static bool test_mode = false;
@@ -138,64 +137,25 @@ void client(void) {
 static void print_usage(void)
 {
 	csp_print("Usage:\n"
-#if (CSP_HAVE_LIBSOCKETCAN)
-			  " -c <can-device>  add CAN device\n"
-#endif
-			  " -k <kiss-device> add KISS device (serial)\n"
-#if (CSP_HAVE_LIBZMQ)
-			  " -z <zmq-device>  add ZMQ device, e.g. \"localhost\"\n"
-#endif
-#if (CSP_USE_RTABLE)
-			  " -R <rtable>      set routing table\n"
-#endif
 			  " -t               enable test mode\n"
-			  " -s               enable server mode and set the server address; if used with -l, sets the address of the server that the client should connect to\n"
-			  " -l               enable client mode and set the client address\n"
 			  " -h               print help\n");
 }
 
 /* main - initialization of CSP and start of server/client tasks */
 int main(int argc, char * argv[]) {
 
-#if (CSP_HAVE_LIBSOCKETCAN)
-    const char * can_device = NULL;
-#endif
-    const char * kiss_device = NULL;
-#if (CSP_HAVE_LIBZMQ)
-    const char * zmq_device = NULL;
-#endif
-#if (CSP_USE_RTABLE)
-    const char * rtable = NULL;
-#endif
+    uint8_t address = 0;
     int opt;
-    while ((opt = getopt(argc, argv, "c:k:z:R:ts:l:h")) != -1) {
+    while ((opt = getopt(argc, argv, "th")) != -1) {
         switch (opt) {
-#if (CSP_HAVE_LIBSOCKETCAN)
-            case 'c':
-                can_device = optarg;
+            case 'a':
+                address = atoi(optarg);
                 break;
-#endif
-            case 'k':
-                kiss_device = optarg;
-                break;
-#if (CSP_HAVE_LIBZMQ)
-            case 'z':
-                zmq_device = optarg;
-                break;
-#endif
-#if (CSP_USE_RTABLE)
-            case 'R':
-                rtable = optarg;
-                break;
-#endif
-            case 't':
-                test_mode = true;
-                break;
-            case 's':
+            case 'r':
                 server_address = atoi(optarg);
                 break;
-            case 'l':
-                client_address = atoi(optarg);
+            case 't':
+                test_mode = true;
                 break;
             case 'h':
 				print_usage();
@@ -208,27 +168,7 @@ int main(int argc, char * argv[]) {
         }
     }
 
-    /* Determine local address */
-    uint8_t address = 0;
-    char mode = 'x';
-    if (client_address && !server_address) {
-        csp_print("Error: If client mode is enabled, a server address must be specified with -s.\n");
-        print_usage();
-        exit(1);
-    } else if (!client_address && server_address) {
-        // Server mode
-        mode = 's';
-        address = server_address;
-    } else if (client_address && server_address) {
-        // Client mode
-        mode = 'c';
-        address = client_address;
-    } else {
-        // Loopback mode
-        mode = 'l';
-    }
-
-    csp_print("Initialising CSP\n");
+    csp_print("Initialising CSP");
 
     /* Init CSP */
     csp_init();
@@ -238,53 +178,10 @@ int main(int argc, char * argv[]) {
 
     /* Add interface(s) */
     csp_iface_t * default_iface = NULL;
-    if (kiss_device) {
-        csp_usart_conf_t conf = {
-            .device = kiss_device,
-            .baudrate = 115200, /* supported on all platforms */
-            .databits = 8,
-            .stopbits = 1,
-            .paritysetting = 0,
-            .checkparity = 0};
-        int error = csp_usart_open_and_add_kiss_interface(&conf, CSP_IF_KISS_DEFAULT_NAME,  &default_iface);
-        if (error != CSP_ERR_NONE) {
-            csp_print("failed to add KISS interface [%s], error: %d\n", kiss_device, error);
-            exit(1);
-        }
-        default_iface->is_default = 1;
+    if (!default_iface) {
+        /* no interfaces configured - run server and client in process, using loopback interface */
+        server_address = address;
     }
-#if (CSP_HAVE_LIBSOCKETCAN)
-    if (can_device) {
-        int error = csp_can_socketcan_open_and_add_interface(can_device, CSP_IF_CAN_DEFAULT_NAME, address, 1000000, true, &default_iface);
-        if (error != CSP_ERR_NONE) {
-            csp_print("failed to add CAN interface [%s], error: %d\n", can_device, error);
-            exit(1);
-        }
-        default_iface->is_default = 1;
-    }
-#endif
-#if (CSP_HAVE_LIBZMQ)
-    if (zmq_device) {
-        int error = csp_zmqhub_init(address, zmq_device, 0, &default_iface);
-        if (error != CSP_ERR_NONE) {
-            csp_print("failed to add ZMQ interface [%s], error: %d\n", zmq_device, error);
-            exit(1);
-        }
-        default_iface->is_default = 1;
-    }
-#endif
-
-#if (CSP_USE_RTABLE)
-    if (rtable) {
-        int error = csp_rtable_load(rtable);
-        if (error < 1) {
-            csp_print("csp_rtable_load(%s) failed, error: %d\n", rtable, error);
-            exit(1);
-        }
-    } else if (default_iface) {
-        csp_rtable_set(0, 0, default_iface, CSP_NO_VIA_ADDRESS);
-    }
-#endif
 
     csp_print("Connection table\r\n");
     csp_conn_print_table();
@@ -292,22 +189,11 @@ int main(int argc, char * argv[]) {
     csp_print("Interfaces\r\n");
     csp_iflist_print();
 
-#if (CSP_USE_RTABLE)
-    csp_print("Route table\r\n");
-    csp_rtable_print();
-#endif
-
     /* Start server thread */
-    if ((mode == 's') ||  /* server mode specified, I must be server */
-        (mode == 'l')) {  /* loopback mode -> run server & client via loopback */
-        server_start();
-    }
+    server_start();
 
     /* Start client thread */
-    if ((mode == 'c') ||  /* client mode specified, I must be client */
-        (mode == 'l')) {  /* loopback mode -> run server & client via loopback */
-        client_start();
-    }
+    client_start();
 
     /* Wait for execution to end (ctrl+c) */
     while(1) {

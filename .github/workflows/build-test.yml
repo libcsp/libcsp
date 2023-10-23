@@ -1,7 +1,7 @@
 name: Build and Test
 on: [push, pull_request]
 jobs:
-  run-test:
+  run-tests:
     strategy:
       fail-fast: false
       matrix:
@@ -49,7 +49,21 @@ jobs:
           CXX: ${{ matrix.compiler.CXX }}
         run: python3 ./examples/buildall.py ${{ matrix.arch }} --build-system=${{ matrix.buildsystem }}
 
-      - name: Run Tests
+      - name: Run Loopback Test
         run: |
           ./build/examples/csp_arch
           ./build/examples/csp_server_client -t
+
+      - name: Run ZMQ Client Test
+        run: |
+          ./build/examples/zmqproxy &
+          ./build/examples/csp_server -z localhost -a 1 -t &
+          ./build/examples/csp_client -z localhost -a 2 -C 1 -t
+          pkill zmqproxy
+
+      - name: Run ZMQ Server Test
+        run: |
+          ./build/examples/zmqproxy &
+          ./build/examples/csp_client -z localhost -a 2 -C 1 -t &
+          ./build/examples/csp_server -z localhost -a 1 -t
+          pkill zmqproxy

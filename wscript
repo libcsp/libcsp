@@ -218,6 +218,18 @@ def build(ctx):
                     target='examples/csp_server_client',
                     lib=ctx.env.LIBS,
                     use='csp')
+        
+        ctx.program(source=['examples/csp_server.c',
+                            'examples/csp_server_{0}.c'.format(ctx.env.OS)],
+                    target='examples/csp_server',
+                    lib=ctx.env.LIBS,
+                    use='csp')
+        
+        ctx.program(source=['examples/csp_client.c',
+                            'examples/csp_client_{0}.c'.format(ctx.env.OS)],
+                    target='examples/csp_client',
+                    lib=ctx.env.LIBS,
+                    use='csp')
 
         ctx.program(source='examples/csp_arch.c',
                     target='examples/csp_arch',
