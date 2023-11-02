@@ -30,4 +30,43 @@ config APP_LINK_WITH_LIBCSP
 	help
 	  Add libcsp header files to the 'app' include path.
 
+config CSP_USE_RTABLE
+	bool "Use CSP static routing table"
+	help
+	  This option enables to use the CSP static routing table
+
+if CAN
+
+config CSP_HAVE_CAN
+	bool "Enable CAN driver for CSP"
+	default y
+	help
+	  This option enables the CAN driver for CSP.
+
+config CSP_CAN_RX_MSGQ_DEPTH
+	int "Depth of the message queue in the CSP CAN Driver."
+	default 64
+	help
+	  Depth of the message queue in the CSP CAN Driver.
+
+config CSP_CAN_RX_THREAD_PRIORITY
+	int "RX Thread priority in the CSP CAN Driver"
+	default -1
+	help
+	  CSP RX Thread priority in the CSP CAN Driver
+
+config CSP_CAN_RX_THREAD_STACK_SIZE
+	int "RX Thread stack size in the CSP CAN Driver"
+	default 512
+	help
+	  RX Thread stack size in the CSP CAN Driver
+
+config CSP_CAN_RX_THREAD_NUM
+	int "Number of thread stacks for CSP RX"
+	default 1
+	help
+	  Number of thread stacks for CSP RX
+
+endif # CAN
+
 endif # LIBCSP
