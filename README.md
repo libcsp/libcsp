@@ -10,12 +10,11 @@ MAC-layer interfaces. The core of `libcsp`
 includes a router, a connection oriented socket API and
 message/connection pools.
 
-The protocol is based on a 32-bit header containing both transport and
+The protocol is based on an very lightweight header containing both transport and
 network-layer information. Its implementation is designed for, but not
-limited to, embedded systems such as the 8-bit AVR microprocessor and
-the 32-bit ARM and AVR from Atmel. The implementation is written in GNU
-C and is currently ported to run on FreeRTOS, Linux (POSIX).
-The primiary platforms being used are FreeRTOS and Linux.
+limited to, embedded systems with very limited CPU and memory resources.
+The implementation is written in GNU C and is currently ported to run on FreeRTOS, Zephyr 
+and Linux (POSIX).
 
 The idea is to give sub-system developers of cubesats the same features
 of a TCP/IP stack, but without adding the huge overhead of the IP
@@ -27,7 +26,7 @@ several advantages compared to the traditional mater/slave topology used
 on many cubesats.
 
   - Standardised network protocol: All subsystems can communicate with
-    eachother
+    eachother (multi-master)
   - Service loose coupling: Services maintain a relationship that
     minimizes dependencies between subsystems
   - Service abstraction: Beyond descriptions in the service contract,
@@ -55,11 +54,15 @@ to have some rather advanced features as well.
   - Very Small Footprint in regards to code and memory required
   - Zero-copy buffer and queue system
   - Modular network interface system
-  - OS abstraction, currently ported to: FreeRTOS, Linux (POSIX)
-    and Windows
+  - OS abstraction, currently ported to: FreeRTOS, Zephyr, Linux
   - Broadcast traffic
   - Promiscuous mode
-  - Truncated HMAC-SHA1 Authentication (RFC 2104)
+
+## Documentation
+
+The latest version of the /doc folder is compiled to HTML and hosted on:
+
+  [libcsp.github.io/libcsp/](https://libcsp.github.io/libcsp/)
 
 ## Software license
 
