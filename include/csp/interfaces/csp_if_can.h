@@ -184,6 +184,15 @@ typedef struct {
 int csp_can_add_interface(csp_iface_t * iface);
 
 /**
+ * Remove interface.
+ *
+ * @param[in] iface CSP interface to be removed.
+ *
+ * @return #CSP_ERR_NONE on success, otherwise an error code.
+ */
+int csp_can_remove_interface(csp_iface_t * iface);
+
+/**
  * Send CSP packet over CAN (nexthop).
  *
  * This function will split the CSP packet into several fragments and call
