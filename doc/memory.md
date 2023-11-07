@@ -18,10 +18,7 @@ that uses dynamic allocation, such as:
 
 This means that there are no `alloc/free`
 after initialization, possibly causing fragmented memory which
-especially can be a problem on small systems with limited memory. It
-also allows for a very simple memory allocator (implementation of
-`csp_malloc()`), as
-`free` can be avoided.
+especially can be a problem on small systems with limited memory.
 
 Future versions of libcsp may provide a
 `pure` static memory layout, since newer

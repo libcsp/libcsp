@@ -17,3 +17,6 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   target_sources(csp PRIVATE usart/usart_linux.c)
 endif()
 
+if(HAVE_ZEPHYR_CAN)
+  target_sources(csp PRIVATE can/can_zephyr.c)
+endif()

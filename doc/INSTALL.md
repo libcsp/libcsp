@@ -1,9 +1,14 @@
 # How to install LibCSP
 
-CSP supports three build systems,
-[the Meson build system](https://mesonbuild.com/),
-[the Waf build system](https://waf.io/), and
-[the CMake build system](https://cmake.org/).
+```{contents}
+:depth: 3
+```
+
+CSP supports three build systems:
+
+- [the Meson build system](https://mesonbuild.com/)
+- [the Waf build system](https://waf.io/)
+- [the CMake build system](https://cmake.org/)
 
 ## Using Meson
 

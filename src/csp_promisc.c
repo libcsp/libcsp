@@ -1,7 +1,7 @@
 #include "csp_promisc.h"
 
 #include <csp/csp.h>
-#include <csp/csp_macro.h>
+#include "csp_macro.h"
 #include <csp/arch/csp_queue.h>
 
 #if (CSP_USE_PROMISC)

@@ -1,5 +1,8 @@
-Hooks in CSP
-============
+# Hooks in CSP
+
+```{contents}
+:depth: 3
+```
 
 All hooks in CSP are weak linked functions. Some of them have default implementations,
 and your program can build and run fine without implementing the hook yourself. Others
@@ -12,8 +15,7 @@ Usage of any of the builtin weak functions, will require that you link CSP with
 TODO: implement a static assert, to catch when the program has been linked without any
 implementation of `csp_print`. Because there is no runtime check on this
 
-Debug
------
+## Debug
 
 ```c
 void csp_print(const char * fmt, ...);
@@ -27,8 +29,7 @@ CSP contains a default implementation of `csp_print` which calls `printf`. This 
 `input/output_hook` are called by the router on all incoming packets, and by the sender on all outgoing packets.
 The default is to print out a message if the global `csp_dbg_print_packet == 1`
 
-Crypto
-------
+## Crypto
 
 ```c
 int csp_crypto_decrypt(uint8_t * ciphertext_in, uint8_t ciphertext_len, uint8_t * msg_out);
@@ -38,8 +39,7 @@ int csp_crypto_encrypt(uint8_t * msg_begin, uint8_t msg_len, uint8_t * ciphertex
 The crypto calls in `csp_if_tun` does not have a default implementation in CSP and your
 application will fail to link if you use csp_if_tun without these two functions.
 
-Time
-----
+## Time
 
 ```c
 void csp_clock_get_time(csp_timestamp_t * time);
@@ -50,8 +50,7 @@ The get and set time functions rely on `arch/<os>` and all have default implemen
 On FreeRTOS they simply return 0. On posix and zephyr they call `clock_gettime(CLOCK_REALTIME, &ts)`
 to get the timestamp from the kernel.
 
-Callback functions in CSP
-=================================
+## Callback functions in CSP
 
 These callbacks are configured in runtime, by passing a function pointer to a setter function:
 

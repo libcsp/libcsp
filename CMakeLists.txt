@@ -33,6 +33,7 @@ option(CSP_USE_RDP "Reliable Datagram Protocol" ON)
 option(CSP_USE_HMAC "Hash-based message authentication code" ON)
 option(CSP_USE_PROMISC "Promiscious mode" ON)
 option(CSP_USE_DEDUP "Packet deduplication" ON)
+option(CSP_USE_RTABLE "Use routing table" OFF)
 
 option(CSP_ENABLE_PYTHON3_BINDINGS "Build Python3 binding" OFF)
 
@@ -52,13 +53,34 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND
   find_package(Threads REQUIRED)
   find_package(PkgConfig)
 
-  pkg_search_module(LIBZMQ libzmq)
-  pkg_search_module(LIBSOCKETCAN libsocketcan)
+  if(PKG_CONFIG_FOUND)
+    pkg_search_module(LIBZMQ libzmq)
+    if(${LIBZMQ_FOUND})
+      message(STATUS "Found ${LIBZMQ_LINK_LIBRARIES} ${LIBZMQ_VERSION}")
+      set(CSP_HAVE_LIBZMQ 1)
+    else()
+      message(NOTICE "No libzmq found")
+    endif()
+
+    pkg_search_module(LIBSOCKETCAN libsocketcan)
+    if(${LIBSOCKETCAN_FOUND})
+      message(STATUS "Found ${LIBSOCKETCAN_LINK_LIBRARIES} ${LIBSOCKETCAN_VERSION}")
+      set(CSP_HAVE_LIBSOCKETCAN 1)
+    else()
+      message(NOTICE "No libsocketcan found")
+    endif()
+  else()
+    message(NOTICE "No pkg-config found")
+  endif()
 endif()
 
 file(REAL_PATH include csp_inc)
+file(REAL_PATH src csp_inc_src)
 list(APPEND csp_inc ${CMAKE_CURRENT_BINARY_DIR}/include)
-target_include_directories(csp PUBLIC ${csp_inc})
+target_include_directories(csp
+  PUBLIC ${csp_inc}
+  PRIVATE ${csp_inc_src}
+)
 
 if(CSP_POSIX)
   set(CSP_C_ARGS -Wshadow -Wcast-align -Wwrite-strings -Wno-unused-parameter)

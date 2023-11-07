@@ -174,6 +174,7 @@ int csp_zmqhub_init_w_name_endpoints_rxfilter(const char * ifname, uint16_t addr
 	drv->iface.name = drv->name;
 	drv->iface.driver_data = drv;
 	drv->iface.nexthop = csp_zmqhub_tx;
+	drv->iface.addr = addr;
 
 	drv->context = zmq_ctx_new();
 	assert(drv->context != NULL);

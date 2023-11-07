@@ -13,7 +13,7 @@
 #include <csp/csp.h>
 #include <csp/csp_debug.h>
 #include <csp/csp_error.h>
-#include <csp/csp_macro.h>
+#include "csp_macro.h"
 #include <csp/arch/csp_queue.h>
 #include <csp/arch/csp_time.h>
 

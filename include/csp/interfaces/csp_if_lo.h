@@ -1,10 +1,9 @@
+/****************************************************************************
+ * **File:** csp/interfaces/csp_if_lo.h
+ *
+ * **Description:** Loopback interface.
+ ****************************************************************************/
 #pragma once
-
-/**
-   @file
-
-   Loopback interface.
-*/
 
 #include <csp/csp_interface.h>
 
@@ -13,13 +12,13 @@ extern "C" {
 #endif
 
 /**
-   Name of loopback interface.
-*/
+ * Name of loopback interface.
+ */
 #define CSP_IF_LOOPBACK_NAME "LOOP"
 
 /**
-   Loopback interface.
-*/
+ *  Loopback interface.
+ */
 extern csp_iface_t csp_if_lo;
 
 #ifdef __cplusplus

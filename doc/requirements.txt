@@ -1,0 +1,10 @@
+sphinx==5.3.0
+clang==14
+myst-parser
+sphinx_c_autodoc
+sphinxcontrib-apidoc
+sphinx-rtd-theme
+sphinx_design
+sphinx_git
+sphinx_copybutton
+pygit2

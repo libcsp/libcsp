@@ -9,7 +9,7 @@
 #include <csp/arch/csp_time.h>
 #include <csp/csp_id.h>
 #include <csp/csp_debug.h>
-#include <csp/csp_macro.h>
+#include "csp_macro.h"
 #include "csp_rdp_queue.h"
 #include "csp_rdp.h"
 

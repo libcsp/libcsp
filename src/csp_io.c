@@ -13,7 +13,7 @@
 #include <csp/arch/csp_time.h>
 #include <csp/crypto/csp_hmac.h>
 #include <csp/csp_id.h>
-#include <csp/csp_macro.h>
+#include "csp_macro.h"
 
 #include "csp_port.h"
 #include "csp_conn.h"
@@ -131,7 +131,7 @@ void csp_send_direct(csp_id_t* idout, csp_packet_t * packet, csp_iface_t * route
 		return;
 	}
 
-#if CSP_HAVE_RTABLE
+#if CSP_USE_RTABLE
 	/* Try to send via routing table */
 	int route_found = 0;
 	csp_route_t * route = csp_rtable_find_route(idout->dst);

@@ -1,7 +1,13 @@
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   add_executable(csp_server_client EXCLUDE_FROM_ALL csp_server_client.c csp_server_client_posix.c)
+  add_executable(csp_server EXCLUDE_FROM_ALL csp_server.c csp_server_posix.c)
+  add_executable(csp_client EXCLUDE_FROM_ALL csp_client.c csp_client_posix.c)
   target_include_directories(csp_server_client PRIVATE ${csp_inc})
+  target_include_directories(csp_server PRIVATE ${csp_inc})
+  target_include_directories(csp_client PRIVATE ${csp_inc})
   target_link_libraries(csp_server_client PRIVATE csp Threads::Threads)
+  target_link_libraries(csp_server PRIVATE csp Threads::Threads)
+  target_link_libraries(csp_client PRIVATE csp Threads::Threads)
 endif()
 
 add_executable(csp_arch EXCLUDE_FROM_ALL csp_arch.c)
