@@ -34,7 +34,7 @@ src/drivers/can/can_socketcan.c).
 
 ## Buffer
 
-All buffers are allocated once during initialization of CSP, after this
+All buffers are allocated at compile-time, after this
 the buffer system is entirely self-contained. All allocated elements are
 of the same size, so the buffer size must be chosen to be able to handle
 the maximum possible packet length. The buffer pool uses a queue to
@@ -139,9 +139,9 @@ typedef struct i2c_frame_s {
 CSP supports both connection-less and connection-oriented connections.
 See more about protocols in `layer4`.
 
-During initialization libcsp allocates the configured number of
-connections. The required number of connections depends on the
-application. Here is a list functions, that will allocate a connection
+libcsp allocates the configured number of connections at compile-tim.
+The required number of connections depends on the
+application. Here is a list of functions, that will allocate a connection
 from the connection pool:
 
 >   - client connection, call to

@@ -7,6 +7,7 @@ following table:
 |---------------------------------|-----------------------------------------------------|
 | `libcsp/include/csp`            | Public header files                                 |
 | `libcsp/include/csp/arch`       | Architecture (platform)                             |
+| `libcsp/include/csp/crypto`     | HMAC, SHA                                           |
 | `libcsp/include/csp/interfaces` | Interfaces                                          |
 | `libcsp/include/csp/drivers`    | Drivers                                             |
 | `libcsp/src`                    | Source modules and internal header files            |
@@ -19,9 +20,9 @@ following table:
 | `libcsp/src/drivers`            | Drivers, mostly platform specific (Linux)           |
 | `libcsp/src/drivers/can`        | CAN                                                 |
 | `libcsp/src/drivers/usart`      | USART                                               |
-| `libcsp/src/interfaces`         | Interfaces, CAN, I2C, KISS, LOOPBACK and ZMQHUB     |
+| `libcsp/src/interfaces`         | Interfaces, CAN, I2C, KISS, LOOPBACK and ZMQHUB and others    |
 | `libcsp/src/rtable`             | Routing tables                                      |
 | `libcsp/src/transport`          | Transport layer: UDP, RDP                           |
 | `libcsp/utils`                  | Utilities, Python scripts for decoding CSP headers. |
 | `libcsp/examples`               | CSP examples, C/Python, zmqproxy                    |
-| `libcsp/doc`                    | RST based documentation (this documentation)          |
+| `libcsp/doc`                    | RST based documentation (this documentation)        |
