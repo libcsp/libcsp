@@ -36,7 +36,7 @@ The example supports these drivers and interfaces in CSP:
 If the example is started without any interfaces, it will use the
 loopback interface for communication between client and server:
 
-    libcsp$ ./build/example/csp_server_client
+    libcsp$ ./build/examples/csp_server_client
     Initialising CSP
     Connection table
     [00 0x7fbd8f574080] S:0, 0 -> 0, 0 -> 0 (17) fl 0
