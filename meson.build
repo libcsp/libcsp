@@ -47,6 +47,9 @@ endif
 csp_deps += yaml_dep
 conf.set('CSP_HAVE_LIBYAML', yaml_dep.found())
 
+# Include paths
+csp_inc = include_directories('include')
+
 # Libc dependency
 clib = meson.get_compiler('c').find_library('c', required: false)
 if not clib.found()
@@ -81,7 +84,7 @@ csp_lib = library('csp',
 # The following dependency variable is for parent projects to link
 # against libcsp. https://mesonbuild.com/Subprojects.html
 csp_dep = declare_dependency(
-	include_directories : include_directories('include'),
+	include_directories : csp_inc,
 	link_with : csp_lib,
 	dependencies : csp_deps,
 )
