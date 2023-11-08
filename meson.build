@@ -54,9 +54,6 @@ if not clib.found()
 endif
 csp_deps += clib
 
-# Include paths
-csp_inc = include_directories('include', 'src')
-
 # Default compile options
 csp_c_args = ['-Wshadow',
 	      '-Wcast-align',
@@ -74,7 +71,7 @@ endif
 
 csp_lib = library('csp',
 	sources: [csp_sources, csp_config_h],
-	include_directories : csp_inc,
+	include_directories : include_directories('include', 'src'),
 	dependencies : csp_deps,
 	c_args : csp_c_args,
 	install : false,
@@ -84,7 +81,7 @@ csp_lib = library('csp',
 # The following dependency variable is for parent projects to link
 # against libcsp. https://mesonbuild.com/Subprojects.html
 csp_dep = declare_dependency(
-	include_directories : csp_inc,
+	include_directories : include_directories('include'),
 	link_with : csp_lib,
 	dependencies : csp_deps,
 )
