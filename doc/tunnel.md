@@ -1,5 +1,4 @@
-CSP tunnels
-===========
+# CSP tunnels
 
 The `csp_if_tun` interface supports encapsulating and encryption of packets between two endpoints.
 The inspiration comes from IPsec.

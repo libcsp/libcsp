@@ -23,5 +23,4 @@ uses CSP:
   - Hawaiian Space Flight Laboratory
   - GomSpace GOMX-3, GOMX-4 A & B
 
-See list of libcsp fork's here:
-<https://github.com/libcsp/libcsp/network/members>
+See list of libcsp fork's [here](https://github.com/libcsp/libcsp/network/members)

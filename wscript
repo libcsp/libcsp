@@ -77,7 +77,7 @@ def configure(ctx):
                                          "-Wwrite-strings", "-Wno-unused-parameter", "-Werror"])
 
     # Setup default include path and any extra defined
-    ctx.env.append_unique('INCLUDES_CSP', ['include'] + ctx.options.includes.split(','))
+    ctx.env.append_unique('INCLUDES_CSP', ['include', 'src'] + ctx.options.includes.split(','))
 
     # Store OS as env variable
     ctx.env.OS = ctx.options.with_os
@@ -216,6 +216,18 @@ def build(ctx):
         ctx.program(source=['examples/csp_server_client.c',
                             'examples/csp_server_client_{0}.c'.format(ctx.env.OS)],
                     target='examples/csp_server_client',
+                    lib=ctx.env.LIBS,
+                    use='csp')
+        
+        ctx.program(source=['examples/csp_server.c',
+                            'examples/csp_server_{0}.c'.format(ctx.env.OS)],
+                    target='examples/csp_server',
+                    lib=ctx.env.LIBS,
+                    use='csp')
+        
+        ctx.program(source=['examples/csp_client.c',
+                            'examples/csp_client_{0}.c'.format(ctx.env.OS)],
+                    target='examples/csp_client',
                     lib=ctx.env.LIBS,
                     use='csp')
 

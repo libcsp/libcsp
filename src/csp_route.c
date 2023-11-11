@@ -18,7 +18,7 @@
 #include "csp_rdp.h"
 #include <csp/csp_debug.h>
 #include <csp/csp_iflist.h>
-#include <csp/csp_macro.h>
+#include "csp_macro.h"
 
 /**
  * Check supported packet options
