@@ -217,13 +217,13 @@ int csp_zmqhub_init_w_name_endpoints_rxfilter(const char * ifname, uint16_t addr
 	return CSP_ERR_NONE;
 }
 
-int csp_zmqhub_init_filter2(const char * ifname, const char * host, uint16_t addr, uint16_t netmask, int promisc, csp_iface_t ** return_interface, char * sec_key) {
+int csp_zmqhub_init_filter2(const char * ifname, const char * host, uint16_t addr, uint16_t netmask, int promisc, csp_iface_t ** return_interface, char * sec_key, uint16_t subport, uint16_t pubport) {
 	
 	char pub[100];
-	csp_zmqhub_make_endpoint(host, CSP_ZMQPROXY_SUBSCRIBE_PORT + (sec_key != NULL), pub, sizeof(pub));
+	csp_zmqhub_make_endpoint(host, subport, pub, sizeof(pub));
 
 	char sub[100];
-	csp_zmqhub_make_endpoint(host, CSP_ZMQPROXY_PUBLISH_PORT + (sec_key != NULL), sub, sizeof(sub));
+	csp_zmqhub_make_endpoint(host, pubport, sub, sizeof(sub));
 
 	int ret;
 	pthread_attr_t attributes;
