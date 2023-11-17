@@ -2,9 +2,7 @@
 
 CSP uses a network oriented terminology similar to what is known from
 the Internet and the IP model. A CSP network can be configured for
-several different topologies. Each physical network will have an
-independent logical network related, unless two interfaces are used for
-example to create a redundant physical network in a satellite or spacelink.
+several different topologies.
 
 ```
   +-------+-------+-------+-------+       bus: I2C, CAN, KISS
@@ -46,3 +44,11 @@ receiver address is not covered by any interface. On top of that, static
 routes can be defined to cover complex network setups with multiple
 satellites, multiple subnets in a satellite and ground segments split into
 multiple subnets.
+
+Each physical network (a CAN bus, RF link, etc.) will have an independent
+logical network related, unless two interfaces are used to create a redundant 
+physical network in a satellite or spacelink. In this case, the two (or more)
+physical interfaces in the sub-systems shall be configured to have the same
+CSP address and related properties, by which the CSP router knows that packets
+for that particular logical CSP subnet shall be transmitted on both physical
+interfaces.

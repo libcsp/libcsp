@@ -20,14 +20,6 @@ extern "C" {
 typedef uint32_t csp_crc32_t;
 
 /**
-   CRC32 calculation object (digest object)
-   Create an instance of this object before calling any of the
-   following methods.
-   csp_crc32_init(), csp_crc32_update() or csp_crc32_final()
- */
-typedef uint32_t csp_crc32_t;
-
-/**
  * Append CRC32 checksum to packet
  *
  * @param[in] packet CSP packet, must be valid.

@@ -23,16 +23,14 @@ drivers. Where applicable also DMA usage is recommended.
 CSP has interfaces for I2C, CAN, RS232/RS422 (KISS), ETH, ZMQ (TCP/IP)
 and Loopback. The layer 2 protocol software defines a frame-format that
 is suitable for the media.
-CSP can be easily extended with implementations for even more links, 
-for
+CSP can be easily extended with implementations for even more links, for
 example radio-links. The file `csp_interface.h` declares the rx and tx
 functions needed in order to define a network interface in CSP. During
 initialisation of CSP each interface will be inserted into a linked list
 of interfaces that is available to the router. In cases where link-layer 
 addresses are required, such as I2C, the routing table supports specifying 
-a `via` link-layer address
-directly. This avoids the need to implement an address resolution
-protocol to translate CSP addresses to I2C addresses.
+a `via` link-layer address directly. This avoids the need to implement an
+address resolution protocol to translate CSP addresses to I2C addresses.
 
 ## Layer 3: Network Router
 

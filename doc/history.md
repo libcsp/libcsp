@@ -13,7 +13,7 @@ Space Protocol without changing the abbreviation.
 
 ## CSP versions
 
-CSP was originally developed for a 1U cubesat, containing unly the minimum
+CSP was originally developed for a 1U cubesat, containing only the minimum
 required number of modules for a distributed satellite configuration. At
 that time, the address space was therefore decided to handle a maximum of
 32 nodes, split between the satellite and ground segment.
@@ -22,7 +22,7 @@ As the protocol developed and was used on larger satellite projects and
 multi-satellite constellations, a need for a larger address space was required.
 
 CSP version 2 was therefore specified, increasing the address range to 14 bits, 
-corresponding to 16.384 addresses. The CSP implementation is runtime 
+corresponding to 16,384 addresses. The CSP implementation is runtime 
 configurable to run as CSP version or version 2, but version 1 and version 2
 modules are not supposed to be on the same network infrastructure.
 
