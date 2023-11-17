@@ -273,6 +273,20 @@ int csp_conn_src(csp_conn_t *conn);
 int csp_conn_flags(csp_conn_t *conn);
 
 /**
+ * Return if the CSP connection is active
+ * 
+ * Active in this context means if the protocol layers is connected and no time outs has happened.
+ * Especially if a connection is marked as a RDP connection, the active state means that the
+ * RDP layers are connected and no time outs have happened. If the RDP layer has a connection timeout
+ * or of the connection is closing, the connection is inactive, and ready to be closed.
+ * 
+ * @param conn connection
+ * @return true if the connection is active
+ * @return false if the connection is in-active
+ */
+bool csp_conn_is_active(csp_conn_t *conn);
+
+/**
  * Set socket to listen for incoming connections.
  *
  * @param[in] socket socket
