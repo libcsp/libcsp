@@ -721,6 +721,12 @@ bool csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 				}
 			}
 
+			if (conn->dest_socket == NULL) {
+				/* User space has taken control of the connection, so RDP needs to "monitor"
+				 * the connection by timestamping each time a packet is received in OPEN state */
+				conn->timestamp = csp_get_ms();
+			}
+
 			/* Store current ack'ed sequence number */
 			conn->rdp.snd_una = rx_header->ack_nr + 1;
 
@@ -1018,5 +1024,22 @@ void csp_rdp_get_opt(unsigned int * window_size, unsigned int * conn_timeout_ms,
 		*ack_delay_count = csp_rdp_ack_delay_count;
 }
 
+bool csp_rdp_conn_is_active(csp_conn_t *conn) {
+
+	uint32_t time_now = csp_get_ms();
+	bool active = true;
+
+	if (csp_rdp_time_after(time_now, conn->timestamp + conn->rdp.conn_timeout)) {
+		/* The RDP connection has timed out */
+		active = false;
+	}
+
+	if (conn->rdp.state == RDP_CLOSE_WAIT || conn->rdp.state == RDP_CLOSED) {
+		active = false;
+	}
+
+	return active;
+
+}
 
 #endif  // CSP_USE_RDP

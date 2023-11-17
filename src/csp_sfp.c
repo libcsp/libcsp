@@ -54,7 +54,7 @@ int csp_sfp_send_own_memcpy(csp_conn_t * conn, const void * data, unsigned int t
 	}
 
 	unsigned int count = 0;
-	while (count < totalsize) {
+	while ((count < totalsize) && csp_conn_is_active(conn)) {
 
 		sfp_header_t * sfp_header;
 

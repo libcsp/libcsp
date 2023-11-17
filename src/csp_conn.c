@@ -406,3 +406,15 @@ const csp_conn_t * csp_conn_get_array(size_t * size) {
         *size = CSP_CONN_MAX;
         return arr_conn;
 }
+
+bool csp_conn_is_active(csp_conn_t *conn) {
+#if (CSP_USE_RDP)
+	if ((conn->idin.flags & CSP_FRDP) || (conn->idout.flags & CSP_FRDP)) {
+		/* This is for sure an RDP connection */
+		return csp_rdp_conn_is_active(conn);
+	}
+#endif
+
+	/* Non RDP connections are always "active" */
+	return true;
+}
