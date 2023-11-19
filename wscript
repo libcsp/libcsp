@@ -17,7 +17,6 @@ def options(ctx):
     # Set libcsp options
     gr = ctx.add_option_group('libcsp options')
     gr.add_option('--includes', default='', help='Add additional include paths, separate with comma')
-    gr.add_option('--install-csp', action='store_true', help='Installs CSP headers and lib')
 
     gr.add_option('--disable-output', action='store_true', help='Disable CSP output')
     gr.add_option('--disable-print-stdio', action='store_true', help='Disable vprintf for csp_print_func')
@@ -180,7 +179,7 @@ def build(ctx):
 
     # Set install path for header files
     install_path = None
-    if ctx.options.install_csp:
+    if ctx.is_install:
         install_path = '${PREFIX}/lib'
         ctx.install_files('${PREFIX}/include/csp',
                           ctx.path.ant_glob('include/csp/**/*.h'),
