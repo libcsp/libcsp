@@ -252,19 +252,37 @@ int csp_zmqhub_init_filter2(const char * ifname, const char * host, uint16_t add
 	drv->subscriber = zmq_socket(drv->context, ZMQ_SUB);
 	assert(drv->subscriber != NULL);
 
-    /* If shared secret key provided */
-    if(sec_key){
-        char pub_key[41];
-        zmq_curve_public(pub_key, sec_key);
-	    /* Publisher (TX) */
-        zmq_setsockopt(drv->publisher, ZMQ_CURVE_SERVERKEY, pub_key, CURVE_KEYLEN);
-        zmq_setsockopt(drv->publisher, ZMQ_CURVE_PUBLICKEY, pub_key, CURVE_KEYLEN);
-        zmq_setsockopt(drv->publisher, ZMQ_CURVE_SECRETKEY, sec_key, CURVE_KEYLEN);
-	    /* Subscriber (RX) */
-        zmq_setsockopt(drv->subscriber, ZMQ_CURVE_SERVERKEY, pub_key, CURVE_KEYLEN);
-        zmq_setsockopt(drv->subscriber, ZMQ_CURVE_PUBLICKEY, pub_key, CURVE_KEYLEN);
-        zmq_setsockopt(drv->subscriber, ZMQ_CURVE_SECRETKEY, sec_key, CURVE_KEYLEN);
-    }
+	/* If shared secret key provided */
+	if (sec_key) {
+		char pub_key[41];
+
+		zmq_curve_public(pub_key, sec_key);
+		/* Publisher (TX) */
+		zmq_setsockopt(drv->publisher, ZMQ_CURVE_SERVERKEY, pub_key, CURVE_KEYLEN);
+		zmq_setsockopt(drv->publisher, ZMQ_CURVE_PUBLICKEY, pub_key, CURVE_KEYLEN);
+		zmq_setsockopt(drv->publisher, ZMQ_CURVE_SECRETKEY, sec_key, CURVE_KEYLEN);
+		/* Subscriber (RX) */
+		zmq_setsockopt(drv->subscriber, ZMQ_CURVE_SERVERKEY, pub_key, CURVE_KEYLEN);
+		zmq_setsockopt(drv->subscriber, ZMQ_CURVE_PUBLICKEY, pub_key, CURVE_KEYLEN);
+		zmq_setsockopt(drv->subscriber, ZMQ_CURVE_SECRETKEY, sec_key, CURVE_KEYLEN);
+	}
+	int keep_alive = 1;
+	/* Time in seconds a connection must be idle before keep-alive packet send*/
+	int idle = 900;
+	/* Maximum number of keep-alive probes to send without ack before connection closed */
+	int cnt = 2;
+	/* Interval in seconds between each keep-alive probe */
+	int intvl = 900;
+	/* Publisher (TX) */
+	zmq_setsockopt(drv->publisher, ZMQ_TCP_KEEPALIVE, &keep_alive, sizeof(keep_alive));
+	zmq_setsockopt(drv->publisher, ZMQ_TCP_KEEPALIVE_IDLE, &idle, sizeof(idle));
+	zmq_setsockopt(drv->publisher, ZMQ_TCP_KEEPALIVE_CNT, &cnt, sizeof(cnt));
+	zmq_setsockopt(drv->publisher, ZMQ_TCP_KEEPALIVE_INTVL, &intvl, sizeof(intvl));
+	/* Subscriber (RX) */
+	zmq_setsockopt(drv->subscriber, ZMQ_TCP_KEEPALIVE, &keep_alive, sizeof(keep_alive));
+	zmq_setsockopt(drv->subscriber, ZMQ_TCP_KEEPALIVE_IDLE, &idle, sizeof(idle));
+	zmq_setsockopt(drv->subscriber, ZMQ_TCP_KEEPALIVE_CNT, &cnt, sizeof(cnt));
+	zmq_setsockopt(drv->subscriber, ZMQ_TCP_KEEPALIVE_INTVL, &intvl, sizeof(intvl));
 
 	/* Generate filters */
 	uint16_t hostmask = (1 << (csp_id_get_host_bits() - netmask)) - 1;
