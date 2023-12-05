@@ -80,6 +80,15 @@ void csp_id_copy(csp_id_t * target, csp_id_t * source) {
 	target->flags = source->flags;
 }
 
+void csp_id_clear(csp_id_t * target) {
+	target->pri = 0;
+	target->dst = 0;
+	target->src = 0;
+	target->dport = 0;
+	target->sport = 0;
+	target->flags = 0;
+}
+
 void csp_send_direct(csp_id_t* idout, csp_packet_t * packet, csp_iface_t * routed_from) {
 
 	int from_me = (routed_from == NULL ? 1 : 0);
@@ -384,7 +393,6 @@ void csp_sendto(uint8_t prio, uint16_t dest, uint8_t dport, uint8_t src_port, ui
 
 	packet->id.dst = dest;
 	packet->id.dport = dport;
-	packet->id.src = 0; // The source address will be filled by csp_send_direct
 	packet->id.sport = src_port;
 	packet->id.pri = prio;
 
@@ -400,5 +408,7 @@ void csp_sendto_reply(const csp_packet_t * request_packet, csp_packet_t * reply_
 	if (opts & CSP_O_SAME) {
 		reply_packet->id.flags = request_packet->id.flags;
 	}
-	csp_sendto(request_packet->id.pri, request_packet->id.src, request_packet->id.sport, request_packet->id.dport, opts, reply_packet);
+	uint16_t dst = request_packet->id.src;
+	reply_packet->id.src = request_packet->id.dst;
+	csp_sendto(request_packet->id.pri, dst, request_packet->id.sport, request_packet->id.dport, opts, reply_packet);
 }
