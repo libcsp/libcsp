@@ -1,3 +1,4 @@
+#include <csp/csp.h>
 #include <csp/csp_buffer.h>
 
 #include <string.h>
@@ -51,6 +52,7 @@ csp_packet_t * csp_buffer_get_isr(size_t unused) {
 	}
 
 	buffer->refcount = 1;
+	csp_id_clear(&buffer->skbf_data.id);
 	return &buffer->skbf_data;
 }
 
@@ -69,6 +71,7 @@ csp_packet_t * csp_buffer_get(size_t unused) {
 	}
 
 	buffer->refcount = 1;
+	csp_id_clear(&buffer->skbf_data.id);
 	return &buffer->skbf_data;
 }
 
