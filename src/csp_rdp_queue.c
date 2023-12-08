@@ -70,7 +70,9 @@ csp_packet_t * csp_rdp_queue_tx_get(csp_conn_t * conn) {
         if (packet->conn == conn) {
             return packet;
         } else {
-            csp_rdp_queue_tx_add(conn, packet);
+            if (csp_queue_enqueue(tx_queue, &packet, 0) != CSP_QUEUE_OK) {
+                csp_buffer_free(packet);
+            }
         }
     }
     return NULL;
@@ -98,7 +100,9 @@ csp_packet_t * csp_rdp_queue_rx_get(csp_conn_t * conn) {
         if (packet->conn == conn) {
             return packet;
         } else {
-            csp_rdp_queue_rx_add(conn, packet);
+            if (csp_queue_enqueue(rx_queue, &packet, 0) != CSP_QUEUE_OK) {
+                csp_buffer_free(packet);
+            }
         }
     }
     return NULL;
