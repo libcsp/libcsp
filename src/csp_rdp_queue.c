@@ -25,27 +25,40 @@ void csp_rdp_queue_flush(csp_conn_t * conn) {
    	csp_packet_t * packet;
 
     /* Empty TX queue */
-    while (csp_queue_dequeue(tx_queue, &packet, 0) == CSP_QUEUE_OK) {
+    int size = csp_queue_size(tx_queue);
+    while(size--) {
+        if (csp_queue_dequeue(tx_queue, &packet, 0) == CSP_QUEUE_ERROR) {
+            break;
+        }
         if (packet == NULL) {
             continue;
         }
-
         if ((conn == NULL) || (conn == packet->conn)) {
             csp_buffer_free(packet);
+        } else {
+            if (csp_queue_enqueue(tx_queue, &packet, 0) != CSP_QUEUE_OK) {
+                csp_buffer_free(packet);
+            }
         }
     }
 
     /* Empty RX queue */
-    while (csp_queue_dequeue(rx_queue, &packet, 0) == CSP_QUEUE_OK) {
+    size = csp_queue_size(rx_queue);
+    while(size--) {
+        if (csp_queue_dequeue(rx_queue, &packet, 0) == CSP_QUEUE_ERROR) {
+            break;
+        }
         if (packet == NULL) {
             continue;
         }
-
         if ((conn == NULL) || (conn == packet->conn)) {
             csp_buffer_free(packet);
+        } else {
+            if (csp_queue_enqueue(rx_queue, &packet, 0) != CSP_QUEUE_OK) {
+                csp_buffer_free(packet);
+            }
         }
     }
-
 }
 
 int csp_rdp_queue_tx_size(void) {
