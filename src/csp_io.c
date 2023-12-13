@@ -90,6 +90,9 @@ void csp_send_direct(csp_id_t* idout, csp_packet_t * packet, csp_iface_t * route
 	csp_packet_t * copy = NULL;
 	int local_found = 0;
 
+	/* Make copy as broadcast modifies destination making iflist_get_by_subnet the skip next redundant ifaces */
+	csp_id_t _idout = *idout;
+
 	while ((iface = csp_iflist_get_by_subnet(idout->dst, iface)) != NULL) {
 
 		local_found = 1;
@@ -107,12 +110,12 @@ void csp_send_direct(csp_id_t* idout, csp_packet_t * packet, csp_iface_t * route
 
 		/* Apply outgoing interface address to packet */
 		if ((from_me) && (idout->src == 0)) {
-			idout->src = iface->addr;
+			_idout.src = iface->addr;
 		}
 
 		/* Rewrite routed brodcast (L3) to local (L2) when arriving at the interface */
 		if (csp_id_is_broadcast(idout->dst, iface)) {
-			idout->dst = csp_id_get_max_nodeid();
+			_idout.dst = csp_id_get_max_nodeid();
 		}
 
 		/* Todo: Find an elegant way to avoid making a copy when only a single destination interface
@@ -120,7 +123,7 @@ void csp_send_direct(csp_id_t* idout, csp_packet_t * packet, csp_iface_t * route
 		 * Is this even possible? */
 		copy = csp_buffer_clone(packet);
 		if (copy != NULL) {
-			csp_send_direct_iface(idout, copy, iface, via, from_me);
+			csp_send_direct_iface(&_idout, copy, iface, via, from_me);
 		}
 
 	}
