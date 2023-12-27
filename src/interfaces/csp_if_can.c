@@ -131,7 +131,7 @@ int csp_can1_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t 
 			packet->remain--;
 
 			/* Check for overflow */
-			if ((packet->rx_count + dlc - offset) > packet->length) {
+			if ((packet->length > sizeof(packet->data)) || (packet->rx_count + dlc - offset) > packet->length) {
 				csp_dbg_can_errno = CSP_DBG_CAN_ERR_RX_OVF;
 				iface->frame++;
 				csp_can_pbuf_free(ifdata, packet, 1, task_woken);
