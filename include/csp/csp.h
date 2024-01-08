@@ -74,6 +74,11 @@ const csp_conf_t * csp_get_conf(void);
 void csp_id_copy(csp_id_t * target, csp_id_t * source);
 
 /**
+ * Clear csp id fields after creating new buffer
+ */
+void csp_id_clear(csp_id_t * target);
+
+/**
  * Wait/accept a new connection.
  *
  * @param[in] socket socket to accept connections on, created by calling csp_socket().
