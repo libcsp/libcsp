@@ -37,7 +37,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 /* Use external csp_debug API */
 #include <csp/external/csp_debug.h>
 
-#else 
+#else
 
 #ifdef __cplusplus
 extern "C" {
@@ -82,7 +82,6 @@ extern void __attribute__((weak)) csp_assert_fail_action(const char *assertion, 
 			int line = __LINE__;								\
 			printf("\E[1;31mAssertion \'%s\' failed in %s:%d\E[0m\r\n",			\
 			       assertion, file, line);							\
-			if (csp_assert_fail_action)							\
 				csp_assert_fail_action(assertion, file, line);				\
 		}											\
 	}

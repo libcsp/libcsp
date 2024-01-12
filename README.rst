@@ -1,3 +1,21 @@
+Toliman-related info
+--------------------
+
+This is a fork of the libcsp library, with some modifications to make it work with Toliman. The main changes are:
+- Repository's main branch is on v1.6 (the latest published version of libcsp), with some modifications we added
+- Added a nix environment (`shell.nix` and `.envrc`) to easily set up the environment for building. Make sure you have Nix and direnv installed to make use of this.
+- Fixed a single debug warning that prevented compiling in -Werror mode
+- Modified the Python bindings to be compatible with Python 3.10
+
+Compiling:
+```
+# Configure
+./waf configure --enable-python3-bindings --enable-shlib --prefix=$out --install-csp --enable-if-zmqhub --enable-can-socketcan --with-driver-usart=linux
+
+# Build
+./waf build
+```
+
 The Cubesat Space Protocol
 ==========================
 
