@@ -264,7 +264,7 @@ int csp_can_set_rx_filter(csp_iface_t * iface, uint16_t filter_addr, uint16_t fi
 
 	int ret;
 	struct can_filter filter = {
-		.flags = CAN_FILTER_DATA | CAN_FILTER_IDE,
+		.flags = CAN_FILTER_IDE,
 	};
 	can_context_t * ctx;
 
