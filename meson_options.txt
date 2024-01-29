@@ -1,3 +1,5 @@
+option('enable_reproducible_builds', type: 'boolean', value: false, description: 'Enable reproducible builds')
+
 option('use_rdp', type: 'boolean', value: true, description: 'Reliable Datagram Protocol')
 option('use_crc32', type: 'boolean', value: true, description: 'Cyclic redundancy check')
 option('use_hmac', type: 'boolean', value: true, description: 'Hash-based message authentication code')
