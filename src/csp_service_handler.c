@@ -34,6 +34,7 @@ static int do_cmp_ident(struct csp_cmp_message * cmp) {
 	strncpy(cmp->ident.revision, csp_conf.revision, CSP_CMP_IDENT_REV_LEN);
 	cmp->ident.revision[CSP_CMP_IDENT_REV_LEN - 1] = '\0';
 
+#if CSP_REPRODUCIBLE_BUILDS == 0
 	/* Copy compilation date */
 	strncpy(cmp->ident.date, __DATE__, CSP_CMP_IDENT_DATE_LEN);
 	cmp->ident.date[CSP_CMP_IDENT_DATE_LEN - 1] = '\0';
@@ -41,6 +42,7 @@ static int do_cmp_ident(struct csp_cmp_message * cmp) {
 	/* Copy compilation time */
 	strncpy(cmp->ident.time, __TIME__, CSP_CMP_IDENT_TIME_LEN);
 	cmp->ident.time[CSP_CMP_IDENT_TIME_LEN - 1] = '\0';
+#endif
 
 	/* Copy hostname */
 	strncpy(cmp->ident.hostname, csp_conf.hostname, CSP_HOSTNAME_LEN);
