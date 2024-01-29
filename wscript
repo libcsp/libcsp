@@ -18,6 +18,8 @@ def options(ctx):
     gr = ctx.add_option_group('libcsp options')
     gr.add_option('--includes', default='', help='Add additional include paths, separate with comma')
 
+    gr.add_option('--enable-reproducible-builds', action='store_true', help='Enable reproducible builds')
+
     gr.add_option('--disable-output', action='store_true', help='Disable CSP output')
     gr.add_option('--disable-print-stdio', action='store_true', help='Disable vprintf for csp_print_func')
     gr.add_option('--disable-stlib', action='store_true', help='Build objects only')
@@ -165,6 +167,7 @@ def configure(ctx):
     ctx.define('CSP_RTABLE_SIZE', ctx.options.with_rtable_size)
 
     # Set defines for enabling features
+    ctx.define('CSP_REPRODUCIBLE_BUILDS', ctx.options.enable_reproducible_builds)
     ctx.define('CSP_ENABLE_CSP_PRINT', not ctx.options.disable_output)
     ctx.define('CSP_PRINT_STDIO', not ctx.options.disable_print_stdio)
     ctx.define('CSP_USE_RDP', ctx.options.enable_rdp)
