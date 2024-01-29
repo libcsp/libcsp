@@ -16,6 +16,8 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   set(CMAKE_BUILD_TYPE MinSizeRel CACHE STRING "Build Type" FORCE)
 endif()
 
+option(CSP_REPRODUCIBLE_BUILDS "Reproducible build" OFF)
+
 option(CSP_HAVE_STDIO "OS provides C Standard I/O functions" ON)
 option(CSP_ENABLE_CSP_PRINT "Enable csp_print() function" ON)
 option(CSP_PRINT_STDIO "Use vprintf() for csp_print() function" ON)
