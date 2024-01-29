@@ -85,3 +85,52 @@ use the following command:
 cmake --install builddir --component runtime
 ```
 
+## Reproducible Builds
+
+libcsp supports Reproducible Builds. To enable it, set
+`CSP_REPRODUCIBLE_BUILDS` to `1`.
+
+Please note that, when reproducible builds are enabled,
+`CSP_CMP_IDENT` does not return the compilation date and time.
+
+When reproducible builds are enabled, both the BuildID and hash values
+of generated binaries remain consistent for each build. Our
+reproducible builds also support building in different directories.
+Thus, different users should generate precisely the same binaries,
+given the same source code and build environment.
+
+You can learn more about reproducible builds at
+https://reproducible-builds.org/.
+
+Use the following commands for each build system:
+
+### Waf
+
+```shell
+./waf configure --enable-reproducible-builds
+```
+
+### Meson
+
+```shell
+meson setup builddir . -Denable_reproducible_builds=true
+```
+
+### CMake
+
+```shell
+cmake -GNinja -B builddir -DCSP_REPRODUCIBLE_BUILDS=ON
+```
+
+Note: By default, CMake embeds the build directory in the binaries,
+resulting in non-deterministic builds. To address this, use
+`CMAKE_BUILD_RPATH_USE_ORIGIN=ON` or `CMAKE_SKIP_RPATH=ON` as follows:
+
+```shell
+cmake -GNinja -B builddir -DCSP_REPRODUCIBLE_BUILDS=ON -DCMAKE_BUILD_RPATH_USE_ORIGIN=ON
+```
+
+See [Reproducible Builds site][1] or [CMake document][2] for more details.
+
+[1]: https://reproducible-builds.org/docs/deterministic-build-systems/
+[2]: https://cmake.org/cmake/help/latest/prop_tgt/BUILD_RPATH.html
