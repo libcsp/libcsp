@@ -17,6 +17,8 @@ conf.set('CSP_BUFFER_COUNT', get_option('buffer_count'))
 conf.set('CSP_RDP_MAX_WINDOW', get_option('rdp_max_window'))
 conf.set('CSP_RTABLE_SIZE', get_option('rtable_size'))
 
+conf.set10('CSP_REPRODUCIBLE_BUILDS', get_option('enable_reproducible_builds'))
+
 conf.set10('CSP_USE_RDP', get_option('use_rdp'))
 conf.set10('CSP_USE_HMAC', get_option('use_hmac'))
 conf.set10('CSP_USE_PROMISC', get_option('use_promisc'))
