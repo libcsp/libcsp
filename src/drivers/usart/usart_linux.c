@@ -36,6 +36,10 @@ static void * usart_rx_thread(void * arg) {
 	usart_context_t * ctx = arg;
 	const unsigned int CBUF_SIZE = 400;
 	uint8_t * cbuf = malloc(CBUF_SIZE);
+	if (cbuf == NULL) {
+		csp_print("%s: malloc() failed, returned NULL\n", __FUNCTION__);
+		exit(1);
+	}
 
 	// Receive loop
 	while (1) {
