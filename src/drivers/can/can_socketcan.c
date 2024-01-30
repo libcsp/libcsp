@@ -73,6 +73,11 @@ static void * socketcan_rx_thread(void * arg) {
 			continue;
 		}
 
+		/* Drop frames with invalid size field */
+		if (frame.can_dlc > CAN_MAX_DLEN) {
+			continue;
+		}
+
 		/* Drop frames with standard id (CSP uses extended) */
 		if (!(frame.can_id & CAN_EFF_FLAG)) {
 			continue;
