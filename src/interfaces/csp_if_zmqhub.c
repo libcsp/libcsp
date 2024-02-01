@@ -63,9 +63,11 @@ void * csp_zmqhub_task(void * param) {
 
 	while (1) {
 		int ret;
+		(void)ret;
 		zmq_msg_t msg;
 
 		ret = zmq_msg_init_size(&msg, sizeof(packet->data) + HEADER_SIZE);
+		/* TODO: this assert is GONE when building with NDEBUG, surely something else should done */
 		assert(ret == 0);
 
 		// Receive data
@@ -162,8 +164,10 @@ int csp_zmqhub_init_w_name_endpoints_rxfilter(const char * ifname,
 											  csp_iface_t ** return_interface) {
 
 	int ret;
+	(void)ret;
 	pthread_attr_t attributes;
 	zmq_driver_t * drv = calloc(1, sizeof(*drv));
+	/* TODO: this assert is GONE when building with NDEBUG, surely something else should done */
 	assert(drv != NULL);
 
 	if (ifname == NULL) {
@@ -176,34 +180,43 @@ int csp_zmqhub_init_w_name_endpoints_rxfilter(const char * ifname,
 	drv->iface.nexthop = csp_zmqhub_tx;
 
 	drv->context = zmq_ctx_new();
+	/* TODO: this assert is GONE when building with NDEBUG, surely something else should done */
 	assert(drv->context != NULL);
 
 	//csp_print("INIT %s: pub(tx): [%s], sub(rx): [%s], rx filters: %u", drv->iface.name, publish_endpoint, subscribe_endpoint, rxfilter_count);
 
 	/* Publisher (TX) */
 	drv->publisher = zmq_socket(drv->context, ZMQ_PUB);
+	/* TODO: this assert is GONE when building with NDEBUG, surely something else should done */
 	assert(drv->publisher != NULL);
 
 	/* Subscriber (RX) */
 	drv->subscriber = zmq_socket(drv->context, ZMQ_SUB);
+	/* TODO: this assert is GONE when building with NDEBUG, surely something else should done */
 	assert(drv->subscriber != NULL);
 
 	// subscribe to all packets - no filter
 	ret = zmq_setsockopt(drv->subscriber, ZMQ_SUBSCRIBE, NULL, 0);
+	/* TODO: this assert is GONE when building with NDEBUG, surely something else should done */
 	assert(ret == 0);
 
 	/* Connect to server */
 	ret = zmq_connect(drv->publisher, publish_endpoint);
+	/* TODO: this assert is GONE when building with NDEBUG, surely something else should done */
 	assert(ret == 0);
 	zmq_connect(drv->subscriber, subscribe_endpoint);
+	/* TODO: this assert is GONE when building with NDEBUG, surely something else should done */
 	assert(ret == 0);
 
 	/* Start RX thread */
 	ret = pthread_attr_init(&attributes);
+	/* TODO: this assert is GONE when building with NDEBUG, surely something else should done */
 	assert(ret == 0);
 	ret = pthread_attr_setdetachstate(&attributes, PTHREAD_CREATE_DETACHED);
+	/* TODO: this assert is GONE when building with NDEBUG, surely something else should done */
 	assert(ret == 0);
 	ret = pthread_create(&drv->rx_thread, &attributes, csp_zmqhub_task, drv);
+	/* TODO: this assert is GONE when building with NDEBUG, surely something else should done */
 	assert(ret == 0);
 
 	/* Register interface */
@@ -225,8 +238,10 @@ int csp_zmqhub_init_filter2(const char * ifname, const char * host, uint16_t add
 	csp_zmqhub_make_endpoint(host, CSP_ZMQPROXY_PUBLISH_PORT + (sec_key != NULL), sub, sizeof(sub));
 
 	int ret;
+	(void)ret;
 	pthread_attr_t attributes;
 	zmq_driver_t * drv = calloc(1, sizeof(*drv));
+	/* TODO: this assert is GONE when building with NDEBUG, surely something else should done */
 	assert(drv != NULL);
 
 	if (ifname == NULL) {
@@ -239,16 +254,19 @@ int csp_zmqhub_init_filter2(const char * ifname, const char * host, uint16_t add
 	drv->iface.nexthop = csp_zmqhub_tx;
 
 	drv->context = zmq_ctx_new();
+	/* TODO: this assert is GONE when building with NDEBUG, surely something else should done */
 	assert(drv->context != NULL);
 
 	csp_print("  ZMQ init %s: addr: %u, pub(tx): [%s], sub(rx): [%s]\n", drv->iface.name, addr, pub, sub);
 
 	/* Publisher (TX) */
 	drv->publisher = zmq_socket(drv->context, ZMQ_PUB);
+	/* TODO: this assert is GONE when building with NDEBUG, surely something else should done */
 	assert(drv->publisher != NULL);
 
 	/* Subscriber (RX) */
 	drv->subscriber = zmq_socket(drv->context, ZMQ_SUB);
+	/* TODO: this assert is GONE when building with NDEBUG, surely something else should done */
 	assert(drv->subscriber != NULL);
 
     /* If shared secret key provided */
@@ -270,8 +288,10 @@ int csp_zmqhub_init_filter2(const char * ifname, const char * host, uint16_t add
 	
 	/* Connect to server */
 	ret = zmq_connect(drv->publisher, pub);
+	/* TODO: this assert is GONE when building with NDEBUG, surely something else should done */
 	assert(ret == 0);
 	ret = zmq_connect(drv->subscriber, sub);
+	/* TODO: this assert is GONE when building with NDEBUG, surely something else should done */
 	assert(ret == 0);
 
 
@@ -279,6 +299,7 @@ int csp_zmqhub_init_filter2(const char * ifname, const char * host, uint16_t add
 
 		// subscribe to all packets - no filter
 		ret = zmq_setsockopt(drv->subscriber, ZMQ_SUBSCRIBE, NULL, 0);
+		/* TODO: this assert is GONE when building with NDEBUG, surely something else should done */
 		assert(ret == 0);
 
 	} else {
@@ -302,10 +323,13 @@ int csp_zmqhub_init_filter2(const char * ifname, const char * host, uint16_t add
 
 	/* Start RX thread */
 	ret = pthread_attr_init(&attributes);
+	/* TODO: this assert is GONE when building with NDEBUG, surely something else should done */
 	assert(ret == 0);
 	ret = pthread_attr_setdetachstate(&attributes, PTHREAD_CREATE_DETACHED);
+	/* TODO: this assert is GONE when building with NDEBUG, surely something else should done */
 	assert(ret == 0);
 	ret = pthread_create(&drv->rx_thread, &attributes, csp_zmqhub_task, drv);
+	/* TODO: this assert is GONE when building with NDEBUG, surely something else should done */
 	assert(ret == 0);
 
 	/* Register interface */
