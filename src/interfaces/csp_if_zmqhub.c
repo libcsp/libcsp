@@ -63,7 +63,7 @@ void * csp_zmqhub_task(void * param) {
 
 	while (1) {
 		int ret;
-		(void)ret;
+		(void)ret; /* Silence unused variable warning (promoted to an error if -Werr) issued when building with NDEBUG (release with asserts turned off) */
 		zmq_msg_t msg;
 
 		ret = zmq_msg_init_size(&msg, sizeof(packet->data) + HEADER_SIZE);
@@ -163,7 +163,7 @@ int csp_zmqhub_init_w_name_endpoints_rxfilter(const char * ifname,
 											  csp_iface_t ** return_interface) {
 
 	int ret;
-	(void)ret;
+	(void)ret; /* Silence unused variable warning (promoted to an error if -Werr) issued when building with NDEBUG (release with asserts turned off) */
 	pthread_attr_t attributes;
 	zmq_driver_t * drv = calloc(1, sizeof(*drv));
 	assert(drv != NULL);
@@ -227,7 +227,7 @@ int csp_zmqhub_init_filter2(const char * ifname, const char * host, uint16_t add
 	csp_zmqhub_make_endpoint(host, CSP_ZMQPROXY_PUBLISH_PORT + (sec_key != NULL), sub, sizeof(sub));
 
 	int ret;
-	(void)ret;
+	(void)ret; /* Silence unused variable warning (promoted to an error if -Werr) issued when building with NDEBUG (release with asserts turned off) */
 	pthread_attr_t attributes;
 	zmq_driver_t * drv = calloc(1, sizeof(*drv));
 	assert(drv != NULL);
