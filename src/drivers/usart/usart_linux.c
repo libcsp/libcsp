@@ -65,6 +65,10 @@ int csp_usart_write(csp_usart_fd_t fd, const void * data, size_t data_length) {
 }
 
 int csp_usart_open(const csp_usart_conf_t * conf, csp_usart_callback_t rx_callback, void * user_data, csp_usart_fd_t * return_fd) {
+	if (rx_callback == NULL && return_fd == NULL) {
+		csp_print("%s: No rx_callback function pointer or return_fd pointer provided\n", __FUNCTION__);
+		return CSP_ERR_INVAL;
+	}
 
 	int brate = 0;
 	switch (conf->baudrate) {
@@ -165,17 +169,16 @@ int csp_usart_open(const csp_usart_conf_t * conf, csp_usart_callback_t rx_callba
 		return CSP_ERR_DRIVER;
 	}
 
-	usart_context_t * ctx = calloc(1, sizeof(*ctx));
-	if (ctx == NULL) {
-		csp_print("%s: Error allocating context, device: [%s], errno: %s\n", __FUNCTION__, conf->device, strerror(errno));
-		close(fd);
-		return CSP_ERR_NOMEM;
-	}
-	ctx->rx_callback = rx_callback;
-	ctx->user_data = user_data;
-	ctx->fd = fd;
-
 	if (rx_callback) {
+		usart_context_t * ctx = calloc(1, sizeof(*ctx));
+		if (ctx == NULL) {
+			csp_print("%s: Error allocating context, device: [%s], errno: %s\n", __FUNCTION__, conf->device, strerror(errno));
+			close(fd);
+			return CSP_ERR_NOMEM;
+		}
+		ctx->rx_callback = rx_callback;
+		ctx->user_data = user_data;
+		ctx->fd = fd;
 		int ret;
 		pthread_attr_t attributes;
 
@@ -192,6 +195,10 @@ int csp_usart_open(const csp_usart_conf_t * conf, csp_usart_callback_t rx_callba
 			free(ctx);
 			close(fd);
 			return CSP_ERR_NOMEM;
+		}
+		ret = pthread_attr_destroy(&attributes);
+		if (ret != 0) {
+			csp_print("%s: pthread_attr_destroy() failed: %s, errno: %d\n", __FUNCTION__, strerror(ret), ret);
 		}
 	}
 
