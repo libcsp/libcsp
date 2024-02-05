@@ -1,0 +1,47 @@
+name: Zephyr Build and Test
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '0 10 * * 0' # Run it every Sunday 10am UTC
+
+jobs:
+  build-zephyr:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        board:
+          - scobc_module1
+          - qemu_cortex_m3
+          - mps2_an385
+        python-version:
+          - '3.9'
+          - '3.10'
+          - '3.11'
+
+    steps:
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Python version
+        run: |
+          python3 --version
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: libcsp-zephyr
+          repository: yashi/libcsp-zephyr
+
+      - name: Setup Zephyr
+        uses: zephyrproject-rtos/action-zephyr-setup@v1
+        with:
+          app-path: libcsp-zephyr
+          toolchains: arm-zephyr-eabi
+
+      - name: Build
+        run: |
+          west build -b ${{ matrix.board }} libcsp-zephyr
