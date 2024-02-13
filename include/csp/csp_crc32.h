@@ -42,7 +42,7 @@ int csp_crc32_verify(csp_packet_t * packet);
  * @param[in] length length of memory to do checksum on
  * @return checksum
  */
-uint32_t csp_crc32_memory(const uint8_t * addr, uint32_t length);
+uint32_t csp_crc32_memory(const void * addr, uint32_t length);
 
 /**
    Initialize the CRC32 object prior to calculating checksum.
@@ -56,7 +56,7 @@ void csp_crc32_init(csp_crc32_t *crc);
    @param[in] data pointer to data for which to update checksum on
    @param[in] length number of bytes in the array pointed to by data
 */
-void csp_crc32_update(csp_crc32_t * crc, const uint8_t * data, uint32_t length);
+void csp_crc32_update(csp_crc32_t * crc, const void * data, uint32_t length);
 
 /**
    Finalize the CRC32 checksum calculation.
