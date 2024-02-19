@@ -68,8 +68,6 @@ void csp_buffer_init(void);
  */
 size_t csp_buffer_data_size(void);
 
-void csp_buffer_init(void);
-
 void csp_buffer_refc_inc(void * buffer);
   
 #ifdef __cplusplus
