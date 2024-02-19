@@ -15,7 +15,7 @@ message/connection pools.
 The protocol is based on an very lightweight header containing both transport and
 network-layer information. Its implementation is designed for, but not
 limited to, embedded systems with very limited CPU and memory resources.
-The implementation is written in GNU C and is currently ported to run on FreeRTOS, Zephyr 
+The implementation is written in GNU C and is currently ported to run on FreeRTOS, Zephyr
 and Linux (POSIX).
 
 The idea is to give sub-system developers of cubesats the same features
@@ -65,6 +65,13 @@ to have some rather advanced features as well.
 The latest version of the /doc folder is compiled to HTML and hosted on:
 
   [libcsp.github.io/libcsp/](https://libcsp.github.io/libcsp/)
+
+## Contributing
+
+Thank you for considering contributing to libcsp! We welcome
+contributions from the community to help improve and grow the
+project. Please take a moment to review our
+[guidelines](./doc/git-commit.md) before opening a Pull Request!
 
 ## Software license
 

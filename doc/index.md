@@ -60,6 +60,7 @@ hooks
 :hidden:
 
 codestyle
+git-commit
 structure
 CI
 changelog
