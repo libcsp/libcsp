@@ -37,7 +37,7 @@ void csp_buffer_free(void *buffer);
 /**
  * Free buffer (from ISR context).
  *
- * @oaram[in] buffer buffer to free. NULL is handled gracefully.
+ * @param[in] buffer buffer to free. NULL is handled gracefully.
  */
 void csp_buffer_free_isr(void *buffer);
 
@@ -45,7 +45,7 @@ void csp_buffer_free_isr(void *buffer);
  * Clone an existing buffer.
  * The existing \a buffer content is copied to the new buffer.
  *
- * @oaram[in] buffer buffer to clone.
+ * @param[in] buffer buffer to clone.
  * @return cloned buffer on success, or NULL on failure.
  */
 void * csp_buffer_clone(void *buffer);
