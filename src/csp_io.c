@@ -412,6 +412,10 @@ void csp_sendto_reply(const csp_packet_t * request_packet, csp_packet_t * reply_
 		reply_packet->id.flags = request_packet->id.flags;
 	}
 	uint16_t dst = request_packet->id.src;
-	reply_packet->id.src = request_packet->id.dst;
+	if (request_packet->id.dst != csp_id_get_max_nodeid()) {
+		reply_packet->id.src = request_packet->id.dst;
+	} else {
+		reply_packet->id.src = 0;
+	}
 	csp_sendto(request_packet->id.pri, dst, request_packet->id.sport, request_packet->id.dport, opts, reply_packet);
 }
