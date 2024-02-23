@@ -34,7 +34,6 @@ set(CSP_RTABLE_SIZE 10 CACHE STRING "Number of elements in routing table")
 option(CSP_USE_RDP "Reliable Datagram Protocol" ON)
 option(CSP_USE_HMAC "Hash-based message authentication code" ON)
 option(CSP_USE_PROMISC "Promiscious mode" ON)
-option(CSP_USE_DEDUP "Packet deduplication" ON)
 option(CSP_USE_RTABLE "Use routing table" OFF)
 
 option(CSP_ENABLE_PYTHON3_BINDINGS "Build Python3 binding" OFF)

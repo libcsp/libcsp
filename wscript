@@ -173,7 +173,6 @@ def configure(ctx):
     ctx.define('CSP_USE_RDP', ctx.options.enable_rdp)
     ctx.define('CSP_USE_HMAC', ctx.options.enable_hmac)
     ctx.define('CSP_USE_PROMISC', ctx.options.enable_promisc)
-    ctx.define('CSP_USE_DEDUP', ctx.options.enable_dedup)
 
 
     ctx.write_config_header('include/csp/autoconfig.h')
