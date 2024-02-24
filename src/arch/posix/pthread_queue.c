@@ -129,7 +129,7 @@ int pthread_queue_enqueue(pthread_queue_t * queue, const void * value, uint32_t 
 	ret = wait_slot_available(queue, pts);
 	if (ret == PTHREAD_QUEUE_OK) {
 		/* Copy object from input buffer */
-		memcpy(queue->buffer + (queue->in * queue->item_size), value, queue->item_size);
+		memcpy((char *)queue->buffer + (queue->in * queue->item_size), value, queue->item_size);
 		queue->items++;
 		queue->in = (queue->in + 1) % queue->size;
 	}
@@ -186,7 +186,7 @@ int pthread_queue_dequeue(pthread_queue_t * queue, void * buf, uint32_t timeout)
 	ret = wait_item_available(queue, pts);
 	if (ret == PTHREAD_QUEUE_OK) {
 		/* Coby object to output buffer */
-		memcpy(buf, queue->buffer + (queue->out * queue->item_size), queue->item_size);
+		memcpy(buf, (char *)queue->buffer + (queue->out * queue->item_size), queue->item_size);
 		queue->items--;
 		queue->out = (queue->out + 1) % queue->size;
 	}
