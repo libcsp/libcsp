@@ -22,6 +22,11 @@ target_sources(csp PRIVATE
   csp_sfp.c
   )
 
+set_source_files_properties(csp_rdp.c
+  TARGET_DIRECTORY csp
+  PROPERTIES COMPILE_DEFINITIONS _DEFAULT_SOURCE
+)
+
 if (CSP_HAVE_STDIO)
   target_sources(csp PRIVATE csp_rtable_stdio.c)
 endif()
