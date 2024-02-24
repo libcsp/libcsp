@@ -1,6 +1,4 @@
 csp_sources += files([
-	'csp_rdp.c',
-	'csp_rdp_queue.c',
 	'csp_buffer.c',
 	'csp_bridge.c',
 	'csp_conn.c',
@@ -37,6 +35,13 @@ endif
 
 if get_option('use_promisc')
 	csp_sources += files('csp_promisc.c')
+endif
+
+if get_option('use_rdp')
+	csp_sources += files(
+		'csp_rdp.c',
+		'csp_rdp_queue.c',
+	)
 endif
 
 subdir('arch')
