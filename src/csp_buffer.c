@@ -79,7 +79,7 @@ void csp_buffer_free_isr(void * packet) {
 		return;
 	}
 
-	csp_skbf_t * buf = packet - offsetof(csp_skbf_t, skbf_data);
+	csp_skbf_t * buf = CONTAINER_OF(packet, csp_skbf_t, skbf_data);
 
 	if (buf->skbf_addr != buf) {
 		csp_dbg_errno = CSP_DBG_ERR_CORRUPT_BUFFER;
@@ -107,7 +107,7 @@ void csp_buffer_free(void * packet) {
 		return;
 	}
 
-	csp_skbf_t * buf = packet - offsetof(csp_skbf_t, skbf_data);
+	csp_skbf_t * buf = CONTAINER_OF(packet, csp_skbf_t, skbf_data);
 
 	if (buf->skbf_addr != buf) {
 		csp_dbg_errno = CSP_DBG_ERR_CORRUPT_BUFFER;
@@ -150,7 +150,7 @@ void csp_buffer_refc_inc(void * buffer) {
 		return;
 	}
 
-	csp_skbf_t * buf = buffer - offsetof(csp_skbf_t, skbf_data);
+	csp_skbf_t * buf = CONTAINER_OF(buffer, csp_skbf_t, skbf_data);
 	if (buf->skbf_addr != buf) {
 		csp_dbg_errno = CSP_DBG_ERR_CORRUPT_BUFFER;
 		return;
