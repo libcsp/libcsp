@@ -62,6 +62,7 @@ csp_inc = include_directories('include', 'src')
 csp_c_args = ['-Wshadow',
 	      '-Wcast-align',
 	      '-Wwrite-strings',
+	      '-Wpointer-arith',
 	      '-Wno-unused-parameter']
 
 subdir('src')
