@@ -106,7 +106,6 @@ def configure(ctx):
                                         'src/csp_init.c',
                                         'src/csp_io.c',
                                         'src/csp_port.c',
-                                        'src/csp_promisc.c',
                                         'src/csp_qfifo.c',
                                         'src/csp_route.c',
                                         'src/csp_service_handler.c',
@@ -132,6 +131,9 @@ def configure(ctx):
 
     if not ctx.options.disable_output:
         ctx.env.append_unique('FILES_CSP', ['src/csp_hex_dump.c'])
+
+    if ctx.options.enable_promisc:
+        ctx.env.append_unique('FILES_CSP', ['src/csp_promisc.c'])
 
     # Add socketcan
     if ctx.options.enable_can_socketcan:
