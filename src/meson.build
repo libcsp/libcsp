@@ -11,7 +11,6 @@ csp_sources += files([
 	'csp_init.c',
 	'csp_io.c',
 	'csp_port.c',
-	'csp_promisc.c',
 	'csp_qfifo.c',
 	'csp_route.c',
 	'csp_service_handler.c',
@@ -34,6 +33,10 @@ endif
 
 if get_option('enable_csp_print')
 	csp_sources += files('csp_hex_dump.c')
+endif
+
+if get_option('use_promisc')
+	csp_sources += files('csp_promisc.c')
 endif
 
 subdir('arch')

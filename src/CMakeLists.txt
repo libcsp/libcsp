@@ -10,7 +10,6 @@ target_sources(csp PRIVATE
   csp_init.c
   csp_io.c
   csp_port.c
-  csp_promisc.c
   csp_qfifo.c
   csp_route.c
   csp_rtable_cidr.c
@@ -32,6 +31,10 @@ endif()
 
 if (CSP_ENABLE_CSP_PRINT)
   target_sources(csp PRIVATE csp_hex_dump.c)
+endif()
+
+if (CSP_USE_PROMISC)
+  target_sources(csp PRIVATE csp_promisc.c)
 endif()
 
 add_subdirectory(arch)
