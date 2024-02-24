@@ -103,7 +103,6 @@ def configure(ctx):
                                         'src/csp_crc32.c',
                                         'src/csp_debug.c',
                                         'src/csp_dedup.c',
-                                        'src/csp_hex_dump.c',
                                         'src/csp_iflist.c',
                                         'src/csp_init.c',
                                         'src/csp_io.c',
@@ -131,6 +130,9 @@ def configure(ctx):
     # Add if UDP
     if ctx.check(header_name="sys/socket.h", mandatory=False) and ctx.check(header_name="arpa/inet.h", mandatory=False):
         ctx.env.append_unique('FILES_CSP', ['src/interfaces/csp_if_udp.c'])
+
+    if not ctx.options.disable_output:
+        ctx.env.append_unique('FILES_CSP', ['src/csp_hex_dump.c'])
 
     # Add socketcan
     if ctx.options.enable_can_socketcan:

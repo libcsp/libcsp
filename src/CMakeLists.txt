@@ -5,7 +5,6 @@ target_sources(csp PRIVATE
   csp_crc32.c
   csp_debug.c
   csp_dedup.c
-  csp_hex_dump.c
   csp_id.c
   csp_iflist.c
   csp_init.c
@@ -29,6 +28,10 @@ set_source_files_properties(csp_rdp.c
 
 if (CSP_HAVE_STDIO)
   target_sources(csp PRIVATE csp_rtable_stdio.c)
+endif()
+
+if (CSP_ENABLE_CSP_PRINT)
+  target_sources(csp PRIVATE csp_hex_dump.c)
 endif()
 
 add_subdirectory(arch)
