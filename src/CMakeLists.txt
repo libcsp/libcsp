@@ -15,8 +15,6 @@ target_sources(csp PRIVATE
   csp_rtable_cidr.c
   csp_service_handler.c
   csp_services.c
-  csp_rdp.c
-  csp_rdp_queue.c
   csp_sfp.c
   )
 
@@ -35,6 +33,13 @@ endif()
 
 if (CSP_USE_PROMISC)
   target_sources(csp PRIVATE csp_promisc.c)
+endif()
+
+if (CSP_USE_RDP)
+  target_sources(csp PRIVATE
+    csp_rdp.c
+    csp_rdp_queue.c
+  )
 endif()
 
 add_subdirectory(arch)
