@@ -7,7 +7,6 @@ csp_sources += files([
 	'csp_crc32.c',
 	'csp_debug.c',
 	'csp_dedup.c',
-	'csp_hex_dump.c',
 	'csp_iflist.c',
 	'csp_init.c',
 	'csp_io.c',
@@ -31,6 +30,10 @@ endif
 
 if get_option('use_rtable')
 	csp_sources += files('csp_rtable_cidr.c')
+endif
+
+if get_option('enable_csp_print')
+	csp_sources += files('csp_hex_dump.c')
 endif
 
 subdir('arch')
