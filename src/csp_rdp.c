@@ -54,23 +54,16 @@ static int csp_rdp_close_internal(csp_conn_t * conn, uint8_t closed_by, bool sen
  */
 static rdp_header_t * csp_rdp_header_add(csp_packet_t * packet) {
 	rdp_header_t * header;
-	if ((packet->length + sizeof(*header)) > sizeof(packet->data)) {
-		return NULL;
-	}
-	header = (rdp_header_t *)&packet->data[packet->length];
-	packet->length += sizeof(*header);
-	memset(header, 0, sizeof(*header));
+	header = csp_buffer_data_aquire_fill(packet, sizeof(*header), 0);
 	return header;
 }
 
-static rdp_header_t * csp_rdp_header_remove(csp_packet_t * packet) {
-	rdp_header_t * header = (rdp_header_t *)&packet->data[packet->length - sizeof(*header)];
-	packet->length -= sizeof(*header);
-	return header;
+static void csp_rdp_header_remove(csp_packet_t * packet) {
+	csp_buffer_data_discard(packet, sizeof(rdp_header_t));
 }
 
 static rdp_header_t * csp_rdp_header_ref(csp_packet_t * packet) {
-	rdp_header_t * header = (rdp_header_t *)&packet->data[packet->length - sizeof(*header)];
+	rdp_header_t * header = (rdp_header_t *)csp_buffer_data_peek(packet, sizeof(rdp_header_t));
 	return header;
 }
 
