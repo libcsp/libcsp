@@ -87,7 +87,7 @@ int csp_crc32_append(csp_packet_t * packet) {
 
 	uint32_t crc;
 
-	if ((packet->length + sizeof(crc)) > sizeof(packet->data)) {
+	if (!csp_buffer_has_space(packet, sizeof(crc))) {
 		return CSP_ERR_NOMEM;
 	}
 
@@ -96,15 +96,14 @@ int csp_crc32_append(csp_packet_t * packet) {
 		csp_id_prepend(packet);
 		crc = csp_crc32_memory(packet->frame_begin, packet->frame_length);
 #else
-		crc = csp_crc32_memory(packet->data, packet->length);
+		crc = csp_crc32_memory(packet->data, csp_buffer_get_data_length(packet));
 #endif
 
 	/* Convert to network byte order */
 	crc = htobe32(crc);
 
 	/* Copy checksum to packet */
-	memcpy(&packet->data[packet->length], &crc, sizeof(crc));
-	packet->length += sizeof(crc);
+	csp_buffer_data_append_uint32(packet, crc);
 
 	return CSP_ERR_NONE;
 }
@@ -113,7 +112,7 @@ int csp_crc32_verify(csp_packet_t * packet) {
 
 	uint32_t crc;
 
-	if (packet->length < sizeof(crc)) {
+	if (csp_buffer_get_data_length(packet) < sizeof(crc)) {
 		return CSP_ERR_CRC32;
 	}
 
