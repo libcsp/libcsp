@@ -900,8 +900,7 @@ static PyObject * pycsp_packet_set_data(PyObject * self, PyObject * args) {
 		return PyErr_Error("packet_set_data() - exceeding data size", CSP_ERR_INVAL);
 	}
 
-	memcpy(packet->data, data.buf, data.len);
-	packet->length = data.len;
+	csp_buffer_data_append(packet, data.buf, data.len);
 
 	Py_RETURN_NONE;
 }
@@ -911,7 +910,7 @@ static PyObject * pycsp_packet_get_data(PyObject * self, PyObject * packet_capsu
 	if (packet == NULL) {
 		return NULL;  // TypeError is thrown
 	}
-	return Py_BuildValue("y#", packet->data, (size_t)packet->length);
+	return Py_BuildValue("y#", packet->data, (size_t)csp_buffer_get_data_length(packet));
 }
 
 static PyObject * pycsp_packet_get_length(PyObject * self, PyObject * packet_capsule) {
@@ -919,7 +918,7 @@ static PyObject * pycsp_packet_get_length(PyObject * self, PyObject * packet_cap
 	if (packet == NULL) {
 		return NULL;  // TypeError is thrown
 	}
-	return Py_BuildValue("H", packet->length);
+	return Py_BuildValue("H", csp_buffer_get_data_length(packet));
 }
 
 static PyObject * pycsp_print_connections(PyObject * self, PyObject * args) {
