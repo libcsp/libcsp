@@ -200,7 +200,8 @@ void csp_send_direct(csp_id_t* idout, csp_packet_t * packet, csp_iface_t * route
 
 __weak void csp_output_hook(csp_id_t * idout, csp_packet_t * packet, csp_iface_t * iface, uint16_t via, int from_me) {
 	csp_print_packet("OUT: S %u, D %u, Dp %u, Sp %u, Pr %u, Fl 0x%02X, Sz %u VIA: %s (%u), Tms %u\n",
-				idout->src, idout->dst, idout->dport, idout->sport, idout->pri, idout->flags, packet->length, iface->name, (via != CSP_NO_VIA_ADDRESS) ? via : idout->dst, csp_get_ms());
+					 idout->src, idout->dst, idout->dport, idout->sport, idout->pri, idout->flags,
+					 csp_buffer_get_data_length(packet), iface->name, (via != CSP_NO_VIA_ADDRESS) ? via : idout->dst, csp_get_ms());
 	return;
 }
 
@@ -249,7 +250,7 @@ void csp_send_direct_iface(csp_id_t* idout, csp_packet_t * packet, csp_iface_t *
 	}
 
 	/* Store length before passing to interface */
-	uint16_t bytes = packet->length;
+	uint16_t bytes = csp_buffer_get_data_length(packet);
 
 	if ((*iface->nexthop)(iface, via, packet, from_me) != CSP_ERR_NONE)
 		goto tx_err;
@@ -301,11 +302,7 @@ int csp_transaction_persistent(csp_conn_t * conn, uint32_t timeout, void * outbu
 	if (packet == NULL)
 		return 0;
 
-	/* Copy the request */
-	if (outlen > 0 && outbuf != NULL)
-		memcpy(packet->data, outbuf, outlen);
-	packet->length = outlen;
-
+	csp_buffer_data_append(packet, outbuf, outlen);
 	csp_send(conn, packet);
 
 	/* If no reply is expected, return now */
@@ -316,14 +313,13 @@ int csp_transaction_persistent(csp_conn_t * conn, uint32_t timeout, void * outbu
 	if (packet == NULL)
 		return 0;
 
-	if ((inlen != -1) && ((int)packet->length != inlen)) {
+	if ((inlen != -1) && ((int)csp_buffer_get_data_length(packet) != inlen)) {
 		csp_dbg_inval_reply++;
 		csp_buffer_free(packet);
 		return 0;
 	}
 
-	memcpy(inbuf, packet->data, packet->length);
-	int length = packet->length;
+	int length = csp_buffer_data_copy(packet, inbuf, inlen);
 	csp_buffer_free(packet);
 	return length;
 }
