@@ -109,7 +109,7 @@ int csp_crc32_append(csp_packet_t * packet) {
 	return CSP_ERR_NONE;
 }
 
-int csp_crc32_verify(csp_packet_t * packet) {
+int csp_crc32_verify_and_strip(csp_packet_t * packet) {
 
 	uint32_t crc;
 
