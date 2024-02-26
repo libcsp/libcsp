@@ -19,6 +19,12 @@ extern "C" {
  */
 typedef uint32_t csp_crc32_t;
 
+/**
+ * Append CRC32 checksum to packet
+ *
+ * @param[in] packet CSP packet, must be valid.
+ * @preturn #CSP_ERR_NONE on success, otherwise an error code.
+ */
 int csp_crc32_append(csp_packet_t * packet);
 
 /**
