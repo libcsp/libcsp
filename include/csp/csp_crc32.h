@@ -28,7 +28,17 @@ typedef uint32_t csp_crc32_t;
 int csp_crc32_append(csp_packet_t * packet);
 
 /**
- * Verify CRC32 checksum on packet.
+ * Verify CRC32 checksum on packet. The checksum on the given packet
+ * is not removed.
+ *
+ * @param[in] packet CSP packet, must be valid.
+ * @return #CSP_ERR_NONE on success, otherwise an error code.
+ */
+int csp_crc32_verify(csp_packet_t * packet);
+
+/**
+ * Verify CRC32 checksum on packet. If valid the checksum is removed
+ * from the given packet.
  *
  * @param[in] packet CSP packet, must be valid.
  * @return #CSP_ERR_NONE on success, otherwise an error code.

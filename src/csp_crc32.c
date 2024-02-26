@@ -109,7 +109,7 @@ int csp_crc32_append(csp_packet_t * packet) {
 	return CSP_ERR_NONE;
 }
 
-int csp_crc32_verify_and_strip(csp_packet_t * packet) {
+int csp_crc32_verify(csp_packet_t * packet) {
 
 	uint32_t crc;
 
@@ -132,10 +132,20 @@ int csp_crc32_verify_and_strip(csp_packet_t * packet) {
 		if (memcmp(&packet->data[packet->length] - sizeof(crc), &crc, sizeof(crc)) != 0) {
 			return CSP_ERR_CRC32;
 		}
-		
 	}
 
-	/* Strip CRC32 */
-	packet->length -= sizeof(crc);
 	return CSP_ERR_NONE;
+}
+
+int csp_crc32_verify_and_strip(csp_packet_t * packet) {
+
+	int ret;
+
+	ret = csp_crc32_verify(packet);
+	if (ret == 0) {
+		/* Strip CRC32 */
+		packet->length -= sizeof(uint32_t);
+	}
+
+	return ret;
 }
