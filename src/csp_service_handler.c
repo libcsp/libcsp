@@ -166,22 +166,22 @@ static int csp_cmp_handler(csp_packet_t * packet) {
 	switch (cmp->code) {
 		case CSP_CMP_IDENT:
 			ret = do_cmp_ident(cmp);
-			packet->length = CMP_SIZE(ident);
+			csp_buffer_set_data_length(packet, CMP_SIZE(ident));
 			break;
 
 		case CSP_CMP_ROUTE_SET_V1:
 			ret = do_cmp_route_set_v1(cmp);
-			packet->length = CMP_SIZE(route_set_v1);
+			csp_buffer_set_data_length(packet, CMP_SIZE(route_set_v1));
 			break;
 
 		case CSP_CMP_ROUTE_SET_V2:
 			ret = do_cmp_route_set_v2(cmp);
-			packet->length = CMP_SIZE(route_set_v2);
+			csp_buffer_set_data_length(packet, CMP_SIZE(route_set_v2));
 			break;
 
 		case CSP_CMP_IF_STATS:
 			ret = do_cmp_if_stats(cmp);
-			packet->length = CMP_SIZE(if_stats);
+			csp_buffer_set_data_length(packet, CMP_SIZE(if_stats));
 			break;
 
 		case CSP_CMP_PEEK:
@@ -210,74 +210,70 @@ void csp_service_handler(csp_packet_t * packet) {
 
 	switch (packet->id.dport) {
 
-		case CSP_CMP:
-			/* Pass to CMP handler */
-			if (csp_cmp_handler(packet) != CSP_ERR_NONE) {
+	case CSP_CMP: {
+			int ret = csp_cmp_handler(packet);
+			if (ret != CSP_ERR_NONE) {
 				csp_buffer_free(packet);
-				return;
+				packet = NULL;
 			}
 			break;
+		}
 
 		case CSP_PING:
 			/* A ping means, just echo the packet, so no changes */
 			break;
 
 		case CSP_PS: {
-			packet->length = csp_ps_hook(packet);
-			if (packet->length == 0) {
+			int ret = csp_ps_hook(packet);
+			if (ret == 0) {
 				csp_buffer_free(packet);
+				packet = NULL;
 			}
 			break;
 		}
 
 		case CSP_MEMFREE: {
-
-			uint32_t total = 0;
-			total = csp_memfree_hook();
-			
+			uint32_t total = csp_memfree_hook();
 			total = htobe32(total);
-			memcpy(packet->data, &total, sizeof(total));
-			packet->length = sizeof(total);
-
+			csp_buffer_data_replace(packet, &total, sizeof(total));
 			break;
 		}
 
 		case CSP_REBOOT: {
 			uint32_t magic_word;
-			memcpy(&magic_word, packet->data, sizeof(magic_word));
+
+			csp_buffer_data_copy(packet, &magic_word, sizeof(magic_word));
+			csp_buffer_free(packet);
+			packet = NULL;
 
 			magic_word = be32toh(magic_word);
-
 			/* If the magic word is valid, reboot */
 			if (magic_word == CSP_REBOOT_MAGIC) {
 				csp_reboot_hook();
 			} else if (magic_word == CSP_REBOOT_SHUTDOWN_MAGIC) {
 				csp_shutdown_hook();
 			}
-
-			csp_buffer_free(packet);
-			return;
+			break;
 		}
 
 		case CSP_BUF_FREE: {
 			uint32_t size = csp_buffer_remaining();
 			size = htobe32(size);
-			memcpy(packet->data, &size, sizeof(size));
-			packet->length = sizeof(size);
+			csp_buffer_data_replace(packet, &size, sizeof(size));
 			break;
 		}
 
 		case CSP_UPTIME: {
 			uint32_t time = csp_get_s();
 			time = htobe32(time);
-			memcpy(packet->data, &time, sizeof(time));
-			packet->length = sizeof(time);
+			csp_buffer_data_replace(packet, &time, sizeof(time));
 			break;
 		}
 
 		default:
 			csp_buffer_free(packet);
-			return;
+			packet = NULL;
+			break;
 	}
 
 	if (packet != NULL) {
