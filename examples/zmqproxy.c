@@ -62,17 +62,16 @@ static void * task_capture(void * ctx) {
 
 		/* Copy to packet */
 		csp_id_setup_rx(packet);
-		memcpy(packet->frame_begin, zmq_msg_data(&msg), datalen);
-		packet->frame_length = datalen;
+		csp_buffer_frame_replace(packet, zmq_msg_data(&msg), datalen);
 
 		/* Parse header */
 		csp_id_strip(packet);
 
 		/* Print header data */
 		csp_print("Packet: Src %u, Dst %u, Dport %u, Sport %u, Pri %u, Flags 0x%02X, Size %" PRIu16 "\n",
-			   packet->id.src, packet->id.dst, packet->id.dport,
-			   packet->id.sport, packet->id.pri, packet->id.flags, packet->length);
-			   
+				  packet->id.src, packet->id.dst, packet->id.dport,
+				  packet->id.sport, packet->id.pri, packet->id.flags,
+				  csp_buffer_get_data_length(packet));
 
 		if (logfile) {
 			const char * delimiter = "--------\n";
