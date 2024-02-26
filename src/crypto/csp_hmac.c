@@ -175,13 +175,13 @@ int csp_hmac_verify(csp_packet_t * packet, bool include_header) {
 		csp_hmac_memory(csp_hmac_key, sizeof(csp_hmac_key), packet->data, csp_buffer_get_data_length(packet) - CSP_HMAC_LENGTH, hmac);
 
 		/* Compare calculated HMAC with packet header */
-		if (memcmp(&packet->data[packet->length] - CSP_HMAC_LENGTH, hmac, CSP_HMAC_LENGTH) != 0) {
+		if (memcmp(csp_buffer_data_peek(packet, CSP_HMAC_LENGTH), hmac, CSP_HMAC_LENGTH) != 0) {
 			/* HMAC failed */
 			return CSP_ERR_HMAC;
 		}
 
 		/* Strip HMAC */
-		packet->length -= CSP_HMAC_LENGTH;
+		csp_buffer_data_discard(packet, CSP_HMAC_LENGTH);
 	}
 
 	return CSP_ERR_NONE;
