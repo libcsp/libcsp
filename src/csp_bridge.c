@@ -6,8 +6,8 @@
 #include "csp_dedup.h"
 #include <csp/arch/csp_time.h>
 
-csp_iface_t * bif_a;
-csp_iface_t * bif_b;
+static csp_iface_t * bif_a;
+static csp_iface_t * bif_b;
 
 void csp_bridge_set_interfaces(csp_iface_t * if_a, csp_iface_t * if_b) {
 
