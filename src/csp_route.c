@@ -102,8 +102,9 @@ static int csp_route_security_check(uint32_t security_opts, csp_iface_t * iface,
 
 __weak void csp_input_hook(csp_iface_t * iface, csp_packet_t * packet) {
 	csp_print_packet("INP: S %u, D %u, Dp %u, Sp %u, Pr %u, Fl 0x%02X, Sz %" PRIu16 " VIA: %s, Tms %u\n",
-				   packet->id.src, packet->id.dst, packet->id.dport,
-				   packet->id.sport, packet->id.pri, packet->id.flags, packet->length, iface->name, csp_get_ms());
+					 packet->id.src, packet->id.dst, packet->id.dport,
+					 packet->id.sport, packet->id.pri, packet->id.flags,
+					 csp_buffer_get_data_length(packet), iface->name, csp_get_ms());
 }
 
 int csp_route_work(void) {
@@ -132,7 +133,7 @@ int csp_route_work(void) {
 
 	/* Count the message */
 	input.iface->rx++;
-	input.iface->rxbytes += packet->length;
+	input.iface->rxbytes += csp_buffer_get_data_length(packet);
 
 	/* The packet is to me, if the address matches that of the incoming interface,
 	 * or the address matches the broadcast address of the incoming interface */
