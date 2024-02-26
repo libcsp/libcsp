@@ -67,6 +67,59 @@ void csp_buffer_init(void);
  */
 void csp_buffer_refc_inc(void * buffer);
 
+/**
+ */
+uint16_t csp_buffer_get_frame_length(csp_packet_t * packet);
+
+/**
+ */
+int csp_buffer_frame_replace(csp_packet_t * packet, const void * data, size_t len);
+
+/**
+ */
+uint16_t csp_buffer_get_data_length(csp_packet_t * packet);
+
+/**
+ */
+void csp_buffer_set_data_length(csp_packet_t * packet, size_t len);
+
+/**
+ */
+void csp_buffer_set_header_length(csp_packet_t * packet, size_t len);
+
+/**
+ */
+bool csp_buffer_has_space(csp_packet_t * packet, size_t len);
+
+/**
+ */
+int csp_buffer_data_copy(csp_packet_t * packet, void * dst, size_t len);
+
+/**
+ */
+int csp_buffer_data_append(csp_packet_t * packet, const void * data, size_t len);
+
+/**
+ */
+int csp_buffer_data_append_byte(csp_packet_t * packet, const uint8_t byte);
+
+/**
+ */
+int csp_buffer_data_append_uint32(csp_packet_t * packet, const uint32_t data);
+
+/**
+ */
+void csp_buffer_data_clear(csp_packet_t * packet);
+
+/**
+ */
+int csp_buffer_data_replace(csp_packet_t * packet, const void * data, size_t len);
+
+/**
+ */
+void csp_buffer_header_clear(csp_packet_t * packet);
+
+
 #ifdef __cplusplus
 }
 #endif

@@ -6,6 +6,9 @@
 #include <csp/csp_debug.h>
 #include "csp_macro.h"
 
+//#undef NDEBUG
+#include <assert.h>
+
 /** Internal buffer header */
 typedef struct csp_skbf_s {
 	unsigned int refcount;
@@ -34,6 +37,14 @@ void csp_buffer_init(void) {
 	}
 }
 
+static void csp_buffer_clear(csp_packet_t * packet) {
+
+	packet->data_end = packet->data;
+	packet->frame_begin = packet->data;
+	packet->length = 0;
+	packet->frame_length = 0;
+}
+
 csp_packet_t * csp_buffer_get_isr(size_t unused) {
 
 	csp_skbf_t * buffer = NULL;
@@ -51,6 +62,8 @@ csp_packet_t * csp_buffer_get_isr(size_t unused) {
 	}
 
 	buffer->refcount = 1;
+	csp_buffer_clear(&buffer->skbf_data);
+
 	return &buffer->skbf_data;
 }
 
@@ -69,6 +82,8 @@ csp_packet_t * csp_buffer_get(size_t unused) {
 	}
 
 	buffer->refcount = 1;
+	csp_buffer_clear(&buffer->skbf_data);
+
 	return &buffer->skbf_data;
 }
 
@@ -161,4 +176,185 @@ void csp_buffer_refc_inc(void * buffer) {
 
 int csp_buffer_remaining(void) {
 	return csp_queue_size(csp_buffers);
+}
+
+void check_data_integrity(csp_packet_t * packet) {
+
+	ptrdiff_t header_length;
+
+	header_length = packet->data - packet->frame_begin;
+	assert(packet->frame_length == packet->length + header_length);
+	assert(packet->data_end - packet->data == packet->length);
+}
+
+uint16_t csp_buffer_get_frame_length(csp_packet_t * packet) {
+
+	ptrdiff_t header_length;
+
+	check_data_integrity(packet);
+
+	header_length = packet->data - packet->frame_begin;
+
+	return (packet->data_end - packet->data) + header_length;
+}
+
+uint16_t csp_buffer_get_data_length(csp_packet_t * packet) {
+
+	check_data_integrity(packet);
+
+	return packet->data_end - packet->data;
+}
+
+bool csp_buffer_has_space(csp_packet_t * packet, size_t len) {
+
+	return len + csp_buffer_get_data_length(packet) <= CSP_BUFFER_SIZE;
+}
+
+static bool csp_buffer_has_frame_space(csp_packet_t * packet, size_t len) {
+
+	size_t hdr_len;
+
+	hdr_len = (size_t)(packet->data - packet->frame_begin);
+
+	return len <= CSP_BUFFER_SIZE + hdr_len;
+}
+
+static void * csp_buffer_frame_aquire(csp_packet_t * packet, size_t len) {
+
+	void * ret = NULL;
+
+	if (csp_buffer_has_frame_space(packet, len)) {
+		ptrdiff_t hdr_len;
+		size_t data_len;
+
+		hdr_len = packet->data - packet->frame_begin;
+		data_len = len - hdr_len;
+
+		packet->data_end = packet->data + data_len;
+		packet->length = data_len;
+		packet->frame_length = len;
+
+		ret = packet->frame_begin;
+	}
+
+	check_data_integrity(packet);
+
+	return ret;
+}
+
+int csp_buffer_frame_replace(csp_packet_t * packet, const void * data, size_t len) {
+
+	void * dst;
+	int ret = CSP_ERR_NOMEM;
+
+	dst = csp_buffer_frame_aquire(packet, len);
+	if (dst != NULL) {
+		memcpy(dst, data, len);
+		ret = csp_buffer_get_frame_length(packet);
+	}
+
+	return ret;
+}
+
+void * csp_buffer_data_aquire(csp_packet_t * packet, size_t len) {
+
+	void * ret = NULL;
+
+	if (csp_buffer_has_space(packet, len)) {
+		ret = packet->data_end;
+		packet->data_end += len;
+		packet->length += len;
+		packet->frame_length += len;
+	}
+
+	check_data_integrity(packet);
+
+	return ret;
+}
+
+int csp_buffer_data_append(csp_packet_t * packet, const void * data, size_t len) {
+
+	void * dst;
+	int ret = CSP_ERR_NOMEM;
+
+	dst = csp_buffer_data_aquire(packet, len);
+	if (dst != NULL) {
+		memcpy(dst, data, len);
+		ret = csp_buffer_get_data_length(packet);
+	}
+
+	return ret;
+}
+
+int csp_buffer_data_append_byte(csp_packet_t * packet, const uint8_t data) {
+
+	return csp_buffer_data_append(packet, &data, sizeof(data));
+}
+
+int csp_buffer_data_append_uint32(csp_packet_t * packet, const uint32_t data) {
+
+	return csp_buffer_data_append(packet, &data, sizeof(data));
+}
+
+int csp_buffer_data_copy(csp_packet_t * packet, void * dst, size_t len) {
+
+	int ret = CSP_ERR_NOMEM;
+
+	check_data_integrity(packet);
+
+	if (csp_buffer_get_data_length(packet) <= len) {
+		memcpy(dst, packet->data, packet->length);
+		ret = csp_buffer_get_data_length(packet);
+	}
+
+	return ret;
+}
+
+static void __csp_buffer_set_header_length(csp_packet_t * packet, size_t len) {
+
+	packet->frame_begin = packet->data - len;
+	packet->frame_length = packet->data_end - packet->frame_begin;
+}
+
+void csp_buffer_set_header_length(csp_packet_t * packet, size_t len) {
+
+	if (len <= CSP_PACKET_PADDING_BYTES) {
+		__csp_buffer_set_header_length(packet, len);
+	}
+}
+
+static void __csp_buffer_set_data_length(csp_packet_t * packet, size_t len) {
+
+	packet->data_end = packet->data + len;
+	packet->length = len;
+	packet->frame_length = len + packet->data - packet->frame_begin;
+}
+
+
+void csp_buffer_set_data_length(csp_packet_t * packet, size_t len) {
+
+	if (len <= CSP_BUFFER_SIZE) {
+		__csp_buffer_set_data_length(packet, len);
+	}
+
+	check_data_integrity(packet);
+}
+
+void csp_buffer_data_clear(csp_packet_t * packet) {
+
+	__csp_buffer_set_data_length(packet, 0);
+
+	check_data_integrity(packet);
+}
+
+int csp_buffer_data_replace(csp_packet_t * packet, const void * data, size_t len) {
+
+	csp_buffer_data_clear(packet);
+
+	return csp_buffer_data_append(packet, data, len);
+}
+
+void csp_buffer_header_clear(csp_packet_t * packet) {
+
+	__csp_buffer_set_header_length(packet, 0);
 }
