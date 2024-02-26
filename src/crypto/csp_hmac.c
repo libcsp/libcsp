@@ -126,7 +126,7 @@ int csp_hmac_set_key(const void * key, uint32_t keylen) {
 
 int csp_hmac_append(csp_packet_t * packet, bool include_header) {
 
-	if ((packet->length + (unsigned int)CSP_HMAC_LENGTH) > sizeof(packet->data)) {
+	if (csp_buffer_has_space(packet, CSP_HMAC_LENGTH)) {
 		return CSP_ERR_NOMEM;
 	}
 
@@ -142,9 +142,8 @@ int csp_hmac_append(csp_packet_t * packet, bool include_header) {
 
 	} else {
 
-		csp_hmac_memory(csp_hmac_key, sizeof(csp_hmac_key), packet->data, packet->length, hmac);
-		memcpy(&packet->data[packet->length], hmac, CSP_HMAC_LENGTH);
-		packet->length += CSP_HMAC_LENGTH;
+		csp_hmac_memory(csp_hmac_key, sizeof(csp_hmac_key), packet->data, csp_buffer_get_data_length(packet), hmac);
+		csp_buffer_data_append(packet, hmac, CSP_HMAC_LENGTH);
 	}
 
 	return CSP_ERR_NONE;
@@ -152,7 +151,7 @@ int csp_hmac_append(csp_packet_t * packet, bool include_header) {
 
 int csp_hmac_verify(csp_packet_t * packet, bool include_header) {
 
-	if (packet->length < (unsigned int)CSP_HMAC_LENGTH) {
+	if (csp_buffer_get_data_length(packet) < (unsigned int)CSP_HMAC_LENGTH) {
 		return CSP_ERR_HMAC;
 	}
 
@@ -173,7 +172,7 @@ int csp_hmac_verify(csp_packet_t * packet, bool include_header) {
 		packet->frame_length -= CSP_HMAC_LENGTH;
 
 	} else {
-		csp_hmac_memory(csp_hmac_key, sizeof(csp_hmac_key), packet->data, packet->length - CSP_HMAC_LENGTH, hmac);
+		csp_hmac_memory(csp_hmac_key, sizeof(csp_hmac_key), packet->data, csp_buffer_get_data_length(packet) - CSP_HMAC_LENGTH, hmac);
 
 		/* Compare calculated HMAC with packet header */
 		if (memcmp(&packet->data[packet->length] - CSP_HMAC_LENGTH, hmac, CSP_HMAC_LENGTH) != 0) {
