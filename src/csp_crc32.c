@@ -143,7 +143,7 @@ int csp_crc32_verify_and_strip(csp_packet_t * packet) {
 	ret = csp_crc32_verify(packet);
 	if (ret == 0) {
 		/* Strip CRC32 */
-		packet->length -= sizeof(uint32_t);
+		csp_buffer_data_discard(packet, sizeof(uint32_t));
 	}
 
 	return ret;
