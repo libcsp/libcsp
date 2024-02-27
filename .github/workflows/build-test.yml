@@ -56,6 +56,7 @@ jobs:
 
       - name: Run ZMQ Client Test
         run: |
+          netstat -tln4
           ./build/examples/zmqproxy &
           ./build/examples/csp_server -z localhost -a 1 -t &
           ./build/examples/csp_client -z localhost -a 2 -C 1 -t
@@ -63,6 +64,7 @@ jobs:
 
       - name: Run ZMQ Server Test
         run: |
+          netstat -tln4
           ./build/examples/zmqproxy &
           ./build/examples/csp_client -z localhost -a 2 -C 1 -t &
           ./build/examples/csp_server -z localhost -a 1 -t
