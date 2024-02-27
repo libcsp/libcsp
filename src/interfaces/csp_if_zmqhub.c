@@ -93,9 +93,7 @@ void * csp_zmqhub_task(void * param) {
 		const uint8_t * rx_data = zmq_msg_data(&msg);
 
 		csp_id_setup_rx(packet);
-
-		memcpy(packet->frame_begin, rx_data, datalen);
-		packet->frame_length = datalen;
+		csp_buffer_frame_replace(packet, rx_data, datalen);
 
 		/* Parse the frame and strip the ID field */
 		if (csp_id_strip(packet) != 0) {
