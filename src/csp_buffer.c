@@ -153,6 +153,19 @@ void * csp_buffer_clone(void * buffer) {
 	if (clone) {
 		size_t size = sizeof(csp_packet_t) - CSP_BUFFER_SIZE + CSP_PACKET_PADDING_BYTES + packet->length;
 		memcpy(clone, packet, size > sizeof(csp_packet_t) ? sizeof(csp_packet_t) : size);
+
+		/*
+		 * Fix up pointers
+		 *
+		 * - `data_end` must point to its own data region. Calculate
+		 *   offset in the original packet, and move to it.
+		 *
+		 * - `frame_begin` must also point to its own header
+		 *   region. Calculate the offset in the original packet and
+		 *   move to it.
+		 */
+		clone->data_end = clone->data + (packet->data_end - packet->data);
+		clone->frame_begin = (clone->header + CSP_PACKET_PADDING_BYTES) - (packet->data - packet->frame_begin);
 	}
 
 	return clone;
