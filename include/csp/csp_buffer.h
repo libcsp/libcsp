@@ -119,6 +119,17 @@ int csp_buffer_data_replace(csp_packet_t * packet, const void * data, size_t len
  */
 void csp_buffer_header_clear(csp_packet_t * packet);
 
+/**
+ */
+void * csp_buffer_data_aquire_fill(csp_packet_t * packet, size_t len, int fill);
+
+/**
+ */
+void * csp_buffer_data_peek(csp_packet_t * packet, size_t len);
+
+/**
+ */
+void csp_buffer_data_discard(csp_packet_t * packet, size_t len);
 
 #ifdef __cplusplus
 }
