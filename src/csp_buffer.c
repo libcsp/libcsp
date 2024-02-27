@@ -358,3 +358,40 @@ void csp_buffer_header_clear(csp_packet_t * packet) {
 
 	__csp_buffer_set_header_length(packet, 0);
 }
+
+void * csp_buffer_data_aquire_fill(csp_packet_t * packet, size_t len, int fill) {
+
+	void * ret;
+
+	ret = csp_buffer_data_aquire(packet, len);
+	if (ret != NULL) {
+		memset(ret, fill, len);
+	}
+
+	return ret;
+}
+
+void * csp_buffer_data_peek(csp_packet_t * packet, size_t len) {
+
+	void * ret = NULL;
+
+	uint16_t length = csp_buffer_get_data_length(packet);
+	if (length > len) {
+		ret = packet->data_end - len;
+	}
+
+	return ret;
+}
+
+void csp_buffer_data_discard(csp_packet_t * packet, size_t len) {
+
+	uint16_t length;
+	size_t size = 0;;
+
+	length = csp_buffer_get_data_length(packet);
+	if (length > len) {
+		size = length - len;
+	}
+
+	csp_buffer_set_data_length(packet, size);
+}
