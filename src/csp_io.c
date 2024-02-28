@@ -21,11 +21,6 @@
 #include "csp_qfifo.h"
 #include "csp_rdp.h"
 
-
-#if (CSP_USE_PROMISC)
-extern csp_queue_handle_t csp_promisc_queue;
-#endif
-
 csp_conn_t * csp_accept(csp_socket_t * sock, uint32_t timeout) {
 
 	if ((sock == NULL) || (sock->rx_queue == NULL)) {
