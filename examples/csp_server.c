@@ -191,6 +191,7 @@ int main(int argc, char * argv[]) {
             csp_print("failed to add KISS interface [%s], error: %d\n", kiss_device, error);
             exit(1);
         }
+		default_iface->addr = server_address;
         default_iface->is_default = 1;
     }
 #if (CSP_HAVE_LIBSOCKETCAN)
