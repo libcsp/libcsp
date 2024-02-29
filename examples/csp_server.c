@@ -95,7 +95,7 @@ static struct option long_options[] = {
 };
 
 void print_help() {
-    csp_print("Usage: csp_client [options]\n"
+    csp_print("Usage: csp_server [options]\n"
 #if (CSP_HAVE_LIBSOCKETCAN)
            " -c <can-device>  set CAN device\n"
 #endif
@@ -111,7 +111,7 @@ void print_help() {
            " -h               print help\n");
 }
 
-/* main - initialization of CSP and start of server/client tasks */
+/* main - initialization of CSP and start of server task */
 int main(int argc, char * argv[]) {
 
 #if (CSP_HAVE_LIBSOCKETCAN)
