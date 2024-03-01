@@ -144,12 +144,55 @@ void print_help() {
 	}
 }
 
+csp_iface_t * add_interface(enum DeviceType device_type, const char * device_name)
+{
+    csp_iface_t * default_iface = NULL;
+
+	if (device_type == DEVICE_KISS) {
+        csp_usart_conf_t conf = {
+			.device = device_name,
+            .baudrate = 115200, /* supported on all platforms */
+            .databits = 8,
+            .stopbits = 1,
+            .paritysetting = 0,
+            .checkparity = 0};
+        int error = csp_usart_open_and_add_kiss_interface(&conf, CSP_IF_KISS_DEFAULT_NAME,  &default_iface);
+        if (error != CSP_ERR_NONE) {
+            csp_print("failed to add KISS interface [%s], error: %d\n", device_name, error);
+            exit(1);
+        }
+		default_iface->addr = client_address;
+        default_iface->is_default = 1;
+    }
+
+	if (CSP_HAVE_LIBSOCKETCAN && (device_type == DEVICE_CAN)) {
+		int error = csp_can_socketcan_open_and_add_interface(device_name, CSP_IF_CAN_DEFAULT_NAME, client_address, 1000000, true, &default_iface);
+        if (error != CSP_ERR_NONE) {
+			csp_print("failed to add CAN interface [%s], error: %d\n", device_name, error);
+            exit(1);
+        }
+        default_iface->is_default = 1;
+    }
+
+	if (CSP_HAVE_LIBZMQ && (device_type == DEVICE_ZMQ)) {
+        int error = csp_zmqhub_init(client_address, device_name, 0, &default_iface);
+        if (error != CSP_ERR_NONE) {
+            csp_print("failed to add ZMQ interface [%s], error: %d\n", device_name, error);
+            exit(1);
+        }
+        default_iface->is_default = 1;
+    }
+
+	return default_iface;
+}
+
 /* main - initialization of CSP and start of client task */
 int main(int argc, char * argv[]) {
 
 	const char * device_name = NULL;
 	enum DeviceType device_type = DEVICE_UNKNOWN;
 	const char * rtable __maybe_unused = NULL;
+	csp_iface_t * default_iface;
     int opt;
 
 	while ((opt = getopt_long(argc, argv, OPTION_c OPTION_z OPTION_R "k:a:C:th", long_options, NULL)) != -1) {
@@ -206,43 +249,9 @@ int main(int argc, char * argv[]) {
     router_start();
 
     /* Add interface(s) */
-    csp_iface_t * default_iface = NULL;
+	default_iface = add_interface(device_type, device_name);
 
-	if (device_type == DEVICE_KISS) {
-        csp_usart_conf_t conf = {
-			.device = device_name,
-            .baudrate = 115200, /* supported on all platforms */
-            .databits = 8,
-            .stopbits = 1,
-            .paritysetting = 0,
-            .checkparity = 0};
-        int error = csp_usart_open_and_add_kiss_interface(&conf, CSP_IF_KISS_DEFAULT_NAME,  &default_iface);
-        if (error != CSP_ERR_NONE) {
-            csp_print("failed to add KISS interface [%s], error: %d\n", device_name, error);
-            exit(1);
-        }
-		default_iface->addr = client_address;
-        default_iface->is_default = 1;
-    }
-
-	if (CSP_HAVE_LIBSOCKETCAN && (device_type == DEVICE_CAN)) {
-		int error = csp_can_socketcan_open_and_add_interface(device_name, CSP_IF_CAN_DEFAULT_NAME, client_address, 1000000, true, &default_iface);
-        if (error != CSP_ERR_NONE) {
-			csp_print("failed to add CAN interface [%s], error: %d\n", device_name, error);
-            exit(1);
-        }
-        default_iface->is_default = 1;
-    }
-
-	if (CSP_HAVE_LIBZMQ && (device_type == DEVICE_ZMQ)) {
-        int error = csp_zmqhub_init(client_address, device_name, 0, &default_iface);
-        if (error != CSP_ERR_NONE) {
-            csp_print("failed to add ZMQ interface [%s], error: %d\n", device_name, error);
-            exit(1);
-        }
-        default_iface->is_default = 1;
-    }
-
+	/* Setup routing table */
 	if (CSP_USE_RTABLE) {
 		if (rtable) {
 			int error = csp_rtable_load(rtable);
