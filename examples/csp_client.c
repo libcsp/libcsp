@@ -267,21 +267,18 @@ int main(int argc, char * argv[]) {
 		}
 
 		/* 3. Copy data to packet */
-		memcpy(packet->data, "Hello world ", 12);
-		memcpy(packet->data + 12, &count, 1);
-		memset(packet->data + 13, 0, 1);
+		csp_buffer_data_append(packet, "Hello world ", 12);
+		csp_buffer_data_append_byte(packet, count);
+		csp_buffer_data_append_byte(packet, 0);
 		count++;
 
-		/* 4. Set packet length */
-		packet->length = (strlen((char *) packet->data) + 1); /* include the 0 termination */
-
-		/* 5. Send packet */
+		/* 4. Send packet */
 		csp_send(conn, packet);
 
-		/* 6. Close connection */
+		/* 5. Close connection */
 		csp_close(conn);
 
-		/* 7. Check for elapsed time if test_mode. */
+		/* 6. Check for elapsed time if test_mode. */
 		if (test_mode) {
 			clock_gettime(CLOCK_MONOTONIC, &current_time);
 
