@@ -2,8 +2,6 @@
 #include <csp/csp_debug.h>
 #include <pthread.h>
 
-void client(void);
-
 static int csp_pthread_create(void * (*routine)(void *)) {
 
 	pthread_attr_t attributes;
@@ -36,15 +34,6 @@ static void * task_router(void * param) {
 	return NULL;
 }
 
-static void * task_client(void * param) {
-	client();
-	return NULL;
-}
-
 int router_start(void) {
 	return csp_pthread_create(task_router);
-}
-
-int client_start(void) {
-	return csp_pthread_create(task_client);
 }
