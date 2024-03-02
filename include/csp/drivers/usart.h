@@ -10,10 +10,6 @@
 
 #include <csp/interfaces/csp_if_kiss.h>
 
-#if (CSP_WINDOWS)
-#include <windows.h>
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -21,11 +17,7 @@ extern "C" {
 /**
  * OS file handle.
  */
-#if (CSP_WINDOWS)
-    typedef HANDLE csp_usart_fd_t;
-#else
-    typedef int csp_usart_fd_t;
-#endif
+typedef int csp_usart_fd_t;
 
 /**
  * Usart configuration.
