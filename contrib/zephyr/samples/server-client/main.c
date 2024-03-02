@@ -161,7 +161,7 @@ int main(void) {
 			.databits = 8,
 			.stopbits = 1,
 			.paritysetting = 0,
-			.checkparity = 0};
+		};
 		int error = csp_usart_open_and_add_kiss_interface(&conf, CSP_IF_KISS_DEFAULT_NAME,	&default_iface);
 		if (error != CSP_ERR_NONE) {
 			LOG_ERR("failed to add KISS interface [%s], error: %d", kiss_device, error);

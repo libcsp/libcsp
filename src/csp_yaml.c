@@ -69,7 +69,6 @@ static void csp_yaml_end_if(struct data_s * data, unsigned int * dfl_addr) {
 			.databits = 8,
 			.stopbits = 1,
 			.paritysetting = 0,
-			.checkparity = 0
 		};
 		int error = csp_usart_open_and_add_kiss_interface(&conf, data->name, &iface);
 		if (error != CSP_ERR_NONE) {
