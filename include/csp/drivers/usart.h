@@ -24,7 +24,6 @@ typedef struct csp_usart_conf {
     uint8_t databits; /**< Number of data bits. */
     uint8_t stopbits; /**< Number of stop bits. */
     uint8_t paritysetting; /**< Parity setting. */
-    uint8_t checkparity; /**< Enable parity checking (Windows only). */
 } csp_usart_conf_t;
 
 /**
