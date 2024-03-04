@@ -69,6 +69,29 @@ html_theme_options = {
     'sticky_navigation': True
 }
 
+def include_readme_file(app, docname, source):
+    """
+        This hook reads the contents of the README.md file, replaces the
+        link for `git-commit` and inserts the modified contents in the index.md
+        file before the first occuarance of  ```{toctree}
+    """
+    if docname == 'index':
+        # Read and modify the contents of README
+        with open("../../README.md", "r") as file:
+            readme_contents = file.read()
+
+        # Here we change the link for the `git-commit` page
+        eadme_contents = readme_contents.replace("](./doc/", "](")
+
+        # Find the index of the first occurrence of ```{toctree}
+        toctree_index = source[0].find('```{toctree}')
+        if toctree_index != -1:
+            # Insert the modified README files
+            source[0] = source[0][:toctree_index] + readme_contents + source[0][toctree_index:]
+
+def setup(app):
+    app.connect('source-read', include_readme_file)
+
 version = pygit2.Repository('.').head.shorthand
 
 # Add any paths that contain custom static files (such as style sheets) here,
