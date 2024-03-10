@@ -81,7 +81,7 @@ def include_readme_file(app, docname, source):
             readme_contents = file.read()
 
         # Here we change the link for the `git-commit` page
-        eadme_contents = readme_contents.replace("](./doc/", "](")
+        readme_contents = readme_contents.replace("](./doc/", "](")
 
         # Find the index of the first occurrence of ```{toctree}
         toctree_index = source[0].find('```{toctree}')
