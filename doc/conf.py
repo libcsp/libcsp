@@ -77,7 +77,7 @@ def include_readme_file(app, docname, source):
     """
     if docname == 'index':
         # Read and modify the contents of README
-        with open("../../README.md", "r") as file:
+        with open("../README.md", "r") as file:
             readme_contents = file.read()
 
         # Here we change the link for the `git-commit` page
