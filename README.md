@@ -2,7 +2,7 @@
 
 # The Cubesat Space Protocol
 
-![CSP](./doc/images/csp.png)
+![CSP](./doc/_images/csp.png)
 
 Cubesat Space Protocol (CSP) is a small protocol stack written in C. CSP
 is designed to ease communication between distributed embedded systems
