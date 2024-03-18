@@ -23,6 +23,12 @@ __weak void csp_input_hook(csp_iface_t * iface, csp_packet_t * packet) {
 
 void csp_bridge_work(void) {
 
+	if ((bif_a == NULL) || (bif_b == NULL)) {
+		csp_print("Bridge interfaces are not setup yet. "
+				  "Make sure to call csp_bridge_set_interfaces()\n");
+		return;
+	}
+
 	/* Get next packet to route */
 	csp_qfifo_t input;
 	if (csp_qfifo_read(&input) != CSP_ERR_NONE) {
