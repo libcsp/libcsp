@@ -32,15 +32,18 @@ void csp_bridge_work(void) {
 	/* Get next packet to route */
 	csp_qfifo_t input;
 	if (csp_qfifo_read(&input) != CSP_ERR_NONE) {
+		csp_print("Failed to receive packet from router input queue\n");
 		return;
 	}
 
 	csp_packet_t * packet = input.packet;
 	if (packet == NULL) {
+		csp_print("Packet of router queue item is NULL\n");
 		return;
 	}
 
 	if (csp_dedup_is_duplicate(packet)) {
+		csp_print("Retrieved packet is a duplicate\n");
 		csp_buffer_free(packet);
 		return;
 	}
