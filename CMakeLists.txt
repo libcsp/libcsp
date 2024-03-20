@@ -1,5 +1,5 @@
-project(CSP)
 cmake_minimum_required(VERSION 3.20)
+project(CSP)
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   set(BUILD_SHARED_LIBS ON)
