@@ -62,7 +62,7 @@ static int csp_route_security_check(uint32_t security_opts, csp_iface_t * iface,
 	/* CRC32 verified packet */
 	if (packet->id.flags & CSP_FCRC32) {
 		/* Verify CRC32 (does not include header for backwards compatability with csp1.x) */
-		if (csp_crc32_verify(packet) != CSP_ERR_NONE) {
+		if (csp_crc32_verify_and_strip(packet) != CSP_ERR_NONE) {
 			iface->rx_error++;
 			return CSP_ERR_CRC32;
 		}
