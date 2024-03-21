@@ -119,7 +119,7 @@ int csp_crc32_verify(csp_packet_t * packet) {
 
 	/* Calculate CRC32, convert to network byte order */
 	csp_id_prepend(packet);
-	crc = csp_crc32_memory(packet->frame_begin, packet->frame_length);
+	crc = csp_crc32_memory(packet->frame_begin, packet->frame_length - sizeof(crc));
 	crc = htobe32(crc);
 
 	/* Compare calculated checksum with packet header */
