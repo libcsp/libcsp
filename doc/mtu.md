@@ -6,16 +6,16 @@ There are two things limiting the MTU of CSP.
 2.  The link layer protocol.
 
 So let’s assume that you have made a protocol called KISS with a MTU
-of 256. The 256 is the total amount of data that you can put into the
+of 128. The 128 is the total amount of data that you can put into the
 CSP-packet. However, you need to take the overhead of the link layer
 into account. Typically this could consist of a length field and/or a
 start/stop flag. So the actual frame size on the link layer would for
-example be 256 bytes of data + 2 bytes sync flag + 2 bytes length field.
+example be 128 bytes of data + 2 bytes sync flag + 2 bytes length field.
 
-This requires a buffer allocation of at lest 256 + 2 + 2. However, the
+This requires a buffer allocation of at least 128 + 2 + 2. However, the
 CSP packet itself has some reserved bytes in the beginning of the packet
 (which you can see in csp.h) - so the recommended buffer allocation size
-is MAX MTU + 16 bytes. In this case the max MTU would be 256.
+is MAX MTU + 16 bytes < CSP_BUFFER_SIZE. In this case the max MTU would be 240.
 
 If you try to pass data which is longer than the MTU, the chance is that
 you will also make a buffer overflow in the CSP buffer pool. However,
