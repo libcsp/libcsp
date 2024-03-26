@@ -50,9 +50,7 @@ static void csp_id1_prepend(csp_packet_t * packet) {
 	/* Convert to big / network endian */
 	id1 = htobe32(id1);
 
-	packet->frame_begin = packet->data - CSP_ID1_HEADER_SIZE;
-	packet->frame_length = packet->length + CSP_ID1_HEADER_SIZE;
-
+	csp_buffer_set_header_length(packet, CSP_ID1_HEADER_SIZE);
 	memcpy(packet->frame_begin, &id1, CSP_ID1_HEADER_SIZE);
 }
 
@@ -65,7 +63,7 @@ static int csp_id1_strip(csp_packet_t * packet) {
 	/* Get 32 bit in network byte order */
 	uint32_t id1 = 0;
 	memcpy(&id1, packet->frame_begin, CSP_ID1_HEADER_SIZE);
-	packet->length = packet->frame_length - CSP_ID1_HEADER_SIZE;
+	csp_buffer_header_clear(packet);
 
 	/* Convert to host order */
 	id1 = be32toh(id1);
@@ -83,8 +81,7 @@ static int csp_id1_strip(csp_packet_t * packet) {
 }
 
 static void csp_id1_setup_rx(csp_packet_t * packet) {
-	packet->frame_begin = packet->data - CSP_ID1_HEADER_SIZE;
-	packet->frame_length = 0;
+	csp_buffer_set_header_length(packet, CSP_ID1_HEADER_SIZE);
 }
 
 /**
@@ -130,9 +127,7 @@ static void csp_id2_prepend(csp_packet_t * packet) {
 	 * We first shift up the 48 bit header to most significant end of the 64-bit */
 	id2 = htobe64(id2 << 16);
 
-	packet->frame_begin = packet->data - CSP_ID2_HEADER_SIZE;
-	packet->frame_length = packet->length + CSP_ID2_HEADER_SIZE;
-
+	csp_buffer_set_header_length(packet, CSP_ID2_HEADER_SIZE);
 	memcpy(packet->frame_begin, &id2, CSP_ID2_HEADER_SIZE);
 }
 
@@ -146,7 +141,7 @@ static int csp_id2_strip(csp_packet_t * packet) {
 	 * Most significant byte ends in byte 0 */
 	uint64_t id2 = 0;
 	memcpy(&id2, packet->frame_begin, CSP_ID2_HEADER_SIZE);
-	packet->length = packet->frame_length - CSP_ID2_HEADER_SIZE;
+	csp_buffer_header_clear(packet);
 
 	/* Convert to host order:
 	 * Most significant byte ends in byte 7, we then shift down
@@ -166,8 +161,7 @@ static int csp_id2_strip(csp_packet_t * packet) {
 }
 
 static void csp_id2_setup_rx(csp_packet_t * packet) {
-	packet->frame_begin = packet->data - CSP_ID2_HEADER_SIZE;
-	packet->frame_length = 0;
+	csp_buffer_set_header_length(packet, CSP_ID2_HEADER_SIZE);
 }
 
 /**

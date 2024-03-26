@@ -139,6 +139,8 @@ typedef struct csp_packet_s {
 
 	};
 
+	uint8_t *data_end;
+
 	uint16_t length;			/*< Data length */
 	csp_id_t id;				/*< CSP id (unpacked version CPU readable) */
 

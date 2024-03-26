@@ -27,7 +27,7 @@ int csp_ping(uint16_t node, uint32_t timeout, unsigned int size, uint8_t conn_op
 		goto out;
 
 	/* Set data to increasing numbers */
-	packet->length = size;
+	csp_buffer_set_data_length(packet, size);
 	for (i = 0; i < size; i++)
 		packet->data[i] = i;
 
@@ -76,8 +76,7 @@ void csp_ping_noreply(uint16_t node) {
 		return;
 	}
 
-	packet->data[0] = 0x55;
-	packet->length = 1;
+	csp_buffer_data_append_byte(packet, 0x55);
 
 	csp_send(conn, packet);
 	csp_close(conn);
@@ -109,8 +108,7 @@ void csp_ps(uint16_t node, uint32_t timeout) {
 		goto out;
 	}
 
-	packet->data[0] = 0x55;
-	packet->length = 1;
+	csp_buffer_data_append_byte(packet, 0x55);
 
 	/* Try to send frame */
 	csp_send(conn, packet);
@@ -124,8 +122,8 @@ void csp_ps(uint16_t node, uint32_t timeout) {
 		}
 
 		/* We have a reply, ensure data is 0 (zero) termianted */
-		const unsigned int length = (packet->length < sizeof(packet->data)) ? packet->length : (sizeof(packet->data) - 1);
-		packet->data[length] = 0;
+		csp_buffer_data_append_byte(packet, 0x0);
+		packet->data[CSP_BUFFER_SIZE - 1] = '\0';
 		csp_print("%s", packet->data);
 
 		/* Each packet from csp_read must to be freed by user */
