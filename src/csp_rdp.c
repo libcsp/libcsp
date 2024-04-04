@@ -31,8 +31,6 @@
 #define CSP_USE_RDP_FAST_CLOSE 1
 #endif
 
-#if (CSP_USE_RDP)
-
 
 static uint32_t csp_rdp_window_size = 4;
 static uint32_t csp_rdp_conn_timeout = 10000;
@@ -1017,6 +1015,3 @@ void csp_rdp_get_opt(unsigned int * window_size, unsigned int * conn_timeout_ms,
 	if (ack_delay_count)
 		*ack_delay_count = csp_rdp_ack_delay_count;
 }
-
-
-#endif  // CSP_USE_RDP

@@ -18,6 +18,8 @@ def options(ctx):
     gr = ctx.add_option_group('libcsp options')
     gr.add_option('--includes', default='', help='Add additional include paths, separate with comma')
 
+    gr.add_option('--enable-reproducible-builds', action='store_true', help='Enable reproducible builds')
+
     gr.add_option('--disable-output', action='store_true', help='Disable CSP output')
     gr.add_option('--disable-print-stdio', action='store_true', help='Disable vprintf for csp_print_func')
     gr.add_option('--disable-stlib', action='store_true', help='Build objects only')
@@ -26,6 +28,7 @@ def options(ctx):
     gr.add_option('--enable-promisc', action='store_true', help='Enable promiscuous support')
     gr.add_option('--enable-crc32', action='store_true', help='Enable CRC32 support')
     gr.add_option('--enable-hmac', action='store_true', help='Enable HMAC-SHA1 support')
+    gr.add_option('--enable-rtable', action='store_true', help='Allows to setup a list of static routes')
     gr.add_option('--enable-python3-bindings', action='store_true', help='Enable Python3 bindings')
     gr.add_option('--enable-examples', action='store_true', help='Enable examples')
     gr.add_option('--enable-dedup', action='store_true', help='Enable packet deduplicator')
@@ -73,6 +76,7 @@ def configure(ctx):
     # Setup CFLAGS
     if (len(ctx.stack_path) <= 1) and (len(ctx.env.CFLAGS) == 0):
         ctx.env.prepend_value('CFLAGS', ["-std=gnu11", "-g", "-Os", "-Wall", "-Wextra", "-Wshadow", "-Wcast-align",
+                                         "-Wpointer-arith",
                                          "-Wwrite-strings", "-Wno-unused-parameter", "-Werror"])
 
     # Setup default include path and any extra defined
@@ -92,20 +96,16 @@ def configure(ctx):
     # Add files
     ctx.env.append_unique('FILES_CSP', ['src/crypto/csp_hmac.c',
                                         'src/crypto/csp_sha1.c',
-                                        'src/csp_rdp.c',
-                                        'src/csp_rdp_queue.c',
                                         'src/csp_buffer.c',
                                         'src/csp_bridge.c',
                                         'src/csp_conn.c',
                                         'src/csp_crc32.c',
                                         'src/csp_debug.c',
                                         'src/csp_dedup.c',
-                                        'src/csp_hex_dump.c',
                                         'src/csp_iflist.c',
                                         'src/csp_init.c',
                                         'src/csp_io.c',
                                         'src/csp_port.c',
-                                        'src/csp_promisc.c',
                                         'src/csp_qfifo.c',
                                         'src/csp_route.c',
                                         'src/csp_service_handler.c',
@@ -128,6 +128,16 @@ def configure(ctx):
     # Add if UDP
     if ctx.check(header_name="sys/socket.h", mandatory=False) and ctx.check(header_name="arpa/inet.h", mandatory=False):
         ctx.env.append_unique('FILES_CSP', ['src/interfaces/csp_if_udp.c'])
+
+    if not ctx.options.disable_output:
+        ctx.env.append_unique('FILES_CSP', ['src/csp_hex_dump.c'])
+
+    if ctx.options.enable_promisc:
+        ctx.env.append_unique('FILES_CSP', ['src/csp_promisc.c'])
+
+    if ctx.options.enable_rdp:
+        ctx.env.append_unique('FILES_CSP', ['src/csp_rdp.c',
+                                            'src/csp_rdp_queue.c'])
 
     # Add socketcan
     if ctx.options.enable_can_socketcan:
@@ -165,12 +175,13 @@ def configure(ctx):
     ctx.define('CSP_RTABLE_SIZE', ctx.options.with_rtable_size)
 
     # Set defines for enabling features
+    ctx.define('CSP_REPRODUCIBLE_BUILDS', ctx.options.enable_reproducible_builds)
     ctx.define('CSP_ENABLE_CSP_PRINT', not ctx.options.disable_output)
     ctx.define('CSP_PRINT_STDIO', not ctx.options.disable_print_stdio)
     ctx.define('CSP_USE_RDP', ctx.options.enable_rdp)
     ctx.define('CSP_USE_HMAC', ctx.options.enable_hmac)
     ctx.define('CSP_USE_PROMISC', ctx.options.enable_promisc)
-    ctx.define('CSP_USE_DEDUP', ctx.options.enable_dedup)
+    ctx.define('CSP_USE_RTABLE', ctx.options.enable_rtable)
 
 
     ctx.write_config_header('include/csp/autoconfig.h')

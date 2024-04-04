@@ -4,11 +4,9 @@
 #include "csp_macro.h"
 #include <csp/arch/csp_queue.h>
 
-#if (CSP_USE_PROMISC)
-
 static csp_queue_handle_t csp_promisc_queue = NULL;
 static csp_static_queue_t csp_promisc_queue_static __noinit;
-char csp_promisc_queue_buffer[sizeof(csp_packet_t *) * CSP_CONN_RXQUEUE_LEN] __noinit;
+static char csp_promisc_queue_buffer[sizeof(csp_packet_t *) * CSP_CONN_RXQUEUE_LEN] __noinit;
 
 static int csp_promisc_enabled = 0;
 
@@ -61,5 +59,3 @@ void csp_promisc_add(csp_packet_t * packet) {
 		}
 	}
 }
-
-#endif

@@ -1,5 +1,5 @@
-project(libcsp_docs)
 cmake_minimum_required(VERSION 3.9)
+project(libcsp_docs)
 
 set(SPHINX_EXECUTABLE sphinx-build)
 set(SPHINX_SOURCE ${CMAKE_CURRENT_SOURCE_DIR})

@@ -24,6 +24,15 @@ static uint8_t server_address = 0;
 static bool test_mode = false;
 static unsigned int server_received = 0;
 
+enum DeviceType {
+	DEVICE_UNKNOWN,
+	DEVICE_CAN,
+	DEVICE_KISS,
+	DEVICE_ZMQ,
+};
+
+#define __maybe_unused __attribute__((__unused__))
+
 /* Server task - handles requests from clients */
 void server(void) {
 
@@ -68,24 +77,31 @@ void server(void) {
 
 		/* Close current connection */
 		csp_close(conn);
-
 	}
 
 	return;
-
 }
 /* End of server task */
 
 static struct option long_options[] = {
-#if (CSP_HAVE_LIBSOCKETCAN)
-    {"can-device", required_argument, 0, 'c'},
-#endif
     {"kiss-device", required_argument, 0, 'k'},
+#if (CSP_HAVE_LIBSOCKETCAN)
+	#define OPTION_c "c:"
+    {"can-device", required_argument, 0, 'c'},
+#else
+	#define OPTION_c
+#endif
 #if (CSP_HAVE_LIBZMQ)
+	#define OPTION_z "z:"
     {"zmq-device", required_argument, 0, 'z'},
+#else
+	#define OPTION_z
 #endif
 #if (CSP_USE_RTABLE)
+	#define OPTION_R "R:"
     {"rtable", required_argument, 0, 'R'},
+#else
+	#define OPTION_R
 #endif
     {"interface-address", required_argument, 0, 'a'},
     {"connect-to", required_argument, 0, 'C'},
@@ -95,51 +111,91 @@ static struct option long_options[] = {
 };
 
 void print_help() {
-    csp_print("Usage: csp_client [options]\n"
-#if (CSP_HAVE_LIBSOCKETCAN)
-           " -c <can-device>  set CAN device\n"
-#endif
-           " -k <kiss-device> set KISS device\n"
-#if (CSP_HAVE_LIBZMQ)
-           " -z <zmq-device>  set ZeroMQ device\n"
-#endif
-#if (CSP_USE_RTABLE)
-           " -R <rtable>      set routing table\n"
-#endif
-           " -a <address>     set interface address\n"
-           " -t               enable test mode\n"
-           " -h               print help\n");
+    csp_print("Usage: csp_server [options]\n");
+	if (CSP_HAVE_LIBSOCKETCAN) {
+		csp_print(" -c <can-device>  set CAN device\n");
+	}
+	if (1) {
+		csp_print(" -k <kiss-device> set KISS device\n");
+	}
+	if (CSP_HAVE_LIBZMQ) {
+		csp_print(" -z <zmq-device>  set ZeroMQ device\n");
+	}
+	if (CSP_USE_RTABLE) {
+		csp_print(" -R <rtable>      set routing table\n");
+	}
+	if (1) {
+		csp_print(" -a <address>     set interface address\n"
+				  " -t               enable test mode\n"
+				  " -h               print help\n");
+	}
 }
 
-/* main - initialization of CSP and start of server/client tasks */
+csp_iface_t * add_interface(enum DeviceType device_type, const char * device_name)
+{
+    csp_iface_t * default_iface = NULL;
+
+    if (device_type == DEVICE_KISS) {
+        csp_usart_conf_t conf = {
+			.device = device_name,
+            .baudrate = 115200, /* supported on all platforms */
+            .databits = 8,
+            .stopbits = 1,
+            .paritysetting = 0,
+		};
+        int error = csp_usart_open_and_add_kiss_interface(&conf, CSP_IF_KISS_DEFAULT_NAME,  &default_iface);
+        if (error != CSP_ERR_NONE) {
+            csp_print("failed to add KISS interface [%s], error: %d\n", device_name, error);
+            exit(1);
+        }
+		default_iface->addr = server_address;
+        default_iface->is_default = 1;
+    }
+
+    if (CSP_HAVE_LIBSOCKETCAN && (device_type == DEVICE_CAN)) {
+        int error = csp_can_socketcan_open_and_add_interface(device_name, CSP_IF_CAN_DEFAULT_NAME, server_address, 1000000, true, &default_iface);
+        if (error != CSP_ERR_NONE) {
+            csp_print("failed to add CAN interface [%s], error: %d\n", device_name, error);
+            exit(1);
+        }
+        default_iface->is_default = 1;
+    }
+
+    if (CSP_HAVE_LIBZMQ && (device_type == DEVICE_ZMQ)) {
+        int error = csp_zmqhub_init(server_address, device_name, 0, &default_iface);
+        if (error != CSP_ERR_NONE) {
+            csp_print("failed to add ZMQ interface [%s], error: %d\n", device_name, error);
+            exit(1);
+        }
+        default_iface->is_default = 1;
+    }
+
+	return default_iface;
+}
+
+/* main - initialization of CSP and start of server task */
 int main(int argc, char * argv[]) {
 
-#if (CSP_HAVE_LIBSOCKETCAN)
-    const char * can_device = NULL;
-#endif
-    const char * kiss_device = NULL;
-#if (CSP_HAVE_LIBZMQ)
-    const char * zmq_device = NULL;
-#endif
-#if (CSP_USE_RTABLE)
-    const char * rtable = NULL;
-#endif
+	const char * device_name = NULL;
+	enum DeviceType device_type = DEVICE_UNKNOWN;
+	const char * rtable __maybe_unused = NULL;
+	csp_iface_t * default_iface;
     int opt;
-    while ((opt = getopt_long(argc, argv, "c:k:z:R:a:th", long_options, NULL)) != -1) {
+
+	while ((opt = getopt_long(argc, argv, OPTION_c OPTION_z OPTION_R "k:a:th", long_options, NULL)) != -1) {
         switch (opt) {
-#if (CSP_HAVE_LIBSOCKETCAN)
             case 'c':
-                can_device = optarg;
+				device_name = optarg;
+				device_type = DEVICE_CAN;
                 break;
-#endif
             case 'k':
-                kiss_device = optarg;
+				device_name = optarg;
+				device_type = DEVICE_KISS;
                 break;
-#if (CSP_HAVE_LIBZMQ)
             case 'z':
-                zmq_device = optarg;
+				device_name = optarg;
+				device_type = DEVICE_ZMQ;
                 break;
-#endif
 #if (CSP_USE_RTABLE)
             case 'R':
                 rtable = optarg;
@@ -161,9 +217,9 @@ int main(int argc, char * argv[]) {
         }
     }
 
-    // If more than one of the interfaces are set, print a message and exit
-    if ((kiss_device && can_device) || (kiss_device && zmq_device) || (can_device && zmq_device)) {
-        csp_print("Only one of the interfaces can be set.\n");
+	// If more than one of the interfaces are set, print a message and exit
+	if (device_type == DEVICE_UNKNOWN) {
+		csp_print("Only one of the interfaces can be set.\n");
         print_help();
         exit(EXIT_FAILURE);
     }
@@ -177,54 +233,20 @@ int main(int argc, char * argv[]) {
     router_start();
 
     /* Add interface(s) */
-    csp_iface_t * default_iface = NULL;
-    if (kiss_device) {
-        csp_usart_conf_t conf = {
-            .device = kiss_device,
-            .baudrate = 115200, /* supported on all platforms */
-            .databits = 8,
-            .stopbits = 1,
-            .paritysetting = 0,
-            .checkparity = 0};
-        int error = csp_usart_open_and_add_kiss_interface(&conf, CSP_IF_KISS_DEFAULT_NAME,  &default_iface);
-        if (error != CSP_ERR_NONE) {
-            csp_print("failed to add KISS interface [%s], error: %d\n", kiss_device, error);
-            exit(1);
-        }
-        default_iface->is_default = 1;
-    }
-#if (CSP_HAVE_LIBSOCKETCAN)
-    if (can_device) {
-        int error = csp_can_socketcan_open_and_add_interface(can_device, CSP_IF_CAN_DEFAULT_NAME, server_address, 1000000, true, &default_iface);
-        if (error != CSP_ERR_NONE) {
-            csp_print("failed to add CAN interface [%s], error: %d\n", can_device, error);
-            exit(1);
-        }
-        default_iface->is_default = 1;
-    }
-#endif
-#if (CSP_HAVE_LIBZMQ)
-    if (zmq_device) {
-        int error = csp_zmqhub_init(server_address, zmq_device, 0, &default_iface);
-        if (error != CSP_ERR_NONE) {
-            csp_print("failed to add ZMQ interface [%s], error: %d\n", zmq_device, error);
-            exit(1);
-        }
-        default_iface->is_default = 1;
-    }
-#endif
+	default_iface = add_interface(device_type, device_name);
 
-#if (CSP_USE_RTABLE)
-    if (rtable) {
-        int error = csp_rtable_load(rtable);
-        if (error < 1) {
-            csp_print("csp_rtable_load(%s) failed, error: %d\n", rtable, error);
-            exit(1);
-        }
-    } else if (default_iface) {
-        csp_rtable_set(0, 0, default_iface, CSP_NO_VIA_ADDRESS);
-    }
-#endif
+	/* Setup routing table */
+    if (CSP_USE_RTABLE) {
+		if (rtable) {
+			int error = csp_rtable_load(rtable);
+			if (error < 1) {
+				csp_print("csp_rtable_load(%s) failed, error: %d\n", rtable, error);
+				exit(1);
+			}
+		} else if (default_iface) {
+			csp_rtable_set(0, 0, default_iface, CSP_NO_VIA_ADDRESS);
+		}
+	}
 
     csp_print("Connection table\r\n");
     csp_conn_print_table();
@@ -232,10 +254,10 @@ int main(int argc, char * argv[]) {
     csp_print("Interfaces\r\n");
     csp_iflist_print();
 
-#if (CSP_USE_RTABLE)
-    csp_print("Route table\r\n");
-    csp_rtable_print();
-#endif
+	if (CSP_USE_RTABLE) {
+		csp_print("Route table\r\n");
+		csp_rtable_print();
+	}
 
     /* Start server thread */
     server_start();

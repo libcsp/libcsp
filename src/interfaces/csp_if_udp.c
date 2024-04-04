@@ -124,6 +124,13 @@ void csp_if_udp_init(csp_iface_t * iface, csp_if_udp_conf_t * ifconf) {
 		csp_print("csp_if_udp_init: pthread_attr_setdetachstate failed: %s: %d\n", strerror(ret), ret);
 	}
 	ret = pthread_create(&ifconf->server_handle, &attributes, csp_if_udp_rx_loop, iface);
+	if (ret != 0) {
+		csp_print("csp_if_udp_init: pthread_create failed: %s: %d\n", strerror(ret), ret);
+	}
+	ret = pthread_attr_destroy(&attributes);
+	if (ret != 0) {
+		csp_print("csp_if_udp_init: pthread_attr_destroy failed: %s: %d\n", strerror(ret), ret);
+	}
 
 	/* Regsiter interface */
 	iface->name = "UDP",

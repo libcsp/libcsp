@@ -32,23 +32,23 @@ csp_packet_t * csp_buffer_get_isr(size_t unused);
  *
  * @param[in] buffer buffer to free. NULL is handled gracefully.
  */
-void csp_buffer_free(void *buffer);
+void csp_buffer_free(void * buffer);
 
 /**
  * Free buffer (from ISR context).
  *
- * @oaram[in] buffer buffer to free. NULL is handled gracefully.
+ * @param[in] buffer buffer to free. NULL is handled gracefully.
  */
-void csp_buffer_free_isr(void *buffer);
+void csp_buffer_free_isr(void * buffer);
 
 /**
  * Clone an existing buffer.
  * The existing \a buffer content is copied to the new buffer.
  *
- * @oaram[in] buffer buffer to clone.
+ * @param[in] buffer buffer to clone.
  * @return cloned buffer on success, or NULL on failure.
  */
-void * csp_buffer_clone(void *buffer);
+void * csp_buffer_clone(void * buffer);
 
 /**
  * Return number of remaining/free buffers.
@@ -68,12 +68,8 @@ void csp_buffer_init(void);
  */
 size_t csp_buffer_data_size(void);
 
-void csp_buffer_init(void);
-
 void csp_buffer_refc_inc(void * buffer);
-  
+
 #ifdef __cplusplus
 }
 #endif
-
-

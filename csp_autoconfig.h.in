@@ -5,6 +5,8 @@
 #cmakedefine01 CSP_ENABLE_CSP_PRINT
 #cmakedefine01 CSP_PRINT_STDIO
 
+#cmakedefine01 CSP_REPRODUCIBLE_BUILDS
+
 #cmakedefine CSP_QFIFO_LEN @CSP_QFIFO_LEN@
 #cmakedefine CSP_PORT_MAX_BIND @CSP_PORT_MAX_BIND@
 #cmakedefine CSP_CONN_RXQUEUE_LEN @CSP_CONN_RXQUEUE_LEN@
@@ -17,7 +19,6 @@
 #cmakedefine01 CSP_USE_RDP
 #cmakedefine01 CSP_USE_HMAC
 #cmakedefine01 CSP_USE_PROMISC
-#cmakedefine01 CSP_USE_DEDUP
 #cmakedefine01 CSP_USE_RTABLE
 
 #cmakedefine01 CSP_HAVE_LIBSOCKETCAN

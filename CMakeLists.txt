@@ -1,5 +1,5 @@
-project(CSP)
 cmake_minimum_required(VERSION 3.20)
+project(CSP)
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   set(BUILD_SHARED_LIBS ON)
@@ -15,6 +15,8 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   message(STATUS "No build type selected, default to MinSizeRel")
   set(CMAKE_BUILD_TYPE MinSizeRel CACHE STRING "Build Type" FORCE)
 endif()
+
+option(CSP_REPRODUCIBLE_BUILDS "Reproducible build" OFF)
 
 option(CSP_HAVE_STDIO "OS provides C Standard I/O functions" ON)
 option(CSP_ENABLE_CSP_PRINT "Enable csp_print() function" ON)
@@ -32,7 +34,6 @@ set(CSP_RTABLE_SIZE 10 CACHE STRING "Number of elements in routing table")
 option(CSP_USE_RDP "Reliable Datagram Protocol" ON)
 option(CSP_USE_HMAC "Hash-based message authentication code" ON)
 option(CSP_USE_PROMISC "Promiscious mode" ON)
-option(CSP_USE_DEDUP "Packet deduplication" ON)
 option(CSP_USE_RTABLE "Use routing table" OFF)
 
 option(CSP_ENABLE_PYTHON3_BINDINGS "Build Python3 binding" OFF)
@@ -83,7 +84,7 @@ target_include_directories(csp
 )
 
 if(CSP_POSIX)
-  set(CSP_C_ARGS -Wshadow -Wcast-align -Wwrite-strings -Wno-unused-parameter)
+  set(CSP_C_ARGS -Wshadow -Wcast-align -Wpointer-arith -Wwrite-strings -Wno-unused-parameter)
 elseif(CSP_ZEPHYR)
   set(CSP_C_ARGS -Wwrite-strings -Wno-unused-parameter)
 endif()

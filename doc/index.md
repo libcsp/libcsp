@@ -6,10 +6,6 @@ Disclaimer: You are reading the latest version of libcsp document from
 [the `develop` branch](https://github.com/libcsp/libcsp).  Currently,
 we only have this version in HTML format.
 
-```{eval-rst}
-.. include:: ../README.md
-   :parser: myst_parser.sphinx_
-```
 
 ```{toctree}
 :caption: Setup

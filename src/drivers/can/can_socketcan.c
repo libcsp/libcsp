@@ -73,6 +73,11 @@ static void * socketcan_rx_thread(void * arg) {
 			continue;
 		}
 
+		/* Drop frames with invalid size field */
+		if (frame.can_dlc > CAN_MAX_DLEN) {
+			continue;
+		}
+
 		/* Drop frames with standard id (CSP uses extended) */
 		if (!(frame.can_id & CAN_EFF_FLAG)) {
 			continue;
@@ -96,7 +101,7 @@ static void * socketcan_rx_thread(void * arg) {
 }
 
 static int csp_can_tx_frame(void * driver_data, uint32_t id, const uint8_t * data, uint8_t dlc) {
-	if (dlc > 8) {
+	if (dlc > CAN_MAX_DLEN) {
 		return CSP_ERR_INVAL;
 	}
 
