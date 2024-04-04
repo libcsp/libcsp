@@ -27,7 +27,7 @@ static int kiss_driver_tx(void * driver_data, const unsigned char * data, size_t
 static void kiss_driver_rx(void * user_data, uint8_t * data, size_t data_size, void * pxTaskWoken) {
 
 	kiss_context_t * ctx = user_data;
-	csp_kiss_rx(&ctx->iface, data, data_size, NULL);
+	csp_kiss_rx(&ctx->iface, data, data_size, pxTaskWoken);
 }
 
 int csp_usart_open_and_add_kiss_interface(const csp_usart_conf_t * conf, const char * ifname, csp_iface_t ** return_iface) {
