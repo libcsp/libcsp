@@ -35,6 +35,13 @@ config CSP_USE_RTABLE
 	help
 	  This option enables to use the CSP static routing table
 
+config CSP_ATOMIC_MUTEX_TIMEOUT
+	int "Waiting period to lock the mutex (msec) in atomic"
+	depends on ARMV6_M_ARMV8_M_BASELINE
+	default 10
+	help
+	  Waiting period to lock the mutex in atomic.
+
 if CAN
 
 config CSP_HAVE_CAN
