@@ -12,7 +12,7 @@ typedef struct {
 	char name[CSP_IFLIST_NAME_MAX + 1];
 	csp_iface_t iface;
 	csp_kiss_interface_data_t ifdata;
-	int fd;
+	csp_usart_fd_t fd;
 } kiss_context_t;
 
 static int kiss_driver_tx(void * driver_data, const unsigned char * data, size_t data_length) {
