@@ -42,6 +42,42 @@ config CSP_ATOMIC_MUTEX_TIMEOUT
 	help
 	  Waiting period to lock the mutex in atomic.
 
+config CSP_MUTEX_TIMEOUT
+	int "Waiting period to lock the mutex (msec)"
+	default 10
+	help
+	  Waiting period to lock the mutex.
+
+config CSP_UART_RX_INTERVAL
+	int "Interval (nesc) at which the receiving thread runs."
+	default 1000
+	help
+	  Interval (nsec) at which the reveiving thread runs.
+
+config CSP_UART_RX_BUFFER_LENGTH
+	int "Size of buffer to be stored when receiving in the CSP UART Driver."
+	default 32
+	help
+	  Size of buffer to be stored when receiving in the CSP UART Driver.
+
+config CSP_UART_RX_THREAD_PRIORITY
+	int "RX Thread priority in the CSP UART Driver."
+	default -1
+	help
+	  RX Thread priority in the CSP UART Driver.
+
+config CSP_UART_RX_THREAD_STACK_SIZE
+	int "RX Thread stack size in the CSP UART Driver."
+	default 512
+	help
+	  RX Thread stack size in the CSP UART Driver.
+
+config CSP_UART_RX_THREAD_NUM
+	int "Number of thread stacks for CSP UART RX."
+	default 1
+	help
+	  Number of thread stacks for CSP UART RX.
+
 if CAN
 
 config CSP_HAVE_CAN

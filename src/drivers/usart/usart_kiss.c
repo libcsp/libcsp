@@ -46,7 +46,12 @@ int csp_usart_open_and_add_kiss_interface(const csp_usart_conf_t * conf, const c
 	ctx->iface.driver_data = ctx;
 	ctx->iface.interface_data = &ctx->ifdata;
 	ctx->ifdata.tx_func = kiss_driver_tx;
+
+#if (CSP_ZEPHYR)
+	ctx->fd = NULL;
+#else
 	ctx->fd = -1;
+#endif
 
 	int res = csp_kiss_add_interface(&ctx->iface);
 	if (res == CSP_ERR_NONE) {
