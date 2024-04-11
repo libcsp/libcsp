@@ -10,6 +10,10 @@
 
 #include <csp/interfaces/csp_if_kiss.h>
 
+#if (CSP_ZEPHYR)
+#include <zephyr/device.h>
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -17,7 +21,11 @@ extern "C" {
 /**
  * OS file handle.
  */
+#if (CSP_ZEPHYR)
+typedef const struct device * csp_usart_fd_t;
+#else
 typedef int csp_usart_fd_t;
+#endif
 
 /**
  * Usart configuration.
