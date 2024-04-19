@@ -118,12 +118,15 @@ def configure(ctx):
                                         'src/interfaces/csp_if_kiss.c',
                                         'src/interfaces/csp_if_i2c.c',
                                         'src/arch/{0}/**/*.c'.format(ctx.options.with_os),
-                                        'src/csp_rtable_cidr.c'])
+                                        ])
 
-    # Add if stdio
-    if ctx.check(header_name="stdio.h", mandatory=False):
-        ctx.define('CSP_HAVE_STDIO', True)
-        ctx.env.append_unique('FILES_CSP', ['src/csp_rtable_stdio.c'])
+    # Add if rtable
+    if ctx.options.enable_rtable:
+        ctx.env.append_unique('FILES_CSP', ['src/csp_rtable_cidr.c'])
+        # Add if stdio
+        if ctx.check(header_name="stdio.h", mandatory=False):
+            ctx.define('CSP_HAVE_STDIO', True)
+            ctx.env.append_unique('FILES_CSP', ['src/csp_rtable_stdio.c'])
 
     # Add if UDP
     if ctx.check(header_name="sys/socket.h", mandatory=False) and ctx.check(header_name="arpa/inet.h", mandatory=False):
