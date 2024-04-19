@@ -869,7 +869,7 @@ retry:
 	}
 
 error:
-	csp_rdp_protocol("RDP %p: AC: Connection Faile\n", conn);
+	csp_rdp_protocol("RDP %p: AC: Connection Failed\n", conn);
 	csp_rdp_close_internal(conn, CSP_RDP_CLOSED_BY_PROTOCOL, false);
 	return CSP_ERR_TIMEDOUT;
 }
