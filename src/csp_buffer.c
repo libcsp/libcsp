@@ -92,7 +92,7 @@ void csp_buffer_free_isr(void * packet) {
 	}
 
 	if (--(buf->refcount) > 0) {
-		csp_dbg_errno = CSP_DBG_ERR_REFCOUNT;;
+		csp_dbg_errno = CSP_DBG_ERR_REFCOUNT;
 		return;
 	}
 
