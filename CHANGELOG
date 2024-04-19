@@ -47,9 +47,6 @@ libcsp 2.0, 19-04-2024
 - fix: Fix buffer overflow in KISS mode if packets are too long
 - fix: Buffer overrun in RDP EACK #157
 
-Todo:
-- interface: I2C needs to be tested with CSP 2.0
-
 libcsp 1.6, 16-04-2020
 ----------------------
 - Updated documentation.
