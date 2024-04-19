@@ -1,4 +1,7 @@
-libcsp 2.0, xx-yy-zzzz
+libcsp 2.1, xx-yy-zzzz
+----------------------
+
+libcsp 2.0, 19-04-2024
 ----------------------
 - new: CSP Header 2.0. Support for 14-bit network addresses.
 - new: CFP (Can fragmentation protocol) 2.0
