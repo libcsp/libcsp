@@ -61,13 +61,16 @@ int csp_buffer_remaining(void);
 void csp_buffer_init(void);
 
 /**
- * Increase reference counter of buffer.
- * Use csp_buffer_free() to decrement
  *
  * @return CSP buffer data size.
  */
 size_t csp_buffer_data_size(void);
 
+/**
+ * Increase reference counter of buffer.
+ * Use csp_buffer_free() to decrement
+ * @param[in] buffer buffer to increment. NULL is handled gracefully.
+ */
 void csp_buffer_refc_inc(void * buffer);
 
 #ifdef __cplusplus
