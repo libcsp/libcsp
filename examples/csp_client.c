@@ -238,7 +238,7 @@ int main(int argc, char * argv[]) {
 		int result = csp_ping(server_address, 1000, 100, CSP_O_NONE);
 		csp_print("Ping address: %u, result %d [mS]\n", server_address, result);
         // Increment successful_ping if ping was successful
-        if (result > 0) {
+        if (result >= 0) {
             ++successful_ping;
         }
 
