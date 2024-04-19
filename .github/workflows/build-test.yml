@@ -52,18 +52,18 @@ jobs:
       - name: Run Loopback Test
         run: |
           ./build/examples/csp_arch
-          ./build/examples/csp_server_client -t
+          ./build/examples/csp_server_client -T 10
 
       - name: Run ZMQ Client Test
         run: |
           ./build/examples/zmqproxy &
-          ./build/examples/csp_server -z localhost -a 1 -t &
+          ./build/examples/csp_server -z localhost -a 1 -T 10 &
           ./build/examples/csp_client -z localhost -a 2 -C 1 -t
           pkill zmqproxy
 
       - name: Run ZMQ Server Test
         run: |
           ./build/examples/zmqproxy &
-          ./build/examples/csp_client -z localhost -a 2 -C 1 -t &
+          ./build/examples/csp_client -z localhost -a 2 -C 1 -T 10 &
           ./build/examples/csp_server -z localhost -a 1 -t
           pkill zmqproxy
