@@ -335,7 +335,7 @@ void csp_service_handler(csp_packet_t *packet);
  * @param[in] timeout timeout in ms to wait for reply.
  * @param[in] size payload size in bytes.
  * @param[in] opts connection options, see @ref CSP_CONNECTION_OPTIONS.
- * @return >0 = echo time in mS on success, otherwise -1 for error.
+ * @return >=0 echo time in mS on success, otherwise -1 for error.
  */
 int csp_ping(uint16_t node, uint32_t timeout, unsigned int size, uint8_t opts);
 
