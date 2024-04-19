@@ -4,7 +4,7 @@
 import os
 
 APPNAME = 'libcsp'
-VERSION = '2.0'
+VERSION = '2.1'
 
 valid_os = ['posix', 'freertos']
 
