@@ -12,7 +12,6 @@ target_sources(csp PRIVATE
   csp_port.c
   csp_qfifo.c
   csp_route.c
-  csp_rtable_cidr.c
   csp_service_handler.c
   csp_services.c
   csp_sfp.c
@@ -23,8 +22,11 @@ set_source_files_properties(csp_rdp.c
   PROPERTIES COMPILE_DEFINITIONS _DEFAULT_SOURCE
 )
 
-if (CSP_HAVE_STDIO)
-  target_sources(csp PRIVATE csp_rtable_stdio.c)
+if (CSP_USE_RTABLE)
+  target_sources(csp PRIVATE csp_rtable_cidr.c)
+  if (CSP_HAVE_STDIO)
+    target_sources(csp PRIVATE csp_rtable_stdio.c)
+  endif()
 endif()
 
 if (CSP_ENABLE_CSP_PRINT)
