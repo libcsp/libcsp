@@ -26,7 +26,7 @@ jobs:
         if: ${{ runner.os == 'Linux' }}
         run: |
           sudo apt-get update
-          sudo apt-get install libzmq3-dev libsocketcan-dev
+          sudo apt-get install libzmq3-dev libsocketcan-dev socat
 
       - name: Setup build system packages on Linux
         if: ${{ runner.os == 'Linux' && matrix.buildsystem != 'waf' }}
@@ -53,6 +53,22 @@ jobs:
         run: |
           ./build/examples/csp_arch
           ./build/examples/csp_server_client -T 10
+
+      - name: Run KISS Client Test
+        run: |
+          socat -d -d -d pty,raw,echo=0,link=/tmp/pty1 pty,raw,echo=0,link=/tmp/pty2 &
+          sleep 1
+          ./build/examples/csp_server -k /tmp/pty1 -a 1 -T 10 &
+          ./build/examples/csp_client -k /tmp/pty2 -a 2 -C 1 -t
+          pkill socat
+
+      - name: Run KISS Server Test
+        run: |
+          socat -d -d -d pty,raw,echo=0,link=/tmp/pty1 pty,raw,echo=0,link=/tmp/pty2 &
+          sleep 1
+          ./build/examples/csp_client -k /tmp/pty2 -a 2 -C 1 -T 10 &
+          ./build/examples/csp_server -k /tmp/pty1 -a 1 -t
+          pkill socat
 
       - name: Run ZMQ Client Test
         run: |
