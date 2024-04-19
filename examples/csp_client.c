@@ -24,6 +24,7 @@ static uint8_t client_address = 0;
 /* Test mode, check that server & client can exchange packets */
 static bool test_mode = false;
 static unsigned int successful_ping = 0;
+static unsigned int run_duration_in_sec = 3;
 
 enum DeviceType {
 	DEVICE_UNKNOWN,
@@ -57,6 +58,7 @@ static struct option long_options[] = {
     {"interface-address", required_argument, 0, 'a'},
     {"connect-to", required_argument, 0, 'C'},
     {"test-mode", no_argument, 0, 't'},
+    {"test-mode-with-sec", required_argument, 0, 'T'},
     {"help", no_argument, 0, 'h'},
     {0, 0, 0, 0}
 };
@@ -79,6 +81,7 @@ void print_help() {
 		csp_print(" -a <address>     set interface address\n"
 				  " -C <address>     connect to server at address\n"
 				  " -t               enable test mode\n"
+				  " -T <duration>    enable test mode with running time in seconds\n"
 				  " -h               print help\n");
 	}
 }
@@ -137,7 +140,7 @@ int main(int argc, char * argv[]) {
 	int ret = EXIT_SUCCESS;
     int opt;
 
-	while ((opt = getopt_long(argc, argv, OPTION_c OPTION_z OPTION_R "k:a:C:th", long_options, NULL)) != -1) {
+	while ((opt = getopt_long(argc, argv, OPTION_c OPTION_z OPTION_R "k:a:C:tT:h", long_options, NULL)) != -1) {
         switch (opt) {
             case 'c':
 				device_name = optarg;
@@ -164,6 +167,10 @@ int main(int argc, char * argv[]) {
                 break;
             case 't':
                 test_mode = true;
+                break;
+            case 'T':
+                test_mode = true;
+                run_duration_in_sec = atoi(optarg);
                 break;
             case 'h':
 				print_help();
@@ -279,7 +286,7 @@ int main(int argc, char * argv[]) {
 			clock_gettime(CLOCK_MONOTONIC, &current_time);
 
 			/* We don't really care about the precision of it. */
-			if (current_time.tv_sec - start_time.tv_sec > 3) {
+			if (current_time.tv_sec - start_time.tv_sec > run_duration_in_sec) {
 				/* Test mode, check that server & client can exchange packets */
 				if (successful_ping < 5) {
 					csp_print("Client successfully pinged the server %u times\n", successful_ping);

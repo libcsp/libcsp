@@ -23,6 +23,7 @@ static uint8_t server_address = 0;
 /* Test mode, check that server & client can exchange packets */
 static bool test_mode = false;
 static unsigned int server_received = 0;
+static unsigned int run_duration_in_sec = 3;
 
 enum DeviceType {
 	DEVICE_UNKNOWN,
@@ -106,6 +107,7 @@ static struct option long_options[] = {
     {"interface-address", required_argument, 0, 'a'},
     {"connect-to", required_argument, 0, 'C'},
     {"test-mode", no_argument, 0, 't'},
+    {"test-mode-with-sec", required_argument, 0, 'T'},
     {"help", no_argument, 0, 'h'},
     {0, 0, 0, 0}
 };
@@ -127,6 +129,7 @@ void print_help() {
 	if (1) {
 		csp_print(" -a <address>     set interface address\n"
 				  " -t               enable test mode\n"
+				  " -T <dration>     enable test mode with running time in seconds\n"
 				  " -h               print help\n");
 	}
 }
@@ -182,7 +185,7 @@ int main(int argc, char * argv[]) {
 	csp_iface_t * default_iface;
     int opt;
 
-	while ((opt = getopt_long(argc, argv, OPTION_c OPTION_z OPTION_R "k:a:th", long_options, NULL)) != -1) {
+	while ((opt = getopt_long(argc, argv, OPTION_c OPTION_z OPTION_R "k:a:tT:h", long_options, NULL)) != -1) {
         switch (opt) {
             case 'c':
 				device_name = optarg;
@@ -206,6 +209,10 @@ int main(int argc, char * argv[]) {
                 break;
             case 't':
                 test_mode = true;
+                break;
+            case 'T':
+                test_mode = true;
+				run_duration_in_sec = atoi(optarg);
                 break;
             case 'h':
 				print_help();
@@ -264,7 +271,7 @@ int main(int argc, char * argv[]) {
 
     /* Wait for execution to end (ctrl+c) */
     while(1) {
-        sleep(3);
+        sleep(run_duration_in_sec);
 
         if (test_mode) {
             /* Test mode, check that server & client can exchange packets */

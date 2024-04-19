@@ -23,6 +23,7 @@ static uint8_t server_address = 255;
 /* test mode, used for verifying that host & client can exchange packets over the loopback interface */
 static bool test_mode = false;
 static unsigned int server_received = 0;
+static unsigned int run_duration_in_sec = 3;
 
 /* Server task - handles requests from clients */
 void server(void) {
@@ -138,6 +139,7 @@ static void print_usage(void)
 {
 	csp_print("Usage:\n"
 			  " -t               enable test mode\n"
+			  " -T <duration>    enable test mode with running time in seconds\n"
 			  " -h               print help\n");
 }
 
@@ -146,7 +148,7 @@ int main(int argc, char * argv[]) {
 
     uint8_t address = 0;
     int opt;
-    while ((opt = getopt(argc, argv, "th")) != -1) {
+    while ((opt = getopt(argc, argv, "tT:h")) != -1) {
         switch (opt) {
             case 'a':
                 address = atoi(optarg);
@@ -156,6 +158,10 @@ int main(int argc, char * argv[]) {
                 break;
             case 't':
                 test_mode = true;
+                break;
+            case 'T':
+                test_mode = true;
+                run_duration_in_sec = atoi(optarg);
                 break;
             case 'h':
 				print_usage();
@@ -197,7 +203,7 @@ int main(int argc, char * argv[]) {
 
     /* Wait for execution to end (ctrl+c) */
     while(1) {
-        sleep(3);
+        sleep(run_duration_in_sec);
 
         if (test_mode) {
             /* Test mode is intended for checking that host & client can exchange packets over loopback */
