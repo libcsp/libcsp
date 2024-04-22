@@ -13,5 +13,4 @@ Interface Functions
 .. autocfunction:: csp_buffer.h::csp_buffer_clone
 .. autocfunction:: csp_buffer.h::csp_buffer_remaining
 .. autocfunction:: csp_buffer.h::csp_buffer_init
-.. autocfunction:: csp_buffer.h::csp_buffer_data_size
 .. autocfunction:: csp_buffer.h::csp_buffer_refc_inc
