@@ -11,7 +11,7 @@
 #include <csp/interfaces/csp_if_zmqhub.h>
 
 
-/* This funcition must be provided in arch specific way */
+/* This function must be provided in arch specific way */
 int router_start(void);
 
 /* Server port, the port the server listens on for incoming connections from the client. */
