@@ -62,36 +62,36 @@ Definition of a buffer element `csp_packet_t`:
    the CSP id to different endian (e.g. I2C), etc.
 */
 typedef struct {
-        uint32_t rdp_quarantine;        // EACK quarantine period
-        uint32_t timestamp_tx;          // Time the message was sent
-        uint32_t timestamp_rx;          // Time the message was received
+    uint32_t rdp_quarantine;      // EACK quarantine period
+    uint32_t timestamp_tx;        // Time the message was sent
+    uint32_t timestamp_rx;        // Time the message was received
 
-        uint16_t length;                        // Data length
-        csp_id_t id;                            // CSP id (unpacked version CPU readable)
+    uint16_t length;              // Data length
+    csp_id_t id;                  // CSP id (unpacked version CPU readable)
 
-        uint8_t * frame_begin;
-        uint16_t frame_length;
+    uint8_t * frame_begin;
+    uint16_t frame_length;
 
-        /* Additional header bytes, to prepend packed data before transmission
-         * This must be minimum 6 bytes to accomodate CSP 2.0. But some implementations
-         * require much more scratch working area for encryption for example.
-         *
-         * Ultimately after csp_id_pack() this area will be filled with the CSP header
-         */
+    /* Additional header bytes, to prepend packed data before transmission
+     * This must be minimum 6 bytes to accomodate CSP 2.0. But some implementations
+     * require much more scratch working area for encryption for example.
+     *
+     * Ultimately after csp_id_pack() this area will be filled with the CSP header
+     */
 
-        uint8_t header[CSP_PACKET_PADDING_BYTES];
+    uint8_t header[CSP_PACKET_PADDING_BYTES];
 
-        /**
-         * Data part of packet.
-         */
-        union {
-                /** Access data as uint8_t. */
-                uint8_t data[0];
-                /** Access data as uint16_t */
-                uint16_t data16[0];
-                /** Access data as uint32_t */
-                uint32_t data32[0];
-        };
+    /**
+     * Data part of packet.
+     */
+    union {
+        /** Access data as uint8_t. */
+        uint8_t data[0];
+        /** Access data as uint16_t */
+        uint16_t data16[0];
+        /** Access data as uint32_t */
+        uint32_t data32[0];
+   };
 
 } csp_packet_t;
 ```
@@ -265,24 +265,24 @@ no knowledge of any specific interface , protocol or driver:
    CSP interface.
 */
 struct csp_iface_s {
-	uint16_t addr;              // Host address on this subnet
-	uint16_t netmask;           // Subnet mask
-	const char * name;          // Name, max compare length is #CSP_IFLIST_NAME_MAX
-	void * interface_data;      // Interface data, only known/used by the interface layer, e.g. state information.
-	void * driver_data;         // Driver data, only known/used by the driver layer, e.g. device/channel references.
-	nexthop_t nexthop;          // Next hop (Tx) function
-   uint8_t is_default;         // Set default IF flag (CSP supports multiple defaults)
-	uint32_t tx;                // Successfully transmitted packets
-	uint32_t rx;                // Successfully received packets
-	uint32_t tx_error;          // Transmit errors (packets)
-	uint32_t rx_error;          // Receive errors, e.g. too large message
-	uint32_t drop;              // Dropped packets
-	uint32_t autherr;           // Authentication errors (packets)
-	uint32_t frame;             // Frame format errors (packets)
-	uint32_t txbytes;           // Transmitted bytes
-	uint32_t rxbytes;           // Received bytes
-	uint32_t irq;               // Interrupts
-	struct csp_iface_s * next;  // Internal, interfaces are stored in a linked list
+    uint16_t addr;              // Host address on this subnet
+    uint16_t netmask;           // Subnet mask
+    const char * name;          // Name, max compare length is #CSP_IFLIST_NAME_MAX
+    void * interface_data;      // Interface data, only known/used by the interface layer, e.g. state information.
+    void * driver_data;         // Driver data, only known/used by the driver layer, e.g. device/channel references.
+    nexthop_t nexthop;          // Next hop (Tx) function
+    uint8_t is_default;         // Set default IF flag (CSP supports multiple defaults)
+    uint32_t tx;                // Successfully transmitted packets
+    uint32_t rx;                // Successfully received packets
+    uint32_t tx_error;          // Transmit errors (packets)
+    uint32_t rx_error;          // Receive errors, e.g. too large message
+    uint32_t drop;              // Dropped packets
+    uint32_t autherr;           // Authentication errors (packets)
+    uint32_t frame;             // Frame format errors (packets)
+    uint32_t txbytes;           // Transmitted bytes
+    uint32_t rxbytes;           // Received bytes
+    uint32_t irq;               // Interrupts
+    struct csp_iface_s * next;  // Internal, interfaces are stored in a linked list
 };
 ```
 
