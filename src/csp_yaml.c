@@ -70,7 +70,7 @@ static void csp_yaml_end_if(struct data_s * data, unsigned int * dfl_addr) {
 			.stopbits = 1,
 			.paritysetting = 0,
 		};
-		int error = csp_usart_open_and_add_kiss_interface(&conf, data->name, &iface);
+		int error = csp_usart_open_and_add_kiss_interface(&conf, data->name, addr, &iface);
 		if (error != CSP_ERR_NONE) {
 			return;
 		}

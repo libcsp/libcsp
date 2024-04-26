@@ -30,7 +30,7 @@ static void kiss_driver_rx(void * user_data, uint8_t * data, size_t data_size, v
 	csp_kiss_rx(&ctx->iface, data, data_size, pxTaskWoken);
 }
 
-int csp_usart_open_and_add_kiss_interface(const csp_usart_conf_t * conf, const char * ifname, csp_iface_t ** return_iface) {
+int csp_usart_open_and_add_kiss_interface(const csp_usart_conf_t * conf, const char * ifname, uint16_t addr, csp_iface_t ** return_iface) {
 
 	if (ifname == NULL) {
 		ifname = CSP_IF_KISS_DEFAULT_NAME;
@@ -43,6 +43,7 @@ int csp_usart_open_and_add_kiss_interface(const csp_usart_conf_t * conf, const c
 
 	strncpy(ctx->name, ifname, sizeof(ctx->name) - 1);
 	ctx->iface.name = ctx->name;
+	ctx->iface.addr = addr;
 	ctx->iface.driver_data = ctx;
 	ctx->iface.interface_data = &ctx->ifdata;
 	ctx->ifdata.tx_func = kiss_driver_tx;

@@ -95,10 +95,11 @@ void csp_usart_unlock(void * driver_data);
  *
  * @param[in] conf UART configuration.
  * @param[in] ifname internface name (will be copied), or use NULL for default name.
+ * @param[in] addr CSP address of the interface.
  * @param[out] return_iface the added interface.
  * @return #CSP_ERR_NONE on success, otherwise an error code.
  */
-int csp_usart_open_and_add_kiss_interface(const csp_usart_conf_t * conf, const char * ifname, csp_iface_t ** return_iface);
+int csp_usart_open_and_add_kiss_interface(const csp_usart_conf_t * conf, const char * ifname, uint16_t addr, csp_iface_t ** return_iface);
 
 #ifdef __cplusplus
 }
