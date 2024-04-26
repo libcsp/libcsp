@@ -146,12 +146,11 @@ csp_iface_t * add_interface(enum DeviceType device_type, const char * device_nam
             .stopbits = 1,
             .paritysetting = 0,
 		};
-        int error = csp_usart_open_and_add_kiss_interface(&conf, CSP_IF_KISS_DEFAULT_NAME,  &default_iface);
+        int error = csp_usart_open_and_add_kiss_interface(&conf, CSP_IF_KISS_DEFAULT_NAME, server_address, &default_iface);
         if (error != CSP_ERR_NONE) {
             csp_print("failed to add KISS interface [%s], error: %d\n", device_name, error);
             exit(1);
         }
-		default_iface->addr = server_address;
         default_iface->is_default = 1;
     }
 

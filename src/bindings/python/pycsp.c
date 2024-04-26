@@ -875,13 +875,14 @@ static PyObject * pycsp_kiss_init(PyObject * self, PyObject * args) {
 	char * device;
 	uint32_t baudrate = 500000;
 	uint32_t mtu = 512;
+	uint16_t addr;
 	const char * if_name = CSP_IF_KISS_DEFAULT_NAME;
-	if (!PyArg_ParseTuple(args, "s|IIs", &device, &baudrate, &mtu, &if_name)) {
+	if (!PyArg_ParseTuple(args, "sH|IIs", &device, &addr, &baudrate, &mtu, &if_name)) {
 		return NULL;  // TypeError is thrown
 	}
 
 	csp_usart_conf_t conf = {.device = device, .baudrate = baudrate};
-	int res = csp_usart_open_and_add_kiss_interface(&conf, if_name, NULL);
+	int res = csp_usart_open_and_add_kiss_interface(&conf, if_name, addr, NULL);
 	if (res != CSP_ERR_NONE) {
 		return PyErr_Error("csp_usart_open_and_add_kiss_interface()", res);
 	}
