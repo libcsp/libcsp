@@ -50,6 +50,7 @@ def build_with_waf():
         '--with-driver-usart=linux',
         '--enable-if-zmqhub',
         '--enable-examples',
+        '--enable-yaml',
     ]
 
     subprocess.check_call(['./waf', 'distclean', 'configure', 'build'])
