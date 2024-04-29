@@ -1,10 +1,11 @@
 csp_sources += files([
-	'csp_buffer.c',
 	'csp_bridge.c',
+	'csp_buffer.c',
 	'csp_conn.c',
 	'csp_crc32.c',
 	'csp_debug.c',
 	'csp_dedup.c',
+	'csp_id.c',
 	'csp_iflist.c',
 	'csp_init.c',
 	'csp_io.c',
@@ -13,7 +14,6 @@ csp_sources += files([
 	'csp_route.c',
 	'csp_service_handler.c',
 	'csp_services.c',
-	'csp_id.c',
 	'csp_sfp.c',
 ])
 
