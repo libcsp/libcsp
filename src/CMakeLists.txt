@@ -44,6 +44,18 @@ if (CSP_USE_RDP)
   )
 endif()
 
+if(LIBYAML_FOUND)
+  add_library(csp_yaml OBJECT csp_yaml.c)
+  target_include_directories(csp_yaml PRIVATE
+    ${csp_inc}
+    ${LIBYAML_INCLUDE_DIRS})
+  target_link_libraries(csp_yaml PRIVATE ${LIBYAML_LIBRARIES})
+  target_link_libraries(csp PRIVATE csp_yaml)
+  if(BUILD_SHARED_LIBS)
+    set_property(TARGET csp_yaml PROPERTY POSITION_INDEPENDENT_CODE ON)
+  endif()
+endif()
+
 add_subdirectory(arch)
 add_subdirectory(crypto)
 add_subdirectory(drivers)
