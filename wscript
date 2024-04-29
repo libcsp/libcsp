@@ -32,6 +32,7 @@ def options(ctx):
     gr.add_option('--enable-python3-bindings', action='store_true', help='Enable Python3 bindings')
     gr.add_option('--enable-examples', action='store_true', help='Enable examples')
     gr.add_option('--enable-dedup', action='store_true', help='Enable packet deduplicator')
+    gr.add_option('--enable-yaml', action='store_true', help='Enable YAML configurator')
     gr.add_option('--with-rdp-max-window', type=int, default=5, help='Set maximum window size for RDP')
     gr.add_option('--with-max-bind-port', type=int, default=16, help='Set maximum bindable port')
     gr.add_option('--with-max-connections', type=int, default=8, help='Set maximum number of connections')
@@ -141,6 +142,12 @@ def configure(ctx):
     if ctx.options.enable_rdp:
         ctx.env.append_unique('FILES_CSP', ['src/csp_rdp.c',
                                             'src/csp_rdp_queue.c'])
+
+    # Add YAML
+    if ctx.options.enable_yaml:
+        ctx.check_cfg(package='yaml-0.1', args='--cflags --libs', define_name='CSP_HAVE_LIBYAML')
+        ctx.env.append_unique('LIBS', ctx.env.LIB_LIBYAML)
+        ctx.env.append_unique('FILES_CSP', 'src/csp_yaml.c')
 
     # Add socketcan
     if ctx.options.enable_can_socketcan:
