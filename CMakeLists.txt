@@ -55,6 +55,14 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND
   find_package(PkgConfig)
 
   if(PKG_CONFIG_FOUND)
+    pkg_search_module(LIBYAML yaml-0.1)
+    if(${LIBYAML_FOUND})
+      message(STATUS "Found ${LIBYAML_LINK_LIBRARIES} ${LIBYAML_VERSION}")
+      set(CSP_HAVE_LIBYAML 1)
+    else()
+      message(NOTICE "No libyaml found")
+    endif()
+
     pkg_search_module(LIBZMQ libzmq)
     if(${LIBZMQ_FOUND})
       message(STATUS "Found ${LIBZMQ_LINK_LIBRARIES} ${LIBZMQ_VERSION}")
