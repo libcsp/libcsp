@@ -112,7 +112,7 @@ def configure(ctx):
                                         'src/csp_service_handler.c',
                                         'src/csp_services.c',
                                         'src/csp_id.c',
-                                        'src/csp_sfp.c',                                       
+                                        'src/csp_sfp.c',
                                         'src/interfaces/csp_if_lo.c',
                                         'src/interfaces/csp_if_can.c',
                                         'src/interfaces/csp_if_can_pbuf.c',
@@ -238,13 +238,13 @@ def build(ctx):
                     target='examples/csp_server_client',
                     lib=ctx.env.LIBS,
                     use='csp')
-        
+
         ctx.program(source=['examples/csp_server.c',
                             'examples/csp_server_{0}.c'.format(ctx.env.OS)],
                     target='examples/csp_server',
                     lib=ctx.env.LIBS,
                     use='csp')
-        
+
         ctx.program(source=['examples/csp_client.c',
                             'examples/csp_client_{0}.c'.format(ctx.env.OS)],
                     target='examples/csp_client',
