@@ -932,6 +932,11 @@ static PyObject * pycsp_print_routes(PyObject * self, PyObject * args) {
 	Py_RETURN_NONE;
 }
 
+static PyObject * pycsp_print_interfaces(PyObject * self, PyObject * args) {
+	csp_iflist_print();
+	Py_RETURN_NONE;
+}
+
 static PyMethodDef methods[] = {
 
 	/* csp/csp.h */
@@ -999,6 +1004,7 @@ static PyMethodDef methods[] = {
 	{"packet_set_data", pycsp_packet_set_data, METH_VARARGS, ""},
 	{"print_connections", pycsp_print_connections, METH_NOARGS, ""},
 	{"print_routes", pycsp_print_routes, METH_NOARGS, ""},
+	{"print_interfaces", pycsp_print_interfaces, METH_NOARGS, ""},
 
 	/* sentinel */
 	{NULL, NULL, 0, NULL}};
