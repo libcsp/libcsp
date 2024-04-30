@@ -102,7 +102,7 @@ add_subdirectory(src)
 add_subdirectory(examples)
 
 if(${CSP_ENABLE_PYTHON3_BINDINGS})
-  find_package(Python3 COMPONENTS Development)
+  find_package(Python3 COMPONENTS Development.Module)
   if(Python3_Development.Module_FOUND)
     Python3_add_library(libcsp_py3 MODULE WITH_SOABI src/bindings/python/pycsp.c)
     target_include_directories(libcsp_py3 PUBLIC ${csp_inc})
