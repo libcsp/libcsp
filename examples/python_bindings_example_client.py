@@ -68,6 +68,10 @@ if __name__ == "__main__":
     # [state 1 or 0 (open/closed)] [5-bit src address] [5-bit dest address] [6-bit dest port] [6 bit src port] [socket to be woken when packet is ready]
     libcsp.print_connections()
 
+    print("Interfaces:")
+    # Prints interfaces format:
+    libcsp.print_interfaces()
+
     print("Routes:")
     # Prints route table format: 
     # [address] [netmask] [interface name] optional([via])

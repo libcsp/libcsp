@@ -122,6 +122,9 @@ if __name__ == "__main__":
     print("Model:    %s" % libcsp.get_model())
     print("Revision: %s" % libcsp.get_revision())
 
+    print("Interfaces:")
+    libcsp.print_interfaces()
+
     print("Routes:")
     libcsp.print_routes()
 
