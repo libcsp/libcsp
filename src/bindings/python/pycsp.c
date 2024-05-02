@@ -854,8 +854,8 @@ static PyObject * pycsp_can_socketcan_init(PyObject * self, PyObject * args) {
 	char * ifc;
 	int bitrate = 1000000;
 	int promisc = 0;
-	int addr = 0;
-	if (!PyArg_ParseTuple(args, "s|iii", &ifc, &addr, &bitrate, &promisc)) {
+	uint16_t addr = 0;
+	if (!PyArg_ParseTuple(args, "s|Hii", &ifc, &addr, &bitrate, &promisc)) {
 		return NULL;
 	}
 
