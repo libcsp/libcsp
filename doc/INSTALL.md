@@ -61,3 +61,6 @@ cmake -GNinja -B builddir
 cd builddir
 ninja
 ```
+
+Please note that CMake support is preliminary in this version. If you
+want to use CMake, please consider using version 2.1 or later.
