@@ -12,6 +12,7 @@ we only have this version in HTML format.
 :hidden:
 
 INSTALL
+build-doc
 ```
 
 ```{toctree}
