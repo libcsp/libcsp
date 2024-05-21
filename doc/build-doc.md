@@ -14,6 +14,3 @@ mkdir builddir
 cmake -S doc -B builddir
 cmake --build
 ```
-
-Note that currently, there is a problem building it under `doc/`. See
-https://github.com/libcsp/libcsp/issues/572 for more details.
