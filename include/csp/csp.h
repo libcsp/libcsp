@@ -71,7 +71,7 @@ const csp_conf_t * csp_get_conf(void);
 /**
  * Copy csp id fields from source to target object
  */
-void csp_id_copy(csp_id_t * target, csp_id_t * source);
+void csp_id_copy(csp_id_t * target, const csp_id_t * source);
 
 /**
  * Wait/accept a new connection.
@@ -130,7 +130,7 @@ void csp_send_prio(uint8_t prio, csp_conn_t *conn, csp_packet_t *packet);
 * Returns:
 *   int: 1 or reply size on success, 0 on failure (error, incoming length does not match, timeout)
 */
-int csp_transaction_w_opts(uint8_t prio, uint16_t dst, uint8_t dst_port, uint32_t timeout, void *outbuf, int outlen, void *inbuf, int inlen, uint32_t opts);
+int csp_transaction_w_opts(uint8_t prio, uint16_t dst, uint8_t dst_port, uint32_t timeout, const void *outbuf, int outlen, void *inbuf, int inlen, uint32_t opts);
 
 /**
  * Perform an entire request & reply transaction.
@@ -146,7 +146,7 @@ int csp_transaction_w_opts(uint8_t prio, uint16_t dst, uint8_t dst_port, uint32_
  * @param[in] inlen length of expected reply, -1 for unknown size (inbuf MUST be large enough), 0 for no reply.
  * @return 1 or reply size on success, 0 on failure (error, incoming length does not match, timeout)
  */
-static inline int csp_transaction(uint8_t prio, uint16_t dest, uint8_t port, uint32_t timeout, void * outbuf, int outlen, void * inbuf, int inlen) {
+static inline int csp_transaction(uint8_t prio, uint16_t dest, uint8_t port, uint32_t timeout, const void * outbuf, int outlen, void * inbuf, int inlen) {
    return csp_transaction_w_opts(prio, dest, port, timeout, outbuf, outlen, inbuf, inlen, 0);
 }
 
@@ -162,7 +162,7 @@ static inline int csp_transaction(uint8_t prio, uint16_t dest, uint8_t port, uin
  * @param[in] inlen length of expected reply, -1 for unknown size (inbuf MUST be large enough), 0 for no reply.
  * @return 1 or reply size on success, 0 on failure (error, incoming length does not match, timeout)
  */
-int csp_transaction_persistent(csp_conn_t *conn, uint32_t timeout, void *outbuf, int outlen, void *inbuf, int inlen);
+int csp_transaction_persistent(csp_conn_t *conn, uint32_t timeout, const void *outbuf, int outlen, void *inbuf, int inlen);
 
 /**
  * Read data from a connection-less server socket.
@@ -233,7 +233,7 @@ int csp_socket_close(csp_socket_t* sock);
  * @param[in] conn connection
  * @return destination port of an incoming connection
  */
-int csp_conn_dport(csp_conn_t *conn);
+int csp_conn_dport(const csp_conn_t *conn);
 
 /**
  * Return source port of connection.
@@ -241,7 +241,7 @@ int csp_conn_dport(csp_conn_t *conn);
  * @param[in] conn connection
  * @return source port of an incoming connection
  */
-int csp_conn_sport(csp_conn_t *conn);
+int csp_conn_sport(const csp_conn_t *conn);
 
 /**
  * Return destination address of connection.
@@ -249,7 +249,7 @@ int csp_conn_sport(csp_conn_t *conn);
  * @param[in] conn connection
  * @return destination address of an incoming connection
  */
-int csp_conn_dst(csp_conn_t *conn);
+int csp_conn_dst(const csp_conn_t *conn);
 
 /**
  * Return source address of connection.
@@ -257,7 +257,7 @@ int csp_conn_dst(csp_conn_t *conn);
  * @param[in] conn connection
  * @return source address of an incoming connection
  */
-int csp_conn_src(csp_conn_t *conn);
+int csp_conn_src(const csp_conn_t *conn);
 
 /**
  * Return flags of connection.
@@ -265,7 +265,7 @@ int csp_conn_src(csp_conn_t *conn);
  * @param[in] conn connection
  * @return flags of an incoming connection, see @ref CSP_HEADER_FLAGS
  */
-int csp_conn_flags(csp_conn_t *conn);
+int csp_conn_flags(const csp_conn_t *conn);
 
 /**
  * Set socket to listen for incoming connections.
@@ -481,7 +481,7 @@ void csp_conn_print_table(void);
  * @param[in] len number of bytes to dump, starting from \a addr.
  *
  */
-void csp_hex_dump(const char *desc, void *addr, int len);
+void csp_hex_dump(const char *desc, const void *addr, int len);
 
 #else
 
