@@ -31,7 +31,7 @@ void server(void) {
 
 	/* Create socket with no specific socket options, e.g. accepts CRC32, HMAC, etc. if enabled during compilation */
 	csp_socket_t sock = {0};
-    
+
 	/* Bind socket to all ports, e.g. all incoming connections will be handled here */
 	csp_bind(&sock, CSP_ANY);
 
@@ -212,6 +212,7 @@ int main(int argc, char * argv[]) {
             csp_print("failed to add KISS interface [%s], error: %d\n", kiss_device, error);
             exit(1);
         }
+        default_iface->addr = address;
     }
 #if (CSP_HAVE_LIBSOCKETCAN)
     if (can_device) {
