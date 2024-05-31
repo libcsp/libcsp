@@ -331,27 +331,27 @@ csp_conn_t * csp_connect(uint8_t prio, uint16_t dest, uint8_t dport, uint32_t ti
 	return conn;
 }
 
-int csp_conn_dport(csp_conn_t * conn) {
+int csp_conn_dport(const csp_conn_t * conn) {
 
 	return conn->idin.dport;
 }
 
-int csp_conn_sport(csp_conn_t * conn) {
+int csp_conn_sport(const csp_conn_t * conn) {
 
 	return conn->idin.sport;
 }
 
-int csp_conn_dst(csp_conn_t * conn) {
+int csp_conn_dst(const csp_conn_t * conn) {
 
 	return conn->idin.dst;
 }
 
-int csp_conn_src(csp_conn_t * conn) {
+int csp_conn_src(const csp_conn_t * conn) {
 
 	return conn->idin.src;
 }
 
-int csp_conn_flags(csp_conn_t * conn) {
+int csp_conn_flags(const csp_conn_t * conn) {
 
 	return conn->idin.flags;
 }

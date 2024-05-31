@@ -4,7 +4,7 @@
 #include <csp/csp_debug.h>
 #include <stddef.h>
 
-void csp_hex_dump_format(const char * desc, void * addr, int len, int format) {
+void csp_hex_dump_format(const char * desc, const void * addr, int len, int format) {
 	int i;
 	unsigned char buff[17];
 	unsigned char * pc = (unsigned char *)addr;
@@ -54,6 +54,6 @@ void csp_hex_dump_format(const char * desc, void * addr, int len, int format) {
 	csp_print("  %s\n", buff);
 }
 
-void csp_hex_dump(const char * desc, void * addr, int len) {
+void csp_hex_dump(const char * desc, const void * addr, int len) {
 	csp_hex_dump_format(desc, addr, len, 0);
 }

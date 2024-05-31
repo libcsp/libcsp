@@ -66,7 +66,7 @@ csp_packet_t * csp_read(csp_conn_t * conn, uint32_t timeout) {
 }
 
 /* Provide a safe method to copy type safe, between two csp ids */
-void csp_id_copy(csp_id_t * target, csp_id_t * source) {
+void csp_id_copy(csp_id_t * target, const csp_id_t * source) {
 	target->pri = source->pri;
 	target->dst = source->dst;
 	target->src = source->src;
@@ -216,13 +216,13 @@ void csp_send_direct(csp_id_t* idout, csp_packet_t * packet, csp_iface_t * route
 
 }
 
-__weak void csp_output_hook(csp_id_t * idout, csp_packet_t * packet, csp_iface_t * iface, uint16_t via, int from_me) {
+__weak void csp_output_hook(const csp_id_t * idout, csp_packet_t * packet, csp_iface_t * iface, uint16_t via, int from_me) {
 	csp_print_packet("OUT: S %u, D %u, Dp %u, Sp %u, Pr %u, Fl 0x%02X, Sz %u VIA: %s (%u), Tms %u\n",
 				idout->src, idout->dst, idout->dport, idout->sport, idout->pri, idout->flags, packet->length, iface->name, (via != CSP_NO_VIA_ADDRESS) ? via : idout->dst, csp_get_ms());
 	return;
 }
 
-void csp_send_direct_iface(csp_id_t* idout, csp_packet_t * packet, csp_iface_t * iface, uint16_t via, int from_me) {
+void csp_send_direct_iface(const csp_id_t* idout, csp_packet_t * packet, csp_iface_t * iface, uint16_t via, int from_me) {
 
 	csp_output_hook(idout, packet, iface, via, from_me);
 
@@ -311,7 +311,7 @@ void csp_send_prio(uint8_t prio, csp_conn_t * conn, csp_packet_t * packet) {
 	csp_send(conn, packet);
 }
 
-int csp_transaction_persistent(csp_conn_t * conn, uint32_t timeout, void * outbuf, int outlen, void * inbuf, int inlen) {
+int csp_transaction_persistent(csp_conn_t * conn, uint32_t timeout, const void * outbuf, int outlen, void * inbuf, int inlen) {
 
 	if(outlen > CSP_BUFFER_SIZE){
 		return 0;
@@ -348,7 +348,7 @@ int csp_transaction_persistent(csp_conn_t * conn, uint32_t timeout, void * outbu
 	return length;
 }
 
-int csp_transaction_w_opts(uint8_t prio, uint16_t dest, uint8_t port, uint32_t timeout, void * outbuf, int outlen, void * inbuf, int inlen, uint32_t opts) {
+int csp_transaction_w_opts(uint8_t prio, uint16_t dest, uint8_t port, uint32_t timeout, const void * outbuf, int outlen, void * inbuf, int inlen, uint32_t opts) {
 
 	csp_conn_t * conn = csp_connect(prio, dest, port, 0, opts);
 	if (conn == NULL)
