@@ -42,6 +42,10 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   set(CSP_POSIX 1)
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Zephyr")
   set(CSP_ZEPHYR 1)
+elseif(CMAKE_SYSTEM_NAME STREQUAL "FreeRTOS")
+  set(CSP_FREERTOS 1)
+else()
+  message(FATAL_ERROR "invalid system ${CMAKE_SYSTEM_NAME}")
 endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND

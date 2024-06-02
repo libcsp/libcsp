@@ -1,5 +1,6 @@
 #cmakedefine01 CSP_POSIX
 #cmakedefine01 CSP_ZEPHYR
+#cmakedefine01 CSP_FREERTOS
 
 #cmakedefine01 CSP_HAVE_STDIO
 #cmakedefine01 CSP_ENABLE_CSP_PRINT
