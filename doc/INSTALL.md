@@ -88,6 +88,13 @@ use the following command:
 cmake --install builddir --component runtime
 ```
 
+if you want to build tools and samples, define `CSP_BUILD_SAMPLES=ON`
+when you run `cmake`.
+
+```shell
+cmake -B builddir -DCSP_BUILD_SAMPLES=ON
+```
+
 ## Reproducible Builds
 
 libcsp supports Reproducible Builds. To enable it, set

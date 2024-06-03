@@ -37,6 +37,7 @@ option(CSP_USE_RTABLE "Use routing table" OFF)
 option(CSP_BUFFER_ZERO_CLEAR "Zero out the packet buffer upon allocation" ON)
 
 option(CSP_ENABLE_PYTHON3_BINDINGS "Build Python3 binding" OFF)
+option(CSP_BUILD_SAMPLES "Build samples and examples by default" OFF)
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   set(CSP_POSIX 1)
@@ -112,9 +113,13 @@ elseif(CSP_ZEPHYR)
 endif()
 target_link_libraries(csp PRIVATE csp_common)
 
+if(NOT CSP_BUILD_SAMPLES)
+  set(CSP_SAMPLES_EXCLUDE "EXCLUDE_FROM_ALL")
+endif()
+
 add_subdirectory(src)
-add_subdirectory(examples)
 add_subdirectory(unittests)
+add_subdirectory(examples)
 add_subdirectory(samples)
 
 if(${CSP_ENABLE_PYTHON3_BINDINGS})
