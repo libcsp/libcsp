@@ -37,6 +37,7 @@ option(CSP_USE_PROMISC "Promiscious mode" ON)
 option(CSP_USE_RTABLE "Use routing table" OFF)
 
 option(CSP_ENABLE_PYTHON3_BINDINGS "Build Python3 binding" OFF)
+option(CSP_BUILD_EXAMPLES "Build examples by default" OFF)
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   set(CSP_POSIX 1)
