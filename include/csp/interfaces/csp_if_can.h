@@ -22,6 +22,39 @@
  * field serves the same purpose as in the Internet Protocol, and should be an auto
  * incrementing integer to uniquely separate sessions.
  *
+ * For networks configured as CSP version 2, the CAN identifier is divided into:
+ *
+ * - Priority:     2 bits
+ * - Destination:  14 bits
+ * - Sender id:    6 bits
+ * - Packet count: 2 bits
+ * - Frame count:  3 bits
+ * - Begin flag:   1 bit
+ * - End flag:     1 bit
+ *
+ * The \b Priority represents the CSP prio field. Placing this as the first bits in
+ * the transmission ensure that packets with high priority is priotized on the bus
+ * due to the nature of CAN arbitration.
+ * The \b Destination field represents the CSP node of the receiving node
+ * The \b Sender holds the least significant bits of the transmitting interface,
+ * i.e. the local address when a packet is forwarded by a routing instance.
+ * The \b Packet \b count is an incrementing value for every CSP packet
+ * The \b Frame \b count represents the frame fragment index for the particular packet
+ * The \b Begin \b flag is set for the first CAN frame in a CSP packet
+ * The \b End \b flag is set for the last CAN frame in a CSP packet
+ *
+ * In addition to the 29 bit extended CAN header, CSP utilize four bytes in the 
+ * first CAN fragment in every CSP packet as:
+ *
+ * - Source:       14 bits
+ * - Dest port:    6 bits
+ * - Source port:  6 bits
+ * - CSP flags:    6 bits
+
+ * The \b Source holds the CSP node address of the origin of the CSP packet.
+ * The \b Dest and \Source \b port represents the port numbers for the transmission.
+ * The \b CSP \b flags holds the CSP_HEADER_FLAGS.
+ *
  * Other CAN communication using a standard 11 bit identifier, can co-exist on the wire.
  ****************************************************************************/
 #pragma once
@@ -88,18 +121,6 @@ extern "C" {
 			 CFP_MAKE_DST((uint32_t)(1 << CFP_HOST_SIZE) - 1) | \
 			 CFP_MAKE_ID((uint32_t)(1 << CFP_ID_SIZE) - 1))
 
-
-/**
- * CFP 2.0
- *
- * PRIO: 2
- * DST: 14
- * Sender id: 6
- * Sender counter: 2
- * Fragment counter: 3
- * Begin: 1
- * End: 1
- */
 
 #define CFP2_PRIO_MASK 0x3
 #define CFP2_PRIO_OFFSET 27
