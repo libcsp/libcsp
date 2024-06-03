@@ -64,15 +64,16 @@ use:
 In order to compile CSP with `cmake`, you run the following commands:
 
 ```shell
-cmake -B builddir
-cmake --build builddir -j
+cmake -GNinja -B builddir
+cd builddir
+ninja
 ```
 
 To install the compiled libcsp.so and header files to the install directory,
 you run the following command:
 
 ```shell
-sudo cmake --install builddir
+ninja install
 ```
 
 By default, it will be installed in `/usr/local/lib` and `/usr/local/include`,
@@ -85,15 +86,6 @@ use the following command:
 ```shell
 cmake --install builddir --component runtime
 ```
-
-You can now use the following directives in your CMakeLists.txt
-
-```cmake
-find_package(csp 2.1 REQUIRED)
-target_link_libraries(${MY_PROJECT} PRIVATE csp::csp)
-```
-
-to use the installed libcsp in your application (adapt the required major version as needed).
 
 ## Reproducible Builds
 
