@@ -6,6 +6,10 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 endif()
 
 add_library(csp)
+# This allows users which use the add_subdirectory or FetchContent
+# to use the same target as users which use find_package
+add_library(csp::csp ALIAS csp)
+
 set_target_properties(csp PROPERTIES C_STANDARD 11)
 set_target_properties(csp PROPERTIES C_EXTENSIONS ON)
 target_compile_options(csp PRIVATE -Wall -Wextra)
@@ -114,10 +118,56 @@ endif()
 
 configure_file(csp_autoconfig.h.in include/csp/autoconfig.h)
 
-if(NOT CMAKE_SYSTEM_NAME STREQUAL "Zephyr")
-  install(TARGETS csp LIBRARY COMPONENT runtime)
-  install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/;${CMAKE_CURRENT_SOURCE_DIR}/include/;
-    TYPE INCLUDE
-    FILES_MATCHING PATTERN "*.h*"
+# We need different include directories depending on whether the library is being built
+# or whether the library is used from an installed location.
+# See https://cmake.org/cmake/help/latest/guide/importing-exporting/index.html#exporting-targets for
+# more information.
+include(GNUInstallDirs)
+target_include_directories(csp
+  INTERFACE
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
+
+target_link_libraries(csp INTERFACE)
+
+# only install if top level project
+if(NOT CMAKE_SYSTEM_NAME STREQUAL "Zephyr" AND ${CMAKE_PROJECT_NAME} STREQUAL csp)
+  # If you want to know the specific or what is done here and why:
+  # https://cmake.org/cmake/help/latest/guide/importing-exporting/index.html#id1
+  include(CMakePackageConfigHelpers)
+  install(TARGETS csp
+    EXPORT cspTargets
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
   )
+  # Generate the package configuration files using CMake provided macros
+  write_basic_package_version_file(
+    "cspConfigVersion.cmake"
+    COMPATIBILITY SameMajorVersion
+    ARCH_INDEPENDENT
+  )
+  configure_package_config_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/cspConfig.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/cspConfig.cmake"
+    INSTALL_DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/cmake/csp
+  )
+
+  # Install target file
+  install(EXPORT cspTargets
+    FILE cspTargets.cmake
+    NAMESPACE csp::
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/csp
+  )
+  # Install package configuration files.
+  install(FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/cspConfig.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/cspConfigVersion.cmake"
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/csp
+  )
+
+  # Install header files.
+  install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/csp DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+  install(DIRECTORY ${PROJECT_BINARY_DIR}/include/csp DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 endif()
