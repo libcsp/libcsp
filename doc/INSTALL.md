@@ -76,6 +76,7 @@ you run the following command:
 cmake --install builddir
 ```
 
+Please note that `sudo` might be required to install files into the default install directories.
 By default, it will be installed in `/usr/local/lib` and `/usr/local/include`,
 but if you wish to change it, you can specify `-DCMAKE_INSTALL_PREFIX=<path>`
 during the build process, and it will be installed in `<path>/lib` and `<path>/include`.
