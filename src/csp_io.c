@@ -5,7 +5,11 @@
 
 #include <csp/csp.h>
 #include <csp/csp_debug.h>
+#if defined(CSP_NEWLIB_ENDIAN)
+#include <sys/endian.h>
+#else
 #include <endian.h>
+#endif
 #include <csp/csp_crc32.h>
 #include <csp/csp_rtable.h>
 #include <csp/interfaces/csp_if_lo.h>

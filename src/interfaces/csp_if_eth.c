@@ -3,7 +3,11 @@
 #include <csp/interfaces/csp_if_eth_pbuf.h>
 #include <csp/arch/csp_time.h>
 
+#if defined(CSP_NEWLIB_ENDIAN)
+#include <sys/endian.h>
+#else
 #include <endian.h>
+#endif
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -20,7 +24,7 @@
  */
 bool eth_debug = false;
 
-bool csp_eth_pack_header(csp_eth_header_t * buf, 
+bool csp_eth_pack_header(csp_eth_header_t * buf,
                             uint16_t packet_id, uint16_t src_addr,
                             uint16_t seg_size, uint16_t packet_length) {
 
@@ -34,7 +38,7 @@ bool csp_eth_pack_header(csp_eth_header_t * buf,
     return true;
 }
 
-bool csp_if_eth_unpack_header(csp_eth_header_t * buf, 
+bool csp_if_eth_unpack_header(csp_eth_header_t * buf,
                               uint32_t * packet_id,
                               uint16_t * seg_size, uint16_t * packet_length) {
 
@@ -52,7 +56,7 @@ bool csp_if_eth_unpack_header(csp_eth_header_t * buf,
 /**
  * Address resolution (ARP)
  * All received (ETH MAC, CSP src) are recorded and used to map destination address to MAC addresses,
- * used in uni-cast. Until a packet from a CSP address has been received, ETH broadcast is used to this address. 
+ * used in uni-cast. Until a packet from a CSP address has been received, ETH broadcast is used to this address.
  */
 
 #define ARP_MAX_ENTRIES 10
@@ -66,13 +70,13 @@ typedef struct arp_list_entry_s {
 static arp_list_entry_t arp_array[ARP_MAX_ENTRIES];
 static size_t arp_used = 0;
 
-static arp_list_entry_t * arp_list = 0; 
+static arp_list_entry_t * arp_list = 0;
 
 arp_list_entry_t * arp_alloc(void) {
-    
+
     if (arp_used >= ARP_MAX_ENTRIES) {
         return 0;
-    } 
+    }
     return &(arp_array[arp_used++]);
 
 }

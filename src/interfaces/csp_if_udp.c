@@ -8,7 +8,11 @@
 #include <netdb.h>
 
 #include <csp/csp.h>
+#if defined(CSP_NEWLIB_ENDIAN)
+#include <sys/endian.h>
+#else
 #include <endian.h>
+#endif
 #include <csp/csp_interface.h>
 #include <csp/csp_id.h>
 
@@ -45,7 +49,7 @@ int csp_if_udp_rx_work(int sockfd, size_t unused, csp_iface_t * iface) {
 	/* Setup RX frane to point to ID */
 	int header_size = csp_id_setup_rx(packet);
 	int received_len = recvfrom(sockfd, (char *)packet->frame_begin, sizeof(packet->data) + header_size, MSG_WAITALL, NULL, NULL);
-	
+
 	if (received_len <= 4) {
 		csp_buffer_free(packet);
 		return CSP_ERR_NOMEM;

@@ -4,7 +4,11 @@
 
 #include <string.h>
 #include <stdlib.h>
+#if defined(CSP_NEWLIB_ENDIAN)
+#include <sys/endian.h>
+#else
 #include <endian.h>
+#endif
 
 #include <csp/csp.h>
 #include <csp/csp_id.h>

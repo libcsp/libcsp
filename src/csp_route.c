@@ -3,7 +3,11 @@
 #include <stdlib.h>
 
 #include <csp/csp_crc32.h>
+#if defined(CSP_NEWLIB_ENDIAN)
+#include <sys/endian.h>
+#else
 #include <endian.h>
+#endif
 #include <csp/arch/csp_time.h>
 #include <csp/arch/csp_queue.h>
 #include <csp/crypto/csp_hmac.h>
@@ -171,7 +175,7 @@ int csp_route_work(void) {
 	}
 
 	/**
-	 * Callbacks 
+	 * Callbacks
 	 */
 	csp_callback_t callback = csp_port_get_callback(packet->id.dport);
 	if (callback) {
@@ -186,7 +190,7 @@ int csp_route_work(void) {
 	}
 
 	/**
-	 * Sockets 
+	 * Sockets
 	 */
 
 	/* The message is to me, search for incoming socket */
@@ -205,7 +209,7 @@ int csp_route_work(void) {
 			csp_buffer_free(packet);
 			return 0;
 		}
-		
+
 		return CSP_ERR_NONE;
 	}
 

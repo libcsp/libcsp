@@ -35,6 +35,11 @@ option(CSP_USE_RDP "Reliable Datagram Protocol" ON)
 option(CSP_USE_HMAC "Hash-based message authentication code" ON)
 option(CSP_USE_PROMISC "Promiscious mode" ON)
 option(CSP_USE_RTABLE "Use routing table" OFF)
+option(CSP_USE_NEWLIB "Use newlibc for the c library" OFF)
+
+if(CSP_USE_NEWLIB)
+  target_compile_definitions(csp PRIVATE CSP_NEWLIB_ENDIAN)
+endif()
 
 option(CSP_ENABLE_PYTHON3_BINDINGS "Build Python3 binding" OFF)
 

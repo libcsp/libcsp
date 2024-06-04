@@ -5,7 +5,11 @@
 #include <csp/csp_buffer.h>
 #include <csp/csp_debug.h>
 #include "csp_macro.h"
+#if defined(CSP_NEWLIB_ENDIAN)
+#include <sys/endian.h>
+#else
 #include <endian.h>
+#endif
 
 #include "csp_conn.h"
 

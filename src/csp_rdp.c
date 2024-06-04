@@ -8,7 +8,11 @@
 
 #include <stdlib.h>
 #include <string.h>
+#if defined(CSP_NEWLIB_ENDIAN)
+#include <sys/endian.h>
+#else
 #include <endian.h>
+#endif
 
 #include <csp/csp.h>
 #include <csp/csp_debug.h>

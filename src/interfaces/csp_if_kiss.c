@@ -10,7 +10,11 @@
 #include <csp/drivers/usart.h>
 #include <string.h>
 
+#if defined(CSP_NEWLIB_ENDIAN)
+#include <sys/endian.h>
+#else
 #include <endian.h>
+#endif
 #include <csp/csp_crc32.h>
 #include <csp/csp_id.h>
 
