@@ -14,8 +14,8 @@ example be 256 bytes of data + 2 bytes sync flag + 2 bytes length field.
 
 This requires a buffer allocation of at lest 256 + 2 + 2. However, the
 CSP packet itself has some reserved bytes in the beginning of the packet
-(which you can see in csp.h) - so the recommended buffer allocation size
-is MAX MTU + 16 bytes. In this case the max MTU would be 256.
+(which you can see in csp_types.h) - so the recommended buffer allocation
+size is MAX MTU + 16 bytes. In this case the max MTU would be 256.
 
 If you try to pass data which is longer than the MTU, the chance is that
 you will also make a buffer overflow in the CSP buffer pool. However,
