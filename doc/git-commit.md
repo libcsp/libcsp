@@ -106,4 +106,37 @@ These are examples taken from our own commit hisotry.
         UDP (limited to 2^16)
 ```
 
+## Guidelines Commit Practices
+
+### Merge Commits
+
+While merge commits can be useful in some workflows, we generally
+discourage their use in this project to maintain a clean and linear
+commit history. Instead, please rebase your topic branch on top of the
+`develop` branch.
+
+**Example:**
+```sh
+git fetch origin
+git rebase develop topic
+```
+
+### Micro-Commits
+
+Micro-commits, or very small commits that fix bugs or issues within
+the same pull request, can clutter the commit history and make it
+difficult to follow the logical progression of changes. To maintain
+clarity, please squash micro-commits into the appropriate commits by
+amending the original commit that introduced the issue, rather than
+creating a new commit.
+
+**Example:**
+Before merging your branch, squash micro-commits:
+```sh
+git rebase -i HEAD~N  # Where N is the number of commits to review
+```
+
+In the interactive rebase interface, mark micro-commits with `fixup`
+or `squash` to combine them with preceding commits.
+
 [1]: https://git-scm.com/book/en/v2/Distributed-Git-Contributing-to-a-Project#_commit_guidelines
