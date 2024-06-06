@@ -127,17 +127,14 @@ void csp_kiss_rx(csp_iface_t * iface, const uint8_t * buf, size_t len, void * px
 
 						ifdata->rx_packet->frame_length = ifdata->rx_length;
 						if (csp_id_strip(ifdata->rx_packet) < 0) {
-							iface->rx_error++;
+							iface->frame++;
 							ifdata->rx_mode = KISS_MODE_NOT_STARTED;
 							break;
 						}
 
-						/* Count received frame */
-						iface->frame++;
-
 						/* Validate CRC */
 						if (csp_crc32_verify(ifdata->rx_packet) != CSP_ERR_NONE) {
-							iface->rx_error++;
+							iface->frame++;
 							ifdata->rx_mode = KISS_MODE_NOT_STARTED;
 							break;
 						}
