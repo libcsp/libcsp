@@ -138,10 +138,12 @@ int csp_eth_rx(csp_iface_t * iface, csp_eth_header_t * eth_frame, uint32_t recei
 
     /* Filter on CSP protocol id */
     if ((be16toh(eth_frame->ether_type) != CSP_ETH_TYPE_CSP)) {
+        iface->frame++;
         return CSP_ERR_INVAL;
     }
 
     if (received_len < sizeof(csp_eth_header_t)) {
+        iface->frame++;
         return CSP_ERR_INVAL;
     }
 
@@ -152,22 +154,26 @@ int csp_eth_rx(csp_iface_t * iface, csp_eth_header_t * eth_frame, uint32_t recei
     csp_if_eth_unpack_header(eth_frame, &packet_id, &seg_size, &frame_length);
 
     if (seg_size == 0) {
+        iface->frame++;
         csp_print("eth rx seg_size is zero\n");
         return CSP_ERR_INVAL;
     }
 
     if (seg_size > frame_length) {
+        iface->frame++;
         csp_print("eth rx seg_size(%u) > frame_length(%u)\n", (unsigned)seg_size, (unsigned)frame_length);
         return CSP_ERR_INVAL;
     }
 
     if (sizeof(csp_eth_header_t) + seg_size > received_len) {
+        iface->frame++;
         csp_print("eth rx sizeof(csp_eth_frame_t) + seg_size(%u) > received(%u)\n",
             (unsigned)seg_size, (unsigned)received_len);
         return CSP_ERR_INVAL;
     }
 
     if (frame_length == 0) {
+        iface->frame++;
         csp_print("eth rx frame_length is zero\n");
         return CSP_ERR_INVAL;
     }
@@ -187,11 +193,13 @@ int csp_eth_rx(csp_iface_t * iface, csp_eth_header_t * eth_frame, uint32_t recei
     }
 
     if (frame_length != packet->frame_length) {
+        iface->frame++;
         csp_print("eth rx inconsistent frame_length\n");
         return CSP_ERR_INVAL;
     }
 
     if (packet->rx_count + seg_size > packet->frame_length) {
+        iface->frame++;
         csp_print("eth rx data received exceeds frame_length\n");
         return CSP_ERR_INVAL;
     }
@@ -209,7 +217,7 @@ int csp_eth_rx(csp_iface_t * iface, csp_eth_header_t * eth_frame, uint32_t recei
 
     if (csp_id_strip(packet) != 0) {
         csp_print("eth rx packet discarded due to error in ID field\n");
-        iface->rx_error++;
+        iface->frame++;
         (task_woken) ? csp_buffer_free_isr(packet) : csp_buffer_free(packet);
         return CSP_ERR_INVAL;
     }
