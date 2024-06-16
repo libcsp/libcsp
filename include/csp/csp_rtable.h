@@ -34,7 +34,7 @@ csp_route_t * csp_rtable_find_route(uint16_t dest_address);
  * Set route to destination address/node.
  *
  * @param[in] dest_address destination address.
- * @param[in]mask number of bits in netmask (set to -1 for maximum number of bits)
+ * @param[in] netmask number of bits in netmask (set to -1 for maximum number of bits)
  * @param[in] ifc interface.
  * @param[in] via assosicated via address.
  * @return #CSP_ERR_NONE on success, or an error code.
