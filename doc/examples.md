@@ -2,8 +2,29 @@
 
 The example in `examples/csp_server_client.c` provides a
 simple server/client setup, where the client sends a request to the
-server and receives a reply. The code can be compiled to an executable
+server and receives a reply.
+
+## Building the examples
+
+The code can be compiled to an executable
 using `./examples/buildall.py`.
+
+Alternatively, you can use one of the respective supported build systems to
+build individual examples.
+
+### CMake
+
+You can either pass `-DCSP_BUILD_EXAMPLES=ON` to the build generation process
+described in the [install documentation](build_install) to build all the
+examples in addition to the library itself.
+
+Alternatively, you can build indidivual examples in the build process:
+
+```sh
+cmake --build builddir -j 10 -t csp_server_client
+```
+
+## Features
 
 The example supports these drivers and interfaces in CSP:
 
@@ -51,7 +72,7 @@ loopback interface for communication between client and server:
     LOOP       addr: 0 netmask: 14 dfl: 0
                tx: 00000 rx: 00000 txe: 00000 rxe: 00000
                drop: 00000 autherr: 00000 frame: 00000
-               txb: 0 (0B) rxb: 0 (0B) 
+               txb: 0 (0B) rxb: 0 (0B)
 
     Client task started
     Server task started

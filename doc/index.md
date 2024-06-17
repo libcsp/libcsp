@@ -11,7 +11,7 @@ we only have this version in HTML format.
 :caption: Setup
 :hidden:
 
-INSTALL
+build-install
 build-doc
 ```
 
@@ -71,5 +71,5 @@ changelog
 :caption: Example Usage
 :hidden:
 
-example
+examples
 ```

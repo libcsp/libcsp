@@ -1,4 +1,6 @@
-# How to install LibCSP
+(build_install)=
+
+# How to build and install LibCSP
 
 ```{contents}
 :depth: 3
