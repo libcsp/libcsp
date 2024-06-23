@@ -51,7 +51,7 @@ void csp_qfifo_write(csp_packet_t * packet, csp_iface_t * iface, void * pxTaskWo
 
 	if (result != CSP_QUEUE_OK) {
 		csp_dbg_conn_ovf++;
-		iface->drop++;
+		iface->tx_error++;
 		if (pxTaskWoken == NULL)
 			csp_buffer_free(packet);
 		else
