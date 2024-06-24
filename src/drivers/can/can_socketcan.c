@@ -1,3 +1,5 @@
+
+
 #include <csp/drivers/can_socketcan.h>
 
 #include <stdio.h>
@@ -59,9 +61,14 @@ static void * socketcan_rx_thread(void * arg) {
 		struct can_frame frame;
 		int nbytes = read(ctx->socket, &frame, sizeof(frame)); 
 		if (nbytes < 0) {
-			csp_print("%s[%s]: read() failed, errno %d: %s\n", __func__, ctx->name, errno, strerror(errno));
-			sleep(1);
-			continue;
+			if (errno == EAGAIN) {
+				/* This is acceptable, since something interrupted us, try again */
+				continue;
+			} else {
+				csp_print("%s[%s]: read() failed, errno %d: %s\n", __func__, ctx->name, errno, strerror(errno));
+				usleep(1*1E6);
+				continue;
+			}
 		}
 
 		if (nbytes != sizeof(frame)) {
@@ -105,15 +112,37 @@ static int csp_can_tx_frame(void * driver_data, uint32_t id, const uint8_t * dat
 							  .can_dlc = dlc};
 	memcpy(frame.data, data, dlc);
 
-	uint32_t elapsed_ms = 0;
+	uint32_t waiting_ms = 0;
 	can_context_t * ctx = driver_data;
-	while (write(ctx->socket, &frame, sizeof(frame)) != sizeof(frame)) {
-		if ((errno != ENOBUFS) || (elapsed_ms >= 1000)) {
-			csp_print("%s[%s]: write() failed, errno %d: %s\n", __func__, ctx->name, errno, strerror(errno));
-			return CSP_ERR_TX;
+	uintptr_t pdata = (uintptr_t)&frame;
+	uintptr_t pend = ((uintptr_t)&frame + sizeof(frame));
+	size_t length = sizeof(frame);
+
+	while (pdata < pend) {
+		int written;
+		
+		written = write(ctx->socket, (void *)pdata, length);
+		if (written < 0) {
+			if (errno == ENOBUFS) {
+				/* If no space available, wait for 5 ms and try again */
+				usleep(5000);
+				waiting_ms += 5;
+			} else if(errno == EAGAIN) {
+				/* Acceptable, since something interrupted us, try again */
+				continue;
+			} else {
+				waiting_ms = 0;
+			}
+
+			if (waiting_ms >= 1000) {
+				/* We finally got tired of waiting, give up */
+				csp_print("%s[%s]: write() failed, we have been waiting for CAN buffers for too long (>1000 ms)\n", __func__, ctx->name);
+				return CSP_ERR_TX;
+			}
+		} else {
+			pdata += written;
+			length -= written;
 		}
-		usleep(5000);
-		elapsed_ms += 5;
 	}
 
 	return CSP_ERR_NONE;
