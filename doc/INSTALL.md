@@ -64,7 +64,7 @@ You can now run the following commands to compile CSP with `cmake`:
 
 ```shell
 cmake -G Ninja -B builddir
-cmake --build builddir -j
+cmake --build builddir
 ```
 
 Please note that other build system generators might work as well, but `Ninja` is the officially
