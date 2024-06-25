@@ -87,3 +87,5 @@ int pthread_queue_items(pthread_queue_t * queue);
 
 
 int pthread_queue_free(pthread_queue_t * queue);
+
+void pthread_queue_empty(pthread_queue_t * queue);
