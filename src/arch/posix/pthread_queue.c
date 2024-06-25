@@ -218,3 +218,12 @@ int pthread_queue_free(pthread_queue_t * queue) {
 
 	return free;
 }
+
+void pthread_queue_empty(pthread_queue_t * queue) {
+
+	pthread_mutex_lock(&(queue->mutex));
+	queue->items = 0;
+	queue->in = 0;
+	queue->out = 0;
+	pthread_mutex_unlock(&(queue->mutex));
+}

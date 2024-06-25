@@ -97,6 +97,13 @@ int csp_queue_size_isr(csp_queue_handle_t handle);
  */
 int csp_queue_free(csp_queue_handle_t handle);
 
+/**
+ * Empty queue object by removing all items (handle).
+ *
+ * @param[in] handle handle queue.
+ */
+void csp_queue_empty(csp_queue_handle_t handle);
+
 #ifdef __cplusplus
 }
 #endif

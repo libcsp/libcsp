@@ -82,3 +82,9 @@ int csp_queue_free(csp_queue_handle_t queue) {
 
 	return k_msgq_num_free_get(q);
 }
+
+void csp_queue_empty(csp_queue_handle_t queue) {
+	struct k_msgq * q = (struct k_msgq *)queue;
+
+	k_msgq_purge(q);
+}
