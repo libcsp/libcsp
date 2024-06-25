@@ -170,6 +170,11 @@ int pthread_queue_dequeue(pthread_queue_t * queue, void * buf, uint32_t timeout)
 	struct timespec ts;
 	struct timespec * pts;
 
+	if(!queue){
+		csp_print("csp not initialized\n");
+		return PTHREAD_QUEUE_ERROR;
+	}
+
 	/* Calculate timeout */
 	if (timeout != CSP_MAX_TIMEOUT) {
 		if (get_deadline(&ts, timeout) != 0) {
