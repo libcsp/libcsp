@@ -529,8 +529,14 @@ bool csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 	if (rx_header->flags & RDP_RST) {
 
 		if (rx_header->flags & RDP_ACK) {
-			/* Store current ack'ed sequence number */
-			conn->rdp.snd_una = rx_header->ack_nr + 1;
+			if (rx_header->seq_nr == (conn->rdp.rcv_cur + 1)) {
+				/* Store current acked sequence number */
+				conn->rdp.snd_una = rx_header->ack_nr + 1;
+			} else {
+				csp_rdp_protocol("RDP %p: RST ACK out of sequence, seq_nr : %d, expected seq_nr: %d,keep connection open\n",
+								 conn, rx_header->seq_nr, (conn->rdp.rcv_cur + 1));
+				goto discard_open;
+			}
 		}
 
 		if (conn->rdp.state == RDP_CLOSED) {
