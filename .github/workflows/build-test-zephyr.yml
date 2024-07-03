@@ -7,7 +7,7 @@ on:
 
 jobs:
   build-zephyr:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
@@ -36,11 +36,44 @@ jobs:
           path: libcsp-zephyr
           repository: yashi/libcsp-zephyr
 
+      - name: Dump GitHub context
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: echo "$GITHUB_CONTEXT"
+
+      - name: Check PR Hash ${{ github.event.pull_request.head.sha }}
+        run: |
+          echo "github.event_name: ${{ github.event_name }}"
+          echo "${{ github.event.pull_request.head.sha }}"
+          echo "github.base_ref: ${{ github.base_ref }}"
+          echo "${GITHUB_REF}"
+          sudo apt-get install tree yq
+          tree -L 2
+
+      - name: Update libcsp revision (Pull Req)
+        if: github.event_name == 'pull_request'
+        working-directory: libcsp-zephyr
+        run: |
+          yq -iy '(.manifest.projects[] | select(.name == "libcsp") | .revision) = "${{ github.event.pull_request.head.sha }}"' west.yml
+          git diff -w
+
+      - name: Update libcsp revision (Push)
+        if: github.event_name == 'push'
+        working-directory: libcsp-zephyr
+        run: |
+          yq -iy '(.manifest.projects[] | select(.name == "libcsp") | .revision) = "${{ github.sha }}"' west.yml
+          git diff -w
+
       - name: Setup Zephyr
         uses: zephyrproject-rtos/action-zephyr-setup@v1
         with:
           app-path: libcsp-zephyr
           toolchains: arm-zephyr-eabi
+
+      - name: Check Revision
+        run: |
+          cd modules/lib/libcsp
+          git rev-parse HEAD
 
       - name: Build
         run: |
