@@ -11,18 +11,9 @@ config LIBCSP
 
 if LIBCSP
 
-config LIBCSP_HAVE_STDIO
-	bool "Enable CSP debugging option"
-	help
-	  This option enables CSP debugging options.
-
-if LIBCSP_HAVE_STDIO
-
 module = LIBCSP
 module-str = libcsp
 source "subsys/logging/Kconfig.template.log_config"
-
-endif # LIBCSP_HAVE_STDIO
 
 config APP_LINK_WITH_LIBCSP
 	bool "Link 'app' with libcsp"
