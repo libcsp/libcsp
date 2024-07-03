@@ -7,7 +7,7 @@ on:
 
 jobs:
   build-zephyr:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
@@ -35,6 +35,24 @@ jobs:
         with:
           path: libcsp-zephyr
           repository: yashi/libcsp-zephyr
+
+      - name: Install yq
+        run: |
+          sudo apt-get install tree yq
+
+      - name: Update libcsp revision (Pull Req)
+        if: github.event_name == 'pull_request'
+        working-directory: libcsp-zephyr
+        run: |
+          yq -iy '(.manifest.projects[] | select(.name == "libcsp") | .revision) = "${{ github.event.pull_request.head.sha }}"' west.yml
+          git diff -w
+
+      - name: Update libcsp revision (Push)
+        if: github.event_name == 'push'
+        working-directory: libcsp-zephyr
+        run: |
+          yq -iy '(.manifest.projects[] | select(.name == "libcsp") | .revision) = "${{ github.sha }}"' west.yml
+          git diff -w
 
       - name: Setup Zephyr
         uses: zephyrproject-rtos/action-zephyr-setup@v1
