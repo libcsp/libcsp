@@ -18,7 +18,6 @@ void csp_rdp_queue_init(void) {
 
 	/* Create RX queue */
 	rx_queue = csp_queue_create_static(CSP_RDP_MAX_WINDOW * 2, sizeof(csp_packet_t *), rx_queue_static_data, &rx_queue_static);
-
 }
 
 static int __csp_rdp_queue_flush(csp_queue_handle_t queue, csp_conn_t * conn) {
@@ -35,9 +34,9 @@ static int __csp_rdp_queue_flush(csp_queue_handle_t queue, csp_conn_t * conn) {
 			break;
 		}
 
-        if (conn == packet->conn) {
-            csp_buffer_free(packet);
-        } else {
+		if (conn == packet->conn) {
+			csp_buffer_free(packet);
+		} else {
 			/* put it back */
 			ret = csp_queue_enqueue(queue, packet, 0);
 			if (ret != CSP_QUEUE_OK) {
@@ -62,58 +61,57 @@ void csp_rdp_queue_flush(csp_conn_t * conn) {
 }
 
 int csp_rdp_queue_tx_size(void) {
-    return csp_queue_size(tx_queue);
+	return csp_queue_size(tx_queue);
 }
 
 void csp_rdp_queue_tx_add(csp_conn_t * conn, csp_packet_t * packet) {
-    packet->conn = conn;
-    if (csp_queue_enqueue(tx_queue, &packet, 0) != CSP_QUEUE_OK) {
+	packet->conn = conn;
+	if (csp_queue_enqueue(tx_queue, &packet, 0) != CSP_QUEUE_OK) {
 		csp_buffer_free(packet);
-    }
+	}
 }
 
 csp_packet_t * csp_rdp_queue_tx_get(csp_conn_t * conn) {
-    csp_packet_t * packet;
-    int size = csp_queue_size(tx_queue);
-    while(size--) {
-        if (csp_queue_dequeue(tx_queue, &packet, 0) != CSP_QUEUE_OK) {
-            return NULL;
-        }
+	csp_packet_t * packet;
+	int size = csp_queue_size(tx_queue);
+	while (size--) {
+		if (csp_queue_dequeue(tx_queue, &packet, 0) != CSP_QUEUE_OK) {
+			return NULL;
+		}
 
-        if (packet->conn == conn) {
-            return packet;
-        } else {
-            csp_rdp_queue_tx_add(conn, packet);
-        }
-    }
-    return NULL;
+		if (packet->conn == conn) {
+			return packet;
+		} else {
+			csp_rdp_queue_tx_add(conn, packet);
+		}
+	}
+	return NULL;
 }
 
 int csp_rdp_queue_rx_size(void) {
-    return csp_queue_size(rx_queue);
+	return csp_queue_size(rx_queue);
 }
 
 void csp_rdp_queue_rx_add(csp_conn_t * conn, csp_packet_t * packet) {
-    packet->conn = conn;
-    if (csp_queue_enqueue(rx_queue, &packet, 0) != CSP_QUEUE_OK) {
-        csp_buffer_free(packet);
-    }
+	packet->conn = conn;
+	if (csp_queue_enqueue(rx_queue, &packet, 0) != CSP_QUEUE_OK) {
+		csp_buffer_free(packet);
+	}
 }
 
 csp_packet_t * csp_rdp_queue_rx_get(csp_conn_t * conn) {
-    csp_packet_t * packet;
-    int size = csp_queue_size(rx_queue);
-    while(size--) {
-        if (csp_queue_dequeue(rx_queue, &packet, 0) != CSP_QUEUE_OK) {
-            return NULL;
-        }
+	csp_packet_t * packet;
+	int size = csp_queue_size(rx_queue);
+	while (size--) {
+		if (csp_queue_dequeue(rx_queue, &packet, 0) != CSP_QUEUE_OK) {
+			return NULL;
+		}
 
-        if (packet->conn == conn) {
-            return packet;
-        } else {
-            csp_rdp_queue_rx_add(conn, packet);
-        }
-    }
-    return NULL;
-
+		if (packet->conn == conn) {
+			return packet;
+		} else {
+			csp_rdp_queue_rx_add(conn, packet);
+		}
+	}
+	return NULL;
 }
