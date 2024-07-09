@@ -61,7 +61,7 @@ static void * socketcan_rx_thread(void * arg) {
 		struct can_frame frame;
 		int nbytes = read(ctx->socket, &frame, sizeof(frame)); 
 		if (nbytes < 0) {
-			if (errno == EAGAIN) {
+			if (errno == EAGAIN || errno == EINTR) {
 				/* This is acceptable, since something interrupted us, try again */
 				continue;
 			} else {
@@ -127,11 +127,12 @@ static int csp_can_tx_frame(void * driver_data, uint32_t id, const uint8_t * dat
 				/* If no space available, wait for 5 ms and try again */
 				usleep(5000);
 				waiting_ms += 5;
-			} else if(errno == EAGAIN) {
+			} else if(errno == EAGAIN || errno == EINTR) {
 				/* Acceptable, since something interrupted us, try again */
-				continue;
+				waiting_ms += 5;
 			} else {
-				waiting_ms = 0;
+				csp_print("%s[%s]: write() failed, encountered an error during write(). %d - '%s'\n", __func__, ctx->name, errno, strerror(errno));
+				return CSP_ERR_TX;
 			}
 
 			if (waiting_ms >= 1000) {
@@ -140,6 +141,7 @@ static int csp_can_tx_frame(void * driver_data, uint32_t id, const uint8_t * dat
 				return CSP_ERR_TX;
 			}
 		} else {
+			waiting_ms = 0;
 			pdata += written;
 			length -= written;
 		}
