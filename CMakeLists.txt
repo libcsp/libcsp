@@ -90,10 +90,7 @@ endif()
 file(REAL_PATH include csp_inc)
 file(REAL_PATH src csp_inc_src)
 list(APPEND csp_inc ${CMAKE_CURRENT_BINARY_DIR}/include)
-target_include_directories(csp
-  PUBLIC ${csp_inc}
-  PRIVATE ${csp_inc_src}
-)
+target_include_directories(csp PRIVATE ${csp_inc_src} ${csp_inc})
 
 if(CSP_POSIX)
   set(CSP_C_ARGS -Wshadow -Wcast-align -Wpointer-arith -Wwrite-strings -Wno-unused-parameter)
