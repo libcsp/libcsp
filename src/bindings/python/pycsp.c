@@ -645,12 +645,7 @@ static PyObject * pycsp_print_routes(PyObject * self, PyObject * args) {
 #endif
 
 static PyObject * pycsp_buffer_get(PyObject * self, PyObject * args) {
-	unsigned long size;
-	if (!PyArg_ParseTuple(args, "k", &size)) {
-		return NULL;  // TypeError is thrown
-	}
-
-	void * packet = csp_buffer_get(size);
+	void * packet = csp_buffer_get(0);
 	if (packet == NULL) {
 		return PyErr_Error("csp_buffer_get() - no free buffers or data overrun", CSP_ERR_NOMEM);
 	}
