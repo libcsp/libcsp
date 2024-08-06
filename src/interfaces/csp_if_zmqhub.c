@@ -82,7 +82,7 @@ void * csp_zmqhub_task(void * param) {
 		}
 
 		// Create new csp packet
-		packet = csp_buffer_get(datalen - HEADER_SIZE);
+		packet = csp_buffer_get(0);
 		if (packet == NULL) {
 			csp_print("RX %s: Failed to get csp_buffer(%u)\n", drv->iface.name, datalen);
 			zmq_msg_close(&msg);
