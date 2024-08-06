@@ -1,5 +1,3 @@
-
-
 #include <csp/drivers/can_socketcan.h>
 
 #include <stdio.h>
@@ -14,9 +12,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <linux/can/raw.h>
-#if (CSP_HAVE_LIBSOCKETCAN)
 #include <libsocketcan.h>
-#endif
 
 #include <csp/csp.h>
 
@@ -160,7 +156,6 @@ int csp_can_socketcan_open_and_add_interface(const char * device, const char * i
 
 	csp_print("INIT %s: device: [%s], bitrate: %d, promisc: %d\n", ifname, device, bitrate, promisc);
 
-#if (CSP_HAVE_LIBSOCKETCAN)
 	/* Set interface up - this may require increased OS privileges */
 	if (bitrate > 0) {
 		can_do_stop(device);
@@ -168,7 +163,6 @@ int csp_can_socketcan_open_and_add_interface(const char * device, const char * i
 		can_set_restart_ms(device, 100);
 		can_do_start(device);
 	}
-#endif
 
 	can_context_t * ctx = calloc(1, sizeof(*ctx));
 	if (ctx == NULL) {
