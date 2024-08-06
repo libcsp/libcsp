@@ -115,7 +115,7 @@ static int csp_rdp_send_cmp(csp_conn_t * conn, csp_packet_t * packet, int flags,
 
 	/* Generate message */
 	if (!packet) {
-		packet = csp_buffer_get(20);
+		packet = csp_buffer_get(0);
 		if (!packet)
 			return CSP_ERR_NOMEM;
 		packet->length = 0;
@@ -172,7 +172,7 @@ static int csp_rdp_send_cmp(csp_conn_t * conn, csp_packet_t * packet, int flags,
 static int csp_rdp_send_eack(csp_conn_t * conn) {
 
 	/* Allocate message */
-	csp_packet_t * packet_eack = csp_buffer_get(100);
+	csp_packet_t * packet_eack = csp_buffer_get(0);
 	if (packet_eack == NULL) return CSP_ERR_NOMEM;
 	packet_eack->length = 0;
 
@@ -214,7 +214,7 @@ static int csp_rdp_send_eack(csp_conn_t * conn) {
 static int csp_rdp_send_syn(csp_conn_t * conn) {
 
 	/* Allocate message */
-	csp_packet_t * packet = csp_buffer_get(100);
+	csp_packet_t * packet = csp_buffer_get(0);
 	if (packet == NULL) return CSP_ERR_NOMEM;
 
 	/* Generate contents */
