@@ -481,9 +481,11 @@ void csp_rdp_get_opt(unsigned int *window_size, unsigned int *conn_timeout_ms,
 	  unsigned int *ack_timeout, unsigned int *ack_delay_count);
 
 /**
- * Set platform specific memory copy function.
+ * Set platform specific memory copy functions.
  */
 void csp_cmp_set_memcpy(csp_memcpy_fnc_t fnc);
+void csp_cmp_set_memread64(csp_memread64_fnc_t fnc);
+void csp_cmp_set_memwrite64(csp_memwrite64_fnc_t fnc);
 
 #if (CSP_ENABLE_CSP_PRINT)
 

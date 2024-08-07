@@ -205,12 +205,16 @@ typedef const uint32_t csp_const_memptr_t;
 typedef void * csp_memptr_t;
 /** Const memory pointer */
 typedef const void * csp_const_memptr_t;
+/** Memory pointer 64-bit */
+typedef uint64_t csp_memptr64_t;
 #endif
 
 /**
  * Platform specific memory copy function.
  */
 typedef csp_memptr_t (*csp_memcpy_fnc_t)(csp_memptr_t, csp_const_memptr_t, size_t);
+typedef csp_memptr64_t (*csp_memread64_fnc_t)(csp_const_memptr_t, csp_memptr64_t, size_t);
+typedef csp_memptr64_t (*csp_memwrite64_fnc_t)(csp_memptr64_t, csp_memptr_t, size_t);
 
 /**
  * Compile check/asserts.

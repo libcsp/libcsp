@@ -62,6 +62,14 @@ extern "C" {
  *  Set/configure routing.
  */
 #define CSP_CMP_ROUTE_SET_V2 7
+/**
+ *  Peek/read data from memory - 64-bit version.
+ */
+#define CSP_CMP_PEEK_V2 8
+/**
+ *  Poke/write data from memory - 64-bit version.
+ */
+#define CSP_CMP_POKE_V2 9
 /**@}*/
 
 /**
@@ -91,6 +99,16 @@ extern "C" {
  *  CMP poke/write memeory - max write length.
  */
 #define CSP_CMP_POKE_MAX_LEN 200
+
+/**
+ *  CMP peek/read memory - max read length - 64-bit.
+ */
+#define CSP_CMP_PEEK_V2_MAX_LEN 196
+
+/**
+ *  CMP poke/write memory - max write length - 64-bit.
+ */
+#define CSP_CMP_POKE_V2_MAX_LEN 196
 
 /**
  *  CSP management protocol description.
@@ -142,6 +160,16 @@ struct csp_cmp_message {
 			uint8_t len;
 			char data[CSP_CMP_POKE_MAX_LEN];
 		} poke;
+		struct {
+			uint64_t vaddr; /* Virtual 64-bit address on the target system */
+			uint8_t len;
+			char data[CSP_CMP_PEEK_V2_MAX_LEN];
+		} peek_v2;
+		struct {
+			uint64_t vaddr; /* Virtual 64-bit address on the target system */
+			uint8_t len;
+			char data[CSP_CMP_POKE_V2_MAX_LEN];
+		} poke_v2;
 		csp_timestamp_t clock;
 	};
 } __attribute__((__packed__));
@@ -199,6 +227,30 @@ static inline int csp_cmp_peek(uint16_t node, uint32_t timeout, struct csp_cmp_m
  */
 static inline int csp_cmp_poke(uint16_t node, uint32_t timeout, struct csp_cmp_message *msg) {
 	return csp_cmp(node, timeout, CSP_CMP_POKE, CMP_SIZE(poke) - sizeof(msg->poke.data) + msg->poke.len, msg);
+}
+
+/**
+ * Peek (read) memory on remote node - 64-bit version.
+ *
+ *	@param[in] node address of subsystem.
+ *	@param[in] timeout timeout in mS to wait for reply..
+ *	@param[in/out] msg memory address and number of bytes to peek. (msg peeked/read memory)
+ *	@return #CSP_ERR_NONE on success, otherwise an error code.
+ */
+static inline int csp_cmp_peek_v2(uint16_t node, uint32_t timeout, struct csp_cmp_message *msg) {
+	return csp_cmp(node, timeout, CSP_CMP_PEEK_V2, CMP_SIZE(peek_v2) - sizeof(msg->peek_v2.data) + msg->peek_v2.len, msg);
+}
+
+/**
+ * Poke (write) memory on remote node - 64-bit version.
+ *
+ *	@param[in] node address of subsystem.
+ *	@param[in] timeout timeout in mS to wait for reply..
+ *	@param[in] msg memory address, number of bytes and the actual bytes to poke/write.
+ *	@return #CSP_ERR_NONE on success, otherwise an error code.
+ */
+static inline int csp_cmp_poke_v2(uint16_t node, uint32_t timeout, struct csp_cmp_message *msg) {
+	return csp_cmp(node, timeout, CSP_CMP_POKE_V2, CMP_SIZE(poke_v2) - sizeof(msg->poke_v2.data) + msg->poke_v2.len, msg);
 }
 
 #ifdef __cplusplus
