@@ -1,0 +1,61 @@
+name: ABI Compliance Check
+on: [pull_request]
+jobs:
+  abi-check:
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-24.04
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Setup packages on Linux
+        run: |
+          sudo apt-get update
+          sudo apt-get install libzmq3-dev libsocketcan-dev
+
+      - name: Setup build system packages on Linux
+        run: |
+          sudo apt-get install ninja-build cmake
+
+      - name: Setup ABI Compliance Checker
+        run: |
+          sudo apt-get install abi-compliance-checker abi-dumper
+
+      - name: Checkout merged-base
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.ref }}
+
+      - name: Build and Dump ABI for `merged-base` version
+        run: |
+          cmake -GNinja -B build -DCMAKE_BUILD_TYPE=Debug -DCSP_USE_RTABLE=1 -DCMAKE_POSITION_INDEPENDENT_CODE=ON && ninja -C build
+          abi-dumper build/libcsp.so -lver "merged-base" -o ../tmp/libcsp-merged-base.dump
+
+      - name: Checkout Current PR
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{github.event.pull_request.head.ref}}
+          repository: ${{github.event.pull_request.head.repo.full_name}}
+
+      - name: Build and Dump ABI for Current PR
+        run: |
+          cmake -GNinja -B build -DCMAKE_BUILD_TYPE=Debug -DCSP_USE_RTABLE=1 -DCMAKE_POSITION_INDEPENDENT_CODE=ON && ninja -C build
+          abi-dumper build/libcsp.so -lver "PR" -o ../tmp/pr.dump
+
+      - name: Compare ABI
+        run: |
+          abi-compliance-checker -l libcsp -old ../tmp/libcsp-merged-base.dump -new ../tmp/pr.dump
+
+      - name: Check ABI Compatibility Result
+        if: failure()
+        run: echo "::warning::ABI compatibility issues detected. Please review the report."
+
+      - name: Upload ABI Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: abi-compliance-report-${{ github.run_id }}
+          path: compat_reports
+          if-no-files-found: warn
