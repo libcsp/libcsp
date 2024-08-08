@@ -296,8 +296,11 @@ void csp_send_prio(uint8_t prio, csp_conn_t * conn, csp_packet_t * packet) {
 
 int csp_transaction_persistent(csp_conn_t * conn, uint32_t timeout, void * outbuf, int outlen, void * inbuf, int inlen) {
 
-	int size = (inlen > outlen) ? inlen : outlen;
-	csp_packet_t * packet = csp_buffer_get(size);
+	if(outlen > CSP_BUFFER_SIZE){
+		return 0;
+	}
+
+	csp_packet_t * packet = csp_buffer_get(0);
 	if (packet == NULL)
 		return 0;
 
