@@ -13,6 +13,11 @@ int csp_ping(uint16_t node, uint32_t timeout, unsigned int size, uint8_t conn_op
 	unsigned int i;
 	uint32_t start, time, status = 0;
 
+	/* Check if size do not overflow the data max size */
+	if (size > CSP_BUFFER_SIZE) {
+		return -1;
+	}
+
 	/* Counter */
 	start = csp_get_ms();
 
