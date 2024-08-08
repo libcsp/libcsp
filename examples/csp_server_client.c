@@ -108,7 +108,7 @@ void client(void) {
 		}
 
 		/* 2. Get packet buffer for message/data */
-		csp_packet_t * packet = csp_buffer_get(100);
+		csp_packet_t * packet = csp_buffer_get(0);
 		if (packet == NULL) {
 			/* Could not get buffer element */
 			csp_print("Failed to get CSP buffer\n");
