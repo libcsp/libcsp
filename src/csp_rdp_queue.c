@@ -30,7 +30,7 @@ static int __csp_rdp_queue_flush(csp_queue_handle_t queue, csp_conn_t * conn) {
 	while (size--) {
 		csp_packet_t * packet;
 
-		ret = csp_queue_dequeue(tx_queue, &packet, 0);
+		ret = csp_queue_dequeue(queue, &packet, 0);
 		if (ret != CSP_QUEUE_OK) {
 			break;
 		}
