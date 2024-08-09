@@ -239,7 +239,7 @@ void csp_send_direct_iface(csp_id_t* idout, csp_packet_t * packet, csp_iface_t *
 
 		/* Append CRC32 */
 		if (idout->flags & CSP_FCRC32) {
-			/* Calculate and add CRC32 (does not include header for backwards compatability with csp1.x) */
+			/* Calculate and add CRC32 */
 			if (csp_crc32_append(packet) != CSP_ERR_NONE) {
 				/* CRC32 append failed */
 				goto tx_err;
