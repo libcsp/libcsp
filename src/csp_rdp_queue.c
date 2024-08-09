@@ -3,24 +3,6 @@
 #include <csp/csp.h>
 #include <csp/csp_debug.h>
 
-static csp_queue_handle_t tx_queue;
-static csp_static_queue_t tx_queue_static; /* Static storage for rx queue */
-static char tx_queue_static_data[sizeof(csp_packet_t *) * CSP_RDP_MAX_WINDOW * 2];
-
-static csp_queue_handle_t rx_queue;
-static csp_static_queue_t rx_queue_static; /* Static storage for rx queue */
-static char rx_queue_static_data[sizeof(csp_packet_t *) * CSP_RDP_MAX_WINDOW * 2];
-
-void csp_rdp_queue_init(void) {
-
-	/* Create TX queue */
-	tx_queue = csp_queue_create_static(CSP_RDP_MAX_WINDOW * 2, sizeof(csp_packet_t *), tx_queue_static_data, &tx_queue_static);
-
-	/* Create RX queue */
-	rx_queue = csp_queue_create_static(CSP_RDP_MAX_WINDOW * 2, sizeof(csp_packet_t *), rx_queue_static_data, &rx_queue_static);
-
-}
-
 static int __csp_rdp_queue_flush(csp_queue_handle_t queue, csp_conn_t * conn) {
 
 	int ret;
@@ -48,6 +30,24 @@ static int __csp_rdp_queue_flush(csp_queue_handle_t queue, csp_conn_t * conn) {
 	}
 
 	return ret;
+}
+
+static csp_queue_handle_t tx_queue;
+static csp_static_queue_t tx_queue_static; /* Static storage for rx queue */
+static char tx_queue_static_data[sizeof(csp_packet_t *) * CSP_RDP_MAX_WINDOW * 2];
+
+static csp_queue_handle_t rx_queue;
+static csp_static_queue_t rx_queue_static; /* Static storage for rx queue */
+static char rx_queue_static_data[sizeof(csp_packet_t *) * CSP_RDP_MAX_WINDOW * 2];
+
+void csp_rdp_queue_init(void) {
+
+	/* Create TX queue */
+	tx_queue = csp_queue_create_static(CSP_RDP_MAX_WINDOW * 2, sizeof(csp_packet_t *), tx_queue_static_data, &tx_queue_static);
+
+	/* Create RX queue */
+	rx_queue = csp_queue_create_static(CSP_RDP_MAX_WINDOW * 2, sizeof(csp_packet_t *), rx_queue_static_data, &rx_queue_static);
+
 }
 
 void csp_rdp_queue_flush(csp_conn_t * conn) {
