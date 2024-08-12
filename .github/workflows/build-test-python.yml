@@ -1,0 +1,49 @@
+name: Build and test python
+on: [push, pull_request]
+jobs:
+  build-test-python:
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-24.04
+          - ubuntu-22.04
+          - ubuntu-20.04
+        arch:
+          - posix
+        buildsystem:
+          - meson
+          - cmake
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Setup packages on Linux
+        run: |
+          sudo apt-get update
+          sudo apt-get install libzmq3-dev libsocketcan-dev
+
+      - name: Setup build system packages on Linux
+        run: |
+          sudo apt-get install ninja-build ${{ matrix.buildsystem }}
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build libcsp examples
+        run: python3 examples/buildall.py ${{ matrix.arch }} --build-system=${{ matrix.buildsystem }}
+
+      - name: Build libcsp with python binding with cmake
+        if: ${{ matrix.buildsystem == 'cmake' }}
+        run: |
+          cmake -GNinja -B builddir -DCSP_ENABLE_PYTHON3_BINDINGS=1 -DCSP_USE_RTABLE=1 && ninja -C builddir
+
+      - name: Build libcsp with python binding with meson
+        if: ${{ matrix.buildsystem == 'meson' }}
+        run: |
+          meson setup builddir -Denable_python3_bindings=true -Duse_rtable=true && ninja -C builddir
+
+      - name: Run ZMQ Python binding Test
+        run: |
+          build/examples/zmqproxy &
+          PYTHONPATH=builddir python3 examples/python_bindings_example_server.py &
+          PYTHONPATH=builddir python3 examples/python_bindings_example_client.py -z localhost -s 27 -a 2
+          pkill zmqproxy
