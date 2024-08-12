@@ -1,0 +1,47 @@
+name: Python Bindings
+on: [push, pull_request]
+jobs:
+  build-test-python:
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version:
+          - '3.9'
+          - '3.10'
+          - '3.11'
+        os:
+          - ubuntu-24.04
+          - ubuntu-22.04
+          - ubuntu-20.04
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Setup packages on Linux
+        run: |
+          sudo apt-get update
+          sudo apt-get install libzmq3-dev libsocketcan-dev
+
+      - name: Setup build system packages on Linux
+        run: |
+          sudo apt-get install ninja-build meson
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build libcsp examples
+        run: python3 examples/buildall.py posix --build-system=meson
+
+      - name: Build libcsp with python binding with meson
+        run: |
+          meson setup builddir -Denable_python3_bindings=true && ninja -C builddir
+
+      - name: Run ZMQ Python binding Test
+        run: |
+          build/examples/zmqproxy &
+          PYTHONPATH=builddir python3 examples/python_bindings_example_server.py &
+          PYTHONPATH=builddir python3 examples/python_bindings_example_client.py -z localhost -s 27 -a 2
+          pkill zmqproxy
