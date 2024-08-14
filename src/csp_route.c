@@ -176,7 +176,7 @@ int csp_route_work(void) {
 	csp_callback_t callback = csp_port_get_callback(packet->id.dport);
 	if (callback) {
 
-		if (csp_route_security_check(CSP_SO_CRC32REQ, input.iface, packet) < 0) {
+		if (csp_route_security_check(CSP_SO_CRC32REQ, input.iface, packet) != CSP_ERR_NONE) {
 			csp_buffer_free(packet);
 			return CSP_ERR_NONE;
 		}
@@ -195,7 +195,7 @@ int csp_route_work(void) {
 	/* If the socket is connection-less, deliver now */
 	if (socket && (socket->opts & CSP_SO_CONN_LESS)) {
 
-		if (csp_route_security_check(socket->opts, input.iface, packet) < 0) {
+		if (csp_route_security_check(socket->opts, input.iface, packet) != CSP_ERR_NONE) {
 			csp_buffer_free(packet);
 			return CSP_ERR_NONE;
 		}
@@ -222,7 +222,7 @@ int csp_route_work(void) {
 		}
 
 		/* Run security check on incoming packet */
-		if (csp_route_security_check(socket->opts, input.iface, packet) < 0) {
+		if (csp_route_security_check(socket->opts, input.iface, packet) != CSP_ERR_NONE) {
 			csp_buffer_free(packet);
 			return CSP_ERR_NONE;
 		}
@@ -253,7 +253,7 @@ int csp_route_work(void) {
 	} else {
 
 		/* Run security check on incoming packet */
-		if (csp_route_security_check(conn->opts, input.iface, packet) < 0) {
+		if (csp_route_security_check(conn->opts, input.iface, packet) != CSP_ERR_NONE) {
 			csp_buffer_free(packet);
 			return CSP_ERR_NONE;
 		}
@@ -271,7 +271,7 @@ int csp_route_work(void) {
 #endif
 
 	/* Otherwise, enqueue directly */
-	if (csp_conn_enqueue_packet(conn, packet) < 0) {
+	if (csp_conn_enqueue_packet(conn, packet) != CSP_ERR_NONE) {
 		csp_dbg_conn_ovf++;
 		csp_buffer_free(packet);
 		return CSP_ERR_NONE;
