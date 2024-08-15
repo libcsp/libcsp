@@ -203,7 +203,7 @@ int csp_route_work(void) {
 		if (csp_queue_enqueue(socket->rx_queue, &packet, 0) != CSP_QUEUE_OK) {
 			csp_dbg_conn_ovf++;
 			csp_buffer_free(packet);
-			return 0;
+			return CSP_ERR_NONE;
 		}
 		
 		return CSP_ERR_NONE;
