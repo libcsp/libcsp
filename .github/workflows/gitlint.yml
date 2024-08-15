@@ -1,0 +1,31 @@
+name: GitLint
+
+on:
+  pull_request
+
+jobs:
+  gitlint:
+    runs-on: ubuntu-latest
+    name: Run gitlint against all commits in a PR
+    steps:
+
+      - name: Install python dependencies
+        run: |
+          pip3 install gitlint
+
+      - name: Checkout the code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - name: Setup Git (pull request)
+        run: |
+          git checkout -b this_pr
+
+      - name: Run gitlint
+        if: ${{ github.base_ref }}
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          gitlint --commits origin/${BASE_REF}..this_pr
