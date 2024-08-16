@@ -59,6 +59,6 @@ jobs:
       - name: Run ZMQ Python binding Test
         run: |
           build/examples/zmqproxy &
-          PYTHONPATH=builddir python3 examples/python_bindings_example_server.py -z localhost -a 27 &
-          PYTHONPATH=builddir python3 examples/python_bindings_example_client.py -z localhost -s 27 -a 2
+          PYTHONPATH=builddir python3 examples/python_bindings_example_server.py -z localhost -a 3 &
+          PYTHONPATH=builddir python3 examples/python_bindings_example_client.py -z localhost -s 3 -a 2
           pkill zmqproxy
