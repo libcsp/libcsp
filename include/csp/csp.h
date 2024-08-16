@@ -291,7 +291,7 @@ int csp_bind(csp_socket_t *socket, uint8_t port);
  *
  * @param[in] callback pointer to callback function
  * @param[in] port port number to bind, use #CSP_ANY for all ports. Bindnig to a specific will take precedence over #CSP_ANY.
- * @return 0 on success, otherwise an error code.
+ * @return #CSP_ERR_NONE on success, otherwise an error code.
  */
 int csp_bind_callback(csp_callback_t callback, uint8_t port);
 

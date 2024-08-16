@@ -107,26 +107,26 @@ int csp_bind_callback(csp_callback_t callback, uint8_t port) {
 
 	if (callback == NULL) {
 		csp_dbg_errno = CSP_DBG_ERR_INVALID_POINTER;
-		return CSP_DBG_ERR_INVALID_POINTER;
+		return CSP_ERR_INVAL;
 	}
 
 	if (port == CSP_ANY) {
 		port = CSP_PORT_MAX_BIND + 1;
 	} else if (port > CSP_PORT_MAX_BIND) {
 		csp_dbg_errno = CSP_DBG_ERR_INVALID_BIND_PORT;
-		return CSP_DBG_ERR_INVALID_BIND_PORT;
+		return CSP_ERR_INVAL;
 	}
 
 	if (ports[port].state != PORT_CLOSED) {
 		csp_dbg_errno = CSP_DBG_ERR_PORT_ALREADY_IN_USE;
-		return CSP_DBG_ERR_PORT_ALREADY_IN_USE;
+		return CSP_ERR_ALREADY;
 	}
 
 	/* Save listener */
 	ports[port].callback = callback;
 	ports[port].state = PORT_OPEN_CB;
 
-	return 0;
+	return CSP_ERR_NONE;
 
 }
 
