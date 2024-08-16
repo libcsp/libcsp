@@ -5,6 +5,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        python-version:
+          - '3.9'
+          - '3.10'
+          - '3.11'
         os:
           - ubuntu-24.04
           - ubuntu-22.04
@@ -16,6 +20,11 @@ jobs:
           - cmake
     runs-on: ${{ matrix.os }}
     steps:
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
       - name: Setup packages on Linux
         run: |
           sudo apt-get update
