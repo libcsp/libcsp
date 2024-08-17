@@ -94,19 +94,19 @@ void csp_usart_rx_thread(void * arg1, void * arg2, void * arg3) {
 
 int csp_usart_open(const csp_usart_conf_t * conf, csp_usart_callback_t rx_callback, void * user_data, csp_usart_fd_t * return_fd) {
 	if (rx_callback == NULL) {
-		LOG_ERR("%s: No rx_callback function pointer provided\n", __FUNCTION__);
+		LOG_ERR("%s: No rx_callback function pointer provided\n", __func__);
 		return CSP_ERR_INVAL;
 	}
 
 	if (uart_rx_thread_idx >= CONFIG_CSP_UART_RX_THREAD_NUM) {
-		LOG_ERR("%s: [%s] No more RX thread can be created. (MAX: %d) Please check CONFIG_CSP_CAN_RX_THREAD_NUM.", __FUNCTION__, conf->device, CONFIG_CSP_UART_RX_THREAD_NUM);
+		LOG_ERR("%s: [%s] No more RX thread can be created. (MAX: %d) Please check CONFIG_CSP_CAN_RX_THREAD_NUM.", __func__, conf->device, CONFIG_CSP_UART_RX_THREAD_NUM);
 		return CSP_ERR_DRIVER;
 	}
 
 	/* TODO: remove dynamic memory allocation */
 	usart_context_t * ctx = k_calloc(1, sizeof(usart_context_t));
 	if (ctx == NULL) {
-		LOG_ERR("%s: [%s] Failed to allocate %zu bytes from the system heap\n", __FUNCTION__, conf->device, sizeof(usart_context_t));
+		LOG_ERR("%s: [%s] Failed to allocate %zu bytes from the system heap\n", __func__, conf->device, sizeof(usart_context_t));
 		return CSP_ERR_NOMEM;
 	}
 
@@ -117,7 +117,7 @@ int csp_usart_open(const csp_usart_conf_t * conf, csp_usart_callback_t rx_callba
 	ctx->cbuf_len = 0;
 
 	if (!device_is_ready(ctx->fd)) {
-		LOG_ERR("%s: [%s] Failed to bind UART device\n", __FUNCTION__, conf->device);
+		LOG_ERR("%s: [%s] Failed to bind UART device\n", __func__, conf->device);
 		return CSP_ERR_DRIVER;
 	}
 
@@ -130,7 +130,7 @@ int csp_usart_open(const csp_usart_conf_t * conf, csp_usart_callback_t rx_callba
 									 ctx, NULL, NULL,
 									 CONFIG_CSP_UART_RX_THREAD_PRIORITY, 0, K_NO_WAIT);
 	if (!rx_tid) {
-		LOG_ERR("%s: [%s] k_thread_create() failed", __FUNCTION__, conf->device);
+		LOG_ERR("%s: [%s] k_thread_create() failed", __func__, conf->device);
 		return CSP_ERR_DRIVER;
 	}
 	uart_rx_thread_idx++;
