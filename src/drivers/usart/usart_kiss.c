@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/interfaces/csp_if_kiss.h>
 
 #include <stdio.h>
+#include <inttypes.h>
 
 #include <csp/csp.h>
 #include <csp/drivers/usart.h>
@@ -54,7 +55,7 @@ int csp_usart_open_and_add_kiss_interface(const csp_usart_conf_t *conf, const ch
 		ifname = CSP_IF_KISS_DEFAULT_NAME;
 	}
 
-	csp_log_info("INIT %s: device: [%s], bitrate: %d",
+	csp_log_info("INIT %s: device: [%s], bitrate: %"PRIu32,
 			ifname, conf->device, conf->baudrate);
 
 	kiss_context_t * ctx = csp_calloc(1, sizeof(*ctx));
