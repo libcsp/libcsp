@@ -51,7 +51,7 @@ static void * usart_rx_thread(void * arg) {
 	while (1) {
 		int length = read(ctx->fd, cbuf, CBUF_SIZE);
 		if (length <= 0) {
-			csp_log_error("%s: read() failed, returned: %d", __FUNCTION__, length);
+			csp_log_error("%s: read() failed, returned: %d", __func__, length);
 			exit(1);
 		}
                 ctx->rx_callback(ctx->user_data, cbuf, length, NULL);
@@ -205,13 +205,13 @@ int csp_usart_open(const csp_usart_conf_t *conf, csp_usart_callback_t rx_callbac
 		case 4000000: brate=B4000000; break;
 #endif
 		default:
-			csp_log_error("%s: Unsupported baudrate: %u", __FUNCTION__, conf->baudrate);
+			csp_log_error("%s: Unsupported baudrate: %u", __func__, conf->baudrate);
 			return CSP_ERR_INVAL;
 	}
 
 	int fd = open(conf->device, O_RDWR | O_NOCTTY | O_NONBLOCK);
 	if (fd < 0) {
-		csp_log_error("%s: failed to open device: [%s], errno: %s", __FUNCTION__, conf->device, strerror(errno));
+		csp_log_error("%s: failed to open device: [%s], errno: %s", __func__, conf->device, strerror(errno));
 		return CSP_ERR_INVAL;
 	}
 
@@ -231,7 +231,7 @@ int csp_usart_open(const csp_usart_conf_t *conf, csp_usart_callback_t rx_callbac
 	options.c_cc[VMIN] = 1;
 	/* tcsetattr() succeeds if just one attribute was changed, should read back attributes and check all has been changed */
 	if (tcsetattr(fd, TCSANOW, &options) != 0) {
-		csp_log_error("%s: Failed to set attributes on device: [%s], errno: %s", __FUNCTION__, conf->device, strerror(errno));
+		csp_log_error("%s: Failed to set attributes on device: [%s], errno: %s", __func__, conf->device, strerror(errno));
 		close(fd);
 		return CSP_ERR_DRIVER;
 	}
@@ -239,14 +239,14 @@ int csp_usart_open(const csp_usart_conf_t *conf, csp_usart_callback_t rx_callbac
 
 	/* Flush old transmissions */
 	if (tcflush(fd, TCIOFLUSH) != 0) {
-		csp_log_error("%s: Error flushing device: [%s], errno: %s", __FUNCTION__, conf->device, strerror(errno));
+		csp_log_error("%s: Error flushing device: [%s], errno: %s", __func__, conf->device, strerror(errno));
 		close(fd);
 		return CSP_ERR_DRIVER;
 	}
 
 	usart_context_t * ctx = calloc(1, sizeof(*ctx));
 	if (ctx == NULL) {
-		csp_log_error("%s: Error allocating context, device: [%s], errno: %s", __FUNCTION__, conf->device, strerror(errno));
+		csp_log_error("%s: Error allocating context, device: [%s], errno: %s", __func__, conf->device, strerror(errno));
 		close(fd);
 		return CSP_ERR_NOMEM;
 	}
@@ -256,7 +256,7 @@ int csp_usart_open(const csp_usart_conf_t *conf, csp_usart_callback_t rx_callbac
 
         if (rx_callback) {
 		if (csp_thread_create(usart_rx_thread, "usart_rx", 0, ctx, 0, &ctx->rx_thread) != CSP_ERR_NONE) {
-			csp_log_error("%s: csp_thread_create() failed to create Rx thread for device: [%s], errno: %s", __FUNCTION__, conf->device, strerror(errno));
+			csp_log_error("%s: csp_thread_create() failed to create Rx thread for device: [%s], errno: %s", __func__, conf->device, strerror(errno));
 			free(ctx);
 			close(fd);
 			return CSP_ERR_NOMEM;

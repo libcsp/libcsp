@@ -153,7 +153,7 @@ int csp_usart_open(const csp_usart_conf_t *conf, csp_usart_callback_t rx_callbac
 
     usart_context_t * ctx = csp_calloc(1, sizeof(*ctx));
     if (ctx == NULL) {
-        csp_log_error("%s: Error allocating context, device: [%s], errno: %s", __FUNCTION__, conf->device, strerror(errno));
+        csp_log_error("%s: Error allocating context, device: [%s], errno: %s", __func__, conf->device, strerror(errno));
         CloseHandle(fd);
         return CSP_ERR_NOMEM;
     }
