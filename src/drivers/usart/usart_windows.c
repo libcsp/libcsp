@@ -146,7 +146,7 @@ int csp_usart_open(const csp_usart_conf_t * conf, csp_usart_callback_t rx_callba
 
 	usart_context_t * ctx = calloc(1, sizeof(*ctx));
 	if (ctx == NULL) {
-		csp_print("%s: Error allocating context, device: [%s], errno: %s\n", __FUNCTION__, conf->device, strerror(errno));
+		csp_print("%s: Error allocating context, device: [%s], errno: %s\n", __func__, conf->device, strerror(errno));
 		CloseHandle(fd);
 		return CSP_ERR_NOMEM;
 	}
