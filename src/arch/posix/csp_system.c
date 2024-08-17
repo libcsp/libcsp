@@ -68,27 +68,27 @@ static int csp_sys_log_and_return(const char * function, int res) {
 
 int csp_sys_reboot_using_system(void) {
 
-	return csp_sys_log_and_return(__FUNCTION__, system("reboot"));
+	return csp_sys_log_and_return(__func__, system("reboot"));
 
 }
 
 int csp_sys_reboot_using_reboot(void) {
 
 	sync(); // Sync filesystem
-	return csp_sys_log_and_return(__FUNCTION__, reboot(LINUX_REBOOT_CMD_RESTART));
+	return csp_sys_log_and_return(__func__, reboot(LINUX_REBOOT_CMD_RESTART));
 
 }
 
 int csp_sys_shutdown_using_system(void) {
 
-	return csp_sys_log_and_return(__FUNCTION__, system("halt"));
+	return csp_sys_log_and_return(__func__, system("halt"));
 
 }
 
 int csp_sys_shutdown_using_reboot(void) {
 
 	sync(); // Sync filesystem
-	return csp_sys_log_and_return(__FUNCTION__, reboot(LINUX_REBOOT_CMD_HALT));
+	return csp_sys_log_and_return(__func__, reboot(LINUX_REBOOT_CMD_HALT));
 
 }
 

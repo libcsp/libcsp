@@ -60,14 +60,14 @@ static int csp_rtable_parse(const char * rtable, int dry_run) {
 
 		csp_iface_t * ifc = csp_iflist_get_by_name(name);
 		if ((address > CSP_ID_HOST_MAX) || (netmask > CSP_ID_HOST_SIZE) || (via > UINT8_MAX) || (ifc == NULL))  {
-			csp_log_error("%s: invalid entry [%s]", __FUNCTION__, str);
+			csp_log_error("%s: invalid entry [%s]", __func__, str);
 			return CSP_ERR_INVAL;
 		}
 
 		if (dry_run == 0) {
 			int res = csp_rtable_set(address, netmask, ifc, via);
 			if (res != CSP_ERR_NONE) {
-				csp_log_error("%s: failed to add [%s], error: %d", __FUNCTION__, str, res);
+				csp_log_error("%s: failed to add [%s], error: %d", __func__, str, res);
 				return res;
 			}
 		}
@@ -97,7 +97,7 @@ int csp_rtable_set(uint8_t address, uint8_t netmask, csp_iface_t *ifc, uint8_t v
 	/* Validates options */
 	if (((address > CSP_ID_HOST_MAX) && (address != 255)) || (ifc == NULL) || (netmask > CSP_ID_HOST_SIZE)) {
 		csp_log_error("%s: invalid route: address %u, netmask %u, interface %p (%s), via %u",
-                              __FUNCTION__, address, netmask, ifc, (ifc != NULL) ? ifc->name : "", via);
+                              __func__, address, netmask, ifc, (ifc != NULL) ? ifc->name : "", via);
 		return CSP_ERR_INVAL;
 	}
 
