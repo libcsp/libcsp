@@ -91,7 +91,7 @@ int csp_sfp_send_own_memcpy(csp_conn_t * conn, const void * data, unsigned int t
 		/* Print debug */
 		csp_log_protocol("%s: %d:%d, sending at %p size %u",
 					__func__, csp_conn_src(conn), csp_conn_sport(conn),
-					((uint8_t*)data) + count, size);
+					(void *)(((uint8_t*)data) + count), size);
 
 		/* Copy data */
 		(memcpyfcn)((csp_memptr_t)(uintptr_t)packet->data, (csp_memptr_t)(uintptr_t)(((uint8_t*)data) + count), size);

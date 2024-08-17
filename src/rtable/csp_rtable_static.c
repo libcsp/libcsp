@@ -41,7 +41,7 @@ int csp_rtable_set_internal(uint8_t address, uint8_t netmask, csp_iface_t *ifc, 
 
 	/* Validates options */
 	if ((netmask != 0) && (netmask != CSP_ID_HOST_SIZE)) {
-		csp_log_error("%s: invalid netmask in route: address %u, netmask %u, interface %p, via %u", __func__, address, netmask, ifc, via);
+		csp_log_error("%s: invalid netmask in route: address %u, netmask %u, interface %p, via %u", __func__, address, netmask, (void *)ifc, via);
 		return CSP_ERR_INVAL;
 	}
 

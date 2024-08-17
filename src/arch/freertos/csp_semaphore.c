@@ -55,7 +55,7 @@ int csp_bin_sem_remove(csp_bin_sem_handle_t * sem) {
 }
 
 int csp_bin_sem_wait(csp_bin_sem_handle_t * sem, uint32_t timeout) {
-	csp_log_lock("Wait: %p", sem);
+	csp_log_lock("Wait: %p", (void *)sem);
 	if (timeout != CSP_MAX_TIMEOUT) {
 		timeout = timeout / portTICK_RATE_MS;
 	}
@@ -66,7 +66,7 @@ int csp_bin_sem_wait(csp_bin_sem_handle_t * sem, uint32_t timeout) {
 }
 
 int csp_bin_sem_post(csp_bin_sem_handle_t * sem) {
-	csp_log_lock("Post: %p", sem);
+	csp_log_lock("Post: %p", (void *)sem);
 	if (xSemaphoreGive(*sem) == pdPASS) {
 		return CSP_SEMAPHORE_OK;
 	}
@@ -74,7 +74,7 @@ int csp_bin_sem_post(csp_bin_sem_handle_t * sem) {
 }
 
 int csp_bin_sem_post_isr(csp_bin_sem_handle_t * sem, CSP_BASE_TYPE * pxTaskWoken) {
-	csp_log_lock("Post: %p", sem);
+	csp_log_lock("Post: %p", (void *)sem);
 	if (xSemaphoreGiveFromISR(*sem, pxTaskWoken) == pdPASS) {
 		return CSP_SEMAPHORE_OK;
 	} else {

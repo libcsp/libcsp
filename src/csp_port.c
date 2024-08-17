@@ -102,7 +102,7 @@ int csp_bind(csp_socket_t * socket, uint8_t port) {
 		return CSP_ERR_USED;
 	}
 
-	csp_log_info("Binding socket %p to port %u", socket, port);
+	csp_log_info("Binding socket %p to port %u", (void *)socket, port);
 
 	/* Save listener */
 	ports[port].socket = socket;

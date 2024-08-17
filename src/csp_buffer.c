@@ -121,11 +121,11 @@ void *csp_buffer_get(size_t _data_size) {
 	}
 
 	if (buffer != buffer->skbf_addr) {
-		csp_log_error("GET: Corrupt CSP buffer %p != %p", buffer, buffer->skbf_addr);
+		csp_log_error("GET: Corrupt CSP buffer %p != %p", (void *)buffer, (void *)buffer->skbf_addr);
 		return NULL;
 	}
 
-	csp_log_buffer("GET: %p", buffer);
+	csp_log_buffer("GET: %p", (void *)buffer);
 
 	buffer->refcount = 1;
 	return buffer->skbf_data;
@@ -171,26 +171,26 @@ void csp_buffer_free(void *packet) {
 	csp_skbf_t * buf = (void*)(((uint8_t*)packet) - sizeof(csp_skbf_t));
 
 	if (((uintptr_t) buf % CSP_BUFFER_ALIGN) > 0) {
-		csp_log_error("FREE: Unaligned CSP buffer pointer %p", packet);
+		csp_log_error("FREE: Unaligned CSP buffer pointer %p", (void *)packet);
 		return;
 	}
 
 	if (buf->skbf_addr != buf) {
-		csp_log_error("FREE: Invalid CSP buffer pointer %p", packet);
+		csp_log_error("FREE: Invalid CSP buffer pointer %p", (void *)packet);
 		return;
 	}
 
 	if (buf->refcount == 0) {
-		csp_log_error("FREE: Buffer already free %p", buf);
+		csp_log_error("FREE: Buffer already free %p", (void *)buf);
 		return;
 	}
 
 	if (--(buf->refcount) > 0) {
-		csp_log_error("FREE: Buffer %p in use by %u users", buf, buf->refcount);
+		csp_log_error("FREE: Buffer %p in use by %u users", (void *)buf, buf->refcount);
 		return;
 	}
 
-	csp_log_buffer("FREE: %p", buf);
+	csp_log_buffer("FREE: %p", (void *)buf);
 	csp_queue_enqueue(csp_buffers, &buf, 0);
 
 }
