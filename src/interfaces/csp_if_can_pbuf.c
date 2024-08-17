@@ -30,7 +30,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 /* Buffer element timeout in ms */
 #define PBUF_TIMEOUT_MS		1000
 
-static csp_can_pbuf_element_t csp_can_pbuf[PBUF_ELEMENTS] = {};
+static csp_can_pbuf_element_t csp_can_pbuf[PBUF_ELEMENTS] = {0};
 
 int csp_can_pbuf_free(csp_can_pbuf_element_t *buf, CSP_BASE_TYPE *task_woken)
 {
