@@ -28,7 +28,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/csp_debug.h>
 
 int csp_mutex_create(csp_mutex_t * mutex) {
-	csp_log_lock("Mutex init: %p", mutex);
+	csp_log_lock("Mutex init: %p", (void *)mutex);
 	*mutex = pthread_queue_create(1, sizeof(int));
 	if (*mutex) {
 		int dummy = 0;
@@ -46,7 +46,7 @@ int csp_mutex_remove(csp_mutex_t * mutex) {
 
 int csp_mutex_lock(csp_mutex_t * mutex, uint32_t timeout) {
 
-	csp_log_lock("Wait: %p timeout %"PRIu32, mutex, timeout);
+	csp_log_lock("Wait: %p timeout %"PRIu32, (void *)mutex, timeout);
 
 	int dummy = 0;
 	if (pthread_queue_dequeue(*mutex, &dummy, timeout) == PTHREAD_QUEUE_OK) {

@@ -97,7 +97,7 @@ int csp_rtable_set(uint8_t address, uint8_t netmask, csp_iface_t *ifc, uint8_t v
 	/* Validates options */
 	if (((address > CSP_ID_HOST_MAX) && (address != 255)) || (ifc == NULL) || (netmask > CSP_ID_HOST_SIZE)) {
 		csp_log_error("%s: invalid route: address %u, netmask %u, interface %p (%s), via %u",
-                              __func__, address, netmask, ifc, (ifc != NULL) ? ifc->name : "", via);
+                              __func__, address, netmask, (void *)ifc, (ifc != NULL) ? ifc->name : "", via);
 		return CSP_ERR_INVAL;
 	}
 

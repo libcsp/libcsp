@@ -78,7 +78,7 @@ int csp_conn_enqueue_packet(csp_conn_t * conn, csp_packet_t * packet) {
 	}
 
 	if (csp_queue_enqueue(conn->rx_queue[rxq], &packet, 0) != CSP_QUEUE_OK) {
-		csp_log_error("RX queue %p full with %u items", conn->rx_queue[rxq], csp_queue_size(conn->rx_queue[rxq]));
+		csp_log_error("RX queue %p full with %u items", (void *)conn->rx_queue[rxq], csp_queue_size(conn->rx_queue[rxq]));
 		return CSP_ERR_NOMEM;
 	}
 
@@ -488,8 +488,8 @@ void csp_conn_print_table(void) {
 	for (unsigned int i = 0; i < csp_conf.conn_max; i++) {
 		csp_conn_t * conn = &arr_conn[i];
 		printf("[%02u %p] S:%u, %u -> %u, %u -> %u, sock: %p\r\n",
-				i, conn, conn->state, conn->idin.src, conn->idin.dst,
-				conn->idin.dport, conn->idin.sport, conn->socket);
+				i, (void *)conn, conn->state, conn->idin.src, conn->idin.dst,
+				conn->idin.dport, conn->idin.sport, (void *)conn->socket);
 #if (CSP_USE_RDP)
 		if (conn->idin.flags & CSP_FRDP) {
 			csp_rdp_conn_print(conn);
@@ -507,8 +507,8 @@ int csp_conn_print_table_str(char * str_buf, int str_size) {
 		csp_conn_t * conn = &arr_conn[i];
 		char buf[100];
 		snprintf(buf, sizeof(buf), "[%02u %p] S:%u, %u -> %u, %u -> %u, sock: %p\n",
-				i, conn, conn->state, conn->idin.src, conn->idin.dst,
-				conn->idin.dport, conn->idin.sport, conn->socket);
+				i, (void *)conn, conn->state, conn->idin.src, conn->idin.dst,
+				conn->idin.dport, conn->idin.sport, (void *)conn->socket);
 
 		strncat(str_buf, buf, str_size);
 		if ((str_size -= strlen(buf)) <= 0) {
