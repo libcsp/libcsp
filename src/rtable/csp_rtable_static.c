@@ -23,7 +23,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include <csp/csp_debug.h>
 
 /* Routing table (static array) */
-static csp_route_t rtable[CSP_DEFAULT_ROUTE + 1] = {};
+static csp_route_t rtable[CSP_DEFAULT_ROUTE + 1] = {0};
 
 const csp_route_t * csp_rtable_find_route(uint8_t dest_address) {
 

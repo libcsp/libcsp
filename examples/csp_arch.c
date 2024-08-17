@@ -66,7 +66,7 @@ int main(int argc, char * argv[]) {
     csp_assert(thread != 0);
 
     // clock
-    csp_timestamp_t csp_clock = {};
+    csp_timestamp_t csp_clock = {0};
     csp_clock_get_time(&csp_clock);
     csp_assert(csp_clock.tv_sec != 0);
     csp_log_info("csp_clock_get_time(..) -> sec:nsec = %"PRIu32":%"PRIu32, csp_clock.tv_sec, csp_clock.tv_nsec);
