@@ -42,17 +42,22 @@ static void csp_rdp_queue_add(csp_queue_handle_t queue, csp_conn_t * conn, csp_p
 static csp_packet_t * csp_rdp_queue_get(csp_queue_handle_t queue, csp_conn_t * conn) {
     csp_packet_t * packet;
     int size = csp_queue_size(queue);
+
     while(size--) {
         if (csp_queue_dequeue(queue, &packet, 0) != CSP_QUEUE_OK) {
+            /* Error */
             return NULL;
         }
 
         if (packet->conn == conn) {
+            /* Found it */
             return packet;
-        } else {
-            csp_rdp_queue_add(queue, conn, packet);
         }
+
+        /* Put it back and check next */
+        csp_rdp_queue_add(queue, conn, packet);
     }
+
     return NULL;
 }
 
