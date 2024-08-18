@@ -363,7 +363,7 @@ void csp_conn_print_table(void) {
 	for (unsigned int i = 0; i < CSP_CONN_MAX; i++) {
 		__unused csp_conn_t * conn = &arr_conn[i];
 		csp_print("[%02u %p] S:%u, %u -> %u, %u -> %u (%u) fl %x\r\n",
-		          i, conn, conn->state, conn->idin.src, conn->idin.dst,
+		          i, (void *)conn, conn->state, conn->idin.src, conn->idin.dst,
 		          conn->idin.dport, conn->idin.sport, conn->sport_outgoing, conn->idin.flags);
 #if (CSP_USE_RDP)
 		if (conn->idin.flags & CSP_FRDP) {
@@ -388,7 +388,7 @@ int csp_conn_print_table_str(char * str_buf, int str_size) {
 		csp_conn_t * conn = &arr_conn[i];
 		char buf[100];
 		snprintf(buf, sizeof(buf), "[%02u %p] S:%u, %u -> %u, %u -> %u (%u)\n",
-				 i, conn, conn->state, conn->idin.src, conn->idin.dst,
+				 i, (void *)conn, conn->state, conn->idin.src, conn->idin.dst,
 				 conn->idin.dport, conn->idin.sport, conn->sport_outgoing);
 
 		strncat(str_buf, buf, str_size);
