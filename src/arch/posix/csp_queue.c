@@ -43,5 +43,5 @@ int csp_queue_free(csp_queue_handle_t handle) {
 }
 
 void csp_queue_empty(csp_queue_handle_t handle) {
-	return pthread_queue_empty(handle);
+	pthread_queue_empty(handle);
 }
