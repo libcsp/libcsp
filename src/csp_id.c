@@ -40,12 +40,12 @@
 static void csp_id1_prepend(csp_packet_t * packet) {
 
 	/* Pack into 32-bit using host endian */
-	uint32_t id1 = ((packet->id.pri << CSP_ID1_PRIO_OFFSET) |
-					(packet->id.dst << CSP_ID1_DST_OFFSET) |
-					(packet->id.src << CSP_ID1_SRC_OFFSET) |
-					(packet->id.dport << CSP_ID1_DPORT_OFFSET) |
-					(packet->id.sport << CSP_ID1_SPORT_OFFSET) |
-					(packet->id.flags << CSP_ID1_FLAGS_OFFSET));
+	uint32_t id1 = (((uint32_t)(packet->id.pri) << CSP_ID1_PRIO_OFFSET) |
+					((uint32_t)(packet->id.dst) << CSP_ID1_DST_OFFSET) |
+					((uint32_t)(packet->id.src) << CSP_ID1_SRC_OFFSET) |
+					((uint32_t)(packet->id.dport) << CSP_ID1_DPORT_OFFSET) |
+					((uint32_t)(packet->id.sport) << CSP_ID1_SPORT_OFFSET) |
+					((uint32_t)(packet->id.flags) << CSP_ID1_FLAGS_OFFSET));
 
 	/* Convert to big / network endian */
 	id1 = htobe32(id1);
