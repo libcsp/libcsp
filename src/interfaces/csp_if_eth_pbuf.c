@@ -101,10 +101,12 @@ void csp_if_eth_pbuf_print(const char * descr, csp_packet_t * packet) {
 
     if (packet) {
         printf("%s %p id:%u Age:%lu,%lu,%lu flen:%u\n",
-            descr, packet, 
-            (unsigned)packet->cfpid, 
-            (unsigned long)csp_get_ms(), (unsigned long)packet->last_used, (unsigned long)(csp_get_ms() - packet->last_used), 
-            (unsigned)packet->frame_length);
+               descr, (void *)packet,
+               (unsigned)packet->cfpid,
+               (unsigned long)csp_get_ms(),
+               (unsigned long)packet->last_used,
+               (unsigned long)(csp_get_ms() - packet->last_used),
+               (unsigned)packet->frame_length);
     } else {
         printf("Packet is null\n");
     }
