@@ -88,7 +88,7 @@ int pthread_queue_enqueue(pthread_queue_t * queue, const void * value, uint32_t 
 	}
 
 	/* Copy object from input buffer */
-	memcpy(queue->buffer + (queue->in * queue->item_size), value, queue->item_size);
+	memcpy((uint8_t *)queue->buffer + (queue->in * queue->item_size), value, queue->item_size);
 	queue->items++;
 	queue->in = (queue->in + 1) % queue->size;
 	pthread_mutex_unlock(&(queue->mutex));
@@ -134,7 +134,7 @@ int pthread_queue_dequeue(pthread_queue_t * queue, void * buf, uint32_t timeout)
 	}
 
 	/* Copy object to output buffer */
-	memcpy(buf, queue->buffer + (queue->out * queue->item_size), queue->item_size);
+	memcpy(buf, (uint8_t *)queue->buffer + (queue->out * queue->item_size), queue->item_size);
 	queue->items--;
 	queue->out = (queue->out + 1) % queue->size;
 	pthread_mutex_unlock(&(queue->mutex));
