@@ -9,6 +9,7 @@ jobs:
           - '3.9'
           - '3.10'
           - '3.11'
+          - '3.12'
         os:
           - ubuntu-24.04
           - ubuntu-22.04
@@ -44,6 +45,13 @@ jobs:
         if: ${{ matrix.buildsystem == 'cmake' }}
         run: |
           cmake -GNinja -B builddir -DCSP_ENABLE_PYTHON3_BINDINGS=1 -DCSP_USE_RTABLE=1 && ninja -C builddir
+
+      - name: Install the latest Meson using Pip if Python is 3.12 or later
+        # Meson 1.3+ supports Python 3.12 (distutils removed)
+        if: ${{ matrix.buildsystem == 'meson' && matrix.python-version == '3.12' }}
+        run: |
+          pip install meson
+          meson --version
 
       - name: Build libcsp with python binding with meson
         if: ${{ matrix.buildsystem == 'meson' }}
