@@ -57,7 +57,7 @@ def build_with_waf():
     subprocess.check_call(['./waf', 'distclean', 'configure', 'build'] + options)
 
 
-def main(build_system, rest):
+def main(build_system):
     if (build_system == 'waf'):
         build_with_waf()
     elif (build_system == 'cmake'):
@@ -71,6 +71,6 @@ if __name__ == '__main__':
     parser.add_argument('--build-system',
                         default=DEFAULT_BUILD_SYSTEM,
                         choices=['meson', 'cmake', 'waf'])
-    args, rest = parser.parse_known_args()
+    args = parser.parse_args()
 
-    main(args.build_system, rest)
+    main(args.build_system)
