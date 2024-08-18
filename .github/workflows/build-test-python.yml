@@ -14,8 +14,6 @@ jobs:
           - ubuntu-24.04
           - ubuntu-22.04
           - ubuntu-20.04
-        arch:
-          - posix
         buildsystem:
           - meson
           - cmake
@@ -39,7 +37,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Build libcsp examples
-        run: python3 examples/buildall.py ${{ matrix.arch }} --build-system=${{ matrix.buildsystem }}
+        run: python3 examples/buildall.py --build-system=${{ matrix.buildsystem }}
 
       - name: Build libcsp with python binding with cmake
         if: ${{ matrix.buildsystem == 'cmake' }}
