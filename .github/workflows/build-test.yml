@@ -9,9 +9,6 @@ jobs:
           - ubuntu-24.04
           - ubuntu-22.04
           - ubuntu-20.04
-          #- macos-latest
-        arch:
-          - posix
         buildsystem:
           - meson
           - cmake
@@ -48,7 +45,7 @@ jobs:
         env:
           CC: ${{ matrix.compiler.CC }}
           CXX: ${{ matrix.compiler.CXX }}
-        run: python3 ./examples/buildall.py ${{ matrix.arch }} --build-system=${{ matrix.buildsystem }}
+        run: python3 ./examples/buildall.py --build-system=${{ matrix.buildsystem }}
 
       - name: Run Loopback Test
         run: |
