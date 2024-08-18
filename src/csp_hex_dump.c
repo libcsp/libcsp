@@ -27,7 +27,7 @@ void csp_hex_dump_format(const char * desc, void * addr, int len, int format) {
 
 			// Output the offset.
 			if (format & 0x1) {
-				csp_print("  %p ", ((uint8_t *)addr) + i);
+				csp_print("  %p ", (void *)(((uint8_t *)addr) + i));
 			} else {
 				csp_print("        ");
 			}
