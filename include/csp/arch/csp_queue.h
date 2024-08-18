@@ -32,6 +32,16 @@ typedef struct k_msgq csp_static_queue_t;
 typedef void * csp_static_queue_t;
 #endif
 
+/**
+ * Create static queue.
+ *
+ * @param[in] length Number of items in static queue.
+ * @param[in] item_size Size of each item in static queue.
+ * @param[in] buffer Memory buffer that will hold the static queue items.
+                     Must be at least `length * item_size` bytes in size.
+ * @param[in] queue Pointer to static queue.
+ * @return Static queue handle on success, otherwise NULL.
+ */
 csp_queue_handle_t csp_queue_create_static(int length, size_t item_size, char * buffer, csp_static_queue_t * queue);
 
 /**
