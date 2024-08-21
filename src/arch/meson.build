@@ -7,4 +7,3 @@ elif host_machine.system() == 'freertos'
 else
 	error('invalid system @0@'.format(host_machine.system()))
 endif
-
