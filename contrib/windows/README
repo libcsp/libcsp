@@ -15,4 +15,3 @@ The build requirements are:
 What provides the Windows API headers depends on the development environment:
 Using MinGW: Headers provided by w32api package. windows_glue.h header is needed because these headers do not declare condition variables.
 Using MinGW-w64: Headers should be available in the default configuration. You may have to compile the distribution from source. windows_glue.h should not be needed.
-
