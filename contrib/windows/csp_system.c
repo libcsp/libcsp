@@ -27,4 +27,3 @@ uint32_t csp_sys_memfree(void) {
 	size_t total = (size_t)freePhysicalMem;
 	return (uint32_t)total;
 }
-
