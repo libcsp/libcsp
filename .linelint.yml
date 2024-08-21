@@ -1,0 +1,19 @@
+# 'true' will fix files
+autofix: false
+
+# list of paths to ignore, uses gitignore syntaxes (executes before any rule)
+ignore:
+  - /.git
+  - /zephyr
+
+rules:
+  # checks if file ends in a newline character
+  end-of-file:
+    # set to true to enable this rule
+    enable: true
+
+    # set to true to disable autofix (if enabled globally)
+    disable-autofix: true
+
+    # if true also checks if file ends in a single newline character
+    single-new-line: true
