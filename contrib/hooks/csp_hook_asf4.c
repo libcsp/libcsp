@@ -8,4 +8,3 @@ void csp_reboot_hook(void) {
 void csp_shutdown_hook(void) {
     NVIC_SystemReset();
 }
-
