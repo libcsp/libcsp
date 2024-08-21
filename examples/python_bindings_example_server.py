@@ -15,7 +15,15 @@ import time
 import sys
 import threading
 
+import argparse
+
 import libcsp_py3 as libcsp
+
+def get_options():
+    parser = argparse.ArgumentParser(description="Parses command.")
+    parser.add_argument("-a", "--address", type=int, default=10, help="Local CSP address")
+    parser.add_argument("-z", "--zmq", help="Add ZMQ interface")
+    return parser.parse_args()
 
 
 def csp_server():
@@ -58,21 +66,21 @@ def csp_server():
                 # extract the data payload from the packet
                 # see "include\csp\csp_types.h" line 215-239 for packet structure
                 data = bytearray(libcsp.packet_get_data(packet))
-                
+
                 # get length of the data (not the whole packet, just the data length)
                 length = libcsp.packet_get_length(packet)
                 print ("got packet, len=" + str(length) + ", data=" + ''.join('{:02x}'.format(x) for x in data))
-                
+
                 # send back "input data + 1"
                 data[0] = data[0] + 1
-                
+
                 # free up a buffer to hold the reply
                 # parameters: {buffer size (# of 4-byte doublewords)}
                 reply = libcsp.buffer_get(0)
-               
+
                 # store the data into the reply buffer
                 libcsp.packet_set_data(reply, data)
-                
+
                 # Send packet as a reply
                 # uses the info (address/port) from the original packet to reply
                 # parameters:
@@ -92,6 +100,7 @@ def csp_server():
 
 if __name__ == "__main__":
 
+    options = get_options()
     #initialize libcsp with params:
         # 27              - CSP address of the system (default=1)
         # "test_service"  - Host name, returned by CSP identity requests
@@ -100,18 +109,15 @@ if __name__ == "__main__":
     # See "include\csp\csp.h" - lines 42-80 for more detail
     # See "src\bindings\python\pycsp.c" - lines 128-156 for more detail
     libcsp.init("test_service", "bindings", "1.2.3")
-    
-    # init zmqhub with parameters: {address (using 255 means all addresses)} {host name/ip}
-    # subscribe and publish endpoints are created on the default ports using the {host}
-    # subscribe port = 6000, subscribe port = 7000
-    libcsp.zmqhub_init(27, "localhost")
 
-    # params: 
-        # {address}         - dest address/node
-        # {netmask}         - number of bits in netmask
-        # {interface name}  - name of interface
-        # optional{via}     - associated with address
-    libcsp.rtable_set(0, 0, "ZMQHUB")
+    if options.zmq:
+        # add ZMQ interface - (address, host)
+        # creates publish and subrcribe endpoints from the host
+        libcsp.zmqhub_init(options.address, options.zmq)
+
+        # Format: \<address\>[/mask] \<interface\> [via][, next entry]
+        # Examples: "0/0 CAN, 8 KISS, 10 I2C 10", same as "0/0 CAN, 8/5 KISS, 10/5 I2C 10"
+        libcsp.rtable_load("0/0 ZMQHUB")
 
     # Parameters: {priority} - 0 (critical), 1 (high), 2 (norm), 3 (low) ---- default=2
     # Start the router task - creates routing thread
