@@ -265,4 +265,3 @@ csp_iface_t * csp_driver_can_init(int addr, int netmask, int id, can_mode_e mode
 	return &mcan[id].interface;
 
 }
-
