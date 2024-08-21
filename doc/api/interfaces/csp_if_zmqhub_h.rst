@@ -22,4 +22,3 @@ Interface Functions
 .. autocfunction:: interfaces/csp_if_zmqhub.h::csp_zmqhub_init_w_endpoints
 .. autocfunction:: interfaces/csp_if_zmqhub.h::csp_zmqhub_init_w_name_endpoints_rxfilter
 .. autocfunction:: interfaces/csp_if_zmqhub.h::csp_zmqhub_init_filter2
-
