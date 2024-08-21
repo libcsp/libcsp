@@ -18,7 +18,7 @@ import argparse
 import libcsp_py3 as libcsp
 
 
-def getOptions():
+def get_options():
     parser = argparse.ArgumentParser(description="Parses command.")
     parser.add_argument("-a", "--address", type=int, default=10, help="Local CSP address")
     parser.add_argument("-c", "--can", help="Add CAN interface")
@@ -31,7 +31,7 @@ def getOptions():
 
 if __name__ == "__main__":
 
-    options = getOptions()
+    options = get_options()
 
     #initialize libcsp with params:
         # options.address - CSP address of the system (default=1)
