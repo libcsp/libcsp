@@ -122,4 +122,3 @@ void csp_if_eth_pbuf_list_print(csp_packet_t ** plist) {
     }
 
 }
-
