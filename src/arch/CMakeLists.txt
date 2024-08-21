@@ -10,5 +10,3 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Zephyr")
 else()
   message(FATAL_ERROR "invalid system ${CMAKE_SYSTEM_NAME}")
 endif()
-
-
