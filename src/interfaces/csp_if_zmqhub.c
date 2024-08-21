@@ -38,8 +38,8 @@ int csp_zmqhub_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet) {
 
 	csp_id_prepend(packet);
 
-	/** 
-	 * While a ZMQ context is thread safe, sockets are NOT threadsafe, so by sharing drv->publisher, we 
+	/**
+	 * While a ZMQ context is thread safe, sockets are NOT threadsafe, so by sharing drv->publisher, we
 	 * need to have a lock around any calls that uses that */
 	pthread_mutex_lock(&lock);
 	int result = zmq_send(drv->publisher, packet->frame_begin, packet->frame_length, 0);
@@ -144,7 +144,7 @@ int csp_zmqhub_init_w_endpoints(uint16_t addr,
 	uint16_t * rxfilter = NULL;
 	unsigned int rxfilter_count = 0;
 
-	return csp_zmqhub_init_w_name_endpoints_rxfilter(NULL,
+	return csp_zmqhub_init_w_name_endpoints_rxfilter(NULL, addr,
 													 rxfilter, rxfilter_count,
 													 publisher_endpoint,
 													 subscriber_endpoint,
@@ -152,7 +152,7 @@ int csp_zmqhub_init_w_endpoints(uint16_t addr,
 													 return_interface);
 }
 
-int csp_zmqhub_init_w_name_endpoints_rxfilter(const char * ifname,
+int csp_zmqhub_init_w_name_endpoints_rxfilter(const char * ifname, uint16_t addr,
 											  const uint16_t rxfilter[], unsigned int rxfilter_count,
 											  const char * publish_endpoint,
 											  const char * subscribe_endpoint,
@@ -173,6 +173,7 @@ int csp_zmqhub_init_w_name_endpoints_rxfilter(const char * ifname,
 	drv->iface.driver_data = drv;
 	drv->iface.nexthop = csp_zmqhub_tx;
 	drv->iface.mtu = CSP_ZMQ_MTU;  // there is actually no 'max' MTU on ZMQ, but assuming the other end is based on the same code
+	drv->iface.addr = addr;
 
 	drv->context = zmq_ctx_new();
 	assert(drv->context != NULL);
