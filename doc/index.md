@@ -60,6 +60,7 @@ hooks
 :caption: Development
 :hidden:
 
+contributing
 codestyle
 git-commit
 structure

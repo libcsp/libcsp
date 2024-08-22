@@ -71,7 +71,7 @@ The latest version of the /doc folder is compiled to HTML and hosted on:
 Thank you for considering contributing to libcsp! We welcome
 contributions from the community to help improve and grow the
 project. Please take a moment to review our
-[guidelines](./doc/git-commit.md) before opening a Pull Request!
+[guidelines](./doc/contributing.md) before opening a Pull Request!
 
 ## Software license
 
