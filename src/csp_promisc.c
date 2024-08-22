@@ -15,7 +15,7 @@ int csp_promisc_enable(unsigned int queue_size) {
 	/* If queue already initialised */
 	if (csp_promisc_queue != NULL) {
 		csp_promisc_enabled = 1;
-		return CSP_ERR_NONE;
+		return CSP_ERR_USED;
 	}
 
 	/* Create packet queue */
