@@ -27,7 +27,8 @@ jobs:
       - name: Setup packages on Linux
         run: |
           sudo apt-get update
-          sudo apt-get install libzmq3-dev libsocketcan-dev socat
+          sudo apt-get install libzmq3-dev libsocketcan-dev socat iproute2
+          sudo apt-get install linux-modules-extra-$(uname -r)
 
       - name: Setup build system packages on Linux
         run: |
@@ -70,3 +71,19 @@ jobs:
           PYTHONPATH=builddir python3 examples/python_bindings_example_server.py -k /tmp/pty2 -a 1 -R "0/0 KISS" &
           PYTHONPATH=builddir python3 examples/python_bindings_example_client.py -k /tmp/pty1 -a 2 -s 1 -R "0/0 KISS"
           pkill socat
+
+      - name: Setup vcan0
+        run: |
+          sudo modprobe vcan
+          sudo ip link add dev vcan0 type vcan
+          sudo ip link set up vcan0
+          echo "Waiting for vcan0 to be up..."
+          while ! ip -br link show vcan0 | grep -q "UP"; do
+            sleep 0.1
+          done
+          echo "vcan0 is up"
+
+      - name: Run CAN Python binding Test
+        run: |
+          PYTHONPATH=builddir python3 examples/python_bindings_example_server.py -c vcan0 -a 1 -R "0/0 CAN" &
+          PYTHONPATH=builddir python3 examples/python_bindings_example_client.py -c vcan0 -a 2 -s 1 -R "0/0 CAN"
