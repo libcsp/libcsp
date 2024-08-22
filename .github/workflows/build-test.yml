@@ -24,7 +24,8 @@ jobs:
         if: ${{ runner.os == 'Linux' }}
         run: |
           sudo apt-get update
-          sudo apt-get install libzmq3-dev libsocketcan-dev socat
+          sudo apt-get install libzmq3-dev libsocketcan-dev socat iproute2
+          sudo apt-get install linux-modules-extra-$(uname -r)
 
       - name: Setup build system packages on Linux
         if: ${{ runner.os == 'Linux' && matrix.buildsystem != 'waf' }}
@@ -81,3 +82,24 @@ jobs:
           ./build/examples/csp_client -z localhost -a 2 -C 1 -T 10 &
           ./build/examples/csp_server -z localhost -a 1 -t
           pkill zmqproxy
+
+      - name: Setup vcan0
+        run: |
+          sudo modprobe vcan
+          sudo ip link add dev vcan0 type vcan
+          sudo ip link set up vcan0
+          echo "Waiting for vcan0 to be up..."
+          while ! ip -br link show vcan0 | grep -q "UP"; do
+            sleep 0.1
+          done
+          echo "vcan0 is up"
+
+      - name: Run CAN Server Test
+        run: |
+          ./build/examples/csp_server -c vcan0 -a 1 -T 10 &
+          ./build/examples/csp_client -c vcan0 -a 2 -C 1 -t
+
+      - name: Run CAN Client Test
+        run: |
+          ./build/examples/csp_client -c vcan0 -a 2 -C 1 -T 10 &
+          ./build/examples/csp_server -c vcan0 -a 1 -t
