@@ -22,6 +22,7 @@ def getOptions():
     parser = argparse.ArgumentParser(description="Parses command.")
     parser.add_argument("-a", "--address", type=int, default=10, help="Local CSP address")
     parser.add_argument("-c", "--can", help="Add CAN interface")
+    parser.add_argument("-k", "--kiss", help="Add KISS interface")
     parser.add_argument("-z", "--zmq", help="Add ZMQ interface")
     parser.add_argument("-s", "--server-address", type=int, default=27, help="Server address")
     parser.add_argument("-R", "--routing-table", help="Routing table")
@@ -53,7 +54,11 @@ if __name__ == "__main__":
         # Format: \<address\>[/mask] \<interface\> [via][, next entry]
         # Examples: "0/0 CAN, 8 KISS, 10 I2C 10", same as "0/0 CAN, 8/5 KISS, 10/5 I2C 10"
         libcsp.rtable_load("0/0 ZMQHUB")
-    
+
+    if options.kiss:
+        libcsp.kiss_init(options.kiss, options.address)
+        libcsp.rtable_load("0/0 KISS")
+
     if options.routing_table:
         # same format/use as line above
         libcsp.rtable_load(options.routing_table)
