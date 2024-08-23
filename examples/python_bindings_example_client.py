@@ -44,7 +44,7 @@ if __name__ == "__main__":
 
     if options.can:
         # add CAN interface
-        libcsp.can_socketcan_init(options.can)                  
+        libcsp.can_socketcan_init(options.can, options.address)
    
     if options.zmq: 
         # add ZMQ interface - (address, host)
