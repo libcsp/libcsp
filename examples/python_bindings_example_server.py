@@ -24,6 +24,7 @@ def get_options():
     parser.add_argument("-a", "--address", type=int, default=10, help="Local CSP address")
     parser.add_argument("-z", "--zmq", help="Add ZMQ interface")
     parser.add_argument("-k", "--kiss", help="Add KISS interface")
+    parser.add_argument("-R", "--routing-table", help="Routing table")
     return parser.parse_args()
 
 
@@ -116,13 +117,12 @@ if __name__ == "__main__":
         # creates publish and subrcribe endpoints from the host
         libcsp.zmqhub_init(options.address, options.zmq)
 
-        # Format: \<address\>[/mask] \<interface\> [via][, next entry]
-        # Examples: "0/0 CAN, 8 KISS, 10 I2C 10", same as "0/0 CAN, 8/5 KISS, 10/5 I2C 10"
-        libcsp.rtable_load("0/0 ZMQHUB")
-
     if options.kiss:
         libcsp.kiss_init(options.kiss, options.address)
-        libcsp.rtable_load("0/0 KISS")
+
+    if options.routing_table:
+        # Examples: "0/0 CAN, 8 KISS, 10 I2C 10", same as "0/0 CAN, 8/5 KISS, 10/5 I2C 10"
+        libcsp.rtable_load(options.routing_table)
 
     # Parameters: {priority} - 0 (critical), 1 (high), 2 (norm), 3 (low) ---- default=2
     # Start the router task - creates routing thread
@@ -136,8 +136,11 @@ if __name__ == "__main__":
     print("Interfaces:")
     libcsp.print_interfaces()
 
-    print("Routes:")
-    libcsp.print_routes()
+    if options.routing_table:
+        ("Routes:")
+        # Prints route table format: 
+        # [address] [netmask] [interface name] optional([via])
+        libcsp.print_routes()
 
     # start CSP server in a thread
     threading.Thread(target=csp_server).start()
