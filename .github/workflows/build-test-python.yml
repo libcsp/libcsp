@@ -59,14 +59,14 @@ jobs:
       - name: Run ZMQ Python binding Test
         run: |
           build/examples/zmqproxy &
-          PYTHONPATH=builddir python3 examples/python_bindings_example_server.py -z localhost -a 3 &
-          PYTHONPATH=builddir python3 examples/python_bindings_example_client.py -z localhost -s 3 -a 2
+          PYTHONPATH=builddir python3 examples/python_bindings_example_server.py -z localhost -a 3 -R "0/0 ZMQHUB" &
+          PYTHONPATH=builddir python3 examples/python_bindings_example_client.py -z localhost -s 3 -a 2 -R "0/0 ZMQHUB" 
           pkill zmqproxy
 
       - name: Run KISS Python binding Test
         run: |
           socat -d -d -d pty,raw,echo=0,link=/tmp/pty1 pty,raw,echo=0,link=/tmp/pty2 &
           sleep 1
-          PYTHONPATH=builddir python3 examples/python_bindings_example_server.py -k /tmp/pty2 -a 1 &
-          PYTHONPATH=builddir python3 examples/python_bindings_example_client.py -k /tmp/pty1 -a 2 -s 1
+          PYTHONPATH=builddir python3 examples/python_bindings_example_server.py -k /tmp/pty2 -a 1 -R "0/0 KISS" &
+          PYTHONPATH=builddir python3 examples/python_bindings_example_client.py -k /tmp/pty1 -a 2 -s 1 -R "0/0 KISS"
           pkill socat
