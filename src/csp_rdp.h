@@ -10,5 +10,3 @@ int csp_rdp_connect(csp_conn_t * conn);
 int csp_rdp_close(csp_conn_t * conn, uint8_t closed_by);
 int csp_rdp_send(csp_conn_t * conn, csp_packet_t * packet);
 int csp_rdp_check_ack(csp_conn_t * conn);
-
-void csp_rdp_conn_print(csp_conn_t * conn);
