@@ -5,7 +5,7 @@
 
 static int __csp_rdp_queue_flush(csp_queue_handle_t queue, csp_conn_t * conn) {
 
-	int ret;
+	int ret = CSP_ERR_NONE;
 	int size;
 
 	size = csp_queue_size(queue);
