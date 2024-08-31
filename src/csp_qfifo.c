@@ -8,7 +8,7 @@
 
 static csp_static_queue_t qfifo_queue __noinit;
 static csp_queue_handle_t qfifo_queue_handle __noinit;
-char qfifo_queue_buffer[sizeof(csp_qfifo_t) * CSP_QFIFO_LEN] __noinit;
+static char qfifo_queue_buffer[sizeof(csp_qfifo_t) * CSP_QFIFO_LEN] __noinit;
 
 void csp_qfifo_init(void) {
 	qfifo_queue_handle = csp_queue_create_static(CSP_QFIFO_LEN, sizeof(csp_qfifo_t), qfifo_queue_buffer, &qfifo_queue);
