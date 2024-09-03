@@ -175,6 +175,12 @@ int csp_eth_rx(csp_iface_t * iface, csp_eth_header_t * eth_frame, uint32_t recei
     /* Add packet segment */
     csp_packet_t * packet = csp_if_eth_pbuf_get(&pbuf_list, packet_id, task_woken);
 
+	if (packet == NULL) {
+		iface->drop++;
+		csp_print("eth rx can't get csp packet error\n");
+		return CSP_ERR_NOMEM;
+	}
+
     if (packet->frame_length == 0) {
         /* First segment */
         packet->frame_length = frame_length;
