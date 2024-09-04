@@ -5,6 +5,8 @@ target_sources(csp PRIVATE
   csp_if_tun.c
   csp_if_can.c
   csp_if_can_pbuf.c
+  csp_if_eth.c
+  csp_if_eth_pbuf.c
   )
 
 if(LIBZMQ_FOUND)
