@@ -15,6 +15,7 @@ endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   target_sources(csp PRIVATE usart/usart_linux.c)
+  target_sources(csp PRIVATE eth/eth_linux.c)
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Zephyr")
   target_sources(csp PRIVATE usart/usart_zephyr.c)
 endif()
