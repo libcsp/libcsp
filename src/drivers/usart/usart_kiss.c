@@ -59,8 +59,13 @@ int csp_usart_open_and_add_kiss_interface(const csp_usart_conf_t * conf, const c
 		res = csp_usart_open(conf, kiss_driver_rx, ctx, &ctx->fd);
 	}
 
-	if (return_iface) {
-		*return_iface = &ctx->iface;
+	if (res == CSP_ERR_NONE) {
+		if (return_iface) {
+			*return_iface = &ctx->iface;
+		}
+	} else {
+		csp_iflist_remove(&ctx->iface);
+		free(ctx);
 	}
 
 	return res;
