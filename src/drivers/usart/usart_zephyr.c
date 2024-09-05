@@ -138,7 +138,9 @@ int csp_usart_open(const csp_usart_conf_t * conf, csp_usart_callback_t rx_callba
 	}
 	uart_rx_thread_idx++;
 
-	*return_fd = ctx->fd;
+	if (return_fd) {
+		*return_fd = ctx->fd;
+	}
 
 	return CSP_ERR_NONE;
 }
