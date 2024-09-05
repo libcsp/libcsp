@@ -2,6 +2,7 @@
 
 #include <zephyr/device.h>
 #include <zephyr/drivers/uart.h>
+#include <zephyr/kernel.h>
 #include <zephyr/kernel/thread.h>
 #include <zephyr/logging/log.h>
 
@@ -118,6 +119,7 @@ int csp_usart_open(const csp_usart_conf_t * conf, csp_usart_callback_t rx_callba
 
 	if (!device_is_ready(ctx->fd)) {
 		LOG_ERR("%s: [%s] Failed to bind UART device\n", __func__, conf->device);
+		k_free(ctx);
 		return CSP_ERR_DRIVER;
 	}
 
@@ -131,6 +133,7 @@ int csp_usart_open(const csp_usart_conf_t * conf, csp_usart_callback_t rx_callba
 									 CONFIG_CSP_UART_RX_THREAD_PRIORITY, 0, K_NO_WAIT);
 	if (!rx_tid) {
 		LOG_ERR("%s: [%s] k_thread_create() failed", __func__, conf->device);
+		k_free(ctx);
 		return CSP_ERR_DRIVER;
 	}
 	uart_rx_thread_idx++;
