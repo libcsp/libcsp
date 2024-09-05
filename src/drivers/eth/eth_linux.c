@@ -87,6 +87,7 @@ int csp_eth_init(const char * device, const char * ifname, int mtu, unsigned int
     /* Ether header 14 byte, seg header 4 byte, CSP header 6 byte */
     if (mtu < 24) {
         csp_print("csp_if_eth_init: mtu < 24\n");
+		free(ctx);
         return CSP_ERR_INVAL;
     }
 
@@ -103,6 +104,7 @@ int csp_eth_init(const char * device, const char * ifname, int mtu, unsigned int
         if (count > 0) {
             csp_print("Use command 'sudo setcap cap_net_raw+ep %s'\n", exe);
         }
+		free(ctx);
         return CSP_ERR_INVAL;
     }
 
@@ -111,6 +113,7 @@ int csp_eth_init(const char * device, const char * ifname, int mtu, unsigned int
     strncpy(ctx->if_idx.ifr_name, device, IFNAMSIZ-1);
     if (ioctl(ctx->sockfd, SIOCGIFINDEX, &ctx->if_idx) < 0) {
         perror("SIOCGIFINDEX");
+		free(ctx);
         return CSP_ERR_INVAL;
     }
 
@@ -120,6 +123,7 @@ int csp_eth_init(const char * device, const char * ifname, int mtu, unsigned int
     strncpy(if_mac.ifr_name, device, IFNAMSIZ-1);
     if (ioctl(ctx->sockfd, SIOCGIFHWADDR, &if_mac) < 0) {
         perror("SIOCGIFHWADDR");
+		free(ctx);
         return CSP_ERR_INVAL;
     }
 
@@ -139,6 +143,7 @@ int csp_eth_init(const char * device, const char * ifname, int mtu, unsigned int
     if (setsockopt(ctx->sockfd, SOL_SOCKET, SO_REUSEADDR, &sockopt, sizeof sockopt) == -1) {
         perror("setsockopt");
         close(ctx->sockfd);
+		free(ctx);
         return CSP_ERR_INVAL;
     }
 
@@ -146,6 +151,7 @@ int csp_eth_init(const char * device, const char * ifname, int mtu, unsigned int
     if (setsockopt(ctx->sockfd, SOL_SOCKET, SO_BINDTODEVICE, device, IFNAMSIZ-1) == -1)	{
         perror("SO_BINDTODEVICE");
         close(ctx->sockfd);
+		free(ctx);
         return CSP_ERR_INVAL;
     }
 
