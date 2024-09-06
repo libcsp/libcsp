@@ -223,13 +223,6 @@ void csp_send_direct_iface(csp_id_t* idout, csp_packet_t * packet, csp_iface_t *
 	}
 
 
-#if (CSP_USE_PROMISC)
-	/* Loopback traffic is added to promisc queue by the router */
-	if (from_me && (iface != &csp_if_lo)) {
-		csp_promisc_add(packet);
-	}
-#endif
-
 	/* Only encrypt packets from the current node */
 	if (from_me) {
 		/* Append HMAC */
@@ -255,6 +248,12 @@ void csp_send_direct_iface(csp_id_t* idout, csp_packet_t * packet, csp_iface_t *
 			}
 		}
 
+#if (CSP_USE_PROMISC)
+		/* Loopback traffic is added to promisc queue by the router */
+		if (iface != &csp_if_lo) {
+			csp_promisc_add(packet);
+		}
+#endif
 	}
 
 	/* Store length before passing to interface */
