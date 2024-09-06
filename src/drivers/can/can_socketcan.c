@@ -48,7 +48,7 @@ static void * socketcan_rx_thread(void * arg) {
 		timeout.tv_sec = 10;
 		int n = select(ctx->socket + 1, &input, NULL, NULL, &timeout);
 		if (n == -1) {
-			printf("CAN read error\n");
+			csp_print("CAN read error\n");
 			continue;
 		} else if (n == 0) {
 			//printf("CAN idle\n");
