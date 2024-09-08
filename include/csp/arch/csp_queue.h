@@ -21,14 +21,16 @@ extern "C" {
 #define CSP_QUEUE_OK 0
 #define CSP_QUEUE_ERROR -1
 
-typedef void * csp_queue_handle_t;
-
 #if (CSP_FREERTOS)
+typedef QueueHandle_t csp_queue_handle_t;
 typedef StaticQueue_t csp_static_queue_t;
 #elif (CSP_ZEPHYR)
 #include <zephyr/kernel.h>
+typedef struct k_msgq * csp_queue_handle_t;
 typedef struct k_msgq csp_static_queue_t;
 #else
+#include "arch/posix/pthread_queue.h"
+typedef pthread_queue_t * csp_queue_handle_t;
 typedef void * csp_static_queue_t;
 #endif
 

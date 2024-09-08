@@ -8,11 +8,8 @@
    Inspired by c-pthread-queue by Matthew Dickinson: http://code.google.com/p/c-pthread-queue/
 */
 
+#include <stdint.h>
 #include <pthread.h>
-
-#include <csp/arch/csp_queue.h>
-
-
 
 /**
    Queue error codes.
