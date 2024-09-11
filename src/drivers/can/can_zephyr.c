@@ -138,12 +138,14 @@ int csp_can_open_and_add_interface(const struct device * device, const char * if
 	int ret;
 	k_tid_t rx_tid;
 	can_context_t * ctx = NULL;
-	const char * name = ifname ? ifname : device->name;
+	const char * name;
 
 	if (device == NULL) {
 		ret = CSP_ERR_INVAL;
 		goto end;
 	}
+
+	name = ifname ? ifname : device->name;
 
 	if (rx_thread_idx >= CONFIG_CSP_CAN_RX_THREAD_NUM) {
 		LOG_ERR("[%s] No more RX thread can be created. (MAX: %d) Please check CONFIG_CSP_CAN_RX_THREAD_NUM.",
