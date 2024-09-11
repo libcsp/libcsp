@@ -85,6 +85,12 @@ void csp_send_direct(csp_id_t* idout, csp_packet_t * packet, csp_iface_t * route
 	csp_packet_t * copy = NULL;
 	int local_found = 0;
 
+	/* Quickly send on loopback */
+	if(idout->dst == csp_if_lo.addr){
+		csp_send_direct_iface(idout, packet, &csp_if_lo, via, from_me);
+		return;
+	}
+
 	/* Make copy as broadcast modifies destination making iflist_get_by_subnet the skip next redundant ifaces */
 	csp_id_t _idout = *idout;
 

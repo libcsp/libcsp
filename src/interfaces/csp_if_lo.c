@@ -20,4 +20,6 @@ static int csp_lo_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet, i
 csp_iface_t csp_if_lo = {
 	.name = CSP_IF_LOOPBACK_NAME,
 	.nexthop = csp_lo_tx,
+	.addr = 0,
+	.is_default = 0
 };
