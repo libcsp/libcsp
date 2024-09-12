@@ -137,7 +137,7 @@ void csp_kiss_rx(csp_iface_t * iface, const uint8_t * buf, size_t len, void * px
 						iface->frame++;
 
 						/* Validate CRC */
-						if (csp_crc32_verify(ifdata->rx_packet) != CSP_ERR_NONE) {
+						if (csp_crc32_verify_and_strip(ifdata->rx_packet) != CSP_ERR_NONE) {
 							iface->rx_error++;
 							ifdata->rx_mode = KISS_MODE_NOT_STARTED;
 							break;
