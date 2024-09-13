@@ -14,6 +14,7 @@ conf.set('CSP_CONN_RXQUEUE_LEN', get_option('conn_rxqueue_len'))
 conf.set('CSP_CONN_MAX', get_option('conn_max'))
 conf.set('CSP_BUFFER_SIZE', get_option('buffer_size'))
 conf.set('CSP_BUFFER_COUNT', get_option('buffer_count'))
+conf.set('CSP_PACKET_PADDING_BYTES', get_option('packet_padding_bytes'))
 conf.set('CSP_RDP_MAX_WINDOW', get_option('rdp_max_window'))
 conf.set('CSP_RTABLE_SIZE', get_option('rtable_size'))
 
