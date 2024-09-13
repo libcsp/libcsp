@@ -98,7 +98,11 @@ int csp_eth_init(const char * device, const char * ifname, int mtu, unsigned int
     /* Open RAW socket to send on */
     if ((ctx->sockfd = socket(AF_PACKET, SOCK_RAW, htobe16(CSP_ETH_TYPE_CSP))) == -1) {
         perror("socket");
-        csp_print("Use command 'setcap cap_net_raw+ep ./csh'\n");
+        char exe[1024];
+        int count = readlink("/proc/self/exe", exe, sizeof(exe));
+        if (count > 0) {
+            csp_print("Use command 'sudo setcap cap_net_raw+ep %s'\n", exe);
+        }
         return CSP_ERR_INVAL;
     }
 
