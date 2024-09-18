@@ -122,6 +122,13 @@ static int csp_rdp_send_cmp(csp_conn_t * conn, csp_packet_t * packet, int flags,
 		packet->length = 0;
 	}
 
+	/* Update last ACK time stamp 
+	 * We do this early to minimize race condition between read() call and router task csp_rdp_new_packet() */
+	if (flags & RDP_ACK) {
+		conn->rdp.rcv_lsa = ack_nr;
+		conn->rdp.ack_timestamp = csp_get_ms();
+	}
+
 	/* Add RDP header */
 	rdp_header_t * header = csp_rdp_header_add(packet);
 	if (header == NULL) {
@@ -158,12 +165,6 @@ static int csp_rdp_send_cmp(csp_conn_t * conn, csp_packet_t * packet, int flags,
 
 	/* Send packet to IF */
 	csp_send_direct(&idout, packet, NULL);
-
-	/* Update last ACK time stamp */
-	if (flags & RDP_ACK) {
-		conn->rdp.rcv_lsa = ack_nr;
-		conn->rdp.ack_timestamp = csp_get_ms();
-	}
 
 	return CSP_ERR_NONE;
 }
