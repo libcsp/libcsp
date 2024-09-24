@@ -16,7 +16,6 @@ jobs:
           - qemu_cortex_m3
           - mps2_an385
         python-version:
-          - '3.9'
           - '3.10'
           - '3.11'
 
