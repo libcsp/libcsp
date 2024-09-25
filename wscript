@@ -251,6 +251,11 @@ def build(ctx):
                     lib=ctx.env.LIBS,
                     use='csp')
 
+        ctx.program(source=['examples/csp_bridge_can2udp.c'],
+                    target='examples/csp_bridge_can2udp',
+                    lib=ctx.env.LIBS,
+                    use='csp')
+
         ctx.program(source='examples/csp_arch.c',
                     target='examples/csp_arch',
                     lib=ctx.env.LIBS,

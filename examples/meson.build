@@ -19,6 +19,13 @@ executable('csp_client',
 	dependencies : csp_dep,
 	build_by_default : false)
 
+executable('csp_bridge_can2udp',
+	['csp_bridge_can2udp.c'],
+	include_directories : csp_inc,
+	c_args : csp_c_args,
+	dependencies : csp_dep,
+	build_by_default : false)
+
 executable('csp_arch',
 	'csp_arch.c',
 	include_directories : csp_inc,
