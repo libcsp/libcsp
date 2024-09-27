@@ -13,11 +13,14 @@
 #define DEFAULT_UDP_REMOTE_PORT	(0)
 #define DEFAULT_UDP_LOCAL_PORT	(0)
 
+extern csp_conf_t csp_conf;
+
 static struct option long_options[] = {
 	{"can", required_argument, 0, 'c'},
 	{"remote-address", required_argument, 0, 'a'},
 	{"remote-port", required_argument, 0, 'r'},
 	{"local-port", required_argument, 0, 'l'},
+	{"protocol-version", required_argument, 0, 'v'},
 	{"help", no_argument, 0, 'h'},
 	{0, 0, 0, 0}
 };
@@ -38,11 +41,12 @@ void csp_input_hook(csp_iface_t * iface, csp_packet_t * packet) {
 
 static void print_help(void) {
 	csp_print("Usage: csp_bridge_can2udp [options]\n");
-	csp_print(" --can                      set CAN interface\n");
-	csp_print(" --remote-address <address> set UDP remote address\n"
-			  " --remote-port <port>       set UDP remote port\n"
-			  " --local-port <port>        set UDP local port\n"
-			  " -h,--help                  print help\n");
+	csp_print(" --can                           set CAN interface\n");
+	csp_print(" --remote-address <address>      set UDP remote address\n"
+			  " --remote-port <port>            set UDP remote port\n"
+			  " --local-port <port>             set UDP local port\n"
+			  " -v,--protocol-version <version> set protocol version\n"
+			  " -h,--help                       print help\n");
 }
 
 static csp_iface_t * add_can_iface(const char * can_name)
@@ -86,7 +90,7 @@ int main(int argc, char * argv[]) {
 
 	int opt;
 
-	while ((opt = getopt_long(argc, argv, "h", long_options, NULL)) != -1) {
+	while ((opt = getopt_long(argc, argv, "v:h", long_options, NULL)) != -1) {
 		switch (opt) {
 			case 'c':
 				can_name = optarg;
@@ -99,6 +103,9 @@ int main(int argc, char * argv[]) {
 				break;
 			case 'l':
 				lport = atoi(optarg);
+				break;
+			case 'v':
+				csp_conf.version = atoi(optarg);
 				break;
 			case 'h':
 				print_help();
