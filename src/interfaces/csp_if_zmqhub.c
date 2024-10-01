@@ -63,6 +63,7 @@ void * csp_zmqhub_task(void * param) {
 
 	while (1) {
 		int ret;
+		(void)ret; /* Silence unused variable warning (promoted to an error if -Werr) issued when building with NDEBUG (release with asserts turned off) */
 		zmq_msg_t msg;
 
 		ret = zmq_msg_init_size(&msg, sizeof(packet->data) + HEADER_SIZE);
