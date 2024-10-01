@@ -21,7 +21,7 @@ static int __csp_rdp_queue_flush(csp_queue_handle_t queue, csp_conn_t * conn) {
             csp_buffer_free(packet);
         } else {
 			/* put it back */
-			ret = csp_queue_enqueue(queue, packet, 0);
+			ret = csp_queue_enqueue(queue, &packet, 0);
 			if (ret != CSP_QUEUE_OK) {
 				/* something is really broken */
 				break;
