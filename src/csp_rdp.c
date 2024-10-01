@@ -552,7 +552,7 @@ bool csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 			goto discard_close;
 		}
 
-		if (rx_header->seq_nr == (conn->rdp.rcv_cur + 1)) {
+		if (rx_header->seq_nr == (uint16_t)(conn->rdp.rcv_cur + 1)) {
 			csp_rdp_protocol("RDP %p: Received RST in sequence, no more data incoming, reply with RST\n", (void *)conn);
 			conn->rdp.state = RDP_CLOSE_WAIT;
 			conn->timestamp = csp_get_ms();
