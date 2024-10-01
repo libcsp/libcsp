@@ -841,14 +841,16 @@ static PyObject * pycsp_cmp_clock_get(PyObject * self, PyObject * args) {
 static PyObject * pycsp_zmqhub_init(PyObject * self, PyObject * args) {
 	uint16_t addr;
 	char * host;
+	csp_iface_t * default_iface = NULL;
 	if (!PyArg_ParseTuple(args, "Hs", &addr, &host)) {
 		return NULL;  // TypeError is thrown
 	}
 
-	int res = csp_zmqhub_init(addr, host, 0, NULL);
+	int res = csp_zmqhub_init(addr, host, 0, &default_iface);
 	if (res != CSP_ERR_NONE) {
 		return PyErr_Error("csp_zmqhub_init()", res);
 	}
+	default_iface->is_default = 1;
 
 	Py_RETURN_NONE;
 }
@@ -859,14 +861,16 @@ static PyObject * pycsp_can_socketcan_init(PyObject * self, PyObject * args) {
 	int bitrate = 1000000;
 	int promisc = 0;
 	uint16_t addr = 0;
+	csp_iface_t * default_iface = NULL;
 	if (!PyArg_ParseTuple(args, "s|Hii", &ifc, &addr, &bitrate, &promisc)) {
 		return NULL;
 	}
 
-	int res = csp_can_socketcan_open_and_add_interface(ifc, CSP_IF_CAN_DEFAULT_NAME, addr, bitrate, promisc, NULL);
+	int res = csp_can_socketcan_open_and_add_interface(ifc, CSP_IF_CAN_DEFAULT_NAME, addr, bitrate, promisc, &default_iface);
 	if (res != CSP_ERR_NONE) {
 		return PyErr_Error("csp_can_socketcan_open_and_add_interface()", res);
 	}
+	default_iface->is_default = 1;
 
 	Py_RETURN_NONE;
 }
@@ -877,15 +881,17 @@ static PyObject * pycsp_kiss_init(PyObject * self, PyObject * args) {
 	uint32_t mtu = 512;
 	uint16_t addr;
 	const char * if_name = CSP_IF_KISS_DEFAULT_NAME;
+	csp_iface_t * default_iface = NULL;
 	if (!PyArg_ParseTuple(args, "sH|IIs", &device, &addr, &baudrate, &mtu, &if_name)) {
 		return NULL;  // TypeError is thrown
 	}
 
 	csp_usart_conf_t conf = {.device = device, .baudrate = baudrate};
-	int res = csp_usart_open_and_add_kiss_interface(&conf, if_name, addr, NULL);
+	int res = csp_usart_open_and_add_kiss_interface(&conf, if_name, addr, &default_iface);
 	if (res != CSP_ERR_NONE) {
 		return PyErr_Error("csp_usart_open_and_add_kiss_interface()", res);
 	}
+	default_iface->is_default = 1;
 
 	Py_RETURN_NONE;
 }
