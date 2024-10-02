@@ -109,4 +109,3 @@ csp_packet_t * csp_eth_pbuf_find(csp_eth_interface_data_t * ifdata, uint32_t id,
 	return csp_eth_pbuf_new(ifdata, id, now, task_woken);
 
 }
-

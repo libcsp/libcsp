@@ -121,7 +121,7 @@ static int csp_rdp_send_cmp(csp_conn_t * conn, csp_packet_t * packet, int flags,
 			return CSP_ERR_NOMEM;
 		packet->length = 0;
 	}
- 
+
 	if (flags & RDP_ACK) {
 		conn->rdp.rcv_lsa = ack_nr;
 	}
@@ -1050,4 +1050,3 @@ bool csp_rdp_conn_is_active(csp_conn_t *conn) {
 	return active;
 
 }
-
