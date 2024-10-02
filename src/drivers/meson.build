@@ -7,6 +7,8 @@ else
 	conf.set('CSP_HAVE_LIBSOCKETCAN', 0)
 endif
 
-csp_sources += files(['eth/eth_linux.c'])
-csp_sources += files(['usart/usart_linux.c'])
-csp_sources += files(['usart/usart_kiss.c'])
+if host_machine.system() == 'linux'
+	csp_sources += files(['eth/eth_linux.c'])
+	csp_sources += files(['usart/usart_linux.c'])
+	csp_sources += files(['usart/usart_kiss.c'])
+endif
