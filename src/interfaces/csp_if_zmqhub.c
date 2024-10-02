@@ -211,8 +211,16 @@ int csp_zmqhub_init_w_name_endpoints_rxfilter(const char * ifname, uint16_t addr
 	/* Register interface */
 	ret = csp_iflist_add(&drv->iface);
 
-	if (ret == CSP_ERR_NONE && return_interface) {
-		*return_interface = &drv->iface;
+	if (ret == CSP_ERR_NONE){
+		if(return_interface) {
+			*return_interface = &drv->iface;
+		}
+	}else {
+		pthread_cancel(drv->rx_thread);
+		zmq_close(drv->publisher);
+		zmq_close(drv->subscriber);
+		zmq_ctx_destroy (drv->context);
+		free(drv);
 	}
 
 	return ret;
@@ -331,8 +339,16 @@ int csp_zmqhub_init_filter2(const char * ifname, const char * host, uint16_t add
 	/* Register interface */
 	ret = csp_iflist_add(&drv->iface);
 
-	if (ret == CSP_ERR_NONE && return_interface) {
-		*return_interface = &drv->iface;
+	if (ret == CSP_ERR_NONE){
+		if(return_interface) {
+			*return_interface = &drv->iface;
+		}
+	}else {
+		pthread_cancel(drv->rx_thread);
+		zmq_close(drv->publisher);
+		zmq_close(drv->subscriber);
+		zmq_ctx_destroy (drv->context);
+		free(drv);
 	}
 
 	return ret;
