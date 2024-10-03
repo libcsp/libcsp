@@ -88,6 +88,15 @@ use the following command:
 cmake --install builddir --component runtime
 ```
 
+You can now use the following directives in your CMakeLists.txt
+
+```cmake
+find_package(csp 2.1 REQUIRED)
+target_link_libraries(${MY_PROJECT} PRIVATE csp::csp)
+```
+
+to use the installed libcsp in your application (adapt the required major version as needed).
+
 ## Reproducible Builds
 
 libcsp supports Reproducible Builds. To enable it, set
