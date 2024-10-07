@@ -15,9 +15,8 @@ extern "C" {
  * Add interface to the list.
  *
  * @param[in] iface The interface must remain valid as long as the application is running.
- * @return #CSP_ERR_NONE on success, otherwise an error code.
  */
-int csp_iflist_add(csp_iface_t * iface);
+void csp_iflist_add(csp_iface_t * iface);
 
 /**
  * Remove interface from the list.

@@ -152,7 +152,11 @@ csp_iface_t * csp_iflist_get_by_index(int idx) {
 	return ifc;
 }
 
-int csp_iflist_add(csp_iface_t * ifc) {
+void csp_iflist_add(csp_iface_t * ifc) {
+
+	if ((ifc == NULL) || (ifc->name == NULL)) {
+		return;
+	}
 
 	ifc->next = NULL;
 
@@ -165,7 +169,7 @@ int csp_iflist_add(csp_iface_t * ifc) {
 		csp_iface_t * last = NULL;
 		for (csp_iface_t * i = interfaces; i != NULL; i = i->next) {
 			if ((i == ifc) || (strncmp(ifc->name, i->name, CSP_IFLIST_NAME_MAX) == 0)) {
-				return CSP_ERR_ALREADY;
+				return;
 			}
 			last = i;
 		}
@@ -173,10 +177,10 @@ int csp_iflist_add(csp_iface_t * ifc) {
 		last->next = ifc;
 	}
 
-	return CSP_ERR_NONE;
 }
 
 void csp_iflist_remove(csp_iface_t * ifc) {
+
 	if (ifc == NULL) {
 		return;
 	}

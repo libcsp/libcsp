@@ -205,5 +205,7 @@ int csp_kiss_add_interface(csp_iface_t * iface) {
 
 	iface->nexthop = csp_kiss_tx;
 
-	return csp_iflist_add(iface);
+	csp_iflist_add(iface);
+
+	return CSP_ERR_NONE;
 }

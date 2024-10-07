@@ -66,5 +66,7 @@ int csp_i2c_add_interface(csp_iface_t * iface) {
 
 	iface->nexthop = csp_i2c_tx;
 
-	return csp_iflist_add(iface);
+	csp_iflist_add(iface);
+
+	return CSP_ERR_NONE;
 }

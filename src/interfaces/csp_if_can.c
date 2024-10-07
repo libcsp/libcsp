@@ -486,7 +486,9 @@ int csp_can_add_interface(csp_iface_t * iface) {
 		iface->nexthop = csp_can2_tx;
 	}
 
-	return csp_iflist_add(iface);
+	csp_iflist_add(iface);
+
+	return CSP_ERR_NONE;
 }
 
 int csp_can_remove_interface(csp_iface_t * iface) {

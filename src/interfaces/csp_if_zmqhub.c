@@ -209,13 +209,13 @@ int csp_zmqhub_init_w_name_endpoints_rxfilter(const char * ifname, uint16_t addr
 	assert(ret == 0);
 
 	/* Register interface */
-	ret = csp_iflist_add(&drv->iface);
+	csp_iflist_add(&drv->iface);
 
-	if (ret == CSP_ERR_NONE && return_interface) {
+	if (return_interface) {
 		*return_interface = &drv->iface;
 	}
 
-	return ret;
+	return CSP_ERR_NONE;
 }
 
 int csp_zmqhub_init_filter2(const char * ifname, const char * host, uint16_t addr, uint16_t netmask, int promisc, csp_iface_t ** return_interface, char * sec_key, uint16_t subport, uint16_t pubport) {
@@ -329,13 +329,13 @@ int csp_zmqhub_init_filter2(const char * ifname, const char * host, uint16_t add
 	assert(ret == 0);
 
 	/* Register interface */
-	ret = csp_iflist_add(&drv->iface);
+	csp_iflist_add(&drv->iface);
 
-	if (ret == CSP_ERR_NONE && return_interface) {
+	if (return_interface) {
 		*return_interface = &drv->iface;
 	}
 
-	return ret;
+	return CSP_ERR_NONE;
 }
 
 
