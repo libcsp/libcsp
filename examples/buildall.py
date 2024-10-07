@@ -44,7 +44,6 @@ def build_with_waf():
         '--with-os=posix',
         '--enable-rdp',
         '--enable-promisc',
-        '--enable-crc32',
         '--enable-hmac',
         '--enable-dedup',
         '--enable-python3-bindings',

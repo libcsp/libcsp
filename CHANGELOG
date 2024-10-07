@@ -1,5 +1,6 @@
 libcsp 2.1, xx-yy-zzzz
 ----------------------
+- new: CRC32 calculation includes header when enabled. This means wire protocol incompatibility with v1.6 or earlier.
 
 libcsp 2.0, 19-04-2024
 ----------------------
