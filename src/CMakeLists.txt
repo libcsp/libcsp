@@ -40,7 +40,6 @@ endif()
 if (CSP_USE_RDP)
   target_sources(csp PRIVATE
     csp_rdp.c
-    csp_rdp_queue.c
   )
 endif()
 

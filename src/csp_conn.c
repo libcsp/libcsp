@@ -10,7 +10,6 @@
 #include <csp/csp_id.h>
 #include <csp/csp_debug.h>
 #include "csp_macro.h"
-#include "csp_rdp_queue.h"
 #include "csp_rdp.h"
 
 #define OUTGOING_PORTS (((1 << (CSP_ID2_PORT_SIZE)) - 1) - CSP_PORT_MAX_BIND)
@@ -57,6 +56,10 @@ void csp_conn_init(void) {
 		conn->rx_queue = csp_queue_create_static(CSP_CONN_RXQUEUE_LEN, sizeof(csp_packet_t *), conn->rx_queue_static_data, &conn->rx_queue_static);
 
 #if (CSP_USE_RDP)
+		conn->rdp_rx_lock = 0;
+		conn->rdp_tx_lock = 0;
+		conn->rdp_rx_head = NULL;
+		conn->rdp_tx_head = NULL;
 		csp_rdp_init(conn);
 #endif
 	}
@@ -201,6 +204,11 @@ csp_conn_t * csp_conn_new(csp_id_t idin, csp_id_t idout, csp_conn_type_t type) {
 
 		/* Ensure connection queue is empty */
 		csp_conn_flush_rx_queue(conn);
+
+#if (CSP_USE_RDP)
+		/* Ensure connection rdp queue is empty */
+		csp_rdp_queue_flush(conn);
+#endif
 	}
 
 	return conn;
