@@ -837,7 +837,6 @@ int csp_rdp_send(csp_conn_t * conn, csp_packet_t * packet) {
 	}
 
 	rdp_packet->timestamp_tx = csp_get_ms();
-	rdp_packet->rdp_quarantine = 0;
 	csp_rdp_queue_tx_add(conn, rdp_packet);
 
 	csp_rdp_protocol(

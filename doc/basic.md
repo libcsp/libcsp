@@ -62,7 +62,6 @@ Definition of a buffer element `csp_packet_t`:
    the CSP id to different endian (e.g. I2C), etc.
 */
 typedef struct {
-    uint32_t rdp_quarantine;      // EACK quarantine period
     uint32_t timestamp_tx;        // Time the message was sent
     uint32_t timestamp_rx;        // Time the message was received
 

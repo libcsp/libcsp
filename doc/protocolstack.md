@@ -118,6 +118,6 @@ a few additional features:
   - Packet re-ordering
   - Retransmission
   - Windowing
-  - Extended Acknowledgment
+  - Extended Acknowledgment (deliberately not supported)
 
 For more information on this, please refer to RFC908 and RFC1151.
