@@ -75,7 +75,7 @@ csp_packet_t * csp_buffer_get(size_t unused) {
 	return &buffer->skbf_data;
 }
 
-void csp_buffer_free_isr(void * packet) {
+void csp_buffer_free_isr(const void * packet) {
 
 	if (packet == NULL) {
 		// freeing a NULL pointer is OK, e.g. standard free()
@@ -103,7 +103,7 @@ void csp_buffer_free_isr(void * packet) {
 	csp_queue_enqueue_isr(csp_buffers, &buf, &task_woken);
 }
 
-void csp_buffer_free(void * packet) {
+void csp_buffer_free(const void * packet) {
 
 	if (packet == NULL) {
 		/* freeing a NULL pointer is OK, e.g. standard free() */
@@ -130,7 +130,7 @@ void csp_buffer_free(void * packet) {
 	csp_queue_enqueue(csp_buffers, &buf, 0);
 }
 
-void * csp_buffer_clone(void * buffer) {
+void * csp_buffer_clone(const void * buffer) {
 
 	csp_packet_t * packet = (csp_packet_t *)buffer;
 	if (!packet) {
