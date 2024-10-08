@@ -340,7 +340,7 @@ int csp_can2_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t 
 	}
 
 	/* Check for overflow. The frame input + dlc must not exceed the end of the packet data field */
-	if (&packet->frame_begin[packet->frame_length] + dlc >= &packet->data[sizeof(packet->data)]) {
+	if (&packet->frame_begin[packet->frame_length] + dlc > &packet->data[sizeof(packet->data)]) {
 		csp_dbg_can_errno = CSP_DBG_CAN_ERR_RX_OVF;
 		iface->rx_error++;
 		csp_can_pbuf_free(ifdata, packet, 1, task_woken);
