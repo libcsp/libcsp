@@ -195,9 +195,17 @@ int csp_zmqhub_init_w_name_endpoints_rxfilter(const char * ifname, uint16_t addr
 	assert(ret == 0);
 
 	/* Connect to server */
-	ret = zmq_connect(drv->publisher, publish_endpoint);
+	ret = zmq_bind(drv->publisher, publish_endpoint);
+	if (ret != 0) {
+		// if binding failed, try to connect
+		ret = zmq_connect(drv->publisher, publish_endpoint);	
+	}	
 	assert(ret == 0);
-	ret = zmq_connect(drv->subscriber, subscribe_endpoint);
+	ret = zmq_bind(drv->subscriber, subscribe_endpoint);
+	if (ret != 0) {
+		// if binding failed, try to connect
+		ret = zmq_connect(drv->subscriber, subscribe_endpoint);	
+	}
 	assert(ret == 0);
 
 	/* Start RX thread */
