@@ -49,7 +49,7 @@ static inline sfp_header_t * csp_sfp_header_remove(csp_packet_t * packet) {
 }
 
 int csp_sfp_send_own_memcpy(csp_conn_t * conn, const void * data, unsigned int totalsize, unsigned int mtu, uint32_t timeout, csp_memcpy_fnc_t memcpyfcn) {
-	if (mtu == 0) {
+	if (mtu == 0 || mtu + sizeof(sfp_header_t) > CSP_BUFFER_SIZE) {
 		return CSP_ERR_INVAL;
 	}
 
@@ -59,7 +59,7 @@ int csp_sfp_send_own_memcpy(csp_conn_t * conn, const void * data, unsigned int t
 		sfp_header_t * sfp_header;
 
 		/* Allocate packet */
-		csp_packet_t * packet = csp_buffer_get(mtu + sizeof(*sfp_header));
+		csp_packet_t * packet = csp_buffer_get(0);
 		if (packet == NULL) {
 			return CSP_ERR_NOMEM;
 		}
@@ -81,7 +81,7 @@ int csp_sfp_send_own_memcpy(csp_conn_t * conn, const void * data, unsigned int t
 		conn->idout.flags |= CSP_FFRAG;
 
 		/* Add SFP header */
-		sfp_header = csp_sfp_header_add(packet);  // no check, because buffer was allocated with extra size.
+		sfp_header = csp_sfp_header_add(packet);
 		sfp_header->totalsize = htobe32(totalsize);
 		sfp_header->offset = htobe32(count);
 
