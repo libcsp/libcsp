@@ -127,12 +127,20 @@ int main(int argc, char ** argv) {
 	void * frontend = zmq_socket(ctx, ZMQ_XSUB);
 	assert(frontend);
     ret = zmq_bind(frontend, sub_str);
+	if (ret != 0) {
+		// binding failed, try connecting
+		zmq_connect(frontend, sub_str);
+	}
 	assert(ret == 0);
 	csp_print("Subscriber task listening on %s\n", sub_str);
 
 	void * backend = zmq_socket(ctx, ZMQ_XPUB);
 	assert(backend);
     ret = zmq_bind(backend, pub_str);
+	if (ret != 0) {
+		// binding failed, try connecting
+		zmq_connect(backend, pub_str);
+	}
 	assert(ret == 0);
 	csp_print("Publisher task listening on %s\n", pub_str);
 
