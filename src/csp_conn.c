@@ -204,11 +204,6 @@ csp_conn_t * csp_conn_new(csp_id_t idin, csp_id_t idout, csp_conn_type_t type) {
 
 		/* Ensure connection queue is empty */
 		csp_conn_flush_rx_queue(conn);
-
-#if (CSP_USE_RDP)
-		/* Ensure connection rdp queue is empty */
-		csp_rdp_queue_flush(conn);
-#endif
 	}
 
 	return conn;
@@ -240,13 +235,6 @@ int csp_conn_close(csp_conn_t * conn, uint8_t closed_by) {
 
 	/* Ensure connection queue is empty */
 	csp_conn_flush_rx_queue(conn);
-
-	/* Reset RDP state */
-#if (CSP_USE_RDP)
-	if (conn->idin.flags & CSP_FRDP) {
-		csp_rdp_queue_flush(conn);
-	}
-#endif
 
 	/* Set to closed */
 	conn->state = CONN_CLOSED;

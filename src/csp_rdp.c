@@ -106,6 +106,15 @@ static inline void csp_rdp_queue_rx_add(csp_conn_t * conn, csp_packet_t * packet
     csp_rdp_queue_add(&conn->rdp_rx_head, &conn->rdp_rx_lock, packet);
 }
 
+static void csp_rdp_queue_flush(csp_conn_t * conn) {
+    csp_spin_lock(&conn->rdp_rx_lock);
+    csp_spin_lock(&conn->rdp_tx_lock);
+    csp_rdp_queue_clear(&conn->rdp_rx_head);
+    csp_rdp_queue_clear(&conn->rdp_tx_head);
+    csp_spin_unlock(&conn->rdp_rx_lock);
+    csp_spin_unlock(&conn->rdp_tx_lock);
+}
+
 /**
  * RDP Headers:
  * The following functions are helper functions that handles the extra RDP
@@ -964,6 +973,9 @@ static int csp_rdp_close_internal(csp_conn_t * conn, uint8_t closed_by, bool sen
 	csp_rdp_protocol("RDP %p: csp_rdp_close(0x%x) -> CLOSED\n", (void *)conn, closed_by);
 	conn->rdp.state = RDP_CLOSED;
 	conn->rdp.closed_by = 0;
+
+	csp_rdp_queue_flush(conn);
+
 	return CSP_ERR_NONE;
 }
 
@@ -1019,13 +1031,4 @@ bool csp_rdp_conn_is_active(csp_conn_t *conn) {
 
 	return active;
 
-}
-
-void csp_rdp_queue_flush(csp_conn_t * conn) {
-    csp_spin_lock(&conn->rdp_rx_lock);
-    csp_spin_lock(&conn->rdp_tx_lock);
-    csp_rdp_queue_clear(&conn->rdp_rx_head);
-    csp_rdp_queue_clear(&conn->rdp_tx_head);
-    csp_spin_unlock(&conn->rdp_rx_lock);
-    csp_spin_unlock(&conn->rdp_tx_lock);
 }
