@@ -56,7 +56,6 @@ void csp_conn_init(void) {
 		conn->rx_queue = csp_queue_create_static(CSP_CONN_RXQUEUE_LEN, sizeof(csp_packet_t *), conn->rx_queue_static_data, &conn->rx_queue_static);
 
 #if (CSP_USE_RDP)
-		conn->rdp_rx_lock = 0;
 		conn->rdp_tx_lock = 0;
 		conn->rdp_rx_head = NULL;
 		conn->rdp_tx_head = NULL;

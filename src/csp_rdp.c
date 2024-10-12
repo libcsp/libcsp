@@ -80,9 +80,7 @@ static void csp_rdp_queue_clear(csp_packet_t ** head) {
     *head = NULL;
 }
 
-static void csp_rdp_queue_add(csp_packet_t ** head, atomic_int * lock, csp_packet_t * packet) {
-    csp_spin_lock(lock);
-    
+static void csp_rdp_queue_add(csp_packet_t ** head, csp_packet_t * packet) {
 	if (!*head) {
         *head = packet;
         (*head)->next = NULL;
@@ -94,25 +92,23 @@ static void csp_rdp_queue_add(csp_packet_t ** head, atomic_int * lock, csp_packe
         curr->next = packet;
         curr->next->next = NULL;
     }
-
-    csp_spin_unlock(lock);
 }
 
 static inline void csp_rdp_queue_tx_add(csp_conn_t * conn, csp_packet_t * packet) {
-    csp_rdp_queue_add(&conn->rdp_tx_head, &conn->rdp_tx_lock, packet);
+	csp_spin_lock(&conn->rdp_tx_lock);
+    csp_rdp_queue_add(&conn->rdp_tx_head, packet);
+	csp_spin_unlock(&conn->rdp_tx_lock);
 }
 
 static inline void csp_rdp_queue_rx_add(csp_conn_t * conn, csp_packet_t * packet) {
-    csp_rdp_queue_add(&conn->rdp_rx_head, &conn->rdp_rx_lock, packet);
+    csp_rdp_queue_add(&conn->rdp_rx_head, packet);
 }
 
 static void csp_rdp_queue_flush(csp_conn_t * conn) {
-    csp_spin_lock(&conn->rdp_rx_lock);
     csp_spin_lock(&conn->rdp_tx_lock);
-    csp_rdp_queue_clear(&conn->rdp_rx_head);
     csp_rdp_queue_clear(&conn->rdp_tx_head);
-    csp_spin_unlock(&conn->rdp_rx_lock);
     csp_spin_unlock(&conn->rdp_tx_lock);
+    csp_rdp_queue_clear(&conn->rdp_rx_head);
 }
 
 /**
@@ -276,8 +272,6 @@ static inline int csp_rdp_receive_data(csp_conn_t * conn, csp_packet_t * packet)
 }
 
 static inline void csp_rdp_rx_queue_flush(csp_conn_t * conn) {
-
-    csp_spin_lock(&conn->rdp_rx_lock);
 	csp_packet_t * prev = NULL;
 	csp_packet_t * packet = conn->rdp_rx_head;
     while (packet) {
@@ -313,12 +307,9 @@ static inline void csp_rdp_rx_queue_flush(csp_conn_t * conn) {
 		prev = packet;
 		packet = packet->next;
 	}
-	csp_spin_unlock(&conn->rdp_rx_lock);
 }
 
 static inline bool csp_rdp_seq_in_rx_queue(csp_conn_t * conn, uint16_t seq_nr) {
-
-    csp_spin_lock(&conn->rdp_rx_lock);
 	bool res = false;
 	csp_packet_t * packet = conn->rdp_rx_head;
     while (packet) {
@@ -331,8 +322,6 @@ static inline bool csp_rdp_seq_in_rx_queue(csp_conn_t * conn, uint16_t seq_nr) {
 
 		packet = packet->next;
 	}
-	csp_spin_unlock(&conn->rdp_rx_lock);
-
 	return res;
 }
 

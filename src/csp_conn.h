@@ -75,7 +75,6 @@ struct csp_conn_s {
 #if (CSP_USE_RDP)
 	csp_rdp_t rdp; /* RDP state */
 	
-	atomic_int rdp_rx_lock;     /* 1 (locked), 0 (unlocked) */
 	csp_packet_t * rdp_rx_head;
 
 	atomic_int rdp_tx_lock;     /* 1 (locked), 0 (unlocked) */
