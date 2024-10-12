@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>csp.h &mdash; Cubesat Space Protocol</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
+      <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+      <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.5ea377869091fd0449014c60fc090103.min.css" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
+        <script src="../_static/clipboard.min.js"></script>
+        <script src="../_static/copybutton.js"></script>
+        <script src="../_static/design-tabs.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: rgba(52,49,49,1) 100%;" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Lib CSP
+          </a>
+              <div class="version">
+                develop
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Setup</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../INSTALL.html">How to install LibCSP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../build-doc.html">How to build documentation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">CSP API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/csp_h.html">CSP Library Header</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/csp_types_h.html">CSP Basic Types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/csp_buffer_h.html">CSP Buffer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/csp_cmp_h.html">CSP Management Protocol (CMP)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/csp_sfp_h.html">Small Fragmentation Protocol (SFP)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/csp_promisc_h.html">Promiscuous packet queue</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/csp_interface_h.html">CSP Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/csp_rtable_h.html">Routing table</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/csp_iflist_h.html">Interfaces management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/csp_error_h.html">Error Codes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/csp_debug_h.html">CSP Debug</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/csp_id_h.html">CSP ID</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/csp_crc32_h.html">CRC32 Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/csp_hooks_h.html">CSP Hooks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/csp_yaml_h.html">YAML Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/drivers/drivers.html">Drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/crypto/crypto.html">Crypto</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/interfaces/interfaces.html">Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/arch/arch.html">Architecture dependent</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">The Cubesat Space Protocol</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../basic.html">The basics of CSP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../history.html">History</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../memory.html">How CSP uses memory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mtu.html">Maximum Transfer Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../outflow.html">Outgoing Packet Flow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../protocolstack.html">The Protocol Stack</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../topology.html">Network Topology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tunnel.html">CSP tunnels</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../hooks.html">Hooks in CSP</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Development</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../contributing.html">Contributing to libcsp</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../codestyle.html">Code style</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../git-commit.html">Git Commit Guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../structure.html">Structure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CI.html">Continuous Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Example Usage</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../example.html">Client and server example</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: rgba(52,49,49,1) 100%;" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Lib CSP</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">csp.h</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for csp.h</h1><div class="highlight"><pre>
+<span></span><span class="cm">/*****************************************************************************</span>
+<span class="cm"> * **File:** csp/csp.h</span>
+<span class="cm"> *</span>
+<span class="cm"> * **Description:** CSP Library Header File</span>
+<span class="cm"> ****************************************************************************/</span>
+<span class="cp">#pragma once</span>
+
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;csp/csp_error.h&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;csp/csp_debug.h&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;csp/csp_buffer.h&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;csp/csp_rtable.h&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;csp/csp_iflist.h&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;csp/csp_sfp.h&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;csp/csp_promisc.h&gt;</span>
+
+<span class="cp">#ifdef __cplusplus</span>
+<span class="k">extern</span><span class="w"> </span><span class="s">&quot;C&quot;</span><span class="w"> </span><span class="p">{</span>
+<span class="cp">#endif</span>
+
+<div class="viewcode-block" id="c.CSP_MAX_TIMEOUT"><a class="viewcode-back" href="../api/csp_h.html#c.CSP_MAX_TIMEOUT">[docs]</a><span class="cm">/** Max timeout */</span>
+<span class="cp">#define CSP_MAX_TIMEOUT (UINT32_MAX)</span></div>
+
+<div class="viewcode-block" id="c.CSP_MAX_DELAY"><a class="viewcode-back" href="../api/csp_h.html#c.CSP_MAX_DELAY">[docs]</a><span class="cm">/** Max delay */</span>
+<span class="cp">#define CSP_MAX_DELAY CSP_MAX_TIMEOUT</span></div>
+<div class="viewcode-block" id="c.CSP_INFINITY"><span class="cp">#define CSP_INFINITY CSP_MAX_TIMEOUT</span></div>
+
+
+<div class="viewcode-block" id="c.csp_dedup_types"><a class="viewcode-back" href="../api/csp_h.html#c.csp_dedup_types">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * CSP Debug Types</span>
+<span class="cm"> */</span>
+<span class="k">enum</span><span class="w"> </span><span class="n">csp_dedup_types</span><span class="w"> </span><span class="p">{</span>
+<div class="viewcode-block" id="c.csp_dedup_types.CSP_DEDUP_OFF"><a class="viewcode-back" href="../api/csp_h.html#c.csp_dedup_types.CSP_DEDUP_OFF">[docs]</a><span class="w">   </span><span class="n">CSP_DEDUP_OFF</span><span class="p">,</span><span class="w">              </span><span class="cm">/**&lt; Deduplication off */</span></div>
+<div class="viewcode-block" id="c.csp_dedup_types.CSP_DEDUP_FWD"><a class="viewcode-back" href="../api/csp_h.html#c.csp_dedup_types.CSP_DEDUP_FWD">[docs]</a><span class="w">   </span><span class="n">CSP_DEDUP_FWD</span><span class="p">,</span><span class="w">              </span><span class="cm">/**&lt; Deduplication on forwarding only */</span></div>
+<div class="viewcode-block" id="c.csp_dedup_types.CSP_DEDUP_INCOMING"><a class="viewcode-back" href="../api/csp_h.html#c.csp_dedup_types.CSP_DEDUP_INCOMING">[docs]</a><span class="w">   </span><span class="n">CSP_DEDUP_INCOMING</span><span class="p">,</span><span class="w">         </span><span class="cm">/**&lt; Deduplication on incomfing only */</span></div>
+<div class="viewcode-block" id="c.csp_dedup_types.CSP_DEDUP_ALL"><a class="viewcode-back" href="../api/csp_h.html#c.csp_dedup_types.CSP_DEDUP_ALL">[docs]</a><span class="w">   </span><span class="n">CSP_DEDUP_ALL</span><span class="p">,</span><span class="w">              </span><span class="cm">/**&lt; Deduplication on incoming and forwarding*/</span></div>
+<span class="p">};</span></div>
+
+<div class="viewcode-block" id="c.csp_conf_s"><div class="viewcode-block" id="c.csp_conf_t"><a class="viewcode-back" href="../api/csp_h.html#c.csp_conf_t">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * CSP configuration.</span>
+<span class="cm"> */</span>
+<span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">csp_conf_s</span><span class="w"> </span><span class="p">{</span>
+<div class="viewcode-block" id="c.csp_conf_s.version"><div class="viewcode-block" id="c.csp_conf_t.version"><a class="viewcode-back" href="../api/csp_h.html#c.csp_conf_t.version">[docs]</a><span class="w">   </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">version</span><span class="p">;</span><span class="w">            </span><span class="cm">/**&lt; Protocol version to use (either 1 or 2) */</span></div></div>
+<div class="viewcode-block" id="c.csp_conf_s.hostname"><div class="viewcode-block" id="c.csp_conf_t.hostname"><a class="viewcode-back" href="../api/csp_h.html#c.csp_conf_t.hostname">[docs]</a><span class="w">   </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">hostname</span><span class="p">;</span><span class="w">       </span><span class="cm">/**&lt; Host name, returned by the #CSP_CMP_IDENT request */</span></div></div>
+<div class="viewcode-block" id="c.csp_conf_s.model"><div class="viewcode-block" id="c.csp_conf_t.model"><a class="viewcode-back" href="../api/csp_h.html#c.csp_conf_t.model">[docs]</a><span class="w">   </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">model</span><span class="p">;</span><span class="w">          </span><span class="cm">/**&lt; Model, returned by the #CSP_CMP_IDENT request */</span></div></div>
+<div class="viewcode-block" id="c.csp_conf_s.revision"><div class="viewcode-block" id="c.csp_conf_t.revision"><a class="viewcode-back" href="../api/csp_h.html#c.csp_conf_t.revision">[docs]</a><span class="w">   </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">revision</span><span class="p">;</span><span class="w">       </span><span class="cm">/**&lt; Revision, returned by the #CSP_CMP_IDENT request */</span></div></div>
+<div class="viewcode-block" id="c.csp_conf_s.conn_dfl_so"><div class="viewcode-block" id="c.csp_conf_t.conn_dfl_so"><a class="viewcode-back" href="../api/csp_h.html#c.csp_conf_t.conn_dfl_so">[docs]</a><span class="w">   </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">conn_dfl_so</span><span class="p">;</span><span class="w">       </span><span class="cm">/**&lt; Default connection options. Options will always be or&#39;ed onto new connections, see csp_connect() */</span></div></div>
+<div class="viewcode-block" id="c.csp_conf_s.dedup"><div class="viewcode-block" id="c.csp_conf_t.dedup"><a class="viewcode-back" href="../api/csp_h.html#c.csp_conf_t.dedup">[docs]</a><span class="w">   </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">dedup</span><span class="p">;</span><span class="w">              </span><span class="cm">/**&lt; Enable CSP deduplication. 0 = off, 1 = always on, 2 = only on forwarded packets,  */</span></div></div>
+<span class="p">}</span><span class="w"> </span><span class="n">csp_conf_t</span><span class="p">;</span></div></div>
+
+<div class="viewcode-block" id="c.csp_conf"><span class="k">extern</span><span class="w"> </span><span class="n">csp_conf_t</span><span class="w"> </span><span class="n">csp_conf</span><span class="p">;</span></div>
+
+<div class="viewcode-block" id="c.csp_init"><a class="viewcode-back" href="../api/csp_h.html#c.csp_init">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * Initialize CSP.</span>
+<span class="cm"> * This will configure basic structures.</span>
+<span class="cm"> */</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">csp_init</span><span class="p">(</span><span class="kt">void</span><span class="p">);</span></div>
+
+<div class="viewcode-block" id="c.csp_free_resources"><a class="viewcode-back" href="../api/csp_h.html#c.csp_free_resources">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * Free allocated resorces in CSP.</span>
+<span class="cm"> * This is intended for testing of CSP, in order to be able re-initialize CSP by calling csp_init() again.</span>
+<span class="cm"> */</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">csp_free_resources</span><span class="p">(</span><span class="kt">void</span><span class="p">);</span></div>
+
+<div class="viewcode-block" id="c.csp_get_conf"><a class="viewcode-back" href="../api/csp_h.html#c.csp_get_conf">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * Get a \a read-only reference to the active CSP configuration.</span>
+<span class="cm"> *</span>
+<span class="cm"> * @return Active CSP configuration (read-only).</span>
+<span class="cm"> */</span>
+<span class="k">const</span><span class="w"> </span><span class="n">csp_conf_t</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nf">csp_get_conf</span><span class="p">(</span><span class="kt">void</span><span class="p">);</span></div>
+
+<div class="viewcode-block" id="c.csp_id_copy"><a class="viewcode-back" href="../api/csp_h.html#c.csp_id_copy">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * Copy csp id fields from source to target object</span>
+<span class="cm"> */</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">csp_id_copy</span><span class="p">(</span><span class="n">csp_id_t</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">target</span><span class="p">,</span><span class="w"> </span><span class="n">csp_id_t</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">source</span><span class="p">);</span></div>
+
+<div class="viewcode-block" id="c.csp_id_clear"><span class="cm">/**</span>
+<span class="cm"> * Clear csp id fields after creating new buffer</span>
+<span class="cm"> */</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">csp_id_clear</span><span class="p">(</span><span class="n">csp_id_t</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">target</span><span class="p">);</span></div>
+
+<div class="viewcode-block" id="c.csp_accept"><a class="viewcode-back" href="../api/csp_h.html#c.csp_accept">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * Wait/accept a new connection.</span>
+<span class="cm"> *</span>
+<span class="cm"> * @param[in] socket socket to accept connections on, created by calling csp_socket().</span>
+<span class="cm"> * @param[in] timeout  timeout in mS to wait for a connection, use CSP_MAX_TIMEOUT for infinite timeout.</span>
+<span class="cm"> * @return New connection on success, NULL on failure or timeout.</span>
+<span class="cm"> */</span>
+<span class="n">csp_conn_t</span><span class="w"> </span><span class="o">*</span><span class="nf">csp_accept</span><span class="p">(</span><span class="n">csp_socket_t</span><span class="w"> </span><span class="o">*</span><span class="n">socket</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">timeout</span><span class="p">);</span></div>
+
+<div class="viewcode-block" id="c.csp_read"><a class="viewcode-back" href="../api/csp_h.html#c.csp_read">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * Read packet from a connection.</span>
+<span class="cm"> * This fuction will wait on the connection&#39;s RX queue for the specified timeout.</span>
+<span class="cm"> *</span>
+<span class="cm"> * @param[in] conn  connection</span>
+<span class="cm"> * @param[in] timeout timeout in mS to wait for a packet, use CSP_MAX_TIMEOUT for infinite timeout.</span>
+<span class="cm"> * @return Packet or NULL in case of failure or timeout.</span>
+<span class="cm"> */</span>
+<span class="n">csp_packet_t</span><span class="w"> </span><span class="o">*</span><span class="nf">csp_read</span><span class="p">(</span><span class="n">csp_conn_t</span><span class="w"> </span><span class="o">*</span><span class="n">conn</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">timeout</span><span class="p">);</span></div>
+
+<div class="viewcode-block" id="c.csp_send"><a class="viewcode-back" href="../api/csp_h.html#c.csp_send">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * Send packet on a connection.</span>
+<span class="cm"> * The packet buffer is automatically freed, and cannot be used after the call to csp_send()</span>
+<span class="cm"> *</span>
+<span class="cm"> * @param[in] conn connection</span>
+<span class="cm"> * @param[in] packet packet to send</span>
+<span class="cm">*/</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">csp_send</span><span class="p">(</span><span class="n">csp_conn_t</span><span class="w"> </span><span class="o">*</span><span class="n">conn</span><span class="p">,</span><span class="w"> </span><span class="n">csp_packet_t</span><span class="w"> </span><span class="o">*</span><span class="n">packet</span><span class="p">);</span></div>
+
+<div class="viewcode-block" id="c.csp_send_prio"><a class="viewcode-back" href="../api/csp_h.html#c.csp_send_prio">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * Change the default priority of the connection and send a packet.</span>
+<span class="cm"> *</span>
+<span class="cm"> * .. note:: The priority of the connection will be changed.</span>
+<span class="cm"> *           If you need to change it back, call csp_send_prio() again.</span>
+<span class="cm"> *</span>
+<span class="cm"> * @param[in] prio priority to set on the connection</span>
+<span class="cm"> * @param[in] conn connection</span>
+<span class="cm"> * @param[in] packet packet to send</span>
+<span class="cm"> */</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">csp_send_prio</span><span class="p">(</span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">prio</span><span class="p">,</span><span class="w"> </span><span class="n">csp_conn_t</span><span class="w"> </span><span class="o">*</span><span class="n">conn</span><span class="p">,</span><span class="w"> </span><span class="n">csp_packet_t</span><span class="w"> </span><span class="o">*</span><span class="n">packet</span><span class="p">);</span></div>
+
+<div class="viewcode-block" id="c.csp_transaction_w_opts"><a class="viewcode-back" href="../api/csp_h.html#c.csp_transaction_w_opts">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * Perform an entire request &amp; reply transaction.</span>
+<span class="cm"> * Creates a connection, send \a outbuf, wait for reply, copy reply to \a inbuf and close the connection.</span>
+<span class="cm">*</span>
+<span class="cm">* @param[in] prio priority, see #csp_prio_t</span>
+<span class="cm">* @param[in] dst destination address</span>
+<span class="cm">* @param[in] dst_port destination port</span>
+<span class="cm">* @param[in] timeout timeout in mS to wait for a reply</span>
+<span class="cm">* @param[in] outbuf outgoing data (request)</span>
+<span class="cm">* @param[in] outlen length of data in \a outbuf (request)</span>
+<span class="cm">* @param[out] inbuf user provided buffer for receiving data (reply)</span>
+<span class="cm">* @param[in] inlen length of expected reply, -1 for unknown size (inbuf MUST be large enough), 0 for no reply.</span>
+<span class="cm">* @param[in] opts connection options, see @ref CSP_CONNECTION_OPTIONS.</span>
+<span class="cm">*</span>
+<span class="cm">* Returns:</span>
+<span class="cm">*   int: 1 or reply size on success, 0 on failure (error, incoming length does not match, timeout)</span>
+<span class="cm">*/</span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">csp_transaction_w_opts</span><span class="p">(</span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">prio</span><span class="p">,</span><span class="w"> </span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">dst</span><span class="p">,</span><span class="w"> </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">dst_port</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">timeout</span><span class="p">,</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">outbuf</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">outlen</span><span class="p">,</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">inbuf</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">inlen</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">opts</span><span class="p">);</span></div>
+
+<div class="viewcode-block" id="c.csp_transaction"><a class="viewcode-back" href="../api/csp_h.html#c.csp_transaction">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * Perform an entire request &amp; reply transaction.</span>
+<span class="cm"> * Creates a connection, send \a outbuf, wait for reply, copy reply to \a inbuf and close the connection.</span>
+<span class="cm"> *</span>
+<span class="cm"> * @param[in] prio priority, see #csp_prio_t</span>
+<span class="cm"> * @param[in] dest destination address</span>
+<span class="cm"> * @param[in] port destination port</span>
+<span class="cm"> * @param[in] timeout timeout in mS to wait for a reply</span>
+<span class="cm"> * @param[in] outbuf outgoing data (request)</span>
+<span class="cm"> * @param[in] outlen length of data in \a outbuf (request)</span>
+<span class="cm"> * @param[out] inbuf user provided buffer for receiving data (reply)</span>
+<span class="cm"> * @param[in] inlen length of expected reply, -1 for unknown size (inbuf MUST be large enough), 0 for no reply.</span>
+<span class="cm"> * @return 1 or reply size on success, 0 on failure (error, incoming length does not match, timeout)</span>
+<span class="cm"> */</span>
+<span class="k">static</span><span class="w"> </span><span class="kr">inline</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">csp_transaction</span><span class="p">(</span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">prio</span><span class="p">,</span><span class="w"> </span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">dest</span><span class="p">,</span><span class="w"> </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">port</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">timeout</span><span class="p">,</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">outbuf</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">outlen</span><span class="p">,</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">inbuf</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">inlen</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">   </span><span class="k">return</span><span class="w"> </span><span class="n">csp_transaction_w_opts</span><span class="p">(</span><span class="n">prio</span><span class="p">,</span><span class="w"> </span><span class="n">dest</span><span class="p">,</span><span class="w"> </span><span class="n">port</span><span class="p">,</span><span class="w"> </span><span class="n">timeout</span><span class="p">,</span><span class="w"> </span><span class="n">outbuf</span><span class="p">,</span><span class="w"> </span><span class="n">outlen</span><span class="p">,</span><span class="w"> </span><span class="n">inbuf</span><span class="p">,</span><span class="w"> </span><span class="n">inlen</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
+<span class="p">}</span></div>
+
+<div class="viewcode-block" id="c.csp_transaction_persistent"><a class="viewcode-back" href="../api/csp_h.html#c.csp_transaction_persistent">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * Perform an entire request &amp; reply transaction on an existing connection.</span>
+<span class="cm"> * Send \a outbuf, wait for reply and copy reply to \a inbuf.</span>
+<span class="cm"> *</span>
+<span class="cm"> * @param[in] conn connection</span>
+<span class="cm"> * @param[in] timeout timeout in mS to wait for a reply</span>
+<span class="cm"> * @param[in] outbuf outgoing data (request)</span>
+<span class="cm"> * @param[in] outlen length of data in \a outbuf (request)</span>
+<span class="cm"> * @param[out] inbuf user provided buffer for receiving data (reply)</span>
+<span class="cm"> * @param[in] inlen length of expected reply, -1 for unknown size (inbuf MUST be large enough), 0 for no reply.</span>
+<span class="cm"> * @return 1 or reply size on success, 0 on failure (error, incoming length does not match, timeout)</span>
+<span class="cm"> */</span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">csp_transaction_persistent</span><span class="p">(</span><span class="n">csp_conn_t</span><span class="w"> </span><span class="o">*</span><span class="n">conn</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">timeout</span><span class="p">,</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">outbuf</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">outlen</span><span class="p">,</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">inbuf</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">inlen</span><span class="p">);</span></div>
+
+<div class="viewcode-block" id="c.csp_recvfrom"><a class="viewcode-back" href="../api/csp_h.html#c.csp_recvfrom">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * Read data from a connection-less server socket.</span>
+<span class="cm"> *</span>
+<span class="cm"> * @param[in] socket connection-less socket.</span>
+<span class="cm"> * @param[in] timeout timeout in mS to wait for a packet, use #CSP_MAX_TIMEOUT for infinite timeout.</span>
+<span class="cm"> * @return Packet on success, or NULL on failure or timeout.</span>
+<span class="cm"> */</span>
+<span class="n">csp_packet_t</span><span class="w"> </span><span class="o">*</span><span class="nf">csp_recvfrom</span><span class="p">(</span><span class="n">csp_socket_t</span><span class="w"> </span><span class="o">*</span><span class="n">socket</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">timeout</span><span class="p">);</span></div>
+
+<div class="viewcode-block" id="c.csp_sendto"><a class="viewcode-back" href="../api/csp_h.html#c.csp_sendto">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * Send a packet (without connection).</span>
+<span class="cm"> *</span>
+<span class="cm"> * @param[in] prio packet priority, see #csp_prio_t</span>
+<span class="cm"> * @param[in] dst destination address</span>
+<span class="cm"> * @param[in] dst_port destination port</span>
+<span class="cm"> * @param[in] src_port source port</span>
+<span class="cm"> * @param[in] opts connection options, see @ref CSP_CONNECTION_OPTIONS.</span>
+<span class="cm"> * @param[in] packet packet to send</span>
+<span class="cm"> */</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">csp_sendto</span><span class="p">(</span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">prio</span><span class="p">,</span><span class="w"> </span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">dst</span><span class="p">,</span><span class="w"> </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">dst_port</span><span class="p">,</span><span class="w"> </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">src_port</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">opts</span><span class="p">,</span><span class="w"> </span><span class="n">csp_packet_t</span><span class="w"> </span><span class="o">*</span><span class="n">packet</span><span class="p">);</span></div>
+
+<div class="viewcode-block" id="c.csp_sendto_reply"><a class="viewcode-back" href="../api/csp_h.html#c.csp_sendto_reply">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * Send a packet as a reply to a request (without a connection).</span>
+<span class="cm"> * Calls csp_sendto() with the source address and port from the request.</span>
+<span class="cm"> *</span>
+<span class="cm"> * @param[in] request incoming request</span>
+<span class="cm"> * @param[out] reply reply packet</span>
+<span class="cm"> * @param[in] opts connection options, see @ref CSP_CONNECTION_OPTIONS.</span>
+<span class="cm"> */</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">csp_sendto_reply</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">csp_packet_t</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">request</span><span class="p">,</span><span class="w"> </span><span class="n">csp_packet_t</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">reply</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">opts</span><span class="p">);</span></div>
+
+<div class="viewcode-block" id="c.csp_connect"><a class="viewcode-back" href="../api/csp_h.html#c.csp_connect">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * Establish outgoing connection.</span>
+<span class="cm"> * The call will return immediately, unless it is a RDP connection (#CSP_O_RDP) in which case it will wait until the other</span>
+<span class="cm"> * end acknowleges the connection (timeout is determined by the current connection timeout set by csp_rdp_set_opt()).</span>
+<span class="cm"> *</span>
+<span class="cm"> * @param[in] prio priority, see #csp_prio_t</span>
+<span class="cm"> * @param[in] dst Destination address</span>
+<span class="cm"> * @param[in] dst_port Destination port</span>
+<span class="cm"> * @param[in] timeout unused.</span>
+<span class="cm"> * @param[in] opts connection options, see @ref CSP_CONNECTION_OPTIONS.</span>
+<span class="cm"> * @return Established connection or NULL on failure (no free connections, timeout).</span>
+<span class="cm">*/</span>
+<span class="n">csp_conn_t</span><span class="w"> </span><span class="o">*</span><span class="nf">csp_connect</span><span class="p">(</span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">prio</span><span class="p">,</span><span class="w"> </span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">dst</span><span class="p">,</span><span class="w"> </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">dst_port</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">timeout</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">opts</span><span class="p">);</span></div>
+
+<div class="viewcode-block" id="c.csp_close"><a class="viewcode-back" href="../api/csp_h.html#c.csp_close">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * Close an open connection.</span>
+<span class="cm"> * Any packets in the RX queue will be freed.</span>
+<span class="cm"> *</span>
+<span class="cm"> * @param[in] conn connection. Closing a NULL connection is acceptable.</span>
+<span class="cm"> * @return #CSP_ERR_NONE on success, otherwise an error code.</span>
+<span class="cm"> */</span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">csp_close</span><span class="p">(</span><span class="n">csp_conn_t</span><span class="w"> </span><span class="o">*</span><span class="n">conn</span><span class="p">);</span></div>
+
+<div class="viewcode-block" id="c.csp_socket_close"><a class="viewcode-back" href="../api/csp_h.html#c.csp_socket_close">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * Close a socket, freeing it&#39;s RX queue and unbinding it from the associated</span>
+<span class="cm"> * port.</span>
+<span class="cm"> *</span>
+<span class="cm"> * @param[in] sock Socket</span>
+<span class="cm"> * @return #CSP_ERR_NONE on success, otherwise an error code.</span>
+<span class="cm"> */</span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">csp_socket_close</span><span class="p">(</span><span class="n">csp_socket_t</span><span class="o">*</span><span class="w"> </span><span class="n">sock</span><span class="p">);</span></div>
+
+<div class="viewcode-block" id="c.csp_conn_dport"><a class="viewcode-back" href="../api/csp_h.html#c.csp_conn_dport">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * Return destination port of connection.</span>
+<span class="cm"> *</span>
+<span class="cm"> * @param[in] conn connection</span>
+<span class="cm"> * @return destination port of an incoming connection</span>
+<span class="cm"> */</span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">csp_conn_dport</span><span class="p">(</span><span class="n">csp_conn_t</span><span class="w"> </span><span class="o">*</span><span class="n">conn</span><span class="p">);</span></div>
+
+<div class="viewcode-block" id="c.csp_conn_sport"><a class="viewcode-back" href="../api/csp_h.html#c.csp_conn_sport">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * Return source port of connection.</span>
+<span class="cm"> *</span>
+<span class="cm"> * @param[in] conn connection</span>
+<span class="cm"> * @return source port of an incoming connection</span>
+<span class="cm"> */</span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">csp_conn_sport</span><span class="p">(</span><span class="n">csp_conn_t</span><span class="w"> </span><span class="o">*</span><span class="n">conn</span><span class="p">);</span></div>
+
+<div class="viewcode-block" id="c.csp_conn_dst"><a class="viewcode-back" href="../api/csp_h.html#c.csp_conn_dst">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * Return destination address of connection.</span>
+<span class="cm"> *</span>
+<span class="cm"> * @param[in] conn connection</span>
+<span class="cm"> * @return destination address of an incoming connection</span>
+<span class="cm"> */</span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">csp_conn_dst</span><span class="p">(</span><span class="n">csp_conn_t</span><span class="w"> </span><span class="o">*</span><span class="n">conn</span><span class="p">);</span></div>
+
+<div class="viewcode-block" id="c.csp_conn_src"><a class="viewcode-back" href="../api/csp_h.html#c.csp_conn_src">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * Return source address of connection.</span>
+<span class="cm"> *</span>
+<span class="cm"> * @param[in] conn connection</span>
+<span class="cm"> * @return source address of an incoming connection</span>
+<span class="cm"> */</span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">csp_conn_src</span><span class="p">(</span><span class="n">csp_conn_t</span><span class="w"> </span><span class="o">*</span><span class="n">conn</span><span class="p">);</span></div>
+
+<div class="viewcode-block" id="c.csp_conn_flags"><a class="viewcode-back" href="../api/csp_h.html#c.csp_conn_flags">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * Return flags of connection.</span>
+<span class="cm"> *</span>
+<span class="cm"> * @param[in] conn connection</span>
+<span class="cm"> * @return flags of an incoming connection, see @ref CSP_HEADER_FLAGS</span>
+<span class="cm"> */</span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">csp_conn_flags</span><span class="p">(</span><span class="n">csp_conn_t</span><span class="w"> </span><span class="o">*</span><span class="n">conn</span><span class="p">);</span></div>
+
+<div class="viewcode-block" id="c.csp_conn_is_active"><span class="cm">/**</span>
+<span class="cm"> * Return if the CSP connection is active</span>
+<span class="cm"> * </span>
+<span class="cm"> * Active in this context means if the protocol layers is connected and no time outs has happened.</span>
+<span class="cm"> * Especially if a connection is marked as a RDP connection, the active state means that the</span>
+<span class="cm"> * RDP layers are connected and no time outs have happened. If the RDP layer has a connection timeout</span>
+<span class="cm"> * or of the connection is closing, the connection is inactive, and ready to be closed.</span>
+<span class="cm"> * </span>
+<span class="cm"> * @param conn connection</span>
+<span class="cm"> * @return true if the connection is active</span>
+<span class="cm"> * @return false if the connection is in-active</span>
+<span class="cm"> */</span>
+<span class="kt">bool</span><span class="w"> </span><span class="nf">csp_conn_is_active</span><span class="p">(</span><span class="n">csp_conn_t</span><span class="w"> </span><span class="o">*</span><span class="n">conn</span><span class="p">);</span></div>
+
+<div class="viewcode-block" id="c.csp_listen"><a class="viewcode-back" href="../api/csp_h.html#c.csp_listen">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * Set socket to listen for incoming connections.</span>
+<span class="cm"> *</span>
+<span class="cm"> * @param[in] socket socket</span>
+<span class="cm"> * @param[in] backlog max length of backlog queue. The backlog queue holds incoming connections, waiting to be returned by call to csp_accept().</span>
+<span class="cm"> * @return #CSP_ERR_NONE on success, otherwise an error code.</span>
+<span class="cm">*/</span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">csp_listen</span><span class="p">(</span><span class="n">csp_socket_t</span><span class="w"> </span><span class="o">*</span><span class="n">socket</span><span class="p">,</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="n">backlog</span><span class="p">);</span></div>
+
+<div class="viewcode-block" id="c.csp_bind"><a class="viewcode-back" href="../api/csp_h.html#c.csp_bind">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * Bind port to socket.</span>
+<span class="cm"> *</span>
+<span class="cm"> * @param[in] socket socket to bind port to</span>
+<span class="cm"> * @param[in] port port number to bind, use #CSP_ANY for all ports. Binding to a specific will take precedence over #CSP_ANY.</span>
+<span class="cm"> * @return #CSP_ERR_NONE on success, otherwise an error code.</span>
+<span class="cm"> */</span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">csp_bind</span><span class="p">(</span><span class="n">csp_socket_t</span><span class="w"> </span><span class="o">*</span><span class="n">socket</span><span class="p">,</span><span class="w"> </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">port</span><span class="p">);</span></div>
+
+
+<div class="viewcode-block" id="c.csp_bind_callback"><a class="viewcode-back" href="../api/csp_h.html#c.csp_bind_callback">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * Bind port to callback function.</span>
+<span class="cm"> *</span>
+<span class="cm"> * @param[in] callback pointer to callback function</span>
+<span class="cm"> * @param[in] port port number to bind, use #CSP_ANY for all ports. Binding to a specific will take precedence over #CSP_ANY.</span>
+<span class="cm"> * @return #CSP_ERR_NONE on success, otherwise an error code.</span>
+<span class="cm"> */</span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">csp_bind_callback</span><span class="p">(</span><span class="n">csp_callback_t</span><span class="w"> </span><span class="n">callback</span><span class="p">,</span><span class="w"> </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">port</span><span class="p">);</span></div>
+
+<div class="viewcode-block" id="c.csp_route_work"><a class="viewcode-back" href="../api/csp_h.html#c.csp_route_work">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * Route packet from the incoming router queue and check RDP timeouts.</span>
+<span class="cm"> * In order for incoming packets to routed and RDP timeouts to be checked, this function must be called reguarly.</span>
+<span class="cm"> * @return #CSP_ERR_NONE on success, otherwise an error code.</span>
+<span class="cm"> */</span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">csp_route_work</span><span class="p">(</span><span class="kt">void</span><span class="p">);</span></div>
+
+<div class="viewcode-block" id="c.csp_bridge_set_interfaces"><a class="viewcode-back" href="../api/csp_h.html#c.csp_bridge_set_interfaces">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * Set the bridge interfaces.</span>
+<span class="cm"> *</span>
+<span class="cm"> * @param[in] if_a CSP Interface `A`</span>
+<span class="cm"> * @param[in] if_b CSP Interface `B`</span>
+<span class="cm"> */</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">csp_bridge_set_interfaces</span><span class="p">(</span><span class="n">csp_iface_t</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">if_a</span><span class="p">,</span><span class="w"> </span><span class="n">csp_iface_t</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">if_b</span><span class="p">);</span></div>
+
+<div class="viewcode-block" id="c.csp_bridge_work"><a class="viewcode-back" href="../api/csp_h.html#c.csp_bridge_work">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * Bridge packet from an interface to the other.</span>
+<span class="cm"> */</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">csp_bridge_work</span><span class="p">(</span><span class="kt">void</span><span class="p">);</span></div>
+
+<div class="viewcode-block" id="c.csp_service_handler"><a class="viewcode-back" href="../api/csp_h.html#c.csp_service_handler">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * Handle CSP service request.</span>
+<span class="cm"> * If the given packet is a service-request (the destination port matches one of CSP service ports #csp_service_port_t),</span>
+<span class="cm"> * the packet will be processed by the specific CSP service handler.</span>
+<span class="cm"> * The packet will either process it or free it, so this function is typically called in the last &quot;default&quot; clause of</span>
+<span class="cm"> * a switch/case statement in a CSP listener task.</span>
+<span class="cm"> * In order to listen to csp service ports, bind your listener to the specific services ports #csp_service_port_t or</span>
+<span class="cm"> * use #CSP_ANY to all ports.</span>
+<span class="cm"> *</span>
+<span class="cm"> * @param[in] packet first packet, obtained by using csp_read()</span>
+<span class="cm"> */</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">csp_service_handler</span><span class="p">(</span><span class="n">csp_packet_t</span><span class="w"> </span><span class="o">*</span><span class="n">packet</span><span class="p">);</span></div>
+
+<div class="viewcode-block" id="c.csp_ping"><a class="viewcode-back" href="../api/csp_h.html#c.csp_ping">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * Send a single ping/echo packet.</span>
+<span class="cm"> *</span>
+<span class="cm"> * @param[in] node address of subsystem.</span>
+<span class="cm"> * @param[in] timeout timeout in ms to wait for reply.</span>
+<span class="cm"> * @param[in] size payload size in bytes.</span>
+<span class="cm"> * @param[in] opts connection options, see @ref CSP_CONNECTION_OPTIONS.</span>
+<span class="cm"> * @return &gt;=0 echo time in mS on success, otherwise -1 for error.</span>
+<span class="cm"> */</span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">csp_ping</span><span class="p">(</span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">node</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">timeout</span><span class="p">,</span><span class="w"> </span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">size</span><span class="p">,</span><span class="w"> </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">opts</span><span class="p">);</span></div>
+
+<div class="viewcode-block" id="c.csp_ping_noreply"><a class="viewcode-back" href="../api/csp_h.html#c.csp_ping_noreply">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * Send a single ping/echo packet without waiting for reply.</span>
+<span class="cm"> * Payload is 1 byte.</span>
+<span class="cm"> *</span>
+<span class="cm"> * @param[in] node address of subsystem.</span>
+<span class="cm"> */</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">csp_ping_noreply</span><span class="p">(</span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">node</span><span class="p">);</span></div>
+
+<div class="viewcode-block" id="c.csp_ps"><a class="viewcode-back" href="../api/csp_h.html#c.csp_ps">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * Request process list.</span>
+<span class="cm"> *</span>
+<span class="cm"> * .. note:: This is currently only supported on FreeRTOS systems.</span>
+<span class="cm"> *</span>
+<span class="cm"> * @param[in] node address of subsystem.</span>
+<span class="cm"> * @param[in] timeout timeout in mS to wait for replies. The function will not return until the timeout occurrs.</span>
+<span class="cm"> */</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">csp_ps</span><span class="p">(</span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">node</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">timeout</span><span class="p">);</span></div>
+
+<div class="viewcode-block" id="c.csp_get_memfree"><a class="viewcode-back" href="../api/csp_h.html#c.csp_get_memfree">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * Request free memory.</span>
+<span class="cm"> *</span>
+<span class="cm"> * @param[in] node address of subsystem.</span>
+<span class="cm"> * @param[in] timeout timeout in mS to wait for reply.</span>
+<span class="cm"> * @param[out] size free memory on subsystem.</span>
+<span class="cm"> * @return #CSP_ERR_NONE on success, otherwise an error code.</span>
+<span class="cm"> */</span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">csp_get_memfree</span><span class="p">(</span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">node</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">timeout</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">size</span><span class="p">);</span></div>
+
+<div class="viewcode-block" id="c.csp_memfree"><a class="viewcode-back" href="../api/csp_h.html#c.csp_memfree">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * Request free memory and print to stdout.</span>
+<span class="cm"> *</span>
+<span class="cm"> * @param[in] node address of subsystem.</span>
+<span class="cm"> * @param[in] timeout timeout in mS to wait for reply.</span>
+<span class="cm"> */</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">csp_memfree</span><span class="p">(</span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">node</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">timeout</span><span class="p">);</span></div>
+
+<div class="viewcode-block" id="c.csp_get_buf_free"><a class="viewcode-back" href="../api/csp_h.html#c.csp_get_buf_free">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * Request free buffers.</span>
+<span class="cm"> *</span>
+<span class="cm"> * @param[in] node address of subsystem.</span>
+<span class="cm"> * @param[in] timeout timeout in mS to wait for reply.</span>
+<span class="cm"> * @param[out] size free buffers.</span>
+<span class="cm"> * @return #CSP_ERR_NONE on success, otherwise an error code.</span>
+<span class="cm"> */</span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">csp_get_buf_free</span><span class="p">(</span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">node</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">timeout</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">size</span><span class="p">);</span></div>
+
+<div class="viewcode-block" id="c.csp_buf_free"><a class="viewcode-back" href="../api/csp_h.html#c.csp_buf_free">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * Request free buffers and print to stdout.</span>
+<span class="cm"> *</span>
+<span class="cm"> * @param[in] node address of subsystem.</span>
+<span class="cm"> * @param[in] timeout timeout in mS to wait for reply.</span>
+<span class="cm"> */</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">csp_buf_free</span><span class="p">(</span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">node</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">timeout</span><span class="p">);</span></div>
+
+<div class="viewcode-block" id="c.csp_reboot"><a class="viewcode-back" href="../api/csp_h.html#c.csp_reboot">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * Reboot subsystem.</span>
+<span class="cm"> * If handled by the standard CSP service handler, the reboot handler set by csp_sys_set_reboot() on the subsystem, will be invoked.</span>
+<span class="cm"> *</span>
+<span class="cm"> * @param[in] node address of subsystem.</span>
+<span class="cm"> *</span>
+<span class="cm"> */</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">csp_reboot</span><span class="p">(</span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">node</span><span class="p">);</span></div>
+
+<div class="viewcode-block" id="c.csp_shutdown"><a class="viewcode-back" href="../api/csp_h.html#c.csp_shutdown">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * Shutdown subsystem.</span>
+<span class="cm"> * If handled by the standard CSP service handler, the shutdown handler set by csp_sys_set_shutdown() on the subsystem, will be invoked.</span>
+<span class="cm"> *</span>
+<span class="cm"> * @param[in] node address of subsystem.</span>
+<span class="cm"> *</span>
+<span class="cm"> */</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">csp_shutdown</span><span class="p">(</span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">node</span><span class="p">);</span></div>
+
+<div class="viewcode-block" id="c.csp_uptime"><a class="viewcode-back" href="../api/csp_h.html#c.csp_uptime">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * Request uptime and print to stdout.</span>
+<span class="cm"> *</span>
+<span class="cm"> * @param[in] node address of subsystem.</span>
+<span class="cm"> * @param[in] timeout timeout in mS to wait for reply.</span>
+<span class="cm"> *</span>
+<span class="cm"> */</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">csp_uptime</span><span class="p">(</span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">node</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">timeout</span><span class="p">);</span></div>
+
+<div class="viewcode-block" id="c.csp_get_uptime"><a class="viewcode-back" href="../api/csp_h.html#c.csp_get_uptime">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * Request uptime</span>
+<span class="cm"> *</span>
+<span class="cm"> * @param[in] node address of subsystem.</span>
+<span class="cm"> * @param[in] timeout timeout in mS to wait for reply.</span>
+<span class="cm"> * @param[out] uptime uptime in seconds.</span>
+<span class="cm"> * @return #CSP_ERR_NONE on success, otherwise an error code.</span>
+<span class="cm"> */</span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">csp_get_uptime</span><span class="p">(</span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">node</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">timeout</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">uptime</span><span class="p">);</span></div>
+
+<div class="viewcode-block" id="c.csp_rdp_set_opt"><a class="viewcode-back" href="../api/csp_h.html#c.csp_rdp_set_opt">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * Set RDP options.</span>
+<span class="cm"> * The RDP options are used from the connecting/client side. When a RDP connection</span>
+<span class="cm"> * is established, the client tranmits the options to the server.</span>
+<span class="cm"> *</span>
+<span class="cm"> * @param[in] window_size window size</span>
+<span class="cm"> * @param[in] conn_timeout_ms connection timeout in mS</span>
+<span class="cm"> * @param[in] packet_timeout_ms packet timeout in mS.</span>
+<span class="cm"> * @param[in] delayed_acks enable/disable delayed acknowledgements.</span>
+<span class="cm"> * @param[in] ack_timeout acknowledgement timeout when delayed ACKs is enabled</span>
+<span class="cm"> * @param[in] ack_delay_count send acknowledgement for every ack_delay_count packets.</span>
+<span class="cm"> *</span>
+<span class="cm"> */</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">csp_rdp_set_opt</span><span class="p">(</span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">window_size</span><span class="p">,</span><span class="w"> </span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">conn_timeout_ms</span><span class="p">,</span>
+<span class="w">	  </span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">packet_timeout_ms</span><span class="p">,</span><span class="w"> </span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">delayed_acks</span><span class="p">,</span>
+<span class="w">	  </span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">ack_timeout</span><span class="p">,</span><span class="w"> </span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">ack_delay_count</span><span class="p">);</span></div>
+
+<div class="viewcode-block" id="c.csp_rdp_get_opt"><a class="viewcode-back" href="../api/csp_h.html#c.csp_rdp_get_opt">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * Get RDP options. @see csp_rdp_set_opt()</span>
+<span class="cm"> *</span>
+<span class="cm"> * @param[out] window_size Window size</span>
+<span class="cm"> * @param[out] conn_timeout_ms connection timeout in ms</span>
+<span class="cm"> * @param[out] packet_timeout_ms packet timeout in ms</span>
+<span class="cm"> * @param[out] delayed_acks enable/disable delayed acknowledgements</span>
+<span class="cm"> * @param[out] ack_timeout acknowledgement timeout when delayed ACKs is enabled</span>
+<span class="cm"> * @param[out] ack_delay_count send acknowledgement for every ack_delay_count packets</span>
+<span class="cm"> */</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">csp_rdp_get_opt</span><span class="p">(</span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="o">*</span><span class="n">window_size</span><span class="p">,</span><span class="w"> </span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="o">*</span><span class="n">conn_timeout_ms</span><span class="p">,</span>
+<span class="w">	  </span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="o">*</span><span class="n">packet_timeout_ms</span><span class="p">,</span><span class="w"> </span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="o">*</span><span class="n">delayed_acks</span><span class="p">,</span>
+<span class="w">	  </span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="o">*</span><span class="n">ack_timeout</span><span class="p">,</span><span class="w"> </span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="o">*</span><span class="n">ack_delay_count</span><span class="p">);</span></div>
+
+<div class="viewcode-block" id="c.csp_cmp_set_memcpy"><a class="viewcode-back" href="../api/csp_h.html#c.csp_cmp_set_memcpy">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * Set platform specific memory copy function.</span>
+<span class="cm"> */</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">csp_cmp_set_memcpy</span><span class="p">(</span><span class="n">csp_memcpy_fnc_t</span><span class="w"> </span><span class="n">fnc</span><span class="p">);</span></div>
+
+<span class="cp">#if (CSP_ENABLE_CSP_PRINT)</span>
+
+<span class="cm">/**</span>
+<span class="cm"> * Print connection table to stdout.</span>
+<span class="cm"> */</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">csp_conn_print_table</span><span class="p">(</span><span class="kt">void</span><span class="p">);</span>
+
+<span class="cm">/**</span>
+<span class="cm"> * Hex dump memory to stdout.</span>
+<span class="cm"> *</span>
+<span class="cm"> * @param[in] desc description printed on first line.</span>
+<span class="cm"> * @param[in] addr memory address.</span>
+<span class="cm"> * @param[in] len number of bytes to dump, starting from \a addr.</span>
+<span class="cm"> *</span>
+<span class="cm"> */</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">csp_hex_dump</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">desc</span><span class="p">,</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">addr</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">len</span><span class="p">);</span>
+
+<span class="cp">#else</span>
+
+<div class="viewcode-block" id="c.csp_conn_print_table"><a class="viewcode-back" href="../api/csp_h.html#c.csp_conn_print_table">[docs]</a><span class="kr">inline</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">csp_conn_print_table</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="w"> </span><span class="p">{}</span></div>
+<div class="viewcode-block" id="c.csp_hex_dump"><a class="viewcode-back" href="../api/csp_h.html#c.csp_hex_dump">[docs]</a><span class="kr">inline</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">csp_hex_dump</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">desc</span><span class="p">,</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">addr</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">len</span><span class="p">)</span><span class="w"> </span><span class="p">{}</span></div>
+
+<span class="cp">#endif</span>
+
+<span class="cp">#if (CSP_HAVE_STDIO)</span>
+<span class="cm">/**</span>
+<span class="cm"> * Print connection table to string.</span>
+<span class="cm"> */</span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">csp_conn_print_table_str</span><span class="p">(</span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">str_buf</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">str_size</span><span class="p">);</span>
+<span class="cp">#else</span>
+<div class="viewcode-block" id="c.csp_conn_print_table_str"><a class="viewcode-back" href="../api/csp_h.html#c.csp_conn_print_table_str">[docs]</a><span class="kr">inline</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">csp_conn_print_table_str</span><span class="p">(</span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">str_buf</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">str_size</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">   </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">str_buf</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="nb">NULL</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">str_size</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">	  </span><span class="n">str_buf</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="sc">&#39;\0&#39;</span><span class="p">;</span>
+<span class="w">   </span><span class="p">}</span>
+
+<span class="w">   </span><span class="k">return</span><span class="w"> </span><span class="n">CSP_ERR_NONE</span><span class="p">;</span>
+<span class="p">}</span></div>
+<span class="cp">#endif</span>
+
+<span class="cp">#ifdef __cplusplus</span>
+<span class="p">}</span>
+<span class="cp">#endif</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

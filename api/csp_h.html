@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CSP Library Header &mdash; Cubesat Space Protocol</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
+      <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+      <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.5ea377869091fd0449014c60fc090103.min.css" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
+        <script src="../_static/clipboard.min.js"></script>
+        <script src="../_static/copybutton.js"></script>
+        <script src="../_static/design-tabs.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="CSP Basic Types" href="csp_types_h.html" />
+    <link rel="prev" title="How to build documentation" href="../build-doc.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: rgba(52,49,49,1) 100%;" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Lib CSP
+          </a>
+              <div class="version">
+                develop
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Setup</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../INSTALL.html">How to install LibCSP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../build-doc.html">How to build documentation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">CSP API</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">CSP Library Header</a></li>
+<li class="toctree-l1"><a class="reference internal" href="csp_types_h.html">CSP Basic Types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="csp_buffer_h.html">CSP Buffer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="csp_cmp_h.html">CSP Management Protocol (CMP)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="csp_sfp_h.html">Small Fragmentation Protocol (SFP)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="csp_promisc_h.html">Promiscuous packet queue</a></li>
+<li class="toctree-l1"><a class="reference internal" href="csp_interface_h.html">CSP Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="csp_rtable_h.html">Routing table</a></li>
+<li class="toctree-l1"><a class="reference internal" href="csp_iflist_h.html">Interfaces management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="csp_error_h.html">Error Codes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="csp_debug_h.html">CSP Debug</a></li>
+<li class="toctree-l1"><a class="reference internal" href="csp_id_h.html">CSP ID</a></li>
+<li class="toctree-l1"><a class="reference internal" href="csp_crc32_h.html">CRC32 Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="csp_hooks_h.html">CSP Hooks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="csp_yaml_h.html">YAML Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="drivers/drivers.html">Drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="crypto/crypto.html">Crypto</a></li>
+<li class="toctree-l1"><a class="reference internal" href="interfaces/interfaces.html">Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="arch/arch.html">Architecture dependent</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">The Cubesat Space Protocol</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../basic.html">The basics of CSP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../history.html">History</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../memory.html">How CSP uses memory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mtu.html">Maximum Transfer Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../outflow.html">Outgoing Packet Flow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../protocolstack.html">The Protocol Stack</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../topology.html">Network Topology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tunnel.html">CSP tunnels</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../hooks.html">Hooks in CSP</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Development</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../contributing.html">Contributing to libcsp</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../codestyle.html">Code style</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../git-commit.html">Git Commit Guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../structure.html">Structure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CI.html">Continuous Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Example Usage</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../example.html">Client and server example</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: rgba(52,49,49,1) 100%;" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Lib CSP</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">CSP Library Header</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="csp-library-header">
+<h1><a class="toc-backref" href="#id1" role="doc-backlink">CSP Library Header</a><a class="headerlink" href="#csp-library-header" title="Permalink to this heading"></a></h1>
+<p><strong>File:</strong> csp/csp.h</p>
+<p><strong>Description:</strong> CSP Library Header File</p>
+<nav class="contents" id="contents">
+<p class="topic-title">Contents</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#csp-library-header" id="id1">CSP Library Header</a></p>
+<ul>
+<li><p><a class="reference internal" href="#defines" id="id2">Defines</a></p></li>
+<li><p><a class="reference internal" href="#typedefs" id="id3">Typedefs</a></p></li>
+<li><p><a class="reference internal" href="#interface-functions" id="id4">Interface Functions</a></p></li>
+</ul>
+</li>
+</ul>
+</nav>
+<section id="defines">
+<h2><a class="toc-backref" href="#id2" role="doc-backlink">Defines</a><a class="headerlink" href="#defines" title="Permalink to this heading"></a></h2>
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.CSP_MAX_TIMEOUT">
+<span class="sig-name descname"><span class="n"><span class="pre">CSP_MAX_TIMEOUT</span></span></span><a class="headerlink" href="#c.CSP_MAX_TIMEOUT" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp.h.html#c.CSP_MAX_TIMEOUT"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Max timeout</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.CSP_MAX_DELAY">
+<span class="sig-name descname"><span class="n"><span class="pre">CSP_MAX_DELAY</span></span></span><a class="headerlink" href="#c.CSP_MAX_DELAY" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp.h.html#c.CSP_MAX_DELAY"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Max delay</p>
+</dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.csp_dedup_types">
+<span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">csp_dedup_types</span></span></span><a class="headerlink" href="#c.csp_dedup_types" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp.h.html#c.csp_dedup_types"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>CSP Debug Types</p>
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.csp_dedup_types.CSP_DEDUP_ALL">
+<span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CSP_DEDUP_ALL</span></span></span><a class="headerlink" href="#c.csp_dedup_types.CSP_DEDUP_ALL" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp.h.html#c.csp_dedup_types.CSP_DEDUP_ALL"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Deduplication on incoming and forwarding</p>
+</dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.csp_dedup_types.CSP_DEDUP_FWD">
+<span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CSP_DEDUP_FWD</span></span></span><a class="headerlink" href="#c.csp_dedup_types.CSP_DEDUP_FWD" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp.h.html#c.csp_dedup_types.CSP_DEDUP_FWD"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Deduplication on forwarding only</p>
+</dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.csp_dedup_types.CSP_DEDUP_INCOMING">
+<span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CSP_DEDUP_INCOMING</span></span></span><a class="headerlink" href="#c.csp_dedup_types.CSP_DEDUP_INCOMING" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp.h.html#c.csp_dedup_types.CSP_DEDUP_INCOMING"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Deduplication on incomfing only</p>
+</dd></dl>
+
+<dl class="c enumerator">
+<dt class="sig sig-object c" id="c.csp_dedup_types.CSP_DEDUP_OFF">
+<span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CSP_DEDUP_OFF</span></span></span><a class="headerlink" href="#c.csp_dedup_types.CSP_DEDUP_OFF" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp.h.html#c.csp_dedup_types.CSP_DEDUP_OFF"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Deduplication off</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="typedefs">
+<h2><a class="toc-backref" href="#id3" role="doc-backlink">Typedefs</a><a class="headerlink" href="#typedefs" title="Permalink to this heading"></a></h2>
+<dl class="c type">
+<dt class="sig sig-object c" id="c.csp_conf_t">
+<span class="k"><span class="pre">type</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">csp_conf_t</span></span></span><a class="headerlink" href="#c.csp_conf_t" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp.h.html#c.csp_conf_t"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>CSP configuration.</p>
+<dl class="c member">
+<dt class="sig sig-object c" id="c.csp_conf_t.conn_dfl_so">
+<span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">conn_dfl_so</span></span></span><a class="headerlink" href="#c.csp_conf_t.conn_dfl_so" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp.h.html#c.csp_conf_t.conn_dfl_so"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Default connection options. Options will always be or’ed onto new connections, see csp_connect()</p>
+</dd></dl>
+
+<dl class="c member">
+<dt class="sig sig-object c" id="c.csp_conf_t.dedup">
+<span class="n"><span class="pre">uint8_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">dedup</span></span></span><a class="headerlink" href="#c.csp_conf_t.dedup" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp.h.html#c.csp_conf_t.dedup"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Enable CSP deduplication. 0 = off, 1 = always on, 2 = only on forwarded packets,</p>
+</dd></dl>
+
+<dl class="c member">
+<dt class="sig sig-object c" id="c.csp_conf_t.hostname">
+<span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">hostname</span></span></span><a class="headerlink" href="#c.csp_conf_t.hostname" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp.h.html#c.csp_conf_t.hostname"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Host name, returned by the #CSP_CMP_IDENT request</p>
+</dd></dl>
+
+<dl class="c member">
+<dt class="sig sig-object c" id="c.csp_conf_t.model">
+<span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">model</span></span></span><a class="headerlink" href="#c.csp_conf_t.model" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp.h.html#c.csp_conf_t.model"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Model, returned by the #CSP_CMP_IDENT request</p>
+</dd></dl>
+
+<dl class="c member">
+<dt class="sig sig-object c" id="c.csp_conf_t.revision">
+<span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">revision</span></span></span><a class="headerlink" href="#c.csp_conf_t.revision" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp.h.html#c.csp_conf_t.revision"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Revision, returned by the #CSP_CMP_IDENT request</p>
+</dd></dl>
+
+<dl class="c member">
+<dt class="sig sig-object c" id="c.csp_conf_t.version">
+<span class="n"><span class="pre">uint8_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">version</span></span></span><a class="headerlink" href="#c.csp_conf_t.version" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp.h.html#c.csp_conf_t.version"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Protocol version to use (either 1 or 2)</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="interface-functions">
+<h2><a class="toc-backref" href="#id4" role="doc-backlink">Interface Functions</a><a class="headerlink" href="#interface-functions" title="Permalink to this heading"></a></h2>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.csp_init">
+<span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">csp_init</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.csp_init" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp.h.html#c.csp_init"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Initialize CSP.
+This will configure basic structures.</p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.csp_free_resources">
+<span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">csp_free_resources</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.csp_free_resources" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp.h.html#c.csp_free_resources"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Free allocated resorces in CSP.
+This is intended for testing of CSP, in order to be able re-initialize CSP by calling csp_init() again.</p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.csp_get_conf">
+<span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#c.csp_conf_t" title="csp_conf_t"><span class="n"><span class="pre">csp_conf_t</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">csp_get_conf</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.csp_get_conf" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp.h.html#c.csp_get_conf"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Get a read-only reference to the active CSP configuration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Active CSP configuration (read-only).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.csp_id_copy">
+<span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">csp_id_copy</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="csp_types_h.html#c.csp_id_t" title="csp_id_t"><span class="n"><span class="pre">csp_id_t</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">target</span></span>, <a class="reference internal" href="csp_types_h.html#c.csp_id_t" title="csp_id_t"><span class="n"><span class="pre">csp_id_t</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">source</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.csp_id_copy" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp.h.html#c.csp_id_copy"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Copy csp id fields from source to target object</p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.csp_accept">
+<a class="reference internal" href="csp_types_h.html#c.csp_conn_t" title="csp_conn_t"><span class="n"><span class="pre">csp_conn_t</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">csp_accept</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="csp_types_h.html#c.csp_socket_t" title="csp_socket_t"><span class="n"><span class="pre">csp_socket_t</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">socket</span></span>, <span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n"><span class="pre">timeout</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.csp_accept" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp.h.html#c.csp_accept"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Wait/accept a new connection.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>socket</strong> – socket to accept connections on, created by calling csp_socket().</p></li>
+<li><p><strong>timeout</strong> – timeout in mS to wait for a connection, use CSP_MAX_TIMEOUT for infinite timeout.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>New connection on success, NULL on failure or timeout.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.csp_read">
+<a class="reference internal" href="csp_types_h.html#c.csp_packet_t" title="csp_packet_t"><span class="n"><span class="pre">csp_packet_t</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">csp_read</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="csp_types_h.html#c.csp_conn_t" title="csp_conn_t"><span class="n"><span class="pre">csp_conn_t</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">conn</span></span>, <span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n"><span class="pre">timeout</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.csp_read" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp.h.html#c.csp_read"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Read packet from a connection. This fuction will wait on the connection’s RX queue for the specified timeout.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>conn</strong> – connection</p></li>
+<li><p><strong>timeout</strong> – timeout in mS to wait for a packet, use CSP_MAX_TIMEOUT for infinite timeout.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Packet or NULL in case of failure or timeout.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.csp_send">
+<span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">csp_send</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="csp_types_h.html#c.csp_conn_t" title="csp_conn_t"><span class="n"><span class="pre">csp_conn_t</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">conn</span></span>, <a class="reference internal" href="csp_types_h.html#c.csp_packet_t" title="csp_packet_t"><span class="n"><span class="pre">csp_packet_t</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">packet</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.csp_send" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp.h.html#c.csp_send"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Send packet on a connection. The packet buffer is automatically freed, and cannot be used after the call to csp_send()</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>conn</strong> – connection</p></li>
+<li><p><strong>packet</strong> – packet to send</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.csp_send_prio">
+<span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">csp_send_prio</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">uint8_t</span></span><span class="w"> </span><span class="n"><span class="pre">prio</span></span>, <a class="reference internal" href="csp_types_h.html#c.csp_conn_t" title="csp_conn_t"><span class="n"><span class="pre">csp_conn_t</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">conn</span></span>, <a class="reference internal" href="csp_types_h.html#c.csp_packet_t" title="csp_packet_t"><span class="n"><span class="pre">csp_packet_t</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">packet</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.csp_send_prio" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp.h.html#c.csp_send_prio"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Change the default priority of the connection and send a packet.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The priority of the connection will be changed.           If you need to change it back, call csp_send_prio() again.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>prio</strong> – priority to set on the connection</p></li>
+<li><p><strong>conn</strong> – connection</p></li>
+<li><p><strong>packet</strong> – packet to send</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.csp_transaction_w_opts">
+<span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">csp_transaction_w_opts</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">uint8_t</span></span><span class="w"> </span><span class="n"><span class="pre">prio</span></span>, <span class="n"><span class="pre">uint16_t</span></span><span class="w"> </span><span class="n"><span class="pre">dst</span></span>, <span class="n"><span class="pre">uint8_t</span></span><span class="w"> </span><span class="n"><span class="pre">dst_port</span></span>, <span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n"><span class="pre">timeout</span></span>, <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">outbuf</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">outlen</span></span>, <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">inbuf</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">inlen</span></span>, <span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n"><span class="pre">opts</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.csp_transaction_w_opts" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp.h.html#c.csp_transaction_w_opts"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Perform an entire request &amp; reply transaction. Creates a connection, send outbuf, wait for reply, copy reply to inbuf and close the connection.</p>
+<p>Returns:   int: 1 or reply size on success, 0 on failure (error, incoming length does not match, timeout)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>prio</strong> – priority, see #csp_prio_t</p></li>
+<li><p><strong>dst</strong> – destination address</p></li>
+<li><p><strong>dst_port</strong> – destination port</p></li>
+<li><p><strong>timeout</strong> – timeout in mS to wait for a reply</p></li>
+<li><p><strong>outbuf</strong> – outgoing data (request)</p></li>
+<li><p><strong>outlen</strong> – length of data in outbuf (request)</p></li>
+<li><p><strong>inbuf</strong> – user provided buffer for receiving data (reply)</p></li>
+<li><p><strong>inlen</strong> – length of expected reply, -1 for unknown size (inbuf MUST be large enough), 0 for no reply.</p></li>
+<li><p><strong>opts</strong> – connection options, see CSP_CONNECTION_OPTIONS.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.csp_transaction">
+<span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">csp_transaction</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">uint8_t</span></span><span class="w"> </span><span class="n"><span class="pre">prio</span></span>, <span class="n"><span class="pre">uint16_t</span></span><span class="w"> </span><span class="n"><span class="pre">dest</span></span>, <span class="n"><span class="pre">uint8_t</span></span><span class="w"> </span><span class="n"><span class="pre">port</span></span>, <span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n"><span class="pre">timeout</span></span>, <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">outbuf</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">outlen</span></span>, <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">inbuf</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">inlen</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.csp_transaction" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp.h.html#c.csp_transaction"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Perform an entire request &amp; reply transaction. Creates a connection, send outbuf, wait for reply, copy reply to inbuf and close the connection.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>prio</strong> – priority, see #csp_prio_t</p></li>
+<li><p><strong>dest</strong> – destination address</p></li>
+<li><p><strong>port</strong> – destination port</p></li>
+<li><p><strong>timeout</strong> – timeout in mS to wait for a reply</p></li>
+<li><p><strong>outbuf</strong> – outgoing data (request)</p></li>
+<li><p><strong>outlen</strong> – length of data in outbuf (request)</p></li>
+<li><p><strong>inbuf</strong> – user provided buffer for receiving data (reply)</p></li>
+<li><p><strong>inlen</strong> – length of expected reply, -1 for unknown size (inbuf MUST be large enough), 0 for no reply.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>1 or reply size on success, 0 on failure (error, incoming length does not match, timeout)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.csp_transaction_persistent">
+<span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">csp_transaction_persistent</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="csp_types_h.html#c.csp_conn_t" title="csp_conn_t"><span class="n"><span class="pre">csp_conn_t</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">conn</span></span>, <span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n"><span class="pre">timeout</span></span>, <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">outbuf</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">outlen</span></span>, <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">inbuf</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">inlen</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.csp_transaction_persistent" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp.h.html#c.csp_transaction_persistent"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Perform an entire request &amp; reply transaction on an existing connection. Send outbuf, wait for reply and copy reply to inbuf.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>conn</strong> – connection</p></li>
+<li><p><strong>timeout</strong> – timeout in mS to wait for a reply</p></li>
+<li><p><strong>outbuf</strong> – outgoing data (request)</p></li>
+<li><p><strong>outlen</strong> – length of data in outbuf (request)</p></li>
+<li><p><strong>inbuf</strong> – user provided buffer for receiving data (reply)</p></li>
+<li><p><strong>inlen</strong> – length of expected reply, -1 for unknown size (inbuf MUST be large enough), 0 for no reply.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>1 or reply size on success, 0 on failure (error, incoming length does not match, timeout)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.csp_recvfrom">
+<a class="reference internal" href="csp_types_h.html#c.csp_packet_t" title="csp_packet_t"><span class="n"><span class="pre">csp_packet_t</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">csp_recvfrom</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="csp_types_h.html#c.csp_socket_t" title="csp_socket_t"><span class="n"><span class="pre">csp_socket_t</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">socket</span></span>, <span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n"><span class="pre">timeout</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.csp_recvfrom" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp.h.html#c.csp_recvfrom"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Read data from a connection-less server socket.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>socket</strong> – connection-less socket.</p></li>
+<li><p><strong>timeout</strong> – timeout in mS to wait for a packet, use #CSP_MAX_TIMEOUT for infinite timeout.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Packet on success, or NULL on failure or timeout.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.csp_sendto">
+<span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">csp_sendto</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">uint8_t</span></span><span class="w"> </span><span class="n"><span class="pre">prio</span></span>, <span class="n"><span class="pre">uint16_t</span></span><span class="w"> </span><span class="n"><span class="pre">dst</span></span>, <span class="n"><span class="pre">uint8_t</span></span><span class="w"> </span><span class="n"><span class="pre">dst_port</span></span>, <span class="n"><span class="pre">uint8_t</span></span><span class="w"> </span><span class="n"><span class="pre">src_port</span></span>, <span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n"><span class="pre">opts</span></span>, <a class="reference internal" href="csp_types_h.html#c.csp_packet_t" title="csp_packet_t"><span class="n"><span class="pre">csp_packet_t</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">packet</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.csp_sendto" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp.h.html#c.csp_sendto"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Send a packet (without connection).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>prio</strong> – packet priority, see #csp_prio_t</p></li>
+<li><p><strong>dst</strong> – destination address</p></li>
+<li><p><strong>dst_port</strong> – destination port</p></li>
+<li><p><strong>src_port</strong> – source port</p></li>
+<li><p><strong>opts</strong> – connection options, see CSP_CONNECTION_OPTIONS.</p></li>
+<li><p><strong>packet</strong> – packet to send</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.csp_sendto_reply">
+<span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">csp_sendto_reply</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="csp_types_h.html#c.csp_packet_t" title="csp_packet_t"><span class="n"><span class="pre">csp_packet_t</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">request</span></span>, <a class="reference internal" href="csp_types_h.html#c.csp_packet_t" title="csp_packet_t"><span class="n"><span class="pre">csp_packet_t</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">reply</span></span>, <span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n"><span class="pre">opts</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.csp_sendto_reply" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp.h.html#c.csp_sendto_reply"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Send a packet as a reply to a request (without a connection). Calls csp_sendto() with the source address and port from the request.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>request</strong> – incoming request</p></li>
+<li><p><strong>reply</strong> – reply packet</p></li>
+<li><p><strong>opts</strong> – connection options, see CSP_CONNECTION_OPTIONS.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.csp_connect">
+<a class="reference internal" href="csp_types_h.html#c.csp_conn_t" title="csp_conn_t"><span class="n"><span class="pre">csp_conn_t</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">csp_connect</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">uint8_t</span></span><span class="w"> </span><span class="n"><span class="pre">prio</span></span>, <span class="n"><span class="pre">uint16_t</span></span><span class="w"> </span><span class="n"><span class="pre">dst</span></span>, <span class="n"><span class="pre">uint8_t</span></span><span class="w"> </span><span class="n"><span class="pre">dst_port</span></span>, <span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n"><span class="pre">timeout</span></span>, <span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n"><span class="pre">opts</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.csp_connect" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp.h.html#c.csp_connect"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Establish outgoing connection. The call will return immediately, unless it is a RDP connection (#CSP_O_RDP) in which case it will wait until the other end acknowleges the connection (timeout is determined by the current connection timeout set by csp_rdp_set_opt()).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>prio</strong> – priority, see #csp_prio_t</p></li>
+<li><p><strong>dst</strong> – Destination address</p></li>
+<li><p><strong>dst_port</strong> – Destination port</p></li>
+<li><p><strong>timeout</strong> – unused.</p></li>
+<li><p><strong>opts</strong> – connection options, see CSP_CONNECTION_OPTIONS.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Established connection or NULL on failure (no free connections, timeout).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.csp_close">
+<span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">csp_close</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="csp_types_h.html#c.csp_conn_t" title="csp_conn_t"><span class="n"><span class="pre">csp_conn_t</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">conn</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.csp_close" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp.h.html#c.csp_close"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Close an open connection. Any packets in the RX queue will be freed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>conn</strong> – connection. Closing a NULL connection is acceptable.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>#CSP_ERR_NONE on success, otherwise an error code.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.csp_socket_close">
+<span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">csp_socket_close</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="csp_types_h.html#c.csp_socket_t" title="csp_socket_t"><span class="n"><span class="pre">csp_socket_t</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">sock</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.csp_socket_close" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp.h.html#c.csp_socket_close"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Close a socket, freeing it’s RX queue and unbinding it from the associated port.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sock</strong> – Socket</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>#CSP_ERR_NONE on success, otherwise an error code.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.csp_conn_dport">
+<span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">csp_conn_dport</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="csp_types_h.html#c.csp_conn_t" title="csp_conn_t"><span class="n"><span class="pre">csp_conn_t</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">conn</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.csp_conn_dport" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp.h.html#c.csp_conn_dport"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Return destination port of connection.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>conn</strong> – connection</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>destination port of an incoming connection</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.csp_conn_sport">
+<span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">csp_conn_sport</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="csp_types_h.html#c.csp_conn_t" title="csp_conn_t"><span class="n"><span class="pre">csp_conn_t</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">conn</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.csp_conn_sport" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp.h.html#c.csp_conn_sport"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Return source port of connection.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>conn</strong> – connection</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>source port of an incoming connection</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.csp_conn_dst">
+<span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">csp_conn_dst</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="csp_types_h.html#c.csp_conn_t" title="csp_conn_t"><span class="n"><span class="pre">csp_conn_t</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">conn</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.csp_conn_dst" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp.h.html#c.csp_conn_dst"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Return destination address of connection.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>conn</strong> – connection</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>destination address of an incoming connection</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.csp_conn_src">
+<span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">csp_conn_src</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="csp_types_h.html#c.csp_conn_t" title="csp_conn_t"><span class="n"><span class="pre">csp_conn_t</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">conn</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.csp_conn_src" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp.h.html#c.csp_conn_src"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Return source address of connection.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>conn</strong> – connection</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>source address of an incoming connection</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.csp_conn_flags">
+<span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">csp_conn_flags</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="csp_types_h.html#c.csp_conn_t" title="csp_conn_t"><span class="n"><span class="pre">csp_conn_t</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">conn</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.csp_conn_flags" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp.h.html#c.csp_conn_flags"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Return flags of connection.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>conn</strong> – connection</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>flags of an incoming connection, see CSP_HEADER_FLAGS</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.csp_listen">
+<span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">csp_listen</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="csp_types_h.html#c.csp_socket_t" title="csp_socket_t"><span class="n"><span class="pre">csp_socket_t</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">socket</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n"><span class="pre">backlog</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.csp_listen" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp.h.html#c.csp_listen"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Set socket to listen for incoming connections.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>socket</strong> – socket</p></li>
+<li><p><strong>backlog</strong> – max length of backlog queue. The backlog queue holds incoming connections, waiting to be returned by call to csp_accept().</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>#CSP_ERR_NONE on success, otherwise an error code.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.csp_bind">
+<span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">csp_bind</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="csp_types_h.html#c.csp_socket_t" title="csp_socket_t"><span class="n"><span class="pre">csp_socket_t</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">socket</span></span>, <span class="n"><span class="pre">uint8_t</span></span><span class="w"> </span><span class="n"><span class="pre">port</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.csp_bind" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp.h.html#c.csp_bind"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Bind port to socket.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>socket</strong> – socket to bind port to</p></li>
+<li><p><strong>port</strong> – port number to bind, use #CSP_ANY for all ports. Binding to a specific will take precedence over #CSP_ANY.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>#CSP_ERR_NONE on success, otherwise an error code.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.csp_bind_callback">
+<span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">csp_bind_callback</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">csp_callback_t</span></span><span class="w"> </span><span class="n"><span class="pre">callback</span></span>, <span class="n"><span class="pre">uint8_t</span></span><span class="w"> </span><span class="n"><span class="pre">port</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.csp_bind_callback" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp.h.html#c.csp_bind_callback"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Bind port to callback function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>callback</strong> – pointer to callback function</p></li>
+<li><p><strong>port</strong> – port number to bind, use #CSP_ANY for all ports. Binding to a specific will take precedence over #CSP_ANY.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>#CSP_ERR_NONE on success, otherwise an error code.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.csp_route_work">
+<span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">csp_route_work</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.csp_route_work" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp.h.html#c.csp_route_work"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Route packet from the incoming router queue and check RDP timeouts. In order for incoming packets to routed and RDP timeouts to be checked, this function must be called reguarly.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>#CSP_ERR_NONE on success, otherwise an error code.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.csp_bridge_set_interfaces">
+<span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">csp_bridge_set_interfaces</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="csp_types_h.html#c.csp_iface_t" title="csp_iface_t"><span class="n"><span class="pre">csp_iface_t</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">if_a</span></span>, <a class="reference internal" href="csp_types_h.html#c.csp_iface_t" title="csp_iface_t"><span class="n"><span class="pre">csp_iface_t</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">if_b</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.csp_bridge_set_interfaces" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp.h.html#c.csp_bridge_set_interfaces"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Set the bridge interfaces.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>if_a</strong> – CSP Interface <cite>A</cite></p></li>
+<li><p><strong>if_b</strong> – CSP Interface <cite>B</cite></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.csp_bridge_work">
+<span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">csp_bridge_work</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.csp_bridge_work" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp.h.html#c.csp_bridge_work"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Bridge packet from an interface to the other.</p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.csp_service_handler">
+<span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">csp_service_handler</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="csp_types_h.html#c.csp_packet_t" title="csp_packet_t"><span class="n"><span class="pre">csp_packet_t</span></span></a><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">packet</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.csp_service_handler" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp.h.html#c.csp_service_handler"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Handle CSP service request. If the given packet is a service-request (the destination port matches one of CSP service ports #csp_service_port_t), the packet will be processed by the specific CSP service handler. The packet will either process it or free it, so this function is typically called in the last “default” clause of a switch/case statement in a CSP listener task. In order to listen to csp service ports, bind your listener to the specific services ports #csp_service_port_t or use #CSP_ANY to all ports.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>packet</strong> – first packet, obtained by using csp_read()</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.csp_ping">
+<span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">csp_ping</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">uint16_t</span></span><span class="w"> </span><span class="n"><span class="pre">node</span></span>, <span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n"><span class="pre">timeout</span></span>, <span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">size</span></span>, <span class="n"><span class="pre">uint8_t</span></span><span class="w"> </span><span class="n"><span class="pre">opts</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.csp_ping" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp.h.html#c.csp_ping"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Send a single ping/echo packet.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>node</strong> – address of subsystem.</p></li>
+<li><p><strong>timeout</strong> – timeout in ms to wait for reply.</p></li>
+<li><p><strong>size</strong> – payload size in bytes.</p></li>
+<li><p><strong>opts</strong> – connection options, see CSP_CONNECTION_OPTIONS.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>&gt;=0 echo time in mS on success, otherwise -1 for error.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.csp_ping_noreply">
+<span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">csp_ping_noreply</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">uint16_t</span></span><span class="w"> </span><span class="n"><span class="pre">node</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.csp_ping_noreply" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp.h.html#c.csp_ping_noreply"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Send a single ping/echo packet without waiting for reply. Payload is 1 byte.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>node</strong> – address of subsystem.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.csp_ps">
+<span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">csp_ps</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">uint16_t</span></span><span class="w"> </span><span class="n"><span class="pre">node</span></span>, <span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n"><span class="pre">timeout</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.csp_ps" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp.h.html#c.csp_ps"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Request process list.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This is currently only supported on FreeRTOS systems.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>node</strong> – address of subsystem.</p></li>
+<li><p><strong>timeout</strong> – timeout in mS to wait for replies. The function will not return until the timeout occurrs.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.csp_get_memfree">
+<span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">csp_get_memfree</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">uint16_t</span></span><span class="w"> </span><span class="n"><span class="pre">node</span></span>, <span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n"><span class="pre">timeout</span></span>, <span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">size</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.csp_get_memfree" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp.h.html#c.csp_get_memfree"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Request free memory.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>node</strong> – address of subsystem.</p></li>
+<li><p><strong>timeout</strong> – timeout in mS to wait for reply.</p></li>
+<li><p><strong>size</strong> – free memory on subsystem.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>#CSP_ERR_NONE on success, otherwise an error code.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.csp_memfree">
+<span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">csp_memfree</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">uint16_t</span></span><span class="w"> </span><span class="n"><span class="pre">node</span></span>, <span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n"><span class="pre">timeout</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.csp_memfree" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp.h.html#c.csp_memfree"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Request free memory and print to stdout.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>node</strong> – address of subsystem.</p></li>
+<li><p><strong>timeout</strong> – timeout in mS to wait for reply.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.csp_get_buf_free">
+<span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">csp_get_buf_free</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">uint16_t</span></span><span class="w"> </span><span class="n"><span class="pre">node</span></span>, <span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n"><span class="pre">timeout</span></span>, <span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">size</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.csp_get_buf_free" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp.h.html#c.csp_get_buf_free"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Request free buffers.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>node</strong> – address of subsystem.</p></li>
+<li><p><strong>timeout</strong> – timeout in mS to wait for reply.</p></li>
+<li><p><strong>size</strong> – free buffers.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>#CSP_ERR_NONE on success, otherwise an error code.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.csp_buf_free">
+<span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">csp_buf_free</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">uint16_t</span></span><span class="w"> </span><span class="n"><span class="pre">node</span></span>, <span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n"><span class="pre">timeout</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.csp_buf_free" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp.h.html#c.csp_buf_free"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Request free buffers and print to stdout.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>node</strong> – address of subsystem.</p></li>
+<li><p><strong>timeout</strong> – timeout in mS to wait for reply.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.csp_reboot">
+<span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">csp_reboot</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">uint16_t</span></span><span class="w"> </span><span class="n"><span class="pre">node</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.csp_reboot" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp.h.html#c.csp_reboot"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Reboot subsystem. If handled by the standard CSP service handler, the reboot handler set by csp_sys_set_reboot() on the subsystem, will be invoked.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>node</strong> – address of subsystem.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.csp_shutdown">
+<span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">csp_shutdown</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">uint16_t</span></span><span class="w"> </span><span class="n"><span class="pre">node</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.csp_shutdown" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp.h.html#c.csp_shutdown"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Shutdown subsystem. If handled by the standard CSP service handler, the shutdown handler set by csp_sys_set_shutdown() on the subsystem, will be invoked.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>node</strong> – address of subsystem.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.csp_uptime">
+<span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">csp_uptime</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">uint16_t</span></span><span class="w"> </span><span class="n"><span class="pre">node</span></span>, <span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n"><span class="pre">timeout</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.csp_uptime" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp.h.html#c.csp_uptime"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Request uptime and print to stdout.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>node</strong> – address of subsystem.</p></li>
+<li><p><strong>timeout</strong> – timeout in mS to wait for reply.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.csp_get_uptime">
+<span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">csp_get_uptime</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">uint16_t</span></span><span class="w"> </span><span class="n"><span class="pre">node</span></span>, <span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n"><span class="pre">timeout</span></span>, <span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">uptime</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.csp_get_uptime" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp.h.html#c.csp_get_uptime"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Request uptime</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>node</strong> – address of subsystem.</p></li>
+<li><p><strong>timeout</strong> – timeout in mS to wait for reply.</p></li>
+<li><p><strong>uptime</strong> – uptime in seconds.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>#CSP_ERR_NONE on success, otherwise an error code.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.csp_rdp_set_opt">
+<span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">csp_rdp_set_opt</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">window_size</span></span>, <span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">conn_timeout_ms</span></span>, <span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">packet_timeout_ms</span></span>, <span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">delayed_acks</span></span>, <span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">ack_timeout</span></span>, <span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">ack_delay_count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.csp_rdp_set_opt" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp.h.html#c.csp_rdp_set_opt"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Set RDP options. The RDP options are used from the connecting/client side. When a RDP connection is established, the client tranmits the options to the server.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>window_size</strong> – window size</p></li>
+<li><p><strong>conn_timeout_ms</strong> – connection timeout in mS</p></li>
+<li><p><strong>packet_timeout_ms</strong> – packet timeout in mS.</p></li>
+<li><p><strong>delayed_acks</strong> – enable/disable delayed acknowledgements.</p></li>
+<li><p><strong>ack_timeout</strong> – acknowledgement timeout when delayed ACKs is enabled</p></li>
+<li><p><strong>ack_delay_count</strong> – send acknowledgement for every ack_delay_count packets.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.csp_rdp_get_opt">
+<span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">csp_rdp_get_opt</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">window_size</span></span>, <span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">conn_timeout_ms</span></span>, <span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">packet_timeout_ms</span></span>, <span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">delayed_acks</span></span>, <span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ack_timeout</span></span>, <span class="kt"><span class="pre">unsigned</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">ack_delay_count</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.csp_rdp_get_opt" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp.h.html#c.csp_rdp_get_opt"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Get RDP options.</p>
+<p>csp_rdp_set_opt()</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>window_size</strong> – Window size</p></li>
+<li><p><strong>conn_timeout_ms</strong> – connection timeout in ms</p></li>
+<li><p><strong>packet_timeout_ms</strong> – packet timeout in ms</p></li>
+<li><p><strong>delayed_acks</strong> – enable/disable delayed acknowledgements</p></li>
+<li><p><strong>ack_timeout</strong> – acknowledgement timeout when delayed ACKs is enabled</p></li>
+<li><p><strong>ack_delay_count</strong> – send acknowledgement for every ack_delay_count packets</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.csp_cmp_set_memcpy">
+<span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">csp_cmp_set_memcpy</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="csp_types_h.html#c.csp_memcpy_fnc_t" title="csp_memcpy_fnc_t"><span class="n"><span class="pre">csp_memcpy_fnc_t</span></span></a><span class="w"> </span><span class="n"><span class="pre">fnc</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.csp_cmp_set_memcpy" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp.h.html#c.csp_cmp_set_memcpy"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Set platform specific memory copy function.</p>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.csp_conn_print_table">
+<span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">csp_conn_print_table</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.csp_conn_print_table" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp.h.html#c.csp_conn_print_table"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.csp_hex_dump">
+<span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">csp_hex_dump</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">desc</span></span>, <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">addr</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">len</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.csp_hex_dump" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp.h.html#c.csp_hex_dump"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.csp_conn_print_table_str">
+<span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">csp_conn_print_table_str</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">str_buf</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">str_size</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.csp_conn_print_table_str" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp.h.html#c.csp_conn_print_table_str"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd></dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../build-doc.html" class="btn btn-neutral float-left" title="How to build documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="csp_types_h.html" class="btn btn-neutral float-right" title="CSP Basic Types" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

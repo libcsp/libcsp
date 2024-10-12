@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>interfaces/csp_if_can.h &mdash; Cubesat Space Protocol</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.5ea377869091fd0449014c60fc090103.min.css" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
+        <script src="../../_static/clipboard.min.js"></script>
+        <script src="../../_static/copybutton.js"></script>
+        <script src="../../_static/design-tabs.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: rgba(52,49,49,1) 100%;" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Lib CSP
+          </a>
+              <div class="version">
+                develop
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Setup</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../INSTALL.html">How to install LibCSP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../build-doc.html">How to build documentation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">CSP API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api/csp_h.html">CSP Library Header</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/csp_types_h.html">CSP Basic Types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/csp_buffer_h.html">CSP Buffer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/csp_cmp_h.html">CSP Management Protocol (CMP)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/csp_sfp_h.html">Small Fragmentation Protocol (SFP)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/csp_promisc_h.html">Promiscuous packet queue</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/csp_interface_h.html">CSP Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/csp_rtable_h.html">Routing table</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/csp_iflist_h.html">Interfaces management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/csp_error_h.html">Error Codes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/csp_debug_h.html">CSP Debug</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/csp_id_h.html">CSP ID</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/csp_crc32_h.html">CRC32 Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/csp_hooks_h.html">CSP Hooks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/csp_yaml_h.html">YAML Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/drivers/drivers.html">Drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/crypto/crypto.html">Crypto</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/interfaces/interfaces.html">Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/arch/arch.html">Architecture dependent</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">The Cubesat Space Protocol</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../basic.html">The basics of CSP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../history.html">History</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../memory.html">How CSP uses memory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../mtu.html">Maximum Transfer Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../outflow.html">Outgoing Packet Flow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../protocolstack.html">The Protocol Stack</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../topology.html">Network Topology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tunnel.html">CSP tunnels</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../hooks.html">Hooks in CSP</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Development</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../contributing.html">Contributing to libcsp</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../codestyle.html">Code style</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../git-commit.html">Git Commit Guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../structure.html">Structure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../CI.html">Continuous Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changelog.html">Changelog</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Example Usage</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../example.html">Client and server example</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: rgba(52,49,49,1) 100%;" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Lib CSP</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">interfaces/csp_if_can.h</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for interfaces/csp_if_can.h</h1><div class="highlight"><pre>
+<span></span><span class="cm">/****************************************************************************</span>
+<span class="cm"> * **File:** csp/interfaces/csp_if_can.h</span>
+<span class="cm"> *</span>
+<span class="cm"> * **Description:** CAN interface</span>
+<span class="cm"> *</span>
+<span class="cm"> * CAN frames contains at most 8 bytes of data, so in order to transmit CSP</span>
+<span class="cm"> * packets larger than this, a fragmentation protocol is required.</span>
+<span class="cm"> * The CAN Fragmentation Protocol (CFP) is based on CAN2.0B, using all 29 bits</span>
+<span class="cm"> * of the identifier. The CAN identifier is divided into these fields:</span>
+<span class="cm"> *</span>
+<span class="cm"> * - Source:       5 bits</span>
+<span class="cm"> * - Destination:  5 bits</span>
+<span class="cm"> * - Type:         1 bit</span>
+<span class="cm"> * - Remain:       8 bits</span>
+<span class="cm"> * - Identifier:   10 bits</span>
+<span class="cm"> *</span>
+<span class="cm"> * The Source and Destination fields must match the source and destiantion addressses</span>
+<span class="cm"> * in the CSP packet. The Type field is used to distinguish the first and subsequent</span>
+<span class="cm"> * frames in a fragmented CSP packet. Type is BEGIN (0) for the first fragment and</span>
+<span class="cm"> * MORE (1) for all other fragments. The Remain field indicates number of remaining</span>
+<span class="cm"> * fragments, and must be decremented by one for each fragment sent. The identifier</span>
+<span class="cm"> * field serves the same purpose as in the Internet Protocol, and should be an auto</span>
+<span class="cm"> * incrementing integer to uniquely separate sessions.</span>
+<span class="cm"> *</span>
+<span class="cm"> * For networks configured as CSP version 2, the CAN identifier is divided into:</span>
+<span class="cm"> *</span>
+<span class="cm"> * - Priority:     2 bits</span>
+<span class="cm"> * - Destination:  14 bits</span>
+<span class="cm"> * - Sender id:    6 bits</span>
+<span class="cm"> * - Packet count: 2 bits</span>
+<span class="cm"> * - Frame count:  3 bits</span>
+<span class="cm"> * - Begin flag:   1 bit</span>
+<span class="cm"> * - End flag:     1 bit</span>
+<span class="cm"> *</span>
+<span class="cm"> * The \b Priority represents the CSP prio field. Placing this as the first bits in</span>
+<span class="cm"> * the transmission ensure that packets with high priority is priotized on the bus</span>
+<span class="cm"> * due to the nature of CAN arbitration.</span>
+<span class="cm"> * The \b Destination field represents the CSP node of the receiving node</span>
+<span class="cm"> * The \b Sender holds the least significant bits of the transmitting interface,</span>
+<span class="cm"> * i.e. the local address when a packet is forwarded by a routing instance.</span>
+<span class="cm"> * The \b Packet \b count is an incrementing value for every CSP packet</span>
+<span class="cm"> * The \b Frame \b count represents the frame fragment index for the particular packet</span>
+<span class="cm"> * The \b Begin \b flag is set for the first CAN frame in a CSP packet</span>
+<span class="cm"> * The \b End \b flag is set for the last CAN frame in a CSP packet</span>
+<span class="cm"> *</span>
+<span class="cm"> * In addition to the 29 bit extended CAN header, CSP utilize four bytes in the </span>
+<span class="cm"> * first CAN fragment in every CSP packet as:</span>
+<span class="cm"> *</span>
+<span class="cm"> * - Source:       14 bits</span>
+<span class="cm"> * - Dest port:    6 bits</span>
+<span class="cm"> * - Source port:  6 bits</span>
+<span class="cm"> * - CSP flags:    6 bits</span>
+
+<span class="cm"> * The \b Source holds the CSP node address of the origin of the CSP packet.</span>
+<span class="cm"> * The \b Dest and \Source \b port represents the port numbers for the transmission.</span>
+<span class="cm"> * The \b CSP \b flags holds the CSP_HEADER_FLAGS.</span>
+<span class="cm"> *</span>
+<span class="cm"> * Other CAN communication using a standard 11 bit identifier, can co-exist on the wire.</span>
+<span class="cm"> ****************************************************************************/</span>
+<span class="cp">#pragma once</span>
+
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;csp/csp_interface.h&gt;</span>
+
+<span class="cp">#ifdef __cplusplus</span>
+<span class="k">extern</span><span class="w"> </span><span class="s">&quot;C&quot;</span><span class="w"> </span><span class="p">{</span>
+<span class="cp">#endif</span>
+
+
+<span class="cm">/**</span>
+<span class="cm">   @defgroup CFP_SIZE CAN message id field size.</span>
+<span class="cm">   @{</span>
+<span class="cm">*/</span>
+<div class="viewcode-block" id="c.CFP_HOST_SIZE"><a class="viewcode-back" href="../../api/interfaces/csp_if_can_h.html#c.CFP_HOST_SIZE">[docs]</a><span class="cm">/** Host - source/destination address. */</span>
+<span class="cp">#define CFP_HOST_SIZE		5</span></div>
+<div class="viewcode-block" id="c.CFP_TYPE_SIZE"><a class="viewcode-back" href="../../api/interfaces/csp_if_can_h.html#c.CFP_TYPE_SIZE">[docs]</a><span class="cm">/** Type - begin fragment or more fragments. */</span>
+<span class="cp">#define CFP_TYPE_SIZE		1</span></div>
+<div class="viewcode-block" id="c.CFP_REMAIN_SIZE"><a class="viewcode-back" href="../../api/interfaces/csp_if_can_h.html#c.CFP_REMAIN_SIZE">[docs]</a><span class="cm">/** Remaining fragments */</span>
+<span class="cp">#define CFP_REMAIN_SIZE		8</span></div>
+<div class="viewcode-block" id="c.CFP_ID_SIZE"><a class="viewcode-back" href="../../api/interfaces/csp_if_can_h.html#c.CFP_ID_SIZE">[docs]</a><span class="cm">/** CFP identification. */</span>
+<span class="cp">#define CFP_ID_SIZE		10</span></div>
+<span class="cm">/** @} */</span>
+
+<span class="cm">/**</span>
+<span class="cm">   @defgroup CFP_FIELDS Macros for extracting fields from CAN message id.</span>
+<span class="cm">   @{</span>
+<span class="cm">*/</span>
+<div class="viewcode-block" id="c.CFP_FIELD"><a class="viewcode-back" href="../../api/interfaces/csp_if_can_h.html#c.CFP_FIELD">[docs]</a><span class="cm">/** Helper macro */</span>
+<span class="cp">#define CFP_FIELD(id,rsiz,fsiz) ((uint32_t)((uint32_t)((id) &gt;&gt; (rsiz)) &amp; (uint32_t)((1 &lt;&lt; (fsiz)) - 1)))</span></div>
+<div class="viewcode-block" id="c.CFP_SRC"><a class="viewcode-back" href="../../api/interfaces/csp_if_can_h.html#c.CFP_SRC">[docs]</a><span class="cm">/** Extract source address */</span>
+<span class="cp">#define CFP_SRC(id)		CFP_FIELD(id, CFP_HOST_SIZE + CFP_TYPE_SIZE + CFP_REMAIN_SIZE + CFP_ID_SIZE, CFP_HOST_SIZE)</span></div>
+<div class="viewcode-block" id="c.CFP_DST"><a class="viewcode-back" href="../../api/interfaces/csp_if_can_h.html#c.CFP_DST">[docs]</a><span class="cm">/** Extract destination address */</span>
+<span class="cp">#define CFP_DST(id)		CFP_FIELD(id, CFP_TYPE_SIZE + CFP_REMAIN_SIZE + CFP_ID_SIZE, CFP_HOST_SIZE)</span></div>
+<div class="viewcode-block" id="c.CFP_TYPE"><a class="viewcode-back" href="../../api/interfaces/csp_if_can_h.html#c.CFP_TYPE">[docs]</a><span class="cm">/** Extract type (begin or more) */</span>
+<span class="cp">#define CFP_TYPE(id)		CFP_FIELD(id, CFP_REMAIN_SIZE + CFP_ID_SIZE, CFP_TYPE_SIZE)</span></div>
+<div class="viewcode-block" id="c.CFP_REMAIN"><a class="viewcode-back" href="../../api/interfaces/csp_if_can_h.html#c.CFP_REMAIN">[docs]</a><span class="cm">/** Extract remaining fragments */</span>
+<span class="cp">#define CFP_REMAIN(id)		CFP_FIELD(id, CFP_ID_SIZE, CFP_REMAIN_SIZE)</span></div>
+<div class="viewcode-block" id="c.CFP_ID"><a class="viewcode-back" href="../../api/interfaces/csp_if_can_h.html#c.CFP_ID">[docs]</a><span class="cm">/** Extract CFP identification */</span>
+<span class="cp">#define CFP_ID(id)		CFP_FIELD(id, 0, CFP_ID_SIZE)</span></div>
+<span class="cm">/** @} */</span>
+
+<span class="cm">/**</span>
+<span class="cm">   @defgroup CFP_MAKE Macros for building CAN message id.</span>
+<span class="cm">   @{</span>
+<span class="cm">*/</span>
+<div class="viewcode-block" id="c.CFP_MAKE_FIELD"><a class="viewcode-back" href="../../api/interfaces/csp_if_can_h.html#c.CFP_MAKE_FIELD">[docs]</a><span class="cm">/** Helper macro */</span>
+<span class="cp">#define CFP_MAKE_FIELD(id,fsiz,rsiz) ((uint32_t)(((id) &amp; (uint32_t)((uint32_t)(1 &lt;&lt; (fsiz)) - 1)) &lt;&lt; (rsiz)))</span></div>
+<div class="viewcode-block" id="c.CFP_MAKE_SRC"><a class="viewcode-back" href="../../api/interfaces/csp_if_can_h.html#c.CFP_MAKE_SRC">[docs]</a><span class="cm">/** Make source */</span>
+<span class="cp">#define CFP_MAKE_SRC(id)	CFP_MAKE_FIELD(id, CFP_HOST_SIZE, CFP_HOST_SIZE + CFP_TYPE_SIZE + CFP_REMAIN_SIZE + CFP_ID_SIZE)</span></div>
+<div class="viewcode-block" id="c.CFP_MAKE_DST"><a class="viewcode-back" href="../../api/interfaces/csp_if_can_h.html#c.CFP_MAKE_DST">[docs]</a><span class="cm">/** Make destination */</span>
+<span class="cp">#define CFP_MAKE_DST(id)	CFP_MAKE_FIELD(id, CFP_HOST_SIZE, CFP_TYPE_SIZE + CFP_REMAIN_SIZE + CFP_ID_SIZE)</span></div>
+<div class="viewcode-block" id="c.CFP_MAKE_TYPE"><a class="viewcode-back" href="../../api/interfaces/csp_if_can_h.html#c.CFP_MAKE_TYPE">[docs]</a><span class="cm">/** Make type */</span>
+<span class="cp">#define CFP_MAKE_TYPE(id)	CFP_MAKE_FIELD(id, CFP_TYPE_SIZE, CFP_REMAIN_SIZE + CFP_ID_SIZE)</span></div>
+<div class="viewcode-block" id="c.CFP_MAKE_REMAIN"><a class="viewcode-back" href="../../api/interfaces/csp_if_can_h.html#c.CFP_MAKE_REMAIN">[docs]</a><span class="cm">/** Make remaining fragments */</span>
+<span class="cp">#define CFP_MAKE_REMAIN(id)	CFP_MAKE_FIELD(id, CFP_REMAIN_SIZE, CFP_ID_SIZE)</span></div>
+<div class="viewcode-block" id="c.CFP_MAKE_ID"><a class="viewcode-back" href="../../api/interfaces/csp_if_can_h.html#c.CFP_MAKE_ID">[docs]</a><span class="cm">/** Make CFP id */</span>
+<span class="cp">#define CFP_MAKE_ID(id)		CFP_MAKE_FIELD(id, CFP_ID_SIZE, 0)</span></div>
+<span class="cm">/** @} */</span>
+
+<div class="viewcode-block" id="c.CFP_ID_CONN_MASK"><a class="viewcode-back" href="../../api/interfaces/csp_if_can_h.html#c.CFP_ID_CONN_MASK">[docs]</a><span class="cm">/** Mask to uniquely separate connections */</span>
+<span class="cp">#define CFP_ID_CONN_MASK   (CFP_MAKE_SRC((uint32_t)(1 &lt;&lt; CFP_HOST_SIZE) - 1) | \</span>
+<span class="cp">			 CFP_MAKE_DST((uint32_t)(1 &lt;&lt; CFP_HOST_SIZE) - 1) | \</span>
+<span class="cp">			 CFP_MAKE_ID((uint32_t)(1 &lt;&lt; CFP_ID_SIZE) - 1))</span></div>
+
+
+<div class="viewcode-block" id="c.CFP2_PRIO_MASK"><span class="cp">#define CFP2_PRIO_MASK 0x3</span></div>
+<div class="viewcode-block" id="c.CFP2_PRIO_OFFSET"><span class="cp">#define CFP2_PRIO_OFFSET 27</span></div>
+
+<div class="viewcode-block" id="c.CFP2_DST_SIZE"><span class="cp">#define CFP2_DST_SIZE 14</span></div>
+<div class="viewcode-block" id="c.CFP2_DST_MASK"><span class="cp">#define CFP2_DST_MASK 0x3FFF</span></div>
+<div class="viewcode-block" id="c.CFP2_DST_OFFSET"><span class="cp">#define CFP2_DST_OFFSET 13</span></div>
+
+<div class="viewcode-block" id="c.CFP2_SENDER_SIZE"><span class="cp">#define CFP2_SENDER_SIZE 6</span></div>
+<div class="viewcode-block" id="c.CFP2_SENDER_MASK"><span class="cp">#define CFP2_SENDER_MASK 0x3F</span></div>
+<div class="viewcode-block" id="c.CFP2_SENDER_OFFSET"><span class="cp">#define CFP2_SENDER_OFFSET 7</span></div>
+
+<div class="viewcode-block" id="c.CFP2_SC_MASK"><span class="cp">#define CFP2_SC_MASK 0x3</span></div>
+<div class="viewcode-block" id="c.CFP2_SC_OFFSET"><span class="cp">#define CFP2_SC_OFFSET 5</span></div>
+
+<div class="viewcode-block" id="c.CFP2_FC_MASK"><span class="cp">#define CFP2_FC_MASK 0x7</span></div>
+<div class="viewcode-block" id="c.CFP2_FC_OFFSET"><span class="cp">#define CFP2_FC_OFFSET 2</span></div>
+
+<div class="viewcode-block" id="c.CFP2_BEGIN_MASK"><span class="cp">#define CFP2_BEGIN_MASK 0x1</span></div>
+<div class="viewcode-block" id="c.CFP2_BEGIN_OFFSET"><span class="cp">#define CFP2_BEGIN_OFFSET 1</span></div>
+
+<div class="viewcode-block" id="c.CFP2_END_MASK"><span class="cp">#define CFP2_END_MASK 0x1</span></div>
+<div class="viewcode-block" id="c.CFP2_END_OFFSET"><span class="cp">#define CFP2_END_OFFSET 0</span></div>
+
+<div class="viewcode-block" id="c.CFP2_SRC_SIZE"><span class="cp">#define CFP2_SRC_SIZE 14</span></div>
+<div class="viewcode-block" id="c.CFP2_SRC_MASK"><span class="cp">#define CFP2_SRC_MASK 0x3FFF</span></div>
+<div class="viewcode-block" id="c.CFP2_SRC_OFFSET"><span class="cp">#define CFP2_SRC_OFFSET 18</span></div>
+
+<div class="viewcode-block" id="c.CFP2_DPORT_MASK"><span class="cp">#define CFP2_DPORT_MASK 0x3F</span></div>
+<div class="viewcode-block" id="c.CFP2_DPORT_OFFSET"><span class="cp">#define CFP2_DPORT_OFFSET 12</span></div>
+
+<div class="viewcode-block" id="c.CFP2_SPORT_MASK"><span class="cp">#define CFP2_SPORT_MASK 0x3F</span></div>
+<div class="viewcode-block" id="c.CFP2_SPORT_OFFSET"><span class="cp">#define CFP2_SPORT_OFFSET 6</span></div>
+
+<div class="viewcode-block" id="c.CFP2_FLAGS_MASK"><span class="cp">#define CFP2_FLAGS_MASK 0x3F</span></div>
+<div class="viewcode-block" id="c.CFP2_FLAGS_OFFSET"><span class="cp">#define CFP2_FLAGS_OFFSET 0</span></div>
+
+
+<div class="viewcode-block" id="c.CFP2_ID_CONN_MASK"><a class="viewcode-back" href="../../api/interfaces/csp_if_can_h.html#c.CFP2_ID_CONN_MASK">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * Fields used to uniquely define a CSP packet within each fragment header</span>
+<span class="cm"> */</span>
+<span class="cp">#define CFP2_ID_CONN_MASK ((CFP2_DST_MASK &lt;&lt; CFP2_DST_OFFSET) | \</span>
+<span class="cp">						   (CFP2_SENDER_MASK &lt;&lt; CFP2_SENDER_OFFSET) | \</span>
+<span class="cp">					 (CFP2_PRIO_MASK &lt;&lt; CFP2_PRIO_OFFSET) | \</span>
+<span class="cp">						   (CFP2_SC_MASK &lt;&lt; CFP2_SC_OFFSET))</span></div>
+
+
+<div class="viewcode-block" id="c.CSP_IF_CAN_DEFAULT_NAME"><a class="viewcode-back" href="../../api/interfaces/csp_if_can_h.html#c.CSP_IF_CAN_DEFAULT_NAME">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * Default interface name.</span>
+<span class="cm"> */</span>
+<span class="cp">#define CSP_IF_CAN_DEFAULT_NAME &quot;CAN&quot;</span></div>
+
+<div class="viewcode-block" id="c.csp_can_driver_tx_t"><span class="cm">/**</span>
+<span class="cm"> * Send CAN frame (implemented by driver).</span>
+<span class="cm"> *</span>
+<span class="cm"> * Used by csp_can_tx() to send CAN frames.</span>
+<span class="cm"> *</span>
+<span class="cm"> * @param[in] driver_data driver data from #csp_iface_t</span>
+<span class="cm"> * @param[in] id CAM message id.</span>
+<span class="cm"> * @param[in] data CAN data</span>
+<span class="cm"> * @param[in] dlc data length of \a data.</span>
+<span class="cm"> * @return #CSP_ERR_NONE on success, otherwise an error code.</span>
+<span class="cm"> */</span>
+<span class="k">typedef</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">csp_can_driver_tx_t</span><span class="p">)(</span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">driver_data</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">id</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">uint8_t</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">data</span><span class="p">,</span><span class="w"> </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">dlc</span><span class="p">);</span></div>
+
+<div class="viewcode-block" id="c.csp_can_interface_data_t"><a class="viewcode-back" href="../../api/interfaces/csp_if_can_h.html#c.csp_can_interface_data_t">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * Interface data (state information).</span>
+<span class="cm"> */</span>
+<span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="p">{</span>
+<div class="viewcode-block" id="c.csp_can_interface_data_t.cfp_packet_counter"><a class="viewcode-back" href="../../api/interfaces/csp_if_can_h.html#c.csp_can_interface_data_t.cfp_packet_counter">[docs]</a><span class="w">	</span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">cfp_packet_counter</span><span class="p">;</span><span class="w"> </span><span class="cm">/**&lt; CFP Identification number - same number on all fragments from same CSP packet. */</span></div>
+<div class="viewcode-block" id="c.csp_can_interface_data_t.tx_func"><a class="viewcode-back" href="../../api/interfaces/csp_if_can_h.html#c.csp_can_interface_data_t.tx_func">[docs]</a><span class="w">	</span><span class="n">csp_can_driver_tx_t</span><span class="w"> </span><span class="n">tx_func</span><span class="p">;</span><span class="w"> </span><span class="cm">/**&lt; Tx function */</span></div>
+<div class="viewcode-block" id="c.csp_can_interface_data_t.pbufs"><a class="viewcode-back" href="../../api/interfaces/csp_if_can_h.html#c.csp_can_interface_data_t.pbufs">[docs]</a><span class="w">	</span><span class="n">csp_packet_t</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">pbufs</span><span class="p">;</span><span class="w"> </span><span class="cm">/**&lt; PBUF queue */</span></div>
+<span class="p">}</span><span class="w"> </span><span class="n">csp_can_interface_data_t</span><span class="p">;</span></div>
+
+<div class="viewcode-block" id="c.csp_can_add_interface"><a class="viewcode-back" href="../../api/interfaces/csp_if_can_h.html#c.csp_can_add_interface">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * Add interface.</span>
+<span class="cm"> *</span>
+<span class="cm"> * @param[in] iface CSP interface, initialized with name and inteface_data</span>
+<span class="cm"> * 								pointing to a valid #csp_can_interface_data_t structure.</span>
+<span class="cm"> * @return #CSP_ERR_NONE on success, otherwise an error code.</span>
+<span class="cm">*/</span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">csp_can_add_interface</span><span class="p">(</span><span class="n">csp_iface_t</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">iface</span><span class="p">);</span></div>
+
+<div class="viewcode-block" id="c.csp_can_remove_interface"><span class="cm">/**</span>
+<span class="cm"> * Remove interface.</span>
+<span class="cm"> *</span>
+<span class="cm"> * @param[in] iface CSP interface to be removed.</span>
+<span class="cm"> *</span>
+<span class="cm"> * @return #CSP_ERR_NONE on success, otherwise an error code.</span>
+<span class="cm"> */</span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">csp_can_remove_interface</span><span class="p">(</span><span class="n">csp_iface_t</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">iface</span><span class="p">);</span></div>
+
+<div class="viewcode-block" id="c.csp_can_tx"><a class="viewcode-back" href="../../api/interfaces/csp_if_can_h.html#c.csp_can_tx">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * Send CSP packet over CAN (nexthop).</span>
+<span class="cm"> *</span>
+<span class="cm"> * This function will split the CSP packet into several fragments and call</span>
+<span class="cm"> * csp_can_tx_fram() for sending each fragment.</span>
+<span class="cm"> *</span>
+<span class="cm"> * @param[in] iface CSP interface</span>
+<span class="cm"> * @param[in] via</span>
+<span class="cm"> * @param[in] packet CSP packet</span>
+<span class="cm"> * @return #CSP_ERR_NONE on success, otherwise an error code.</span>
+<span class="cm"> */</span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">csp_can_tx</span><span class="p">(</span><span class="n">csp_iface_t</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">iface</span><span class="p">,</span><span class="w"> </span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">via</span><span class="p">,</span><span class="w"> </span><span class="n">csp_packet_t</span><span class="w"> </span><span class="o">*</span><span class="n">packet</span><span class="p">);</span></div>
+
+<div class="viewcode-block" id="c.csp_can_rx"><a class="viewcode-back" href="../../api/interfaces/csp_if_can_h.html#c.csp_can_rx">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * Process received CAN frame.</span>
+<span class="cm"> *</span>
+<span class="cm"> * Called from driver when a single CAN frame (up to 8 bytes) has been received.</span>
+<span class="cm"> * The function will gather the fragments into a single</span>
+<span class="cm"> * CSP packet and route it on when complete.</span>
+<span class="cm"> *</span>
+<span class="cm"> * @param[in] iface incoming interface.</span>
+<span class="cm"> * @param[in] id received CAN message identifier.</span>
+<span class="cm"> * @param[in] data received CAN data.</span>
+<span class="cm"> * @param[in] dlc length of received \a data.</span>
+<span class="cm"> * @param[out] pxTaskWoken Valid reference if called from ISR, otherwise NULL!</span>
+<span class="cm"> * @return #CSP_ERR_NONE on success, otherwise an error code.</span>
+<span class="cm"> */</span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">csp_can_rx</span><span class="p">(</span><span class="n">csp_iface_t</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">iface</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">id</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">uint8_t</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">data</span><span class="p">,</span><span class="w"> </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">dlc</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="o">*</span><span class="n">pxTaskWoken</span><span class="p">);</span></div>
+
+<span class="cp">#ifdef __cplusplus</span>
+<span class="p">}</span>
+<span class="cp">#endif</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

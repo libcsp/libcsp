@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CSP Queue &mdash; Cubesat Space Protocol</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.5ea377869091fd0449014c60fc090103.min.css" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
+        <script src="../../_static/clipboard.min.js"></script>
+        <script src="../../_static/copybutton.js"></script>
+        <script src="../../_static/design-tabs.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="The basics of CSP" href="../../basic.html" />
+    <link rel="prev" title="CSP Time" href="csp_time_h.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: rgba(52,49,49,1) 100%;" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Lib CSP
+          </a>
+              <div class="version">
+                develop
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Setup</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../INSTALL.html">How to install LibCSP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../build-doc.html">How to build documentation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">CSP API</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../csp_h.html">CSP Library Header</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../csp_types_h.html">CSP Basic Types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../csp_buffer_h.html">CSP Buffer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../csp_cmp_h.html">CSP Management Protocol (CMP)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../csp_sfp_h.html">Small Fragmentation Protocol (SFP)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../csp_promisc_h.html">Promiscuous packet queue</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../csp_interface_h.html">CSP Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../csp_rtable_h.html">Routing table</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../csp_iflist_h.html">Interfaces management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../csp_error_h.html">Error Codes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../csp_debug_h.html">CSP Debug</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../csp_id_h.html">CSP ID</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../csp_crc32_h.html">CRC32 Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../csp_hooks_h.html">CSP Hooks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../csp_yaml_h.html">YAML Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../drivers/drivers.html">Drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../crypto/crypto.html">Crypto</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../interfaces/interfaces.html">Interfaces</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="arch.html">Architecture dependent</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="csp_time_h.html">CSP Time</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">CSP Queue</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">The Cubesat Space Protocol</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../basic.html">The basics of CSP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../history.html">History</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../memory.html">How CSP uses memory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../mtu.html">Maximum Transfer Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../outflow.html">Outgoing Packet Flow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../protocolstack.html">The Protocol Stack</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../topology.html">Network Topology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tunnel.html">CSP tunnels</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../hooks.html">Hooks in CSP</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Development</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../contributing.html">Contributing to libcsp</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../codestyle.html">Code style</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../git-commit.html">Git Commit Guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../structure.html">Structure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../CI.html">Continuous Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changelog.html">Changelog</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Example Usage</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../example.html">Client and server example</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: rgba(52,49,49,1) 100%;" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Lib CSP</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="arch.html">Architecture dependent</a></li>
+      <li class="breadcrumb-item active">CSP Queue</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="csp-queue">
+<h1>CSP Queue<a class="headerlink" href="#csp-queue" title="Permalink to this heading"></a></h1>
+<p><strong>File:</strong> csp/arch/csp_queue.h</p>
+<p><strong>Description:</strong> CSP queue</p>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.csp_queue_create_static">
+<span class="n"><span class="pre">csp_queue_handle_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">csp_queue_create_static</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">length</span></span>, <span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n"><span class="pre">item_size</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">buffer</span></span>, <span class="n"><span class="pre">csp_static_queue_t</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">queue</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.csp_queue_create_static" title="Permalink to this definition"></a><br /><a class="reference internal" href="../../_modules/arch/csp_queue.h.html#c.csp_queue_create_static"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Create static queue.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>length</strong> – Number of items in static queue.</p></li>
+<li><p><strong>item_size</strong> – Size of each item in static queue.</p></li>
+<li><p><strong>buffer</strong> – Memory buffer that will hold the static queue items.                     Must be at least <cite>length * item_size</cite> bytes in size.</p></li>
+<li><p><strong>queue</strong> – Pointer to static queue.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Static queue handle on success, otherwise NULL.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.csp_queue_dequeue">
+<span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">csp_queue_dequeue</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">csp_queue_handle_t</span></span><span class="w"> </span><span class="n"><span class="pre">handle</span></span>, <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">buf</span></span>, <span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n"><span class="pre">timeout</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.csp_queue_dequeue" title="Permalink to this definition"></a><br /><a class="reference internal" href="../../_modules/arch/csp_queue.h.html#c.csp_queue_dequeue"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Dequeue value (front).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>handle</strong> – queue.</p></li>
+<li><p><strong>buf</strong> – extracted element (by copy).</p></li>
+<li><p><strong>timeout</strong> – timeout, time to wait for element in queue.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>#CSP_QUEUE_OK on success, otherwise a queue error code.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.csp_queue_dequeue_isr">
+<span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">csp_queue_dequeue_isr</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">csp_queue_handle_t</span></span><span class="w"> </span><span class="n"><span class="pre">handle</span></span>, <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">buf</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">pxTaskWoken</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.csp_queue_dequeue_isr" title="Permalink to this definition"></a><br /><a class="reference internal" href="../../_modules/arch/csp_queue.h.html#c.csp_queue_dequeue_isr"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Dequeue value (front) from ISR.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>handle</strong> – queue.</p></li>
+<li><p><strong>buf</strong> – extracted element (by copy).</p></li>
+<li><p><strong>pxTaskWoken</strong> – Valid reference if called from ISR, otherwise NULL!</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>#CSP_QUEUE_OK on success, otherwise a queue error code.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.csp_queue_empty">
+<span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">csp_queue_empty</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">csp_queue_handle_t</span></span><span class="w"> </span><span class="n"><span class="pre">handle</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.csp_queue_empty" title="Permalink to this definition"></a><br /><a class="reference internal" href="../../_modules/arch/csp_queue.h.html#c.csp_queue_empty"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Empty queue object by removing all items (handle).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>handle</strong> – handle queue.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.csp_queue_enqueue">
+<span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">csp_queue_enqueue</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">csp_queue_handle_t</span></span><span class="w"> </span><span class="n"><span class="pre">handle</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">value</span></span>, <span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n"><span class="pre">timeout</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.csp_queue_enqueue" title="Permalink to this definition"></a><br /><a class="reference internal" href="../../_modules/arch/csp_queue.h.html#c.csp_queue_enqueue"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Enqueue (back) value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>handle</strong> – queue.</p></li>
+<li><p><strong>value</strong> – value to add (by copy)</p></li>
+<li><p><strong>timeout</strong> – timeout, time to wait for free space</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>#CSP_QUEUE_OK on success, otherwise a queue error code.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.csp_queue_enqueue_isr">
+<span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">csp_queue_enqueue_isr</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">csp_queue_handle_t</span></span><span class="w"> </span><span class="n"><span class="pre">handle</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">value</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">pxTaskWoken</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.csp_queue_enqueue_isr" title="Permalink to this definition"></a><br /><a class="reference internal" href="../../_modules/arch/csp_queue.h.html#c.csp_queue_enqueue_isr"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Enqueue (back) value from ISR.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>handle</strong> – queue.</p></li>
+<li><p><strong>value</strong> – value to add (by copy)</p></li>
+<li><p><strong>pxTaskWoken</strong> – Valid reference if called from ISR, otherwise NULL!</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>#CSP_QUEUE_OK on success, otherwise a queue error code.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.csp_queue_free">
+<span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">csp_queue_free</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">csp_queue_handle_t</span></span><span class="w"> </span><span class="n"><span class="pre">handle</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.csp_queue_free" title="Permalink to this definition"></a><br /><a class="reference internal" href="../../_modules/arch/csp_queue.h.html#c.csp_queue_free"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Free queue object (handle).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>handle</strong> – handle queue.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.csp_queue_size">
+<span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">csp_queue_size</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">csp_queue_handle_t</span></span><span class="w"> </span><span class="n"><span class="pre">handle</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.csp_queue_size" title="Permalink to this definition"></a><br /><a class="reference internal" href="../../_modules/arch/csp_queue.h.html#c.csp_queue_size"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Queue size.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>handle</strong> – handle queue.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Number of elements in the queue.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.csp_queue_size_isr">
+<span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">csp_queue_size_isr</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">csp_queue_handle_t</span></span><span class="w"> </span><span class="n"><span class="pre">handle</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.csp_queue_size_isr" title="Permalink to this definition"></a><br /><a class="reference internal" href="../../_modules/arch/csp_queue.h.html#c.csp_queue_size_isr"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Queue size from ISR.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>handle</strong> – handle queue.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Number of elements in the queue.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="csp_time_h.html" class="btn btn-neutral float-left" title="CSP Time" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../../basic.html" class="btn btn-neutral float-right" title="The basics of CSP" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

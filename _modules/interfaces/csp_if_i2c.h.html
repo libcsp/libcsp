@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>interfaces/csp_if_i2c.h &mdash; Cubesat Space Protocol</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.5ea377869091fd0449014c60fc090103.min.css" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
+        <script src="../../_static/clipboard.min.js"></script>
+        <script src="../../_static/copybutton.js"></script>
+        <script src="../../_static/design-tabs.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: rgba(52,49,49,1) 100%;" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Lib CSP
+          </a>
+              <div class="version">
+                develop
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Setup</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../INSTALL.html">How to install LibCSP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../build-doc.html">How to build documentation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">CSP API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api/csp_h.html">CSP Library Header</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/csp_types_h.html">CSP Basic Types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/csp_buffer_h.html">CSP Buffer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/csp_cmp_h.html">CSP Management Protocol (CMP)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/csp_sfp_h.html">Small Fragmentation Protocol (SFP)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/csp_promisc_h.html">Promiscuous packet queue</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/csp_interface_h.html">CSP Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/csp_rtable_h.html">Routing table</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/csp_iflist_h.html">Interfaces management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/csp_error_h.html">Error Codes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/csp_debug_h.html">CSP Debug</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/csp_id_h.html">CSP ID</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/csp_crc32_h.html">CRC32 Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/csp_hooks_h.html">CSP Hooks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/csp_yaml_h.html">YAML Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/drivers/drivers.html">Drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/crypto/crypto.html">Crypto</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/interfaces/interfaces.html">Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/arch/arch.html">Architecture dependent</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">The Cubesat Space Protocol</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../basic.html">The basics of CSP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../history.html">History</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../memory.html">How CSP uses memory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../mtu.html">Maximum Transfer Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../outflow.html">Outgoing Packet Flow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../protocolstack.html">The Protocol Stack</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../topology.html">Network Topology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tunnel.html">CSP tunnels</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../hooks.html">Hooks in CSP</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Development</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../contributing.html">Contributing to libcsp</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../codestyle.html">Code style</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../git-commit.html">Git Commit Guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../structure.html">Structure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../CI.html">Continuous Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changelog.html">Changelog</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Example Usage</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../example.html">Client and server example</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: rgba(52,49,49,1) 100%;" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Lib CSP</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">interfaces/csp_if_i2c.h</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for interfaces/csp_if_i2c.h</h1><div class="highlight"><pre>
+<span></span><span class="cm">/****************************************************************************</span>
+<span class="cm"> * **File:** csp/interfaces/csp_if_i2c.h</span>
+<span class="cm"> *</span>
+<span class="cm"> * **Description:** I2C interface.</span>
+<span class="cm"> ****************************************************************************/</span>
+<span class="cp">#pragma once</span>
+
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;csp/csp_interface.h&gt;</span>
+
+<span class="cp">#ifdef __cplusplus</span>
+<span class="k">extern</span><span class="w"> </span><span class="s">&quot;C&quot;</span><span class="w"> </span><span class="p">{</span>
+<span class="cp">#endif</span>
+
+
+<div class="viewcode-block" id="c.CSP_IF_I2C_DEFAULT_NAME"><a class="viewcode-back" href="../../api/interfaces/csp_if_i2c_h.html#c.CSP_IF_I2C_DEFAULT_NAME">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * Default name of I2C interface.</span>
+<span class="cm"> */</span>
+<span class="cp">#define CSP_IF_I2C_DEFAULT_NAME &quot;I2C&quot;</span></div>
+
+<div class="viewcode-block" id="c.csp_i2c_driver_tx_t"><span class="cm">/**</span>
+<span class="cm"> * Send I2C frame (implemented by driver).</span>
+<span class="cm"> *</span>
+<span class="cm"> * Used by csp_i2c_tx() to send a frame.</span>
+<span class="cm"> *</span>
+<span class="cm"> * The function must free the frame/packet using csp_buffer_free(),</span>
+<span class="cm"> * if the send succeeds (returning #CSP_ERR_NONE).</span>
+<span class="cm"> *</span>
+<span class="cm"> * @param[in] driver_data driver data from #csp_iface_t</span>
+<span class="cm"> * @param[in] frame destination, length and data. This is actually</span>
+<span class="cm"> * 			  a #csp_packet_t buffer, casted to #csp_i2c_frame_t.</span>
+<span class="cm"> *</span>
+<span class="cm"> * @return #CSP_ERR_NONE on success, or an error code.</span>
+<span class="cm"> */</span>
+<span class="k">typedef</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">csp_i2c_driver_tx_t</span><span class="p">)(</span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">driver_data</span><span class="p">,</span><span class="w"> </span><span class="n">csp_packet_t</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">frame</span><span class="p">);</span></div>
+
+<div class="viewcode-block" id="c.csp_i2c_interface_data_t"><a class="viewcode-back" href="../../api/interfaces/csp_if_i2c_h.html#c.csp_i2c_interface_data_t">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * Interface data (state information).</span>
+<span class="cm"> */</span>
+<span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="p">{</span>
+<div class="viewcode-block" id="c.csp_i2c_interface_data_t.tx_func"><a class="viewcode-back" href="../../api/interfaces/csp_if_i2c_h.html#c.csp_i2c_interface_data_t.tx_func">[docs]</a><span class="w">	</span><span class="n">csp_i2c_driver_tx_t</span><span class="w"> </span><span class="n">tx_func</span><span class="p">;</span><span class="w"> </span><span class="cm">/**&lt; Tx function */</span></div>
+<span class="p">}</span><span class="w"> </span><span class="n">csp_i2c_interface_data_t</span><span class="p">;</span></div>
+
+<div class="viewcode-block" id="c.csp_i2c_add_interface"><a class="viewcode-back" href="../../api/interfaces/csp_if_i2c_h.html#c.csp_i2c_add_interface">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * Add interface.</span>
+<span class="cm"> *</span>
+<span class="cm"> * @param[in] iface CSP interface, initialized with name and</span>
+<span class="cm"> * 								inteface_data pointing to a valid #csp_i2c_interface_data_t.</span>
+<span class="cm"> * @return #CSP_ERR_NONE on success, otherwise an error code.</span>
+<span class="cm"> */</span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">csp_i2c_add_interface</span><span class="p">(</span><span class="n">csp_iface_t</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">iface</span><span class="p">);</span></div>
+
+<div class="viewcode-block" id="c.csp_i2c_tx"><a class="viewcode-back" href="../../api/interfaces/csp_if_i2c_h.html#c.csp_i2c_tx">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * Send CSP packet over I2C (nexthop).</span>
+<span class="cm"> *</span>
+<span class="cm"> * @return #CSP_ERR_NONE on success, otherwise an error code.</span>
+<span class="cm"> */</span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">csp_i2c_tx</span><span class="p">(</span><span class="n">csp_iface_t</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">iface</span><span class="p">,</span><span class="w"> </span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">via</span><span class="p">,</span><span class="w"> </span><span class="n">csp_packet_t</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">packet</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">from_me</span><span class="p">);</span></div>
+
+<div class="viewcode-block" id="c.csp_i2c_rx"><a class="viewcode-back" href="../../api/interfaces/csp_if_i2c_h.html#c.csp_i2c_rx">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * Process received I2C frame.</span>
+<span class="cm"> *</span>
+<span class="cm"> * @note The received #csp_i2c_frame_t must actually be pointing to an #csp_packet_t.</span>
+<span class="cm"> *</span>
+<span class="cm"> * Called from driver, when a frame has been received.</span>
+<span class="cm"> *</span>
+<span class="cm"> * @param[in] iface incoming interface.</span>
+<span class="cm"> * @param[in] frame received data, routed on as a #csp_packet_t.</span>
+<span class="cm"> * @param[out] pxTaskWoken Valid reference if called from ISR, otherwise NULL!</span>
+<span class="cm"> */</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">csp_i2c_rx</span><span class="p">(</span><span class="n">csp_iface_t</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">iface</span><span class="p">,</span><span class="w"> </span><span class="n">csp_packet_t</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">frame</span><span class="p">,</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">pxTaskWoken</span><span class="p">);</span></div>
+
+<span class="cp">#ifdef __cplusplus</span>
+<span class="p">}</span>
+<span class="cp">#endif</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>csp_debug.h &mdash; Cubesat Space Protocol</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
+      <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+      <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.5ea377869091fd0449014c60fc090103.min.css" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
+        <script src="../_static/clipboard.min.js"></script>
+        <script src="../_static/copybutton.js"></script>
+        <script src="../_static/design-tabs.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: rgba(52,49,49,1) 100%;" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Lib CSP
+          </a>
+              <div class="version">
+                develop
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Setup</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../INSTALL.html">How to install LibCSP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../build-doc.html">How to build documentation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">CSP API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/csp_h.html">CSP Library Header</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/csp_types_h.html">CSP Basic Types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/csp_buffer_h.html">CSP Buffer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/csp_cmp_h.html">CSP Management Protocol (CMP)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/csp_sfp_h.html">Small Fragmentation Protocol (SFP)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/csp_promisc_h.html">Promiscuous packet queue</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/csp_interface_h.html">CSP Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/csp_rtable_h.html">Routing table</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/csp_iflist_h.html">Interfaces management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/csp_error_h.html">Error Codes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/csp_debug_h.html">CSP Debug</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/csp_id_h.html">CSP ID</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/csp_crc32_h.html">CRC32 Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/csp_hooks_h.html">CSP Hooks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/csp_yaml_h.html">YAML Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/drivers/drivers.html">Drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/crypto/crypto.html">Crypto</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/interfaces/interfaces.html">Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/arch/arch.html">Architecture dependent</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">The Cubesat Space Protocol</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../basic.html">The basics of CSP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../history.html">History</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../memory.html">How CSP uses memory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mtu.html">Maximum Transfer Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../outflow.html">Outgoing Packet Flow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../protocolstack.html">The Protocol Stack</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../topology.html">Network Topology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tunnel.html">CSP tunnels</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../hooks.html">Hooks in CSP</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Development</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../contributing.html">Contributing to libcsp</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../codestyle.html">Code style</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../git-commit.html">Git Commit Guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../structure.html">Structure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CI.html">Continuous Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Example Usage</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../example.html">Client and server example</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: rgba(52,49,49,1) 100%;" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Lib CSP</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">csp_debug.h</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for csp_debug.h</h1><div class="highlight"><pre>
+<span></span><span class="cm">/****************************************************************************</span>
+<span class="cm"> * **File:** csp/csp_debug.h</span>
+<span class="cm"> *</span>
+<span class="cm"> * **Description:** NEW DEBUG API</span>
+<span class="cm"> *</span>
+<span class="cm"> * Based on counters, and error numbers.</span>
+<span class="cm"> * This gets rid of a lot of verbose debugging strings while</span>
+<span class="cm"> * still maintaining the same level of debug capabilities.</span>
+<span class="cm"> *</span>
+<span class="cm"> * .. note:: We choose to ignore atomic access to the counters right now.</span>
+<span class="cm"> *   1) Most of the access to these happens single threaded (router task) or within ISR (driver RX)</span>
+<span class="cm"> *   2) Having accurate error counters is NOT a priority. They are only there for debugging purposes.</span>
+<span class="cm"> *   3) Not all compilers have support for &lt;stdatomic.h&gt; yet.</span>
+<span class="cm"> *</span>
+<span class="cm"> ****************************************************************************/</span>
+<span class="cp">#pragma once</span>
+
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;csp/autoconfig.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;inttypes.h&gt;</span>
+
+<span class="cp">#ifdef __cplusplus</span>
+<span class="k">extern</span><span class="w"> </span><span class="s">&quot;C&quot;</span><span class="w"> </span><span class="p">{</span>
+<span class="cp">#endif</span>
+
+
+<div class="viewcode-block" id="c.csp_dbg_buffer_out"><a class="viewcode-back" href="../api/csp_debug_h.html#c.csp_dbg_buffer_out">[docs]</a><span class="cm">/** Error counters */</span>
+<span class="k">extern</span><span class="w"> </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">csp_dbg_buffer_out</span><span class="p">;</span></div>
+<div class="viewcode-block" id="c.csp_dbg_conn_out"><span class="k">extern</span><span class="w"> </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">csp_dbg_conn_out</span><span class="p">;</span></div>
+<div class="viewcode-block" id="c.csp_dbg_conn_ovf"><span class="k">extern</span><span class="w"> </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">csp_dbg_conn_ovf</span><span class="p">;</span></div>
+<div class="viewcode-block" id="c.csp_dbg_conn_noroute"><span class="k">extern</span><span class="w"> </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">csp_dbg_conn_noroute</span><span class="p">;</span></div>
+<div class="viewcode-block" id="c.csp_dbg_inval_reply"><span class="k">extern</span><span class="w"> </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">csp_dbg_inval_reply</span><span class="p">;</span></div>
+
+<span class="cm">/* Central errno */</span>
+<div class="viewcode-block" id="c.csp_dbg_errno"><span class="k">extern</span><span class="w"> </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">csp_dbg_errno</span><span class="p">;</span></div>
+<div class="viewcode-block" id="c.CSP_DBG_ERR_CORRUPT_BUFFER"><span class="cp">#define CSP_DBG_ERR_CORRUPT_BUFFER 1</span></div>
+<div class="viewcode-block" id="c.CSP_DBG_ERR_MTU_EXCEEDED"><span class="cp">#define CSP_DBG_ERR_MTU_EXCEEDED 2</span></div>
+<div class="viewcode-block" id="c.CSP_DBG_ERR_ALREADY_FREE"><span class="cp">#define CSP_DBG_ERR_ALREADY_FREE 3</span></div>
+<div class="viewcode-block" id="c.CSP_DBG_ERR_REFCOUNT"><span class="cp">#define CSP_DBG_ERR_REFCOUNT 4</span></div>
+<div class="viewcode-block" id="c.CSP_DBG_ERR_INVALID_RTABLE_ENTRY"><span class="cp">#define CSP_DBG_ERR_INVALID_RTABLE_ENTRY 6</span></div>
+<div class="viewcode-block" id="c.CSP_DBG_ERR_UNSUPPORTED"><span class="cp">#define CSP_DBG_ERR_UNSUPPORTED 7</span></div>
+<div class="viewcode-block" id="c.CSP_DBG_ERR_INVALID_BIND_PORT"><span class="cp">#define CSP_DBG_ERR_INVALID_BIND_PORT 8</span></div>
+<div class="viewcode-block" id="c.CSP_DBG_ERR_PORT_ALREADY_IN_USE"><span class="cp">#define CSP_DBG_ERR_PORT_ALREADY_IN_USE 9</span></div>
+<div class="viewcode-block" id="c.CSP_DBG_ERR_ALREADY_CLOSED"><span class="cp">#define CSP_DBG_ERR_ALREADY_CLOSED 10</span></div>
+<div class="viewcode-block" id="c.CSP_DBG_ERR_INVALID_POINTER"><span class="cp">#define CSP_DBG_ERR_INVALID_POINTER 11</span></div>
+<div class="viewcode-block" id="c.CSP_DBG_ERR_CLOCK_SET_FAIL"><span class="cp">#define CSP_DBG_ERR_CLOCK_SET_FAIL 12</span></div>
+
+<span class="cm">/* CAN protocol specific errno */</span>
+<div class="viewcode-block" id="c.csp_dbg_can_errno"><span class="k">extern</span><span class="w"> </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">csp_dbg_can_errno</span><span class="p">;</span></div>
+<div class="viewcode-block" id="c.CSP_DBG_CAN_ERR_FRAME_LOST"><span class="cp">#define CSP_DBG_CAN_ERR_FRAME_LOST 1</span></div>
+<div class="viewcode-block" id="c.CSP_DBG_CAN_ERR_RX_OVF"><span class="cp">#define CSP_DBG_CAN_ERR_RX_OVF 2</span></div>
+<div class="viewcode-block" id="c.CSP_DBG_CAN_ERR_RX_OUT"><span class="cp">#define CSP_DBG_CAN_ERR_RX_OUT 3</span></div>
+<div class="viewcode-block" id="c.CSP_DBG_CAN_ERR_SHORT_BEGIN"><span class="cp">#define CSP_DBG_CAN_ERR_SHORT_BEGIN 4</span></div>
+<div class="viewcode-block" id="c.CSP_DBG_CAN_ERR_INCOMPLETE"><span class="cp">#define CSP_DBG_CAN_ERR_INCOMPLETE 5</span></div>
+<div class="viewcode-block" id="c.CSP_DBG_CAN_ERR_UNKNOWN"><span class="cp">#define CSP_DBG_CAN_ERR_UNKNOWN 6</span></div>
+
+<span class="cm">/* ETH protocol specific errno */</span>
+<div class="viewcode-block" id="c.csp_dbg_eth_errno"><span class="k">extern</span><span class="w"> </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">csp_dbg_eth_errno</span><span class="p">;</span></div>
+<div class="viewcode-block" id="c.CSP_DBG_ETH_ERR_FRAME_LOST"><span class="cp">#define CSP_DBG_ETH_ERR_FRAME_LOST 1</span></div>
+<div class="viewcode-block" id="c.CSP_DBG_ETH_ERR_RX_OVF"><span class="cp">#define CSP_DBG_ETH_ERR_RX_OVF 2</span></div>
+<div class="viewcode-block" id="c.CSP_DBG_ETH_ERR_RX_OUT"><span class="cp">#define CSP_DBG_ETH_ERR_RX_OUT 3</span></div>
+<div class="viewcode-block" id="c.CSP_DBG_ETH_ERR_SHORT_BEGIN"><span class="cp">#define CSP_DBG_ETH_ERR_SHORT_BEGIN 4</span></div>
+<div class="viewcode-block" id="c.CSP_DBG_ETH_ERR_INCOMPLETE"><span class="cp">#define CSP_DBG_ETH_ERR_INCOMPLETE 5</span></div>
+<div class="viewcode-block" id="c.CSP_DBG_ETH_ERR_UNKNOWN"><span class="cp">#define CSP_DBG_ETH_ERR_UNKNOWN 6</span></div>
+
+<span class="cm">/* Toogle flags for rdp and packet print */</span>
+<div class="viewcode-block" id="c.csp_dbg_rdp_print"><span class="k">extern</span><span class="w"> </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">csp_dbg_rdp_print</span><span class="p">;</span></div>
+<div class="viewcode-block" id="c.csp_dbg_packet_print"><span class="k">extern</span><span class="w"> </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">csp_dbg_packet_print</span><span class="p">;</span></div>
+
+<span class="cm">/* Helper macros for toggled printf */</span>
+<div class="viewcode-block" id="c.csp_print_func"><span class="kt">void</span><span class="w"> </span><span class="nf">csp_print_func</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">fmt</span><span class="p">,</span><span class="w"> </span><span class="p">...);</span></div>
+
+<span class="cm">/* Compile time disable all printout from CSP */</span>
+<span class="cp">#if (CSP_ENABLE_CSP_PRINT)</span>
+<span class="cp">#define csp_print(...) csp_print_func(__VA_ARGS__);</span>
+<span class="cp">#else</span>
+<div class="viewcode-block" id="c.csp_print"><span class="cp">#define csp_print(...) do {} while(0)</span></div>
+<span class="cp">#endif</span>
+
+<div class="viewcode-block" id="c.csp_rdp_error"><span class="cp">#define csp_rdp_error(format, ...) { if (csp_dbg_rdp_print &gt;= 1) { csp_print(&quot;\033[31m&quot; format &quot;\033[0m&quot;, ##__VA_ARGS__); }}</span></div>
+<div class="viewcode-block" id="c.csp_rdp_protocol"><span class="cp">#define csp_rdp_protocol(format, ...) { if (csp_dbg_rdp_print &gt;= 2) { csp_print(&quot;\033[34m&quot; format &quot;\033[0m&quot;, ##__VA_ARGS__); }}</span></div>
+<div class="viewcode-block" id="c.csp_print_packet"><span class="cp">#define csp_print_packet(format, ...) { if (csp_dbg_packet_print &gt;= 1) { csp_print(&quot;\033[32m&quot; format &quot;\033[0m&quot;, ##__VA_ARGS__); }}</span></div>
+
+<span class="cp">#ifdef __cplusplus</span>
+<span class="p">}</span>
+<span class="cp">#endif</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

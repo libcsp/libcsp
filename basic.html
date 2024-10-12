@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The basics of CSP &mdash; Cubesat Space Protocol</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css" />
+      <link rel="stylesheet" type="text/css" href="_static/copybutton.css" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.5ea377869091fd0449014c60fc090103.min.css" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+        <script src="_static/clipboard.min.js"></script>
+        <script src="_static/copybutton.js"></script>
+        <script src="_static/design-tabs.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="License" href="license.html" />
+    <link rel="prev" title="CSP Queue" href="api/arch/csp_queue_h.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: rgba(52,49,49,1) 100%;" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Lib CSP
+          </a>
+              <div class="version">
+                develop
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Setup</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="INSTALL.html">How to install LibCSP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="build-doc.html">How to build documentation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">CSP API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_h.html">CSP Library Header</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_types_h.html">CSP Basic Types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_buffer_h.html">CSP Buffer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_cmp_h.html">CSP Management Protocol (CMP)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_sfp_h.html">Small Fragmentation Protocol (SFP)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_promisc_h.html">Promiscuous packet queue</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_interface_h.html">CSP Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_rtable_h.html">Routing table</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_iflist_h.html">Interfaces management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_error_h.html">Error Codes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_debug_h.html">CSP Debug</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_id_h.html">CSP ID</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_crc32_h.html">CRC32 Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_hooks_h.html">CSP Hooks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_yaml_h.html">YAML Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/drivers/drivers.html">Drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/crypto/crypto.html">Crypto</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/interfaces/interfaces.html">Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/arch/arch.html">Architecture dependent</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">The Cubesat Space Protocol</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">The basics of CSP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="history.html">History</a></li>
+<li class="toctree-l1"><a class="reference internal" href="memory.html">How CSP uses memory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mtu.html">Maximum Transfer Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="outflow.html">Outgoing Packet Flow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="protocolstack.html">The Protocol Stack</a></li>
+<li class="toctree-l1"><a class="reference internal" href="topology.html">Network Topology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tunnel.html">CSP tunnels</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hooks.html">Hooks in CSP</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Development</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to libcsp</a></li>
+<li class="toctree-l1"><a class="reference internal" href="codestyle.html">Code style</a></li>
+<li class="toctree-l1"><a class="reference internal" href="git-commit.html">Git Commit Guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="structure.html">Structure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="CI.html">Continuous Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Example Usage</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="example.html">Client and server example</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: rgba(52,49,49,1) 100%;" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Lib CSP</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">The basics of CSP</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="the-basics-of-csp">
+<h1>The basics of CSP<a class="headerlink" href="#the-basics-of-csp" title="Permalink to this heading"></a></h1>
+<p>The following diagram shows a conceptual overview of the different
+blocks in CSP. The shown interface is CAN
+(src/interfaces/csp_if_can.c, driver:
+src/drivers/can/can_socketcan.c).</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>    <span class="n">buffer</span>                  <span class="n">connection</span>   <span class="n">send</span>   <span class="n">read</span><span class="o">/</span><span class="n">accept</span>
+       <span class="o">^</span>                         <span class="o">|</span>         <span class="o">|</span>         <span class="o">^</span>
+       <span class="o">|</span>                         <span class="o">|</span>         <span class="n">v</span>         <span class="o">|</span>
+       <span class="o">|</span>   <span class="o">+-----------------+</span>   <span class="o">|</span>     <span class="o">+----------------+</span>    <span class="o">+-------------------+</span>
+       <span class="o">|</span>   <span class="o">|</span> <span class="n">connection</span> <span class="n">pool</span> <span class="o">|</span>   <span class="o">|</span>     <span class="o">|</span>    <span class="n">CSP</span> <span class="n">Core</span>    <span class="o">|</span>    <span class="o">|</span> <span class="n">csp_task_router</span><span class="p">()</span> <span class="o">|</span>
+       <span class="o">|</span>   <span class="o">|</span>  <span class="n">csp_conn</span><span class="o">.</span><span class="n">c</span>     <span class="o">|&lt;--+----&gt;|</span> <span class="o">*</span> <span class="n">routing</span>      <span class="o">|&lt;---|</span>    <span class="n">csp_route</span><span class="o">.</span><span class="n">c</span>    <span class="o">|</span>
+       <span class="o">|</span>   <span class="o">+-----------------+</span>         <span class="o">|</span> <span class="o">*</span> <span class="n">crypt</span>        <span class="o">|</span>    <span class="o">+-------------------+</span>
+       <span class="o">|</span>                               <span class="o">|</span> <span class="o">*</span> <span class="n">UDP</span><span class="o">/</span><span class="n">RDP</span>      <span class="o">|</span>              <span class="o">^</span>
+       <span class="o">|</span>                  <span class="n">csp_route_t</span>  <span class="o">|</span> <span class="o">*</span> <span class="n">CRC32</span>        <span class="o">|</span>              <span class="o">|</span>
+       <span class="n">v</span>                 <span class="o">+------------&gt;|</span>                <span class="o">|</span>     <span class="o">+----------------+</span>
+<span class="o">+--------------+</span>         <span class="o">|</span>             <span class="o">|</span>                <span class="o">|</span>     <span class="o">|</span> <span class="n">incoming</span> <span class="n">queue</span> <span class="o">|</span>
+<span class="o">|</span> <span class="n">buffer</span> <span class="n">pool</span>  <span class="o">|</span>         <span class="o">|</span>             <span class="o">|</span>                <span class="o">|</span>     <span class="o">|</span>     <span class="n">qfifo</span><span class="o">.</span><span class="n">c</span>    <span class="o">|</span>
+<span class="o">|</span> <span class="n">csp_buffer</span><span class="o">.</span><span class="n">c</span> <span class="o">|</span>  <span class="o">+-------------+</span>      <span class="o">+----------------+</span>     <span class="o">+----------------+</span>
+<span class="o">+--------------+</span>  <span class="o">|</span><span class="n">routing</span> <span class="n">table</span><span class="o">|</span>            <span class="o">|</span>                         <span class="o">^</span>
+       <span class="o">^</span>          <span class="o">|</span>  <span class="n">rtable</span><span class="o">.</span><span class="n">c</span>   <span class="o">|</span>            <span class="n">v</span>                         <span class="o">|</span>
+       <span class="o">|</span>          <span class="o">+-------------+</span>      <span class="o">+------------------------------------+</span>
+       <span class="o">|</span>                               <span class="o">|</span>  <span class="p">(</span><span class="n">next_hop</span><span class="p">)</span>                        <span class="o">|</span>
+       <span class="o">|</span>                               <span class="o">|</span>    <span class="n">CAN</span> <span class="n">interface</span> <span class="p">(</span><span class="n">csp_if_can</span><span class="o">.</span><span class="n">c</span><span class="p">)</span>    <span class="o">|</span>
+       <span class="o">+------------------------------&gt;|</span>                      <span class="n">csp_can_rx</span><span class="p">()</span>  <span class="o">|</span>
+                                       <span class="o">+------------------------------------+</span>
+                                             <span class="o">|</span>   <span class="n">CAN</span> <span class="n">frame</span> <span class="p">(</span><span class="mi">8</span> <span class="nb">bytes</span><span class="p">)</span>   <span class="o">^</span>
+                                             <span class="n">v</span>                         <span class="o">|</span>
+                                     <span class="n">csp_can_tx_frame</span><span class="p">()</span>       <span class="n">socketcan_rx_thread</span><span class="p">()</span>
+                                             <span class="p">(</span><span class="n">drivers</span><span class="o">/</span><span class="n">can</span><span class="o">/</span><span class="n">can_socketcan</span><span class="o">.</span><span class="n">c</span><span class="p">)</span>
+</pre></div>
+</div>
+<section id="buffer">
+<h2>Buffer<a class="headerlink" href="#buffer" title="Permalink to this heading"></a></h2>
+<p>All buffers are allocated once during initialization of CSP, after this
+the buffer system is entirely self-contained. All allocated elements are
+of the same size, so the buffer size must be chosen to be able to handle
+the maximum possible packet length. The buffer pool uses a queue to
+store pointers to free buffer elements. First of all, this gives a very
+quick method to get the next free element since the dequeue is an O(1)
+operation. Furthermore, since the queue is a protected operating system
+primitive, it can be accessed from both task-context and
+interrupt-context. The <code class="docutils literal notranslate"><span class="pre">csp_buffer_get()</span></code>
+version is for task-context and
+<code class="docutils literal notranslate"><span class="pre">csp_buffer_get_isr()</span></code> is for
+interrupt-context. Using fixed size buffer elements that are
+preallocated is again a question of speed and safety.</p>
+<p>if you use <code class="docutils literal notranslate"><span class="pre">csp_buffer_get_always()</span></code> instead csp will panic if there is
+not enough available buffers. This ensures that incoming hardware
+always gets a buffer, or the system will reboot.</p>
+<p>Definition of a buffer element <code class="docutils literal notranslate"><span class="pre">csp_packet_t</span></code>:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cm">/**</span>
+<span class="cm">   CSP Packet.</span>
+
+<span class="cm">   This structure is constructed to fit with all interface and protocols to prevent the</span>
+<span class="cm">   need to copy data (zero copy).</span>
+
+<span class="cm">   @note In most cases a CSP packet cannot be reused in case of send failure, because the</span>
+<span class="cm">   lower layers may add additional data causing increased length (e.g. CRC32), convert</span>
+<span class="cm">   the CSP id to different endian (e.g. I2C), etc.</span>
+<span class="cm">*/</span>
+<span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">timestamp_tx</span><span class="p">;</span><span class="w">        </span><span class="c1">// Time the message was sent</span>
+<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">timestamp_rx</span><span class="p">;</span><span class="w">        </span><span class="c1">// Time the message was received</span>
+
+<span class="w">    </span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">length</span><span class="p">;</span><span class="w">              </span><span class="c1">// Data length</span>
+<span class="w">    </span><span class="n">csp_id_t</span><span class="w"> </span><span class="n">id</span><span class="p">;</span><span class="w">                  </span><span class="c1">// CSP id (unpacked version CPU readable)</span>
+
+<span class="w">    </span><span class="kt">uint8_t</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">frame_begin</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">frame_length</span><span class="p">;</span>
+
+<span class="w">    </span><span class="cm">/* Additional header bytes, to prepend packed data before transmission</span>
+<span class="cm">     * This must be minimum 6 bytes to accomodate CSP 2.0. But some implementations</span>
+<span class="cm">     * require much more scratch working area for encryption for example.</span>
+<span class="cm">     *</span>
+<span class="cm">     * Ultimately after csp_id_pack() this area will be filled with the CSP header</span>
+<span class="cm">     */</span>
+
+<span class="w">    </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">header</span><span class="p">[</span><span class="n">CSP_PACKET_PADDING_BYTES</span><span class="p">];</span>
+
+<span class="w">    </span><span class="cm">/**</span>
+<span class="cm">     * Data part of packet.</span>
+<span class="cm">     */</span>
+<span class="w">    </span><span class="k">union</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="cm">/** Access data as uint8_t. */</span>
+<span class="w">        </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>
+<span class="w">        </span><span class="cm">/** Access data as uint16_t */</span>
+<span class="w">        </span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">data16</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>
+<span class="w">        </span><span class="cm">/** Access data as uint32_t */</span>
+<span class="w">        </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">data32</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>
+<span class="w">   </span><span class="p">};</span>
+
+<span class="p">}</span><span class="w"> </span><span class="n">csp_packet_t</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>A basic concept in the buffer system is called Zero-Copy. This means
+that from userspace to the kernel-driver, the buffer is never copied
+from one buffer to another. This is a big deal for a small
+microprocessor, where a call to <code class="docutils literal notranslate"><span class="pre">memcpy()</span></code>
+can be very expensive. This is achieved by a number of
+<code class="docutils literal notranslate"><span class="pre">padding</span></code> bytes in the buffer, allowing for
+a header to be prepended at the lower layers without copying the actual
+payload. This also means that there is a strict contract between the
+layers, which data can be modified and where.</p>
+<p>The padding bytes are used by the I2C interface, where the
+<code class="docutils literal notranslate"><span class="pre">csp_packet_t</span></code> will be casted to a
+<code class="docutils literal notranslate"><span class="pre">csp_i2c_frame_t</span></code>, when the interface
+calls the driver Tx function <code class="docutils literal notranslate"><span class="pre">csp_i2c_driver_tx_t</span></code>:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cm">/**</span>
+<span class="cm">   I2C frame.</span>
+<span class="cm">   This struct fits on top of a #csp_packet_t, removing the need for copying data.</span>
+<span class="cm">*/</span>
+<span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">i2c_frame_s</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">//! Not used  (-&gt; csp_packet_t.padding)</span>
+<span class="w">    </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">padding</span><span class="p">[</span><span class="mi">3</span><span class="p">];</span>
+<span class="w">    </span><span class="c1">//! Cleared before Tx  (-&gt; csp_packet_t.padding)</span>
+<span class="w">    </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">retries</span><span class="p">;</span>
+<span class="w">    </span><span class="c1">//! Not used  (-&gt; csp_packet_t.padding)</span>
+<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">reserved</span><span class="p">;</span>
+<span class="w">    </span><span class="c1">//! Destination address  (-&gt; csp_packet_t.padding)</span>
+<span class="w">    </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">dest</span><span class="p">;</span>
+<span class="w">    </span><span class="c1">//! Cleared before Tx  (-&gt; csp_packet_t.padding)</span>
+<span class="w">    </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">len_rx</span><span class="p">;</span>
+<span class="w">    </span><span class="c1">//! Length of \a data part  (-&gt; csp_packet_t.length)</span>
+<span class="w">    </span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">len</span><span class="p">;</span>
+<span class="w">    </span><span class="c1">//! CSP id + data  (-&gt; csp_packet_t.id)</span>
+<span class="w">    </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>
+<span class="p">}</span><span class="w"> </span><span class="n">csp_i2c_frame_t</span><span class="p">;</span>
+</pre></div>
+</div>
+</section>
+<section id="connection">
+<h2>Connection<a class="headerlink" href="#connection" title="Permalink to this heading"></a></h2>
+<p>CSP supports both connection-less and connection-oriented connections.
+See more about protocols in <code class="docutils literal notranslate"><span class="pre">layer4</span></code>.</p>
+<p>During initialization libcsp allocates the configured number of
+connections. The required number of connections depends on the
+application. Here is a list functions, that will allocate a connection
+from the connection pool:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>client connection, call to
+<code class="docutils literal notranslate"><span class="pre">csp_connect()</span></code></p></li>
+<li><p>server socket for listening
+<code class="docutils literal notranslate"><span class="pre">csp_socket()</span></code></p></li>
+<li><p>server accepting an incoming connection
+<code class="docutils literal notranslate"><span class="pre">csp_accept()</span></code></p></li>
+</ul>
+</div></blockquote>
+<p>An application’s receive queue is located on the connection and is also
+allocated once during initialization. The length of the queue is the
+same for all queues, and specified in the configuration.</p>
+</section>
+<section id="send">
+<h2>Send<a class="headerlink" href="#send" title="Permalink to this heading"></a></h2>
+<p>The data flow from the application to the driver, can basically be
+broken down into following steps:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>if using connection-oriented communication, establish a
+connection&gt; <code class="docutils literal notranslate"><span class="pre">csp_connect()</span></code>,
+<code class="docutils literal notranslate"><span class="pre">csp_accept()</span></code></p></li>
+<li><p>get packet from the buffer pool:
+<code class="docutils literal notranslate"><span class="pre">csp_buffer_get()</span></code></p></li>
+<li><p>add payload data to the packet</p></li>
+<li><p>send packet, e.g. <code class="docutils literal notranslate"><span class="pre">csp_send()</span></code>,
+<code class="docutils literal notranslate"><span class="pre">csp_sendto()</span></code></p></li>
+<li><p>CSP looks up the destination route, using the routing table, and
+calls <code class="docutils literal notranslate"><span class="pre">nexthop()</span></code> on the resolved
+interface.</p></li>
+<li><p>The interface (in this case the CAN interface), splits the packet
+into a number of CAN frames (8 bytes) and forwards them to the
+driver.</p></li>
+</ol>
+</div></blockquote>
+</section>
+<section id="receive">
+<h2>Receive<a class="headerlink" href="#receive" title="Permalink to this heading"></a></h2>
+<p>The data flow from the driver to the application, can basically be
+broken down into following steps:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>the driver layer forwards the raw data frames to the interface, in
+this case CAN frames</p></li>
+<li><p>the interface will acquire a free buffer (e.g.
+<code class="docutils literal notranslate"><span class="pre">csp_buffer_get_isr()</span></code>) for
+assembling the CAN frames into a complete packet</p></li>
+<li><p>once the interface has successfully assembled a packet, the packet
+is queued for routing - primarily to decouple the interface, e.g.
+if the interfaces/drivers uses interrupt (ISR).</p></li>
+<li><p>the router picks up the packet from the incoming queue and routes
+it on - this can either be to a local destination, or another
+interface.</p></li>
+<li><p>the application waits for new packets at its Rx queue, by calling
+<code class="docutils literal notranslate"><span class="pre">csp_read()</span></code> or
+<code class="docutils literal notranslate"><span class="pre">csp_accept</span></code> in case it is a server
+socket.</p></li>
+<li><p>the application can now process the packet, and either send it
+using e.g. <code class="docutils literal notranslate"><span class="pre">csp_send()</span></code>, or free the
+packet using <code class="docutils literal notranslate"><span class="pre">csp_buffer_free()</span></code>.</p></li>
+</ol>
+</div></blockquote>
+</section>
+<section id="routing-table">
+<h2>Routing table<a class="headerlink" href="#routing-table" title="Permalink to this heading"></a></h2>
+<p>When a packet is routed, the destination address is looked up in the
+routing table, which results in a
+<code class="docutils literal notranslate"><span class="pre">csp_route_t</span></code> record. The record contains
+the interface (<code class="docutils literal notranslate"><span class="pre">csp_iface_t</span></code>) the packet
+is to be sent on, and an optional <code class="docutils literal notranslate"><span class="pre">via</span></code>
+address. The <code class="docutils literal notranslate"><span class="pre">via</span></code> address is used, when
+the sender cannot directly reach the receiver on one of its connected
+networks, e.g. sending a packet from the satellite to the ground - the
+radio will be the <code class="docutils literal notranslate"><span class="pre">via</span></code> address.</p>
+<p>CSP comes with 2 routing table implementations (selected at compile
+time).</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>static: supports a one-to-one mapping, meaning routes must be
+configured per destination address or a single
+<code class="docutils literal notranslate"><span class="pre">default</span></code> address. The
+<code class="docutils literal notranslate"><span class="pre">default</span></code> address is used, in case
+there are no routes set for the specific destination address. The
+<code class="docutils literal notranslate"><span class="pre">static</span></code> routing table has the
+fastest lookup, but requires more setup.</p></li>
+<li><p>cidr (Classless Inter-Domain Routing): supports a one-to-many
+mapping, meaning routes can be configued for a range of
+destination addresses. The <code class="docutils literal notranslate"><span class="pre">cidr</span></code> is
+a bit slower for lookup, but simple to setup.</p></li>
+</ul>
+</div></blockquote>
+<p>Routes can be configured using text strings in the format:</p>
+<blockquote>
+<div><p>&lt;address&gt;[/mask] &lt;interface name&gt; [via]</p>
+<ul class="simple">
+<li><p>address: is the destination address, the routing table will match
+it against the CSP header destination.</p></li>
+<li><p>mask (optional): determines how many MSB bits of address are to be
+matched. mask = 1 will only match the MSB bit, mask = 2 will match
+2 MSB bits. Mask values different from 0 and 5, is only supported
+by the cidr rtable.</p></li>
+<li><p>interface name: name of the interface to route the packet on.</p></li>
+<li><p>via (optional) address: if different from 255, route the packet to
+the <code class="docutils literal notranslate"><span class="pre">via</span></code> address, instead of the
+address in the CSP header.</p></li>
+</ul>
+</div></blockquote>
+<p>Here are some examples:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>“10 I2C” route destination address 10 to the “I2C” interface and
+send it to address 10 (no <code class="docutils literal notranslate"><span class="pre">via</span></code>).</p></li>
+<li><p>“10 I2C 30” route destination address 10 to the “I2C” interface
+and send it to address 30 (<code class="docutils literal notranslate"><span class="pre">via</span></code>).
+The original destination address 10 is not changed in the CSP
+header of the packet.</p></li>
+<li><p>“16/1 CAN 4” (CIDR only) route all destination addresses 16-31 to
+address 4 on the CAN interface.</p></li>
+<li><p>“0/0 CAN” default route, if no other matching route is found,
+route packet onto the CAN interface.</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="interface">
+<h2>Interface<a class="headerlink" href="#interface" title="Permalink to this heading"></a></h2>
+<p>The interface typically implements <code class="docutils literal notranslate"><span class="pre">layer2</span></code>, and uses drivers from
+<code class="docutils literal notranslate"><span class="pre">layer1</span></code> to send/receive data. The interface is a generic struct, with
+no knowledge of any specific interface , protocol or driver:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cm">/**</span>
+<span class="cm">   CSP interface.</span>
+<span class="cm">*/</span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">csp_iface_s</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">addr</span><span class="p">;</span><span class="w">              </span><span class="c1">// Host address on this subnet</span>
+<span class="w">    </span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">netmask</span><span class="p">;</span><span class="w">           </span><span class="c1">// Subnet mask</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">name</span><span class="p">;</span><span class="w">          </span><span class="c1">// Name, max compare length is #CSP_IFLIST_NAME_MAX</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">interface_data</span><span class="p">;</span><span class="w">      </span><span class="c1">// Interface data, only known/used by the interface layer, e.g. state information.</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">driver_data</span><span class="p">;</span><span class="w">         </span><span class="c1">// Driver data, only known/used by the driver layer, e.g. device/channel references.</span>
+<span class="w">    </span><span class="n">nexthop_t</span><span class="w"> </span><span class="n">nexthop</span><span class="p">;</span><span class="w">          </span><span class="c1">// Next hop (Tx) function</span>
+<span class="w">    </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">is_default</span><span class="p">;</span><span class="w">         </span><span class="c1">// Set default IF flag (CSP supports multiple defaults)</span>
+<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">tx</span><span class="p">;</span><span class="w">                </span><span class="c1">// Successfully transmitted packets</span>
+<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">rx</span><span class="p">;</span><span class="w">                </span><span class="c1">// Successfully received packets</span>
+<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">tx_error</span><span class="p">;</span><span class="w">          </span><span class="c1">// Transmit errors (packets)</span>
+<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">rx_error</span><span class="p">;</span><span class="w">          </span><span class="c1">// Receive errors, e.g. too large message</span>
+<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">drop</span><span class="p">;</span><span class="w">              </span><span class="c1">// Dropped packets</span>
+<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">autherr</span><span class="p">;</span><span class="w">           </span><span class="c1">// Authentication errors (packets)</span>
+<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">frame</span><span class="p">;</span><span class="w">             </span><span class="c1">// Frame format errors (packets)</span>
+<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">txbytes</span><span class="p">;</span><span class="w">           </span><span class="c1">// Transmitted bytes</span>
+<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">rxbytes</span><span class="p">;</span><span class="w">           </span><span class="c1">// Received bytes</span>
+<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">irq</span><span class="p">;</span><span class="w">               </span><span class="c1">// Interrupts</span>
+<span class="w">    </span><span class="k">struct</span><span class="w"> </span><span class="nc">csp_iface_s</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">next</span><span class="p">;</span><span class="w">  </span><span class="c1">// Internal, interfaces are stored in a linked list</span>
+<span class="p">};</span>
+</pre></div>
+</div>
+<p>If an interface implementation needs to store data, e.g. state
+information (KISS), it can use the pointer
+<code class="docutils literal notranslate"><span class="pre">interface_data</span></code> to reference any data
+structure needed. The driver implementation can use the pointer
+<code class="docutils literal notranslate"><span class="pre">driver_data</span></code> for storing data, e.g.
+device number.</p>
+<p>See function
+<code class="docutils literal notranslate"><span class="pre">csp_can_socketcan_open_and_add_interface()</span></code>
+in <code class="docutils literal notranslate"><span class="pre">src/drivers/can/can_socketcan.c</span></code> for
+an example of how to implement a CAN driver and hooking it into CSP,
+using the CSP standard CAN interface.</p>
+<section id="id1">
+<h3>Send<a class="headerlink" href="#id1" title="Permalink to this heading"></a></h3>
+<p>When CSP needs to send a packet, it calls
+<code class="docutils literal notranslate"><span class="pre">nexthop</span></code> on the interface returned by
+route lookup. If the interface succeeds in sending the packet, it must
+free the packet. In case of failure, the packet must not be freed by the
+interface. The original idea was, that the packet could be retried later
+on, without having to re-create the packet again. However, the current
+implementation does not yet fully support this as some interfaces
+modify the header (endian conversion) or data (adding CRC32).</p>
+</section>
+<section id="id2">
+<h3>Receive<a class="headerlink" href="#id2" title="Permalink to this heading"></a></h3>
+<p>When receiving data, the driver calls into the interface with the
+received data, e.g. <code class="docutils literal notranslate"><span class="pre">csp_can_rx()</span></code>. The
+interface will convert/copy the data into a packet (e.g. by assembling
+all CAN frames). Once a complete packet is received, the packet is
+queued for later CSP processing, by calling
+<code class="docutils literal notranslate"><span class="pre">csp_qfifo_write()</span></code>.</p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="api/arch/csp_queue_h.html" class="btn btn-neutral float-left" title="CSP Queue" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="license.html" class="btn btn-neutral float-right" title="License" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

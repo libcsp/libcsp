@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hooks in CSP &mdash; Cubesat Space Protocol</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css" />
+      <link rel="stylesheet" type="text/css" href="_static/copybutton.css" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.5ea377869091fd0449014c60fc090103.min.css" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+        <script src="_static/clipboard.min.js"></script>
+        <script src="_static/copybutton.js"></script>
+        <script src="_static/design-tabs.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Contributing to libcsp" href="contributing.html" />
+    <link rel="prev" title="CSP tunnels" href="tunnel.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: rgba(52,49,49,1) 100%;" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Lib CSP
+          </a>
+              <div class="version">
+                develop
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Setup</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="INSTALL.html">How to install LibCSP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="build-doc.html">How to build documentation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">CSP API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_h.html">CSP Library Header</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_types_h.html">CSP Basic Types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_buffer_h.html">CSP Buffer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_cmp_h.html">CSP Management Protocol (CMP)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_sfp_h.html">Small Fragmentation Protocol (SFP)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_promisc_h.html">Promiscuous packet queue</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_interface_h.html">CSP Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_rtable_h.html">Routing table</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_iflist_h.html">Interfaces management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_error_h.html">Error Codes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_debug_h.html">CSP Debug</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_id_h.html">CSP ID</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_crc32_h.html">CRC32 Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_hooks_h.html">CSP Hooks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_yaml_h.html">YAML Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/drivers/drivers.html">Drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/crypto/crypto.html">Crypto</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/interfaces/interfaces.html">Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/arch/arch.html">Architecture dependent</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">The Cubesat Space Protocol</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="basic.html">The basics of CSP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="history.html">History</a></li>
+<li class="toctree-l1"><a class="reference internal" href="memory.html">How CSP uses memory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mtu.html">Maximum Transfer Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="outflow.html">Outgoing Packet Flow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="protocolstack.html">The Protocol Stack</a></li>
+<li class="toctree-l1"><a class="reference internal" href="topology.html">Network Topology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tunnel.html">CSP tunnels</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Hooks in CSP</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Development</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to libcsp</a></li>
+<li class="toctree-l1"><a class="reference internal" href="codestyle.html">Code style</a></li>
+<li class="toctree-l1"><a class="reference internal" href="git-commit.html">Git Commit Guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="structure.html">Structure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="CI.html">Continuous Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Example Usage</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="example.html">Client and server example</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: rgba(52,49,49,1) 100%;" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Lib CSP</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Hooks in CSP</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="hooks-in-csp">
+<h1><a class="toc-backref" href="#id1" role="doc-backlink">Hooks in CSP</a><a class="headerlink" href="#hooks-in-csp" title="Permalink to this heading"></a></h1>
+<nav class="contents" id="contents">
+<p class="topic-title">Contents</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#hooks-in-csp" id="id1">Hooks in CSP</a></p>
+<ul>
+<li><p><a class="reference internal" href="#debug" id="id2">Debug</a></p></li>
+<li><p><a class="reference internal" href="#crypto" id="id3">Crypto</a></p></li>
+<li><p><a class="reference internal" href="#time" id="id4">Time</a></p></li>
+<li><p><a class="reference internal" href="#callback-functions-in-csp" id="id5">Callback functions in CSP</a></p></li>
+</ul>
+</li>
+</ul>
+</nav>
+<p>All hooks in CSP are weak linked functions. Some of them have default implementations,
+and your program can build and run fine without implementing the hook yourself. Others
+are relying on the user to provide the functions, and linker will fail because no
+implementation was found.</p>
+<p>Usage of any of the builtin weak functions, will require that you link CSP with
+-Wl,–link-whole.</p>
+<p>TODO: implement a static assert, to catch when the program has been linked without any
+implementation of <code class="docutils literal notranslate"><span class="pre">csp_print</span></code>. Because there is no runtime check on this</p>
+<section id="debug">
+<h2><a class="toc-backref" href="#id2" role="doc-backlink">Debug</a><a class="headerlink" href="#debug" title="Permalink to this heading"></a></h2>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="nf">csp_print</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">fmt</span><span class="p">,</span><span class="w"> </span><span class="p">...);</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">csp_output_hook</span><span class="p">(</span><span class="n">csp_id_t</span><span class="o">*</span><span class="w"> </span><span class="n">idout</span><span class="p">,</span><span class="w"> </span><span class="n">csp_packet_t</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">packet</span><span class="p">,</span><span class="w"> </span><span class="n">csp_iface_t</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">iface</span><span class="p">,</span><span class="w"> </span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">via</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">from_me</span><span class="p">);</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">csp_input_hook</span><span class="p">(</span><span class="n">csp_iface_t</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">iface</span><span class="p">,</span><span class="w"> </span><span class="n">csp_packet_t</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">packet</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>CSP contains a default implementation of <code class="docutils literal notranslate"><span class="pre">csp_print</span></code> which calls <code class="docutils literal notranslate"><span class="pre">printf</span></code>. This can be overridden by implementing
+<code class="docutils literal notranslate"><span class="pre">csp_print</span></code> in your own application.</p>
+<p><code class="docutils literal notranslate"><span class="pre">input/output_hook</span></code> are called by the router on all incoming packets, and by the sender on all outgoing packets.
+The default is to print out a message if the global <code class="docutils literal notranslate"><span class="pre">csp_dbg_print_packet</span> <span class="pre">==</span> <span class="pre">1</span></code></p>
+</section>
+<section id="crypto">
+<h2><a class="toc-backref" href="#id3" role="doc-backlink">Crypto</a><a class="headerlink" href="#crypto" title="Permalink to this heading"></a></h2>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span><span class="w"> </span><span class="nf">csp_crypto_decrypt</span><span class="p">(</span><span class="kt">uint8_t</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">ciphertext_in</span><span class="p">,</span><span class="w"> </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">ciphertext_len</span><span class="p">,</span><span class="w"> </span><span class="kt">uint8_t</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">msg_out</span><span class="p">);</span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">csp_crypto_encrypt</span><span class="p">(</span><span class="kt">uint8_t</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">msg_begin</span><span class="p">,</span><span class="w"> </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">msg_len</span><span class="p">,</span><span class="w"> </span><span class="kt">uint8_t</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">ciphertext_out</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>The crypto calls in <code class="docutils literal notranslate"><span class="pre">csp_if_tun</span></code> does not have a default implementation in CSP and your
+application will fail to link if you use csp_if_tun without these two functions.</p>
+</section>
+<section id="time">
+<h2><a class="toc-backref" href="#id4" role="doc-backlink">Time</a><a class="headerlink" href="#time" title="Permalink to this heading"></a></h2>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="nf">csp_clock_get_time</span><span class="p">(</span><span class="n">csp_timestamp_t</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">time</span><span class="p">);</span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">csp_clock_set_time</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">csp_timestamp_t</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">time</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>The get and set time functions rely on <code class="docutils literal notranslate"><span class="pre">arch/&lt;os&gt;</span></code> and all have default implementations.
+On FreeRTOS they simply return 0. On posix and zephyr they call <code class="docutils literal notranslate"><span class="pre">clock_gettime(CLOCK_REALTIME,</span> <span class="pre">&amp;ts)</span></code>
+to get the timestamp from the kernel.</p>
+</section>
+<section id="callback-functions-in-csp">
+<h2><a class="toc-backref" href="#id5" role="doc-backlink">Callback functions in CSP</a><a class="headerlink" href="#callback-functions-in-csp" title="Permalink to this heading"></a></h2>
+<p>These callbacks are configured in runtime, by passing a function pointer to a setter function:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span>
+<span class="k">typedef</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">csp_sys_reboot_t</span><span class="p">)(</span><span class="kt">void</span><span class="p">);</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">csp_sys_set_reboot</span><span class="p">(</span><span class="n">csp_sys_reboot_t</span><span class="w"> </span><span class="n">reboot</span><span class="p">);</span>
+
+<span class="k">typedef</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">csp_sys_shutdown_t</span><span class="p">)(</span><span class="kt">void</span><span class="p">);</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">csp_sys_set_shutdown</span><span class="p">(</span><span class="n">csp_sys_shutdown_t</span><span class="w"> </span><span class="n">shutdown</span><span class="p">);</span>
+
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="tunnel.html" class="btn btn-neutral float-left" title="CSP tunnels" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="contributing.html" class="btn btn-neutral float-right" title="Contributing to libcsp" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

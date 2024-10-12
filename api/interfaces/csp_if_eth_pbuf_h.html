@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Packet buffer header &mdash; Cubesat Space Protocol</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.5ea377869091fd0449014c60fc090103.min.css" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
+        <script src="../../_static/clipboard.min.js"></script>
+        <script src="../../_static/copybutton.js"></script>
+        <script src="../../_static/design-tabs.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="I2C Interface" href="csp_if_i2c_h.html" />
+    <link rel="prev" title="Ethernet Interface" href="csp_if_eth_h.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: rgba(52,49,49,1) 100%;" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Lib CSP
+          </a>
+              <div class="version">
+                develop
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Setup</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../INSTALL.html">How to install LibCSP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../build-doc.html">How to build documentation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">CSP API</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../csp_h.html">CSP Library Header</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../csp_types_h.html">CSP Basic Types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../csp_buffer_h.html">CSP Buffer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../csp_cmp_h.html">CSP Management Protocol (CMP)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../csp_sfp_h.html">Small Fragmentation Protocol (SFP)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../csp_promisc_h.html">Promiscuous packet queue</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../csp_interface_h.html">CSP Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../csp_rtable_h.html">Routing table</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../csp_iflist_h.html">Interfaces management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../csp_error_h.html">Error Codes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../csp_debug_h.html">CSP Debug</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../csp_id_h.html">CSP ID</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../csp_crc32_h.html">CRC32 Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../csp_hooks_h.html">CSP Hooks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../csp_yaml_h.html">YAML Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../drivers/drivers.html">Drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../crypto/crypto.html">Crypto</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="interfaces.html">Interfaces</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="csp_if_can_h.html">CAN Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="csp_if_eth_h.html">Ethernet Interface</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Packet buffer header</a></li>
+<li class="toctree-l2"><a class="reference internal" href="csp_if_i2c_h.html">I2C Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="csp_if_kiss_h.html">KISS Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="csp_if_lo_h.html">Loopback Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="csp_if_tun_h.html">Tunnel Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="csp_if_udp_h.html">UDP Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="csp_if_zmqhub_h.html">ZeroMQ Interface</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../arch/arch.html">Architecture dependent</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">The Cubesat Space Protocol</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../basic.html">The basics of CSP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../history.html">History</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../memory.html">How CSP uses memory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../mtu.html">Maximum Transfer Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../outflow.html">Outgoing Packet Flow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../protocolstack.html">The Protocol Stack</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../topology.html">Network Topology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tunnel.html">CSP tunnels</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../hooks.html">Hooks in CSP</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Development</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../contributing.html">Contributing to libcsp</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../codestyle.html">Code style</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../git-commit.html">Git Commit Guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../structure.html">Structure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../CI.html">Continuous Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changelog.html">Changelog</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Example Usage</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../example.html">Client and server example</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: rgba(52,49,49,1) 100%;" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Lib CSP</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="interfaces.html">Interfaces</a></li>
+      <li class="breadcrumb-item active">Packet buffer header</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="packet-buffer-header">
+<h1>Packet buffer header<a class="headerlink" href="#packet-buffer-header" title="Permalink to this heading"></a></h1>
+<p><strong>File:</strong> csp/interfaces/csp_if_eth_pbuf.h</p>
+<p><strong>Description:</strong> Packet buffer header</p>
+<p>The first part is an identifier that must uniquely identify the CSP packet
+to which the segment carried by the pbuf belongs. Each source node sends via
+same ethernet tx function that must provide the packet identifier like a packet
+counter that wraps around at 32768. With multiple nodes connected on ethernet
+the packet identifiers on different nodes may collide, which is why the CSP
+source address is included in the pbuf identifier. Multiple source addresses
+causes no problems, as the packet_id dows not depend on the packet content.</p>
+<p>A segment identifier is considered not required, as the stream of ethernet
+frames follows a single path, and there are no retransmission, so it can be
+assumed received in same order as sent. A lost frame causes a stalled pbuf
+waiting fhr last bytes to arrive. This is discarded a period of
+CSP_IF_ETH_PBUF_TIMEOUT_MS after latest data was received.</p>
+<p>There is a minimum ethernet frame size, such that the received size is at
+leas 60 bytes. The segment size field of the header provides the length of
+the actual payload.</p>
+<p>The size of a CSP packet can generally not be determined from a partial CSP
+frame. The packet_length field providing the packet length is simplest solution.</p>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="csp_if_eth_h.html" class="btn btn-neutral float-left" title="Ethernet Interface" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="csp_if_i2c_h.html" class="btn btn-neutral float-right" title="I2C Interface" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

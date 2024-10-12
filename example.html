@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Client and server example &mdash; Cubesat Space Protocol</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css" />
+      <link rel="stylesheet" type="text/css" href="_static/copybutton.css" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.5ea377869091fd0449014c60fc090103.min.css" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+        <script src="_static/clipboard.min.js"></script>
+        <script src="_static/copybutton.js"></script>
+        <script src="_static/design-tabs.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Changelog" href="changelog.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: rgba(52,49,49,1) 100%;" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Lib CSP
+          </a>
+              <div class="version">
+                develop
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Setup</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="INSTALL.html">How to install LibCSP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="build-doc.html">How to build documentation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">CSP API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_h.html">CSP Library Header</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_types_h.html">CSP Basic Types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_buffer_h.html">CSP Buffer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_cmp_h.html">CSP Management Protocol (CMP)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_sfp_h.html">Small Fragmentation Protocol (SFP)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_promisc_h.html">Promiscuous packet queue</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_interface_h.html">CSP Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_rtable_h.html">Routing table</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_iflist_h.html">Interfaces management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_error_h.html">Error Codes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_debug_h.html">CSP Debug</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_id_h.html">CSP ID</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_crc32_h.html">CRC32 Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_hooks_h.html">CSP Hooks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_yaml_h.html">YAML Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/drivers/drivers.html">Drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/crypto/crypto.html">Crypto</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/interfaces/interfaces.html">Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/arch/arch.html">Architecture dependent</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">The Cubesat Space Protocol</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="basic.html">The basics of CSP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="history.html">History</a></li>
+<li class="toctree-l1"><a class="reference internal" href="memory.html">How CSP uses memory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mtu.html">Maximum Transfer Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="outflow.html">Outgoing Packet Flow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="protocolstack.html">The Protocol Stack</a></li>
+<li class="toctree-l1"><a class="reference internal" href="topology.html">Network Topology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tunnel.html">CSP tunnels</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hooks.html">Hooks in CSP</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Development</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to libcsp</a></li>
+<li class="toctree-l1"><a class="reference internal" href="codestyle.html">Code style</a></li>
+<li class="toctree-l1"><a class="reference internal" href="git-commit.html">Git Commit Guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="structure.html">Structure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="CI.html">Continuous Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Example Usage</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Client and server example</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: rgba(52,49,49,1) 100%;" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Lib CSP</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Client and server example</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="client-and-server-example">
+<h1>Client and server example<a class="headerlink" href="#client-and-server-example" title="Permalink to this heading"></a></h1>
+<p>The example in <code class="docutils literal notranslate"><span class="pre">examples/csp_server_client.c</span></code> provides a
+simple server/client setup, where the client sends a request to the
+server and receives a reply. The code can be compiled to an executable
+using <code class="docutils literal notranslate"><span class="pre">./examples/buildall.py</span></code>.</p>
+<p>The example supports these drivers and interfaces in CSP:</p>
+<ul>
+<li><p>ZMQHUB: <code class="docutils literal notranslate"><span class="pre">-z</span> <span class="pre">&lt;host</span> <span class="pre">name|ip&gt;</span></code></p>
+<p>Requires no extra hardware, as it uses standard network. The
+<code class="docutils literal notranslate"><span class="pre">zmqproxy</span></code> will need to be started.</p>
+</li>
+<li><p>CAN: <code class="docutils literal notranslate"><span class="pre">-c</span> <span class="pre">&lt;can</span> <span class="pre">device&gt;</span></code></p>
+<p>Requires a physical CAN interface. There are several CAN dongles on
+the market, for example
+<a class="reference external" href="https://www.peak-system.com/PCAN-USB.199.0.html">https://www.peak-system.com/PCAN-USB.199.0.html</a>.</p>
+<p>To achieve best performance and stability, following options can be
+set on the CAN device:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">linux</span><span class="p">:</span> <span class="n">sudo</span> <span class="n">ip</span> <span class="n">link</span> <span class="nb">set</span> <span class="n">dev</span> <span class="n">can0</span> <span class="n">down</span>
+<span class="n">linux</span><span class="p">:</span> <span class="n">sudo</span> <span class="n">ip</span> <span class="n">link</span> <span class="nb">set</span> <span class="n">dev</span> <span class="n">can0</span> <span class="n">up</span> <span class="nb">type</span> <span class="n">can</span> <span class="n">bitrate</span> <span class="mi">1000000</span> <span class="n">restart</span><span class="o">-</span><span class="n">ms</span> <span class="mi">100</span>
+<span class="n">linux</span><span class="p">:</span> <span class="n">sudo</span> <span class="n">ip</span> <span class="n">link</span> <span class="nb">set</span> <span class="n">dev</span> <span class="n">can0</span> <span class="n">txqueuelen</span> <span class="mi">100</span>
+</pre></div>
+</div>
+</li>
+<li><p>KISS: <code class="docutils literal notranslate"><span class="pre">-k</span> <span class="pre">&lt;serial</span> <span class="pre">device&gt;</span></code></p>
+<p>Requires a serial interface, e.g. USB dongle.</p>
+</li>
+</ul>
+<section id="running-the-example">
+<h2>Running the example<a class="headerlink" href="#running-the-example" title="Permalink to this heading"></a></h2>
+<p>If the example is started without any interfaces, it will use the
+loopback interface for communication between client and server:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>libcsp$ ./build/examples/csp_server_client
+Initialising CSP
+Connection table
+[00 0x7fbd8f574080] S:0, 0 -&gt; 0, 0 -&gt; 0 (17) fl 0
+[01 0x7fbd8f574198] S:0, 0 -&gt; 0, 0 -&gt; 0 (18) fl 0
+[02 0x7fbd8f5742b0] S:0, 0 -&gt; 0, 0 -&gt; 0 (19) fl 0
+[03 0x7fbd8f5743c8] S:0, 0 -&gt; 0, 0 -&gt; 0 (20) fl 0
+[04 0x7fbd8f5744e0] S:0, 0 -&gt; 0, 0 -&gt; 0 (21) fl 0
+[05 0x7fbd8f5745f8] S:0, 0 -&gt; 0, 0 -&gt; 0 (22) fl 0
+[06 0x7fbd8f574710] S:0, 0 -&gt; 0, 0 -&gt; 0 (23) fl 0
+[07 0x7fbd8f574828] S:0, 0 -&gt; 0, 0 -&gt; 0 (24) fl 0
+Interfaces
+LOOP       addr: 0 netmask: 14 dfl: 0
+           tx: 00000 rx: 00000 txe: 00000 rxe: 00000
+           drop: 00000 autherr: 00000 frame: 00000
+           txb: 0 (0B) rxb: 0 (0B) 
+
+Client task started
+Server task started
+Ping address: 0, result 2 [mS]
+reboot system request sent to address: 0
+Packet received on MY_SERVER_PORT: Hello world A
+</pre></div>
+</div>
+</section>
+<section id="running-the-example-with-zmqhub-interface">
+<h2>Running the example with ZMQHUB interface<a class="headerlink" href="#running-the-example-with-zmqhub-interface" title="Permalink to this heading"></a></h2>
+<p>To run the example with ZMQHUB interfaces, start the <code class="docutils literal notranslate"><span class="pre">zmqproxy</span></code>, client and server in three separate processes.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>libcsp$ ./build/examples/zmqproxy
+Subscriber task listening on tcp://0.0.0.0:6000
+Publisher task listening on tcp://0.0.0.0:7000
+Capture/logging task listening on tcp://0.0.0.0:6000
+Packet: Src 3, Dst 2, Dport 1, Sport 18, Pri 2, Flags 0x00, Size 100
+Packet: Src 2, Dst 3, Dport 18, Sport 1, Pri 2, Flags 0x00, Size 100
+Packet: Src 3, Dst 2, Dport 4, Sport 19, Pri 2, Flags 0x01, Size 8
+Packet: Src 3, Dst 2, Dport 10, Sport 20, Pri 2, Flags 0x00, Size 14
+
+libcsp$ ./build/examples/csp_server -z localhost -a 2
+Initialising CSP
+Connection table
+[00 0x7f266ec1d080] S:0, 0 -&gt; 0, 0 -&gt; 0 (17) fl 0
+[01 0x7f266ec1d198] S:0, 0 -&gt; 0, 0 -&gt; 0 (18) fl 0
+[02 0x7f266ec1d2b0] S:0, 0 -&gt; 0, 0 -&gt; 0 (19) fl 0
+[03 0x7f266ec1d3c8] S:0, 0 -&gt; 0, 0 -&gt; 0 (20) fl 0
+[04 0x7f266ec1d4e0] S:0, 0 -&gt; 0, 0 -&gt; 0 (21) fl 0
+[05 0x7f266ec1d5f8] S:0, 0 -&gt; 0, 0 -&gt; 0 (22) fl 0
+[06 0x7f266ec1d710] S:0, 0 -&gt; 0, 0 -&gt; 0 (23) fl 0
+[07 0x7f266ec1d828] S:0, 0 -&gt; 0, 0 -&gt; 0 (24) fl 0
+Interfaces
+LOOP      addr: 0 netmask: 14 dfl: 0
+          tx: 00000 rx: 00000 txe: 00000 rxe: 00000
+          drop: 00000 autherr: 00000 frame: 00000
+          txb: 0 (0B) rxb: 0 (0B)
+
+ZMQHUB    addr: 2 netmask: 0 dfl: 1
+          tx: 00000 rx: 00000 txe: 00000 rxe: 00000
+          drop: 00000 autherr: 00000 frame: 00000
+          txb: 0 (0B) rxb: 0 (0B)
+
+Server task started
+Packet received on SERVER_PORT: Hello world A
+
+libcsp$ ./build/examples/csp_client -z localhost -a 3 -C 2
+Initialising CSP
+Connection table
+[00 0x7f471efc1080] S:0, 0 -&gt; 0, 0 -&gt; 0 (17) fl 0
+[01 0x7f471efc1198] S:0, 0 -&gt; 0, 0 -&gt; 0 (18) fl 0
+[02 0x7f471efc12b0] S:0, 0 -&gt; 0, 0 -&gt; 0 (19) fl 0
+[03 0x7f471efc13c8] S:0, 0 -&gt; 0, 0 -&gt; 0 (20) fl 0
+[04 0x7f471efc14e0] S:0, 0 -&gt; 0, 0 -&gt; 0 (21) fl 0
+[05 0x7f471efc15f8] S:0, 0 -&gt; 0, 0 -&gt; 0 (22) fl 0
+[06 0x7f471efc1710] S:0, 0 -&gt; 0, 0 -&gt; 0 (23) fl 0
+[07 0x7f471efc1828] S:0, 0 -&gt; 0, 0 -&gt; 0 (24) fl 0
+Interfaces
+LOOP      addr: 0 netmask: 14 dfl: 0
+          tx: 00000 rx: 00000 txe: 00000 rxe: 00000
+          drop: 00000 autherr: 00000 frame: 00000
+          txb: 0 (0B) rxb: 0 (0B)
+
+ZMQHUB    addr: 3 netmask: 0 dfl: 1
+          tx: 00000 rx: 00000 txe: 00000 rxe: 00000
+          drop: 00000 autherr: 00000 frame: 00000
+          txb: 0 (0B) rxb: 0 (0B)
+
+Client task started
+Ping address: 2, result 8 [mS]
+reboot system request sent to address: 2
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="changelog.html" class="btn btn-neutral float-left" title="Changelog" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

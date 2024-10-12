@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Protocol Stack &mdash; Cubesat Space Protocol</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css" />
+      <link rel="stylesheet" type="text/css" href="_static/copybutton.css" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.5ea377869091fd0449014c60fc090103.min.css" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+        <script src="_static/clipboard.min.js"></script>
+        <script src="_static/copybutton.js"></script>
+        <script src="_static/design-tabs.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Network Topology" href="topology.html" />
+    <link rel="prev" title="Outgoing Packet Flow" href="outflow.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: rgba(52,49,49,1) 100%;" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Lib CSP
+          </a>
+              <div class="version">
+                develop
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Setup</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="INSTALL.html">How to install LibCSP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="build-doc.html">How to build documentation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">CSP API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_h.html">CSP Library Header</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_types_h.html">CSP Basic Types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_buffer_h.html">CSP Buffer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_cmp_h.html">CSP Management Protocol (CMP)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_sfp_h.html">Small Fragmentation Protocol (SFP)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_promisc_h.html">Promiscuous packet queue</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_interface_h.html">CSP Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_rtable_h.html">Routing table</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_iflist_h.html">Interfaces management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_error_h.html">Error Codes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_debug_h.html">CSP Debug</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_id_h.html">CSP ID</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_crc32_h.html">CRC32 Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_hooks_h.html">CSP Hooks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_yaml_h.html">YAML Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/drivers/drivers.html">Drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/crypto/crypto.html">Crypto</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/interfaces/interfaces.html">Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/arch/arch.html">Architecture dependent</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">The Cubesat Space Protocol</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="basic.html">The basics of CSP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="history.html">History</a></li>
+<li class="toctree-l1"><a class="reference internal" href="memory.html">How CSP uses memory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mtu.html">Maximum Transfer Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="outflow.html">Outgoing Packet Flow</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">The Protocol Stack</a></li>
+<li class="toctree-l1"><a class="reference internal" href="topology.html">Network Topology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tunnel.html">CSP tunnels</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hooks.html">Hooks in CSP</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Development</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to libcsp</a></li>
+<li class="toctree-l1"><a class="reference internal" href="codestyle.html">Code style</a></li>
+<li class="toctree-l1"><a class="reference internal" href="git-commit.html">Git Commit Guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="structure.html">Structure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="CI.html">Continuous Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Example Usage</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="example.html">Client and server example</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: rgba(52,49,49,1) 100%;" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Lib CSP</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">The Protocol Stack</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="the-protocol-stack">
+<h1><a class="toc-backref" href="#id1" role="doc-backlink">The Protocol Stack</a><a class="headerlink" href="#the-protocol-stack" title="Permalink to this heading"></a></h1>
+<nav class="contents" id="contents">
+<p class="topic-title">Contents</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#the-protocol-stack" id="id1">The Protocol Stack</a></p>
+<ul>
+<li><p><a class="reference internal" href="#layer-1-drivers" id="id2">Layer 1: Drivers</a></p></li>
+<li><p><a class="reference internal" href="#layer-2-mac-interfaces" id="id3">Layer 2: MAC interfaces</a></p></li>
+<li><p><a class="reference internal" href="#layer-3-network-router" id="id4">Layer 3: Network Router</a></p></li>
+<li><p><a class="reference internal" href="#layer-4-transport-layer" id="id5">Layer 4: Transport Layer</a></p>
+<ul>
+<li><p><a class="reference internal" href="#udp" id="id6">UDP</a></p></li>
+<li><p><a class="reference internal" href="#rdp" id="id7">RDP</a></p></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+<p>The CSP protocol stack includes functionality on all layers of the
+TCP/IP model:</p>
+<section id="layer-1-drivers">
+<h2><a class="toc-backref" href="#id2" role="doc-backlink">Layer 1: Drivers</a><a class="headerlink" href="#layer-1-drivers" title="Permalink to this heading"></a></h2>
+<p>CSP is not designed for any specific processor or hardware peripheral,
+but yet these drivers are required in order to work. The intention of
+LibCSP is not to provide CAN, I2C or UART drivers for all platforms,
+however some drivers has only been included for some specific platforms.
+If you do not find your driver supported, it is quite simple to add a
+driver that conforms to the CSP interface. For good stability and
+performance, interrupt driven drivers are preferred in favor of polled
+drivers. Where applicable also DMA usage is recommended.</p>
+</section>
+<section id="layer-2-mac-interfaces">
+<h2><a class="toc-backref" href="#id3" role="doc-backlink">Layer 2: MAC interfaces</a><a class="headerlink" href="#layer-2-mac-interfaces" title="Permalink to this heading"></a></h2>
+<p>CSP has interfaces for I2C, CAN, RS232/RS422 (KISS), ETH, ZMQ (TCP/IP)
+and Loopback. The layer 2 protocol software defines a frame-format that
+is suitable for the media.
+CSP can be easily extended with implementations for even more links, for
+example radio-links. The file <code class="docutils literal notranslate"><span class="pre">csp_interface.h</span></code> declares the rx and tx
+functions needed in order to define a network interface in CSP. During
+initialisation of CSP each interface will be inserted into a linked list
+of interfaces that is available to the router. In cases where link-layer
+addresses are required, such as I2C, the routing table supports specifying
+a <code class="docutils literal notranslate"><span class="pre">via</span></code> link-layer address directly. This avoids the need to implement an
+address resolution protocol to translate CSP addresses to I2C addresses.</p>
+</section>
+<section id="layer-3-network-router">
+<h2><a class="toc-backref" href="#id4" role="doc-backlink">Layer 3: Network Router</a><a class="headerlink" href="#layer-3-network-router" title="Permalink to this heading"></a></h2>
+<p>The router core is the backbone of the CSP implementation. The router
+works by looking at a 32-bit CSP header which contains the destination
+and source address together with port numbers for the connection. The
+router supports both local destination and forwarding to an external
+destination. Messages will never exit the router on the same interface
+that they arrived at, this concept is called split horizon, and helps
+prevent routing loops.</p>
+<p>The main purpose of the router is to accept incoming packets and deliver
+them to the right message queue. Therefore, in order to listen on a
+port-number on the network, a task must create a socket and call the
+accept() call. This will make the task block and wait for incoming
+traffic, just like a web-server or similar. When an incoming connection
+is opened, the task is woken. Depending on the task-priority, the task
+can even preempt another task and start execution immediately.</p>
+<p>There is no routing protocol for automatic route discovery, all routing
+tables are pre-programmed into the subsystems. The table itself contains
+a separate route to each of the possible 32 nodes in the network and the
+additional default route. This means that the overall topology must be
+decided before putting sub-systems together, as explained in the
+<code class="docutils literal notranslate"><span class="pre">topology</span></code> section. However CSP has an extension on port zero CMP (CSP
+management protocol), which allows for over-the-network routing table
+configuration. This has the advantage that default routes could be
+changed if for example the primary radio fails, and the secondary should
+be used instead.</p>
+</section>
+<section id="layer-4-transport-layer">
+<h2><a class="toc-backref" href="#id5" role="doc-backlink">Layer 4: Transport Layer</a><a class="headerlink" href="#layer-4-transport-layer" title="Permalink to this heading"></a></h2>
+<p>LibCSP implements two different Transport Layer protocols, they are
+called UDP (unreliable datagram protocol) and RDP (reliable datagram
+protocol). The name UDP has not been chosen to be an exact replica of
+the UDP (user datagram protocol) known from the TCP/IP model, but they
+have certain similarities.</p>
+<p>The most important thing to notice is that CSP is entirely a datagram
+service. There is no stream based service like TCP. A datagram is a
+defined block of data with a specified size and structure. This block
+enters the transport layer as a single datagram and exits the transport
+layer in the other end as a single datagram. CSP preserves this
+structure all the way to the physical layer for I2C, KISS and Loopback
+interfaces. The CAN-bus interface has to fragment the datagram into
+CAN-frames of 8 bytes, however only a fully completed datagram will
+arrive at the receiver.</p>
+<section id="udp">
+<h3><a class="toc-backref" href="#id6" role="doc-backlink">UDP</a><a class="headerlink" href="#udp" title="Permalink to this heading"></a></h3>
+<p>UDP uses a simple transmission model without implicit hand-shaking
+dialogues for guaranteeing reliability, ordering, or data integrity.
+Thus, UDP provides an unreliable service and datagrams may arrive out of
+order, appear duplicated, or go missing without notice. UDP assumes that
+error checking and correction is either not necessary or performed in
+the application, avoiding the overhead of such processing at the network
+interface level. Time-sensitive applications often use UDP because
+dropping packets is preferable to waiting for delayed packets, which may
+not be an option in a real-time system.</p>
+<p>UDP is very practical to implement request/reply based communication
+where a single packet forms the request and a single packet forms the
+reply. In this case a typical request and wait protocol is used between
+the client and server, which will simply return an error if a reply is
+not received within a specified time limit. An error would normally lead
+to a retransmission of the request from the user or operator which sent
+the request.</p>
+<p>While UDP is very simple, it also has some limitations. Normally a human
+in the loop is a good thing when operating the satellite over UDP. But
+when it comes to larger file transfers, the human becomes the
+bottleneck. When a high-speed file transfer is initiated data
+acknowledgment should be done automatically in order to speed up the
+transfer. This is where the RDP protocol can help.</p>
+</section>
+<section id="rdp">
+<h3><a class="toc-backref" href="#id7" role="doc-backlink">RDP</a><a class="headerlink" href="#rdp" title="Permalink to this heading"></a></h3>
+<p>CSP provides a transport layer extension called RDP (reliable datagram
+protocol) which is an implementation of RFC908 and RFC1151. RDP provides
+a few additional features:</p>
+<ul class="simple">
+<li><p>Three-way handshake</p></li>
+<li><p>Flow Control</p></li>
+<li><p>Data-buffering</p></li>
+<li><p>Packet re-ordering</p></li>
+<li><p>Retransmission</p></li>
+<li><p>Windowing</p></li>
+<li><p>Extended Acknowledgment (deliberately not supported)</p></li>
+</ul>
+<p>For more information on this, please refer to RFC908 and RFC1151.</p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="outflow.html" class="btn btn-neutral float-left" title="Outgoing Packet Flow" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="topology.html" class="btn btn-neutral float-right" title="Network Topology" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>How to install LibCSP &mdash; Cubesat Space Protocol</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css" />
+      <link rel="stylesheet" type="text/css" href="_static/copybutton.css" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.5ea377869091fd0449014c60fc090103.min.css" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+        <script src="_static/clipboard.min.js"></script>
+        <script src="_static/copybutton.js"></script>
+        <script src="_static/design-tabs.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="How to build documentation" href="build-doc.html" />
+    <link rel="prev" title="The Cubesat Space Protocol" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: rgba(52,49,49,1) 100%;" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Lib CSP
+          </a>
+              <div class="version">
+                develop
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Setup</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">How to install LibCSP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="build-doc.html">How to build documentation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">CSP API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_h.html">CSP Library Header</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_types_h.html">CSP Basic Types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_buffer_h.html">CSP Buffer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_cmp_h.html">CSP Management Protocol (CMP)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_sfp_h.html">Small Fragmentation Protocol (SFP)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_promisc_h.html">Promiscuous packet queue</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_interface_h.html">CSP Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_rtable_h.html">Routing table</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_iflist_h.html">Interfaces management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_error_h.html">Error Codes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_debug_h.html">CSP Debug</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_id_h.html">CSP ID</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_crc32_h.html">CRC32 Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_hooks_h.html">CSP Hooks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/csp_yaml_h.html">YAML Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/drivers/drivers.html">Drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/crypto/crypto.html">Crypto</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/interfaces/interfaces.html">Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/arch/arch.html">Architecture dependent</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">The Cubesat Space Protocol</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="basic.html">The basics of CSP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="history.html">History</a></li>
+<li class="toctree-l1"><a class="reference internal" href="memory.html">How CSP uses memory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mtu.html">Maximum Transfer Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="outflow.html">Outgoing Packet Flow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="protocolstack.html">The Protocol Stack</a></li>
+<li class="toctree-l1"><a class="reference internal" href="topology.html">Network Topology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tunnel.html">CSP tunnels</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hooks.html">Hooks in CSP</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Development</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to libcsp</a></li>
+<li class="toctree-l1"><a class="reference internal" href="codestyle.html">Code style</a></li>
+<li class="toctree-l1"><a class="reference internal" href="git-commit.html">Git Commit Guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="structure.html">Structure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="CI.html">Continuous Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Example Usage</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="example.html">Client and server example</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: rgba(52,49,49,1) 100%;" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Lib CSP</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">How to install LibCSP</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="how-to-install-libcsp">
+<h1><a class="toc-backref" href="#id1" role="doc-backlink">How to install LibCSP</a><a class="headerlink" href="#how-to-install-libcsp" title="Permalink to this heading"></a></h1>
+<nav class="contents" id="contents">
+<p class="topic-title">Contents</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#how-to-install-libcsp" id="id1">How to install LibCSP</a></p>
+<ul>
+<li><p><a class="reference internal" href="#using-meson" id="id2">Using Meson</a></p></li>
+<li><p><a class="reference internal" href="#using-waf" id="id3">Using Waf</a></p></li>
+<li><p><a class="reference internal" href="#using-cmake" id="id4">Using CMake</a></p></li>
+<li><p><a class="reference internal" href="#reproducible-builds" id="id5">Reproducible Builds</a></p>
+<ul>
+<li><p><a class="reference internal" href="#waf" id="id6">Waf</a></p></li>
+<li><p><a class="reference internal" href="#meson" id="id7">Meson</a></p></li>
+<li><p><a class="reference internal" href="#cmake" id="id8">CMake</a></p></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+<p>CSP supports three build systems:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://mesonbuild.com/">the Meson build system</a></p></li>
+<li><p><a class="reference external" href="https://waf.io/">the Waf build system</a></p></li>
+<li><p><a class="reference external" href="https://cmake.org/">the CMake build system</a></p></li>
+</ul>
+<section id="using-meson">
+<h2><a class="toc-backref" href="#id2" role="doc-backlink">Using Meson</a><a class="headerlink" href="#using-meson" title="Permalink to this heading"></a></h2>
+<p>In order to compile CSP with <code class="docutils literal notranslate"><span class="pre">meson</span></code>, you
+run the following commands:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>meson<span class="w"> </span>setup<span class="w"> </span>builddir
+<span class="nb">cd</span><span class="w"> </span>builddir
+ninja
+</pre></div>
+</div>
+<p>You can use <code class="docutils literal notranslate"><span class="pre">meson</span> <span class="pre">configure</span></code> to change the
+core options as well as compiler or project options.</p>
+</section>
+<section id="using-waf">
+<h2><a class="toc-backref" href="#id3" role="doc-backlink">Using Waf</a><a class="headerlink" href="#using-waf" title="Permalink to this heading"></a></h2>
+<p>In order to compile CSP with <code class="docutils literal notranslate"><span class="pre">waf</span></code>, you
+first need to configure the toolchain, what operating system to compile
+for, the location of required libraries and whether to enable certain
+optional features.</p>
+<p>To configure CSP to build with the AVR32 toolchain for FreeRTOS and
+output the compiled libcsp.a and header files to the install directory,
+issue:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>./waf<span class="w"> </span>configure<span class="w"> </span>--toolchain<span class="o">=</span>avr32-<span class="w"> </span>--with-os<span class="o">=</span>freertos<span class="w"> </span>--prefix<span class="o">=</span>install
+</pre></div>
+</div>
+<p>When compiling for FreeRTOS, the path to the FreeRTOS header files must
+be specified with <code class="docutils literal notranslate"><span class="pre">--includes=PATH</span></code>.</p>
+<p>A number of optional features can be enabled by from the configure
+script.
+<code class="docutils literal notranslate"><span class="pre">./waf</span> <span class="pre">configure</span> <span class="pre">--help</span></code> to list the
+available configure options.</p>
+<p>The CAN driver (based on socketcan) can be enabled by appending the
+configure option <code class="docutils literal notranslate"><span class="pre">--enable-can-socketcan</span></code>.</p>
+<p>To build and copy the library to the location specified with –prefix,
+use:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>./waf<span class="w"> </span>build<span class="w"> </span>install
+</pre></div>
+</div>
+</section>
+<section id="using-cmake">
+<h2><a class="toc-backref" href="#id4" role="doc-backlink">Using CMake</a><a class="headerlink" href="#using-cmake" title="Permalink to this heading"></a></h2>
+<p>Make sure <a class="reference external" href="https://ninja-build.org/">Ninja</a> is installed on your system first.
+You can now run the following commands to compile CSP with <code class="docutils literal notranslate"><span class="pre">cmake</span></code>:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cmake<span class="w"> </span>-G<span class="w"> </span>Ninja<span class="w"> </span>-B<span class="w"> </span>builddir
+cmake<span class="w"> </span>--build<span class="w"> </span>builddir
+</pre></div>
+</div>
+<p>Please note that other build system generators might work as well, but <code class="docutils literal notranslate"><span class="pre">Ninja</span></code> is the officially
+supported and tested build system when using CMake.
+To install the compiled libcsp.so and header files to the install directory,
+you run the following command:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cmake<span class="w"> </span>--install<span class="w"> </span>builddir
+</pre></div>
+</div>
+<p>Please note that <code class="docutils literal notranslate"><span class="pre">sudo</span></code> might be required to install files into the default install directories.
+By default, it will be installed in <code class="docutils literal notranslate"><span class="pre">/usr/local/lib</span></code> and <code class="docutils literal notranslate"><span class="pre">/usr/local/include</span></code>,
+but if you wish to change it, you can specify <code class="docutils literal notranslate"><span class="pre">-DCMAKE_INSTALL_PREFIX=&lt;path&gt;</span></code>
+during the build process, and it will be installed in <code class="docutils literal notranslate"><span class="pre">&lt;path&gt;/lib</span></code> and <code class="docutils literal notranslate"><span class="pre">&lt;path&gt;/include</span></code>.</p>
+<p>To install only the libcsp.so runtime library,
+use the following command:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cmake<span class="w"> </span>--install<span class="w"> </span>builddir<span class="w"> </span>--component<span class="w"> </span>runtime
+</pre></div>
+</div>
+</section>
+<section id="reproducible-builds">
+<h2><a class="toc-backref" href="#id5" role="doc-backlink">Reproducible Builds</a><a class="headerlink" href="#reproducible-builds" title="Permalink to this heading"></a></h2>
+<p>libcsp supports Reproducible Builds. To enable it, set
+<code class="docutils literal notranslate"><span class="pre">CSP_REPRODUCIBLE_BUILDS</span></code> to <code class="docutils literal notranslate"><span class="pre">1</span></code>.</p>
+<p>Please note that, when reproducible builds are enabled,
+<code class="docutils literal notranslate"><span class="pre">CSP_CMP_IDENT</span></code> does not return the compilation date and time.</p>
+<p>When reproducible builds are enabled, both the BuildID and hash values
+of generated binaries remain consistent for each build. Our
+reproducible builds also support building in different directories.
+Thus, different users should generate precisely the same binaries,
+given the same source code and build environment.</p>
+<p>You can learn more about reproducible builds at
+https://reproducible-builds.org/.</p>
+<p>Use the following commands for each build system:</p>
+<section id="waf">
+<h3><a class="toc-backref" href="#id6" role="doc-backlink">Waf</a><a class="headerlink" href="#waf" title="Permalink to this heading"></a></h3>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>./waf<span class="w"> </span>configure<span class="w"> </span>--enable-reproducible-builds
+</pre></div>
+</div>
+</section>
+<section id="meson">
+<h3><a class="toc-backref" href="#id7" role="doc-backlink">Meson</a><a class="headerlink" href="#meson" title="Permalink to this heading"></a></h3>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>meson<span class="w"> </span>setup<span class="w"> </span>builddir<span class="w"> </span>.<span class="w"> </span>-Denable_reproducible_builds<span class="o">=</span><span class="nb">true</span>
+</pre></div>
+</div>
+</section>
+<section id="cmake">
+<h3><a class="toc-backref" href="#id8" role="doc-backlink">CMake</a><a class="headerlink" href="#cmake" title="Permalink to this heading"></a></h3>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cmake<span class="w"> </span>-G<span class="w"> </span>Ninja<span class="w"> </span>-B<span class="w"> </span>builddir<span class="w"> </span>-DCSP_REPRODUCIBLE_BUILDS<span class="o">=</span>ON
+</pre></div>
+</div>
+<p>Note: By default, CMake embeds the build directory in the binaries,
+resulting in non-deterministic builds. To address this, use
+<code class="docutils literal notranslate"><span class="pre">CMAKE_BUILD_RPATH_USE_ORIGIN=ON</span></code> or <code class="docutils literal notranslate"><span class="pre">CMAKE_SKIP_RPATH=ON</span></code> as follows:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cmake<span class="w"> </span>-G<span class="w"> </span>Ninja<span class="w"> </span>-B<span class="w"> </span>builddir<span class="w"> </span>-DCSP_REPRODUCIBLE_BUILDS<span class="o">=</span>ON<span class="w"> </span>-DCMAKE_BUILD_RPATH_USE_ORIGIN<span class="o">=</span>ON
+</pre></div>
+</div>
+<p>See <a class="reference external" href="https://reproducible-builds.org/docs/deterministic-build-systems/">Reproducible Builds site</a> or <a class="reference external" href="https://cmake.org/cmake/help/latest/prop_tgt/BUILD_RPATH.html">CMake document</a> for more details.</p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="The Cubesat Space Protocol" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="build-doc.html" class="btn btn-neutral float-right" title="How to build documentation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

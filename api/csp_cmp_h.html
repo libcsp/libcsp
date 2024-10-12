@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CSP Management Protocol (CMP) &mdash; Cubesat Space Protocol</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
+      <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+      <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.5ea377869091fd0449014c60fc090103.min.css" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
+        <script src="../_static/clipboard.min.js"></script>
+        <script src="../_static/copybutton.js"></script>
+        <script src="../_static/design-tabs.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Small Fragmentation Protocol (SFP)" href="csp_sfp_h.html" />
+    <link rel="prev" title="CSP Buffer" href="csp_buffer_h.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: rgba(52,49,49,1) 100%;" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Lib CSP
+          </a>
+              <div class="version">
+                develop
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Setup</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../INSTALL.html">How to install LibCSP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../build-doc.html">How to build documentation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">CSP API</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="csp_h.html">CSP Library Header</a></li>
+<li class="toctree-l1"><a class="reference internal" href="csp_types_h.html">CSP Basic Types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="csp_buffer_h.html">CSP Buffer</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">CSP Management Protocol (CMP)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="csp_sfp_h.html">Small Fragmentation Protocol (SFP)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="csp_promisc_h.html">Promiscuous packet queue</a></li>
+<li class="toctree-l1"><a class="reference internal" href="csp_interface_h.html">CSP Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="csp_rtable_h.html">Routing table</a></li>
+<li class="toctree-l1"><a class="reference internal" href="csp_iflist_h.html">Interfaces management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="csp_error_h.html">Error Codes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="csp_debug_h.html">CSP Debug</a></li>
+<li class="toctree-l1"><a class="reference internal" href="csp_id_h.html">CSP ID</a></li>
+<li class="toctree-l1"><a class="reference internal" href="csp_crc32_h.html">CRC32 Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="csp_hooks_h.html">CSP Hooks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="csp_yaml_h.html">YAML Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="drivers/drivers.html">Drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="crypto/crypto.html">Crypto</a></li>
+<li class="toctree-l1"><a class="reference internal" href="interfaces/interfaces.html">Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="arch/arch.html">Architecture dependent</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">The Cubesat Space Protocol</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../basic.html">The basics of CSP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../history.html">History</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../memory.html">How CSP uses memory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mtu.html">Maximum Transfer Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../outflow.html">Outgoing Packet Flow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../protocolstack.html">The Protocol Stack</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../topology.html">Network Topology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tunnel.html">CSP tunnels</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../hooks.html">Hooks in CSP</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Development</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../contributing.html">Contributing to libcsp</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../codestyle.html">Code style</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../git-commit.html">Git Commit Guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../structure.html">Structure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CI.html">Continuous Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Example Usage</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../example.html">Client and server example</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: rgba(52,49,49,1) 100%;" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Lib CSP</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">CSP Management Protocol (CMP)</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="csp-management-protocol-cmp">
+<h1><a class="toc-backref" href="#id1" role="doc-backlink">CSP Management Protocol (CMP)</a><a class="headerlink" href="#csp-management-protocol-cmp" title="Permalink to this heading"></a></h1>
+<p><strong>File:</strong> csp/csp_cmp.h</p>
+<p><strong>Description:</strong> CSP Management Protocol (CMP).</p>
+<nav class="contents" id="contents">
+<p class="topic-title">Contents</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#csp-management-protocol-cmp" id="id1">CSP Management Protocol (CMP)</a></p>
+<ul>
+<li><p><a class="reference internal" href="#defines" id="id2">Defines</a></p></li>
+<li><p><a class="reference internal" href="#macros" id="id3">MACROS</a></p></li>
+<li><p><a class="reference internal" href="#interface-functions" id="id4">Interface Functions</a></p></li>
+</ul>
+</li>
+</ul>
+</nav>
+<section id="defines">
+<h2><a class="toc-backref" href="#id2" role="doc-backlink">Defines</a><a class="headerlink" href="#defines" title="Permalink to this heading"></a></h2>
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.CSP_CMP_REPLY">
+<span class="sig-name descname"><span class="n"><span class="pre">CSP_CMP_REPLY</span></span></span><a class="headerlink" href="#c.CSP_CMP_REPLY" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp_cmp.h.html#c.CSP_CMP_REPLY"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>CMP reply.</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.CSP_CMP_IDENT">
+<span class="sig-name descname"><span class="n"><span class="pre">CSP_CMP_IDENT</span></span></span><a class="headerlink" href="#c.CSP_CMP_IDENT" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp_cmp.h.html#c.CSP_CMP_IDENT"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Request identification, compile time, revision, hostname and model.</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.CSP_CMP_ROUTE_SET_V1">
+<span class="sig-name descname"><span class="n"><span class="pre">CSP_CMP_ROUTE_SET_V1</span></span></span><a class="headerlink" href="#c.CSP_CMP_ROUTE_SET_V1" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp_cmp.h.html#c.CSP_CMP_ROUTE_SET_V1"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Set/configure routing.</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.CSP_CMP_IF_STATS">
+<span class="sig-name descname"><span class="n"><span class="pre">CSP_CMP_IF_STATS</span></span></span><a class="headerlink" href="#c.CSP_CMP_IF_STATS" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp_cmp.h.html#c.CSP_CMP_IF_STATS"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Request interface statistics.</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.CSP_CMP_PEEK">
+<span class="sig-name descname"><span class="n"><span class="pre">CSP_CMP_PEEK</span></span></span><a class="headerlink" href="#c.CSP_CMP_PEEK" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp_cmp.h.html#c.CSP_CMP_PEEK"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Peek/read data from memory.</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.CSP_CMP_POKE">
+<span class="sig-name descname"><span class="n"><span class="pre">CSP_CMP_POKE</span></span></span><a class="headerlink" href="#c.CSP_CMP_POKE" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp_cmp.h.html#c.CSP_CMP_POKE"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Poke/write data from memory.</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.CSP_CMP_CLOCK">
+<span class="sig-name descname"><span class="n"><span class="pre">CSP_CMP_CLOCK</span></span></span><a class="headerlink" href="#c.CSP_CMP_CLOCK" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp_cmp.h.html#c.CSP_CMP_CLOCK"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Get/set clock.</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.CSP_CMP_ROUTE_SET_V2">
+<span class="sig-name descname"><span class="n"><span class="pre">CSP_CMP_ROUTE_SET_V2</span></span></span><a class="headerlink" href="#c.CSP_CMP_ROUTE_SET_V2" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp_cmp.h.html#c.CSP_CMP_ROUTE_SET_V2"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Set/configure routing.</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.CSP_CMP_IDENT_REV_LEN">
+<span class="sig-name descname"><span class="n"><span class="pre">CSP_CMP_IDENT_REV_LEN</span></span></span><a class="headerlink" href="#c.CSP_CMP_IDENT_REV_LEN" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp_cmp.h.html#c.CSP_CMP_IDENT_REV_LEN"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>CMP identification - max revision length.</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.CSP_CMP_IDENT_DATE_LEN">
+<span class="sig-name descname"><span class="n"><span class="pre">CSP_CMP_IDENT_DATE_LEN</span></span></span><a class="headerlink" href="#c.CSP_CMP_IDENT_DATE_LEN" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp_cmp.h.html#c.CSP_CMP_IDENT_DATE_LEN"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>CMP identification - max date length.</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.CSP_CMP_IDENT_TIME_LEN">
+<span class="sig-name descname"><span class="n"><span class="pre">CSP_CMP_IDENT_TIME_LEN</span></span></span><a class="headerlink" href="#c.CSP_CMP_IDENT_TIME_LEN" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp_cmp.h.html#c.CSP_CMP_IDENT_TIME_LEN"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>CMP identification - max time length.</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.CSP_CMP_ROUTE_IFACE_LEN">
+<span class="sig-name descname"><span class="n"><span class="pre">CSP_CMP_ROUTE_IFACE_LEN</span></span></span><a class="headerlink" href="#c.CSP_CMP_ROUTE_IFACE_LEN" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp_cmp.h.html#c.CSP_CMP_ROUTE_IFACE_LEN"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>CMP interface statistics - max interface name length.</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.CSP_CMP_PEEK_MAX_LEN">
+<span class="sig-name descname"><span class="n"><span class="pre">CSP_CMP_PEEK_MAX_LEN</span></span></span><a class="headerlink" href="#c.CSP_CMP_PEEK_MAX_LEN" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp_cmp.h.html#c.CSP_CMP_PEEK_MAX_LEN"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>CMP peek/read memeory - max read length.</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.CSP_CMP_POKE_MAX_LEN">
+<span class="sig-name descname"><span class="n"><span class="pre">CSP_CMP_POKE_MAX_LEN</span></span></span><a class="headerlink" href="#c.CSP_CMP_POKE_MAX_LEN" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp_cmp.h.html#c.CSP_CMP_POKE_MAX_LEN"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>CMP poke/write memeory - max write length.</p>
+</dd></dl>
+
+</section>
+<section id="macros">
+<h2><a class="toc-backref" href="#id3" role="doc-backlink">MACROS</a><a class="headerlink" href="#macros" title="Permalink to this heading"></a></h2>
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.CMP_SIZE">
+<span class="sig-name descname"><span class="n"><span class="pre">CMP_SIZE</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">_memb</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.CMP_SIZE" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp_cmp.h.html#c.CMP_SIZE"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Macro for calculating total size of management message.</p>
+</dd></dl>
+
+<dl class="c macro">
+<dt class="sig sig-object c" id="c.CMP_MESSAGE">
+<span class="sig-name descname"><span class="n"><span class="pre">CMP_MESSAGE</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">_code</span></span>, <span class="n"><span class="pre">_memb</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.CMP_MESSAGE" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp_cmp.h.html#c.CMP_MESSAGE"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Macro for defining management handling function.</p>
+</dd></dl>
+
+</section>
+<section id="interface-functions">
+<h2><a class="toc-backref" href="#id4" role="doc-backlink">Interface Functions</a><a class="headerlink" href="#interface-functions" title="Permalink to this heading"></a></h2>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.csp_cmp">
+<span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">csp_cmp</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">uint16_t</span></span><span class="w"> </span><span class="n"><span class="pre">node</span></span>, <span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n"><span class="pre">timeout</span></span>, <span class="n"><span class="pre">uint8_t</span></span><span class="w"> </span><span class="n"><span class="pre">code</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">msg_size</span></span>, <span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">csp_cmp_message</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">msg</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.csp_cmp" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp_cmp.h.html#c.csp_cmp"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Generic send management message request.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>node</strong> – address of subsystem.</p></li>
+<li><p><strong>timeout</strong> – timeout in mS to wait for reply..</p></li>
+<li><p><strong>code</strong> – request code.</p></li>
+<li><p><strong>msg_size</strong> – size of msg.</p></li>
+<li><p><strong>msg</strong> – data.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>#CSP_ERR_NONE on success, otherwise an error code</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.csp_cmp_peek">
+<span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">csp_cmp_peek</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">uint16_t</span></span><span class="w"> </span><span class="n"><span class="pre">node</span></span>, <span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n"><span class="pre">timeout</span></span>, <span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">csp_cmp_message</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">msg</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.csp_cmp_peek" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp_cmp.h.html#c.csp_cmp_peek"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Peek (read) memory on remote node.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>node</strong> – address of subsystem.</p></li>
+<li><p><strong>timeout</strong> – timeout in mS to wait for reply..</p></li>
+<li><p><strong>msg</strong> – memory address and number of bytes to peek. (msg peeked/read memory)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>#CSP_ERR_NONE on success, otherwise an error code.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.csp_cmp_poke">
+<span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">csp_cmp_poke</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">uint16_t</span></span><span class="w"> </span><span class="n"><span class="pre">node</span></span>, <span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n"><span class="pre">timeout</span></span>, <span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="n"><span class="pre">csp_cmp_message</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">msg</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.csp_cmp_poke" title="Permalink to this definition"></a><br /><a class="reference internal" href="../_modules/csp_cmp.h.html#c.csp_cmp_poke"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Poke (write) memory on remote node.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>node</strong> – address of subsystem.</p></li>
+<li><p><strong>timeout</strong> – timeout in mS to wait for reply..</p></li>
+<li><p><strong>msg</strong> – memory address, number of bytes and the actual bytes to poke/write.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>#CSP_ERR_NONE on success, otherwise an error code.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="csp_buffer_h.html" class="btn btn-neutral float-left" title="CSP Buffer" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="csp_sfp_h.html" class="btn btn-neutral float-right" title="Small Fragmentation Protocol (SFP)" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

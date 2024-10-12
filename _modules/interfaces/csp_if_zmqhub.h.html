@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>interfaces/csp_if_zmqhub.h &mdash; Cubesat Space Protocol</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.5ea377869091fd0449014c60fc090103.min.css" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
+        <script src="../../_static/clipboard.min.js"></script>
+        <script src="../../_static/copybutton.js"></script>
+        <script src="../../_static/design-tabs.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: rgba(52,49,49,1) 100%;" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Lib CSP
+          </a>
+              <div class="version">
+                develop
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Setup</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../INSTALL.html">How to install LibCSP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../build-doc.html">How to build documentation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">CSP API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api/csp_h.html">CSP Library Header</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/csp_types_h.html">CSP Basic Types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/csp_buffer_h.html">CSP Buffer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/csp_cmp_h.html">CSP Management Protocol (CMP)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/csp_sfp_h.html">Small Fragmentation Protocol (SFP)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/csp_promisc_h.html">Promiscuous packet queue</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/csp_interface_h.html">CSP Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/csp_rtable_h.html">Routing table</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/csp_iflist_h.html">Interfaces management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/csp_error_h.html">Error Codes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/csp_debug_h.html">CSP Debug</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/csp_id_h.html">CSP ID</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/csp_crc32_h.html">CRC32 Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/csp_hooks_h.html">CSP Hooks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/csp_yaml_h.html">YAML Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/drivers/drivers.html">Drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/crypto/crypto.html">Crypto</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/interfaces/interfaces.html">Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/arch/arch.html">Architecture dependent</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">The Cubesat Space Protocol</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../basic.html">The basics of CSP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../history.html">History</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../memory.html">How CSP uses memory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../mtu.html">Maximum Transfer Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../outflow.html">Outgoing Packet Flow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../protocolstack.html">The Protocol Stack</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../topology.html">Network Topology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tunnel.html">CSP tunnels</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../hooks.html">Hooks in CSP</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Development</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../contributing.html">Contributing to libcsp</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../codestyle.html">Code style</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../git-commit.html">Git Commit Guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../structure.html">Structure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../CI.html">Continuous Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changelog.html">Changelog</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Example Usage</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../example.html">Client and server example</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: rgba(52,49,49,1) 100%;" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Lib CSP</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">interfaces/csp_if_zmqhub.h</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for interfaces/csp_if_zmqhub.h</h1><div class="highlight"><pre>
+<span></span><span class="cm">/****************************************************************************</span>
+<span class="cm"> * **File:** csp/interfaces/csp_if_zmqhub.h</span>
+<span class="cm"> *</span>
+<span class="cm"> * **Description:** ZMQ (ZeroMQ) interface.</span>
+<span class="cm"> *</span>
+<span class="cm"> * The ZMQ interface is designed to connect to a ZMQ hub, also refered to as</span>
+<span class="cm"> * zmqproxy. The zmqproxy can be found under examples, and is based on</span>
+<span class="cm"> * zmq_proxy() - provided by the ZMQ API.</span>
+<span class="cm"> *</span>
+<span class="cm"> * For further details on ZMQ, see http://www.zeromq.org.</span>
+<span class="cm"> ****************************************************************************/</span>
+<span class="cp">#pragma once</span>
+
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;csp/csp_interface.h&gt;</span>
+
+<span class="cp">#ifdef __cplusplus</span>
+<span class="k">extern</span><span class="w"> </span><span class="s">&quot;C&quot;</span><span class="w"> </span><span class="p">{</span>
+<span class="cp">#endif</span>
+
+<div class="viewcode-block" id="c.CSP_ZMQ_MTU"><a class="viewcode-back" href="../../api/interfaces/csp_if_zmqhub_h.html#c.CSP_ZMQ_MTU">[docs]</a><span class="cm">/** max payload data, see documentation */</span>
+<span class="cp">#define CSP_ZMQ_MTU 2048</span></div>
+
+<div class="viewcode-block" id="c.CSP_ZMQPROXY_SUBSCRIBE_PORT"><a class="viewcode-back" href="../../api/interfaces/csp_if_zmqhub_h.html#c.CSP_ZMQPROXY_SUBSCRIBE_PORT">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * zmqproxy default subscribe (rx) port.</span>
+<span class="cm"> * The client must connect it&#39;s publish endpoint to the zmqproxy&#39;s subscribe port.</span>
+<span class="cm"> */</span>
+<span class="cp">#define CSP_ZMQPROXY_SUBSCRIBE_PORT   6000</span></div>
+
+<div class="viewcode-block" id="c.CSP_ZMQPROXY_PUBLISH_PORT"><a class="viewcode-back" href="../../api/interfaces/csp_if_zmqhub_h.html#c.CSP_ZMQPROXY_PUBLISH_PORT">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * zmqproxy default publish (tx) port.</span>
+<span class="cm"> * The client must connect it&#39;s subscribe endpoint to the zmqproxy&#39;s publish port.</span>
+<span class="cm"> */</span>
+<span class="cp">#define CSP_ZMQPROXY_PUBLISH_PORT     7000</span></div>
+
+<div class="viewcode-block" id="c.CSP_ZMQHUB_IF_NAME"><a class="viewcode-back" href="../../api/interfaces/csp_if_zmqhub_h.html#c.CSP_ZMQHUB_IF_NAME">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * Default ZMQ interface name.</span>
+<span class="cm"> */</span>
+<span class="cp">#define CSP_ZMQHUB_IF_NAME            &quot;ZMQHUB&quot;</span></div>
+
+<div class="viewcode-block" id="c.csp_zmqhub_make_endpoint"><a class="viewcode-back" href="../../api/interfaces/csp_if_zmqhub_h.html#c.csp_zmqhub_make_endpoint">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * Format endpoint connection string for ZMQ.</span>
+<span class="cm"> *</span>
+<span class="cm"> * @param[in] host host name of IP.</span>
+<span class="cm"> * @param[in] port IP port.</span>
+<span class="cm"> * @param[out] buf user allocated buffer for receiving formatted string.</span>
+<span class="cm"> * @param[in] buf_size size of buf.</span>
+<span class="cm"> * @return #CSP_ERR_NONE on succcess. #CSP_ERR_NOMEM if supplied buffer too small.</span>
+<span class="cm"> */</span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">csp_zmqhub_make_endpoint</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">host</span><span class="p">,</span><span class="w"> </span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">port</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">buf</span><span class="p">,</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="n">buf_size</span><span class="p">);</span></div>
+
+<div class="viewcode-block" id="c.csp_zmqhub_init"><a class="viewcode-back" href="../../api/interfaces/csp_if_zmqhub_h.html#c.csp_zmqhub_init">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * Setup ZMQ interface.</span>
+<span class="cm"> *</span>
+<span class="cm"> * @param[in] addr only receive messages matching this address (255 means all).</span>
+<span class="cm"> * 			       This is set as rx_filter in call to</span>
+<span class="cm"> * @param[in] host host name or IP of zmqproxy host. Endpoints are</span>
+<span class="cm"> * 				   created using the host and the default subscribe/publish ports.</span>
+<span class="cm"> * @param[in] flags flags for controlling features on the connection.</span>
+<span class="cm"> * @param[out] return_interface created CSP interface.</span>
+<span class="cm"> * @return #CSP_ERR_NONE on succcess - else assert.</span>
+<span class="cm"> */</span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">csp_zmqhub_init</span><span class="p">(</span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">addr</span><span class="p">,</span>
+<span class="w">					</span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">host</span><span class="p">,</span>
+<span class="w">					</span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">flags</span><span class="p">,</span>
+<span class="w">					</span><span class="n">csp_iface_t</span><span class="w"> </span><span class="o">**</span><span class="w"> </span><span class="n">return_interface</span><span class="p">);</span></div>
+
+<div class="viewcode-block" id="c.csp_zmqhub_init_w_endpoints"><a class="viewcode-back" href="../../api/interfaces/csp_if_zmqhub_h.html#c.csp_zmqhub_init_w_endpoints">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * Setup ZMQ interface.</span>
+<span class="cm"> *</span>
+<span class="cm"> * @param[in] addr only receive messages matching this address (255 means all).</span>
+<span class="cm"> * 						  This is set as a \a rx_filter.</span>
+<span class="cm"> * @param[in] publish_endpoint publish (tx) endpoint -&gt; connect to</span>
+<span class="cm"> * 										  zmqproxy&#39;s subscribe port #CSP_ZMQPROXY_SUBSCRIBE_PORT.</span>
+<span class="cm"> * @param[in] subscribe_endpoint subscribe (rx) endpoint -&gt; connect</span>
+<span class="cm"> * 											to zmqproxy&#39;s publish port #CSP_ZMQPROXY_PUBLISH_PORT.</span>
+<span class="cm"> * @param[in] flags flags for controlling features on the connection.</span>
+<span class="cm"> * @param[out] return_interface created CSP interface.</span>
+<span class="cm"> * @return #CSP_ERR_NONE on succcess - else assert.</span>
+<span class="cm"> */</span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">csp_zmqhub_init_w_endpoints</span><span class="p">(</span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">addr</span><span class="p">,</span>
+<span class="w">								</span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">publish_endpoint</span><span class="p">,</span>
+<span class="w">								</span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">subscribe_endpoint</span><span class="p">,</span>
+<span class="w">								</span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">flags</span><span class="p">,</span>
+<span class="w">								</span><span class="n">csp_iface_t</span><span class="w"> </span><span class="o">**</span><span class="w"> </span><span class="n">return_interface</span><span class="p">);</span></div>
+
+<div class="viewcode-block" id="c.csp_zmqhub_init_w_name_endpoints_rxfilter"><a class="viewcode-back" href="../../api/interfaces/csp_if_zmqhub_h.html#c.csp_zmqhub_init_w_name_endpoints_rxfilter">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * Setup ZMQ interface.</span>
+<span class="cm"> *</span>
+<span class="cm"> * @param[in] ifname Name of CSP interface, use NULL for default</span>
+<span class="cm"> * 								name #CSP_ZMQHUB_IF_NAME.</span>
+<span class="cm"> * @param[in] addr Address assigned to the CSP interface.</span>
+<span class="cm"> *	rx_filter (const uint16_t) [in]: Rx filters, use NULL for no filters - receive all messages.</span>
+<span class="cm"> *	rx_filter_count (unsigned int) [in]: Number of Rx filters in \a rx_filter.</span>
+<span class="cm"> * @param[in] publish_endpoint publish (tx) endpoint -&gt; connect to</span>
+<span class="cm"> * 										zmqproxy&#39;s subscribe port #CSP_ZMQPROXY_SUBSCRIBE_PORT.</span>
+<span class="cm"> * @param[in] subscribe_endpoint subscribe (rx) endpoint -&gt; connect to zmqproxy&#39;s</span>
+<span class="cm"> * 										publish port #CSP_ZMQPROXY_PUBLISH_PORT.</span>
+<span class="cm"> * @param[in] flags flags for controlling features on the connection.</span>
+<span class="cm"> * @param[out] return_interface created CSP interface.</span>
+<span class="cm"> * @return #CSP_ERR_NONE on succcess - else assert.</span>
+<span class="cm"> */</span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">csp_zmqhub_init_w_name_endpoints_rxfilter</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">ifname</span><span class="p">,</span><span class="w"> </span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">addr</span><span class="p">,</span>
+<span class="w">											  </span><span class="k">const</span><span class="w"> </span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">rx_filter</span><span class="p">[],</span><span class="w"> </span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">rx_filter_count</span><span class="p">,</span>
+<span class="w">											  </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">publish_endpoint</span><span class="p">,</span>
+<span class="w">											  </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">subscribe_endpoint</span><span class="p">,</span>
+<span class="w">											  </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">flags</span><span class="p">,</span>
+<span class="w">											  </span><span class="n">csp_iface_t</span><span class="w"> </span><span class="o">**</span><span class="w"> </span><span class="n">return_interface</span><span class="p">);</span></div>
+
+
+<div class="viewcode-block" id="c.csp_zmqhub_init_filter2"><a class="viewcode-back" href="../../api/interfaces/csp_if_zmqhub_h.html#c.csp_zmqhub_init_filter2">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * Setup filtered ZMQ interface.</span>
+<span class="cm"> * The filter can be enabled with promisc = 0, or disabled with promisc = 1.</span>
+<span class="cm"> *</span>
+<span class="cm"> * The filter only works with CSP 2.0 protocol, because the first two bytes are the</span>
+<span class="cm"> * priority and the destination address. ZMQ does not support masking, so the code</span>
+<span class="cm"> * actually subscribes to the address once for each priority. It also calculates</span>
+<span class="cm"> * the broadcast address and subscribes to that, aagin for each priority. Finally the</span>
+<span class="cm"> * global broadcast address is also subscribed to. meaning a total of 3 * 4 filters.</span>
+<span class="cm"> *</span>
+<span class="cm"> * If a secret key curve zmq is enabled</span>
+<span class="cm"> */</span>
+
+<span class="kt">int</span><span class="w"> </span><span class="nf">csp_zmqhub_init_filter2</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">ifname</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">host</span><span class="p">,</span><span class="w"> </span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">addr</span><span class="p">,</span><span class="w"> </span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">netmask</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">promisc</span><span class="p">,</span><span class="w"> </span><span class="n">csp_iface_t</span><span class="w"> </span><span class="o">**</span><span class="w"> </span><span class="n">return_interface</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">sec_key</span><span class="p">,</span><span class="w"> </span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">subport</span><span class="p">,</span><span class="w"> </span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">pubport</span><span class="p">);</span></div>
+
+
+<span class="cp">#ifdef __cplusplus</span>
+<span class="p">}</span>
+<span class="cp">#endif</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

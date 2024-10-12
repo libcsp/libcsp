@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>csp_error.h &mdash; Cubesat Space Protocol</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
+      <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+      <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.5ea377869091fd0449014c60fc090103.min.css" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
+        <script src="../_static/clipboard.min.js"></script>
+        <script src="../_static/copybutton.js"></script>
+        <script src="../_static/design-tabs.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: rgba(52,49,49,1) 100%;" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Lib CSP
+          </a>
+              <div class="version">
+                develop
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Setup</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../INSTALL.html">How to install LibCSP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../build-doc.html">How to build documentation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">CSP API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/csp_h.html">CSP Library Header</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/csp_types_h.html">CSP Basic Types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/csp_buffer_h.html">CSP Buffer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/csp_cmp_h.html">CSP Management Protocol (CMP)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/csp_sfp_h.html">Small Fragmentation Protocol (SFP)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/csp_promisc_h.html">Promiscuous packet queue</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/csp_interface_h.html">CSP Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/csp_rtable_h.html">Routing table</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/csp_iflist_h.html">Interfaces management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/csp_error_h.html">Error Codes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/csp_debug_h.html">CSP Debug</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/csp_id_h.html">CSP ID</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/csp_crc32_h.html">CRC32 Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/csp_hooks_h.html">CSP Hooks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/csp_yaml_h.html">YAML Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/drivers/drivers.html">Drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/crypto/crypto.html">Crypto</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/interfaces/interfaces.html">Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/arch/arch.html">Architecture dependent</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">The Cubesat Space Protocol</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../basic.html">The basics of CSP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../history.html">History</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../memory.html">How CSP uses memory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mtu.html">Maximum Transfer Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../outflow.html">Outgoing Packet Flow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../protocolstack.html">The Protocol Stack</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../topology.html">Network Topology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tunnel.html">CSP tunnels</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../hooks.html">Hooks in CSP</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Development</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../contributing.html">Contributing to libcsp</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../codestyle.html">Code style</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../git-commit.html">Git Commit Guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../structure.html">Structure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CI.html">Continuous Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Example Usage</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../example.html">Client and server example</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: rgba(52,49,49,1) 100%;" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Lib CSP</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">csp_error.h</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for csp_error.h</h1><div class="highlight"><pre>
+<span></span><span class="cm">/*****************************************************************************</span>
+<span class="cm"> * **File:** csp/csp_error.h</span>
+<span class="cm"> *</span>
+<span class="cm"> * **Description:** Error codes.</span>
+<span class="cm"> ****************************************************************************/</span>
+<span class="cp">#pragma once</span>
+
+<span class="cm">/**</span>
+<span class="cm">   @defgroup CSP_ERR CSP error codes.</span>
+<span class="cm">   @{</span>
+<span class="cm">*/</span>
+<div class="viewcode-block" id="c.CSP_ERR_NONE"><a class="viewcode-back" href="../api/csp_error_h.html#c.CSP_ERR_NONE">[docs]</a><span class="cp">#define CSP_ERR_NONE		 0		</span><span class="cm">/**&lt; No error */</span></div>
+<div class="viewcode-block" id="c.CSP_ERR_NOMEM"><a class="viewcode-back" href="../api/csp_error_h.html#c.CSP_ERR_NOMEM">[docs]</a><span class="cp">#define CSP_ERR_NOMEM		-1		</span><span class="cm">/**&lt; Not enough memory */</span></div>
+<div class="viewcode-block" id="c.CSP_ERR_INVAL"><a class="viewcode-back" href="../api/csp_error_h.html#c.CSP_ERR_INVAL">[docs]</a><span class="cp">#define CSP_ERR_INVAL		-2		</span><span class="cm">/**&lt; Invalid argument */</span></div>
+<div class="viewcode-block" id="c.CSP_ERR_TIMEDOUT"><a class="viewcode-back" href="../api/csp_error_h.html#c.CSP_ERR_TIMEDOUT">[docs]</a><span class="cp">#define CSP_ERR_TIMEDOUT	-3		</span><span class="cm">/**&lt; Operation timed out */</span></div>
+<div class="viewcode-block" id="c.CSP_ERR_USED"><a class="viewcode-back" href="../api/csp_error_h.html#c.CSP_ERR_USED">[docs]</a><span class="cp">#define CSP_ERR_USED		-4		</span><span class="cm">/**&lt; Resource already in use */</span></div>
+<div class="viewcode-block" id="c.CSP_ERR_NOTSUP"><a class="viewcode-back" href="../api/csp_error_h.html#c.CSP_ERR_NOTSUP">[docs]</a><span class="cp">#define CSP_ERR_NOTSUP		-5		</span><span class="cm">/**&lt; Operation not supported */</span></div>
+<div class="viewcode-block" id="c.CSP_ERR_BUSY"><a class="viewcode-back" href="../api/csp_error_h.html#c.CSP_ERR_BUSY">[docs]</a><span class="cp">#define CSP_ERR_BUSY		-6		</span><span class="cm">/**&lt; Device or resource busy */</span></div>
+<div class="viewcode-block" id="c.CSP_ERR_ALREADY"><a class="viewcode-back" href="../api/csp_error_h.html#c.CSP_ERR_ALREADY">[docs]</a><span class="cp">#define CSP_ERR_ALREADY		-7		</span><span class="cm">/**&lt; Connection already in progress */</span></div>
+<div class="viewcode-block" id="c.CSP_ERR_RESET"><a class="viewcode-back" href="../api/csp_error_h.html#c.CSP_ERR_RESET">[docs]</a><span class="cp">#define CSP_ERR_RESET		-8		</span><span class="cm">/**&lt; Connection reset */</span></div>
+<div class="viewcode-block" id="c.CSP_ERR_NOBUFS"><a class="viewcode-back" href="../api/csp_error_h.html#c.CSP_ERR_NOBUFS">[docs]</a><span class="cp">#define CSP_ERR_NOBUFS		-9		</span><span class="cm">/**&lt; No more buffer space available */</span></div>
+<div class="viewcode-block" id="c.CSP_ERR_TX"><a class="viewcode-back" href="../api/csp_error_h.html#c.CSP_ERR_TX">[docs]</a><span class="cp">#define CSP_ERR_TX		-10		</span><span class="cm">/**&lt; Transmission failed */</span></div>
+<div class="viewcode-block" id="c.CSP_ERR_DRIVER"><a class="viewcode-back" href="../api/csp_error_h.html#c.CSP_ERR_DRIVER">[docs]</a><span class="cp">#define CSP_ERR_DRIVER		-11		</span><span class="cm">/**&lt; Error in driver layer */</span></div>
+<div class="viewcode-block" id="c.CSP_ERR_AGAIN"><a class="viewcode-back" href="../api/csp_error_h.html#c.CSP_ERR_AGAIN">[docs]</a><span class="cp">#define CSP_ERR_AGAIN		-12		</span><span class="cm">/**&lt; Resource temporarily unavailable */</span></div>
+<div class="viewcode-block" id="c.CSP_ERR_NOSYS"><a class="viewcode-back" href="../api/csp_error_h.html#c.CSP_ERR_NOSYS">[docs]</a><span class="cp">#define CSP_ERR_NOSYS		-38		</span><span class="cm">/**&lt; Function not implemented */</span></div>
+<div class="viewcode-block" id="c.CSP_ERR_HMAC"><a class="viewcode-back" href="../api/csp_error_h.html#c.CSP_ERR_HMAC">[docs]</a><span class="cp">#define CSP_ERR_HMAC		-100		</span><span class="cm">/**&lt; HMAC failed */</span></div>
+<div class="viewcode-block" id="c.CSP_ERR_CRC32"><a class="viewcode-back" href="../api/csp_error_h.html#c.CSP_ERR_CRC32">[docs]</a><span class="cp">#define CSP_ERR_CRC32		-102		</span><span class="cm">/**&lt; CRC32 failed */</span></div>
+<div class="viewcode-block" id="c.CSP_ERR_SFP"><a class="viewcode-back" href="../api/csp_error_h.html#c.CSP_ERR_SFP">[docs]</a><span class="cp">#define CSP_ERR_SFP		-103		</span><span class="cm">/**&lt; SFP protocol error or inconsistency */</span></div>
+<span class="cm">/**@}*/</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
