@@ -388,18 +388,23 @@ void csp_rdp_check_timeouts(csp_conn_t * conn) {
 
 		/* Check timestamp and retransmit if needed */
 		if (csp_rdp_time_after(time_now, packet->timestamp_tx + conn->rdp.packet_timeout)) {
-			csp_rdp_protocol("RDP %p: TX Element timed out, retransmitting seq %u\n",
-							 (void *)conn, be16toh(header->seq_nr));
+			csp_packet_t * new_packet = csp_buffer_get(0);
+			if (new_packet) {
+				csp_rdp_protocol("RDP %p: TX Element timed out, retransmitting seq %u\n",
+								 (void *)conn, be16toh(header->seq_nr));
 
-			/* Update to latest outgoing ACK */
-			header->ack_nr = htobe16(conn->rdp.rcv_cur);
+				/* Update to latest outgoing ACK */
+				header->ack_nr = htobe16(conn->rdp.rcv_cur);
 
-			/* Every outgoing message contains the last valid ACK number. So we always set last ack timetamp */
-			conn->rdp.ack_timestamp = csp_get_ms();
-			/* Send copy to tx_queue */
-			packet->timestamp_tx = csp_get_ms();
-			csp_packet_t * new_packet = csp_buffer_clone(packet);
-			csp_send_direct(&conn->idout, new_packet, NULL);
+				/* Every outgoing message contains the last valid ACK number. So we always set last ack timetamp */
+				conn->rdp.ack_timestamp = csp_get_ms();
+				/* Send copy to tx_queue */
+				packet->timestamp_tx = csp_get_ms();
+				csp_buffer_copy(packet, new_packet);
+				csp_send_direct(&conn->idout, new_packet, NULL);
+			} else {
+				csp_rdp_error("RDP %p: Failed to allocate packet buffer\n", (void *)conn);
+			}
 		}
 
 		/* Requeue the TX element */
