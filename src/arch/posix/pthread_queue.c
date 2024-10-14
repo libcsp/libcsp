@@ -218,7 +218,7 @@ int pthread_queue_items(pthread_queue_t * queue) {
 int pthread_queue_free(pthread_queue_t * queue) {
 
 	pthread_mutex_lock(&(queue->mutex));
-	int free = (queue->size / queue->item_size) - queue->items;
+	int free = queue->size - queue->items;
 	pthread_mutex_unlock(&(queue->mutex));
 
 	return free;
