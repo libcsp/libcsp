@@ -140,8 +140,7 @@ def configure(ctx):
         ctx.env.append_unique('FILES_CSP', ['src/csp_promisc.c'])
 
     if ctx.options.enable_rdp:
-        ctx.env.append_unique('FILES_CSP', ['src/csp_rdp.c',
-                                            'src/csp_rdp_queue.c'])
+        ctx.env.append_unique('FILES_CSP', ['src/csp_rdp.c'])
 
     # Add YAML
     if ctx.options.enable_yaml:

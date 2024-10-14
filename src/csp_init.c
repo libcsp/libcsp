@@ -7,7 +7,6 @@
 #include "csp_conn.h"
 #include "csp_qfifo.h"
 #include "csp_port.h"
-#include "csp_rdp_queue.h"
 
 __weak void csp_panic(const char * msg) {
 	return;
@@ -36,9 +35,6 @@ void csp_init(void) {
 	csp_buffer_init();
 	csp_conn_init();
 	csp_qfifo_init();
-#if (CSP_USE_RDP)
-	csp_rdp_queue_init();
-#endif
 
 	/* Loopback */
 	csp_if_lo.netmask = csp_id_get_host_bits();
