@@ -57,6 +57,7 @@ static struct option long_options[] = {
 #endif
     {"interface-address", required_argument, 0, 'a'},
     {"connect-to", required_argument, 0, 'C'},
+    {"protocol-version", required_argument, 0, 'v'},
     {"test-mode", no_argument, 0, 't'},
     {"test-mode-with-sec", required_argument, 0, 'T'},
     {"help", no_argument, 0, 'h'},
@@ -80,6 +81,7 @@ void print_help() {
 	if (1) {
 		csp_print(" -a <address>     set interface address\n"
 				  " -C <address>     connect to server at address\n"
+				  " -v <version>     set protocol version\n"
 				  " -t               enable test mode\n"
 				  " -T <duration>    enable test mode with running time in seconds\n"
 				  " -h               print help\n");
@@ -139,7 +141,7 @@ int main(int argc, char * argv[]) {
 	int ret = EXIT_SUCCESS;
     int opt;
 
-	while ((opt = getopt_long(argc, argv, OPTION_c OPTION_z OPTION_R "k:a:C:tT:h", long_options, NULL)) != -1) {
+	while ((opt = getopt_long(argc, argv, OPTION_c OPTION_z OPTION_R "k:a:C:v:tT:h", long_options, NULL)) != -1) {
         switch (opt) {
             case 'c':
 				device_name = optarg;
@@ -164,6 +166,9 @@ int main(int argc, char * argv[]) {
             case 'C':
                 server_address = atoi(optarg);
                 break;
+			case 'v':
+				csp_conf.version = atoi(optarg);
+				break;
             case 't':
                 test_mode = true;
                 break;
