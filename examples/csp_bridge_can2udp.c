@@ -13,8 +13,6 @@
 #define DEFAULT_UDP_REMOTE_PORT	(0)
 #define DEFAULT_UDP_LOCAL_PORT	(0)
 
-extern csp_conf_t csp_conf;
-
 static struct option long_options[] = {
 	{"can", required_argument, 0, 'c'},
 	{"remote-address", required_argument, 0, 'a'},
