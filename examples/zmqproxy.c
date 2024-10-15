@@ -8,7 +8,6 @@
 
 int csp_id_strip(csp_packet_t * packet);
 int csp_id_setup_rx(csp_packet_t * packet);
-extern csp_conf_t csp_conf;
 
 int debug = 0;
 const char * sub_str = "tcp://0.0.0.0:6000";
@@ -72,7 +71,7 @@ static void * task_capture(void * ctx) {
 		csp_print("Packet: Src %u, Dst %u, Dport %u, Sport %u, Pri %u, Flags 0x%02X, Size %" PRIu16 "\n",
 			   packet->id.src, packet->id.dst, packet->id.dport,
 			   packet->id.sport, packet->id.pri, packet->id.flags, packet->length);
-			   
+
 
 		if (logfile) {
 			const char * delimiter = "--------\n";
