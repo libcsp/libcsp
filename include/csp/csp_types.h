@@ -117,26 +117,16 @@ typedef struct  __packed {
  */
 typedef struct csp_packet_s {
 
-	union {
+	uint32_t timestamp_tx;		/*< Time the message was sent */
+	uint32_t timestamp_rx;		/*< Time the message was received */
+	struct csp_conn_s * conn;   /*< Associated connection (this is used in RDP queue) */
 
-		/* Only used on layer 3 (RDP) */
-		struct {
-			uint32_t timestamp_tx;		/*< Time the message was sent */
-			uint32_t timestamp_rx;		/*< Time the message was received */
-			struct csp_conn_s * conn;   /*< Associated connection (this is used in RDP queue) */
-		};
-
-		/* Only used on interface RX/TX (layer 2) */
-		struct {
-			uint16_t rx_count;          /*< Received bytes */
-			uint16_t remain;            /*< Remaining packets */
-			uint32_t cfpid;             /*< Connection CFP identification number */
-			uint32_t last_used;         /*< Timestamp in ms for last use of buffer */
-			uint8_t * frame_begin;
-			uint16_t frame_length;
-		};
-
-	};
+	uint16_t rx_count;          /*< Received bytes */
+	uint16_t remain;            /*< Remaining packets */
+	uint32_t cfpid;             /*< Connection CFP identification number */
+	uint32_t last_used;         /*< Timestamp in ms for last use of buffer */
+	uint8_t * frame_begin;
+	uint16_t frame_length;
 
 	uint16_t length;			/*< Data length */
 	csp_id_t id;				/*< CSP id (unpacked version CPU readable) */
