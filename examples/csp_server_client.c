@@ -138,6 +138,7 @@ void client(void) {
 static void print_usage(void)
 {
 	csp_print("Usage:\n"
+			  " -v <version>     set protocol version\n"
 			  " -t               enable test mode\n"
 			  " -T <duration>    enable test mode with running time in seconds\n"
 			  " -h               print help\n");
@@ -148,7 +149,7 @@ int main(int argc, char * argv[]) {
 
     uint8_t address = 0;
     int opt;
-    while ((opt = getopt(argc, argv, "tT:h")) != -1) {
+    while ((opt = getopt(argc, argv, "v:tT:h")) != -1) {
         switch (opt) {
             case 'a':
                 address = atoi(optarg);
@@ -156,6 +157,9 @@ int main(int argc, char * argv[]) {
             case 'r':
                 server_address = atoi(optarg);
                 break;
+			case 'v':
+				csp_conf.version = atoi(optarg);
+				break;
             case 't':
                 test_mode = true;
                 break;

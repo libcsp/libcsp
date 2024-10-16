@@ -18,6 +18,9 @@ jobs:
             CXX: g++
           - CC: clang
             CXX: clang++
+        csp_version:
+          - 1
+          - 2
     runs-on: ${{ matrix.os }}
     steps:
       - name: Setup packages on Linux
@@ -57,30 +60,30 @@ jobs:
         run: |
           socat -d -d -d pty,raw,echo=0,link=/tmp/pty1 pty,raw,echo=0,link=/tmp/pty2 &
           sleep 1
-          ./build/examples/csp_server -k /tmp/pty1 -a 1 -T 10 &
-          ./build/examples/csp_client -k /tmp/pty2 -a 2 -C 1 -t
+          ./build/examples/csp_server -k /tmp/pty1 -a 1 -T 10 -v ${{ matrix.csp_version }} &
+          ./build/examples/csp_client -k /tmp/pty2 -a 2 -C 1 -t -v ${{ matrix.csp_version }}
           pkill socat
 
       - name: Run KISS Server Test
         run: |
           socat -d -d -d pty,raw,echo=0,link=/tmp/pty1 pty,raw,echo=0,link=/tmp/pty2 &
           sleep 1
-          ./build/examples/csp_client -k /tmp/pty2 -a 2 -C 1 -T 10 &
-          ./build/examples/csp_server -k /tmp/pty1 -a 1 -t
+          ./build/examples/csp_client -k /tmp/pty2 -a 2 -C 1 -T 10 -v ${{ matrix.csp_version }} &
+          ./build/examples/csp_server -k /tmp/pty1 -a 1 -t -v ${{ matrix.csp_version }}
           pkill socat
 
       - name: Run ZMQ Client Test
         run: |
           ./build/examples/zmqproxy &
-          ./build/examples/csp_server -z localhost -a 1 -T 10 &
-          ./build/examples/csp_client -z localhost -a 2 -C 1 -t
+          ./build/examples/csp_server -z localhost -a 1 -T 10 -v ${{ matrix.csp_version }} &
+          ./build/examples/csp_client -z localhost -a 2 -C 1 -t -v ${{ matrix.csp_version }}
           pkill zmqproxy
 
       - name: Run ZMQ Server Test
         run: |
           ./build/examples/zmqproxy &
-          ./build/examples/csp_client -z localhost -a 2 -C 1 -T 10 &
-          ./build/examples/csp_server -z localhost -a 1 -t
+          ./build/examples/csp_client -z localhost -a 2 -C 1 -T 10 -v ${{ matrix.csp_version }} &
+          ./build/examples/csp_server -z localhost -a 1 -t -v ${{ matrix.csp_version }}
           pkill zmqproxy
 
       - name: Setup vcan0
@@ -96,10 +99,10 @@ jobs:
 
       - name: Run CAN Server Test
         run: |
-          ./build/examples/csp_server -c vcan0 -a 1 -T 10 &
-          ./build/examples/csp_client -c vcan0 -a 2 -C 1 -t
+          ./build/examples/csp_server -c vcan0 -a 1 -T 10 -v ${{ matrix.csp_version }} &
+          ./build/examples/csp_client -c vcan0 -a 2 -C 1 -t -v ${{ matrix.csp_version }}
 
       - name: Run CAN Client Test
         run: |
-          ./build/examples/csp_client -c vcan0 -a 2 -C 1 -T 10 &
-          ./build/examples/csp_server -c vcan0 -a 1 -t
+          ./build/examples/csp_client -c vcan0 -a 2 -C 1 -T 10 -v ${{ matrix.csp_version }} &
+          ./build/examples/csp_server -c vcan0 -a 1 -t -v ${{ matrix.csp_version }}
