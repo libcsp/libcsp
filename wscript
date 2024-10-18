@@ -26,7 +26,6 @@ def options(ctx):
     gr.add_option('--enable-shlib', action='store_true', help='Build shared library')
     gr.add_option('--enable-rdp', action='store_true', help='Enable RDP support')
     gr.add_option('--enable-promisc', action='store_true', help='Enable promiscuous support')
-    gr.add_option('--enable-crc32', action='store_true', help='Enable CRC32 support')
     gr.add_option('--enable-hmac', action='store_true', help='Enable HMAC-SHA1 support')
     gr.add_option('--enable-rtable', action='store_true', help='Allows to setup a list of static routes')
     gr.add_option('--enable-python3-bindings', action='store_true', help='Enable Python3 bindings')
