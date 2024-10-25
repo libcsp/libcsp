@@ -46,7 +46,7 @@ int csp_if_udp_rx_work(int sockfd, size_t unused, csp_iface_t * iface) {
 	int header_size = csp_id_setup_rx(packet);
 	int received_len = recvfrom(sockfd, (char *)packet->frame_begin, sizeof(packet->data) + header_size, MSG_WAITALL, NULL, NULL);
 	
-	if (received_len <= 4) {
+	if (received_len <= header_size) {
 		csp_buffer_free(packet);
 		return CSP_ERR_NOMEM;
 	}
