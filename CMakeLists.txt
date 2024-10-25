@@ -78,6 +78,14 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND
     else()
       message(NOTICE "No libsocketcan found")
     endif()
+
+    pkg_search_module(CHECK check)
+    if(${CHECK_FOUND})
+      message(STATUS "Found ${CHECK_MODULE_NAME} ${CHECK_VERSION}")
+      set(CSP_HAVE_CHECK 1)
+    else()
+      message(NOTICE "No libcheck found")
+    endif()
   else()
     message(NOTICE "No pkg-config found")
   endif()
@@ -100,6 +108,7 @@ target_compile_options(csp PRIVATE ${CSP_C_ARGS})
 
 add_subdirectory(src)
 add_subdirectory(examples)
+add_subdirectory(tests)
 
 if(${CSP_ENABLE_PYTHON3_BINDINGS})
   find_package(Python3 COMPONENTS Development.Module)
