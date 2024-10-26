@@ -60,7 +60,15 @@ void csp_buffer_free_isr(void * buffer);
  * @param[in] buffer buffer to clone.
  * @return cloned buffer on success, or NULL on failure.
  */
-void * csp_buffer_clone(void * buffer);
+csp_packet_t * csp_buffer_clone(const csp_packet_t * packet);
+
+/**
+ * Copy the contents of a buffer.
+ *
+ * @param[in] src Source buffer.
+ * @param[out] dst Destination buffer.
+ */
+void csp_buffer_copy(const csp_packet_t * src, csp_packet_t * dst);
 
 /**
  * Return number of remaining/free buffers.

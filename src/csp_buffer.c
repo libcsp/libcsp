@@ -130,20 +130,20 @@ void csp_buffer_free(void * packet) {
 	csp_queue_enqueue(csp_buffers, &buf, 0);
 }
 
-void * csp_buffer_clone(void * buffer) {
-
-	csp_packet_t * packet = (csp_packet_t *)buffer;
-	if (!packet) {
-		return NULL;
-	}
-
-	csp_packet_t * clone = csp_buffer_get(packet->length);
-	if (clone) {
-		size_t size = sizeof(csp_packet_t) - CSP_BUFFER_SIZE + CSP_PACKET_PADDING_BYTES + packet->length;
-		memcpy(clone, packet, size > sizeof(csp_packet_t) ? sizeof(csp_packet_t) : size);
+csp_packet_t * csp_buffer_clone(const csp_packet_t * packet) {
+	csp_packet_t * clone = NULL;
+	if (packet) {
+		clone = csp_buffer_get(0);
+		csp_buffer_copy(packet, clone);
 	}
 
 	return clone;
+}
+
+void csp_buffer_copy(const csp_packet_t * src, csp_packet_t * dst) {
+	if ((NULL != src) && (NULL != dst)) {
+		(void)memcpy(dst, src, sizeof(csp_packet_t));
+    }
 }
 
 void csp_buffer_refc_inc(void * buffer) {
