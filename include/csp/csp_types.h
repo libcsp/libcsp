@@ -122,7 +122,6 @@ typedef struct csp_packet_s {
 		/* Only used on layer 3 (RDP) */
 		struct {
 			uint32_t timestamp_tx;		/*< Time the message was sent */
-			uint32_t timestamp_rx;		/*< Time the message was received */
 			struct csp_conn_s * conn;   /*< Associated connection (this is used in RDP queue) */
 		};
 

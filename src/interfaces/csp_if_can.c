@@ -148,9 +148,6 @@ int csp_can1_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t 
 			/* Free packet buffer */
 			csp_can_pbuf_free(ifdata, packet, 0, task_woken);
 
-            /* Clear timestamp_rx for L3 as L2 last_used is not needed anymore */
-            packet->timestamp_rx = 0;
-
 			/* Data is available */
 			csp_qfifo_write(packet, iface, task_woken);
 
