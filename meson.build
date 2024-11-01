@@ -1,7 +1,7 @@
 project('csp', 'c', version: '2.1', license: 'LGPL', meson_version : '>=0.53.2', default_options : [
 	'c_std=gnu11',
 	'optimization=s',
-	'warning_level=2',
+	'warning_level=3',
 	'werror=true'])
 
 cc = meson.get_compiler('c')
@@ -65,6 +65,9 @@ csp_c_args = ['-Wshadow',
 	      '-Wwrite-strings',
 	      '-Wpointer-arith',
 	      '-Wno-unused-parameter']
+if cc.get_id() == 'clang'
+	csp_c_args += '-Wno-gnu-zero-variadic-macro-arguments'
+endif
 
 subdir('src')
 subdir('include/csp')
