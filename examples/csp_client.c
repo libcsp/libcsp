@@ -64,7 +64,7 @@ static struct option long_options[] = {
     {0, 0, 0, 0}
 };
 
-void print_help() {
+void print_help(void) {
 	csp_print("Usage: csp_client [options]\n");
 	if (CSP_HAVE_LIBSOCKETCAN) {
 		csp_print(" -c <can-device>  set CAN device\n");
