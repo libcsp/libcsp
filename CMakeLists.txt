@@ -8,7 +8,8 @@ endif()
 add_library(csp)
 set_target_properties(csp PROPERTIES C_STANDARD 11)
 set_target_properties(csp PROPERTIES C_EXTENSIONS ON)
-target_compile_options(csp PRIVATE -Wall -Wextra)
+target_compile_options(csp PRIVATE -Wall -Wextra -Wpedantic
+  $<$<C_COMPILER_ID:Clang>:-Wno-gnu-zero-variadic-macro-arguments>)
 
 set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS Debug Release MinSizeRel)
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
