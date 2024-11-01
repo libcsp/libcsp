@@ -32,7 +32,7 @@ int csp_eth_tx_frame(void * driver_data, csp_eth_header_t *eth_frame) {
     const eth_context_t * ctx = (eth_context_t*)driver_data;
 
     /* Destination socket address */
-    struct sockaddr_ll socket_address = {};
+    struct sockaddr_ll socket_address = {0};
     socket_address.sll_ifindex = ctx->if_idx.ifr_ifindex;
     socket_address.sll_halen = CSP_ETH_ALEN;
     memcpy(socket_address.sll_addr, eth_frame->ether_dhost, CSP_ETH_ALEN);
