@@ -77,7 +77,7 @@ arp_list_entry_t * arp_alloc(void) {
 
 }
 
-void arp_print()
+void arp_print(void)
 {
     csp_print("ARP  CSP  MAC\n");
     for (arp_list_entry_t * arp = arp_list; arp; arp = arp->next) {
