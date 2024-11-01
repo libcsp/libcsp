@@ -17,7 +17,7 @@ int main(int argc, char * argv[]) {
 
 
     // clock
-    csp_timestamp_t csp_clock = {};
+    csp_timestamp_t csp_clock = {0};
     csp_clock_get_time(&csp_clock);
     assert(csp_clock.tv_sec != 0);
     csp_print("csp_clock_get_time(..) -> sec:nsec = %"PRIu32":%"PRIu32"\n", csp_clock.tv_sec, csp_clock.tv_nsec);
