@@ -103,7 +103,7 @@ target_include_directories(csp
 if(CSP_POSIX)
   set(CSP_C_ARGS -Wshadow -Wcast-align -Wpointer-arith -Wwrite-strings -Wno-unused-parameter)
 elseif(CSP_ZEPHYR)
-  set(CSP_C_ARGS -Wwrite-strings -Wno-unused-parameter)
+  set(CSP_C_ARGS -Wwrite-strings -Wno-unused-parameter -Wno-pedantic)
 endif()
 target_compile_options(csp PRIVATE ${CSP_C_ARGS})
 
