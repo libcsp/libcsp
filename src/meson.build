@@ -39,7 +39,6 @@ endif
 if get_option('use_rdp')
 	csp_sources += files(
 		'csp_rdp.c',
-		'csp_rdp_queue.c',
 	)
 endif
 

@@ -4,6 +4,7 @@ target_sources(csp PRIVATE
   csp_semaphore.c
   csp_system.c
   csp_time.c
+  csp_mutex.c
   pthread_queue.c
   )
 

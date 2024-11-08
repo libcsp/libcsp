@@ -3,6 +3,7 @@ csp_sources += files([
 	'csp_semaphore.c',
 	'csp_system.c',
 	'csp_time.c',
+	'csp_mutex.c',
 ])
 
 # FreeRTOS can be provided by either a freertos subproject, or a bsp subproject
