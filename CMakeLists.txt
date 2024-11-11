@@ -110,6 +110,7 @@ target_compile_options(csp PRIVATE ${CSP_C_ARGS})
 add_subdirectory(src)
 add_subdirectory(examples)
 add_subdirectory(tests)
+add_subdirectory(samples)
 
 if(${CSP_ENABLE_PYTHON3_BINDINGS})
   find_package(Python3 COMPONENTS Development.Module)
