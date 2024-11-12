@@ -89,9 +89,8 @@ void client(void) {
 		k_sleep(test_mode ? K_USEC(200000) : K_USEC(1000000));
 
 		/* Send ping to server, timeout 1000 mS, ping size 100 bytes */
-		int result = csp_ping(server_address, 1000, 100, CSP_O_NONE);
+		int __maybe_unused result = csp_ping(server_address, 1000, 100, CSP_O_NONE);
 		LOG_INF("Ping address: %u, result %d [mS]", server_address, result);
-		(void) result;
 
 		/* Send reboot request to server, the server has no actual implementation of csp_sys_reboot() and fails to reboot */
 		csp_reboot(server_address);
