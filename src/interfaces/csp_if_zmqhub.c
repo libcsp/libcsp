@@ -12,6 +12,8 @@
 
 #include <csp/csp_id.h>
 
+#include "../csp_macro.h"
+
 /* ZMQ driver & interface */
 typedef struct {
 	pthread_t rx_thread;
@@ -62,8 +64,7 @@ void * csp_zmqhub_task(void * param) {
 	const uint32_t HEADER_SIZE = (csp_conf.version == 2) ? 6 : 4;
 
 	while (1) {
-		int ret;
-		(void)ret; /* Silence unused variable warning (promoted to an error if -Werr) issued when building with NDEBUG (release with asserts turned off) */
+		int __maybe_unused ret;
 		zmq_msg_t msg;
 
 		ret = zmq_msg_init_size(&msg, sizeof(packet->data) + HEADER_SIZE);
