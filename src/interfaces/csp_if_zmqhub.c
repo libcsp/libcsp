@@ -39,8 +39,8 @@ int csp_zmqhub_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet, int 
 
 	csp_id_prepend(packet);
 
-	/** 
-	 * While a ZMQ context is thread safe, sockets are NOT threadsafe, so by sharing drv->publisher, we 
+	/**
+	 * While a ZMQ context is thread safe, sockets are NOT threadsafe, so by sharing drv->publisher, we
 	 * need to have a lock around any calls that uses that */
 	pthread_mutex_lock(&lock);
 	int result = zmq_send(drv->publisher, packet->frame_begin, packet->frame_length, 0);
@@ -219,7 +219,7 @@ int csp_zmqhub_init_w_name_endpoints_rxfilter(const char * ifname, uint16_t addr
 }
 
 int csp_zmqhub_init_filter2(const char * ifname, const char * host, uint16_t addr, uint16_t netmask, int promisc, csp_iface_t ** return_interface, char * sec_key, uint16_t subport, uint16_t pubport) {
-	
+
 	char pub[100];
 	csp_zmqhub_make_endpoint(host, subport, pub, sizeof(pub));
 
@@ -287,7 +287,7 @@ int csp_zmqhub_init_filter2(const char * ifname, const char * host, uint16_t add
 
 	/* Generate filters */
 	uint16_t hostmask = (1 << (csp_id_get_host_bits() - netmask)) - 1;
-	
+
 	/* Connect to server */
 	ret = zmq_connect(drv->publisher, pub);
 	assert(ret == 0);
@@ -317,7 +317,7 @@ int csp_zmqhub_init_filter2(const char * ifname, const char * host, uint16_t add
 			ret = zmq_setsockopt(drv->subscriber, ZMQ_SUBSCRIBE, &filt[i][2], 2);
 		}
 
-	} 
+	}
 
 
 	/* Start RX thread */
