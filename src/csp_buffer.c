@@ -51,28 +51,28 @@ static csp_packet_t * csp_buffer_get_actual(int reserve, int isr) {
 	}
 
 	/* Now fetch a buffer */
-	csp_skbf_t * buffer = NULL;
+	csp_skbf_t * buf = NULL;
 	if (isr) {
 		int task_woken = 0;
-		csp_queue_dequeue_isr(csp_buffers, &buffer, &task_woken);
+		csp_queue_dequeue_isr(csp_buffers, &buf, &task_woken);
 	} else {
-		csp_queue_dequeue(csp_buffers, &buffer, 0);
+		csp_queue_dequeue(csp_buffers, &buf, 0);
 	}
 
 	/* We might be out of buffers */
-	if (buffer == NULL) {
+	if (buf == NULL) {
 		csp_dbg_buffer_out++;
 		return NULL;
 	}
 
-	if (buffer != buffer->skbf_addr) {
+	if (buf != buf->skbf_addr) {
 		csp_dbg_errno = CSP_DBG_ERR_CORRUPT_BUFFER;
 		return NULL;
 	}
 
-	buffer->refcount = 1;
-	csp_id_clear(&buffer->skbf_data.id);
-	return &buffer->skbf_data;
+	buf->refcount = 1;
+	csp_id_clear(&buf->skbf_data.id);
+	return &buf->skbf_data;
 }
 
 void csp_buffer_free_isr(void * packet) {
