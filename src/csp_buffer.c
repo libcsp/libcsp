@@ -36,6 +36,22 @@ void csp_buffer_init(void) {
 	}
 }
 
+static csp_packet_t * csp_packet_init(csp_packet_t * packet)
+{
+
+#if (CSP_BUFFER_ZERO_CLEAR)
+	memset(packet, 0, sizeof(csp_packet_t));
+#endif
+
+	packet->length = 0;
+	packet->frame_begin = packet->data;
+	packet->frame_length = 0;
+
+	csp_id_clear(&packet->id);
+
+	return packet;
+}
+
 static csp_packet_t * csp_buffer_get_actual(int reserve, int isr) {
 
 	/* Get buffers remaining */
@@ -71,8 +87,8 @@ static csp_packet_t * csp_buffer_get_actual(int reserve, int isr) {
 	}
 
 	buf->refcount = 1;
-	csp_id_clear(&buf->skbf_data.id);
-	return &buf->skbf_data;
+
+	return csp_packet_init(&buf->skbf_data);
 }
 
 void csp_buffer_free_isr(void * packet) {
