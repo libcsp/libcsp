@@ -24,11 +24,11 @@ header. The small footprint and simple implementation allows a small
 8-bit system to be fully connected on the network. This allows all
 subsystems to provide their services on the same network level, without
 any master node required. Using a service oriented architecture has
-several advantages compared to the traditional mater/slave topology used
+several advantages compared to the traditional master/slave topology used
 on many cubesats.
 
   - Standardised network protocol: All subsystems can communicate with
-    eachother (multi-master)
+    each other (multi-master)
   - Service loose coupling: Services maintain a relationship that
     minimizes dependencies between subsystems
   - Service abstraction: Beyond descriptions in the service contract,
