@@ -13,6 +13,7 @@ option('enable_csp_print', type: 'boolean', value: true, description: 'Enable cs
 option('have_stdio', type: 'boolean', value: true, description: 'Use print and scan functions (some features may be missing without)')
 option('use_rtable', type: 'boolean', value: false, description: 'Allows to setup a list of static routes. End nodes do not need this. But radios and routers might')
 option('print_stdio', type: 'boolean', value: true, description: 'Use vprintf for csp_print_func')
+option('buffer_zero_clear', type: 'boolean', value: true, description: 'Zero out the packet buffer upon allocation')
 
 # Memory tuning parameters:
 # Try to balance these so there is enough memory to handle expected system usage plus some,

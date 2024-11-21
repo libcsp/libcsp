@@ -27,6 +27,7 @@ conf.set10('CSP_HAVE_STDIO', get_option('have_stdio'))
 conf.set10('CSP_ENABLE_CSP_PRINT', get_option('enable_csp_print'))
 conf.set10('CSP_PRINT_STDIO', get_option('print_stdio'))
 conf.set10('CSP_USE_RTABLE', get_option('use_rtable'))
+conf.set10('CSP_BUFFER_ZERO_CLEAR', get_option('buffer_zero_clear'))
 
 csp_deps = []
 csp_sources = []
