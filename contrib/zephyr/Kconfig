@@ -40,6 +40,63 @@ config CSP_MUTEX_TIMEOUT
 	help
 	  Waiting period to lock the mutex.
 
+menu "Memory Tuning Parameters"
+
+config CSP_QFIFO_LEN
+	int "Length of incoming queue for router task"
+	default 15
+	help
+	  This value specifies the length of queue for incomming
+	  packets that are used by csp_qfifo_read() and
+	  csp_qfifo_write().
+
+config CSP_PORT_MAX_BIND
+	int "Number of port to bind"
+	default 16
+	help
+	  Number of ports available for an interface.
+
+config CSP_CONN_RXQUEUE_LEN
+	int "Number of packets in connection queue"
+	default 16
+	help
+	  This value specifies the length of the queue for packets in
+	  a connection.
+
+config CSP_CONN_MAX
+	int "Number of new connections on socket queue"
+	default 8
+	help
+	  This value specifies the number of new connections on socket
+	  queue.
+
+config CSP_BUFFER_SIZE
+	int "Bytes in each packet buffer"
+	default 256
+	help
+	  This value specifies the number bytes in each packet buffer.
+
+config CSP_BUFFER_COUNT
+	int "Number of total packet buffers"
+	default 15
+	help
+	  This value specifies the number of total packet buffers in
+	  the system.
+
+config CSP_RDP_MAX_WINDOW
+	int "Max window size for RDP"
+	default 5
+	help
+	  This value specifies the window size of RDP.
+
+config CSP_RTABLE_SIZE
+	int "Number of elements in routing table"
+	default 10
+	help
+	  This value specifies the number of entries in the routing
+	  table.
+endmenu
+
 menu "UART"
 
 config CSP_UART_RX_INTERVAL
