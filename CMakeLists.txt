@@ -36,6 +36,7 @@ option(CSP_USE_RDP "Reliable Datagram Protocol" ON)
 option(CSP_USE_HMAC "Hash-based message authentication code" ON)
 option(CSP_USE_PROMISC "Promiscious mode" ON)
 option(CSP_USE_RTABLE "Use routing table" OFF)
+option(CSP_BUFFER_ZERO_CLEAR "Zero out the packet buffer upon allocation" ON)
 
 option(CSP_ENABLE_PYTHON3_BINDINGS "Build Python3 binding" OFF)
 

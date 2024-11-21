@@ -20,6 +20,7 @@
 #cmakedefine01 CSP_USE_HMAC
 #cmakedefine01 CSP_USE_PROMISC
 #cmakedefine01 CSP_USE_RTABLE
+#cmakedefine01 CSP_BUFFER_ZERO_CLEAR
 
 #cmakedefine01 CSP_HAVE_LIBSOCKETCAN
 #cmakedefine01 CSP_HAVE_LIBZMQ
