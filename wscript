@@ -23,6 +23,7 @@ def options(ctx):
     gr.add_option('--disable-output', action='store_true', help='Disable CSP output')
     gr.add_option('--disable-print-stdio', action='store_true', help='Disable vprintf for csp_print_func')
     gr.add_option('--disable-stlib', action='store_true', help='Build objects only')
+    gr.add_option('--disable-buffer-zero-clear', action='store_false', help='Zero out the packet buffer upon allocation')
     gr.add_option('--enable-shlib', action='store_true', help='Build shared library')
     gr.add_option('--enable-rdp', action='store_true', help='Enable RDP support')
     gr.add_option('--enable-promisc', action='store_true', help='Enable promiscuous support')
@@ -194,6 +195,7 @@ def configure(ctx):
     ctx.define('CSP_USE_HMAC', ctx.options.enable_hmac)
     ctx.define('CSP_USE_PROMISC', ctx.options.enable_promisc)
     ctx.define('CSP_USE_RTABLE', ctx.options.enable_rtable)
+    ctx.define('CSP_BUFFER_ZERO_CLEAR', ctx.options.disable_buffer_zero_clear)
 
 
     ctx.write_config_header('include/csp/autoconfig.h')
