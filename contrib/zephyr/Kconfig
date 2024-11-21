@@ -40,6 +40,8 @@ config CSP_MUTEX_TIMEOUT
 	help
 	  Waiting period to lock the mutex.
 
+menu "UART"
+
 config CSP_UART_RX_INTERVAL
 	int "Interval (nesc) at which the receiving thread runs."
 	default 1000
@@ -69,6 +71,10 @@ config CSP_UART_RX_THREAD_NUM
 	default 1
 	help
 	  Number of thread stacks for CSP UART RX.
+
+endmenu
+
+menu "CANbus"
 
 if CAN
 
@@ -103,5 +109,7 @@ config CSP_CAN_RX_THREAD_NUM
 	  Number of thread stacks for CSP RX
 
 endif # CAN
+
+endmenu
 
 endif # LIBCSP
