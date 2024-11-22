@@ -24,7 +24,7 @@ option(CSP_ENABLE_CSP_PRINT "Enable csp_print() function" ON)
 option(CSP_PRINT_STDIO "Use vprintf() for csp_print() function" ON)
 
 set(CSP_QFIFO_LEN 15 CACHE STRING "Length of incoming queue for router task")
-set(CSP_PORT_MAX_BIND 16 CACHE STRING "Length of incoming queue for router task")
+set(CSP_PORT_MAX_BIND 16 CACHE STRING "Maximum number of bindable ports")
 set(CSP_CONN_RXQUEUE_LEN 16 CACHE STRING "Number of packets in connection queue")
 set(CSP_CONN_MAX 8 CACHE STRING "Number of new connections on socket queue")
 set(CSP_BUFFER_SIZE 256 CACHE STRING "Bytes in each packet buffer")
