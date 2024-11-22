@@ -19,7 +19,7 @@ option('buffer_zero_clear', type: 'boolean', value: true, description: 'Zero out
 # Try to balance these so there is enough memory to handle expected system usage plus some,
 # while avoiding over-allocating too much memory, that would be better used elsewhere
 option('qfifo_len', type: 'integer', value: 15, description: 'Length of incoming queue for router task')
-option('port_max_bind', type: 'integer', value: 16, description: 'Length of incoming queue for router task')
+option('port_max_bind', type: 'integer', value: 16, description: 'Maximum number of bindable ports')
 option('conn_rxqueue_len', type: 'integer', value: 15, description: 'Number of packets in connection queue')
 option('conn_max', type: 'integer', value: 8, description: 'Number of new connections on socket queue')
 option('buffer_size', type: 'integer', value: 256, description: 'Bytes in each packet buffer')
