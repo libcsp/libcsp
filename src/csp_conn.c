@@ -114,7 +114,7 @@ csp_conn_t * csp_conn_find_existing(csp_id_t * id) {
 			if (conn->idin.dport != id->dport)
 				continue;
 
-		/* Incoming connections are uniquely defined by the source amd
+		/* Incoming connections are uniquely defined by the source and
 		 * destination port, as well as the source node. Incoming
 		 * connections can never come from a brodcast address */
 		} else {
