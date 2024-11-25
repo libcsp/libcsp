@@ -166,11 +166,16 @@ csp_conn_t * csp_conn_allocate(csp_conn_type_t type) {
 	for (int j = 0; j < CSP_CONN_MAX; j++) {
 		i = (i + 1) % CSP_CONN_MAX;
 
-		int expected = CONN_CLOSED;
-		if (atomic_compare_exchange_strong(&arr_conn[i].state, &expected, CONN_OPEN)) {
-			conn = &arr_conn[i];
-			csp_conn_last_given = i;
-			break;
+#if (CSP_USE_RDP)
+		if (arr_conn[i].rdp.state == RDP_CLOSED) 
+#endif
+		{
+			int expected = CONN_CLOSED;
+			if (atomic_compare_exchange_strong(&arr_conn[i].state, &expected, CONN_OPEN)) {
+				conn = &arr_conn[i];
+				csp_conn_last_given = i;
+				break;
+			}
 		}
 	}
 
