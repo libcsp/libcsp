@@ -36,8 +36,8 @@ typedef enum {
  * RDP Connection
  */
 typedef struct {
-	csp_rdp_state_t state; /**< Connection state */
-	uint8_t closed_by;     /**< Tracks 'who' have closed the RDP connection */
+	atomic_int state;      /**< Connection state */
+	atomic_int closed_by;  /**< Tracks 'who' have closed the RDP connection */
 	uint16_t snd_nxt;      /**< The sequence number of the next segment that is to be sent */
 	uint16_t snd_una;      /**< The sequence number of the oldest unacknowledged segment */
 	uint16_t snd_iss;      /**< The initial send sequence number */
