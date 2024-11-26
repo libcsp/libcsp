@@ -94,7 +94,11 @@ csp_conn_t * csp_conn_find_existing(csp_id_t * id) {
 		/* Connection must be open */
 		if (conn->state != CONN_OPEN)
 			continue;
-
+#if (CSP_USE_RDP)
+		/* Connection must not be closed by RDP */
+		if (conn->rdp.state == RDP_CLOSED)
+			continue;
+#endif
 		/**
 		 * This search looks verbose, Instead of a big if statement, it is written out as
 		 * conditions. This has been done for clarity. The least likely check is put first
