@@ -4,5 +4,6 @@ if(CHECK_FOUND)
   target_sources(csp_tests PRIVATE
     main.c
     queue.c
+    buffer.c
   )
 endif()

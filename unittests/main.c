@@ -6,6 +6,7 @@
 #define DEFAULT_PRINT_VERBOSITY (CK_NORMAL)
 
 Suite * queue_suite(void);
+Suite * buffer_suite(void);
 
 static struct option long_options[] = {
     {"verbose", no_argument, 0, 'V'},
@@ -45,6 +46,7 @@ int main(int argc, char *argv[])
 
 	sr = srunner_create(NULL);
 	srunner_add_suite(sr, queue_suite());
+	srunner_add_suite(sr, buffer_suite());
 
 	srunner_run_all(sr, print_verbosity);
 	number_failed = srunner_ntests_failed(sr);
