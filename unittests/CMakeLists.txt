@@ -5,5 +5,6 @@ if(CHECK_FOUND)
     main.c
     queue.c
     buffer.c
+    hmac.c
   )
 endif()
