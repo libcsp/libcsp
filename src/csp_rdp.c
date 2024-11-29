@@ -199,7 +199,7 @@ static inline int csp_rdp_receive_data(csp_conn_t * conn, csp_packet_t * packet)
 	csp_rdp_header_remove(packet);
 
 	/* Enqueue data */
-	if (csp_conn_enqueue_packet(conn, packet) < 0) {
+	if (csp_conn_enqueue_packet(conn, packet) != CSP_ERR_NONE) {
 		csp_dbg_conn_ovf++;
 		csp_rdp_error("RDP %p: Conn RX buffer full\n", (void *)conn);
 		return CSP_ERR_NOBUFS;
