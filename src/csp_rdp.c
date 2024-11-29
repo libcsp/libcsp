@@ -278,11 +278,11 @@ static inline int csp_rdp_rx_queue_add(csp_conn_t * conn, csp_packet_t * packet,
 
 	if (csp_rdp_seq_in_rx_queue(conn, seq_nr)) {
 		csp_rdp_protocol("RDP %p: Already exists in RX queue %u\n", (void *)conn, seq_nr);
-		return -1;
+		return CSP_ERR_USED;
 	}
 	csp_rdp_protocol("RDP %p: Add to RX queue %u\n", (void *) conn, seq_nr);
 	csp_rdp_queue_rx_add(conn, packet);
-	return 0;
+	return CSP_ERR_NONE;
 }
 
 
@@ -668,7 +668,7 @@ bool csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 
 			/* If message is not in sequence, send EACK and store packet */
 			if (rx_header->seq_nr != (uint16_t)(conn->rdp.rcv_cur + 1)) {
-				if (csp_rdp_rx_queue_add(conn, packet, rx_header->seq_nr) != 0) {
+				if (csp_rdp_rx_queue_add(conn, packet, rx_header->seq_nr) != CSP_ERR_NONE) {
 					csp_rdp_check_ack(conn);
 					goto discard_open;
 				}
