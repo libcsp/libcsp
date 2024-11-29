@@ -497,8 +497,12 @@ bool csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 		 */
 		case RDP_CLOSED: {
 
+			/* Clear ephemeral data added by csp_rdp_send_cmp(). 
+			   RDP flags are located in the lower 4 bits. */
+			uint8_t rx_header_flags = rx_header->flags & 0x0f;
+
 			/* No SYN flag set while in closed. Inform by sending back RST */
-			if (!(rx_header->flags & RDP_SYN)) {
+			if (rx_header_flags != RDP_SYN) {
 				csp_rdp_protocol("RDP %p: Not SYN received in CLOSED state. Discarding packet\n", (void *)conn);
 				csp_rdp_send_cmp(conn, NULL, RDP_RST, conn->rdp.snd_nxt, conn->rdp.rcv_cur);
 				goto discard_close;
