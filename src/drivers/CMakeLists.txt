@@ -5,7 +5,7 @@ if(LIBSOCKETCAN_FOUND)
   target_include_directories(driver_can PRIVATE
     ${csp_inc}
     ${LIBSOCKETCAN_INCLUDE_DIRS})
-  target_link_libraries(driver_can PRIVATE
+  target_link_libraries(driver_can PRIVATE csp_common
     ${LIBSOCKETCAN_LIBRARIES})
   target_link_libraries(csp PRIVATE driver_can)
   if(BUILD_SHARED_LIBS)
