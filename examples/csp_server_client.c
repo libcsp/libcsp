@@ -8,11 +8,7 @@
 #include <csp/drivers/can_socketcan.h>
 #include <csp/interfaces/csp_if_zmqhub.h>
 
-
-/* These three functions must be provided in arch specific way */
-int router_start(void);
-int server_start(void);
-int client_start(void);
+#include "csp_posix_helper.h"
 
 /* Server port, the port the server listens on for incoming connections from the client. */
 #define MY_SERVER_PORT		10
@@ -26,7 +22,9 @@ static unsigned int server_received = 0;
 static unsigned int run_duration_in_sec = 3;
 
 /* Server task - handles requests from clients */
-void server(void) {
+void * server(void * param) {
+
+	(void)param;
 
 	csp_print("Server task started\n");
 
@@ -72,13 +70,15 @@ void server(void) {
 
 	}
 
-	return;
+	return NULL;
 
 }
 /* End of server task */
 
 /* Client task sending requests to server task */
-void client(void) {
+void * client(void * param) {
+
+	(void)param;
 
 	csp_print("Client task started\n");
 
@@ -104,7 +104,7 @@ void client(void) {
 		if (conn == NULL) {
 			/* Connect failed */
 			csp_print("Connection failed\n");
-			return;
+			return NULL;
 		}
 
 		/* 2. Get packet buffer for message/data */
@@ -112,7 +112,7 @@ void client(void) {
 		if (packet == NULL) {
 			/* Could not get buffer element */
 			csp_print("Failed to get CSP buffer\n");
-			return;
+			return NULL;
 		}
 
 		/* 3. Copy data to packet */
@@ -131,7 +131,7 @@ void client(void) {
 		csp_close(conn);
 	}
 
-	return;
+	return NULL;
 }
 /* End of client task */
 
@@ -200,10 +200,10 @@ int main(int argc, char * argv[]) {
     csp_iflist_print();
 
     /* Start server thread */
-    server_start();
+    csp_pthread_create(server);
 
     /* Start client thread */
-    client_start();
+    csp_pthread_create(client);
 
     /* Wait for execution to end (ctrl+c) */
     while(1) {

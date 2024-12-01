@@ -9,10 +9,7 @@
 #include <csp/drivers/can_socketcan.h>
 #include <csp/interfaces/csp_if_zmqhub.h>
 
-
-/* These three functions must be provided in arch specific way */
-int router_start(void);
-int server_start(void);
+#include "csp_posix_helper.h"
 
 /* Server port, the port the server listens on for incoming connections from the client. */
 #define SERVER_PORT		10
@@ -35,7 +32,9 @@ enum DeviceType {
 #define __maybe_unused __attribute__((__unused__))
 
 /* Server task - handles requests from clients */
-void server(void) {
+void * server(void * param) {
+
+	(void)param;
 
 	csp_print("Server task started\n");
 
@@ -80,7 +79,7 @@ void server(void) {
 		csp_close(conn);
 	}
 
-	return;
+	return NULL;
 }
 /* End of server task */
 
@@ -271,7 +270,7 @@ int main(int argc, char * argv[]) {
 	}
 
     /* Start server thread */
-    server_start();
+    csp_pthread_create(server);
 
     /* Wait for execution to end (ctrl+c) */
     while(1) {

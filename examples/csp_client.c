@@ -10,9 +10,7 @@
 #include <csp/drivers/can_socketcan.h>
 #include <csp/interfaces/csp_if_zmqhub.h>
 
-
-/* This function must be provided in arch specific way */
-int router_start(void);
+#include "csp_posix_helper.h"
 
 /* Server port, the port the server listens on for incoming connections from the client. */
 #define SERVER_PORT		10

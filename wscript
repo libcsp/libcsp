@@ -234,23 +234,24 @@ def build(ctx):
                   pytest_path=[ctx.path.get_bld()])
 
     if ctx.env.ENABLE_EXAMPLES:
-        ctx.program(source=['examples/csp_server_client.c',
-                            'examples/csp_server_client_posix.c'],
+        ctx.objects(source='examples/csp_posix_helper.c',
+                  target='csp_posix_helper',
+                  use='csp_h')
+
+        ctx.program(source='examples/csp_server_client.c',
                     target='examples/csp_server_client',
                     lib=ctx.env.LIBS,
-                    use='csp')
+                    use=['csp', 'csp_posix_helper'])
 
-        ctx.program(source=['examples/csp_server.c',
-                            'examples/csp_server_posix.c'],
+        ctx.program(source='examples/csp_server.c',
                     target='examples/csp_server',
                     lib=ctx.env.LIBS,
-                    use='csp')
+                    use=['csp', 'csp_posix_helper'])
 
-        ctx.program(source=['examples/csp_client.c',
-                            'examples/csp_client_posix.c'],
+        ctx.program(source='examples/csp_client.c',
                     target='examples/csp_client',
                     lib=ctx.env.LIBS,
-                    use='csp')
+                    use=['csp', 'csp_posix_helper'])
 
         ctx.program(source=['examples/csp_bridge_can2udp.c'],
                     target='examples/csp_bridge_can2udp',
