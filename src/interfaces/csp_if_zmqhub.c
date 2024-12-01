@@ -35,7 +35,7 @@ static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
  * @param packet Packet to transmit
  * @return 1 if packet was successfully transmitted, 0 on error
  */
-int csp_zmqhub_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet, int from_me) {
+int csp_zmqhub_tx(csp_iface_t * iface, uint16_t __maybe_unused via, csp_packet_t * packet, int __maybe_unused from_me) {
 
 	zmq_driver_t * drv = iface->driver_data;
 
@@ -157,10 +157,11 @@ int csp_zmqhub_init_w_endpoints(uint16_t addr,
 }
 
 int csp_zmqhub_init_w_name_endpoints_rxfilter(const char * ifname, uint16_t addr,
-											  const uint16_t rxfilter[], unsigned int rxfilter_count,
+											  const uint16_t __maybe_unused rxfilter[],
+											  unsigned int __maybe_unused rxfilter_count,
 											  const char * publish_endpoint,
 											  const char * subscribe_endpoint,
-											  uint32_t flags,
+											  uint32_t __maybe_unused flags,
 											  csp_iface_t ** return_interface) {
 
 	int ret;
