@@ -86,9 +86,6 @@ def configure(ctx):
     # Setup default include path and any extra defined
     ctx.env.append_unique('INCLUDES_CSP', ['include', 'src'] + ctx.options.includes.split(','))
 
-    # Store OS as env variable
-    ctx.env.OS = ctx.options.with_os
-
     # Platform/OS specifics
     if ctx.options.with_os == 'posix':
         ctx.env.append_unique('LIBS', ['rt', 'pthread', 'util'])
@@ -238,19 +235,19 @@ def build(ctx):
 
     if ctx.env.ENABLE_EXAMPLES:
         ctx.program(source=['examples/csp_server_client.c',
-                            'examples/csp_server_client_{0}.c'.format(ctx.env.OS)],
+                            'examples/csp_server_client_posix.c'],
                     target='examples/csp_server_client',
                     lib=ctx.env.LIBS,
                     use='csp')
 
         ctx.program(source=['examples/csp_server.c',
-                            'examples/csp_server_{0}.c'.format(ctx.env.OS)],
+                            'examples/csp_server_posix.c'],
                     target='examples/csp_server',
                     lib=ctx.env.LIBS,
                     use='csp')
 
         ctx.program(source=['examples/csp_client.c',
-                            'examples/csp_client_{0}.c'.format(ctx.env.OS)],
+                            'examples/csp_client_posix.c'],
                     target='examples/csp_client',
                     lib=ctx.env.LIBS,
                     use='csp')
