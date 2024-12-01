@@ -8,8 +8,6 @@ endif()
 add_library(csp)
 set_target_properties(csp PROPERTIES C_STANDARD 11)
 set_target_properties(csp PROPERTIES C_EXTENSIONS ON)
-target_compile_options(csp PRIVATE -Wall -Wextra -Wpedantic
-  $<$<C_COMPILER_ID:Clang>:-Wno-gnu-zero-variadic-macro-arguments>)
 
 set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS Debug Release MinSizeRel)
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
@@ -101,12 +99,18 @@ target_include_directories(csp
   PRIVATE ${csp_inc_src}
 )
 
+add_library(csp_common INTERFACE)
 if(CSP_POSIX)
-  set(CSP_C_ARGS -Wshadow -Wcast-align -Wpointer-arith -Wwrite-strings -Wno-unused-parameter)
+  target_compile_options(csp_common INTERFACE
+    -Wall -Wextra -Wpedantic
+    -Wshadow -Wcast-align -Wpointer-arith -Wwrite-strings -Wno-unused-parameter
+    $<$<C_COMPILER_ID:Clang>:-Wno-gnu-zero-variadic-macro-arguments>)
 elseif(CSP_ZEPHYR)
-  set(CSP_C_ARGS -Wwrite-strings -Wno-unused-parameter -Wno-pedantic)
+  target_compile_options(csp_common INTERFACE
+    -Wall -Wextra
+    -Wshadow -Wcast-align -Wpointer-arith -Wwrite-strings -Wno-unused-parameter)
 endif()
-target_compile_options(csp PRIVATE ${CSP_C_ARGS})
+target_link_libraries(csp PRIVATE csp_common)
 
 add_subdirectory(src)
 add_subdirectory(examples)
