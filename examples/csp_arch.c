@@ -18,8 +18,7 @@ void csp_panic(const char * msg) {
     exit(1);
 }
 
-int main(int argc, char * argv[]) {
-
+int main(void) {
 
     // clock
     csp_timestamp_t csp_clock = {0};
