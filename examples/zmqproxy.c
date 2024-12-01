@@ -24,9 +24,16 @@ static void * task_capture(void * ctx) {
 	/* Subscriber (RX) */
 	void * subscriber = zmq_socket(ctx, ZMQ_SUB);
 	ret = zmq_connect(subscriber, pub_str);
-    assert(ret == 0);
+	if (ret < 0) {
+		perror("Unable to connect");
+		exit(1);
+    }
 	ret = zmq_setsockopt(subscriber, ZMQ_SUBSCRIBE, "", 0);
-    assert(ret == 0);
+	if (ret < 0) {
+		perror("Failed to call setsockopt");
+		exit(1);
+    }
+
 
 	/* Allocated 'raw' CSP packet */
 	csp_packet_t * packet = malloc(1024);
@@ -126,13 +133,19 @@ int main(int argc, char ** argv) {
 	void * frontend = zmq_socket(ctx, ZMQ_XSUB);
 	assert(frontend);
     ret = zmq_bind(frontend, sub_str);
-	assert(ret == 0);
+	if (ret < 0) {
+		perror("Failed to bind to ZMQ_XSUB");
+		return 1;
+	}
 	csp_print("Subscriber task listening on %s\n", sub_str);
 
 	void * backend = zmq_socket(ctx, ZMQ_XPUB);
-	assert(backend);
+
     ret = zmq_bind(backend, pub_str);
-	assert(ret == 0);
+	if (ret < 0) {
+		perror("Failed to bind to ZMQ_XPUB");
+		return 1;
+	}
 	csp_print("Publisher task listening on %s\n", pub_str);
 
 	pthread_t capworker;
