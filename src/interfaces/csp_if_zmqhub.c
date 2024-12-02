@@ -164,7 +164,7 @@ int csp_zmqhub_init_w_name_endpoints_rxfilter(const char * ifname, uint16_t addr
 											  uint32_t __maybe_unused flags,
 											  csp_iface_t ** return_interface) {
 
-	int ret;
+	int __maybe_unused ret;
 	pthread_attr_t attributes;
 	zmq_driver_t * drv = calloc(1, sizeof(*drv));
 	assert(drv != NULL);
@@ -228,7 +228,7 @@ int csp_zmqhub_init_filter2(const char * ifname, const char * host, uint16_t add
 	char sub[100];
 	csp_zmqhub_make_endpoint(host, pubport, sub, sizeof(sub));
 
-	int ret;
+	int __maybe_unused ret;
 	pthread_attr_t attributes;
 	zmq_driver_t * drv = calloc(1, sizeof(*drv));
 	assert(drv != NULL);
