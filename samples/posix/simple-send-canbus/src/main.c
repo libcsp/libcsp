@@ -35,8 +35,8 @@ int main(int argc, char * argv[])
 
 	/* prepare data */
 	packet = csp_buffer_get_always();
-	memcpy(packet->data, "abc", 4);
-	packet->length = 4;
+	memcpy(packet->data, "abc", 3);
+	packet->length = 3;
 
 	/* send */
 	csp_send(conn, packet);
