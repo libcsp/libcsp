@@ -106,10 +106,6 @@ if(CSP_POSIX)
     -Wall -Wextra -Wpedantic
     -Wshadow -Wcast-align -Wpointer-arith -Wwrite-strings -Wno-unused-parameter
     $<$<C_COMPILER_ID:Clang>:-Wno-gnu-zero-variadic-macro-arguments>)
-elseif(CSP_ZEPHYR)
-  target_compile_options(csp_common INTERFACE
-    -Wall -Wextra
-    -Wshadow -Wcast-align -Wpointer-arith -Wwrite-strings -Wno-unused-parameter)
 endif()
 target_link_libraries(csp PRIVATE csp_common)
 
