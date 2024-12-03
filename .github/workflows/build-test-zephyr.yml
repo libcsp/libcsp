@@ -14,7 +14,7 @@ jobs:
         board:
           - scobc_module1
           - qemu_cortex_m3
-          - mps2_an385
+          - mps2/an385
         python-version:
           - '3.10'
           - '3.11'
