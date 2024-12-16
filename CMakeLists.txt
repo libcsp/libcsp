@@ -51,8 +51,7 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Generic")
   endif()
 endif()
 
-if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND
-    CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
+if(CSP_POSIX AND CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
 
   include(CheckIncludeFiles)
   check_include_files(sys/socket.h HAVE_SYS_SOCKET_H)
@@ -137,7 +136,7 @@ endif()
 
 configure_file(csp_autoconfig.h.in include/csp/autoconfig.h)
 
-if(NOT CMAKE_SYSTEM_NAME STREQUAL "Zephyr")
+if(NOT CSP_ZEPHYR)
   install(TARGETS csp LIBRARY COMPONENT runtime)
   install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/;${CMAKE_CURRENT_SOURCE_DIR}/include/;
     TYPE INCLUDE

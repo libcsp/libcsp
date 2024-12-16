@@ -1,3 +1,3 @@
-if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+if(CSP_POSIX)
   add_subdirectory(posix)
 endif()

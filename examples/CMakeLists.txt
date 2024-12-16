@@ -1,4 +1,4 @@
-if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+if(CSP_POSIX)
 
   add_library(csp_posix_helper OBJECT ${CSP_SAMPLES_EXCLUDE} csp_posix_helper.c)
   add_executable(csp_arch ${CSP_SAMPLES_EXCLUDE} csp_arch.c)

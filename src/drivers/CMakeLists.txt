@@ -13,10 +13,10 @@ if(LIBSOCKETCAN_FOUND)
   endif()
 endif()
 
-if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+if(CSP_POSIX)
   target_sources(csp PRIVATE usart/usart_linux.c)
   target_sources(csp PRIVATE eth/eth_linux.c)
-elseif(CMAKE_SYSTEM_NAME STREQUAL "Zephyr")
+elseif(CSP_ZEPHYR)
   target_sources(csp PRIVATE usart/usart_zephyr.c)
 endif()
 
