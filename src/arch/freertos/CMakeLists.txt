@@ -8,4 +8,3 @@ target_sources(csp PRIVATE
 )
 
 target_link_libraries(csp PRIVATE freertos_kernel)
-
