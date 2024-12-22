@@ -112,7 +112,7 @@ To use the bindings, you need to install them to a location where
 Python searches by default or specify the path to Python:
 
 ```
-PYTHONPATH=build python3 -c 'import libcsp_py3 as csp'
+PYTHONPATH=builddir python3 -c 'import libcsp_py3 as csp'
 ```
 
 
