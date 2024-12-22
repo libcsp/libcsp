@@ -88,12 +88,33 @@ use the following command:
 cmake --install builddir --component runtime
 ```
 
+### Building All Samples with CMake
+
 if you want to build tools and samples, define `CSP_BUILD_SAMPLES=ON`
 when you run `cmake`.
 
 ```shell
 cmake -B builddir -DCSP_BUILD_SAMPLES=ON
 ```
+
+### Python Bindings with CMake
+
+If you want to build Python bindings, define
+`CSP_ENABLE_PYTHON3_BINDINGS=ON` when you run `cmake`. You also need
+to enable the routing table (`CSP_USE_RTABLE`) when building the
+Python bindings.
+
+```shell
+cmake -B builddir -DCSP_ENABLE_PYTHON3_BINDINGS=ON -DCSP_USE_RTABLE=ON
+```
+
+To use the bindings, you need to install them to a location where
+Python searches by default or specify the path to Python:
+
+```
+PYTHONPATH=build python3 -c 'import libcsp_py3 as csp'
+```
+
 
 ## Reproducible Builds
 
