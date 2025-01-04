@@ -82,8 +82,14 @@ extern void __attribute__((weak)) csp_assert_fail_action(const char *assertion, 
 			int line = __LINE__;								\
 			printf("\E[1;31mAssertion \'%s\' failed in %s:%d\E[0m\r\n",			\
 			       assertion, file, line);							\
-			if (csp_assert_fail_action)							\
-				csp_assert_fail_action(assertion, file, line);				\
+			do {										\
+				_Pragma("GCC diagnostic push");						\
+				_Pragma("GCC diagnostic ignored \"-Waddress\"");			\
+				if (csp_assert_fail_action) {						\
+					csp_assert_fail_action(assertion, file, line);			\
+				}									\
+				_Pragma("GCC diagnostic pop")						\
+			} while(0);									\
 		}											\
 	}
 #else
