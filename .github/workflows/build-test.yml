@@ -26,8 +26,11 @@ jobs:
         run: |
           sudo apt-get install ninja-build ${{ matrix.buildsystem }}
 
-      - uses: actions/checkout@v2
-      - run: python3 ./examples/buildall.py --build-system=${{ matrix.buildsystem }}
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Build
+        run: python3 ./examples/buildall.py --build-system=${{ matrix.buildsystem }}
 
       - name: Run Tests
         run: |
