@@ -8,8 +8,6 @@ jobs:
         os:
           - ubuntu-22.04
           - ubuntu-20.04
-        arch:
-          - posix
         buildsystem:
           - meson
           - cmake
@@ -28,7 +26,7 @@ jobs:
           sudo apt-get install ninja-build ${{ matrix.buildsystem }}
 
       - uses: actions/checkout@v2
-      - run: python3 ./examples/buildall.py ${{ matrix.arch }} --build-system=${{ matrix.buildsystem }}
+      - run: python3 ./examples/buildall.py --build-system=${{ matrix.buildsystem }}
 
       - name: Run Tests
         run: |
