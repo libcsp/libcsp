@@ -8,7 +8,6 @@ jobs:
         os:
           - ubuntu-22.04
           - ubuntu-20.04
-          #- macos-latest
         arch:
           - posix
         buildsystem:
@@ -27,13 +26,6 @@ jobs:
         if: ${{ runner.os == 'Linux' && matrix.buildsystem != 'waf' }}
         run: |
           sudo apt-get install ninja-build ${{ matrix.buildsystem }}
-
-      - name: Setup packages on MacOS
-        if: ${{ runner.os == 'macOS' && matrix.buildsystem != 'waf' }}
-        run: |
-          brew update
-          brew install ninja ${{ matrix.buildsystem }}
-          brew install zeromq
 
       - uses: actions/checkout@v2
       - run: python3 ./examples/buildall.py ${{ matrix.arch }} --build-system=${{ matrix.buildsystem }}
