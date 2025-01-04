@@ -33,7 +33,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Build libcsp examples
-        run: python3 examples/buildall.py posix --build-system=meson
+        run: python3 examples/buildall.py --build-system=meson
 
       - name: Build libcsp with python binding with meson
         run: |
