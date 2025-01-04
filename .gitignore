@@ -16,3 +16,11 @@ tags
 .DS_store
 *.pdf
 *.html
+builddir
+.settings
+*~
+GPATH
+GRTAGS
+GTAGS
+.vscode/
+build-docs
