@@ -8,7 +8,7 @@ on:
 jobs:
   build-docs:
     if: github.repository_owner == 'libcsp'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v4
