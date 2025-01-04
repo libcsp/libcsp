@@ -35,13 +35,6 @@ jobs:
         run: |
           sudo apt-get install ninja-build ${{ matrix.buildsystem }}
 
-      - name: Setup packages on MacOS
-        if: ${{ runner.os == 'macOS' && matrix.buildsystem != 'waf' }}
-        run: |
-          brew update
-          brew install ninja ${{ matrix.buildsystem }}
-          brew install zeromq
-
       - name: Checkout
         uses: actions/checkout@v4
 
