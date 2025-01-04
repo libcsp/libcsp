@@ -1,0 +1,55 @@
+name: Build and Test
+on: [push, pull_request]
+jobs:
+  run-tests:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Ubuntu 20.04
+          - os: ubuntu-20.04
+            CC: gcc-10
+            CXX: g++-10
+          # Ubuntu 22.04
+          - os: ubuntu-22.04
+            CC: gcc-10
+            CXX: g++-10
+          - os: ubuntu-22.04
+            CC: gcc-11
+            CXX: g++-11
+          - os: ubuntu-22.04
+            CC: gcc-12
+            CXX: g++-12
+          # Ubuntu 24.04
+          - os: ubuntu-24.04
+            CC: gcc-12
+            CXX: g++-12
+          - os: ubuntu-24.04
+            CC: gcc-13
+            CXX: g++-13
+          - os: ubuntu-24.04
+            CC: gcc-14
+            CXX: g++-14
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Setup packages on Linux
+        run: |
+          sudo apt-get update
+          sudo apt-get install libzmq3-dev libsocketcan-dev
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build
+        env:
+          CC: ${{ matrix.CC }}
+          CXX: ${{ matrix.CXX }}
+        run: python3 ./examples/buildall.py
+
+      - name: Run Arch Test
+        run: |
+          ./build/csp_arch
+
+      - name: Run Loopback Test
+        run: |
+          ./build/csp_server_client -t
