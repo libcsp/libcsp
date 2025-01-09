@@ -123,12 +123,14 @@ int csp_usart_open(const csp_usart_conf_t * conf, csp_usart_callback_t rx_callba
 		case 3000000:
 			brate = B3000000;
 			break;
+#ifndef __CYGWIN__
 		case 3500000:
 			brate = B3500000;
 			break;
 		case 4000000:
 			brate = B4000000;
 			break;
+#endif
 		default:
 			csp_print("%s: Unsupported baudrate: %u\n", __func__, conf->baudrate);
 			return CSP_ERR_INVAL;

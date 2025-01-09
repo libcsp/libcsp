@@ -1,3 +1,8 @@
+
+#ifdef __CYGWIN__
+#warning CYGWIN: ethernet not implemented - libpcap can be used if needed
+#else // !__CYGWIN__
+
 #include <stdint.h>
 
 #include <csp/csp.h>
@@ -181,4 +186,7 @@ int csp_eth_init(const char * device, const char * ifname, int mtu, unsigned int
 		*return_iface = &ctx->ifdata.iface;
 	}
 
-    return CSP_ERR_NONE;}
+    return CSP_ERR_NONE;
+}
+
+#endif // !__CYGWIN__
