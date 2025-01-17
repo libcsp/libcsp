@@ -47,6 +47,7 @@ def options(ctx):
     gr.add_option('--enable-if-zmqhub', action='store_true', help='Enable ZMQ interface')
     gr.add_option('--enable-can-socketcan', action='store_true', help='Enable Linux socketcan driver')
     gr.add_option('--with-driver-usart', default=None, metavar='DRIVER', help='Build USART driver. [linux, None]')
+    gr.add_option('--with-driver-eth', default=None, metavar='DRIVER', help='Build ETH driver. [linux, None]')
 
     # OS
     gr.add_option('--with-os', metavar='OS', default='posix', help='Set operating system. Must be one of: ' + str(valid_os))
@@ -128,6 +129,8 @@ def configure(ctx):
                                         'src/interfaces/csp_if_kiss.c',
                                         'src/interfaces/csp_if_i2c.c',
                                         'src/interfaces/csp_if_tun.c',
+                                        'src/interfaces/csp_if_eth.c',
+                                        'src/interfaces/csp_if_eth_pbuf.c',
                                         'src/arch/{0}/**/*.c'.format(ctx.options.with_os),
                                         ])
 
@@ -175,6 +178,10 @@ def configure(ctx):
         ctx.check_cfg(package='libzmq', args='--cflags --libs', define_name='CSP_HAVE_LIBZMQ')
         ctx.env.append_unique('LIBS', ctx.env.LIB_LIBZMQ)
         ctx.env.append_unique('FILES_CSP', 'src/interfaces/csp_if_zmqhub.c')
+
+    # Add ETH driver
+    if ctx.options.with_driver_eth:
+        ctx.env.append_unique('FILES_CSP', ['src/drivers/eth/eth_{0}.c'.format(ctx.options.with_driver_eth)])
 
     # Store configuration options
     ctx.env.ENABLE_EXAMPLES = ctx.options.enable_examples

@@ -46,6 +46,7 @@ def build_with_waf():
         '--enable-python3-bindings',
         '--enable-can-socketcan',
         '--with-driver-usart=linux',
+        '--with-driver-eth=linux',
         '--enable-if-zmqhub',
         '--enable-examples',
         '--enable-yaml',
