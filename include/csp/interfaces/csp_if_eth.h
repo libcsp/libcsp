@@ -47,6 +47,11 @@
 extern "C" {
 #endif
 
+/**
+ * Default interface name.
+ */
+#define CSP_IF_ETH_DEFAULT_NAME "ETH"
+
 /* 0x88B5 : IEEE Std 802 - Local Experimental Ethertype  (RFC 5342) */
 #define CSP_ETH_TYPE_CSP 0x88B5
 

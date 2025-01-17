@@ -9,6 +9,7 @@
 #include <csp/drivers/can_socketcan.h>
 #include <csp/interfaces/csp_if_zmqhub.h>
 #include <csp/interfaces/csp_if_udp.h>
+#include <csp/drivers/eth_linux.h>
 
 #include "csp_posix_helper.h"
 
@@ -31,6 +32,7 @@ enum DeviceType {
 	DEVICE_KISS,
 	DEVICE_ZMQ,
 	DEVICE_UDP,
+	DEVICE_ETH
 };
 
 #define __maybe_unused __attribute__((__unused__))
@@ -114,6 +116,7 @@ static struct option long_options[] = {
     {"test-mode", no_argument, 0, 't'},
     {"test-mode-with-sec", required_argument, 0, 'T'},
     {"help", no_argument, 0, 'h'},
+	{"eth-device", required_argument, 0, 'e'},
     {0, 0, 0, 0}
 };
 
@@ -124,6 +127,7 @@ static void print_help(void) {
 	}
 	if (1) {
 		csp_print(" -k <kiss-device> set KISS device\n");
+		csp_print(" -e <eth-device> set ethernet interface\n");
 	}
 	if (CSP_HAVE_LIBZMQ) {
 		csp_print(" -z <zmq-device>  set ZeroMQ device\n");
@@ -192,6 +196,15 @@ static csp_iface_t * add_interface(enum DeviceType device_type, const char * dev
 		default_iface->is_default = 1;
 	}
 
+	if (device_type == DEVICE_ETH) {
+		int error = csp_eth_init(device_name, CSP_IF_ETH_DEFAULT_NAME, CSP_ETH_BUF_SIZE, server_address, true, &default_iface);
+		if (error != CSP_ERR_NONE) {
+			csp_print("failed to add Ethernet interface [%s], error: %d\n", device_name, error);
+			exit(1);
+		}
+		default_iface->is_default = 1;
+	}
+
 	return default_iface;
 }
 
@@ -204,7 +217,7 @@ int main(int argc, char * argv[]) {
 	csp_iface_t * default_iface;
     int opt;
 
-	while ((opt = getopt_long(argc, argv, OPTION_c OPTION_z OPTION_R "k:u:a:v:tT:h", long_options, NULL)) != -1) {
+	while ((opt = getopt_long(argc, argv, OPTION_c OPTION_z OPTION_R "k:u:e:a:v:tT:h", long_options, NULL)) != -1) {
         switch (opt) {
             case 'c':
 				device_name = optarg;
@@ -221,6 +234,10 @@ int main(int argc, char * argv[]) {
 			case 'u':
 				device_name = optarg;
 				device_type = DEVICE_UDP;
+				break;
+			case 'e':
+				device_name = optarg;
+				device_type = DEVICE_ETH;
 				break;
 #if (CSP_USE_RTABLE)
             case 'R':
