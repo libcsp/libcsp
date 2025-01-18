@@ -148,6 +148,7 @@ jobs:
           ./build/examples/csp_sfp_server_client --mtu 128 --size 100000
 
       - name: Setup veth0 and veth1
+        if: ${{ matrix.buildsystem != 'meson' }}
         run: |
           sudo ip link add veth0 type veth peer name veth1
           sudo ip link set veth0 up
@@ -156,16 +157,19 @@ jobs:
           echo "veth1 is up"
 
       - name: Setcap cap_net_raw+ep for csp_client and csp_server
+        if: ${{ matrix.buildsystem != 'meson' }}
         run: |
           sudo setcap cap_net_raw+ep ./build/examples/csp_server
           sudo setcap cap_net_raw+ep ./build/examples/csp_client
 
       - name: Run ETH Server Test
+        if: ${{ matrix.buildsystem != 'meson' }}
         run: |
           ./build/examples/csp_server -e veth1 -a 1 -T 10 -v ${{ matrix.csp_version }} &
           ./build/examples/csp_client -e veth0 -a 2 -C 1 -t -v ${{ matrix.csp_version }}
 
       - name: Run ETH Client Test
+        if: ${{ matrix.buildsystem != 'meson' }}
         run: |
           ./build/examples/csp_client -e veth0 -a 2 -C 1 -T 10 -v ${{ matrix.csp_version }} &
           ./build/examples/csp_server -e veth1 -a 1 -t -v ${{ matrix.csp_version }}
