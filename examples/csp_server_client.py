@@ -32,7 +32,7 @@ def server_task(addr: int, port: int) -> None:
 
         while (packet := csp.read(conn, 50)) is not None:
             if csp.conn_dport(conn) == port:
-                _print('Recieved on {port}: {data}'.format(
+                _print('Received on {port}: {data}'.format(
                     port=port,
                     data=csp.packet_get_data(packet).decode('utf-8'))
                 )
