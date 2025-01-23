@@ -109,11 +109,6 @@ void * client(void * param) {
 
 		/* 2. Get packet buffer for message/data */
 		csp_packet_t * packet = csp_buffer_get_always();
-		if (packet == NULL) {
-			/* Could not get buffer element */
-			csp_print("Failed to get CSP buffer\n");
-			return NULL;
-		}
 
 		/* 3. Copy data to packet */
         memcpy(packet->data, "Hello world ", 12);
