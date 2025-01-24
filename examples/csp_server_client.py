@@ -4,7 +4,7 @@ Usage: LD_LIBRARY_PATH=build PYTHONPATH=build python3 ./examples/csp_server_clie
 import time
 import threading
 import libcsp_py3 as csp
-from typing import Any, Callable
+from typing import Callable
 
 
 def printer(node: str, color: str) -> Callable:

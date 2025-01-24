@@ -10,9 +10,6 @@
 # $ LD_LIBRARY_PATH=build PYTHONPATH=build python3 examples/python_bindings_example_server.py
 #
 
-import os
-import time
-import sys
 import threading
 
 import argparse

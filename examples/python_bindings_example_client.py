@@ -10,7 +10,6 @@
 # $ LD_LIBRARY_PATH=build PYTHONPATH=build python3 examples/python_bindings_example_client.py -z localhost
 #
 
-import os
 import time
 import sys
 import argparse
