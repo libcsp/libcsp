@@ -963,7 +963,7 @@ static PyMethodDef methods[] = {
 	{"conn_src", pycsp_conn_src, METH_O, ""},
 	{"listen", pycsp_listen, METH_VARARGS, ""},
 	{"bind", pycsp_bind, METH_VARARGS, ""},
-	{"route_start_task", pycsp_route_start_task, METH_VARARGS, ""},
+	{"route_start_task", pycsp_route_start_task, METH_NOARGS, ""},
 	{"ping", pycsp_ping, METH_VARARGS, ""},
 	{"reboot", pycsp_reboot, METH_VARARGS, ""},
 	{"shutdown", pycsp_shutdown, METH_VARARGS, ""},
