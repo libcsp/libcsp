@@ -73,3 +73,22 @@ jobs:
           PYTHONPATH=builddir python3 examples/python_bindings_example_server.py -k /tmp/pty2 -a 1 &
           PYTHONPATH=builddir python3 examples/python_bindings_example_client.py -k /tmp/pty1 -a 2 -s 1
           pkill socat
+
+      - name: Setup veth0 and veth1
+        run: |
+          sudo ip link add veth0 type veth peer name veth1
+          sudo ip link set veth0 up
+          echo "veth0 is up"
+          sudo ip link set veth1 up
+          echo "veth1 is up"
+
+      - name: Set capabilities for Python binary
+        run: |
+          PYTHON_BIN=$(readlink -f $(which python3))
+          echo "Setting capabilities for $PYTHON_BIN"
+          sudo --preserve-env setcap cap_net_raw+ep $PYTHON_BIN
+
+      - name: Run ETH Python binding Test
+        run: |
+          PYTHONPATH=builddir python3 examples/python_bindings_example_server.py -e veth1 -a 3 &
+          PYTHONPATH=builddir python3 examples/python_bindings_example_client.py -e veth0 -s 3 -a 2
