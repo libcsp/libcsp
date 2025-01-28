@@ -8,6 +8,7 @@
 #include <csp/interfaces/csp_if_kiss.h>
 #include <csp/drivers/usart.h>
 #include <csp/drivers/can_socketcan.h>
+#include <csp/drivers/eth_linux.h>
 #include <endian.h>
 
 #define SOCKET_CAPSULE     "csp_socket_t"
@@ -890,6 +891,25 @@ static PyObject * pycsp_kiss_init(PyObject * self, PyObject * args) {
 	Py_RETURN_NONE;
 }
 
+static PyObject * pycsp_eth_init(PyObject * self, PyObject * args) {
+	char * device;
+	int promisc = 0;
+	uint16_t addr;
+	int mtu = CSP_ETH_BUF_SIZE;
+	const char * if_name = CSP_IF_ETH_DEFAULT_NAME;
+
+	if (!PyArg_ParseTuple(args, "sH|iis", &device, &addr, &promisc, &mtu, &if_name)) {
+		return NULL;  // TypeError is thrown
+	}
+
+	int res = csp_eth_init(device, if_name, mtu, addr, promisc, NULL);
+	if (res != CSP_ERR_NONE) {
+		return PyErr_Error("csp_eth_init()", res);
+	}
+
+	Py_RETURN_NONE;
+}
+
 static PyObject * pycsp_packet_set_data(PyObject * self, PyObject * args) {
 	PyObject * packet_capsule;
 	Py_buffer data;
@@ -1000,6 +1020,8 @@ static PyMethodDef methods[] = {
 
 	/* csp/drivers/can_socketcan.h */
 	{"can_socketcan_init", pycsp_can_socketcan_init, METH_VARARGS, ""},
+	/* csp/interfaces/csp_if_eth.h */
+	{"eth_init", pycsp_eth_init, METH_VARARGS, ""},
 
 	/* helpers */
 	{"packet_get_length", pycsp_packet_get_length, METH_O, ""},
