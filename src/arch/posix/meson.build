@@ -4,6 +4,7 @@ csp_sources += files([
 	'csp_system.c',
 	'csp_time.c',
 	'csp_clock.c',
+	'csp_mutex.c',
 	'pthread_queue.c'
 ])
 

@@ -4,7 +4,7 @@
  * delayed acknowledgments, to improve performance over half-duplex links.
  */
 
-#include "csp_rdp_queue.h"
+#include "csp_rdp.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -47,6 +47,50 @@ typedef struct __packed {
 } rdp_header_t;
 
 static int csp_rdp_close_internal(csp_conn_t * conn, uint8_t closed_by, bool send_rst);
+
+static void csp_rdp_queue_clear(csp_packet_t ** head) {
+    csp_packet_t * curr = *head;
+    csp_packet_t * next;
+    
+    while (curr) {
+        next = curr->next;
+        csp_buffer_free(curr);
+        curr = next;
+    }
+
+    *head = NULL;
+}
+
+static void csp_rdp_queue_add(csp_packet_t ** head, csp_packet_t * packet) {
+    if (!*head) {
+        *head = packet;
+        (*head)->next = NULL;
+    } else {
+        csp_packet_t * curr = *head;
+        while (curr->next) {
+            curr = curr->next;
+        }
+        curr->next = packet;
+        curr->next->next = NULL;
+    }
+}
+
+static inline void csp_rdp_queue_tx_add(csp_conn_t * conn, csp_packet_t * packet) {
+    csp_mutex_lock(&conn->rdp.tx_lock);
+    csp_rdp_queue_add(&conn->rdp.tx_head, packet);
+    csp_mutex_unlock(&conn->rdp.tx_lock);
+}
+
+static inline void csp_rdp_queue_rx_add(csp_conn_t * conn, csp_packet_t * packet) {
+    csp_rdp_queue_add(&conn->rdp.rx_head, packet);
+}
+
+static void csp_rdp_queue_flush(csp_conn_t * conn) {
+    csp_mutex_lock(&conn->rdp.tx_lock);
+    csp_rdp_queue_clear(&conn->rdp.tx_head);
+    csp_mutex_unlock(&conn->rdp.tx_lock);
+    csp_rdp_queue_clear(&conn->rdp.rx_head);
+}
 
 /**
  * RDP Headers:
@@ -211,28 +255,26 @@ static inline int csp_rdp_receive_data(csp_conn_t * conn, csp_packet_t * packet)
 static inline void csp_rdp_rx_queue_flush(csp_conn_t * conn) {
 
 	/* Loop through RX queue */
-	int i, count;
-	csp_packet_t * packet;
-
-front:
-	count = csp_rdp_queue_rx_size();
-	for (i = 0; i < count; i++) {
-
+	csp_packet_t * prev = NULL;
+	csp_packet_t * packet = conn->rdp.rx_head;
+    while (packet) {
 		/* Check there is room in the RX queue:
 		 * We don't hold a lock on the queue, so we require at least two spaces to be free
 		 * to hopefully avoid posting packets on a full queue */
 		if (csp_queue_free(conn->rx_queue) <= 2)
-			return;
-
-		packet = csp_rdp_queue_rx_get(conn);
-		if (packet == NULL) {
 			break;
-		}
 
 		rdp_header_t * header = csp_rdp_header_ref(packet);
 
 		/* If the matching packet was found: */
 		if (header->seq_nr == (uint16_t)(conn->rdp.rcv_cur + 1)) {
+			/* remove packet from the list */
+			if (prev) {
+				prev->next = packet->next;
+			} else {
+				conn->rdp.rx_head = packet->next;
+			}
+
 			csp_rdp_protocol("RDP %p: Deliver seq %u\n", (void *)conn, header->seq_nr);
 			if (csp_rdp_receive_data(conn, packet) != CSP_ERR_NONE) {
 				csp_rdp_error("RDP lost packet internally, stream corrupted!\n");
@@ -241,37 +283,32 @@ front:
 			conn->rdp.rcv_cur++;
 
 			/* Loop from first element again */
-			goto front;
-
-			/* Otherwise, requeue */
-		} else {
-			csp_rdp_queue_rx_add(conn, packet);
+            packet = conn->rdp.rx_head;
+            prev = NULL;
+            continue;
 		}
+		
+		prev = packet;
+		packet = packet->next;
 	}
 }
 
 static inline bool csp_rdp_seq_in_rx_queue(csp_conn_t * conn, uint16_t seq_nr) {
 
 	/* Loop through RX queue */
-	int i, count;
-	csp_packet_t * packet;
-	count = csp_rdp_queue_rx_size();
-	for (i = 0; i < count; i++) {
+	bool res = false;
+	csp_packet_t * packet = conn->rdp.rx_head;
+	while (packet) {
 
-		packet = csp_rdp_queue_rx_get(conn);
-		if (packet == NULL) {
+		rdp_header_t * header = csp_rdp_header_ref(packet);
+		if (header->seq_nr == seq_nr) {
+			res = true;
 			break;
 		}
 
-		csp_rdp_queue_rx_add(conn, packet);
-
-		rdp_header_t * header = csp_rdp_header_ref((csp_packet_t *)packet);
-		if (header->seq_nr == seq_nr) {
-			return true;
-		}
+		packet = packet->next;
 	}
-
-	return false;
+	return res;
 }
 
 static inline int csp_rdp_rx_queue_add(csp_conn_t * conn, csp_packet_t * packet, uint16_t seq_nr) {
@@ -366,23 +403,29 @@ void csp_rdp_check_timeouts(csp_conn_t * conn) {
 	 * MESSAGE TIMEOUT:
 	 * Check each outgoing message for TX timeout
 	 */
-	int count = csp_rdp_queue_tx_size();
-	for (int i = 0; i < count; i++) {
-
-		csp_packet_t * packet;
-		packet = csp_rdp_queue_tx_get(conn);
-		if (packet == NULL) {
-			break;
-		}
+	csp_mutex_lock(&conn->rdp.tx_lock);
+	csp_packet_t * prev = NULL;
+	csp_packet_t * packet = conn->rdp.tx_head;
+	while (packet) {
 
 		/* Get header */
-		rdp_header_t * header = csp_rdp_header_ref((csp_packet_t *)packet);
+		rdp_header_t * header = csp_rdp_header_ref(packet);
 
 		/* If acked, do not retransmit */
 		if (csp_rdp_seq_before(be16toh(header->seq_nr), conn->rdp.snd_una)) {
+			/* remove packet from the list and free */
+			csp_packet_t * tmp = packet;
+			packet = packet->next;
+
+			if (prev) {
+				prev->next = tmp->next;
+			} else {
+				conn->rdp.tx_head = tmp->next;
+			}
+
 			csp_rdp_protocol("RDP %p: TX Element Free, time %" PRIu32 ", seq %u, una %u\n",
-							 (void *)conn, packet->timestamp_tx, be16toh(header->seq_nr), conn->rdp.snd_una);
-			csp_buffer_free(packet);
+							 (void *)conn, tmp->timestamp_tx, be16toh(header->seq_nr), conn->rdp.snd_una);
+			csp_buffer_free(tmp);
 			continue;
 		}
 
@@ -407,10 +450,11 @@ void csp_rdp_check_timeouts(csp_conn_t * conn) {
 			}
 		}
 
-		/* Requeue the TX element */
-		csp_rdp_queue_tx_add(conn, packet);
-
+		prev = packet;
+		packet = packet->next;
 	}
+
+	csp_mutex_unlock(&conn->rdp.tx_lock);
 
 	if (conn->rdp.state == RDP_OPEN) {
 
@@ -496,6 +540,9 @@ bool csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 		 * STATE == CLOSED
 		 */
 		case RDP_CLOSED: {
+			/* Clear ephemeral data added by csp_rdp_send_cmp(). 
+			   RDP flags are located in the lower 4 bits. */
+			uint8_t rx_header_flags = rx_header->flags & 0x0f;
 
 			/* Clear ephemeral data added by csp_rdp_send_cmp(). 
 			   RDP flags are located in the lower 4 bits. */
@@ -863,6 +910,10 @@ int csp_rdp_send(csp_conn_t * conn, csp_packet_t * packet) {
 }
 
 void csp_rdp_init(csp_conn_t * conn) {
+	/* Initialize RX/TX queues */
+	csp_mutex_init(&conn->rdp.tx_lock);
+	conn->rdp.rx_head = NULL;
+	conn->rdp.tx_head = NULL;
 
 	/* Set initial state */
 	conn->rdp.state = RDP_CLOSED;
@@ -914,6 +965,9 @@ static int csp_rdp_close_internal(csp_conn_t * conn, uint8_t closed_by, bool sen
 	csp_rdp_protocol("RDP %p: csp_rdp_close(0x%x) -> CLOSED\n", (void *)conn, closed_by);
 	conn->rdp.state = RDP_CLOSED;
 	conn->rdp.closed_by = 0;
+
+	csp_rdp_queue_flush(conn);
+
 	return CSP_ERR_NONE;
 }
 

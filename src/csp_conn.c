@@ -10,7 +10,6 @@
 #include <csp/csp_id.h>
 #include <csp/csp_debug.h>
 #include "csp_macro.h"
-#include "csp_rdp_queue.h"
 #include "csp_rdp.h"
 
 #define OUTGOING_PORTS (((1 << (CSP_ID2_PORT_SIZE)) - 1) - CSP_PORT_MAX_BIND)
@@ -232,13 +231,6 @@ int csp_conn_close(csp_conn_t * conn, uint8_t closed_by) {
 
 	/* Ensure connection queue is empty */
 	csp_conn_flush_rx_queue(conn);
-
-	/* Reset RDP state */
-#if (CSP_USE_RDP)
-	if (conn->idin.flags & CSP_FRDP) {
-		csp_rdp_queue_flush(conn);
-	}
-#endif
 
 	/* Set to closed */
 	conn->state = CONN_CLOSED;

@@ -5,6 +5,7 @@
 #include <csp/csp.h>
 #include <csp/arch/csp_queue.h>
 #include "csp_semaphore.h"
+#include "csp_mutex.h"
 
 /** Connection states */
 typedef enum {
@@ -52,7 +53,9 @@ typedef struct {
 	uint32_t ack_delay_count;
 	uint32_t ack_timestamp;
 	csp_bin_sem_t tx_wait;
-
+	csp_packet_t * rx_head;
+	csp_mutex_t tx_lock;
+	csp_packet_t * tx_head;
 } csp_rdp_t;
 
 /** @brief Connection struct */
