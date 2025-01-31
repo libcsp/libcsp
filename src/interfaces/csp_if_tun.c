@@ -18,10 +18,6 @@ static int csp_if_tun_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packe
 
 	/* Allocate new frame */
 	csp_packet_t * new_packet = csp_buffer_get_always();
-	if (new_packet == NULL) {
-		csp_buffer_free(packet);
-		return CSP_ERR_NONE;
-	}
 
 	if (packet->id.dst == ifconf->tun_src) {
 
