@@ -28,6 +28,11 @@ csp_conn_t * csp_accept(csp_socket_t * sock, uint32_t timeout) {
 		csp_dbg_errno = CSP_DBG_ERR_INVALID_POINTER;
 		return NULL;
 	}
+	
+	if (sock->opts & CSP_SO_CONN_LESS) {
+		csp_dbg_errno = CSP_DBG_ERR_UNSUPPORTED;
+		return NULL;
+	}
 
 	csp_conn_t * conn;
 	if (csp_queue_dequeue(sock->rx_queue, &conn, timeout) == CSP_QUEUE_OK) {
