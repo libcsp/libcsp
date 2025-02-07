@@ -75,7 +75,7 @@ void * csp_if_udp_rx_loop(void * param) {
 
 	while (ifconf->sockfd == 0) {
 
-		ifconf->sockfd = socket(AF_INET, SOCK_DGRAM, PF_PACKET);
+		ifconf->sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
 		struct sockaddr_in server_addr = {0};
 		server_addr.sin_family = AF_INET;
