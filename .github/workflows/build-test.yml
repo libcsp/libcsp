@@ -122,3 +122,14 @@ jobs:
         run: |
           ./build/examples/csp_client -c vcan0 -a 2 -C 1 -T 10 -v ${{ matrix.csp_version }} &
           ./build/examples/csp_server -c vcan0 -a 1 -t -v ${{ matrix.csp_version }}
+
+      - name: Run UDP Server Test
+        run: |
+          ./build/examples/csp_server -u "127.0.0.1" -a 1 -T 10 -v ${{ matrix.csp_version }} &
+          ./build/examples/csp_client -u "127.0.0.1" -a 2 -C 1 -T 10 -v ${{ matrix.csp_version }}
+          wait "$!"
+
+      - name: Run UDP Client Test
+        run: |
+          ./build/examples/csp_client -u "127.0.0.1" -a 2 -C 1 -T 10 -v ${{ matrix.csp_version }} &
+          ./build/examples/csp_server -u "127.0.0.1" -a 1 -T 10 -v ${{ matrix.csp_version }}
