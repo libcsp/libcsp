@@ -1,0 +1,5 @@
+[general]
+regex-style-search=true
+
+[ignore-body-lines]
+regex=^(?:(?:Signed-off|Acked|Co-Authored|Reported|Tested)-by: |\[\d+\]: https:\/\/)
