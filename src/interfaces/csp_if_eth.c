@@ -34,9 +34,9 @@ bool csp_eth_pack_header(csp_eth_header_t * buf,
     return true;
 }
 
-bool csp_if_eth_unpack_header(csp_eth_header_t * buf, 
-                              uint32_t * packet_id,
-                              uint16_t * seg_size, uint16_t * packet_length) {
+static bool csp_if_eth_unpack_header(csp_eth_header_t * buf,
+                                     uint32_t * packet_id,
+                                     uint16_t * seg_size, uint16_t * packet_length) {
 
     if (packet_id == NULL) return false;
     if (seg_size == NULL) return false;
@@ -68,16 +68,18 @@ static size_t arp_used = 0;
 
 static arp_list_entry_t * arp_list = 0; 
 
-arp_list_entry_t * arp_alloc(void) {
-    
+static arp_list_entry_t * arp_alloc(void) {
+
     if (arp_used >= ARP_MAX_ENTRIES) {
         return 0;
-    } 
+    }
     return &(arp_array[arp_used++]);
 
 }
 
-void arp_print(void)
+// FIXME: Function unused.  Remove it?
+#if 0
+static void arp_print(void)
 {
     csp_print("ARP  CSP  MAC\n");
     for (arp_list_entry_t * arp = arp_list; arp; arp = arp->next) {
@@ -88,6 +90,7 @@ void arp_print(void)
     }
     csp_print("\n");
 }
+#endif
 
 void csp_eth_arp_set_addr(uint8_t * mac_addr, uint16_t csp_addr)
 {

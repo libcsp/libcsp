@@ -22,7 +22,7 @@ static unsigned int server_received = 0;
 static unsigned int run_duration_in_sec = 3;
 
 /* Server task - handles requests from clients */
-void * server(void * param) {
+static void * server(void * param) {
 
 	(void)param;
 
@@ -76,7 +76,7 @@ void * server(void * param) {
 /* End of server task */
 
 /* Client task sending requests to server task */
-void * client(void * param) {
+static void * client(void * param) {
 
 	(void)param;
 

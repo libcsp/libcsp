@@ -4,6 +4,8 @@
  * delayed acknowledgments, to improve performance over half-duplex links.
  */
 
+#include "csp_rdp.h"
+
 #include "csp_rdp_queue.h"
 
 #include <stdlib.h>

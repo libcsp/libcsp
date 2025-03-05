@@ -62,7 +62,7 @@ static struct option long_options[] = {
     {0, 0, 0, 0}
 };
 
-void print_help(void) {
+static void print_help(void) {
 	csp_print("Usage: csp_client [options]\n");
 	if (CSP_HAVE_LIBSOCKETCAN) {
 		csp_print(" -c <can-device>  set CAN device\n");
@@ -86,7 +86,7 @@ void print_help(void) {
 	}
 }
 
-csp_iface_t * add_interface(enum DeviceType device_type, const char * device_name)
+static csp_iface_t * add_interface(enum DeviceType device_type, const char * device_name)
 {
     csp_iface_t * default_iface = NULL;
 

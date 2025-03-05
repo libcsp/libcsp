@@ -1,10 +1,9 @@
-
-
 #include <inttypes.h>
 #include <csp/csp_debug.h>
+#include <csp/csp.h>
 #include <stddef.h>
 
-void csp_hex_dump_format(const char * desc, const void * addr, int len, int format) {
+static void csp_hex_dump_format(const char * desc, const void * addr, int len, int format) {
 	int i;
 	unsigned char buff[17];
 	unsigned char * pc = (unsigned char *)addr;

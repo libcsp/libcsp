@@ -84,6 +84,7 @@ def configure(ctx):
                                          "-Wcast-align",
                                          "-Werror",
                                          "-Wextra",
+                                         "-Wmissing-prototypes",
                                          "-Wpedantic",
                                          "-Wpointer-arith",
                                          "-Wshadow",
@@ -243,7 +244,8 @@ def build(ctx):
                   use=['csp_shlib'],
                   pytest_path=[ctx.path.get_bld()])
 
-    ctx.env.append_value('CFLAGS', ["-Wno-unused-parameter"])
+        ctx.env.append_value('CFLAGS', ["-Wno-missing-prototypes",
+                                        "-Wno-unused-parameter"])
 
     if ctx.env.ENABLE_EXAMPLES:
         ctx.objects(source='examples/csp_posix_helper.c',

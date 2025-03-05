@@ -86,7 +86,7 @@ csp_iface_t * csp_iflist_get_by_isdfl(csp_iface_t * ifc) {
 
 }
 
-csp_iface_t * csp_iflist_iterate(csp_iface_t * ifc) {
+static csp_iface_t * csp_iflist_iterate(csp_iface_t * ifc) {
 
 	/* Head of list */
 	if (ifc == NULL) {

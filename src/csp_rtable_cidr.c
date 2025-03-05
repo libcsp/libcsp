@@ -73,7 +73,7 @@ csp_route_t * csp_rtable_find_route(uint16_t addr) {
 	return NULL;
 }
 
-int csp_rtable_set_internal(uint16_t address, uint16_t netmask, csp_iface_t * ifc, uint16_t via) {
+static int csp_rtable_set_internal(uint16_t address, uint16_t netmask, csp_iface_t * ifc, uint16_t via) {
 
 	/* First see if the entry exists */
 	csp_route_t * entry = csp_rtable_find_exact(address, netmask, ifc);

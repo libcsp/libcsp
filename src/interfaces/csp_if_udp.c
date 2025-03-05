@@ -38,7 +38,7 @@ static int csp_if_udp_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packe
 	return CSP_ERR_NONE;
 }
 
-int csp_if_udp_rx_work(int sockfd, size_t unused, csp_iface_t * iface) {
+static int csp_if_udp_rx_work(int sockfd, size_t unused, csp_iface_t * iface) {
 	(void)unused; /* Avoid compiler warnings about unused parameter */
 
 	csp_packet_t * packet = csp_buffer_get(0);
@@ -49,7 +49,7 @@ int csp_if_udp_rx_work(int sockfd, size_t unused, csp_iface_t * iface) {
 	/* Setup RX frame to point to ID */
 	int header_size = csp_id_setup_rx(packet);
 	int received_len = recvfrom(sockfd, (char *)packet->frame_begin, sizeof(packet->data) + header_size, MSG_WAITALL, NULL, NULL);
-	
+
 	if (received_len < header_size) {
 		csp_buffer_free(packet);
 		return CSP_ERR_NOMEM;
@@ -68,7 +68,7 @@ int csp_if_udp_rx_work(int sockfd, size_t unused, csp_iface_t * iface) {
 	return CSP_ERR_NONE;
 }
 
-void * csp_if_udp_rx_loop(void * param) {
+static void * csp_if_udp_rx_loop(void * param) {
 
 	csp_iface_t * iface = param;
 	csp_if_udp_conf_t * ifconf = iface->driver_data;

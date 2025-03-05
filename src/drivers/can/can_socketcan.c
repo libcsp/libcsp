@@ -121,7 +121,7 @@ static int csp_can_tx_frame(void * driver_data, uint32_t id, const uint8_t * dat
 
 	while (pdata < pend) {
 		int written;
-		
+
 		written = write(ctx->socket, (void *)pdata, length);
 		if (written < 0) {
 			if (errno == ENOBUFS) {
@@ -151,8 +151,7 @@ static int csp_can_tx_frame(void * driver_data, uint32_t id, const uint8_t * dat
 	return CSP_ERR_NONE;
 }
 
-
-int csp_can_socketcan_set_promisc(const bool promisc, can_context_t * ctx) {
+static int csp_can_socketcan_set_promisc(const bool promisc, can_context_t * ctx) {
 	struct can_filter filter = {
 		.can_id = CFP_MAKE_DST(ctx->iface.addr),
 		.can_mask = 0x0000, /* receive anything */
