@@ -195,7 +195,7 @@ static void csp_yaml_key_value(struct data_s * data, char * key, char * value) {
 	} else if (strcmp(key, "promisc") == 0) {
 		data->promisc = strdup(value);
 	} else {
-		csp_print("Unkown key %s\n", key);
+		csp_print("Unknown key %s\n", key);
 	}
 }
 
