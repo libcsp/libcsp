@@ -206,7 +206,7 @@ csp_packet_t * csp_buffer_get_always_isr(void) {
 }
 
 /* CSP will try to reserve the last two buffers for calls which can take it,
- * examples are client funktions that are allowed to fail and have adequate
+ * examples are client functions that are allowed to fail and have adequate
  * error checking. Or services which are allowed to timeout of memory becomes
  * sparse. */
 
