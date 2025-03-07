@@ -7,7 +7,7 @@
 # List of supported drivers:
 #   can, zmq, uart, tun, TODO: udp
 #
-# The following additional attirbutes are optional:
+# The following additional attributes are optional:
 #   device: used for can, and uart typically set to /dev/ttyUSB0 or can0
 #   server: used for zmq, typically set to an IP address of a zmqproxy
 #   default: true, set to true on one interface only. Sets the default route to this if.
