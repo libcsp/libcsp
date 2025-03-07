@@ -79,9 +79,15 @@ def configure(ctx):
 
     # Setup CFLAGS
     if (len(ctx.stack_path) <= 1) and (len(ctx.env.CFLAGS) == 0):
-        ctx.env.prepend_value('CFLAGS', ["-std=gnu11", "-g", "-Os", "-Wall", "-Wextra", "-Wshadow", "-Wcast-align",
-                                         "-Wpointer-arith", "-Wpedantic",
-                                         "-Wwrite-strings", "-Wno-unused-parameter", "-Werror"])
+        ctx.env.prepend_value('CFLAGS', ["-std=gnu11", "-g", "-Os",
+                                         "-Wall",
+                                         "-Wcast-align",
+                                         "-Werror",
+                                         "-Wextra",
+                                         "-Wpedantic",
+                                         "-Wpointer-arith",
+                                         "-Wshadow",
+                                         "-Wwrite-strings"])
         if ctx.env.CC_NAME == 'clang':
             ctx.env.append_value('CFLAGS', ["-Wno-gnu-zero-variadic-macro-arguments"])
 
@@ -236,6 +242,8 @@ def build(ctx):
                   features='pyext',
                   use=['csp_shlib'],
                   pytest_path=[ctx.path.get_bld()])
+
+    ctx.env.append_value('CFLAGS', ["-Wno-unused-parameter"])
 
     if ctx.env.ENABLE_EXAMPLES:
         ctx.objects(source='examples/csp_posix_helper.c',

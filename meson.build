@@ -63,11 +63,13 @@ csp_deps += clib
 csp_inc = include_directories('include', 'src')
 
 # Default compile options
-csp_c_args = ['-Wshadow',
-	      '-Wcast-align',
-	      '-Wwrite-strings',
-	      '-Wpointer-arith',
-	      '-Wno-unused-parameter']
+csp_c_args = ['-Wall',
+	'-Wcast-align',
+	'-Wpointer-arith',
+	'-Wshadow',
+	'-Wwrite-strings',
+	'-Wextra',
+	'-Wpedantic']
 if cc.get_id() == 'clang'
 	csp_c_args += '-Wno-gnu-zero-variadic-macro-arguments'
 endif
@@ -108,7 +110,7 @@ if get_option('enable_python3_bindings')
 	# dependency() instead
 	pydep = dependency('python3', version : '>=3.5', required : true)
 	py.extension_module('libcsp_py3', 'src/bindings/python/pycsp.c',
-                    	c_args : csp_c_args,
+                    	c_args : [csp_c_args, '-Wno-unused-parameter'],
                     	dependencies : [csp_dep, pydep],
                     	install : true)
 endif

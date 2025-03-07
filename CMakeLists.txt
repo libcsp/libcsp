@@ -114,8 +114,14 @@ target_include_directories(csp
 add_library(csp_common INTERFACE)
 if(CSP_POSIX)
   target_compile_options(csp_common INTERFACE
-    -Wall -Wextra -Wpedantic
-    -Wshadow -Wcast-align -Wpointer-arith -Wwrite-strings -Wno-unused-parameter
+    -Wall
+    -Wcast-align
+    -Werror
+    -Wextra
+    -Wpedantic
+    -Wpointer-arith
+    -Wshadow
+    -Wwrite-strings
     $<$<C_COMPILER_ID:Clang>:-Wno-gnu-zero-variadic-macro-arguments>)
 endif()
 target_link_libraries(csp PRIVATE csp_common)
@@ -135,6 +141,7 @@ if(${CSP_ENABLE_PYTHON3_BINDINGS})
   find_package(Python3 COMPONENTS Development.Module)
   if(Python3_Development.Module_FOUND)
     Python3_add_library(libcsp_py3 MODULE WITH_SOABI src/bindings/python/pycsp.c)
+    add_compile_options(-Wno-unused-parameter)
     target_include_directories(libcsp_py3 PUBLIC ${csp_inc})
     target_link_libraries(libcsp_py3 PUBLIC csp)
   else()
