@@ -6,7 +6,7 @@
 #if (CSP_USE_RDP)
 #define FIFO_TIMEOUT 100  //! If RDP is enabled, the router needs to awake some times to check timeouts
 #else
-#define FIFO_TIMEOUT CSP_MAX_TIMEOUT  //! If no RDP, the router can sleep untill data arrives
+#define FIFO_TIMEOUT CSP_MAX_TIMEOUT  //! If no RDP, the router can sleep until data arrives
 #endif
 
 /**
