@@ -85,7 +85,7 @@ typedef struct  __packed {
 #define CSP_SO_CRC32REQ			0x0040 /*< Require CRC32 */
 #define CSP_SO_CRC32PROHIB		0x0080 /*< Prohibit CRC32 */
 #define CSP_SO_CONN_LESS		0x0100 /*< Enable Connection Less mode */
-#define CSP_SO_SAME			0x8000 /*< Copy opts from incoming packet only apllies to csp_sendto_reply() */
+#define CSP_SO_SAME			0x8000 /*< Copy opts from incoming packet only applies to csp_sendto_reply() */
 
 /**@}*/
 
@@ -135,7 +135,7 @@ typedef struct csp_packet_s {
 
 	/**
 	 * Additional header bytes, to prepend packed data before transmission
-	 * This must be minimum 6 bytes to accomodate CSP 2.0. But some implementations
+	 * This must be minimum 6 bytes to accommodate CSP 2.0. But some implementations
 	 * require much more scratch working area for encryption for example.
 	 *
 	 * Ultimately after csp_id_pack() this area will be filled with the CSP header
