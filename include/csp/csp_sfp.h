@@ -4,7 +4,7 @@
  * **Description:** Simple Fragmentation Protocol (SFP).
  *
  * The SFP API can transfer a blob of data across an established CSP connection,
- * by chopping the data into smaller chuncks of data, that can fit into a single CSP message.
+ * by chopping the data into smaller chunks of data, that can fit into a single CSP message.
  *
  * SFP will add a small header to each packet, containing information about the transfer.
  * SFP is usually sent over a RDP connection (which also adds a header),
@@ -28,7 +28,7 @@ extern "C" {
  *
  * csp_sfp_recv() or csp_sfp_recv_fp() can be used at the other end to receive data.
  *
- * This is usefull if you wish to send data stored in flash memory or another location, where standard memcpy() doesn't work.
+ * This is useful if you wish to send data stored in flash memory or another location, where standard memcpy() doesn't work.
  *
  * @param[in] conn established connection for sending SFP packets.
  * @param[in] data data to send
