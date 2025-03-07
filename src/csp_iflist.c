@@ -43,7 +43,7 @@ csp_iface_t * csp_iflist_get_by_subnet(uint16_t addr, csp_iface_t * ifc) {
 
 	while (ifc) {
 
-		/* Reject searches involving subnets, if the netmask is invalud */
+		/* Reject searches involving subnets, if the netmask is invalid */
 		if (ifc->netmask == 0) {
 			ifc = ifc->next;
 			continue;
