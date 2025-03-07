@@ -56,7 +56,7 @@ extern csp_conf_t csp_conf;
 void csp_init(void);
 
 /**
- * Free allocated resorces in CSP.
+ * Free allocated resources in CSP.
  * This is intended for testing of CSP, in order to be able re-initialize CSP by calling csp_init() again.
  */
 void csp_free_resources(void);
@@ -89,7 +89,7 @@ csp_conn_t *csp_accept(csp_socket_t *socket, uint32_t timeout);
 
 /**
  * Read packet from a connection.
- * This fuction will wait on the connection's RX queue for the specified timeout.
+ * This function will wait on the connection's RX queue for the specified timeout.
  *
  * @param[in] conn  connection
  * @param[in] timeout timeout in mS to wait for a packet, use CSP_MAX_TIMEOUT for infinite timeout.
@@ -203,7 +203,7 @@ void csp_sendto_reply(const csp_packet_t * request, csp_packet_t * reply, uint32
 /**
  * Establish outgoing connection.
  * The call will return immediately, unless it is a RDP connection (#CSP_O_RDP) in which case it will wait until the other
- * end acknowleges the connection (timeout is determined by the current connection timeout set by csp_rdp_set_opt()).
+ * end acknowledges the connection (timeout is determined by the current connection timeout set by csp_rdp_set_opt()).
  *
  * @param[in] prio priority, see #csp_prio_t
  * @param[in] dst Destination address
@@ -316,7 +316,7 @@ int csp_bind_callback(csp_callback_t callback, uint8_t port);
 
 /**
  * Route packet from the incoming router queue and check RDP timeouts.
- * In order for incoming packets to routed and RDP timeouts to be checked, this function must be called reguarly.
+ * In order for incoming packets to routed and RDP timeouts to be checked, this function must be called regularly.
  * @return #CSP_ERR_NONE on success, otherwise an error code.
  */
 int csp_route_work(void);
@@ -372,7 +372,7 @@ void csp_ping_noreply(uint16_t node);
  * .. note:: This is currently only supported on FreeRTOS systems.
  *
  * @param[in] node address of subsystem.
- * @param[in] timeout timeout in mS to wait for replies. The function will not return until the timeout occurrs.
+ * @param[in] timeout timeout in mS to wait for replies. The function will not return until the timeout occurs.
  */
 void csp_ps(uint16_t node, uint32_t timeout);
 
@@ -452,7 +452,7 @@ int csp_get_uptime(uint16_t node, uint32_t timeout, uint32_t * uptime);
 /**
  * Set RDP options.
  * The RDP options are used from the connecting/client side. When a RDP connection
- * is established, the client tranmits the options to the server.
+ * is established, the client transmits the options to the server.
  *
  * @param[in] window_size window size
  * @param[in] conn_timeout_ms connection timeout in mS
