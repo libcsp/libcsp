@@ -43,6 +43,10 @@
 
 #include <csp/csp_interface.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* 0x88B5 : IEEE Std 802 - Local Experimental Ethertype  (RFC 5342) */
 #define CSP_ETH_TYPE_CSP 0x88B5
 
@@ -146,3 +150,7 @@ int csp_eth_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet, int fro
  * @return #CSP_ERR_NONE on success, otherwise an error code.
  */
 int csp_eth_rx(csp_iface_t * iface, csp_eth_header_t * eth_frame, uint32_t received_len, int * task_woken);
+
+#ifdef __cplusplus
+}
+#endif
