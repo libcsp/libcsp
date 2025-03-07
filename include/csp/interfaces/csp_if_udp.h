@@ -34,7 +34,7 @@ typedef struct {
  * RX task:
  *   A server task will attempt at binding to ip 0.0.0.0 port 9600
  *   If this fails, it is because another udp server is already running.
- *   The server task will continue attemting the bind and will not exit before the application is closed.
+ *   The server task will continue attempting the bind and will not exit before the application is closed.
  *
  * TX peer:
  *   Outgoing CSP packets will be transferred to the peer specified by the host argument
