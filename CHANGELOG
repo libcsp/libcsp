@@ -36,11 +36,11 @@ libcsp 2.0, 19-04-2024
 - api: csp_init(): Now a void function, because allocation cannot fail
 - api: python bindings: Refreshed to new 2.0 api, builds with meson too
 - api: Interface names are now case sensitive (this is faster and avoids pulling in _ctypes_ and saves 340 bytes of flash)
-- api: csp_socket(): is replaced by simply `csp_socket_t my_sock;` static allocation. This is very leightweight
+- api: csp_socket(): is replaced by simply `csp_socket_t my_sock;` static allocation. This is very lightweight
 - api: csp_bind_callback(): instead of using a socket, and binding that socket to a port.
 - api: new debug API. CSP does not print error messages any longer. Instead a new series of error counters has been added
        and a new error code system. There are flags to enable the old level 4 and 5 debug to stdout with printf.
-- api: csp reboot and shutdown are now implemented using hooks instaed of callback functions (see hooks.md)
+- api: csp reboot and shutdown are now implemented using hooks instead of callback functions (see hooks.md)
 - fix: router counts incoming packets before deduplication
 - fix: rdp: Fix ack_delay_count off by one error
 - fix: rtable cidr: continue parsing, even if an unknown interface is found
@@ -61,7 +61,7 @@ libcsp 1.6, 16-04-2020
 - Added support for timestamps in logs by setting CSP_DEBUG_TIMESTAMP (uses csp_clock_get_time()).
 - Renamed mac to via (structs, functions, examples and documentation)
 - RDP: Ensure connection is kept in CLOSE_WAIT for period of time. In some cases, the connection would switch to CLOSED immediately.
-- RDP: Fixed connection leak, if a RST segment was received on a closed connecton.
+- RDP: Fixed connection leak, if a RST segment was received on a closed connection.
 - RDP: Ensure connection is closed from both userspace and protocol, before closing completely (preventing undetermined behaviour).
 - RDP: Added support for fast close of a connection (skipping the CLOSE_WAIT period), but only if both ends agree on close.
 - RDP: Fixed issue "Possible bug in RDP TX timeout" (#109), see issue on github for further details.
@@ -204,7 +204,7 @@ libcsp 1.0, 24-10-2011
 ----------------------
 - First official release
 - New: CSP 32-bit header 1.0
-- Features: Network Router with promiscous mode, broadcast and QoS
+- Features: Network Router with promiscuous mode, broadcast and QoS
 - Features: Connection-oriented transport protocol w. flow-control
 - Features: Connection-less "UDP" like transport
 - Features: Encryption, Authentication and message check
