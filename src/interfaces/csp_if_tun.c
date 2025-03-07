@@ -26,7 +26,7 @@ static int csp_if_tun_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packe
 	if (packet->id.dst == ifconf->tun_src) {
 
 		/**
-		 * Incomming tunnel packet
+		 * Incoming tunnel packet
 		 */
 		//csp_hex_dump("incoming packet", packet->data, packet->length);
 
