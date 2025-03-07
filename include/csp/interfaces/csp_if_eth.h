@@ -59,7 +59,7 @@
 #define CSP_ETH_ALEN	6		    /* Octets in one ethernet addr	 */
 
 /**
- * Definition of ethernet header, including reqired MAC addresses
+ * Definition of ethernet header, including required MAC addresses
  * Frame data is required to proceed in memory space after this struct
  */
 typedef struct csp_eth_header_s
