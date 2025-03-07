@@ -126,7 +126,7 @@ static int csp_rdp_send_cmp(csp_conn_t * conn, csp_packet_t * packet, int flags,
 		conn->rdp.rcv_lsa = ack_nr;
 	}
 
-	/* Every outgoing message contains the last valid ACK number. So we always set last ack timetamp
+	/* Every outgoing message contains the last valid ACK number. So we always set last ack timestamp
 	 * We do this early to minimize race condition between read() call and router task csp_rdp_new_packet() */
 	conn->rdp.ack_timestamp = csp_get_ms();
 
@@ -396,7 +396,7 @@ void csp_rdp_check_timeouts(csp_conn_t * conn) {
 				/* Update to latest outgoing ACK */
 				header->ack_nr = htobe16(conn->rdp.rcv_cur);
 
-				/* Every outgoing message contains the last valid ACK number. So we always set last ack timetamp */
+				/* Every outgoing message contains the last valid ACK number. So we always set last ack timestamp */
 				conn->rdp.ack_timestamp = csp_get_ms();
 				/* Send copy to tx_queue */
 				packet->timestamp_tx = csp_get_ms();
