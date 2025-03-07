@@ -11,6 +11,10 @@
 
 #include <csp/interfaces/csp_if_eth.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * Open RAW socket and add CSP interface.
  *
@@ -41,3 +45,7 @@ int csp_eth_tx_frame(csp_iface_t * iface, csp_eth_header_t * eth_frame);
  * @return NULL
  */
 void * csp_eth_rx_loop(void * param);
+
+#ifdef __cplusplus
+}
+#endif
