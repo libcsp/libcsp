@@ -27,7 +27,9 @@
  * @return CSP_ERR_NONE is all options are supported, CSP_ERR_NOTSUP if not
  */
 static int csp_route_check_options(csp_iface_t * iface, csp_packet_t * packet) {
-
+	/* Avoid compiler warnings about unused parameter */
+	(void)iface;
+	(void)packet;
 
 #if (CSP_USE_HMAC == 0)
 	/* Drop HMAC packets */

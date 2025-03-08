@@ -5,14 +5,27 @@
 #include "csp_macro.h"
 
 __weak int csp_crypto_decrypt(uint8_t * ciphertext_in, uint8_t ciphertext_len, uint8_t * msg_out) {
+	/* Avoid compiler warnings about unused parameter */
+	(void)ciphertext_in;
+	(void)ciphertext_len;
+	(void)msg_out;
+
 	return -1;
 }
 
 __weak int csp_crypto_encrypt(uint8_t * msg_begin, uint8_t msg_len, uint8_t * ciphertext_out) {
+	/* Avoid compiler warnings about unused parameter */
+	(void)msg_begin;
+	(void)msg_len;
+	(void)ciphertext_out;
+
 	return -1;
 }
 
 static int csp_if_tun_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet, int from_me) {
+	/* Avoid compiler warnings about unused parameter */
+	(void)via;
+	(void)from_me;
 
 	csp_if_tun_conf_t * ifconf = iface->driver_data;
 

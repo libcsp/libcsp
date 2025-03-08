@@ -17,6 +17,9 @@
 #endif
 
 static int csp_if_udp_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet, int from_me) {
+	/* Avoid compiler warnings about unused parameter */
+	(void)via;
+	(void)from_me;
 
 	csp_if_udp_conf_t * ifconf = iface->driver_data;
 
@@ -36,6 +39,7 @@ static int csp_if_udp_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packe
 }
 
 int csp_if_udp_rx_work(int sockfd, size_t unused, csp_iface_t * iface) {
+	(void)unused; /* Avoid compiler warnings about unused parameter */
 
 	csp_packet_t * packet = csp_buffer_get(0);
 	if (packet == NULL) {

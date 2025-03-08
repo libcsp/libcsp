@@ -238,8 +238,11 @@ int csp_eth_rx(csp_iface_t * iface, csp_eth_header_t * eth_frame, uint32_t recei
 }
 
 int csp_eth_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet, int from_me) {
+    /* Avoid compiler warnings about unused parameter */
+    (void)via;
+    (void)from_me;
 
-	csp_eth_interface_data_t * ifdata = iface->interface_data;
+    csp_eth_interface_data_t * ifdata = iface->interface_data;
 
     /* Loopback */
     if (packet->id.dst == iface->addr) {

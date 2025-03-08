@@ -128,6 +128,7 @@ void csp_rtable_iterate(csp_rtable_iterator_t iter, void * ctx) {
 #if (CSP_ENABLE_CSP_PRINT)
 
 static bool csp_rtable_print_route(void * ctx, csp_route_t * route) {
+	(void)ctx; /* Avoid compiler warnings about unused parameter */
 	if (route->via == CSP_NO_VIA_ADDRESS) {
 		csp_print("%u/%u %s\r\n", route->address, route->netmask, route->iface->name);
 	} else {

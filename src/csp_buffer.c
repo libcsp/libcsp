@@ -211,9 +211,11 @@ csp_packet_t * csp_buffer_get_always_isr(void) {
  * sparse. */
 
 csp_packet_t * csp_buffer_get(size_t unused) {
+	(void)unused; /* Avoid compiler warnings about unused parameter */
 	return csp_buffer_get_actual(CSP_BUFFER_RESERVE, 0);
 }
 
 csp_packet_t * csp_buffer_get_isr(size_t unused) {
+	(void)unused; /* Avoid compiler warnings about unused parameter */
 	return csp_buffer_get_actual(CSP_BUFFER_RESERVE, 1);
 }

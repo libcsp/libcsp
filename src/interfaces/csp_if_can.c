@@ -163,6 +163,7 @@ int csp_can1_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t 
 }
 
 int csp_can1_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet, int from_me) {
+	(void)from_me; /* Avoid compiler warnings about unused parameter */
 
 	/* Loopback */
 	if (packet->id.dst == iface->addr) {
@@ -363,6 +364,9 @@ int csp_can2_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t 
 }
 
 int csp_can2_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet, int from_me) {
+	/* Avoid compiler warnings about unused parameter */
+	(void)via;
+	(void)from_me;
 
 	/* Loopback */
 	if (packet->id.dst == iface->addr) {

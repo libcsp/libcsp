@@ -10,6 +10,7 @@
 #include "csp_rdp_queue.h"
 
 __weak void csp_panic(const char * msg) {
+	(void)msg; /* Avoid compiler warnings about unused parameter */
 	return;
 }
 
