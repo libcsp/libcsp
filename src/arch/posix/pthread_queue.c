@@ -62,7 +62,24 @@ pthread_queue_t * pthread_queue_create(int length, size_t item_size) {
 			q->items = 0;
 			q->in = 0;
 			q->out = 0;
-			if (pthread_mutex_init(&(q->mutex), NULL) || init_cond_clock_monotonic(&(q->cond_full)) || init_cond_clock_monotonic(&(q->cond_empty))) {
+
+			int ret_val = pthread_mutex_init(&(q->mutex), NULL);
+			if (ret_val == 0) { /* Proceed? */
+				ret_val = init_cond_clock_monotonic(&(q->cond_full));
+				if (ret_val != 0) {
+					(void)pthread_mutex_destroy(&(q->mutex)); /* Cleanup */
+				}
+			}
+			if (ret_val == 0) { /* Proceed? */
+				ret_val = init_cond_clock_monotonic(&(q->cond_empty));
+				if (ret_val != 0) {
+					/* Cleanup */
+					(void)pthread_mutex_destroy(&(q->mutex));
+					(void)pthread_cond_destroy(&(q->cond_full));
+				}
+			}
+			if (ret_val != 0) {
+				/* Cleanup */
 				free(q->buffer);
 				free(q);
 				q = NULL;
