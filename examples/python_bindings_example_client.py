@@ -106,6 +106,6 @@ if __name__ == "__main__":
         # 10                      - dest port 
         # 1000                    - timeout ms
         # outbuf                  - outgoing data (request)
-        # inbuf                   - buffer provided for recieving data (reply)      
+        # inbuf                   - buffer provided for receiving data (reply)      
     libcsp.transaction(0, options.server_address, 10, 1000, outbuf, inbuf)
     print ("  got reply from server [%s]" % (''.join('{:02x}'.format(x) for x in inbuf)))
