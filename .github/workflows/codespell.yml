@@ -17,4 +17,4 @@ jobs:
 
       - name: Run codespell
         run: |
-          codespell --skip="waf" --quiet-level=2
+          codespell --skip="waf" --ignore-words=.codespell-ignore --quiet-level=2
