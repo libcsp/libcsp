@@ -69,9 +69,15 @@ void * csp_if_udp_rx_loop(void * param) {
 	csp_iface_t * iface = param;
 	csp_if_udp_conf_t * ifconf = iface->driver_data;
 
-	while (ifconf->sockfd == 0) {
+	do {
 
 		ifconf->sockfd = socket(AF_INET, SOCK_DGRAM, PF_PACKET);
+
+		if (ifconf->sockfd < 0) {
+			csp_print("UDP server: socket creation failed, retrying...\n");
+			sleep(1);
+			continue;
+		}
 
 		struct sockaddr_in server_addr = {0};
 		server_addr.sin_family = AF_INET;
@@ -80,13 +86,8 @@ void * csp_if_udp_rx_loop(void * param) {
 
 		bind(ifconf->sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr));
 
-		if (ifconf->sockfd < 0) {
-			csp_print("  UDP server waiting for port %d\n", ifconf->lport);
-			sleep(1);
-			continue;
-		}
 		break;
-	}
+	}while (ifconf->sockfd < 0);
 
 	while (1) {
 		int ret;
