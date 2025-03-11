@@ -84,7 +84,15 @@ void * csp_if_udp_rx_loop(void * param) {
 		server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
 		server_addr.sin_port = htons(ifconf->lport);
 
-		bind(ifconf->sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr));
+		int ret = bind(ifconf->sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr));
+
+		if (ret < 0) {
+			csp_print("UDP server: waiting for port %d\n", ifconf->lport);
+			close(ifconf->sockfd);
+			ifconf->sockfd = -1;
+			sleep(1);
+			continue;
+		}
 
 		break;
 	}while (ifconf->sockfd < 0);
