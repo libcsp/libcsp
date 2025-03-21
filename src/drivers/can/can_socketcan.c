@@ -257,7 +257,8 @@ int csp_can_socketcan_open_and_add_interface(const char * device, const char * i
 	/* Create receive thread */
 	if (pthread_create(&ctx->rx_thread, NULL, socketcan_rx_thread, ctx) != 0) {
 		csp_print("%s[%s]: pthread_create() failed, error: %s\n", __func__, ctx->name, strerror(errno));
-		// socketcan_free(ctx); // we already added it to CSP (no way to remove it)
+		(void)csp_can_remove_interface(&ctx->iface);
+		socketcan_free(ctx);
 		return CSP_ERR_NOMEM;
 	}
 
