@@ -242,6 +242,7 @@ int csp_can_socketcan_open_and_add_interface(const char * device, const char * i
 	/* Set filter mode */
 	if (csp_can_socketcan_set_promisc(promisc, ctx) != CSP_ERR_NONE) {
 		csp_print("%s[%s]: csp_can_socketcan_set_promisc() failed, error: %s\n", __func__, ctx->name, strerror(errno));
+		socketcan_free(ctx);
 		return CSP_ERR_INVAL;
 	}
 
