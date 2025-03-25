@@ -1,7 +1,7 @@
 /****************************************************************************
  * **File:** csp/drivers/eth_linux.h
  *
- * **Description:** Posix ETH driver
+ * **Description:** Linux ETH driver
  *
  * .. note:: Using this driver require user elevation. Guideline for doing this
  *           is given at run-time

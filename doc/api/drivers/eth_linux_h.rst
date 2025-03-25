@@ -1,4 +1,4 @@
-Posix ETH driver
+Linux ETH driver
 ================
 
 .. autocmodule:: drivers/eth_linux.h
