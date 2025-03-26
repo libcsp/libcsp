@@ -61,8 +61,8 @@ static csp_packet_t * csp_buffer_get_actual(int reserve, int isr) {
 	} else {
 		remain = csp_queue_size(csp_buffers);
 	}
-	/* Respect if remaining is lower than the reserve requested */
-	if (remain < reserve) {
+	/* Respect the requested reserve */
+	if (remain <= reserve) {
 		return NULL;
 	}
 
