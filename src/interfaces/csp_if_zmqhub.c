@@ -252,6 +252,8 @@ int csp_zmqhub_init_w_name_endpoints_rxfilter(const char * ifname, uint16_t addr
 	assert(ret == 0);
 	ret = pthread_create(&drv->rx_thread, &attributes, csp_zmqhub_task, drv);
 	assert(ret == 0);
+	ret = pthread_attr_destroy(&attributes);
+	assert(ret == 0);
 	(void)ret;
 	/* Register interface */
 	csp_iflist_add(&drv->iface);
@@ -371,6 +373,8 @@ int csp_zmqhub_init_filter2(const char * ifname, const char * host, uint16_t add
 	ret = pthread_attr_setdetachstate(&attributes, PTHREAD_CREATE_DETACHED);
 	assert(ret == 0);
 	ret = pthread_create(&drv->rx_thread, &attributes, csp_zmqhub_task, drv);
+	assert(ret == 0);
+	ret = pthread_attr_destroy(&attributes);
 	assert(ret == 0);
 
 	/* Register interface */
