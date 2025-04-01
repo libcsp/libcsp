@@ -78,7 +78,6 @@ csp_iface_t * csp_iflist_get_by_isdfl(csp_iface_t * ifc) {
 		}
 
 		ifc = ifc->next;
-		continue;
 
 	}
 
