@@ -51,14 +51,14 @@ typedef enum {
 /**
    CSP identifier/header.
 */
-typedef struct  __packed {
+typedef struct {
 	uint8_t pri;
 	uint8_t flags;
 	uint16_t src;
 	uint16_t dst;
 	uint8_t dport;
 	uint8_t sport;
-} csp_id_t ;
+} __attribute__ ((__packed__)) csp_id_t ;
 
 /**
    @defgroup CSP_HEADER_FLAGS CSP header flags.
