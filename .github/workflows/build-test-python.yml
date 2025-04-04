@@ -1,5 +1,7 @@
 name: Python Bindings
 on: [push, pull_request]
+permissions:
+  contents: read
 jobs:
   build-test-python:
     strategy:

@@ -3,6 +3,8 @@ name: Codespell Check
 on:  
   pull_request:
   push:
+permissions:
+  contents: read
 
 jobs:  
   spellcheck:  

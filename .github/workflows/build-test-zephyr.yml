@@ -5,6 +5,8 @@ on:
   schedule:
     - cron: '0 10 * * 0' # Run it every Sunday 10am UTC
 
+permissions:
+  contents: read
 jobs:
   build-zephyr:
     runs-on: ubuntu-24.04
