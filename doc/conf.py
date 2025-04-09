@@ -91,7 +91,6 @@ html_theme_options = {
     'navigation_depth': 2,
     'includehidden': True,
     'titles_only': True,
-    'sticky_navigation': True
 }
 
 def include_readme_file(app, docname, source):
