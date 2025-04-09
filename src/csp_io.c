@@ -84,7 +84,7 @@ void csp_id_clear(csp_id_t * target) {
 	target->flags = 0;
 }
 
-void csp_send_direct(csp_id_t* idout, csp_packet_t * packet, csp_iface_t * routed_from) {
+int csp_send_direct(csp_id_t* idout, csp_packet_t * packet, csp_iface_t * routed_from) {
 
 	int from_me = (routed_from == NULL ? 1 : 0);
 
@@ -93,11 +93,11 @@ void csp_send_direct(csp_id_t* idout, csp_packet_t * packet, csp_iface_t * route
 	csp_iface_t * iface = NULL;
 	csp_packet_t * copy = NULL;
 	int local_found = 0;
-
+	int csp_send_direct_if_return = CSP_ERR_NONE;
 	/* Quickly send on loopback */
 	if(idout->dst == csp_if_lo.addr){
-		csp_send_direct_iface(idout, packet, &csp_if_lo, via, from_me);
-		return;
+		return csp_send_direct_iface(idout, packet, &csp_if_lo, via, from_me);
+		
 	}
 
 	/* Make copy as broadcast modifies destination making iflist_get_by_subnet the skip next redundant ifaces */
@@ -133,7 +133,7 @@ void csp_send_direct(csp_id_t* idout, csp_packet_t * packet, csp_iface_t * route
 		 * Is this even possible? */
 		copy = csp_buffer_clone(packet);
 		if (copy != NULL) {
-			csp_send_direct_iface(&_idout, copy, iface, via, from_me);
+			csp_send_direct_if_return = csp_send_direct_iface(&_idout, copy, iface, via, from_me);
 		}
 
 	}
@@ -141,7 +141,7 @@ void csp_send_direct(csp_id_t* idout, csp_packet_t * packet, csp_iface_t * route
 	/* If the above worked, we don't want to look at the routing table */
 	if (local_found == 1) {
 		csp_buffer_free(packet);
-		return;
+		return csp_send_direct_if_return;
 	}
 
 #if CSP_USE_RTABLE
@@ -170,7 +170,7 @@ void csp_send_direct(csp_id_t* idout, csp_packet_t * packet, csp_iface_t * route
 
 			copy = csp_buffer_clone(packet);
 			if (copy != NULL) {
-				csp_send_direct_iface(idout, copy, route->iface, route->via, from_me);
+				csp_send_direct_if_return = csp_send_direct_iface(idout, copy, route->iface, route->via, from_me);
 			}
 		} while ((route = csp_rtable_search_backward(route)) != NULL);
 	}
@@ -178,7 +178,7 @@ void csp_send_direct(csp_id_t* idout, csp_packet_t * packet, csp_iface_t * route
 	/* If the above worked, we don't want to look at default interfaces */
 	if (route_found == 1) {
 		csp_buffer_free(packet);
-		return;
+		return csp_send_direct_if_return;
 	}
 
 #endif
@@ -207,12 +207,13 @@ void csp_send_direct(csp_id_t* idout, csp_packet_t * packet, csp_iface_t * route
 		 * Is this even possible? */
 		copy = csp_buffer_clone(packet);
 		if (copy != NULL) {
-			csp_send_direct_iface(idout, copy, iface, via, from_me);
+			csp_send_direct_if_return = csp_send_direct_iface(idout, copy, iface, via, from_me);
 		}
 
 	}
 
 	csp_buffer_free(packet);
+	return csp_send_direct_if_return;
 
 }
 
@@ -222,10 +223,10 @@ __weak void csp_output_hook(const csp_id_t * idout, csp_packet_t * packet, csp_i
 	return;
 }
 
-void csp_send_direct_iface(const csp_id_t* idout, csp_packet_t * packet, csp_iface_t * iface, uint16_t via, int from_me) {
+int csp_send_direct_iface(const csp_id_t* idout, csp_packet_t * packet, csp_iface_t * iface, uint16_t via, int from_me) {
 
 	csp_output_hook(idout, packet, iface, via, from_me);
-
+	int csp_error = CSP_ERR_NONE;
 	/* Copy identifier to packet (before crc and hmac) */
 	if(idout != &packet->id) {
 		csp_id_copy(&packet->id, idout);
@@ -251,7 +252,8 @@ void csp_send_direct_iface(const csp_id_t* idout, csp_packet_t * packet, csp_ifa
 		/* Append CRC32 */
 		if (idout->flags & CSP_FCRC32) {
 			/* Calculate and add CRC32 (does not include header for backwards compatability with csp1.x) */
-			if (csp_crc32_append(packet) != CSP_ERR_NONE) {
+			csp_error = csp_crc32_append(packet);
+			if (csp_error != CSP_ERR_NONE) {
 				/* CRC32 append failed */
 				goto tx_err;
 			}
@@ -267,42 +269,43 @@ void csp_send_direct_iface(const csp_id_t* idout, csp_packet_t * packet, csp_ifa
 
 	/* Store length before passing to interface */
 	uint16_t bytes = packet->length;
-
-	if ((*iface->nexthop)(iface, via, packet, from_me) != CSP_ERR_NONE)
+	csp_error = (*iface->nexthop)(iface, via, packet, from_me);
+	if (csp_error != CSP_ERR_NONE)
 		goto tx_err;
 
 	iface->tx++;
 	iface->txbytes += bytes;
 
-	return;
+	return csp_error;
 
 tx_err:
 	csp_buffer_free(packet);
 	iface->tx_error++;
-	return;
+	return csp_error;
 }
 
-void csp_send(csp_conn_t * conn, csp_packet_t * packet) {
+int csp_send(csp_conn_t * conn, csp_packet_t * packet) {
 
 	if (packet == NULL) {
-		return;
+		return CSP_ERR_INVAL;
 	}
 
 	if ((conn == NULL) || (conn->state != CONN_OPEN)) {
 		csp_buffer_free(packet);
-		return;
+		return CSP_ERR_INVAL;
 	}
 
 #if (CSP_USE_RDP)
 	if (conn->idout.flags & CSP_FRDP) {
-		if (csp_rdp_send(conn, packet) != CSP_ERR_NONE) {
+		int rdp_send_return = csp_rdp_send(conn, packet);
+		if (rdp_send_return != CSP_ERR_NONE) {
 			csp_buffer_free(packet);
-			return;
+			return rdp_send_return;
 		}
 	}
 #endif
 
-	csp_send_direct(&conn->idout, packet, NULL);
+	return csp_send_direct(&conn->idout, packet, NULL);
 
 }
 

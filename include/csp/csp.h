@@ -103,8 +103,9 @@ csp_packet_t *csp_read(csp_conn_t *conn, uint32_t timeout);
  *
  * @param[in] conn connection
  * @param[in] packet packet to send
+ * @return #CSP_ERR_NONE on success, otherwise an error code.
 */
-void csp_send(csp_conn_t *conn, csp_packet_t *packet);
+int csp_send(csp_conn_t *conn, csp_packet_t *packet);
 
 /**
  * Change the default priority of the connection and send a packet.

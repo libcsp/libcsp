@@ -47,6 +47,7 @@ def options(ctx):
     gr.add_option('--enable-if-zmqhub', action='store_true', help='Enable ZMQ interface')
     gr.add_option('--enable-can-socketcan', action='store_true', help='Enable Linux socketcan driver')
     gr.add_option('--with-driver-usart', default=None, metavar='DRIVER', help='Build USART driver. [linux, None]')
+    gr.add_option('--with-driver-tcp', default=None, metavar='DRIVER', help='Build TCP driver. [linux]')
 
     # OS
     gr.add_option('--with-os', metavar='OS', default='posix', help='Set operating system. Must be one of: ' + str(valid_os))
@@ -158,11 +159,15 @@ def configure(ctx):
         ctx.check_cfg(package='libsocketcan', args='--cflags --libs', define_name='CSP_HAVE_LIBSOCKETCAN')
         ctx.env.append_unique('LIBS', ctx.env.LIB_LIBSOCKETCAN)
 
+    # Add TCP driver
+    if ctx.options.with_driver_tcp:
+        ctx.env.append_unique('FILES_CSP', 'src/drivers/tcp/tcp.c')
+
     # Add USART driver
     if ctx.options.with_driver_usart:
         ctx.env.append_unique('FILES_CSP', ['src/drivers/usart/usart_kiss.c',
                                             'src/drivers/usart/usart_{0}.c'.format(ctx.options.with_driver_usart)])
-
+    
     # Add ZMQ
     if ctx.options.enable_if_zmqhub:
         ctx.check_cfg(package='libzmq', args='--cflags --libs', define_name='CSP_HAVE_LIBZMQ')
