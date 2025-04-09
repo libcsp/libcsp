@@ -56,7 +56,8 @@ extensions = [
     'sphinx_c_autodoc.viewcode',
     "sphinx_design",
     "sphinx_git",
-    "sphinx_copybutton"
+    "sphinx_copybutton",
+    "sphinx.ext.githubpages"
 ]
 
 # Add any paths that contain templates here, relative to this directory.
