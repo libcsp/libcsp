@@ -20,6 +20,7 @@ following table:
 | `libcsp/src/drivers`            | Drivers, mostly platform specific (Linux)           |
 | `libcsp/src/drivers/can`        | CAN                                                 |
 | `libcsp/src/drivers/usart`      | USART                                               |
+| `libcsp/src/drivers/eth`        | ETH                                                 |
 | `libcsp/src/interfaces`         | Interfaces, CAN, I2C, KISS, LOOPBACK, ZMQHUB and others    |
 | `libcsp/src/rtable`             | Routing tables                                      |
 | `libcsp/src/transport`          | Transport layer: UDP, RDP                           |
