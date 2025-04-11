@@ -14,6 +14,7 @@ following table:
 | `libcsp/src/arch`               | Architecture (platform) specific code               |
 | `libcsp/src/arch/freertos`      | FreeRTOS                                            |
 | `libcsp/src/arch/posix`         | Posix (Linux)                                       |
+| `libcsp/src/arch/zephyr`        | Zephyr                                              |
 | `libcsp/src/arch/windows`       | Windows                                             |
 | `libcsp/src/bindings/python`    | Python3 wrapper for libcsp                          |
 | `libcsp/src/crypto`             | HMAC, SHA                                           |
