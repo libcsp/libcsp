@@ -22,8 +22,6 @@ following table:
 | `libcsp/src/drivers/usart`      | USART                                               |
 | `libcsp/src/drivers/eth`        | ETH                                                 |
 | `libcsp/src/interfaces`         | Interfaces, CAN, I2C, KISS, LOOPBACK, ZMQHUB and others    |
-| `libcsp/src/rtable`             | Routing tables                                      |
-| `libcsp/src/transport`          | Transport layer: UDP, RDP                           |
 | `libcsp/utils`                  | Utilities, Python scripts for decoding CSP headers. |
 | `libcsp/examples`               | CSP examples, C/Python, zmqproxy                    |
 | `libcsp/doc`                    | RST based documentation (this documentation)        |
