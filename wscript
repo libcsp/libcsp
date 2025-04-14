@@ -42,6 +42,7 @@ def options(ctx):
     gr.add_option('--with-buffer-size', type=int, default=256, help='Set size of csp buffers')
     gr.add_option('--with-buffer-count', type=int, default=15, help='Set number of csp buffers')
     gr.add_option('--with-rtable-size', type=int, default=10, help='Set max number of entries in route table')
+    gr.add_option('--with_max_bind_port', type=int, default=16, help='Set max number of ports')
 
     # Drivers and interfaces (requires external dependencies)
     gr.add_option('--enable-if-zmqhub', action='store_true', help='Enable ZMQ interface')
