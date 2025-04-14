@@ -22,7 +22,8 @@
  */
 
 /* Max number of bytes per CAN frame */
-#define CAN_FRAME_SIZE 8
+#define CAN_FRAME_SIZE   8
+#define CANFD_FRAME_SIZE 64
 
 /**
  * CFP 1.x defines
@@ -114,7 +115,7 @@ int csp_can1_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t 
 		case CFP_MORE:
 
 			/* Check 'remain' field match */
-			if ((uint16_t) CFP_REMAIN(id) != packet->remain - 1) {
+			if ((uint16_t)CFP_REMAIN(id) != packet->remain - 1) {
 				csp_dbg_can_errno = CSP_DBG_CAN_ERR_FRAME_LOST;
 				csp_can_pbuf_free(ifdata, packet, 1, task_woken);
 				iface->frame++;
@@ -273,7 +274,6 @@ int csp_can2_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t 
 		}
 	}
 
-
 	/* BEGIN */
 	if (id & (CFP2_BEGIN_MASK << CFP2_BEGIN_OFFSET)) {
 
@@ -356,7 +356,6 @@ int csp_can2_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t 
 
 		/* Data is available */
 		csp_qfifo_write(packet, iface, task_woken);
-
 	}
 
 	return CSP_ERR_NONE;
@@ -386,9 +385,13 @@ int csp_can2_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet, int fr
 			  ((sender_count & CFP2_SC_MASK) << CFP2_SC_OFFSET) |
 			  ((1 & CFP2_BEGIN_MASK) << CFP2_BEGIN_OFFSET));
 
+	// Determine maximum payload size
+	int max_payload = ifdata->enable_canfd ? CANFD_FRAME_SIZE : CAN_FRAME_SIZE;
+
 	/* Pack the rest of the CSP header in the first 32-bit of data */
-    uint32_t frame_buf_mem[(CAN_FRAME_SIZE+sizeof(uint32_t)-1)/sizeof(uint32_t)];
-    uint8_t *frame_buf = (uint8_t*)frame_buf_mem;
+	uint32_t frame_buf_mem[(max_payload + sizeof(uint32_t) - 1) / sizeof(uint32_t)];
+
+	uint8_t * frame_buf = (uint8_t *)frame_buf_mem;
 	uint32_t * header_extension = (uint32_t *)frame_buf_mem;
 
 	*header_extension = (((packet->id.src & CFP2_SRC_MASK) << CFP2_SRC_OFFSET) |
@@ -401,8 +404,8 @@ int csp_can2_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet, int fr
 
 	frame_buf_inp += 4;
 
-	/* Copy first bytes of data field (max 4) */
-	int data_bytes = (packet->length >= 4) ? 4 : packet->length;
+	// Copy data to frame buffer
+	int data_bytes = (packet->length >= (max_payload - frame_buf_inp)) ? (max_payload - frame_buf_inp) : packet->length;
 	memcpy(frame_buf + frame_buf_inp, packet->data, data_bytes);
 	frame_buf_inp += data_bytes;
 	tx_count = data_bytes;
@@ -432,8 +435,8 @@ int csp_can2_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet, int fr
 		/* Set and increment fragment count */
 		can_id |= (fragment_count++ & CFP2_FC_MASK) << CFP2_FC_OFFSET;
 
-		/* Calculate frame data bytes */
-		data_bytes = (packet->length - tx_count >= CAN_FRAME_SIZE) ? CAN_FRAME_SIZE : packet->length - tx_count;
+		int remaining_bytes = packet->length - tx_count;
+		data_bytes = (remaining_bytes >= max_payload) ? max_payload : remaining_bytes;
 
 		/* Check for end condition */
 		if (tx_count + data_bytes == packet->length) {

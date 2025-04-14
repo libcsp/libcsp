@@ -58,99 +58,153 @@ static void * socketcan_rx_thread(void * arg) {
 			continue;
 		}
 
-		/* Read CAN frame */
-		struct can_frame frame;
-		int nbytes = read(ctx->socket, &frame, sizeof(frame)); 
-		if (nbytes < 0) {
-			if (errno == EAGAIN || errno == EINTR) {
-				/* This is acceptable, since something interrupted us, try again */
-				continue;
-			} else {
-				csp_print("%s[%s]: read() failed, errno %d: %s\n", __func__, ctx->name, errno, strerror(errno));
-				usleep(1*1E6);
+		/* Read CAN or CAN FD frame */
+		uint32_t can_id = 0;
+		uint8_t * data = NULL;
+		uint8_t data_len = 0;
+
+		if (ctx->ifdata.enable_canfd) {
+			struct canfd_frame frame;
+			ssize_t nbytes = read(ctx->socket, &frame, sizeof(struct canfd_frame));
+			if (nbytes < 0) {
+				if (errno == EAGAIN || errno == EINTR) {
+					/* This is acceptable, since something interrupted us, try again */
+					continue;
+				} else {
+					csp_print("%s[%s]: read() failed, errno %d: %s\n", __func__, ctx->name, errno, strerror(errno));
+					usleep(1 * 1E6);
+					continue;
+				}
+			}
+
+			if (nbytes != CANFD_MTU) {
+				csp_print("%s[%s]: Incomplete CAN FD frame (%ld bytes)\n", __func__, ctx->name, nbytes);
 				continue;
 			}
+
+			/* Drop frames with invalid size field */
+			if (frame.len > CANFD_MAX_DLEN) {
+				continue;
+			}
+
+			/* Drop frames with standard id (CSP uses extended) */
+			if (!(frame.can_id & CAN_EFF_FLAG)) {
+				continue;
+			}
+
+			/* Drop error and remote frames */
+			if (frame.can_id & (CAN_ERR_FLAG | CAN_RTR_FLAG)) {
+				csp_print("%s[%s]: discarding ERR/RTR/SFF frame (FD)\n", __func__, ctx->name);
+				continue;
+			}
+
+			/* Strip flags */
+			can_id = frame.can_id & CAN_EFF_MASK;
+			data = frame.data;
+			data_len = frame.len;
+
+		} else {
+			struct can_frame frame;
+			ssize_t nbytes = read(ctx->socket, &frame, sizeof(struct can_frame));
+			if (nbytes < 0) {
+				if (errno == EAGAIN || errno == EINTR) {
+					/* This is acceptable, since something interrupted us, try again */
+					continue;
+				} else {
+					csp_print("%s[%s]: read() failed, errno %d: %s\n", __func__, ctx->name, errno, strerror(errno));
+					usleep(1 * 1E6);
+					continue;
+				}
+			}
+
+			if (nbytes != CAN_MTU) {
+				csp_print("%s[%s]: Incomplete CAN frame (%ld bytes)\n", __func__, ctx->name, nbytes);
+				continue;
+			}
+
+			/* Drop frames with invalid size field */
+			if (frame.can_dlc > CAN_MAX_DLEN) {
+				continue;
+			}
+
+			/* Drop frames with standard id (CSP uses extended) */
+			if (!(frame.can_id & CAN_EFF_FLAG)) {
+				continue;
+			}
+
+			/* Drop error and remote frames */
+			if (frame.can_id & (CAN_ERR_FLAG | CAN_RTR_FLAG)) {
+				csp_print("%s[%s]: discarding ERR/RTR/SFF frame\n", __func__, ctx->name);
+				continue;
+			}
+
+			/* Strip flags */
+			can_id = frame.can_id & CAN_EFF_MASK;
+			data = frame.data;
+			data_len = frame.can_dlc;
 		}
 
-		if (nbytes != sizeof(frame)) {
-			csp_print("%s[%s]: Read incomplete CAN frame, size: %d, expected: %u bytes\n", __func__, ctx->name, nbytes, (unsigned int)sizeof(frame));
-			continue;
-		}
-
-		/* Drop frames with invalid size field */
-		if (frame.can_dlc > CAN_MAX_DLEN) {
-			continue;
-		}
-
-		/* Drop frames with standard id (CSP uses extended) */
-		if (!(frame.can_id & CAN_EFF_FLAG)) {
-			continue;
-		}
-
-		/* Drop error and remote frames */
-		if (frame.can_id & (CAN_ERR_FLAG | CAN_RTR_FLAG)) {
-			csp_print("%s[%s]: discarding ERR/RTR/SFF frame\n", __func__, ctx->name);
-			continue;
-		}
-
-		/* Strip flags */
-		frame.can_id &= CAN_EFF_MASK;
-
-		/* Call RX callbacsp_can_rx_frameck */
-		csp_can_rx(&ctx->iface, frame.can_id, frame.data, frame.can_dlc, NULL);
+		/* Call RX callback */
+		csp_can_rx(&ctx->iface, can_id, data, data_len, NULL);
 	}
 
 	/* We should never reach this point */
 	pthread_exit(NULL);
 }
 
-static int csp_can_tx_frame(void * driver_data, uint32_t id, const uint8_t * data, uint8_t dlc) {
-	if (dlc > CAN_MAX_DLEN) {
-		return CSP_ERR_INVAL;
-	}
-
-	struct can_frame frame = {.can_id = id | CAN_EFF_FLAG,
-							  .can_dlc = dlc};
-	memcpy(frame.data, data, dlc);
-
+static int csp_can_internal_tx_frame(can_context_t *ctx, const void *frame, size_t size) {
+	uintptr_t pdata = (uintptr_t)frame;
+	uintptr_t pend = pdata + size;
 	uint32_t waiting_ms = 0;
-	can_context_t * ctx = driver_data;
-	uintptr_t pdata = (uintptr_t)&frame;
-	uintptr_t pend = ((uintptr_t)&frame + sizeof(frame));
-	size_t length = sizeof(frame);
 
 	while (pdata < pend) {
-		int written;
-		
-		written = write(ctx->socket, (void *)pdata, length);
+		int written = write(ctx->socket, (void *)pdata, pend - pdata);
 		if (written < 0) {
-			if (errno == ENOBUFS) {
-				/* If no space available, wait for 5 ms and try again */
+			if (errno == ENOBUFS || errno == EAGAIN || errno == EINTR) {
 				usleep(5000);
 				waiting_ms += 5;
-			} else if(errno == EAGAIN || errno == EINTR) {
-				/* Acceptable, since something interrupted us, try again */
-				waiting_ms += 5;
+				if (waiting_ms >= 1000) {
+					csp_print("%s[%s]: write() timeout (>1000 ms)\n", __func__, ctx->name);
+					return CSP_ERR_TX;
+				}
 			} else {
-				csp_print("%s[%s]: write() failed, encountered an error during write(). %d - '%s'\n", __func__, ctx->name, errno, strerror(errno));
-				return CSP_ERR_TX;
-			}
-
-			if (waiting_ms >= 1000) {
-				/* We finally got tired of waiting, give up */
-				csp_print("%s[%s]: write() failed, we have been waiting for CAN buffers for too long (>1000 ms)\n", __func__, ctx->name);
+				csp_print("%s[%s]: write() failed, error %d - '%s'\n", __func__, ctx->name, errno, strerror(errno));
 				return CSP_ERR_TX;
 			}
 		} else {
 			waiting_ms = 0;
 			pdata += written;
-			length -= written;
 		}
 	}
 
 	return CSP_ERR_NONE;
 }
 
+static int csp_can_tx_frame(void *driver_data, uint32_t id, const uint8_t *data, uint8_t dlc) {
+	can_context_t *ctx = driver_data;
+
+	if (ctx->ifdata.enable_canfd) {
+		if (dlc > CANFD_MAX_DLEN)
+			return CSP_ERR_INVAL;
+
+		struct canfd_frame frame = {
+			.can_id = id | CAN_EFF_FLAG,
+			.len = dlc
+		};
+		memcpy(frame.data, data, dlc);
+		return csp_can_internal_tx_frame(ctx, &frame, sizeof(frame));
+	} else {
+		if (dlc > CAN_MAX_DLEN)
+			return CSP_ERR_INVAL;
+
+		struct can_frame frame = {
+			.can_id = id | CAN_EFF_FLAG,
+			.can_dlc = dlc
+		};
+		memcpy(frame.data, data, dlc);
+		return csp_can_internal_tx_frame(ctx, &frame, sizeof(frame));
+	}
+}
 
 int csp_can_socketcan_set_promisc(const bool promisc, can_context_t * ctx) {
 	struct can_filter filter = {
@@ -180,13 +234,12 @@ int csp_can_socketcan_set_promisc(const bool promisc, can_context_t * ctx) {
 	return CSP_ERR_NONE;
 }
 
-
-int csp_can_socketcan_open_and_add_interface(const char * device, const char * ifname, unsigned int node_id, int bitrate, bool promisc, csp_iface_t ** return_iface) {
+static int csp_can_socketcan_open_internal(const char * device, const char * ifname, unsigned int node_id, int bitrate, bool promisc, bool enable_canfd, csp_iface_t ** return_iface) {
 	if (ifname == NULL) {
 		ifname = CSP_IF_CAN_DEFAULT_NAME;
 	}
 
-	csp_print("INIT %s: device: [%s], bitrate: %d, promisc: %d\n", ifname, device, bitrate, promisc);
+	csp_print("INIT %s (FD: %d): device: [%s], bitrate: %d, promisc: %d\n", ifname, enable_canfd, device, bitrate, promisc);
 
 	/* Set interface up - this may require increased OS privileges */
 	if (bitrate > 0) {
@@ -209,6 +262,7 @@ int csp_can_socketcan_open_and_add_interface(const char * device, const char * i
 	ctx->iface.driver_data = ctx;
 	ctx->ifdata.tx_func = csp_can_tx_frame;
 	ctx->ifdata.pbufs = NULL;
+	ctx->ifdata.enable_canfd = enable_canfd;
 
 	/* Create socket */
 	if ((ctx->socket = socket(PF_CAN, SOCK_RAW, CAN_RAW)) < 0) {
@@ -217,7 +271,14 @@ int csp_can_socketcan_open_and_add_interface(const char * device, const char * i
 		return CSP_ERR_INVAL;
 	}
 
-	/* Locate interface */
+	if (enable_canfd) {
+		if (setsockopt(ctx->socket, SOL_CAN_RAW, CAN_RAW_FD_FRAMES, &ctx->ifdata.enable_canfd, sizeof(ctx->ifdata.enable_canfd)) < 0) {
+			csp_print("setsockopt(CAN_RAW_FD_FRAMES) failed: %s\n", strerror(errno));
+			socketcan_free(ctx);
+			return CSP_ERR_INVAL;
+		}
+	}
+
 	struct ifreq ifr;
 	strncpy(ifr.ifr_name, device, IFNAMSIZ - 1);
 	if (ioctl(ctx->socket, SIOCGIFINDEX, &ifr) < 0) {
@@ -242,15 +303,14 @@ int csp_can_socketcan_open_and_add_interface(const char * device, const char * i
 	/* Set filter mode */
 	if (csp_can_socketcan_set_promisc(promisc, ctx) != CSP_ERR_NONE) {
 		csp_print("%s[%s]: csp_can_socketcan_set_promisc() failed, error: %s\n", __func__, ctx->name, strerror(errno));
+		socketcan_free(ctx);
 		return CSP_ERR_INVAL;
 	}
 
 	/* Add interface to CSP */
-	int res = csp_can_add_interface(&ctx->iface);
-	if (res != CSP_ERR_NONE) {
-		csp_print("%s[%s]: csp_can_add_interface() failed, error: %d\n", __func__, ctx->name, res);
+	if (csp_can_add_interface(&ctx->iface) != CSP_ERR_NONE) {
 		socketcan_free(ctx);
-		return res;
+		return CSP_ERR_INVAL;
 	}
 
 	/* Create receive thread */
@@ -265,6 +325,14 @@ int csp_can_socketcan_open_and_add_interface(const char * device, const char * i
 	}
 
 	return CSP_ERR_NONE;
+}
+
+int csp_can_socketcan_open_and_add_interface(const char * device, const char * ifname, unsigned int node_id, int bitrate, bool promisc, csp_iface_t ** return_iface) {
+	return csp_can_socketcan_open_internal(device, ifname, node_id, bitrate, promisc, false, return_iface);
+}
+
+int csp_can_socketcan_open_fd_and_add_interface(const char * device, const char * ifname, unsigned int node_id, int bitrate, bool promisc, csp_iface_t ** return_iface) {
+	return csp_can_socketcan_open_internal(device, ifname, node_id, bitrate, promisc, true, return_iface);
 }
 
 csp_iface_t * csp_can_socketcan_init(const char * device, unsigned int node_id, int bitrate, bool promisc) {

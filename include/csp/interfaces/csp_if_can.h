@@ -192,7 +192,8 @@ typedef int (*csp_can_driver_tx_t)(void * driver_data, uint32_t id, const uint8_
 typedef struct {
 	uint32_t cfp_packet_counter; /**< CFP Identification number - same number on all fragments from same CSP packet. */
 	csp_can_driver_tx_t tx_func; /**< Tx function */
-	csp_packet_t * pbufs; /**< PBUF queue */
+	csp_packet_t * pbufs;        /**< PBUF queue */
+	int enable_canfd;            /**< Enable CAN FD */
 } csp_can_interface_data_t;
 
 /**
