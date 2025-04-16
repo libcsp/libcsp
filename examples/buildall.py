@@ -25,9 +25,10 @@ def build_with_meson():
 
 def build_with_cmake():
     build_samples = '-DCSP_BUILD_SAMPLES=ON'
+    enable_posix = '-DCSP_POSIX=ON'
     builddir = 'build'
 
-    cmake_setup = ['cmake', '-GNinja', '-B' + builddir, build_samples]
+    cmake_setup = ['cmake', '-GNinja', '-B' + builddir, build_samples, enable_posix]
     cmake_compile = ['ninja', '-C', builddir]
     subprocess.check_call(cmake_setup)
     subprocess.check_call(cmake_compile)

@@ -71,7 +71,7 @@ static void * socketcan_rx_thread(void * arg) {
 				continue;
 			}
 		}
-
+		
 		if (nbytes != sizeof(frame)) {
 			csp_print("%s[%s]: Read incomplete CAN frame, size: %d, expected: %u bytes\n", __func__, ctx->name, nbytes, (unsigned int)sizeof(frame));
 			continue;
