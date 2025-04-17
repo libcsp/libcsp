@@ -60,6 +60,12 @@ static void csp_can_rx_thread(void * arg1, void * arg2, void * arg3) {
 			break;
 		}
 
+		/* Drop frames with invalid size field */
+		if(frame.dlc > CAN_MAX_DLEN){
+			LOG_WRN("[%s] discarding invalid size frame", iface->name);
+			continue;
+		}
+
 		/* CSP requires extended frame format, drop it. */
 		if (!(frame.flags & CAN_FRAME_IDE)) {
 			LOG_WRN("[%s] discarding Standard ID frame", iface->name);
