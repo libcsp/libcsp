@@ -120,6 +120,13 @@ void csp_kiss_rx(csp_iface_t * iface, const uint8_t * buf, size_t len, void * px
 					break;
 				}
 
+				/* Should not append in this mode, but guard against possible NULL dereference */
+				if (ifdata->rx_packet == NULL) {
+					iface->rx_error++;
+					ifdata->rx_mode = KISS_MODE_NOT_STARTED;
+					break;
+				}
+
 				/* End Char */
 				if (inputbyte == FEND) {
 
@@ -163,6 +170,13 @@ void csp_kiss_rx(csp_iface_t * iface, const uint8_t * buf, size_t len, void * px
 				break;
 
 			case KISS_MODE_ESCAPED:
+
+				/* Should not append in this mode, but guard against possible NULL dereference */
+				if (ifdata->rx_packet == NULL) {
+					iface->rx_error++;
+					ifdata->rx_mode = KISS_MODE_NOT_STARTED;
+					break;
+				}
 
 				/* Escaped escape char */
 				if (inputbyte == TFESC)
