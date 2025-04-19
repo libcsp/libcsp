@@ -130,6 +130,7 @@ static int csp_can_tx_frame(void * driver_data, uint32_t id, const uint8_t * dat
 				waiting_ms += 5;
 			} else if(errno == EAGAIN || errno == EINTR) {
 				/* Acceptable, since something interrupted us, try again */
+				usleep(5000);
 				waiting_ms += 5;
 			} else {
 				csp_print("%s[%s]: write() failed, encountered an error during write(). %d - '%s'\n", __func__, ctx->name, errno, strerror(errno));
