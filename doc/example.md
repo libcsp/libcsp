@@ -1,9 +1,33 @@
 # Client and server example
 
-The example in `examples/csp_server_client.c` provides a
-simple server/client setup, where the client sends a request to the
-server and receives a reply. The code can be compiled to an executable
-using `./examples/buildall.py`.
+This page explains how to build and run the example programs provided with `libcsp`.
+
+## Building the examples
+
+To compile all the examples, simply run:
+
+`./examples/buildall.py`
+
+This script builds all the example binaries using your system’s default compiler and 
+places the resulting executables in the `build/examples/` directory.
+
+## Available Example Programs
+
+The following example programs are included:
+
+- **`csp_server`**  
+  A server that listens for incoming packets.
+
+- **`csp_client`**  
+  A client that sends packets to a specified destination.
+
+- **`zmqproxy`**  
+  A simple router (or "hub") that connects multiple ZMQ interfaces. (use for zmqhub client and server example)
+
+- **`csp_bridge_can2udp`**  
+  A bridge that converts CAN packets to UDP packets
+
+## Available drivers and interfaces examples
 
 The example supports these drivers and interfaces in CSP:
 
@@ -31,33 +55,16 @@ The example supports these drivers and interfaces in CSP:
 
     Requires a serial interface, e.g. USB dongle.
 
-## Running the example
+  - ETH: `-e <ethernet interface>`
+    Raw Ethernet driver. Requires specifying a physical interface name (e.g. eth0).
 
-If the example is started without any interfaces, it will use the
-loopback interface for communication between client and server:
+  - UDP: `-u <udp address>`
+    Sends/receives CSP frames over UDP.
 
-    libcsp$ ./build/examples/csp_server_client
-    Initialising CSP
-    Connection table
-    [00 0x7fbd8f574080] S:0, 0 -> 0, 0 -> 0 (17) fl 0
-    [01 0x7fbd8f574198] S:0, 0 -> 0, 0 -> 0 (18) fl 0
-    [02 0x7fbd8f5742b0] S:0, 0 -> 0, 0 -> 0 (19) fl 0
-    [03 0x7fbd8f5743c8] S:0, 0 -> 0, 0 -> 0 (20) fl 0
-    [04 0x7fbd8f5744e0] S:0, 0 -> 0, 0 -> 0 (21) fl 0
-    [05 0x7fbd8f5745f8] S:0, 0 -> 0, 0 -> 0 (22) fl 0
-    [06 0x7fbd8f574710] S:0, 0 -> 0, 0 -> 0 (23) fl 0
-    [07 0x7fbd8f574828] S:0, 0 -> 0, 0 -> 0 (24) fl 0
-    Interfaces
-    LOOP       addr: 0 netmask: 14 dfl: 0
-               tx: 00000 rx: 00000 txe: 00000 rxe: 00000
-               drop: 00000 autherr: 00000 frame: 00000
-               txb: 0 (0B) rxb: 0 (0B) 
+## Running the client and server examples
 
-    Client task started
-    Server task started
-    Ping address: 0, result 2 [mS]
-    reboot system request sent to address: 0
-    Packet received on MY_SERVER_PORT: Hello world A
+The csp_server and csp_client programs are basic tools for sending and receiving packets over CSP.
+They can use different interfaces such as ZMQ, CAN, KISS, ETH, UDP depending on the options provided.
 
 ## Running the example with ZMQHUB interface
 
