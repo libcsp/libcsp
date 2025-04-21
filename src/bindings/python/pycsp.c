@@ -1088,6 +1088,7 @@ PyMODINIT_FUNC PyInit_libcsp_py3(void) {
 	PyModule_AddIntConstant(m, "CSP_ERR_TX", CSP_ERR_TX);
 	PyModule_AddIntConstant(m, "CSP_ERR_DRIVER", CSP_ERR_DRIVER);
 	PyModule_AddIntConstant(m, "CSP_ERR_AGAIN", CSP_ERR_AGAIN);
+	PyModule_AddIntConstant(m, "CSP_ERR_NOSYS", CSP_ERR_NOSYS);
 	PyModule_AddIntConstant(m, "CSP_ERR_HMAC", CSP_ERR_HMAC);
 	PyModule_AddIntConstant(m, "CSP_ERR_CRC32", CSP_ERR_CRC32);
 	PyModule_AddIntConstant(m, "CSP_ERR_SFP", CSP_ERR_SFP);
