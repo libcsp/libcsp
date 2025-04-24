@@ -47,6 +47,7 @@ def options(ctx):
     # Drivers and interfaces (requires external dependencies)
     gr.add_option('--enable-if-zmqhub', action='store_true', help='Enable ZMQ interface')
     gr.add_option('--enable-can-socketcan', action='store_true', help='Enable Linux socketcan driver')
+    gr.add_option('--with-driver-eth', action='store_true', help='Build ETH driver. [linux]')
     gr.add_option('--with-driver-usart', default=None, metavar='DRIVER', help='Build USART driver. [linux, None]')
     gr.add_option('--with-driver-tcp', default=None, metavar='DRIVER', help='Build TCP driver. [linux]')
 
@@ -159,6 +160,12 @@ def configure(ctx):
         ctx.env.append_unique('FILES_CSP', 'src/drivers/can/can_socketcan.c')
         ctx.check_cfg(package='libsocketcan', args='--cflags --libs', define_name='CSP_HAVE_LIBSOCKETCAN')
         ctx.env.append_unique('LIBS', ctx.env.LIB_LIBSOCKETCAN)
+
+    # Add ETH driver
+    if ctx.options.with_driver_eth:
+        ctx.env.append_unique('FILES_CSP', ['src/drivers/eth/eth_linux.c',
+                                            'src/interfaces/csp_if_eth_pbuf.c',
+                                            'src/interfaces/csp_if_eth.c'])
 
     # Add TCP driver
     if ctx.options.with_driver_tcp:
