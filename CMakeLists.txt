@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(CSP VERSION 2.1)
+project(CSP VERSION 2.1 LANGUAGES C)
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   set(BUILD_SHARED_LIBS ON)
@@ -47,6 +47,8 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Generic")
   string(TOLOWER "${CSP_SYSTEM_NAME}" csp_system_name)
   if(csp_system_name STREQUAL "freertos")
     set(CSP_FREERTOS 1)
+  elseif(csp_system_name STREQUAL "rtems")
+    set(CSP_RTEMS 1)
   elseif(csp_system_name STREQUAL "zephyr")
     set(CSP_ZEPHYR 1)
   else()
@@ -109,7 +111,7 @@ target_include_directories(csp
 )
 
 add_library(csp_common INTERFACE)
-if(CSP_POSIX)
+if(CSP_POSIX OR CSP_RTEMS)
   target_compile_options(csp_common INTERFACE
     -Wall -Wextra -Wpedantic
     -Wshadow -Wcast-align -Wpointer-arith -Wwrite-strings -Wno-unused-parameter
