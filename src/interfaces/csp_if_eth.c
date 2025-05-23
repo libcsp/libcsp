@@ -171,7 +171,7 @@ int csp_eth_rx(csp_iface_t * iface, csp_eth_header_t * eth_frame, uint32_t recei
         return CSP_ERR_INVAL;
     }
 
-    if (frame_length == 0 || frame_length > CSP_BUFFER_SIZE) {
+    if (frame_length == 0 || frame_length > (CSP_BUFFER_SIZE + csp_id_get_header_size())) {
         iface->frame++;
         csp_print("eth rx frame_length of %u is invalid\n", frame_length);
         return CSP_ERR_INVAL;
