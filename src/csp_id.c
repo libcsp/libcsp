@@ -269,3 +269,11 @@ int csp_id_is_broadcast(uint16_t addr, csp_iface_t * iface) {
 	}
 	return 0;
 }
+
+int csp_id_get_header_size(void) {
+	if (csp_conf.version == 2) {
+		return CSP_ID2_HEADER_SIZE;
+	} else {
+		return CSP_ID1_HEADER_SIZE;
+	}
+}
