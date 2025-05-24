@@ -12,6 +12,15 @@ extern "C" {
 #endif
 
 /**
+ * Number of buffers reserved by CSP for fault-tolerant operations.
+ *
+ * These reserved buffers are used for operations that can tolerate allocation failure,
+ * such as client requests with proper error handling, or services that may timeout
+ * safely when memory is low.
+ */
+#define CSP_BUFFER_RESERVE 2
+
+/**
  * Get free buffer from task context.
  *
  * @param[in] unused OBSOLETE ignored field, csp packets have a fixed size now
