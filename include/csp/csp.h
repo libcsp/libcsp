@@ -56,12 +56,6 @@ extern csp_conf_t csp_conf;
 void csp_init(void);
 
 /**
- * Free allocated resources in CSP.
- * This is intended for testing of CSP, in order to be able re-initialize CSP by calling csp_init() again.
- */
-void csp_free_resources(void);
-
-/**
  * Get a \a read-only reference to the active CSP configuration.
  *
  * @return Active CSP configuration (read-only).
