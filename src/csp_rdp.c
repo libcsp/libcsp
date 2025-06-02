@@ -416,6 +416,12 @@ void csp_rdp_check_timeouts(csp_conn_t * conn) {
 
 	if (conn->rdp.state == RDP_OPEN) {
 
+		if (csp_rdp_time_after(time_now, conn->timestamp + conn->rdp.conn_timeout)) {
+			csp_conn_close(conn, CSP_RDP_CLOSED_BY_PROTOCOL | CSP_RDP_CLOSED_BY_TIMEOUT);
+			csp_bin_sem_post(&conn->rdp.tx_wait);
+			return;
+		}
+
 		/* Check if we have unacknowledged segments */
 		if (conn->rdp.delayed_acks) {
 			csp_rdp_check_ack(conn);
