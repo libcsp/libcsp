@@ -1,0 +1,20 @@
+#cmakedefine01 CSP_POSIX
+#cmakedefine01 CSP_ZEPHYR
+
+#cmakedefine01 CSP_HAVE_STDIO
+#cmakedefine01 CSP_ENABLE_CSP_PRINT
+#cmakedefine01 CSP_PRINT_STDIO
+
+#cmakedefine CSP_QFIFO_LEN @CSP_QFIFO_LEN@
+#cmakedefine CSP_PORT_MAX_BIND @CSP_PORT_MAX_BIND@
+#cmakedefine CSP_CONN_RXQUEUE_LEN @CSP_CONN_RXQUEUE_LEN@
+#cmakedefine CSP_CONN_MAX @CSP_CONN_MAX@
+#cmakedefine CSP_BUFFER_SIZE @CSP_BUFFER_SIZE@
+#cmakedefine CSP_BUFFER_COUNT @CSP_BUFFER_COUNT@
+#cmakedefine CSP_RDP_MAX_WINDOW @CSP_RDP_MAX_WINDOW@
+#cmakedefine CSP_RTABLE_SIZE @CSP_RTABLE_SIZE@
+
+#cmakedefine01 CSP_USE_RDP
+#cmakedefine01 CSP_USE_HMAC
+#cmakedefine01 CSP_USE_PROMISC
+#cmakedefine01 CSP_USE_DEDUP
