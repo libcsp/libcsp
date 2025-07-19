@@ -30,6 +30,14 @@ csp_packet_t * csp_buffer_get(size_t unused);
 
 /**
  * Get a buffer or get killed (from task context)
+ *
+ * This function return a buffer or kill the whole program when it
+ * failed. DO NOT USE THIS FUNCTION if you don't know what you are
+ * doing.  Never use this function from application layer. This
+ * function should be an internal function and will be sonn.
+ *
+ * https://github.com/libcsp/libcsp/issues/864
+ *
  * @return Buffer (pointer to #csp_packet_t)
  */
 csp_packet_t * csp_buffer_get_always(void);
