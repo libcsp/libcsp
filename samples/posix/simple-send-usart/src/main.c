@@ -23,7 +23,7 @@ int main(int argc, char * argv[])
 	int ret;
 
 	/* init */
-    csp_init();
+	csp_init();
 
 	/* open */
 	ret = csp_usart_open_and_add_kiss_interface(&conf, CSP_IF_KISS_DEFAULT_NAME, CLIENT_ADDR, &iface);
@@ -41,7 +41,12 @@ int main(int argc, char * argv[])
 	}
 
 	/* prepare data */
-	packet = csp_buffer_get_always();
+	packet = csp_buffer_get(0);
+	if (packet == NULL) {
+		csp_print("Failed to get buffer\n");
+		csp_close(conn);
+		return 1;
+	}
 	memcpy(packet->data, "abc", 3);
 	packet->length = 3;
 
