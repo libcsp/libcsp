@@ -73,9 +73,25 @@ int csp_rtable_load(const char * rtable);
 int csp_rtable_check(const char * rtable);
 
 #else
-inline int csp_rtable_save(char * buffer, size_t buffer_size) { return CSP_ERR_NOSYS; }
-inline int csp_rtable_load(const char * rtable) { return CSP_ERR_NOSYS; }
-inline int csp_rtable_check(const char * rtable) { return CSP_ERR_NOSYS; }
+inline int csp_rtable_save(char * buffer, size_t buffer_size) {
+   /* Avoid compiler warnings about unused parameter */
+   (void)buffer;
+   (void)buffer_size;
+
+   return CSP_ERR_NOSYS;
+}
+
+inline int csp_rtable_load(const char * rtable) {
+   (void)rtable; /* Avoid compiler warnings about unused parameter */
+
+   return CSP_ERR_NOSYS;
+}
+
+inline int csp_rtable_check(const char * rtable) {
+   (void)rtable; /* Avoid compiler warnings about unused parameter */
+
+   return CSP_ERR_NOSYS;
+}
 #endif
 
 /**
