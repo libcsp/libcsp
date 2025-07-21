@@ -52,44 +52,57 @@ static inline int init_cond_clock_monotonic(pthread_cond_t * cond) {
 
 pthread_queue_t * pthread_queue_create(int length, size_t item_size) {
 
-	pthread_queue_t * q = malloc(sizeof(pthread_queue_t));
+	int ret;
+	pthread_queue_t * q;
 
-	if (q != NULL) {
-		q->buffer = malloc(length * item_size);
-		if (q->buffer != NULL) {
-			q->size = length;
-			q->item_size = item_size;
-			q->items = 0;
-			q->in = 0;
-			q->out = 0;
-
-			int ret_val = pthread_mutex_init(&(q->mutex), NULL);
-			if (ret_val == 0) { /* Proceed? */
-				ret_val = init_cond_clock_monotonic(&(q->cond_full));
-				if (ret_val != 0) {
-					(void)pthread_mutex_destroy(&(q->mutex)); /* Cleanup */
-				}
-			}
-			if (ret_val == 0) { /* Proceed? */
-				ret_val = init_cond_clock_monotonic(&(q->cond_empty));
-				if (ret_val != 0) {
-					/* Cleanup */
-					(void)pthread_mutex_destroy(&(q->mutex));
-					(void)pthread_cond_destroy(&(q->cond_full));
-				}
-			}
-			if (ret_val != 0) {
-				/* Cleanup */
-				free(q->buffer);
-				free(q);
-				q = NULL;
-			}
-		} else {
-			free(q);
-			q = NULL;
-		}
+	q = malloc(sizeof(pthread_queue_t));
+	if (q == NULL) {
+		goto out;
 	}
 
+	q->buffer = malloc(length * item_size);
+	if (q->buffer == NULL) {
+		goto free_q;
+	}
+
+	q->size = length;
+	q->item_size = item_size;
+	q->items = 0;
+	q->in = 0;
+	q->out = 0;
+
+	ret = pthread_mutex_init(&(q->mutex), NULL);
+	if (ret != 0) {
+		goto free_q_buffer;
+	}
+
+	ret = init_cond_clock_monotonic(&(q->cond_full));
+	if (ret != 0) {
+		goto destroy_mutex;
+	}
+
+	ret = init_cond_clock_monotonic(&(q->cond_empty));
+	if (ret != 0) {
+		goto destroy_cond;
+	}
+
+	return q;
+
+destroy_cond:
+	(void)pthread_cond_destroy(&(q->cond_full));
+
+destroy_mutex:
+	(void)pthread_mutex_destroy(&(q->mutex));
+
+free_q_buffer:
+	free(q->buffer);
+	q->buffer = NULL;
+
+free_q:
+	free(q);
+	q = NULL;
+
+out:
 	return q;
 }
 
