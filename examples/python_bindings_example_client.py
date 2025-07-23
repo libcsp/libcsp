@@ -62,7 +62,6 @@ if __name__ == "__main__":
         # same format/use as line above
         libcsp.rtable_load(options.routing_table)
 
-    # Parameters: {priority} - 0 (critical), 1 (high), 2 (norm), 3 (low) ---- default=2
     # Start the router task - creates routing thread
     libcsp.route_start_task()
     time.sleep(0.2)  # allow router task startup
