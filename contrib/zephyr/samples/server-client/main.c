@@ -137,7 +137,7 @@ void client(void) {
 /* main - initialization of CSP and start of server/client tasks */
 int main(void) {
 
-	int ret;
+	int ret = 1;
 	uint8_t uart_address = 1;
 	uint8_t can_address = 10;
 	const char * kiss_device = NULL;
@@ -253,18 +253,14 @@ int main(void) {
 
 		if (test_mode) {
 			/* Test mode is intended for checking that host & client can exchange packets over loopback */
-			if (server_received < 5) {
-				LOG_INF("Server received %u packets", server_received);
-				ret = 1;
-				goto end;
+			if (server_received >= 5) {
+				ret = 0;
 			}
 			LOG_INF("Server received %u packets", server_received);
-			ret = 0;
-			goto end;
+			break;
 		}
 	}
 
-end:
 	if (IS_ENABLED(CONFIG_CSP_HAVE_CAN)) {
 		csp_can_stop(can_iface);
 	}
