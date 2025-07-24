@@ -15,5 +15,3 @@ Interface Functions
 .. autocfunction:: csp_buffer.h::csp_buffer_remaining
 .. autocfunction:: csp_buffer.h::csp_buffer_init
 .. autocfunction:: csp_buffer.h::csp_buffer_refc_inc
-.. autocfunction:: csp_buffer.h::csp_buffer_get_always
-.. autocfunction:: csp_buffer.h::csp_buffer_get_always_isr

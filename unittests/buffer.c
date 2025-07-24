@@ -2,6 +2,8 @@
 #include "../include/csp/csp.h"
 #include "../include/csp/csp_id.h"
 
+#include "../src/csp_buffer_private.h"
+
 #define CSP_ID2_HEADER_SIZE 6
 
 /* https://github.com/libcsp/libcsp/issues/734 */
@@ -42,7 +44,7 @@ START_TEST(test_clone_frame_begin_fixed)
 	/* Simulate a packet with no header*/
 	memcpy(src->data, "hello", 6);
 	src->length = 6;
-	
+
 	/* Add header to simulate a prepared to send packet */
 	csp_id_prepend(src);
 

@@ -2,6 +2,7 @@
 #include "../include/csp/csp.h"
 #include "../include/csp/csp_id.h"
 #include "../include/csp/crypto/csp_hmac.h"
+#include "../src/csp_buffer_private.h"
 
 START_TEST(test_hmac_append_no_header)
 {

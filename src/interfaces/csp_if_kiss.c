@@ -14,6 +14,8 @@
 #include <csp/csp_crc32.h>
 #include <csp/csp_id.h>
 
+#include "../csp_buffer_private.h"
+
 #define FEND     0xC0
 #define FESC     0xDB
 #define TFEND    0xDC

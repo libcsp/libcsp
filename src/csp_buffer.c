@@ -8,6 +8,17 @@
 #include <csp/csp_hooks.h>
 #include <csp/csp_id.h>
 
+#include "csp_buffer_private.h"
+
+/**
+ * Number of buffers reserved by CSP for fault-tolerant operations.
+ *
+ * These reserved buffers are used for operations that can tolerate allocation failure,
+ * such as client requests with proper error handling, or services that may timeout
+ * safely when memory is low.
+ */
+#define CSP_BUFFER_RESERVE 2
+
 /** Internal buffer header */
 typedef struct csp_skbf_s {
 	unsigned int refcount;
