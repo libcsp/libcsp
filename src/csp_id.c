@@ -252,9 +252,9 @@ unsigned int csp_id_get_max_nodeid(void) {
 
 unsigned int csp_id_get_max_port(void) {
 	if (csp_conf.version == 2) {
-		return ((1 << (CSP_ID2_PORT_SIZE)) - 1);
+		return ((1 << CSP_ID2_PORT_SIZE) - 1);
 	} else {
-		return ((1 << (CSP_ID1_PORT_SIZE)) - 1);
+		return ((1 << CSP_ID1_PORT_SIZE) - 1);
 	}
 }
 
