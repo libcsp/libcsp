@@ -120,7 +120,7 @@ void csp_send_direct(csp_id_t* idout, csp_packet_t * packet, csp_iface_t * route
 		}
 
 		/* Apply outgoing interface address to packet */
-		if ((from_me) && (idout->src == 0)) {
+		if (from_me && (idout->src == 0)) {
 			_idout.src = iface->addr;
 		}
 
@@ -165,7 +165,7 @@ void csp_send_direct(csp_id_t* idout, csp_packet_t * packet, csp_iface_t * route
 			}
 
 			/* Apply outgoing interface address to packet */
-			if ((from_me) && (idout->src == 0)) {
+			if (from_me && (idout->src == 0)) {
 				idout->src = route->iface->addr;
 			}
 
@@ -199,7 +199,7 @@ void csp_send_direct(csp_id_t* idout, csp_packet_t * packet, csp_iface_t * route
 		}
 
 		/* Apply outgoing interface address to packet */
-		if ((from_me) && (idout->src == 0)) {
+		if (from_me && (idout->src == 0)) {
 			idout->src = iface->addr;
 		}
 
