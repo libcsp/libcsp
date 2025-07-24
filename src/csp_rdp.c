@@ -267,7 +267,7 @@ static inline bool csp_rdp_seq_in_rx_queue(csp_conn_t * conn, uint16_t seq_nr) {
 
 		csp_rdp_queue_rx_add(conn, packet);
 
-		rdp_header_t * header = csp_rdp_header_ref((csp_packet_t *)packet);
+		rdp_header_t * header = csp_rdp_header_ref(packet);
 		if (header->seq_nr == seq_nr) {
 			return true;
 		}
@@ -378,7 +378,7 @@ void csp_rdp_check_timeouts(csp_conn_t * conn) {
 		}
 
 		/* Get header */
-		rdp_header_t * header = csp_rdp_header_ref((csp_packet_t *)packet);
+		rdp_header_t * header = csp_rdp_header_ref(packet);
 
 		/* If acked, do not retransmit */
 		if (csp_rdp_seq_before(be16toh(header->seq_nr), conn->rdp.snd_una)) {
