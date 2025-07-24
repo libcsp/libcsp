@@ -663,7 +663,7 @@ bool csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 			conn->rdp.snd_una = rx_header->ack_nr + 1;
 
 			/* We have an EACK */
-			if ((rx_header->flags & RDP_EAK)) {
+			if (rx_header->flags & RDP_EAK) {
 				csp_rdp_protocol("RDP %p: Got EACK\n", (void *)conn);
 				goto discard_open;
 			}
