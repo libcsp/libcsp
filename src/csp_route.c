@@ -143,7 +143,7 @@ int csp_route_work(void) {
 
 	/* Deduplication */
 	if ((csp_conf.dedup == CSP_DEDUP_ALL) ||
-		((is_to_me) && (csp_conf.dedup == CSP_DEDUP_INCOMING)) ||
+		(is_to_me && (csp_conf.dedup == CSP_DEDUP_INCOMING)) ||
 		((!is_to_me) && (csp_conf.dedup == CSP_DEDUP_FWD))) {
 		if (csp_dedup_is_duplicate(packet)) {
 			/* Discard packet */
