@@ -139,7 +139,7 @@ int csp_eth_rx(csp_iface_t * iface, csp_eth_header_t * eth_frame, uint32_t recei
     if (eth_debug) csp_hex_dump("rx", (void*)eth_frame, received_len);
 
     /* Filter on CSP protocol id */
-    if ((be16toh(eth_frame->ether_type) != CSP_ETH_TYPE_CSP)) {
+    if (be16toh(eth_frame->ether_type) != CSP_ETH_TYPE_CSP) {
         iface->frame++;
         return CSP_ERR_INVAL;
     }
