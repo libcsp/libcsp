@@ -49,7 +49,7 @@ void server(void * param) {
 
 	(void)param;
 
-	csp_print("Server task started\n");
+	printf("Server task started\n");
 
 	/* Create socket with no specific socket options, e.g. accepts CRC32, HMAC, etc. if enabled during compilation */
 	csp_socket_t sock = {0};
@@ -76,7 +76,7 @@ void server(void * param) {
 			switch (csp_conn_dport(conn)) {
 				case MY_SERVER_PORT:
 					/* Process packet here */
-					csp_print("Packet received on MY_SERVER_PORT: %s\n", (char *)packet->data);
+					printf("Packet received on MY_SERVER_PORT: %s\n", (char *)packet->data);
 					csp_buffer_free(packet);
 					++server_received;
 					break;
@@ -112,13 +112,13 @@ void client(void * param) {
 		usleep(test_mode ? 200000 : 1000000);
 
 		/* Send ping to server, timeout 1000 mS, ping size 100 bytes */
-		int result = csp_ping(server_address, 1000, 100, CSP_O_NONE);
-		csp_print("Ping address: %u, result %d [mS]\n", server_address, result);
+		int result = csp_ping((uint16_t)server_address, 1000, 100, CSP_O_NONE);
+		printf("Ping address: %u, result %d [mS]\n", server_address, result);
 		(void)result;
 
 		/* Send reboot request to server, the server has no actual implementation of csp_sys_reboot() and fails to reboot */
 		csp_reboot(server_address);
-		csp_print("reboot system request sent to address: %u\n", server_address);
+		printf("reboot system request sent to address: %u\n", server_address);
 
 		/* Send data packet (string) to server */
 
@@ -126,7 +126,7 @@ void client(void * param) {
 		csp_conn_t * conn = csp_connect(CSP_PRIO_NORM, server_address, MY_SERVER_PORT, 1000, CSP_O_NONE);
 		if (conn == NULL) {
 			/* Connect failed */
-			csp_print("Connection failed\n");
+			printf("Connection failed\n");
 		}
 
 		/* 2. Get packet buffer for message/data */

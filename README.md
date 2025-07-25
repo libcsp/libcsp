@@ -15,8 +15,8 @@ message/connection pools.
 The protocol is based on an very lightweight header containing both transport and
 network-layer information. Its implementation is designed for, but not
 limited to, embedded systems with very limited CPU and memory resources.
-The implementation is written in GNU C and is currently ported to run on FreeRTOS, Zephyr
-and Linux (POSIX).
+The implementation is written in GNU C and is currently ported to run on FreeRTOS, Zephyr,
+Linux (POSIX) and Phoenix RTOS.
 
 The idea is to give sub-system developers of cubesats the same features
 of a TCP/IP stack, but without adding the huge overhead of the IP

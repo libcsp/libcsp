@@ -34,7 +34,21 @@
 
 
 static uint32_t csp_rdp_window_size = 4;
-static uint32_t csp_rdp_conn_timeout = 10000;
+/* This value has been modified for Phoenix port
+ since previous timeout did not suffice to establish connection */
+
+/* 
+	Mind that test server and client were running
+ 	on one machine on a single core with low
+	clock frequency (that is why timeout had to be raised).
+	To establish connection between server and client on single machine
+	(not on loopback but in separate processes using their own
+	CAN transceivers) a lot off context switching will happen not only
+	between threads and interrupt handlers, but also between processes
+	which can be quite costly. This might be changed later upon testing,
+	on a platform with more cores/higher clock frequency. 
+*/
+static uint32_t csp_rdp_conn_timeout = 100000; // 10000
 static uint32_t csp_rdp_packet_timeout = 1000;
 static uint32_t csp_rdp_delayed_acks = 1;
 static uint32_t csp_rdp_ack_timeout = 1000 / 4;

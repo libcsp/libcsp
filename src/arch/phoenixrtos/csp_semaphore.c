@@ -2,9 +2,10 @@
 
 #include <csp/csp.h>
 #include <csp/csp_debug.h>
+#include <stdio.h>
 
 void csp_bin_sem_init(csp_bin_sem_t * sem) {
-	semaphoreCreate((semaphore_t *)sem, 1);
+	semaphoreCreate((semaphore_t *)sem, 0);
 }
 
 int csp_bin_sem_wait(csp_bin_sem_t * sem, unsigned int timeout) {
@@ -13,7 +14,7 @@ int csp_bin_sem_wait(csp_bin_sem_t * sem, unsigned int timeout) {
 	if (timeout == CSP_MAX_TIMEOUT) {
 		ret = semaphoreDown(sem, 0);
 	} else {
-		ret = semaphoreDown(sem, timeout);
+		ret = semaphoreDown(sem, timeout + 1); // Want to omit situation when CSP passes 0
 	}
 
 	if (ret != 0)
@@ -28,14 +29,14 @@ int csp_bin_sem_post(csp_bin_sem_t * sem) {
 
 	mutexLock(sem->mutex);
 
-	condSignal(sem->cond);
-
-    if(sem->v == 1){
-        mutexUnlock(sem->mutex);
-        return CSP_SEMAPHORE_OK;
-    }
+	if (sem->v == 1) {
+		mutexUnlock(sem->mutex);
+		condSignal(sem->cond);
+		return CSP_SEMAPHORE_OK;
+	}
 	++sem->v;
 	mutexUnlock(sem->mutex);
+	condSignal(sem->cond);
 
 	return CSP_SEMAPHORE_OK;
 }

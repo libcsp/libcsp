@@ -2,6 +2,7 @@
 #include <csp/arch/csp_time.h>
 #include <csp/csp_hooks.h>
 #include <csp/csp_id.h>
+#include <stdlib.h>
 
 #include "csp_macro.h"
 #include "csp_conn.h"
@@ -10,6 +11,7 @@
 #include "csp_rdp_queue.h"
 
 __weak void csp_panic(const char * msg) {
+	exit(1);
 	return;
 }
 

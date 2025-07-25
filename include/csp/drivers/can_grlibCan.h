@@ -1,3 +1,5 @@
+#ifndef LIBCSP_GRLIBCAN_H
+#define LIBCSP_GRLIBCAN_H
 /* Include libCSP */
 #include <csp/csp.h>
 #include <csp/interfaces/csp_if_can.h>
@@ -7,6 +9,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <csp/csp_debug.h>
+#include <stdint.h>
 
 /* Driver core include */
 #include "grlib-can-core.h"
@@ -18,14 +21,14 @@ typedef struct {
 	csp_can_interface_data_t ifdata;
 	pthread_t rx_thread;
 	grlibCan_dev_t * device;
-    bool kill;
+	bool kill;
 } can_context_t;
 
-#define STACK_POOL 2
-#define STACK_SIZE 4096
-int stack_ptr = 0;
+#define LIBCSP_STACK_POOL 2
+#define LIBCSP_STACK_SZ   4096
 
-char stack_pool[STACK_POOL][STACK_SIZE];
+extern int stack_ptr;
+extern char stacks[LIBCSP_STACK_POOL][LIBCSP_STACK_SZ];
 
 void grlibCan_free(can_context_t * ctx);
 
@@ -48,3 +51,5 @@ csp_iface_t * csp_can_grlibCan_init(can_context_t * ctx, grlibCan_dev_t * device
 									int baudrate, bool promisc);
 
 int csp_can_grlibCan_stop(csp_iface_t * iface);
+
+#endif
