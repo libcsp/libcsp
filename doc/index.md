@@ -16,6 +16,17 @@ build-doc
 ```
 
 ```{toctree}
+:caption: how to run samples
+:hidden:
+
+samples/posix/simple-send-canbus
+samples/posix/simple-send-udp
+samples/posix/simple-send-usart
+samples/posix/simple-send-zmq
+samples/posix/simple-sfp-send-recv
+```
+
+```{toctree}
 :caption: CSP API
 :hidden:
 

@@ -8,6 +8,7 @@ set(SPHINX_INDEX_FILE ${SPHINX_BUILD}/index.html)
 
 file(GLOB DOCS_FILES
     "${SPHINX_SOURCE}/*.md"
+    "${SPHINX_SOURCE}/samples/posix/*.md"
     "${SPHINX_SOURCE}/api/*.rst"
     "${SPHINX_SOURCE}/api/arch/*.rst"
     "${SPHINX_SOURCE}/api/crypto/*.rst"
