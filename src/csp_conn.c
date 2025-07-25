@@ -1,4 +1,4 @@
-#include "csp/autoconfig.h"
+
 
 #include "csp_conn.h"
 

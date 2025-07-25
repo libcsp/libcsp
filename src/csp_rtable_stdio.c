@@ -6,7 +6,7 @@
 #include <csp/csp_id.h>
 #include <csp/csp_iflist.h>
 #include <csp/interfaces/csp_if_lo.h>
-#include "csp/autoconfig.h"
+
 
 static int csp_rtable_parse(const char * rtable, int dry_run) {
 
@@ -19,8 +19,9 @@ static int csp_rtable_parse(const char * rtable, int dry_run) {
 	rtable_copy[str_len] = 0;
 
 	/* Get first token */
-	char * saveptr;
-	char * str = strtok_r(rtable_copy, ",", &saveptr);
+	/* char * saveptr; */
+	/* char * str = strtok_r(rtable_copy, ",", &saveptr); */
+	char * str = strtok(rtable_copy, ",");
 	while ((str) && (strlen(str) > 1)) {
 		unsigned int address, via;
 		int netmask;
@@ -53,7 +54,8 @@ static int csp_rtable_parse(const char * rtable, int dry_run) {
 			}
 		}
 		valid_entries++;
-		str = strtok_r(NULL, ",", &saveptr);
+		/* str = strtok_r(NULL, ",", &saveptr); */
+		str = strtok(NULL, ",");
 	}
 
 	return valid_entries;

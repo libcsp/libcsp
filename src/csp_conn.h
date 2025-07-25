@@ -27,6 +27,7 @@ typedef enum {
 	RDP_CLOSE_WAIT,
 } csp_rdp_state_t;
 
+#define CSP_CONN_MAX 10
 #define CSP_RDP_CLOSED_BY_USERSPACE 0x01
 #define CSP_RDP_CLOSED_BY_PROTOCOL  0x02
 #define CSP_RDP_CLOSED_BY_TIMEOUT   0x04

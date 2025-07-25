@@ -4,7 +4,7 @@
 #include <csp/csp_debug.h>
 #include <csp/csp_buffer.h>
 #include "csp_macro.h"
-#include "csp/autoconfig.h"
+
 
 static csp_static_queue_t qfifo_queue __noinit;
 static csp_queue_handle_t qfifo_queue_handle __noinit;

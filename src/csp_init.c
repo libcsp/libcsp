@@ -2,7 +2,7 @@
 #include <csp/arch/csp_time.h>
 #include <csp/csp_hooks.h>
 #include <csp/csp_id.h>
-#include "csp/autoconfig.h"
+
 #include "csp_macro.h"
 #include "csp_conn.h"
 #include "csp_qfifo.h"

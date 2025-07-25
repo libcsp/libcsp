@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "csp/autoconfig.h"
+
 
 #define CSP_SEMAPHORE_OK 	0
 #define CSP_SEMAPHORE_ERROR	-1
@@ -17,6 +17,9 @@
 #elif (CSP_ZEPHYR)
     #include <zephyr/kernel.h>
     typedef struct k_sem csp_bin_sem_t;
+#elif (CSP_PHOENIX)
+    #include <sys/threads.h>
+    typedef semaphore_t csp_bin_sem_t;
 #endif
 
 /**

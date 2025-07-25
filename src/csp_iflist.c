@@ -5,7 +5,7 @@
 
 #include <string.h>
 
-#include "csp/autoconfig.h"
+
 #include <csp/csp_debug.h>
 #include <csp/interfaces/csp_if_lo.h>
 

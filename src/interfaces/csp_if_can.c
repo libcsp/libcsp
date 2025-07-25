@@ -268,6 +268,7 @@ int csp_can2_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t 
 		if (id & (CFP2_BEGIN_MASK << CFP2_BEGIN_OFFSET)) {
 			packet = csp_can_pbuf_new(ifdata, id, task_woken);
 		} else {
+			csp_print("We quit here\n");
 			iface->frame++;
 			return CSP_ERR_INVAL;
 		}

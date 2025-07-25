@@ -1,6 +1,6 @@
 #include <inttypes.h>
 #include "csp_macro.h"
-#include "csp/autoconfig.h"
+
 
 uint8_t csp_dbg_buffer_out;
 uint8_t csp_dbg_errno;

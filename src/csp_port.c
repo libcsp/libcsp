@@ -8,7 +8,6 @@
 #include <csp/csp.h>
 #include <csp/csp_debug.h>
 #include <csp/arch/csp_queue.h>
-#include "csp/autoconfig.h"
 
 #include "csp_conn.h"
 
