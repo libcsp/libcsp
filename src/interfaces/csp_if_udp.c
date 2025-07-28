@@ -112,8 +112,9 @@ void csp_if_udp_init(csp_iface_t * iface, csp_if_udp_conf_t * ifconf) {
 
 	iface->driver_data = ifconf;
 
-	if (inet_aton(ifconf->host, &ifconf->peer_addr.sin_addr) == 0) {
-		csp_print("  Unknown peer address %s\n", ifconf->host);
+	if (inet_pton(AF_INET, ifconf->host, &ifconf->peer_addr.sin_addr) == 0) {
+		csp_print("Invalid peer address: %s", ifconf->host);
+		return;
 	}
 
 	csp_print("  UDP peer address: %s:%d (listening on port %d)\n", inet_ntoa(ifconf->peer_addr.sin_addr), ifconf->rport, ifconf->lport);
