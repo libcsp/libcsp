@@ -15,8 +15,6 @@
 
 #include <arpa/inet.h>
 #include <linux/if_packet.h>
-#include <linux/ip.h>
-#include <linux/udp.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <net/if.h>
