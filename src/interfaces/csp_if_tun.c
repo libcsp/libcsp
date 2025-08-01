@@ -41,7 +41,6 @@ static int csp_if_tun_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packe
 		/**
 		 * Incoming tunnel packet
 		 */
-		//csp_hex_dump("incoming packet", packet->data, packet->length);
 
 		csp_id_setup_rx(new_packet);
 
@@ -64,11 +63,7 @@ static int csp_if_tun_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packe
 		/* Now free old packet */
 		csp_buffer_free(packet);
 
-		//csp_hex_dump("new frame", new_packet->frame_begin, new_packet->frame_length + 16);
-
 		csp_id_strip(new_packet);
-
-		//csp_hex_dump("new packet", new_packet->data, new_packet->length);
 
 		/* Send new packet */
 		csp_qfifo_write(new_packet, iface, NULL);
@@ -79,12 +74,8 @@ static int csp_if_tun_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packe
 		 * Outgoing tunnel packet
 		 */
 
-		//csp_hex_dump("packet", packet->data, packet->length);
-
 		/* Apply CSP header */
 		csp_id_prepend(packet);
-
-		//csp_hex_dump("frame", packet->frame_begin, packet->frame_length);
 
 		/* Create tunnel header */
 		new_packet->id.dst = ifconf->tun_dst;
@@ -105,12 +96,8 @@ static int csp_if_tun_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packe
 		/* Free old packet */
 		csp_buffer_free(packet);
 
-		//csp_hex_dump("new packet", new_packet->data, new_packet->length);
-
 		/* Apply CSP header */
 		csp_id_prepend(new_packet);
-
-		//csp_hex_dump("new frame", new_packet->frame_begin, new_packet->frame_length);
 
 		/* Send new packet */
 		csp_qfifo_write(new_packet, iface, NULL);
