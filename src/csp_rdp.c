@@ -94,11 +94,6 @@ static inline int csp_rdp_seq_after(uint16_t seq, uint16_t cmp) {
 	return csp_rdp_seq_before(cmp, seq);
 }
 
-/* Return 1 if time is between start and end (both inclusive) */
-// static inline int csp_rdp_time_between(uint32_t time, uint32_t start, uint32_t end) {
-//	return (uint32_t)(end - start) >= (uint32_t)(time - start);
-// }
-
 /* Return 1 if time is before cmp */
 static inline int csp_rdp_time_before(uint32_t time, uint32_t cmp) {
 	return (int32_t)(time - cmp) < 0;
