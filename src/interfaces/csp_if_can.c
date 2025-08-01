@@ -43,14 +43,6 @@ enum cfp_frame_t {
 
 static int csp_can1_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t dlc, int * task_woken) {
 
-	/* Test: random packet loss */
-	// if (0) {
-	// 	int random = rand();
-	// 	if (random < RAND_MAX * 0.00005) {
-	// 		return CSP_ERR_DRIVER;
-	// 	}
-	// }
-
 	csp_can_interface_data_t * ifdata = iface->interface_data;
 
 	/* Bind incoming frame to a packet buffer */
