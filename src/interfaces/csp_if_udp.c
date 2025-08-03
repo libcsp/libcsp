@@ -73,25 +73,9 @@ static void * csp_if_udp_rx_loop(void * param) {
 	csp_iface_t * iface = param;
 	csp_if_udp_conf_t * ifconf = iface->driver_data;
 
-	ifconf->sockfd = -1;
-
-	while (ifconf->sockfd < 0) {
-
-		ifconf->sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-
-		struct sockaddr_in server_addr = {0};
-		server_addr.sin_family = AF_INET;
-		server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-		server_addr.sin_port = htons(ifconf->lport);
-
-		bind(ifconf->sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr));
-
-		if (ifconf->sockfd < 0) {
-			csp_print("  UDP server waiting for port %d\n", ifconf->lport);
-			sleep(1);
-			continue;
-		}
-		break;
+	if (ifconf->sockfd < 0) {
+		csp_print("csp_if_udp_rx_loop: invalid socket\n");
+		return NULL;
 	}
 
 	while (1) {
@@ -116,6 +100,24 @@ void csp_if_udp_init(csp_iface_t * iface, csp_if_udp_conf_t * ifconf) {
 
 	if (inet_aton(ifconf->host, &ifconf->peer_addr.sin_addr) == 0) {
 		csp_print("  Unknown peer address %s\n", ifconf->host);
+	}
+
+	ifconf->sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+	if (ifconf->sockfd < 0) {
+		csp_print("Failed to create UDP socket\n");
+		return;
+	}
+
+	struct sockaddr_in server_addr = {0};
+	server_addr.sin_family = AF_INET;
+	server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+	server_addr.sin_port = htons(ifconf->lport);
+
+	if (bind(ifconf->sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
+		csp_print("Failed to bind UDP socket to port %d\n", ifconf->lport);
+		close(ifconf->sockfd);
+		ifconf->sockfd = -1;
+		return;
 	}
 
 	csp_print("  UDP peer address: %s:%d (listening on port %d)\n", inet_ntoa(ifconf->peer_addr.sin_addr), ifconf->rport, ifconf->lport);
