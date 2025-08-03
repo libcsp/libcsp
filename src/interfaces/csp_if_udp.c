@@ -23,8 +23,8 @@ static int csp_if_udp_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packe
 
 	csp_if_udp_conf_t * ifconf = iface->driver_data;
 
-	if (ifconf->sockfd == 0) {
-		csp_print("Sockfd null\n");
+	if (ifconf->sockfd < 0) {
+		csp_print("Sockfd invalid\n");
 		csp_buffer_free(packet);
 		return CSP_ERR_NONE;
 	}
@@ -73,7 +73,9 @@ static void * csp_if_udp_rx_loop(void * param) {
 	csp_iface_t * iface = param;
 	csp_if_udp_conf_t * ifconf = iface->driver_data;
 
-	while (ifconf->sockfd == 0) {
+	ifconf->sockfd = -1;
+
+	while (ifconf->sockfd < 0) {
 
 		ifconf->sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
