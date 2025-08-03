@@ -115,9 +115,7 @@ void csp_if_udp_init(csp_iface_t * iface, csp_if_udp_conf_t * ifconf) {
 
 	if (bind(ifconf->sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
 		csp_print("Failed to bind UDP socket to port %d\n", ifconf->lport);
-		close(ifconf->sockfd);
-		ifconf->sockfd = -1;
-		return;
+		goto cleanup;
 	}
 
 	csp_print("  UDP peer address: %s:%d (listening on port %d)\n", inet_ntoa(ifconf->peer_addr.sin_addr), ifconf->rport, ifconf->lport);
@@ -126,14 +124,17 @@ void csp_if_udp_init(csp_iface_t * iface, csp_if_udp_conf_t * ifconf) {
 	ret = pthread_attr_init(&attributes);
 	if (ret != 0) {
 		csp_print("csp_if_udp_init: pthread_attr_init failed: %s: %d\n", strerror(ret), ret);
+		goto cleanup;
 	}
 	ret = pthread_attr_setdetachstate(&attributes, PTHREAD_CREATE_DETACHED);
 	if (ret != 0) {
 		csp_print("csp_if_udp_init: pthread_attr_setdetachstate failed: %s: %d\n", strerror(ret), ret);
+		goto cleanup_thread;
 	}
 	ret = pthread_create(&ifconf->server_handle, &attributes, csp_if_udp_rx_loop, iface);
 	if (ret != 0) {
 		csp_print("csp_if_udp_init: pthread_create failed: %s: %d\n", strerror(ret), ret);
+		goto cleanup_thread;
 	}
 	ret = pthread_attr_destroy(&attributes);
 	if (ret != 0) {
@@ -144,4 +145,12 @@ void csp_if_udp_init(csp_iface_t * iface, csp_if_udp_conf_t * ifconf) {
 	iface->name = "UDP",
 	iface->nexthop = csp_if_udp_tx,
 	csp_iflist_add(iface);
+
+	return;
+
+cleanup_thread:
+	pthread_attr_destroy(&attributes);
+cleanup:
+	close(ifconf->sockfd);
+	ifconf->sockfd = -1;
 }
