@@ -5,10 +5,8 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
-#include <netdb.h>
 
 #include <csp/csp.h>
-#include <endian.h>
 #include <csp/csp_interface.h>
 #include <csp/csp_id.h>
 
