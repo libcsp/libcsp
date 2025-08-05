@@ -24,10 +24,12 @@ typedef struct {
 static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 
 void csp_usart_lock(void * driver_data) {
+	(void)driver_data; /* Avoid compiler warnings about unused parameter */
 	pthread_mutex_lock(&lock);
 }
 
 void csp_usart_unlock(void * driver_data) {
+	(void)driver_data; /* Avoid compiler warnings about unused parameter */
 	pthread_mutex_unlock(&lock);
 }
 

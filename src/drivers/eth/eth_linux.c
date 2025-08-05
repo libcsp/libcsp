@@ -3,6 +3,8 @@
 #warning CYGWIN: ethernet not implemented - libpcap can be used if needed
 #else // !__CYGWIN__
 
+#include <csp/drivers/eth_linux.h>
+
 #include <stdint.h>
 
 #include <csp/csp.h>
@@ -32,7 +34,7 @@ typedef struct {
     struct ifreq if_idx;
 } eth_context_t;
 
-int csp_eth_tx_frame(void * driver_data, csp_eth_header_t *eth_frame) {
+int csp_eth_tx_frame(void * driver_data, csp_eth_header_t * eth_frame) {
 
     const eth_context_t * ctx = (eth_context_t*)driver_data;
 
@@ -78,8 +80,8 @@ int csp_eth_init(const char * device, const char * ifname, int mtu, unsigned int
 	if (ctx == NULL) {
 		return CSP_ERR_NOMEM;
 	}
-	
-	strcpy(ctx->name, ifname);
+
+	strncpy(ctx->name, ifname, sizeof(ctx->name) - 1);
 	ctx->ifdata.iface.name = ctx->name;
     ctx->ifdata.tx_func = &csp_eth_tx_frame;
     ctx->ifdata.tx_buf = (csp_eth_header_t*)&csp_eth_tx_buffer;
@@ -95,7 +97,6 @@ int csp_eth_init(const char * device, const char * ifname, int mtu, unsigned int
 		free(ctx);
         return CSP_ERR_INVAL;
     }
-
 
     /**
      * TX SOCKET
@@ -143,7 +144,7 @@ int csp_eth_init(const char * device, const char * ifname, int mtu, unsigned int
         ((uint8_t *)if_mac.ifr_hwaddr.sa_data)[4],
         ((uint8_t *)if_mac.ifr_hwaddr.sa_data)[5]);
 
-    /* Allow the socket to be reused - incase connection is closed prematurely */
+    /* Allow the socket to be reused - in case connection is closed prematurely */
     int sockopt;
     if (setsockopt(ctx->sockfd, SOL_SOCKET, SO_REUSEADDR, &sockopt, sizeof sockopt) == -1) {
         perror("setsockopt");

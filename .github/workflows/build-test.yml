@@ -1,5 +1,7 @@
 name: Build and Test
 on: [push, pull_request]
+permissions:
+  contents: read
 jobs:
   run-tests:
     strategy:
@@ -8,7 +10,6 @@ jobs:
         os:
           - ubuntu-24.04
           - ubuntu-22.04
-          - ubuntu-20.04
         buildsystem:
           - meson
           - cmake
@@ -30,19 +31,6 @@ jobs:
           - 1
           - 2
         exclude:
-          # Ubuntu 20.04 only has GCC 10
-          - os: ubuntu-20.04
-            compiler:
-              CC: gcc-11
-          - os: ubuntu-20.04
-            compiler:
-              CC: gcc-12
-          - os: ubuntu-20.04
-            compiler:
-              CC: gcc-13
-          - os: ubuntu-20.04
-            compiler:
-              CC: gcc-14
           # Ubuntu 22.04 only has GCC 10, 11, 12
           - os: ubuntu-22.04
             compiler:
@@ -136,3 +124,14 @@ jobs:
         run: |
           ./build/examples/csp_client -c vcan0 -a 2 -C 1 -T 10 -v ${{ matrix.csp_version }} &
           ./build/examples/csp_server -c vcan0 -a 1 -t -v ${{ matrix.csp_version }}
+
+      - name: Run UDP Server Test
+        run: |
+          ./build/examples/csp_server -u "127.0.0.1" -a 1 -T 10 -v ${{ matrix.csp_version }} &
+          ./build/examples/csp_client -u "127.0.0.1" -a 2 -C 1 -T 10 -v ${{ matrix.csp_version }}
+          wait "$!"
+
+      - name: Run UDP Client Test
+        run: |
+          ./build/examples/csp_client -u "127.0.0.1" -a 2 -C 1 -T 10 -v ${{ matrix.csp_version }} &
+          ./build/examples/csp_server -u "127.0.0.1" -a 1 -T 10 -v ${{ matrix.csp_version }}

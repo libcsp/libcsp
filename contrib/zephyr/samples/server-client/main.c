@@ -49,7 +49,7 @@ void server(void) {
 			continue;
 		}
 
-		/* Read packets on connection, timout is 100 mS */
+		/* Read packets on connection, timeout is 100 mS */
 		csp_packet_t *packet;
 		while ((packet = csp_read(conn, 50)) != NULL) {
 			switch (csp_conn_dport(conn)) {
@@ -107,7 +107,7 @@ void client(void) {
 		}
 
 		/* 2. Get packet buffer for message/data */
-		csp_packet_t * packet = csp_buffer_get_always();
+		csp_packet_t * packet = csp_buffer_get(0);
 		if (packet == NULL) {
 			/* Could not get buffer element */
 			LOG_ERR("Failed to get CSP buffer");

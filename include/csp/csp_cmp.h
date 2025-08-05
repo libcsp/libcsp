@@ -83,12 +83,12 @@ extern "C" {
 #define CSP_CMP_ROUTE_IFACE_LEN 11
 
 /**
- *  CMP peek/read memeory - max read length.
+ *  CMP peek/read memory - max read length.
  */
 #define CSP_CMP_PEEK_MAX_LEN 200
 
 /**
- *  CMP poke/write memeory - max write length.
+ *  CMP poke/write memory - max write length.
  */
 #define CSP_CMP_POKE_MAX_LEN 200
 

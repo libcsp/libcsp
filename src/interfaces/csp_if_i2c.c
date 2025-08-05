@@ -5,6 +5,7 @@
 #include <csp/csp.h>
 
 int csp_i2c_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet, int from_me) {
+	(void)from_me; /* Avoid compiler warnings about unused parameter */
 
 	/* Loopback */
 	if (packet->id.dst == iface->addr) {

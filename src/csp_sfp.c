@@ -49,6 +49,8 @@ static inline sfp_header_t * csp_sfp_header_remove(csp_packet_t * packet) {
 }
 
 int csp_sfp_send_own_memcpy(csp_conn_t * conn, const void * data, unsigned int totalsize, unsigned int mtu, uint32_t timeout, csp_memcpy_fnc_t memcpyfcn) {
+	(void)timeout; /* Avoid compiler warnings about unused parameter */
+
 	if (mtu == 0 || mtu + sizeof(sfp_header_t) > CSP_BUFFER_SIZE) {
 		return CSP_ERR_INVAL;
 	}

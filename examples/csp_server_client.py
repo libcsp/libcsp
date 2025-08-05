@@ -4,7 +4,7 @@ Usage: LD_LIBRARY_PATH=build PYTHONPATH=build python3 ./examples/csp_server_clie
 import time
 import threading
 import libcsp_py3 as csp
-from typing import Any, Callable
+from typing import Callable
 
 
 def printer(node: str, color: str) -> Callable:
@@ -32,7 +32,7 @@ def server_task(addr: int, port: int) -> None:
 
         while (packet := csp.read(conn, 50)) is not None:
             if csp.conn_dport(conn) == port:
-                _print('Recieved on {port}: {data}'.format(
+                _print('Received on {port}: {data}'.format(
                     port=port,
                     data=csp.packet_get_data(packet).decode('utf-8'))
                 )

@@ -1,3 +1,5 @@
+#include "csp_posix_helper.h"
+
 #include <csp/csp.h>
 #include <csp/csp_debug.h>
 #include <pthread.h>

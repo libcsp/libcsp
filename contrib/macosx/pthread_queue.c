@@ -93,7 +93,7 @@ int pthread_queue_enqueue(pthread_queue_t * queue, const void * value, uint32_t 
 	queue->in = (queue->in + 1) % queue->size;
 	pthread_mutex_unlock(&(queue->mutex));
 
-	/* Nofify blocked threads */
+	/* Notify blocked threads */
 	pthread_cond_broadcast(&(queue->cond_empty));
 
 	return PTHREAD_QUEUE_OK;
@@ -139,7 +139,7 @@ int pthread_queue_dequeue(pthread_queue_t * queue, void * buf, uint32_t timeout)
 	queue->out = (queue->out + 1) % queue->size;
 	pthread_mutex_unlock(&(queue->mutex));
 
-	/* Nofify blocked threads */
+	/* Notify blocked threads */
 	pthread_cond_broadcast(&(queue->cond_full));
 
 	return PTHREAD_QUEUE_OK;

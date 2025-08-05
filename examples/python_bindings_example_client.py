@@ -10,7 +10,6 @@
 # $ LD_LIBRARY_PATH=build PYTHONPATH=build python3 examples/python_bindings_example_client.py -z localhost
 #
 
-import os
 import time
 import sys
 import argparse
@@ -63,7 +62,6 @@ if __name__ == "__main__":
         # same format/use as line above
         libcsp.rtable_load(options.routing_table)
 
-    # Parameters: {priority} - 0 (critical), 1 (high), 2 (norm), 3 (low) ---- default=2
     # Start the router task - creates routing thread
     libcsp.route_start_task()
     time.sleep(0.2)  # allow router task startup
@@ -106,6 +104,6 @@ if __name__ == "__main__":
         # 10                      - dest port 
         # 1000                    - timeout ms
         # outbuf                  - outgoing data (request)
-        # inbuf                   - buffer provided for recieving data (reply)      
+        # inbuf                   - buffer provided for receiving data (reply)      
     libcsp.transaction(0, options.server_address, 10, 1000, outbuf, inbuf)
     print ("  got reply from server [%s]" % (''.join('{:02x}'.format(x) for x in inbuf)))

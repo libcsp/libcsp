@@ -34,7 +34,12 @@ int main(int argc, char * argv[])
 	}
 
 	/* prepare data */
-	packet = csp_buffer_get_always();
+	packet = csp_buffer_get(0);
+	if (packet == NULL) {
+		csp_print("Failed to get buffer\n");
+		csp_close(conn);
+		return 1;
+	}
 	memcpy(packet->data, "abc", 3);
 	packet->length = 3;
 

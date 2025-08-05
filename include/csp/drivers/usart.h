@@ -89,12 +89,12 @@ void csp_usart_unlock(void * driver_data);
 /**
  * Opens UART device and add KISS interface.
  *
- * This is a convience function for opening an UART device and adding it as an interface with a given name.
+ * This is a convenience function for opening an UART device and adding it as an interface with a given name.
  *
  * .. note:: On read failures, exit() will be called - terminating the process.
  *
  * @param[in] conf UART configuration.
- * @param[in] ifname internface name (will be copied), or use NULL for default name.
+ * @param[in] ifname interface name (will be copied), or use NULL for default name.
  * @param[in] addr CSP address of the interface.
  * @param[out] return_iface the added interface.
  * @return #CSP_ERR_NONE on success, otherwise an error code.

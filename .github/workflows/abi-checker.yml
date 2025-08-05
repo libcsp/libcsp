@@ -1,5 +1,7 @@
 name: ABI Compliance Check
 on: [pull_request]
+permissions:
+  contents: read
 jobs:
   abi-check:
     strategy:

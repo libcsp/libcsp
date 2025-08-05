@@ -22,7 +22,7 @@ static unsigned int server_received = 0;
 static unsigned int run_duration_in_sec = 3;
 
 /* Server task - handles requests from clients */
-void * server(void * param) {
+static void * server(void * param) {
 
 	(void)param;
 
@@ -47,7 +47,7 @@ void * server(void * param) {
 			continue;
 		}
 
-		/* Read packets on connection, timout is 100 mS */
+		/* Read packets on connection, timeout is 100 mS */
 		csp_packet_t *packet;
 		while ((packet = csp_read(conn, 50)) != NULL) {
 			switch (csp_conn_dport(conn)) {
@@ -76,7 +76,7 @@ void * server(void * param) {
 /* End of server task */
 
 /* Client task sending requests to server task */
-void * client(void * param) {
+static void * client(void * param) {
 
 	(void)param;
 
@@ -108,7 +108,11 @@ void * client(void * param) {
 		}
 
 		/* 2. Get packet buffer for message/data */
-		csp_packet_t * packet = csp_buffer_get_always();
+		csp_packet_t * packet = csp_buffer_get(0);
+		if (packet == NULL) {
+			csp_print("Failed to get buffer\n");
+			csp_close(conn);
+		}
 
 		/* 3. Copy data to packet */
         memcpy(packet->data, "Hello world ", 12);

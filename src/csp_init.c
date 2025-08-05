@@ -11,7 +11,8 @@
 #include "csp_rdp_queue.h"
 
 __weak void csp_panic(const char * msg) {
-	exit(1);
+  (void)msg;
+  exit(1);
 	return;
 }
 

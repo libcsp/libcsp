@@ -1,5 +1,7 @@
 name: FreeRTOS Build and Test
 on: [push, pull_request]
+permissions:
+  contents: read
 jobs:
   build-freertos:
     runs-on: ubuntu-latest

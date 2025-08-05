@@ -13,5 +13,6 @@ __weak uint32_t csp_memfree_hook(void) {
 }
 
 __weak unsigned int csp_ps_hook(csp_packet_t * packet) {
+	(void)packet; /* Avoid compiler warnings about unused parameter */
 	return 0;
 }

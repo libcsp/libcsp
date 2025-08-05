@@ -128,7 +128,7 @@ void csp_ps(uint16_t node, uint32_t timeout) {
 			break;
 		}
 
-		/* We have a reply, ensure data is 0 (zero) termianted */
+		/* We have a reply, ensure data is 0 (zero) terminated */
 		const unsigned int length = (packet->length < sizeof(packet->data)) ? packet->length : (sizeof(packet->data) - 1);
 		packet->data[length] = 0;
 		csp_print("%s", packet->data);

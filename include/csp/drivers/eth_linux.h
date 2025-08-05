@@ -11,6 +11,10 @@
 
 #include <csp/interfaces/csp_if_eth.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * Open RAW socket and add CSP interface.
  *
@@ -28,11 +32,11 @@ int csp_eth_init(const char * device, const char * ifname, int mtu, unsigned int
 /**
  * Transmit an CSP ethernet frame
  *
- * @param[in] iface Ethernet interface to use.
+ * @param[in] driver_data Ethernet interface to use.
  * @param[in] eth_frame The CSP ethernet frame to transmit.
  * @return #CSP_ERR_NONE on success, otherwise an error code.
  */
-int csp_eth_tx_frame(csp_iface_t * iface, csp_eth_header_t * eth_frame);
+int csp_eth_tx_frame(void * driver_data, csp_eth_header_t * eth_frame);
 
 /**
  * Posix ethernet RX thread
@@ -41,3 +45,7 @@ int csp_eth_tx_frame(csp_iface_t * iface, csp_eth_header_t * eth_frame);
  * @return NULL
  */
 void * csp_eth_rx_loop(void * param);
+
+#ifdef __cplusplus
+}
+#endif

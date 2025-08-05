@@ -110,7 +110,7 @@ int csp_usart_open(const csp_usart_conf_t * conf, csp_usart_callback_t rx_callba
 		return CSP_ERR_NOMEM;
 	}
 
-	strcpy(ctx->name, conf->device);
+	strncpy(ctx->name, conf->device, sizeof(ctx->name) - 1);
 	ctx->rx_callback = rx_callback;
 	ctx->user_data = user_data;
 	ctx->fd = device_get_binding(conf->device);

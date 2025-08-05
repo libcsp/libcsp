@@ -11,7 +11,6 @@ ENV LC_ALL en_US.UTF-8
 ENV LANG en_US.utf8
 ENV LANGUAGE en_US.UTF-8
 
-# Install libxdp & libbpf
 RUN mkdir /home/libcsp_sphinx_docs && \
 	cd /home/libcsp_sphinx_docs && \
 	git clone https://github.com/libcsp/libcsp.git --branch develop && \

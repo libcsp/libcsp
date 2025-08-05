@@ -2,8 +2,9 @@ cmake_minimum_required(VERSION 3.20)
 project(CSP VERSION 2.1)
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-  set(BUILD_SHARED_LIBS ON)
+  set(DEFAULT_BUILD_SHARED_LIBS ON)
 endif()
+option(BUILD_SHARED_LIBS "Build using shared libraries" ${DEFAULT_BUILD_SHARED_LIBS})
 
 add_library(csp)
 set_target_properties(csp PROPERTIES C_STANDARD 11)
@@ -114,8 +115,15 @@ target_include_directories(csp
 add_library(csp_common INTERFACE)
 if(CSP_POSIX)
   target_compile_options(csp_common INTERFACE
-    -Wall -Wextra -Wpedantic
-    -Wshadow -Wcast-align -Wpointer-arith -Wwrite-strings -Wno-unused-parameter
+    -Wall
+    -Wcast-align
+    -Werror
+    -Wextra
+    -Wmissing-prototypes
+    -Wpedantic
+    -Wpointer-arith
+    -Wshadow
+    -Wwrite-strings
     $<$<C_COMPILER_ID:Clang>:-Wno-gnu-zero-variadic-macro-arguments>)
 endif()
 target_link_libraries(csp PRIVATE csp_common)
@@ -135,6 +143,7 @@ if(${CSP_ENABLE_PYTHON3_BINDINGS})
   find_package(Python3 COMPONENTS Development.Module)
   if(Python3_Development.Module_FOUND)
     Python3_add_library(libcsp_py3 MODULE WITH_SOABI src/bindings/python/pycsp.c)
+    add_compile_options(-Wno-missing-prototypes -Wno-unused-parameter)
     target_include_directories(libcsp_py3 PUBLIC ${csp_inc})
     target_link_libraries(libcsp_py3 PUBLIC csp)
   else()

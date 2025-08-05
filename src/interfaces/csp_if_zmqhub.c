@@ -76,7 +76,7 @@ void * csp_zmqhub_fixup_cspv1_del_dest_addr(uint8_t * rx_data, size_t * datalen)
  * @param packet Packet to transmit
  * @return 1 if packet was successfully transmitted, 0 on error
  */
-int csp_zmqhub_tx(csp_iface_t * iface, uint16_t __maybe_unused via, csp_packet_t * packet, int __maybe_unused from_me) {
+static int csp_zmqhub_tx(csp_iface_t * iface, uint16_t __maybe_unused via, csp_packet_t * packet, int __maybe_unused from_me) {
 
 	zmq_driver_t * drv = iface->driver_data;
 
@@ -99,7 +99,7 @@ int csp_zmqhub_tx(csp_iface_t * iface, uint16_t __maybe_unused via, csp_packet_t
 	return CSP_ERR_NONE;
 }
 
-void * csp_zmqhub_task(void * param) {
+static void * csp_zmqhub_task(void * param) {
 
 	zmq_driver_t * drv = param;
 	csp_packet_t * packet;
@@ -252,7 +252,9 @@ int csp_zmqhub_init_w_name_endpoints_rxfilter(const char * ifname, uint16_t addr
 	assert(ret == 0);
 	ret = pthread_create(&drv->rx_thread, &attributes, csp_zmqhub_task, drv);
 	assert(ret == 0);
-
+	ret = pthread_attr_destroy(&attributes);
+	assert(ret == 0);
+	(void)ret;
 	/* Register interface */
 	csp_iflist_add(&drv->iface);
 
@@ -338,7 +340,7 @@ int csp_zmqhub_init_filter2(const char * ifname, const char * host, uint16_t add
 	assert(ret == 0);
 	ret = zmq_connect(drv->subscriber, sub);
 	assert(ret == 0);
-
+	(void)ret;
 
 	if (promisc) {
 
@@ -371,6 +373,8 @@ int csp_zmqhub_init_filter2(const char * ifname, const char * host, uint16_t add
 	ret = pthread_attr_setdetachstate(&attributes, PTHREAD_CREATE_DETACHED);
 	assert(ret == 0);
 	ret = pthread_create(&drv->rx_thread, &attributes, csp_zmqhub_task, drv);
+	assert(ret == 0);
+	ret = pthread_attr_destroy(&attributes);
 	assert(ret == 0);
 
 	/* Register interface */

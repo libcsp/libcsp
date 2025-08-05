@@ -8,11 +8,14 @@
 #include <csp/drivers/usart.h>
 #include <csp/drivers/can_socketcan.h>
 #include <csp/interfaces/csp_if_zmqhub.h>
+#include <csp/interfaces/csp_if_udp.h>
 
 #include "csp_posix_helper.h"
 
 /* Server port, the port the server listens on for incoming connections from the client. */
-#define SERVER_PORT		10
+#define SERVER_PORT             10
+#define DEFAULT_UDP_REMOTE_PORT (1500)
+#define DEFAULT_UDP_LOCAL_PORT  (1501)
 
 /* Commandline options */
 static uint8_t server_address = 0;
@@ -27,12 +30,13 @@ enum DeviceType {
 	DEVICE_CAN,
 	DEVICE_KISS,
 	DEVICE_ZMQ,
+	DEVICE_UDP,
 };
 
 #define __maybe_unused __attribute__((__unused__))
 
 /* Server task - handles requests from clients */
-void * server(void * param) {
+static void * server(void * param) {
 
 	(void)param;
 
@@ -57,7 +61,7 @@ void * server(void * param) {
 			continue;
 		}
 
-		/* Read packets on connection, timout is 100 mS */
+		/* Read packets on connection, timeout is 100 mS */
 		csp_packet_t *packet;
 		while ((packet = csp_read(conn, 50)) != NULL) {
 			switch (csp_conn_dport(conn)) {
@@ -103,6 +107,7 @@ static struct option long_options[] = {
 #else
 	#define OPTION_R
 #endif
+	{"udp-address", required_argument, 0, 'u'},
     {"interface-address", required_argument, 0, 'a'},
     {"connect-to", required_argument, 0, 'C'},
 	{"protocol-version", required_argument, 0, 'v'},
@@ -112,7 +117,7 @@ static struct option long_options[] = {
     {0, 0, 0, 0}
 };
 
-void print_help(void) {
+static void print_help(void) {
     csp_print("Usage: csp_server [options]\n");
 	if (CSP_HAVE_LIBSOCKETCAN) {
 		csp_print(" -c <can-device>  set CAN device\n");
@@ -126,6 +131,7 @@ void print_help(void) {
 	if (CSP_USE_RTABLE) {
 		csp_print(" -R <rtable>      set routing table\n");
 	}
+	csp_print(" -u <udp-address>  set UDP address\n");
 	if (1) {
 		csp_print(" -a <address>     set interface address\n"
 				  " -v <version>     set protocol version\n"
@@ -135,7 +141,7 @@ void print_help(void) {
 	}
 }
 
-csp_iface_t * add_interface(enum DeviceType device_type, const char * device_name)
+static csp_iface_t * add_interface(enum DeviceType device_type, const char * device_name)
 {
     csp_iface_t * default_iface = NULL;
 
@@ -173,6 +179,19 @@ csp_iface_t * add_interface(enum DeviceType device_type, const char * device_nam
         default_iface->is_default = 1;
     }
 
+	if (device_type == DEVICE_UDP) {
+		default_iface = malloc(sizeof(csp_iface_t));
+		static csp_if_udp_conf_t udp_conf;
+
+		udp_conf.host = strdup(device_name);
+		udp_conf.lport = DEFAULT_UDP_LOCAL_PORT;
+		udp_conf.rport = DEFAULT_UDP_REMOTE_PORT;
+
+		csp_if_udp_init(default_iface, &udp_conf);
+		default_iface->addr = server_address;
+		default_iface->is_default = 1;
+	}
+
 	return default_iface;
 }
 
@@ -185,7 +204,7 @@ int main(int argc, char * argv[]) {
 	csp_iface_t * default_iface;
     int opt;
 
-	while ((opt = getopt_long(argc, argv, OPTION_c OPTION_z OPTION_R "k:a:v:tT:h", long_options, NULL)) != -1) {
+	while ((opt = getopt_long(argc, argv, OPTION_c OPTION_z OPTION_R "k:u:a:v:tT:h", long_options, NULL)) != -1) {
         switch (opt) {
             case 'c':
 				device_name = optarg;
@@ -198,7 +217,11 @@ int main(int argc, char * argv[]) {
             case 'z':
 				device_name = optarg;
 				device_type = DEVICE_ZMQ;
-                break;
+				break;
+			case 'u':
+				device_name = optarg;
+				device_type = DEVICE_UDP;
+				break;
 #if (CSP_USE_RTABLE)
             case 'R':
                 rtable = optarg;

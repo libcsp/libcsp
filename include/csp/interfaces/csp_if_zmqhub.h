@@ -3,7 +3,7 @@
  *
  * **Description:** ZMQ (ZeroMQ) interface.
  *
- * The ZMQ interface is designed to connect to a ZMQ hub, also refered to as
+ * The ZMQ interface is designed to connect to a ZMQ hub, also referred to as
  * zmqproxy. The zmqproxy can be found under examples, and is based on
  * zmq_proxy() - provided by the ZMQ API.
  *
@@ -44,7 +44,7 @@ extern "C" {
  * @param[in] port IP port.
  * @param[out] buf user allocated buffer for receiving formatted string.
  * @param[in] buf_size size of buf.
- * @return #CSP_ERR_NONE on succcess. #CSP_ERR_NOMEM if supplied buffer too small.
+ * @return #CSP_ERR_NONE on success. #CSP_ERR_NOMEM if supplied buffer too small.
  */
 int csp_zmqhub_make_endpoint(const char * host, uint16_t port, char * buf, size_t buf_size);
 
@@ -57,7 +57,7 @@ int csp_zmqhub_make_endpoint(const char * host, uint16_t port, char * buf, size_
  * 				   created using the host and the default subscribe/publish ports.
  * @param[in] flags flags for controlling features on the connection.
  * @param[out] return_interface created CSP interface.
- * @return #CSP_ERR_NONE on succcess - else assert.
+ * @return #CSP_ERR_NONE on success - else assert.
  */
 int csp_zmqhub_init(uint16_t addr,
 					const char * host,
@@ -75,7 +75,7 @@ int csp_zmqhub_init(uint16_t addr,
  * 											to zmqproxy's publish port #CSP_ZMQPROXY_PUBLISH_PORT.
  * @param[in] flags flags for controlling features on the connection.
  * @param[out] return_interface created CSP interface.
- * @return #CSP_ERR_NONE on succcess - else assert.
+ * @return #CSP_ERR_NONE on success - else assert.
  */
 int csp_zmqhub_init_w_endpoints(uint16_t addr,
 								const char * publish_endpoint,
@@ -97,7 +97,7 @@ int csp_zmqhub_init_w_endpoints(uint16_t addr,
  * 										publish port #CSP_ZMQPROXY_PUBLISH_PORT.
  * @param[in] flags flags for controlling features on the connection.
  * @param[out] return_interface created CSP interface.
- * @return #CSP_ERR_NONE on succcess - else assert.
+ * @return #CSP_ERR_NONE on success - else assert.
  */
 int csp_zmqhub_init_w_name_endpoints_rxfilter(const char * ifname, uint16_t addr,
 											  const uint16_t rx_filter[], unsigned int rx_filter_count,

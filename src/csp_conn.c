@@ -116,7 +116,7 @@ csp_conn_t * csp_conn_find_existing(csp_id_t * id) {
 
 		/* Incoming connections are uniquely defined by the source and
 		 * destination port, as well as the source node. Incoming
-		 * connections can never come from a brodcast address */
+		 * connections can never come from a broadcast address */
 		} else {
 
 			/* Connection must match dport */
@@ -211,6 +211,7 @@ int csp_close(csp_conn_t * conn) {
 }
 
 int csp_conn_close(csp_conn_t * conn, uint8_t closed_by) {
+	(void)closed_by; /* Avoid compiler warnings about unused parameter */
 
 	if (conn == NULL) {
 		return CSP_ERR_NONE;
@@ -247,6 +248,7 @@ int csp_conn_close(csp_conn_t * conn, uint8_t closed_by) {
 }
 
 csp_conn_t * csp_connect(uint8_t prio, uint16_t dest, uint8_t dport, uint32_t timeout, uint32_t opts) {
+	(void)timeout; /* Avoid compiler warnings about unused parameter */
 
 	/* Force options on all connections */
 	opts |= csp_conf.conn_dfl_so;
@@ -408,6 +410,8 @@ const csp_conn_t * csp_conn_get_array(size_t * size) {
 }
 
 bool csp_conn_is_active(csp_conn_t *conn) {
+	(void)conn; /* Avoid compiler warnings about unused parameter */
+
 #if (CSP_USE_RDP)
 	if ((conn->idin.flags & CSP_FRDP) || (conn->idout.flags & CSP_FRDP)) {
 		/* This is for sure an RDP connection */

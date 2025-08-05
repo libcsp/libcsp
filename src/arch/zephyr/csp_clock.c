@@ -10,7 +10,7 @@ __weak void csp_clock_get_time(csp_timestamp_t * time) {
 
 	ret = clock_gettime(CLOCK_REALTIME, &ts);
 	if (ret < 0) {
-		LOG_WRN("clock_gettime() failed, retruning with 0s");
+		LOG_WRN("clock_gettime() failed, returning with 0s");
 		time->tv_sec = 0;
 		time->tv_nsec = 0;
 	} else {
