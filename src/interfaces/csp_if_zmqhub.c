@@ -266,6 +266,15 @@ int csp_zmqhub_init_w_name_endpoints_rxfilter(const char * ifname, uint16_t addr
 }
 
 int csp_zmqhub_init_filter2(const char * ifname, const char * host, uint16_t addr, uint16_t netmask, int promisc, csp_iface_t ** return_interface, char * sec_key, uint16_t subport, uint16_t pubport) {
+	
+	/* ZMQ will cause valgrind errors if `sec_key` isn't exactly 40 characters long.
+		For now we deliberately parse an empty string as if no sec_key was specified. */
+	const ssize_t sec_key_len = sec_key ? strnlen(sec_key, CURVE_KEYLEN-1) : 0;
+	if (sec_key_len && sec_key_len != CURVE_KEYLEN-1) {
+		/* Is it bad to expose the detected length of the ZMQ key here? */
+		fprintf(stderr, "ZMQ secret key must be exactly 40 characters long (got %ld)\n", sec_key_len);
+		return CSP_ERR_INVAL;
+	}
 
 	char pub[100];
 	csp_zmqhub_make_endpoint(host, subport, pub, sizeof(pub));
@@ -301,8 +310,8 @@ int csp_zmqhub_init_filter2(const char * ifname, const char * host, uint16_t add
 	assert(drv->subscriber != NULL);
 
 	/* If shared secret key provided */
-	if (sec_key) {
-		char pub_key[41];
+	if (sec_key_len) {
+		char pub_key[CURVE_KEYLEN];
 
 		zmq_curve_public(pub_key, sec_key);
 		/* Publisher (TX) */
