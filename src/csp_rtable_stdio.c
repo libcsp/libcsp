@@ -24,13 +24,13 @@ static int csp_rtable_parse(const char * rtable, int dry_run) {
 	while (str && (strlen(str) > 1)) {
 		unsigned int address, via;
 		int netmask;
-		char name[15];
-		if (sscanf(str, "%u/%d %14s %u", &address, &netmask, name, &via) == 4) {
-		} else if (sscanf(str, "%u/%d %14s", &address, &netmask, name) == 3) {
+		char name[CSP_IFLIST_NAME_MAX] = {0};
+		if (sscanf(str, "%u/%d %9s %u", &address, &netmask, name, &via) == 4) {
+		} else if (sscanf(str, "%u/%d %9s", &address, &netmask, name) == 3) {
 			via = CSP_NO_VIA_ADDRESS;
-		} else if (sscanf(str, "%u %14s %u", &address, name, &via) == 3) {
+		} else if (sscanf(str, "%u %9s %u", &address, name, &via) == 3) {
 			netmask = csp_id_get_host_bits();
-		} else if (sscanf(str, "%u %14s", &address, name) == 2) {
+		} else if (sscanf(str, "%u %9s", &address, name) == 2) {
 			netmask = csp_id_get_host_bits();
 			via = CSP_NO_VIA_ADDRESS;
 		} else {
