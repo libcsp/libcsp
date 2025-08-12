@@ -61,7 +61,7 @@ jobs:
           sudo apt-get install ninja-build ${{ matrix.buildsystem }}
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Build
         env:
