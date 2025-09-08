@@ -125,7 +125,18 @@ int csp_zmqhub_init_filter2(const char * ifname, const char * host, uint16_t add
 
 void csp_zmqhub_fixup_cspv1_add_dest_addr(csp_packet_t * packet);
 void * csp_zmqhub_fixup_cspv1_del_dest_addr(uint8_t * rx_data, size_t * datalen);
+/**
+ * Make `zmq_iface` promiscuous (parse all packets)
+ *
+ * Safe to call after `csp_zmqhub_init_filter2()` to change promiscuity.
+ */
 void csp_zmqhub_remove_filters(csp_iface_t * zmq_iface);
+
+/**
+ * Make `zmq_iface` unpromiscuous, only parse matching unicast and broadcast addresses.
+ *
+ * Safe to call after `csp_zmqhub_init_filter2()` to change promiscuity.
+ */
 void csp_zmqhub_add_filters(csp_iface_t * zmq_iface);
 
 

@@ -299,7 +299,7 @@ void csp_zmqhub_add_filters(csp_iface_t * zmq_iface) {
 	const uint16_t addr = zmq_iface->addr;
 	const uint16_t hostmask = (1 << (csp_id_get_host_bits() - zmq_iface->netmask)) - 1;
 
-	/* Subscribe to all packets - no filter */
+	/* Unsubscribe to all packets */
 	ret = zmq_setsockopt(drv->subscriber, ZMQ_UNSUBSCRIBE, NULL, 0);
 	assert(ret == 0);
 
