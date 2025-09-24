@@ -99,7 +99,7 @@ int csp_usart_open(const csp_usart_conf_t * conf, csp_usart_callback_t rx_callba
 	}
 
 	if (uart_rx_thread_idx >= CONFIG_CSP_UART_RX_THREAD_NUM) {
-		LOG_ERR("%s: [%s] No more RX thread can be created. (MAX: %d) Please check CONFIG_CSP_CAN_RX_THREAD_NUM.", __func__, conf->device, CONFIG_CSP_UART_RX_THREAD_NUM);
+		LOG_ERR("%s: [%s] No more RX thread can be created. (MAX: %d) Please check CONFIG_CSP_UART_RX_THREAD_NUM.", __func__, conf->device, CONFIG_CSP_UART_RX_THREAD_NUM);
 		return CSP_ERR_DRIVER;
 	}
 
