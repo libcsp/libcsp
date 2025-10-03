@@ -1,5 +1,30 @@
 libcsp 2.1, xx-yy-zzzz
 ----------------------
+- new: Add reproducible builds
+- new: Move to reStructuredText and automated documentation deployment
+- new: Add convenient macros like `__noinit`, `__weak`, `__packed`, etc.
+- new: Add simple sample code under `samples/`
+- new: Add separate `csp_server` and `csp_client` in addition to `csp_server_client`
+- new: Add raw Ethernet driver for Linux
+- new: Add CAN drivers for Zephyr
+- new: Begin adding unit tests
+- new: Enable `-Wpointer-arith`
+- new: Enable `-Wpedantic`
+- break: Rename `csp_autoconfig.h` to `build/include/csp/autoconfig.h`
+- removed: Remove additional Windows and macOS support
+- improvement: Update documentation
+- improvement: Improve C++ support by adding `extern "C"`
+- improvement: Improve Python support
+- improvement: Update examples with various features
+- improvement: Update support for FreeRTOS, POSIX, and Zephyr
+- improvement: Update build systems: Waf, Meson, and CMake
+- improvement: Update various libcsp core modules:
+  - bridge, conn, crc32, dedup, id, iflist, io, port, packet
+  - promisc, queue, rdp, route, service, sfp, yaml, and more
+- improvement: Update various libcsp device drivers:
+  - can, socketcan, eth, usart
+- improvement: Update various libcsp interface drivers:
+  - can, eth, kiss, tun, udp, zmq, loopback
 
 libcsp 2.0, 19-04-2024
 ----------------------
