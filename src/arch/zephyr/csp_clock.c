@@ -1,6 +1,11 @@
 #include <csp/csp_types.h>
 #include <zephyr/kernel.h>
-#include <zephyr/posix/time.h>
+/* https://github.com/zephyrproject-rtos/zephyr/discussions/96911*/
+#if __has_include(<zephyr/posix/posix_time.h>)
+  #include <time.h>
+#else
+  #include <zephyr/posix/time.h>
+#endif
 #include <zephyr/logging/log.h>
 LOG_MODULE_DECLARE(libcsp);
 
