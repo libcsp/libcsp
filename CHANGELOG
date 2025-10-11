@@ -1,4 +1,4 @@
-libcsp 2.1, xx-yy-zzzz
+libcsp 2.1, 11-10-2025
 ----------------------
 - new: Add reproducible builds
 - new: Move to reStructuredText and automated documentation deployment
