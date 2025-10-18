@@ -27,6 +27,7 @@ void csp_iflist_remove(csp_iface_t * ifc);
 
 csp_iface_t * csp_iflist_get_by_name(const char * name);
 csp_iface_t * csp_iflist_get_by_addr(uint16_t addr);
+csp_iface_t * csp_iflist_get_by_broadcast(uint16_t addr);
 csp_iface_t * csp_iflist_get_by_subnet(uint16_t addr, csp_iface_t * from);
 csp_iface_t * csp_iflist_get_by_isdfl(csp_iface_t * ifc);
 csp_iface_t * csp_iflist_get_by_index(int idx);

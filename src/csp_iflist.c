@@ -132,6 +132,18 @@ csp_iface_t * csp_iflist_get_by_addr(uint16_t addr) {
 
 }
 
+csp_iface_t * csp_iflist_get_by_broadcast(uint16_t addr) {
+
+	csp_iface_t * ifc = interfaces;
+	while (ifc) {
+		if (csp_id_is_broadcast(addr, ifc)) {
+			return ifc;
+		}
+		ifc = ifc->next;
+	}
+	return NULL;
+}
+
 csp_iface_t * csp_iflist_get_by_name(const char * name) {
 	csp_iface_t * ifc = interfaces;
 	while (ifc) {
