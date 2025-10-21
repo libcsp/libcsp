@@ -6,6 +6,7 @@
 config LIBCSP
 	bool "Enable Cubesat Space Protocol Support"
 	select POSIX_TIMERS
+	select POSIX_MONOTONIC_CLOCK
 	select POSIX_SYSTEM_INTERFACES
 	help
 	  This option enables the Cubesat Space Protocol (CSP) library.
