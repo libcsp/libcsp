@@ -9,8 +9,9 @@
 #include <csp/csp_debug.h>
 #include <csp/interfaces/csp_if_lo.h>
 
-/* Interfaces are stored in a linked list */
+/* Interfaces and alias receive addresses are stored in linked lists */
 static csp_iface_t * interfaces = NULL;
+static csp_alias_t * aliass = NULL;
 
 int csp_iflist_is_within_subnet(uint16_t addr, csp_iface_t * ifc) {
 
@@ -98,6 +99,49 @@ static csp_iface_t * csp_iflist_iterate(csp_iface_t * ifc) {
 
 	return ifc;
 
+}
+
+int csp_alias_add(csp_alias_t * addr) {
+
+	if (addr == NULL || addr->iface == NULL) {
+		return -1;
+	}
+
+	/* Register interface for L2 filtering, if interface supports */
+	if (addr->iface->add_alias) {
+		int result = addr->iface->add_alias(addr->iface->driver_data, addr->addr);
+		if (result < 0) {
+			return result;
+		}
+	}
+
+	/* Add to list */
+	addr->next = aliass;
+	aliass = addr;
+
+	return 0;
+}
+
+csp_alias_t * csp_alias_iterate(csp_alias_t * addr) {
+
+	if (addr == NULL) {
+		addr = aliass;
+	} else {
+		addr = addr->next;
+	}
+
+	return addr;
+}
+
+int csp_addr_is_alias(uint16_t addr) {
+
+	csp_alias_t * alias = NULL;
+	while ((alias = csp_alias_iterate(alias)) != NULL) {
+		if (addr == alias->addr) {
+			return 1;
+		}
+	}
+	return 0;
 }
 
 void csp_iflist_check_dfl(void) {

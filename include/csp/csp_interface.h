@@ -19,6 +19,7 @@ extern "C" {
  * @return #CSP_ERR_NONE on success, otherwise an error code.
  */
 typedef int (*nexthop_t)(csp_iface_t * iface, uint16_t via, csp_packet_t * packet, int from_me);
+typedef int (*csp_alias_add_t)(void * driver_data, uint16_t addr);
 
 /**
  * This struct is referenced in documentation.
@@ -33,6 +34,7 @@ struct csp_iface_s {
 	void * interface_data;      /**< Interface data, only known/used by the interface layer, e.g. state information. */
 	void * driver_data;         /**< Driver data, only known/used by the driver layer, e.g. device/channel references. */
 	nexthop_t nexthop;          /**< Next hop (Tx) function */
+	csp_alias_add_t add_alias;  /**< Add receive address to interface (could be multicast receptions) */
 	uint8_t is_default;         /**< Set default IF flag (CSP supports multiple defaults) */
 
 	/* Stats */
@@ -51,6 +53,18 @@ struct csp_iface_s {
 	struct csp_iface_s * next;
 
 };
+
+/**
+ * Used to represent an alias reception address, bound to a particular interface
+ */
+typedef struct csp_alias_s {
+	uint16_t addr;
+	csp_iface_t * iface;
+
+	/* For linked lists*/
+	struct csp_alias_s * next;
+
+} csp_alias_t;
 
 /**
  * Inputs a new packet into the system.

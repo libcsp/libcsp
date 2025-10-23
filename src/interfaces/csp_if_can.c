@@ -370,7 +370,7 @@ static int csp_can2_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet,
 	(void)from_me;
 
 	/* Loopback */
-	if (packet->id.dst == iface->addr) {
+	if (packet->id.dst == iface->addr || csp_addr_is_alias(packet->id.dst)) {
 		csp_qfifo_write(packet, iface, NULL);
 		return CSP_ERR_NONE;
 	}

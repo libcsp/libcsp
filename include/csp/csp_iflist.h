@@ -35,6 +35,9 @@ int csp_iflist_is_within_subnet(uint16_t addr, csp_iface_t * ifc);
 
 csp_iface_t * csp_iflist_get(void);
 
+int csp_addr_is_alias(uint16_t addr);
+int csp_alias_add(csp_alias_t * addr);
+
 /**
  * Convert bytes to readable string
  */

@@ -189,6 +189,39 @@ static int csp_can_socketcan_set_promisc(const bool promisc, can_context_t * ctx
 	return CSP_ERR_NONE;
 }
 
+int csp_can_socketcan_add_alias(void * driver_data, uint16_t addr) {
+
+	if (csp_conf.version == 1) {
+		return -1;
+	}
+
+	can_context_t * ctx = driver_data;
+
+	struct can_filter filter[10];
+	socklen_t len = sizeof(filter);
+
+	getsockopt(ctx->socket, SOL_CAN_RAW, CAN_RAW_FILTER, &filter, &len);
+
+	/* Current implementation has a defined maximum of filters available */
+	if (len == sizeof(filter)) {
+		return -2;
+	}
+
+	/* If only 1 filter exist for CSP v2, interface is promisc */
+	if (len == sizeof(struct can_filter)) {
+		return 0;
+	}
+
+	/* Add filter for specific additional receive address */
+	filter[len/sizeof(struct can_filter)].can_id = addr << CFP2_DST_OFFSET;
+	filter[len/sizeof(struct can_filter)].can_mask = CFP2_DST_MASK << CFP2_DST_OFFSET;;
+
+	if (setsockopt(ctx->socket, SOL_CAN_RAW, CAN_RAW_FILTER, &filter, len + sizeof(struct can_filter)) < 0) {
+		return -2;
+	}
+
+	return 0;
+}
 
 int csp_can_socketcan_open_and_add_interface(const char * device, const char * ifname, unsigned int node_id, int bitrate, bool promisc, csp_iface_t ** return_iface) {
 	if (ifname == NULL) {
@@ -217,6 +250,7 @@ int csp_can_socketcan_open_and_add_interface(const char * device, const char * i
 	ctx->iface.interface_data = &ctx->ifdata;
 	ctx->iface.driver_data = ctx;
 	ctx->ifdata.tx_func = csp_can_tx_frame;
+	ctx->iface.add_alias = csp_can_socketcan_add_alias;
 	ctx->ifdata.pbufs = NULL;
 
 	/* Create socket */
