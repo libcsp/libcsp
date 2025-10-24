@@ -26,4 +26,5 @@
 #define CSP_ERR_HMAC		-100		/**< HMAC failed */
 #define CSP_ERR_CRC32		-102		/**< CRC32 failed */
 #define CSP_ERR_SFP		-103		/**< SFP protocol error or inconsistency */
+#define CSP_ERR_MTU     -104     /**< Invalid MTU */
 /**@}*/
