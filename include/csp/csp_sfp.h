@@ -120,9 +120,7 @@ int csp_sfp_send(csp_conn_t * conn, const csp_sfp_read_t * user, uint32_t datasi
  * This is the counterpart to the csp_sfp_send() and csp_sfp_send_own_memcpy().
  *
  * @param[in] conn established connection for receiving SFP packets.
- * @param[out] dataout received data on success. Allocated with malloc(), so
- * 			   should be freed with free(). The pointer will be NULL on failure.
- * @param[out] datasize size of received data.
+ * @param[in] user User-defined data with write function and data pointer.
  * @param[in] timeout timeout in ms to wait for csp_read()
  * @param[in] first_packet First packet of a SFP transfer.
  * 			  Use NULL to receive first packet on the connection.
