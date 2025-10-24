@@ -297,7 +297,7 @@ static PyObject * pycsp_sendto(PyObject * self, PyObject * args) {
 	uint32_t opts;
 	PyObject * packet_capsule;
 	if (!PyArg_ParseTuple(args, "bHbbIO", &prio, &dest, &dport, &src_port, &opts, &packet_capsule)) {
-		Py_RETURN_NONE;
+		return NULL;
 	}
 	csp_packet_t * packet = get_obj_as_packet(packet_capsule, false);
 	if (packet == NULL) {
@@ -730,7 +730,7 @@ static PyObject * pycsp_cmp_peek(PyObject * self, PyObject * args) {
 	uint8_t len;
 	Py_buffer outbuf;
 	if (!PyArg_ParseTuple(args, "HIIbw*", &node, &timeout, &addr, &len, &outbuf)) {
-		Py_RETURN_NONE;
+		return NULL;
 	}
 
 	if ((len > CSP_CMP_PEEK_MAX_LEN) || (len > outbuf.len)) {
@@ -763,7 +763,7 @@ static PyObject * pycsp_cmp_poke(PyObject * self, PyObject * args) {
 	Py_buffer inbuf;
 
 	if (!PyArg_ParseTuple(args, "HIIbw*", &node, &timeout, &addr, &len, &inbuf)) {
-		Py_RETURN_NONE;
+		return NULL;
 	}
 
 	if (len > CSP_CMP_POKE_MAX_LEN) {
@@ -791,7 +791,7 @@ static PyObject * pycsp_cmp_clock_set(PyObject * self, PyObject * args) {
 	uint32_t nsec;
 	uint32_t timeout = 1000;
 	if (!PyArg_ParseTuple(args, "HII|I", &node, &sec, &nsec, &timeout)) {
-		Py_RETURN_NONE;
+		return NULL;
 	}
 
 	if (sec == 0) {
@@ -818,7 +818,7 @@ static PyObject * pycsp_cmp_clock_get(PyObject * self, PyObject * args) {
 	uint16_t node;
 	uint32_t timeout = 1000;
 	if (!PyArg_ParseTuple(args, "H|I", &node, &timeout)) {
-		Py_RETURN_NONE;
+		return NULL;
 	}
 
 	struct csp_cmp_message msg;
