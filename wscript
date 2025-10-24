@@ -283,6 +283,10 @@ def build(ctx):
                         lib=ctx.env.LIBS,
                         use='csp')
 
+        ctx.program(source=['examples/csp_sfp_server_client.c'],
+                    target='examples/csp_sfp_server_client',
+                    lib=ctx.env.LIBS,
+                    use='csp')
 
 def dist(ctx):
     ctx.excl = 'build/* **/.* **/*.pyc **/*.o **/*~ *.tar.gz'
