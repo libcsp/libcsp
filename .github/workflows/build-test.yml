@@ -135,7 +135,7 @@ jobs:
         run: |
           ./build/examples/csp_client -u "127.0.0.1" -a 2 -C 1 -T 10 -v ${{ matrix.csp_version }} &
           ./build/examples/csp_server -u "127.0.0.1" -a 1 -T 10 -v ${{ matrix.csp_version }}
-	  
+
       - name: Run SFP Test
         run: |
           ./build/examples/csp_sfp_server_client --mtu 1 --size 1
