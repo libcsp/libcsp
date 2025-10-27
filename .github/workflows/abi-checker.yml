@@ -53,7 +53,7 @@ jobs:
 
       - name: Upload ABI Report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: abi-compliance-report-${{ github.run_id }}
           path: compat_reports
