@@ -208,7 +208,7 @@ static void * sender(void * params) {
     /* Send data */
     int ret = csp_sfp_send(conn, &user, test_opts->size, test_opts->mtu, 0);
     if (CSP_ERR_NONE != ret) {
-        perr("Failed csp_sfp_send dew to: %s", csp_error_to_str(ret));
+        perr("Failed csp_sfp_send due to: %s", csp_error_to_str(ret));
         goto exit;
     }
 
@@ -244,7 +244,7 @@ static void * receiver(void * params) {
     /* Send data */
     int ret = csp_sfp_recv(conn, &user, 1000);
     if (CSP_ERR_NONE != ret) {
-        perr("Failed csp_sfp_recv dew to: %s", csp_error_to_str(ret));
+        perr("Failed csp_sfp_recv due to: %s", csp_error_to_str(ret));
         goto exit;
     }
 
