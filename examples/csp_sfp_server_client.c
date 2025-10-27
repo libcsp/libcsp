@@ -1,5 +1,5 @@
 /* needed for pthread_timedjoin_np */
-#define _GNU_SOURCE 
+#define _GNU_SOURCE
 
 #include <csp/csp.h>
 #include <csp/csp_buffer.h>
@@ -7,7 +7,7 @@
 #include <csp/csp_crc32.h>
 #include <csp/interfaces/csp_if_lo.h>
 #include <fcntl.h>
-#include <stdio.h> 
+#include <stdio.h>
 #include <unistd.h>
 #include <string.h>
 #include <stdlib.h>
@@ -122,7 +122,7 @@ static void process_args(int argc, char * argv[], test_options_t * test_opts) {
                     exit(EXIT_FAILURE);
                 }
                 break;
-            
+
             case 'm':
                 test_opts->mtu = atoi(optarg);
                 if (test_opts->mtu < 0) {
@@ -144,9 +144,9 @@ static void process_args(int argc, char * argv[], test_options_t * test_opts) {
 
 static int read_from_buffer(uint8_t * buffer, uint32_t size, uint32_t offset, void * data) {
     (void)offset;
-    
+
     sfp_data_t * d = (sfp_data_t *)data;
-    
+
     /* Seed the random number generator */
     srand(time(NULL));
 
@@ -166,10 +166,10 @@ static int write_to_buffer(const uint8_t * buffer, uint32_t size, uint32_t offse
     (void)totalsz;
 
     sfp_data_t * d = (sfp_data_t *)data;
-    
+
     /* update crc */
     csp_crc32_update(&d->crc, buffer, size);
-    
+
     /* update counter */
     received_sz += size;
 
@@ -178,7 +178,7 @@ static int write_to_buffer(const uint8_t * buffer, uint32_t size, uint32_t offse
 
 static void * router(void * params) {
     (void)params;
-    
+
     while (1) {
         (void)csp_route_work();
     }
@@ -273,7 +273,7 @@ int main(int argc, char * argv[]) {
 
     csp_if_lo.is_default = 1;
     csp_if_lo.nexthop = loopback_tx; /* replace default tx function */
-    
+
     pthread_t router_thread;
     if (0 != pthread_create(&router_thread, NULL, router, NULL)) {
         perr("Failed to create thread");
@@ -325,7 +325,7 @@ int main(int argc, char * argv[]) {
 
     if ((uint32_t)test_options.size != received_sz) {
         perr("SIZE mismatch");
-        exit(EXIT_FAILURE); 
+        exit(EXIT_FAILURE);
     }
 
     printf("Test completed!\n");
