@@ -292,6 +292,20 @@ void csp_zmqhub_remove_filters(csp_iface_t * zmq_iface) {
 	(void)ret;
 }
 
+int csp_zmqhub_add_filter(void * driver_data, uint16_t addr) {
+
+	int ret = 0;
+	zmq_driver_t * drv = (zmq_driver_t*)driver_data;
+
+	/* Subscribe to an extra address, typically registered by alias address */
+	for (int i = 0; i < 4; i++) {
+		uint16_t filter = __builtin_bswap16((i << 14) | addr);
+		ret = zmq_setsockopt(drv->subscriber, ZMQ_SUBSCRIBE, &filter, 2);
+		assert(ret == 0);
+	}
+	return ret;
+}
+
 void csp_zmqhub_add_filters(csp_iface_t * zmq_iface) {
 
 	int ret = 0;
@@ -347,6 +361,7 @@ int csp_zmqhub_init_filter2(const char * ifname, const char * host, uint16_t add
 	drv->iface.name = drv->name;
 	drv->iface.driver_data = drv;
 	drv->iface.nexthop = csp_zmqhub_tx;
+	drv->iface.add_alias = csp_zmqhub_add_filter;
 
 	drv->iface.addr = addr;
 	drv->iface.netmask = netmask;
