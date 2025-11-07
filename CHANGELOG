@@ -2,6 +2,7 @@ libcsp 2.2, xx-xx-202x
 ----------------------
 - new: csp_sfp_send(), csp_sfp_conn_max_mtu(), csp_sfp_opts_max_mtu()
 - improvement: Small Fragmentation Protocol has been reworked to remove malloc() (#742)
+- improvement: PyCSP can now be built without SocketCAN (#638)
 - removed: csp_sfp_send_own_memcpy()
 - break; csp_sfp_recv_fp()
 
