@@ -1,4 +1,4 @@
-# Simple Send via USART
+# Simple Send using SFP via USART
 
 This is a simple sample code to send and receive a file using SFP over LOOPBACK interface.
 
