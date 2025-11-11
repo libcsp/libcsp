@@ -8,6 +8,7 @@ if(CONFIG_LIBCSP)
   # https://github.com/zephyrproject-rtos/zephyr/issues/31193
   # predefine it
   set(HAVE_SYS_SOCKET_H OFF)
+  set(HAVE_ARPA_INET_H OFF)
 
   # Cache entries. see the top level CMakeLists.txt
   set(CSP_QFIFO_LEN        CONFIG_CSP_QFIFO_LEN CACHE STRING "")
