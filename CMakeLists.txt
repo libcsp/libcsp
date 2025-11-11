@@ -42,6 +42,8 @@ option(CSP_BUILD_SAMPLES "Build samples and examples by default" OFF)
 
 option(CSP_FIXUP_V1_ZMQ_LITTLE_ENDIAN "Use little-endian CSP ID for ZMQ with CSPv1" ON)
 
+option(CSP_ENABLE_KISS_CRC "Enables the extra CRC in the KISS interface (legacy)" ON)
+
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   set(CSP_POSIX 1)
 elseif(CMAKE_SYSTEM_NAME STREQUAL "CYGWIN")

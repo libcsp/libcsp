@@ -27,3 +27,5 @@
 #cmakedefine01 CSP_HAVE_LIBZMQ
 
 #cmakedefine01 CSP_FIXUP_V1_ZMQ_LITTLE_ENDIAN
+
+#cmakedefine01 CSP_ENABLE_KISS_CRC

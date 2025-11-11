@@ -31,6 +31,8 @@ conf.set10('CSP_BUFFER_ZERO_CLEAR', get_option('buffer_zero_clear'))
 
 conf.set10('CSP_FIXUP_V1_ZMQ_LITTLE_ENDIAN', get_option('fixup_v1_zmq_little_endian'))
 
+conf.set10('CSP_ENABLE_KISS_CRC', get_option('enable_kiss_crc'))
+
 csp_deps = []
 csp_sources = []
 

@@ -54,6 +54,8 @@ def options(ctx):
     # Fixup
     gr.add_option('--fixup-v1-zmq-little-endian', action='store_true', help='Use little-endian CSP ID for ZMQ with CSPv1')
 
+    gr.add_option('--disable_kiss_crc', action='store_true', help='Disable the extra CRC in the KISS interface (legacy)')
+
 def configure(ctx):
     # Validate options
     if ctx.options.with_os not in valid_os:
@@ -205,6 +207,8 @@ def configure(ctx):
     ctx.define('CSP_BUFFER_ZERO_CLEAR', ctx.options.disable_buffer_zero_clear)
 
     ctx.define('CSP_FIXUP_V1_ZMQ_LITTLE_ENDIAN', ctx.options.fixup_v1_zmq_little_endian)
+
+    ctx.define('CSP_ENABLE_KISS_CRC', not ctx.options.disable_kiss_crc)
 
     ctx.write_config_header('include/csp/autoconfig.h')
 
