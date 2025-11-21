@@ -37,7 +37,7 @@ jobs:
           sudo apt-get install ninja-build ${{ matrix.buildsystem }}
 
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Build libcsp examples
         run: python3 examples/buildall.py --build-system=${{ matrix.buildsystem }}
