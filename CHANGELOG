@@ -5,6 +5,7 @@ libcsp 2.2, xx-xx-202x
 - improvement: PyCSP can now be built without SocketCAN (#638)
 - removed: csp_sfp_send_own_memcpy()
 - break; csp_sfp_recv_fp()
+- fix: csp_accept() now explicitly rejects connection-less sockets (#766)
 
 libcsp 2.1, 11-10-2025
 ----------------------
