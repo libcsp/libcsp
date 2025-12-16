@@ -840,15 +840,21 @@ static PyObject * pycsp_cmp_clock_get(PyObject * self, PyObject * args) {
 #if CSP_HAVE_LIBZMQ
 static PyObject * pycsp_zmqhub_init(PyObject * self, PyObject * args) {
 	uint16_t addr;
-	char * host;
-	if (!PyArg_ParseTuple(args, "Hs", &addr, &host)) {
+	const char * host = "localhost";
+	int is_default = 0;
+	uint16_t mask = 8;
+	if (!PyArg_ParseTuple(args, "H|spH", &addr, &host, &is_default, &mask)) {
 		return NULL;  // TypeError is thrown
 	}
 
-	int res = csp_zmqhub_init(addr, host, 0, NULL);
+	csp_iface_t *iface;
+	int res = csp_zmqhub_init(addr, host, 0, &iface);
 	if (res != CSP_ERR_NONE) {
 		return PyErr_Error("csp_zmqhub_init()", res);
 	}
+	iface->is_default = is_default;
+	iface->addr = addr;
+	iface->netmask = mask;
 
 	Py_RETURN_NONE;
 }
@@ -860,14 +866,21 @@ static PyObject * pycsp_can_socketcan_init(PyObject * self, PyObject * args) {
 	int bitrate = 1000000;
 	int promisc = 0;
 	uint16_t addr = 0;
-	if (!PyArg_ParseTuple(args, "s|Hii", &ifc, &addr, &bitrate, &promisc)) {
+	int is_default = 0;
+	uint16_t mask = 8;
+
+	if (!PyArg_ParseTuple(args, "s|HiipH", &ifc, &addr, &bitrate, &promisc, &is_default, &mask)) {
 		return NULL;
 	}
 
-	int res = csp_can_socketcan_open_and_add_interface(ifc, CSP_IF_CAN_DEFAULT_NAME, addr, bitrate, promisc, NULL);
+	csp_iface_t *iface;
+	int res = csp_can_socketcan_open_and_add_interface(ifc, CSP_IF_CAN_DEFAULT_NAME, addr, bitrate, promisc, &iface);
 	if (res != CSP_ERR_NONE) {
 		return PyErr_Error("csp_can_socketcan_open_and_add_interface()", res);
 	}
+	iface->is_default = is_default;
+	iface->addr = addr;
+	iface->netmask = mask;
 
 	Py_RETURN_NONE;
 }
@@ -880,15 +893,22 @@ static PyObject * pycsp_kiss_init(PyObject * self, PyObject * args) {
 	uint32_t mtu = 512;
 	uint16_t addr;
 	const char * if_name = CSP_IF_KISS_DEFAULT_NAME;
-	if (!PyArg_ParseTuple(args, "sH|IIs", &device, &addr, &baudrate, &mtu, &if_name)) {
+	int is_default = 0;
+	uint16_t mask = 8;
+
+	if (!PyArg_ParseTuple(args, "sH|IIspH", &device, &addr, &baudrate, &mtu, &if_name, &is_default, &mask)) {
 		return NULL;  // TypeError is thrown
 	}
 
 	csp_usart_conf_t conf = {.device = device, .baudrate = baudrate};
-	int res = csp_usart_open_and_add_kiss_interface(&conf, if_name, addr, NULL);
+	csp_iface_t *iface;
+	int res = csp_usart_open_and_add_kiss_interface(&conf, if_name, addr, &iface);
 	if (res != CSP_ERR_NONE) {
 		return PyErr_Error("csp_usart_open_and_add_kiss_interface()", res);
 	}
+	iface->is_default = is_default;
+	iface->addr = addr;
+	iface->netmask = mask;
 
 	Py_RETURN_NONE;
 }
