@@ -81,8 +81,7 @@ subdir('src')
 subdir('include/csp')
 
 if not meson.is_subproject()
-  install_subdir('include', install_dir : '.')
-  install_headers(csp_config_h, install_dir : 'include/csp')
+	install_subdir('include', install_dir : '.', exclude_files: ['csp/meson.build'], install_tag: 'devel')
 endif
 
 
@@ -91,8 +90,9 @@ csp_lib = library('csp',
 	include_directories : csp_inc,
 	dependencies : csp_deps,
 	c_args : csp_c_args,
-	install : false,
+	install : true,
 	pic:true,
+	version: meson.project_version(),
 )
 
 # The following dependency variable is for parent projects to link
@@ -102,6 +102,9 @@ csp_dep = declare_dependency(
 	link_with : csp_lib,
 	dependencies : csp_deps,
 )
+
+pkg = import('pkgconfig')
+pkg.generate(csp_lib)
 
 subdir('examples')
 
