@@ -414,6 +414,13 @@ int csp_get_buf_free(uint16_t node, uint32_t timeout, uint32_t * size);
 void csp_buf_free(uint16_t node, uint32_t timeout);
 
 /**
+ * Check if the CSP conn has data available.
+ * Quicker lookup compared to csp_conn_read(con, 0);
+ * @param[in] conn connection
+ */
+int csp_has_data(csp_conn_t * conn);
+
+/**
  * Reboot subsystem.
  * If handled by the standard CSP service handler, the reboot handler set by csp_sys_set_reboot() on the subsystem, will be invoked.
  *

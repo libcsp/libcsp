@@ -425,3 +425,7 @@ void csp_sendto_reply(const csp_packet_t * request_packet, csp_packet_t * reply_
 	}
 	csp_sendto(request_packet->id.pri, dst, request_packet->id.sport, request_packet->id.dport, opts, reply_packet);
 }
+
+int csp_has_data(csp_conn_t * conn) {
+	return csp_queue_size(conn->rx_queue);
+}
