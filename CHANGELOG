@@ -10,6 +10,7 @@ libcsp 2.2, xx-xx-202x
 - removed: csp_sfp_send_own_memcpy()
 - break; csp_sfp_recv_fp()
 - fix: csp_accept() now explicitly rejects connection-less sockets (#766)
+- fix: Meson can now install libcsp.so when told to do so (#931)
 
 libcsp 2.1, 11-10-2025
 ----------------------

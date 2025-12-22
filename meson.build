@@ -90,7 +90,7 @@ csp_lib = library('csp',
 	include_directories : csp_inc,
 	dependencies : csp_deps,
 	c_args : csp_c_args,
-	install : false,
+	install : true,
 	pic:true,
 )
 
