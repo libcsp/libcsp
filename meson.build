@@ -82,7 +82,6 @@ subdir('include/csp')
 
 if not meson.is_subproject()
   install_subdir('include', install_dir : '.')
-  install_headers(csp_config_h, install_dir : 'include/csp')
 endif
 
 
