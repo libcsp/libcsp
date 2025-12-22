@@ -81,7 +81,7 @@ subdir('src')
 subdir('include/csp')
 
 if not meson.is_subproject()
-	install_subdir('include', install_dir : '.', exclude_files: ['csp/meson.build'], install_tag: 'devel')
+	install_subdir('include', install_dir : '', exclude_files: ['csp/meson.build'], install_tag: 'devel')
 endif
 
 
