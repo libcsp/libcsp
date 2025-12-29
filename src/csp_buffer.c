@@ -10,15 +10,6 @@
 
 #include "csp_buffer_private.h"
 
-/**
- * Number of buffers reserved by CSP for fault-tolerant operations.
- *
- * These reserved buffers are used for operations that can tolerate allocation failure,
- * such as client requests with proper error handling, or services that may timeout
- * safely when memory is low.
- */
-#define CSP_BUFFER_RESERVE 2
-
 /** Internal buffer header */
 typedef struct csp_skbf_s {
 	unsigned int refcount;
@@ -224,10 +215,10 @@ csp_packet_t * csp_buffer_get_always_isr(void) {
 
 csp_packet_t * csp_buffer_get(size_t unused) {
 	(void)unused; /* Avoid compiler warnings about unused parameter */
-	return csp_buffer_get_actual(CSP_BUFFER_RESERVE, 0);
+	return csp_buffer_get_actual(CSP_BUFFER_RESERVED_COUNT, 0);
 }
 
 csp_packet_t * csp_buffer_get_isr(size_t unused) {
 	(void)unused; /* Avoid compiler warnings about unused parameter */
-	return csp_buffer_get_actual(CSP_BUFFER_RESERVE, 1);
+	return csp_buffer_get_actual(CSP_BUFFER_RESERVED_COUNT, 1);
 }

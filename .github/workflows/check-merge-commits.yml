@@ -1,0 +1,32 @@
+name: Merge Commits Check
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check_merge_commits:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Checkout PR head
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - name: Print commits for debugging
+        run: git log --graph --oneline -n 50
+
+      - name: Check for merge commits
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          merges=$(git rev-list --merges --count "${BASE_SHA}..${HEAD_SHA}")
+          if [ "$merges" != "0" ]; then
+            echo "::error ::Merge commits not allowed; please rebase."
+            exit 1
+          fi
