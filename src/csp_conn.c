@@ -418,3 +418,10 @@ bool csp_conn_is_active(csp_conn_t *conn) {
 	/* Non RDP connections are always "active" */
 	return true;
 }
+
+csp_conn_t * csp_reconnect(csp_conn_t * conn, uint8_t prio, uint32_t timeout, uint32_t opts) {
+	uint8_t dest = csp_conn_dst(conn);
+	uint8_t dport = csp_conn_dport(conn);
+	csp_close(conn);
+	return csp_connect(prio, dest, dport, timeout, opts);
+}

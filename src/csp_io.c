@@ -351,6 +351,36 @@ int csp_transaction_persistent(csp_conn_t * conn, uint32_t timeout, const void *
 	return length;
 }
 
+int csp_transaction_persistent_retry(csp_conn_t * conn, uint32_t timeout, const void * outbuf, int outlen, void * inbuf, int inlen, uint8_t retries) {
+	uint8_t attempts = 0;
+	while (attempts < retries) {
+		int len = csp_transaction_persistent(conn, timeout, outbuf, outlen, inbuf, inlen);
+		if (len == 0) {
+			attempts++;
+			continue;
+		}
+		return len;
+	}
+	return 0;
+}
+
+int csp_transaction_persistent_reconnect(csp_conn_t * conn, uint8_t prio, uint32_t opts, uint32_t timeout, const void * outbuf, int outlen, void * inbuf, int inlen, uint8_t retries, uint8_t reconnects) {
+	uint8_t attempts = 0;
+	int len = 0;
+
+	while (attempts < reconnects) {
+		len = csp_transaction_persistent_retry(conn, timeout, outbuf, outlen, inbuf, inlen, retries);
+		if (len != 0) {
+			conn = csp_reconnect(conn, prio, timeout, opts);
+			if (conn == NULL) {
+				return CSP_ERR_TIMEDOUT;
+			}
+			attempts++;
+		}
+	}
+	return len;
+}
+
 int csp_transaction_w_opts(uint8_t prio, uint16_t dest, uint8_t port, uint32_t timeout, const void * outbuf, int outlen, void * inbuf, int inlen, uint32_t opts) {
 
 	csp_conn_t * conn = csp_connect(prio, dest, port, 0, opts);

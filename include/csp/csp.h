@@ -171,6 +171,41 @@ static inline int csp_transaction(uint8_t prio, uint16_t dest, uint8_t port, uin
 int csp_transaction_persistent(csp_conn_t *conn, uint32_t timeout, const void *outbuf, int outlen, void *inbuf, int inlen);
 
 /**
+ * Service transaction with reconnect and retry.
+ * The service_transaction will attempt to perform request & reply transaction for
+ * N(retries) specified times
+ *
+ * @param[in] conn connection
+ * @param[in] timeout timeout in mS to wait for a reply
+ * @param[in] outbuf outgoing data (request)
+ * @param[in] outlen length of data in \a outbuf (request)
+ * @param[out] inbuf user provided buffer for receiving data (reply)
+ * @param[in] inlen length of expected reply, -1 for unknown size (inbuf MUST be large enough), 0 for no reply.
+ * @param[in] retries will attempt to resend packets this amount of times if the first fails.
+ * @param[in] reconnects will attempt to reconnect this amount of times if previous packet transmission have failed.
+ * @return 1 or reply size on success, 0 on failure (error, incoming length does not match, timeout)
+ */
+int csp_transaction_persistent_retry(csp_conn_t * conn, uint32_t timeout, const void * outbuf, int outlen, void * inbuf, int inlen, uint8_t retries);
+
+/**
+ * Service transaction with reconnect and retry.
+ * The service_transaction will attempt to perform request & reply transaction for
+ * N(retries) specified times.
+ * If that would fail then a reconnect will be attempted for M(reconnects) times before attempting new transactions.
+ *
+ * @param[in] conn connection
+ * @param[in] timeout timeout in mS to wait for a reply
+ * @param[in] outbuf outgoing data (request)
+ * @param[in] outlen length of data in \a outbuf (request)
+ * @param[out] inbuf user provided buffer for receiving data (reply)
+ * @param[in] inlen length of expected reply, -1 for unknown size (inbuf MUST be large enough), 0 for no reply.
+ * @param[in] retries will attempt to resend packets this amount of times if the first fails.
+ * @param[in] reconnects will attempt to reconnect this amount of times if previous packet transmission have failed.
+ * @return 1 or reply size on success, 0 on failure (error, incoming length does not match, timeout)
+ */
+int csp_transaction_persistent_reconnect(csp_conn_t * conn, uint8_t prio, uint32_t opts, uint32_t timeout, const void * outbuf, int outlen, void * inbuf, int inlen, uint8_t retries, uint8_t reconnects);
+
+/**
  * Read data from a connection-less server socket.
  *
  * @param[in] socket connection-less socket.
@@ -214,6 +249,19 @@ void csp_sendto_reply(const csp_packet_t * request, csp_packet_t * reply, uint32
  * @return Established connection or NULL on failure (no free connections, timeout).
 */
 csp_conn_t *csp_connect(uint8_t prio, uint16_t dst, uint8_t dst_port, uint32_t timeout, uint32_t opts);
+
+/**
+ * CSP Reconnect.
+ * Will attempt to reconnect a connection by first closing the connection
+ * and performing a new connect for the given connection. Will reuse conn paramters.
+ *
+ * @param[in] conn connection.
+ * @param[in] prio
+ * @param[in] timeout unused
+ * @param[in] opts connection options, see @ref CSP_CONNECTION_OPTIONS.
+ * @return Established connection or NULL on failure (no free connections, timeout).
+ */
+csp_conn_t * csp_reconnect(csp_conn_t * conn, uint8_t prio, uint32_t timeout, uint32_t opts);
 
 /**
  * Close an open connection.
