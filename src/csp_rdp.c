@@ -310,7 +310,7 @@ static inline bool csp_rdp_should_ack(csp_conn_t * conn) {
 int csp_rdp_check_ack(csp_conn_t * conn) {
 
 	/* Check RX queue for spare capacity */
-	if (CSP_CONN_RXQUEUE_LEN - csp_queue_size(conn->rx_queue) <= 2 * (int32_t)conn->rdp.window_size) {
+	if (abs(CSP_CONN_RXQUEUE_LEN - csp_queue_size(conn->rx_queue)) < conn->rdp.window_size) {
 		return CSP_ERR_NONE;
 	}
 
