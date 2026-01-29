@@ -21,6 +21,9 @@
 /* Connection pool */
 static csp_conn_t arr_conn[CSP_CONN_MAX] __noinit;
 
+/* Used by csp_conn_allocate */
+static uint8_t csp_conn_last_given = 0;
+
 void csp_conn_check_timeouts(void) {
 #if (CSP_USE_RDP)
 	for (int i = 0; i < CSP_CONN_MAX; i++) {
@@ -157,8 +160,6 @@ static int csp_conn_flush_rx_queue(csp_conn_t * conn) {
 }
 
 csp_conn_t * csp_conn_allocate(csp_conn_type_t type) {
-
-	static uint8_t csp_conn_last_given = 0;
 
 	/* Search for free connection */
 	csp_conn_t * conn = NULL;

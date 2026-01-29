@@ -41,12 +41,14 @@ static uint32_t csp_rdp_packet_timeout = 1000;
 static uint32_t csp_rdp_delayed_acks = 1;
 static uint32_t csp_rdp_ack_timeout = 1000 / 4;
 static uint32_t csp_rdp_ack_delay_count = 4 / 2;
+static uint8_t csp_rdp_incr = 0;
 
 typedef struct __packed {
 	uint8_t flags;
 	uint16_t seq_nr;
 	uint16_t ack_nr;
 } rdp_header_t;
+
 
 static int csp_rdp_close_internal(csp_conn_t * conn, uint8_t closed_by, bool send_rst);
 
@@ -143,7 +145,6 @@ static int csp_rdp_send_cmp(csp_conn_t * conn, csp_packet_t * packet, int flags,
 	header->ack_nr = htobe16(ack_nr);
 
 	/* Add a bit of ephemeral data to avoid CMP's to be deduplicated */
-	static uint8_t csp_rdp_incr = 0;
 	//header->flags = flags;
 	header->flags |= csp_rdp_incr++ << 4 | flags;
 
