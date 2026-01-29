@@ -6,6 +6,7 @@
 #include <csp/drivers/eth_linux.h>
 
 #include <stdint.h>
+#include <endian.h>
 
 #include <csp/csp.h>
 #include <csp/csp_id.h>
