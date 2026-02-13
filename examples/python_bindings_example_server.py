@@ -10,9 +10,6 @@
 # $ LD_LIBRARY_PATH=build PYTHONPATH=build python3 examples/python_bindings_example_server.py
 #
 
-import os
-import time
-import sys
 import threading
 
 import argparse
@@ -124,7 +121,6 @@ if __name__ == "__main__":
         libcsp.kiss_init(options.kiss, options.address)
         libcsp.rtable_load("0/0 KISS")
 
-    # Parameters: {priority} - 0 (critical), 1 (high), 2 (norm), 3 (low) ---- default=2
     # Start the router task - creates routing thread
     libcsp.route_start_task()
 

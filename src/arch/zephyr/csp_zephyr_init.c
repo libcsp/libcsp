@@ -1,8 +1,11 @@
-
-
 #include <zephyr/kernel.h>
 #include <zephyr/init.h>
-#include <zephyr/posix/time.h>
+/* https://github.com/zephyrproject-rtos/zephyr/discussions/96911*/
+#if __has_include(<zephyr/posix/posix_time.h>)
+  #include <time.h>
+#else
+  #include <zephyr/posix/time.h>
+#endif
 #include <csp/csp_debug.h>
 
 #include <zephyr/logging/log.h>

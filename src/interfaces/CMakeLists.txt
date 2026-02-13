@@ -14,7 +14,7 @@ if(LIBZMQ_FOUND)
   target_include_directories(if_zmq PRIVATE
     ${csp_inc}
     ${LIBZMQ_INCLUDE_DIRS})
-  target_link_libraries(if_zmq PRIVATE ${LIBZMQ_LIBRARIES})
+  target_link_libraries(if_zmq PRIVATE csp_common ${LIBZMQ_LIBRARIES})
   target_link_libraries(csp PRIVATE if_zmq)
   if(BUILD_SHARED_LIBS)
     set_property(TARGET if_zmq PROPERTY POSITION_INDEPENDENT_CODE ON)

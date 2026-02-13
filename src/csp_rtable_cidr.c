@@ -73,7 +73,7 @@ csp_route_t * csp_rtable_find_route(uint16_t addr) {
 	return NULL;
 }
 
-int csp_rtable_set_internal(uint16_t address, uint16_t netmask, csp_iface_t * ifc, uint16_t via) {
+static int csp_rtable_set_internal(uint16_t address, uint16_t netmask, csp_iface_t * ifc, uint16_t via) {
 
 	/* First see if the entry exists */
 	csp_route_t * entry = csp_rtable_find_exact(address, netmask, ifc);
@@ -97,6 +97,7 @@ int csp_rtable_set_internal(uint16_t address, uint16_t netmask, csp_iface_t * if
 
 void csp_rtable_free(void) {
 	memset(rtable, 0, sizeof(rtable));
+	rtable_inptr = 0;
 }
 
 void csp_rtable_clear(void) {
@@ -127,6 +128,7 @@ void csp_rtable_iterate(csp_rtable_iterator_t iter, void * ctx) {
 #if (CSP_ENABLE_CSP_PRINT)
 
 static bool csp_rtable_print_route(void * ctx, csp_route_t * route) {
+	(void)ctx; /* Avoid compiler warnings about unused parameter */
 	if (route->via == CSP_NO_VIA_ADDRESS) {
 		csp_print("%u/%u %s\r\n", route->address, route->netmask, route->iface->name);
 	} else {

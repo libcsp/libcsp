@@ -51,14 +51,14 @@ typedef enum {
 /**
    CSP identifier/header.
 */
-typedef struct  __packed {
+typedef struct {
 	uint8_t pri;
 	uint8_t flags;
 	uint16_t src;
 	uint16_t dst;
 	uint8_t dport;
 	uint8_t sport;
-} csp_id_t ;
+} __attribute__ ((__packed__)) csp_id_t ;
 
 /**
    @defgroup CSP_HEADER_FLAGS CSP header flags.
@@ -85,7 +85,7 @@ typedef struct  __packed {
 #define CSP_SO_CRC32REQ			0x0040 /*< Require CRC32 */
 #define CSP_SO_CRC32PROHIB		0x0080 /*< Prohibit CRC32 */
 #define CSP_SO_CONN_LESS		0x0100 /*< Enable Connection Less mode */
-#define CSP_SO_SAME			0x8000 /*< Copy opts from incoming packet only apllies to csp_sendto_reply() */
+#define CSP_SO_SAME			0x8000 /*< Copy opts from incoming packet only applies to csp_sendto_reply() */
 
 /**@}*/
 
@@ -117,26 +117,15 @@ typedef struct  __packed {
  */
 typedef struct csp_packet_s {
 
-	union {
+	uint32_t timestamp_tx;		/*< Time the message was sent */
+	struct csp_conn_s * conn;   /*< Associated connection (this is used in RDP queue) */
 
-		/* Only used on layer 3 (RDP) */
-		struct {
-			uint32_t timestamp_tx;		/*< Time the message was sent */
-			uint32_t timestamp_rx;		/*< Time the message was received */
-			struct csp_conn_s * conn;   /*< Associated connection (this is used in RDP queue) */
-		};
-
-		/* Only used on interface RX/TX (layer 2) */
-		struct {
-			uint16_t rx_count;          /*< Received bytes */
-			uint16_t remain;            /*< Remaining packets */
-			uint32_t cfpid;             /*< Connection CFP identification number */
-			uint32_t last_used;         /*< Timestamp in ms for last use of buffer */
-			uint8_t * frame_begin;
-			uint16_t frame_length;
-		};
-
-	};
+	uint16_t rx_count;          /*< Received bytes */
+	uint16_t remain;            /*< Remaining packets */
+	uint32_t cfpid;             /*< Connection CFP identification number */
+	uint32_t last_used;         /*< Timestamp in ms for last use of buffer */
+	uint8_t * frame_begin;
+	uint16_t frame_length;
 
 	uint16_t length;			/*< Data length */
 	csp_id_t id;				/*< CSP id (unpacked version CPU readable) */
@@ -146,7 +135,7 @@ typedef struct csp_packet_s {
 
 	/**
 	 * Additional header bytes, to prepend packed data before transmission
-	 * This must be minimum 6 bytes to accomodate CSP 2.0. But some implementations
+	 * This must be minimum 6 bytes to accommodate CSP 2.0. But some implementations
 	 * require much more scratch working area for encryption for example.
 	 *
 	 * Ultimately after csp_id_pack() this area will be filled with the CSP header

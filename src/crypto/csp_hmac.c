@@ -139,6 +139,7 @@ int csp_hmac_append(csp_packet_t * packet, bool include_header) {
 		csp_hmac_memory(csp_hmac_key, sizeof(csp_hmac_key), packet->frame_begin, packet->frame_length, hmac);
 		memcpy(&packet->frame_begin[packet->frame_length], hmac, CSP_HMAC_LENGTH);
 		packet->frame_length += CSP_HMAC_LENGTH;
+		packet->length += CSP_HMAC_LENGTH;
 
 	} else {
 

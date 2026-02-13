@@ -1,5 +1,44 @@
-libcsp 2.1, xx-yy-zzzz
+libcsp 2.2, xx-xx-202x
 ----------------------
+- new: csp_sfp_send(), csp_sfp_conn_max_mtu(), csp_sfp_opts_max_mtu()
+- new: Make KISS interface CRC optional via CSP_ENABLE_KISS_CRC (#892)
+- new: Meson v0.61.2 is the minimal version now (#927)
+- new: A new build time constat CSP_BUFFER_RESERVED_COUNT is added (#925)
+- improvement: Small Fragmentation Protocol has been reworked to remove malloc() (#742)
+- improvement: PyCSP can now be built without SocketCAN (#638)
+- improvement: PyCSP can now take mask and is_default optional parameter (#924)
+- removed: csp_sfp_send_own_memcpy()
+- break; csp_sfp_recv_fp()
+- fix: csp_accept() now explicitly rejects connection-less sockets (#766)
+- fix: Meson can now install libcsp.so when told to do so (#931)
+
+libcsp 2.1, 11-10-2025
+----------------------
+- new: Add reproducible builds
+- new: Move to reStructuredText and automated documentation deployment
+- new: Add convenient macros like `__noinit`, `__weak`, `__packed`, etc.
+- new: Add simple sample code under `samples/`
+- new: Add separate `csp_server` and `csp_client` in addition to `csp_server_client`
+- new: Add raw Ethernet driver for Linux
+- new: Add CAN drivers for Zephyr
+- new: Begin adding unit tests
+- new: Enable `-Wpointer-arith`
+- new: Enable `-Wpedantic`
+- break: Rename `csp_autoconfig.h` to `build/include/csp/autoconfig.h`
+- removed: Remove additional Windows and macOS support
+- improvement: Update documentation
+- improvement: Improve C++ support by adding `extern "C"`
+- improvement: Improve Python support
+- improvement: Update examples with various features
+- improvement: Update support for FreeRTOS, POSIX, and Zephyr
+- improvement: Update build systems: Waf, Meson, and CMake
+- improvement: Update various libcsp core modules:
+  - bridge, conn, crc32, dedup, id, iflist, io, port, packet
+  - promisc, queue, rdp, route, service, sfp, yaml, and more
+- improvement: Update various libcsp device drivers:
+  - can, socketcan, eth, usart
+- improvement: Update various libcsp interface drivers:
+  - can, eth, kiss, tun, udp, zmq, loopback
 
 libcsp 2.0, 19-04-2024
 ----------------------
@@ -36,11 +75,11 @@ libcsp 2.0, 19-04-2024
 - api: csp_init(): Now a void function, because allocation cannot fail
 - api: python bindings: Refreshed to new 2.0 api, builds with meson too
 - api: Interface names are now case sensitive (this is faster and avoids pulling in _ctypes_ and saves 340 bytes of flash)
-- api: csp_socket(): is replaced by simply `csp_socket_t my_sock;` static allocation. This is very leightweight
+- api: csp_socket(): is replaced by simply `csp_socket_t my_sock;` static allocation. This is very lightweight
 - api: csp_bind_callback(): instead of using a socket, and binding that socket to a port.
 - api: new debug API. CSP does not print error messages any longer. Instead a new series of error counters has been added
        and a new error code system. There are flags to enable the old level 4 and 5 debug to stdout with printf.
-- api: csp reboot and shutdown are now implemented using hooks instaed of callback functions (see hooks.md)
+- api: csp reboot and shutdown are now implemented using hooks instead of callback functions (see hooks.md)
 - fix: router counts incoming packets before deduplication
 - fix: rdp: Fix ack_delay_count off by one error
 - fix: rtable cidr: continue parsing, even if an unknown interface is found
@@ -61,7 +100,7 @@ libcsp 1.6, 16-04-2020
 - Added support for timestamps in logs by setting CSP_DEBUG_TIMESTAMP (uses csp_clock_get_time()).
 - Renamed mac to via (structs, functions, examples and documentation)
 - RDP: Ensure connection is kept in CLOSE_WAIT for period of time. In some cases, the connection would switch to CLOSED immediately.
-- RDP: Fixed connection leak, if a RST segment was received on a closed connecton.
+- RDP: Fixed connection leak, if a RST segment was received on a closed connection.
 - RDP: Ensure connection is closed from both userspace and protocol, before closing completely (preventing undetermined behaviour).
 - RDP: Added support for fast close of a connection (skipping the CLOSE_WAIT period), but only if both ends agree on close.
 - RDP: Fixed issue "Possible bug in RDP TX timeout" (#109), see issue on github for further details.
@@ -204,7 +243,7 @@ libcsp 1.0, 24-10-2011
 ----------------------
 - First official release
 - New: CSP 32-bit header 1.0
-- Features: Network Router with promiscous mode, broadcast and QoS
+- Features: Network Router with promiscuous mode, broadcast and QoS
 - Features: Connection-oriented transport protocol w. flow-control
 - Features: Connection-less "UDP" like transport
 - Features: Encryption, Authentication and message check

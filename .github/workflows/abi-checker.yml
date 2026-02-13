@@ -1,5 +1,7 @@
 name: ABI Compliance Check
 on: [pull_request]
+permissions:
+  contents: read
 jobs:
   abi-check:
     strategy:
@@ -20,7 +22,7 @@ jobs:
           sudo apt-get install abi-compliance-checker abi-dumper
 
       - name: Checkout merged-base
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.event.pull_request.base.ref }}
 
@@ -30,7 +32,7 @@ jobs:
           abi-dumper build/libcsp.so -lver "merged-base" -o ../tmp/libcsp-merged-base.dump
 
       - name: Checkout Current PR
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           ref: ${{github.event.pull_request.head.ref}}
@@ -51,7 +53,7 @@ jobs:
 
       - name: Upload ABI Report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: abi-compliance-report-${{ github.run_id }}
           path: compat_reports

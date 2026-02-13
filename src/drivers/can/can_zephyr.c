@@ -60,6 +60,12 @@ static void csp_can_rx_thread(void * arg1, void * arg2, void * arg3) {
 			break;
 		}
 
+		/* Drop frames with invalid size field */
+		if(frame.dlc > CAN_MAX_DLEN){
+			LOG_WRN("[%s] discarding invalid size frame", iface->name);
+			continue;
+		}
+
 		/* CSP requires extended frame format, drop it. */
 		if (!(frame.flags & CAN_FRAME_IDE)) {
 			LOG_WRN("[%s] discarding Standard ID frame", iface->name);
@@ -83,7 +89,7 @@ static int csp_can_tx_frame(void * driver_data, uint32_t id, const uint8_t * dat
 	struct can_frame frame = {0};
 	can_context_t * ctx = driver_data;
 
-	if (dlc > CAN_MAX_DLC) {
+	if (dlc > CAN_MAX_DLEN) {
 		ret = CSP_ERR_INVAL;
 		goto end;
 	}
@@ -242,7 +248,7 @@ int csp_can_open_and_add_interface(const struct device * device, const char * if
 	 * The following section is for restoring acquired resources when
 	 * something fails. Unfortunately, we can't take any action if the
 	 * restoration process fails, so we proceed with the remaining
-	 * cleanup. In addtion to this, we've chosen not to restore the
+	 * cleanup. In addition to this, we've chosen not to restore the
 	 * CAN bit rate. If this causes any issues, please open an issue
 	 * on GitHub.
 	 */

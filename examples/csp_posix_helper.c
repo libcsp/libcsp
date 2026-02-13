@@ -1,10 +1,10 @@
+#include "csp_posix_helper.h"
+
 #include <csp/csp.h>
 #include <csp/csp_debug.h>
 #include <pthread.h>
 
-void server(void);
-
-static int csp_pthread_create(void * (*routine)(void *)) {
+int csp_pthread_create(void * (*routine)(void *)) {
 
 	pthread_attr_t attributes;
 	pthread_t handle;
@@ -28,6 +28,8 @@ static int csp_pthread_create(void * (*routine)(void *)) {
 
 static void * task_router(void * param) {
 
+	(void)param;
+
 	/* Here there be routing */
 	while (1) {
 		csp_route_work();
@@ -36,15 +38,6 @@ static void * task_router(void * param) {
 	return NULL;
 }
 
-static void * task_server(void * param) {
-	server();
-	return NULL;
-}
-
 int router_start(void) {
 	return csp_pthread_create(task_router);
-}
-
-int server_start(void) {
-	return csp_pthread_create(task_server);
 }

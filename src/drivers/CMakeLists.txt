@@ -5,7 +5,7 @@ if(LIBSOCKETCAN_FOUND)
   target_include_directories(driver_can PRIVATE
     ${csp_inc}
     ${LIBSOCKETCAN_INCLUDE_DIRS})
-  target_link_libraries(driver_can PRIVATE
+  target_link_libraries(driver_can PRIVATE csp_common
     ${LIBSOCKETCAN_LIBRARIES})
   target_link_libraries(csp PRIVATE driver_can)
   if(BUILD_SHARED_LIBS)
@@ -13,10 +13,10 @@ if(LIBSOCKETCAN_FOUND)
   endif()
 endif()
 
-if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+if(CSP_POSIX)
   target_sources(csp PRIVATE usart/usart_linux.c)
   target_sources(csp PRIVATE eth/eth_linux.c)
-elseif(CMAKE_SYSTEM_NAME STREQUAL "Zephyr")
+elseif(CSP_ZEPHYR)
   target_sources(csp PRIVATE usart/usart_zephyr.c)
 endif()
 

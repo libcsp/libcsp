@@ -1,4 +1,12 @@
+
+#ifdef __CYGWIN__
+#warning CYGWIN: ethernet not implemented - libpcap can be used if needed
+#else // !__CYGWIN__
+
+#include <csp/drivers/eth_linux.h>
+
 #include <stdint.h>
+#include <endian.h>
 
 #include <csp/csp.h>
 #include <csp/csp_id.h>
@@ -27,12 +35,12 @@ typedef struct {
     struct ifreq if_idx;
 } eth_context_t;
 
-int csp_eth_tx_frame(void * driver_data, csp_eth_header_t *eth_frame) {
+int csp_eth_tx_frame(void * driver_data, csp_eth_header_t * eth_frame) {
 
     const eth_context_t * ctx = (eth_context_t*)driver_data;
 
     /* Destination socket address */
-    struct sockaddr_ll socket_address = {};
+    struct sockaddr_ll socket_address = {0};
     socket_address.sll_ifindex = ctx->if_idx.ifr_ifindex;
     socket_address.sll_halen = CSP_ETH_ALEN;
     memcpy(socket_address.sll_addr, eth_frame->ether_dhost, CSP_ETH_ALEN);
@@ -73,8 +81,8 @@ int csp_eth_init(const char * device, const char * ifname, int mtu, unsigned int
 	if (ctx == NULL) {
 		return CSP_ERR_NOMEM;
 	}
-	
-	strcpy(ctx->name, ifname);
+
+	strncpy(ctx->name, ifname, sizeof(ctx->name) - 1);
 	ctx->ifdata.iface.name = ctx->name;
     ctx->ifdata.tx_func = &csp_eth_tx_frame;
     ctx->ifdata.tx_buf = (csp_eth_header_t*)&csp_eth_tx_buffer;
@@ -87,9 +95,9 @@ int csp_eth_init(const char * device, const char * ifname, int mtu, unsigned int
     /* Ether header 14 byte, seg header 4 byte, CSP header 6 byte */
     if (mtu < 24) {
         csp_print("csp_if_eth_init: mtu < 24\n");
+		free(ctx);
         return CSP_ERR_INVAL;
     }
-
 
     /**
      * TX SOCKET
@@ -103,6 +111,7 @@ int csp_eth_init(const char * device, const char * ifname, int mtu, unsigned int
         if (count > 0) {
             csp_print("Use command 'sudo setcap cap_net_raw+ep %s'\n", exe);
         }
+		free(ctx);
         return CSP_ERR_INVAL;
     }
 
@@ -111,6 +120,7 @@ int csp_eth_init(const char * device, const char * ifname, int mtu, unsigned int
     strncpy(ctx->if_idx.ifr_name, device, IFNAMSIZ-1);
     if (ioctl(ctx->sockfd, SIOCGIFINDEX, &ctx->if_idx) < 0) {
         perror("SIOCGIFINDEX");
+		free(ctx);
         return CSP_ERR_INVAL;
     }
 
@@ -120,6 +130,7 @@ int csp_eth_init(const char * device, const char * ifname, int mtu, unsigned int
     strncpy(if_mac.ifr_name, device, IFNAMSIZ-1);
     if (ioctl(ctx->sockfd, SIOCGIFHWADDR, &if_mac) < 0) {
         perror("SIOCGIFHWADDR");
+		free(ctx);
         return CSP_ERR_INVAL;
     }
 
@@ -134,11 +145,12 @@ int csp_eth_init(const char * device, const char * ifname, int mtu, unsigned int
         ((uint8_t *)if_mac.ifr_hwaddr.sa_data)[4],
         ((uint8_t *)if_mac.ifr_hwaddr.sa_data)[5]);
 
-    /* Allow the socket to be reused - incase connection is closed prematurely */
+    /* Allow the socket to be reused - in case connection is closed prematurely */
     int sockopt;
     if (setsockopt(ctx->sockfd, SOL_SOCKET, SO_REUSEADDR, &sockopt, sizeof sockopt) == -1) {
         perror("setsockopt");
         close(ctx->sockfd);
+		free(ctx);
         return CSP_ERR_INVAL;
     }
 
@@ -146,6 +158,7 @@ int csp_eth_init(const char * device, const char * ifname, int mtu, unsigned int
     if (setsockopt(ctx->sockfd, SOL_SOCKET, SO_BINDTODEVICE, device, IFNAMSIZ-1) == -1)	{
         perror("SO_BINDTODEVICE");
         close(ctx->sockfd);
+		free(ctx);
         return CSP_ERR_INVAL;
     }
 
@@ -175,4 +188,7 @@ int csp_eth_init(const char * device, const char * ifname, int mtu, unsigned int
 		*return_iface = &ctx->ifdata.iface;
 	}
 
-    return CSP_ERR_NONE;}
+    return CSP_ERR_NONE;
+}
+
+#endif // !__CYGWIN__

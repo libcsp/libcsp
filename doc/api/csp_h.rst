@@ -25,7 +25,6 @@ Interface Functions
 -------------------
 
 .. autocfunction:: csp.h::csp_init
-.. autocfunction:: csp.h::csp_free_resources
 .. autocfunction:: csp.h::csp_get_conf
 .. autocfunction:: csp.h::csp_id_copy
 .. autocfunction:: csp.h::csp_accept

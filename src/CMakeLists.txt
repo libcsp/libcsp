@@ -49,7 +49,7 @@ if(LIBYAML_FOUND)
   target_include_directories(csp_yaml PRIVATE
     ${csp_inc}
     ${LIBYAML_INCLUDE_DIRS})
-  target_link_libraries(csp_yaml PRIVATE ${LIBYAML_LIBRARIES})
+  target_link_libraries(csp_yaml PRIVATE csp_common ${LIBYAML_LIBRARIES})
   target_link_libraries(csp PRIVATE csp_yaml)
   if(BUILD_SHARED_LIBS)
     set_property(TARGET csp_yaml PROPERTY POSITION_INDEPENDENT_CODE ON)

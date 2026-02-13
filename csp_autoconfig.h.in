@@ -1,5 +1,6 @@
 #cmakedefine01 CSP_POSIX
 #cmakedefine01 CSP_ZEPHYR
+#cmakedefine01 CSP_FREERTOS
 
 #cmakedefine01 CSP_HAVE_STDIO
 #cmakedefine01 CSP_ENABLE_CSP_PRINT
@@ -20,6 +21,11 @@
 #cmakedefine01 CSP_USE_HMAC
 #cmakedefine01 CSP_USE_PROMISC
 #cmakedefine01 CSP_USE_RTABLE
+#cmakedefine01 CSP_BUFFER_ZERO_CLEAR
 
 #cmakedefine01 CSP_HAVE_LIBSOCKETCAN
 #cmakedefine01 CSP_HAVE_LIBZMQ
+
+#cmakedefine01 CSP_FIXUP_V1_ZMQ_LITTLE_ENDIAN
+
+#cmakedefine01 CSP_ENABLE_KISS_CRC

@@ -75,6 +75,7 @@ csp_socket_t * csp_port_get_socket(unsigned int port) {
 }
 
 int csp_listen(csp_socket_t * socket, size_t backlog) {
+	(void)backlog; /* Avoid compiler warnings about unused parameter */
 	socket->rx_queue = csp_queue_create_static(CSP_CONN_RXQUEUE_LEN, sizeof(csp_packet_t *), socket->rx_queue_static_data, &socket->rx_queue_static);
 	return CSP_ERR_NONE;
 }

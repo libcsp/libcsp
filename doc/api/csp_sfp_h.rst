@@ -6,7 +6,8 @@ Small Fragmentation Protocol (SFP)
 Interface Functions
 -------------------
 
-.. autocfunction:: csp_sfp.h::csp_sfp_send_own_memcpy
+.. autocfunction:: csp_sfp.h::csp_sfp_opts_max_mtu
+.. autocfunction:: csp_sfp.h::csp_sfp_conn_max_mtu
 .. autocfunction:: csp_sfp.h::csp_sfp_send
 .. autocfunction:: csp_sfp.h::csp_sfp_recv_fp
 .. autocfunction:: csp_sfp.h::csp_sfp_recv

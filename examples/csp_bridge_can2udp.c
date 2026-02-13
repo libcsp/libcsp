@@ -5,6 +5,7 @@
 
 #include <csp/csp.h>
 #include <csp/csp_debug.h>
+#include <csp/csp_hooks.h>
 #include <csp/drivers/can_socketcan.h>
 #include <csp/interfaces/csp_if_udp.h>
 
@@ -12,8 +13,6 @@
 #define DEFAULT_UDP_ADDRESS		"127.0.0.1"
 #define DEFAULT_UDP_REMOTE_PORT	(0)
 #define DEFAULT_UDP_LOCAL_PORT	(0)
-
-extern csp_conf_t csp_conf;
 
 static struct option long_options[] = {
 	{"can", required_argument, 0, 'c'},

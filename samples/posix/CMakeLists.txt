@@ -1,0 +1,6 @@
+add_subdirectory(simple-send-canbus)
+add_subdirectory(simple-send-usart)
+add_subdirectory(hmac)
+add_subdirectory(simple-send-udp)
+add_subdirectory(simple-send-zmq)
+add_subdirectory(simple-sfp-send-recv)

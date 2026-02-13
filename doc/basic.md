@@ -67,7 +67,6 @@ Definition of a buffer element `csp_packet_t`:
 */
 typedef struct {
     uint32_t timestamp_tx;        // Time the message was sent
-    uint32_t timestamp_rx;        // Time the message was received
 
     uint16_t length;              // Data length
     csp_id_t id;                  // CSP id (unpacked version CPU readable)
@@ -76,7 +75,7 @@ typedef struct {
     uint16_t frame_length;
 
     /* Additional header bytes, to prepend packed data before transmission
-     * This must be minimum 6 bytes to accomodate CSP 2.0. But some implementations
+     * This must be minimum 6 bytes to accommodate CSP 2.0. But some implementations
      * require much more scratch working area for encryption for example.
      *
      * Ultimately after csp_id_pack() this area will be filled with the CSP header
@@ -225,7 +224,7 @@ time).
 >     `static` routing table has the
 >     fastest lookup, but requires more setup.
 >   - cidr (Classless Inter-Domain Routing): supports a one-to-many
->     mapping, meaning routes can be configued for a range of
+>     mapping, meaning routes can be configured for a range of
 >     destination addresses. The `cidr` is
 >     a bit slower for lookup, but simple to setup.
 

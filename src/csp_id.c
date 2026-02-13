@@ -7,6 +7,7 @@
 
 #include <endian.h>
 #include <csp/csp.h>
+#include <csp/csp_id.h>
 
 /**
  * CSP 1.x
@@ -37,18 +38,22 @@
 
 #define CSP_ID1_HEADER_SIZE 4
 
-static void csp_id1_prepend(csp_packet_t * packet) {
+static void csp_id1_prepend(csp_packet_t * packet, bool cspv1_fixup) {
 
 	/* Pack into 32-bit using host endian */
-	uint32_t id1 = (((uint32_t)(packet->id.pri) << CSP_ID1_PRIO_OFFSET) |
-					((uint32_t)(packet->id.dst) << CSP_ID1_DST_OFFSET) |
-					((uint32_t)(packet->id.src) << CSP_ID1_SRC_OFFSET) |
-					((uint32_t)(packet->id.dport) << CSP_ID1_DPORT_OFFSET) |
-					((uint32_t)(packet->id.sport) << CSP_ID1_SPORT_OFFSET) |
-					((uint32_t)(packet->id.flags) << CSP_ID1_FLAGS_OFFSET));
+	uint32_t id1_raw = (((uint32_t)(packet->id.pri) << CSP_ID1_PRIO_OFFSET) |
+						((uint32_t)(packet->id.dst) << CSP_ID1_DST_OFFSET) |
+						((uint32_t)(packet->id.src) << CSP_ID1_SRC_OFFSET) |
+						((uint32_t)(packet->id.dport) << CSP_ID1_DPORT_OFFSET) |
+						((uint32_t)(packet->id.sport) << CSP_ID1_SPORT_OFFSET) |
+						((uint32_t)(packet->id.flags) << CSP_ID1_FLAGS_OFFSET));
 
 	/* Convert to big / network endian */
-	id1 = htobe32(id1);
+	uint32_t id1 = htobe32(id1_raw);
+
+	if (cspv1_fixup) {
+		id1 = htole32(id1_raw);
+	}
 
 	packet->frame_begin = packet->data - CSP_ID1_HEADER_SIZE;
 	packet->frame_length = packet->length + CSP_ID1_HEADER_SIZE;
@@ -56,19 +61,23 @@ static void csp_id1_prepend(csp_packet_t * packet) {
 	memcpy(packet->frame_begin, &id1, CSP_ID1_HEADER_SIZE);
 }
 
-static int csp_id1_strip(csp_packet_t * packet) {
+static int csp_id1_strip(csp_packet_t * packet, bool cspv1_fixup) {
 
 	if (packet->frame_length < CSP_ID1_HEADER_SIZE) {
 		return -1;
 	}
 
 	/* Get 32 bit in network byte order */
-	uint32_t id1 = 0;
-	memcpy(&id1, packet->frame_begin, CSP_ID1_HEADER_SIZE);
+	uint32_t id1_raw = 0;
+	memcpy(&id1_raw, packet->frame_begin, CSP_ID1_HEADER_SIZE);
 	packet->length = packet->frame_length - CSP_ID1_HEADER_SIZE;
 
 	/* Convert to host order */
-	id1 = be32toh(id1);
+	uint32_t id1 = be32toh(id1_raw);
+
+	if (cspv1_fixup) {
+		id1 = le32toh(id1_raw);
+	}
 
 	/* Parse header:
 	 * Now in easy to work with in 32 bit register */
@@ -182,18 +191,38 @@ void csp_id_prepend(csp_packet_t * packet) {
 	if (csp_conf.version == 2) {
 		csp_id2_prepend(packet);
 	} else {
-		csp_id1_prepend(packet);
+		csp_id1_prepend(packet, false);
 	}
 }
 
 int csp_id_strip(csp_packet_t * packet) {
-	packet->timestamp_rx = 0;
 	if (csp_conf.version == 2) {
 		return csp_id2_strip(packet);
 	} else {
-		return csp_id1_strip(packet);
+		return csp_id1_strip(packet, false);
 	}
 }
+
+#if (CSP_FIXUP_V1_ZMQ_LITTLE_ENDIAN)
+
+void csp_id_prepend_fixup_cspv1(csp_packet_t * packet) {
+	if (csp_conf.version == 2) {
+		csp_id2_prepend(packet);
+	} else {
+		csp_id1_prepend(packet, true);
+
+	}
+}
+
+int csp_id_strip_fixup_cspv1(csp_packet_t * packet) {
+	if (csp_conf.version == 2) {
+		return csp_id2_strip(packet);
+	} else {
+		return csp_id1_strip(packet, true);
+	}
+}
+
+#endif
 
 int csp_id_setup_rx(csp_packet_t * packet) {
 	if (csp_conf.version == 2) {
@@ -223,9 +252,9 @@ unsigned int csp_id_get_max_nodeid(void) {
 
 unsigned int csp_id_get_max_port(void) {
 	if (csp_conf.version == 2) {
-		return ((1 << (CSP_ID2_PORT_SIZE)) - 1);
+		return ((1 << CSP_ID2_PORT_SIZE) - 1);
 	} else {
-		return ((1 << (CSP_ID1_PORT_SIZE)) - 1);
+		return ((1 << CSP_ID1_PORT_SIZE) - 1);
 	}
 }
 
@@ -240,4 +269,12 @@ int csp_id_is_broadcast(uint16_t addr, csp_iface_t * iface) {
 		return 1;
 	}
 	return 0;
+}
+
+int csp_id_get_header_size(void) {
+	if (csp_conf.version == 2) {
+		return CSP_ID2_HEADER_SIZE;
+	} else {
+		return CSP_ID1_HEADER_SIZE;
+	}
 }

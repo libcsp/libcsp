@@ -8,6 +8,8 @@
 #include <csp/csp_hooks.h>
 #include <csp/csp_id.h>
 
+#include "csp_buffer_private.h"
+
 /** Internal buffer header */
 typedef struct csp_skbf_s {
 	unsigned int refcount;
@@ -22,7 +24,7 @@ static csp_queue_handle_t csp_buffers;
  * Chunk of memory allocated for CSP buffers:
  * This is marked as .noinit, because csp buffers can never be assumed zeroed out
  * Putting this section in a separate non .bss area, saves some boot time */
-static csp_skbf_t csp_buffer_pool[CSP_BUFFER_COUNT]  __noinit;
+static csp_skbf_t csp_buffer_pool[CSP_BUFFER_COUNT] __noinit;
 static csp_static_queue_t csp_buffers_queue __noinit;
 static char csp_buffer_queue_data[CSP_BUFFER_COUNT * sizeof(csp_skbf_t *)] __noinit;
 
@@ -34,6 +36,22 @@ void csp_buffer_init(void) {
 		csp_skbf_t * bufptr = &csp_buffer_pool[i];
 		csp_queue_enqueue(csp_buffers, &bufptr, 0);
 	}
+}
+
+static csp_packet_t * csp_packet_init(csp_packet_t * packet)
+{
+
+#if (CSP_BUFFER_ZERO_CLEAR)
+	memset(packet, 0, sizeof(csp_packet_t));
+#endif
+
+	packet->length = 0;
+	packet->frame_begin = packet->data;
+	packet->frame_length = 0;
+
+	csp_id_clear(&packet->id);
+
+	return packet;
 }
 
 static csp_packet_t * csp_buffer_get_actual(int reserve, int isr) {
@@ -51,28 +69,28 @@ static csp_packet_t * csp_buffer_get_actual(int reserve, int isr) {
 	}
 
 	/* Now fetch a buffer */
-	csp_skbf_t * buffer = NULL;
+	csp_skbf_t * buf = NULL;
 	if (isr) {
 		int task_woken = 0;
-		csp_queue_dequeue_isr(csp_buffers, &buffer, &task_woken);
+		csp_queue_dequeue_isr(csp_buffers, &buf, &task_woken);
 	} else {
-		csp_queue_dequeue(csp_buffers, &buffer, 0);
+		csp_queue_dequeue(csp_buffers, &buf, 0);
 	}
 
 	/* We might be out of buffers */
-	if (buffer == NULL) {
+	if (buf == NULL) {
 		csp_dbg_buffer_out++;
 		return NULL;
 	}
 
-	if (buffer != buffer->skbf_addr) {
+	if (buf != buf->skbf_addr) {
 		csp_dbg_errno = CSP_DBG_ERR_CORRUPT_BUFFER;
 		return NULL;
 	}
 
-	buffer->refcount = 1;
-	csp_id_clear(&buffer->skbf_data.id);
-	return &buffer->skbf_data;
+	buf->refcount = 1;
+
+	return csp_packet_init(&buf->skbf_data);
 }
 
 void csp_buffer_free_isr(void * packet) {
@@ -130,21 +148,21 @@ void csp_buffer_free(void * packet) {
 	csp_queue_enqueue(csp_buffers, &buf, 0);
 }
 
-void * csp_buffer_clone(void * buffer) {
-
-	csp_packet_t * packet = (csp_packet_t *)buffer;
-	if (!packet) {
-		return NULL;
-	}
-
-	csp_packet_t * clone = csp_buffer_get(packet->length);
-	if (clone) {
-		size_t size = sizeof(csp_packet_t) - CSP_BUFFER_SIZE + packet->length;
-		memcpy(clone, packet, size > sizeof(csp_packet_t) ? sizeof(csp_packet_t) : size);
-		clone->frame_begin = (clone->header + CSP_PACKET_PADDING_BYTES) - (packet->data - packet->frame_begin);
+csp_packet_t * csp_buffer_clone(const csp_packet_t * packet) {
+	csp_packet_t * clone = NULL;
+	if (packet) {
+		clone = csp_buffer_get(0);
+		csp_buffer_copy(packet, clone);
 	}
 
 	return clone;
+}
+
+void csp_buffer_copy(const csp_packet_t * src, csp_packet_t * dst) {
+	if ((NULL != src) && (NULL != dst)) {
+		(void)memcpy(dst, src, sizeof(csp_packet_t));
+		dst->frame_begin =  (dst->header + CSP_PACKET_PADDING_BYTES) - (src->data - src->frame_begin);
+	}
 }
 
 void csp_buffer_refc_inc(void * buffer) {
@@ -191,14 +209,16 @@ csp_packet_t * csp_buffer_get_always_isr(void) {
 }
 
 /* CSP will try to reserve the last two buffers for calls which can take it,
- * examples are client funktions that are allowed to fail and have adequate
+ * examples are client functions that are allowed to fail and have adequate
  * error checking. Or services which are allowed to timeout of memory becomes
  * sparse. */
 
 csp_packet_t * csp_buffer_get(size_t unused) {
-	return csp_buffer_get_actual(2, 0);
+	(void)unused; /* Avoid compiler warnings about unused parameter */
+	return csp_buffer_get_actual(CSP_BUFFER_RESERVED_COUNT, 0);
 }
 
 csp_packet_t * csp_buffer_get_isr(size_t unused) {
-	return csp_buffer_get_actual(2, 1);
+	(void)unused; /* Avoid compiler warnings about unused parameter */
+	return csp_buffer_get_actual(CSP_BUFFER_RESERVED_COUNT, 1);
 }

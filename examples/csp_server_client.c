@@ -8,11 +8,7 @@
 #include <csp/drivers/can_socketcan.h>
 #include <csp/interfaces/csp_if_zmqhub.h>
 
-
-/* These three functions must be provided in arch specific way */
-int router_start(void);
-int server_start(void);
-int client_start(void);
+#include "csp_posix_helper.h"
 
 /* Server port, the port the server listens on for incoming connections from the client. */
 #define MY_SERVER_PORT		10
@@ -26,7 +22,9 @@ static unsigned int server_received = 0;
 static unsigned int run_duration_in_sec = 3;
 
 /* Server task - handles requests from clients */
-void server(void) {
+static void * server(void * param) {
+
+	(void)param;
 
 	csp_print("Server task started\n");
 
@@ -49,7 +47,7 @@ void server(void) {
 			continue;
 		}
 
-		/* Read packets on connection, timout is 100 mS */
+		/* Read packets on connection, timeout is 100 mS */
 		csp_packet_t *packet;
 		while ((packet = csp_read(conn, 50)) != NULL) {
 			switch (csp_conn_dport(conn)) {
@@ -72,13 +70,15 @@ void server(void) {
 
 	}
 
-	return;
+	return NULL;
 
 }
 /* End of server task */
 
 /* Client task sending requests to server task */
-void client(void) {
+static void * client(void * param) {
+
+	(void)param;
 
 	csp_print("Client task started\n");
 
@@ -104,15 +104,14 @@ void client(void) {
 		if (conn == NULL) {
 			/* Connect failed */
 			csp_print("Connection failed\n");
-			return;
+			return NULL;
 		}
 
 		/* 2. Get packet buffer for message/data */
-		csp_packet_t * packet = csp_buffer_get_always();
+		csp_packet_t * packet = csp_buffer_get(0);
 		if (packet == NULL) {
-			/* Could not get buffer element */
-			csp_print("Failed to get CSP buffer\n");
-			return;
+			csp_print("Failed to get buffer\n");
+			csp_close(conn);
 		}
 
 		/* 3. Copy data to packet */
@@ -131,13 +130,14 @@ void client(void) {
 		csp_close(conn);
 	}
 
-	return;
+	return NULL;
 }
 /* End of client task */
 
 static void print_usage(void)
 {
 	csp_print("Usage:\n"
+			  " -v <version>     set protocol version\n"
 			  " -t               enable test mode\n"
 			  " -T <duration>    enable test mode with running time in seconds\n"
 			  " -h               print help\n");
@@ -148,7 +148,7 @@ int main(int argc, char * argv[]) {
 
     uint8_t address = 0;
     int opt;
-    while ((opt = getopt(argc, argv, "tT:h")) != -1) {
+    while ((opt = getopt(argc, argv, "v:tT:h")) != -1) {
         switch (opt) {
             case 'a':
                 address = atoi(optarg);
@@ -156,6 +156,9 @@ int main(int argc, char * argv[]) {
             case 'r':
                 server_address = atoi(optarg);
                 break;
+			case 'v':
+				csp_conf.version = atoi(optarg);
+				break;
             case 't':
                 test_mode = true;
                 break;
@@ -196,10 +199,10 @@ int main(int argc, char * argv[]) {
     csp_iflist_print();
 
     /* Start server thread */
-    server_start();
+    csp_pthread_create(server);
 
     /* Start client thread */
-    client_start();
+    csp_pthread_create(client);
 
     /* Wait for execution to end (ctrl+c) */
     while(1) {

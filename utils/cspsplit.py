@@ -20,7 +20,7 @@ def main():
         print("HEADER must be in hexadecimal format")
         sys.exit(-1)
 
-    print("Priotity:         {0}".format((hdrhex >> 30) & 0x03))
+    print("Priority:         {0}".format((hdrhex >> 30) & 0x03))
     print("Source:           {0}".format((hdrhex >> 25) & 0x1f))
     print("Destination:      {0}".format((hdrhex >> 20) & 0x1f))
     print("Destination port: {0}".format((hdrhex >> 14) & 0x3f))

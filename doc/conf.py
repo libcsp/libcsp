@@ -10,8 +10,33 @@ import clang.cindex as cl
 import pygit2
 
 # -- Path setup --------------------------------------------------------------
-cl.Config.set_library_file('/usr/lib/llvm-14/lib/libclang-14.so')
-cl.Config.set_library_path('/usr/lib/llvm-14/lib/libclang-14.so')
+def find_libclang() -> str:
+    """
+    Searches for the `libclang-xx.so` file in common system directories. Where
+    'xx' is the current libclang version installed on the system.
+
+    This function looks for the shared library file `libclang-xx.so` in typical
+    installation paths such as `/usr/lib`, `/usr/lib/llvm`, and `/usr/lib/x86_64-linux-gnu`.
+
+    Returns:
+        str: The full path to the `libclang-xx.so` file if found.
+
+    Raises:
+        FileNotFoundError: If the `libclang-xx.so` file cannot be located in the
+        predefined search paths.
+    """
+    search_paths = [Path('/usr/lib'), Path('/usr/lib/llvm'), Path('/usr/lib/x86_64-linux-gnu')]
+
+    for path in search_paths:
+        if path.exists() and path.is_dir():
+            for file in path.rglob('libclang*.so'):  # Recursively search for matching files
+                return str(file)  # Return the first match as a string
+
+    raise FileNotFoundError("libclang not found in the predefined search paths.")
+
+libclang_path = find_libclang()
+cl.Config.set_library_file(libclang_path)
+cl.Config.set_library_path(libclang_path)
 
 # -- Project information -----------------------------------------------------
 project = 'Lib CSP'
@@ -31,7 +56,8 @@ extensions = [
     'sphinx_c_autodoc.viewcode',
     "sphinx_design",
     "sphinx_git",
-    "sphinx_copybutton"
+    "sphinx_copybutton",
+    "sphinx.ext.githubpages"
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -66,7 +92,6 @@ html_theme_options = {
     'navigation_depth': 2,
     'includehidden': True,
     'titles_only': True,
-    'sticky_navigation': True
 }
 
 def include_readme_file(app, docname, source):

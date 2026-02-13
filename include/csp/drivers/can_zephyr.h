@@ -13,6 +13,10 @@
 #include <zephyr/device.h>
 #include <zephyr/drivers/can.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * Open CAN and add CSP interface.
  *
@@ -47,3 +51,7 @@ int csp_can_set_rx_filter(csp_iface_t * iface, uint16_t filter_addr, uint16_t fi
  *  @return #CSP_ERR_NONE on success, otherwise an error code.
 */
 int csp_can_stop(csp_iface_t * iface);
+
+#ifdef __cplusplus
+}
+#endif

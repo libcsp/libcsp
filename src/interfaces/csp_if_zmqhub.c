@@ -12,6 +12,13 @@
 
 #include <csp/csp_id.h>
 
+#include "../csp_macro.h"
+
+/**
+ * ZMQ destination size (for libcsp1 backwards compatibility)
+ */
+#define ZMQ_DEST_ADDR_SIZE_FIXUP_CSPV1    1
+
 /* ZMQ driver & interface */
 typedef struct {
 	pthread_t rx_thread;
@@ -32,18 +39,55 @@ typedef struct {
 static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 
 /**
+ * Add one byte of the dest or "via" address to the beginning of the
+ * ZMQ message for the CSPv1 protocol.
+ *
+ * This extra byte is not used with the CSPv2 protocol.
+ *
+ * @param packet pointer to packet buffer
+ */
+void csp_zmqhub_fixup_cspv1_add_dest_addr(csp_packet_t * packet) {
+
+	if (csp_conf.version == 1) {
+		packet->frame_begin -= ZMQ_DEST_ADDR_SIZE_FIXUP_CSPV1;
+		*(packet->frame_begin) = (uint8_t)packet->id.dst;
+		packet->frame_length += ZMQ_DEST_ADDR_SIZE_FIXUP_CSPV1;
+	}
+}
+
+/**
+ * Skip the extra byte of the dest or "via" address at the beginning
+ * of the ZMQ message for the CSPv1 protocol.
+ *
+ * This extra byte is not used with the CSPv2 protocol.
+ *
+ * @param rx_data pointer to ZMQ message content
+ * @param datalen pointer to ZMQ message content size
+ */
+void * csp_zmqhub_fixup_cspv1_del_dest_addr(uint8_t * rx_data, size_t * datalen) {
+
+	if (csp_conf.version == 1) {
+		rx_data += ZMQ_DEST_ADDR_SIZE_FIXUP_CSPV1;
+		*datalen -= ZMQ_DEST_ADDR_SIZE_FIXUP_CSPV1;
+	}
+
+	return rx_data;
+}
+
+/**
  * Interface transmit function
  * @param packet Packet to transmit
  * @return 1 if packet was successfully transmitted, 0 on error
  */
-int csp_zmqhub_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet, int from_me) {
+static int csp_zmqhub_tx(csp_iface_t * iface, uint16_t __maybe_unused via, csp_packet_t * packet, int __maybe_unused from_me) {
 
 	zmq_driver_t * drv = iface->driver_data;
 
-	csp_id_prepend(packet);
+	csp_id_prepend_fixup_cspv1(packet);
+	csp_zmqhub_fixup_cspv1_add_dest_addr(packet);
 
-	/** 
-	 * While a ZMQ context is thread safe, sockets are NOT threadsafe, so by sharing drv->publisher, we 
+	/**
+	 * While a ZMQ context is thread safe, sockets are NOT threadsafe, so by sharing drv->publisher, we
 	 * need to have a lock around any calls that uses that */
 	pthread_mutex_lock(&lock);
 	int result = zmq_send(drv->publisher, packet->frame_begin, packet->frame_length, 0);
@@ -58,15 +102,14 @@ int csp_zmqhub_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet, int 
 	return CSP_ERR_NONE;
 }
 
-void * csp_zmqhub_task(void * param) {
+static void * csp_zmqhub_task(void * param) {
 
 	zmq_driver_t * drv = param;
 	csp_packet_t * packet;
-	const uint32_t HEADER_SIZE = (csp_conf.version == 2) ? 6 : 4;
+	const uint32_t HEADER_SIZE = (csp_conf.version == 2) ? 6 : 4 + ZMQ_DEST_ADDR_SIZE_FIXUP_CSPV1;
 
 	while (1) {
-		int ret;
-		(void)ret; /* Silence unused variable warning (promoted to an error if -Werr) issued when building with NDEBUG (release with asserts turned off) */
+		int __maybe_unused ret;
 		zmq_msg_t msg;
 
 		ret = zmq_msg_init_size(&msg, sizeof(packet->data) + HEADER_SIZE);
@@ -78,7 +121,7 @@ void * csp_zmqhub_task(void * param) {
 			continue;
 		}
 
-		unsigned int datalen = zmq_msg_size(&msg);
+		size_t datalen = zmq_msg_size(&msg);
 		if (datalen < HEADER_SIZE) {
 			csp_print("ZMQ RX %s: Too short datalen: %u - expected min %u bytes\n", drv->iface.name, datalen, HEADER_SIZE);
 			zmq_msg_close(&msg);
@@ -94,7 +137,8 @@ void * csp_zmqhub_task(void * param) {
 		}
 
 		// Copy the data from zmq to csp
-		const uint8_t * rx_data = zmq_msg_data(&msg);
+		uint8_t * rx_data = zmq_msg_data(&msg);
+		rx_data = csp_zmqhub_fixup_cspv1_del_dest_addr(rx_data, &datalen);
 
 		csp_id_setup_rx(packet);
 
@@ -102,7 +146,7 @@ void * csp_zmqhub_task(void * param) {
 		packet->frame_length = datalen;
 
 		/* Parse the frame and strip the ID field */
-		if (csp_id_strip(packet) != 0) {
+		if (csp_id_strip_fixup_cspv1(packet) != 0) {
 			drv->iface.rx_error++;
 			csp_buffer_free(packet);
 		    zmq_msg_close(&msg);
@@ -159,13 +203,14 @@ int csp_zmqhub_init_w_endpoints(uint16_t addr,
 }
 
 int csp_zmqhub_init_w_name_endpoints_rxfilter(const char * ifname, uint16_t addr,
-											  const uint16_t rxfilter[], unsigned int rxfilter_count,
+											  const uint16_t __maybe_unused rxfilter[],
+											  unsigned int __maybe_unused rxfilter_count,
 											  const char * publish_endpoint,
 											  const char * subscribe_endpoint,
-											  uint32_t flags,
+											  uint32_t __maybe_unused flags,
 											  csp_iface_t ** return_interface) {
 
-	int ret;
+	int __maybe_unused ret;
 	pthread_attr_t attributes;
 	zmq_driver_t * drv = calloc(1, sizeof(*drv));
 	assert(drv != NULL);
@@ -209,6 +254,8 @@ int csp_zmqhub_init_w_name_endpoints_rxfilter(const char * ifname, uint16_t addr
 	ret = pthread_attr_setdetachstate(&attributes, PTHREAD_CREATE_DETACHED);
 	assert(ret == 0);
 	ret = pthread_create(&drv->rx_thread, &attributes, csp_zmqhub_task, drv);
+	assert(ret == 0);
+	ret = pthread_attr_destroy(&attributes);
 	assert(ret == 0);
 	(void)ret;
 	/* Register interface */
@@ -301,7 +348,7 @@ int csp_zmqhub_init_filter2(const char * ifname, const char * host, uint16_t add
 	char sub[100];
 	csp_zmqhub_make_endpoint(host, pubport, sub, sizeof(sub));
 
-	int ret;
+	int __maybe_unused ret;
 	pthread_attr_t attributes;
 	zmq_driver_t * drv = calloc(1, sizeof(*drv));
 	assert(drv != NULL);
@@ -386,6 +433,8 @@ int csp_zmqhub_init_filter2(const char * ifname, const char * host, uint16_t add
 	ret = pthread_attr_setdetachstate(&attributes, PTHREAD_CREATE_DETACHED);
 	assert(ret == 0);
 	ret = pthread_create(&drv->rx_thread, &attributes, csp_zmqhub_task, drv);
+	assert(ret == 0);
+	ret = pthread_attr_destroy(&attributes);
 	assert(ret == 0);
 
 	/* Register interface */

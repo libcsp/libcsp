@@ -13,15 +13,20 @@ option('enable_csp_print', type: 'boolean', value: true, description: 'Enable cs
 option('have_stdio', type: 'boolean', value: true, description: 'Use print and scan functions (some features may be missing without)')
 option('use_rtable', type: 'boolean', value: false, description: 'Allows to setup a list of static routes. End nodes do not need this. But radios and routers might')
 option('print_stdio', type: 'boolean', value: true, description: 'Use vprintf for csp_print_func')
+option('buffer_zero_clear', type: 'boolean', value: true, description: 'Zero out the packet buffer upon allocation')
 
 # Memory tuning parameters:
 # Try to balance these so there is enough memory to handle expected system usage plus some,
 # while avoiding over-allocating too much memory, that would be better used elsewhere
 option('qfifo_len', type: 'integer', value: 15, description: 'Length of incoming queue for router task')
-option('port_max_bind', type: 'integer', value: 16, description: 'Length of incoming queue for router task')
+option('port_max_bind', type: 'integer', value: 16, description: 'Maximum number of bindable ports')
 option('conn_rxqueue_len', type: 'integer', value: 15, description: 'Number of packets in connection queue')
 option('conn_max', type: 'integer', value: 8, description: 'Number of new connections on socket queue')
 option('buffer_size', type: 'integer', value: 256, description: 'Bytes in each packet buffer')
 option('buffer_count', type: 'integer', value: 15, description: 'Number of total packet buffers')
 option('rdp_max_window', type: 'integer', value: 5, description: 'Max window size for RDP')
 option('rtable_size', type: 'integer', value: 10, description: 'Number of elements in routing table')
+
+option('fixup_v1_zmq_little_endian', type: 'boolean', value: false, description: 'Use little-endian CSP ID for ZMQ with CSPv1')
+
+option('enable_kiss_crc', type: 'boolean', value: true, description: 'Enables the extra CRC in the KISS interface (legacy)')

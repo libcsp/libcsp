@@ -14,7 +14,7 @@
  * - Remain:       8 bits
  * - Identifier:   10 bits
  *
- * The Source and Destination fields must match the source and destiantion addressses
+ * The Source and Destination fields must match the source and destination addresses
  * in the CSP packet. The Type field is used to distinguish the first and subsequent
  * frames in a fragmented CSP packet. Type is BEGIN (0) for the first fragment and
  * MORE (1) for all other fragments. The Remain field indicates number of remaining
@@ -33,7 +33,7 @@
  * - End flag:     1 bit
  *
  * The \b Priority represents the CSP prio field. Placing this as the first bits in
- * the transmission ensure that packets with high priority is priotized on the bus
+ * the transmission ensure that packets with high priority is prioritized on the bus
  * due to the nature of CAN arbitration.
  * The \b Destination field represents the CSP node of the receiving node
  * The \b Sender holds the least significant bits of the transmitting interface,

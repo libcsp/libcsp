@@ -1,5 +1,10 @@
 name: Build and Test
 on: [push, pull_request]
+permissions:
+  contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
 jobs:
   run-tests:
     strategy:
@@ -8,16 +13,42 @@ jobs:
         os:
           - ubuntu-24.04
           - ubuntu-22.04
-          - ubuntu-20.04
         buildsystem:
           - meson
           - cmake
           - waf
         compiler:
-          - CC: gcc
-            CXX: g++
+          - CC: gcc-10
+            CXX: g++-10
+          - CC: gcc-11
+            CXX: g++-11
+          - CC: gcc-12
+            CXX: g++-12
+          - CC: gcc-13
+            CXX: g++-13
+          - CC: gcc-14
+            CXX: g++-14
           - CC: clang
             CXX: clang++
+        csp_version:
+          - 1
+          - 2
+        exclude:
+          # Ubuntu 22.04 only has GCC 10, 11, 12
+          - os: ubuntu-22.04
+            compiler:
+              CC: gcc-13
+          - os: ubuntu-22.04
+            compiler:
+              CC: gcc-14
+          # Ubuntu 24.04 only has GCC 12, 13, 14
+          - os: ubuntu-24.04
+            compiler:
+              CC: gcc-10
+          - os: ubuntu-24.04
+            compiler:
+              CC: gcc-11
+
     runs-on: ${{ matrix.os }}
     steps:
       - name: Setup packages on Linux
@@ -32,15 +63,8 @@ jobs:
         run: |
           sudo apt-get install ninja-build ${{ matrix.buildsystem }}
 
-      - name: Setup packages on MacOS
-        if: ${{ runner.os == 'macOS' && matrix.buildsystem != 'waf' }}
-        run: |
-          brew update
-          brew install ninja ${{ matrix.buildsystem }}
-          brew install zeromq
-
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Build
         env:
@@ -57,30 +81,30 @@ jobs:
         run: |
           socat -d -d -d pty,raw,echo=0,link=/tmp/pty1 pty,raw,echo=0,link=/tmp/pty2 &
           sleep 1
-          ./build/examples/csp_server -k /tmp/pty1 -a 1 -T 10 &
-          ./build/examples/csp_client -k /tmp/pty2 -a 2 -C 1 -t
+          ./build/examples/csp_server -k /tmp/pty1 -a 1 -T 10 -v ${{ matrix.csp_version }} &
+          ./build/examples/csp_client -k /tmp/pty2 -a 2 -C 1 -t -v ${{ matrix.csp_version }}
           pkill socat
 
       - name: Run KISS Server Test
         run: |
           socat -d -d -d pty,raw,echo=0,link=/tmp/pty1 pty,raw,echo=0,link=/tmp/pty2 &
           sleep 1
-          ./build/examples/csp_client -k /tmp/pty2 -a 2 -C 1 -T 10 &
-          ./build/examples/csp_server -k /tmp/pty1 -a 1 -t
+          ./build/examples/csp_client -k /tmp/pty2 -a 2 -C 1 -T 10 -v ${{ matrix.csp_version }} &
+          ./build/examples/csp_server -k /tmp/pty1 -a 1 -t -v ${{ matrix.csp_version }}
           pkill socat
 
       - name: Run ZMQ Client Test
         run: |
           ./build/examples/zmqproxy &
-          ./build/examples/csp_server -z localhost -a 1 -T 10 &
-          ./build/examples/csp_client -z localhost -a 2 -C 1 -t
+          ./build/examples/csp_server -z localhost -a 1 -T 10 -v ${{ matrix.csp_version }} &
+          ./build/examples/csp_client -z localhost -a 2 -C 1 -t -v ${{ matrix.csp_version }}
           pkill zmqproxy
 
       - name: Run ZMQ Server Test
         run: |
           ./build/examples/zmqproxy &
-          ./build/examples/csp_client -z localhost -a 2 -C 1 -T 10 &
-          ./build/examples/csp_server -z localhost -a 1 -t
+          ./build/examples/csp_client -z localhost -a 2 -C 1 -T 10 -v ${{ matrix.csp_version }} &
+          ./build/examples/csp_server -z localhost -a 1 -t -v ${{ matrix.csp_version }}
           pkill zmqproxy
 
       - name: Setup vcan0
@@ -96,10 +120,32 @@ jobs:
 
       - name: Run CAN Server Test
         run: |
-          ./build/examples/csp_server -c vcan0 -a 1 -T 10 &
-          ./build/examples/csp_client -c vcan0 -a 2 -C 1 -t
+          ./build/examples/csp_server -c vcan0 -a 1 -T 10 -v ${{ matrix.csp_version }} &
+          ./build/examples/csp_client -c vcan0 -a 2 -C 1 -t -v ${{ matrix.csp_version }}
 
       - name: Run CAN Client Test
         run: |
-          ./build/examples/csp_client -c vcan0 -a 2 -C 1 -T 10 &
-          ./build/examples/csp_server -c vcan0 -a 1 -t
+          ./build/examples/csp_client -c vcan0 -a 2 -C 1 -T 10 -v ${{ matrix.csp_version }} &
+          ./build/examples/csp_server -c vcan0 -a 1 -t -v ${{ matrix.csp_version }}
+
+      - name: Run UDP Server Test
+        run: |
+          ./build/examples/csp_server -u "127.0.0.1" -a 1 -T 10 -v ${{ matrix.csp_version }} &
+          ./build/examples/csp_client -u "127.0.0.1" -a 2 -C 1 -T 10 -v ${{ matrix.csp_version }}
+          wait "$!"
+
+      - name: Run UDP Client Test
+        run: |
+          ./build/examples/csp_client -u "127.0.0.1" -a 2 -C 1 -T 10 -v ${{ matrix.csp_version }} &
+          ./build/examples/csp_server -u "127.0.0.1" -a 1 -T 10 -v ${{ matrix.csp_version }}
+
+      - name: Run SFP Test
+        run: |
+          ./build/examples/csp_sfp_server_client --mtu 1 --size 1
+          ./build/examples/csp_sfp_server_client --mtu 1 --size 128
+          ./build/examples/csp_sfp_server_client --mtu 128 --size 1
+          ./build/examples/csp_sfp_server_client --mtu 128 --size 10
+          ./build/examples/csp_sfp_server_client --mtu 128 --size 100
+          ./build/examples/csp_sfp_server_client --mtu 128 --size 1000
+          ./build/examples/csp_sfp_server_client --mtu 128 --size 10000
+          ./build/examples/csp_sfp_server_client --mtu 128 --size 100000

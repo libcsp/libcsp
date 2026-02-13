@@ -4,7 +4,7 @@
 import os
 
 APPNAME = 'libcsp'
-VERSION = '2.1'
+VERSION = '2.2'
 
 valid_os = ['posix', 'freertos']
 
@@ -23,6 +23,7 @@ def options(ctx):
     gr.add_option('--disable-output', action='store_true', help='Disable CSP output')
     gr.add_option('--disable-print-stdio', action='store_true', help='Disable vprintf for csp_print_func')
     gr.add_option('--disable-stlib', action='store_true', help='Build objects only')
+    gr.add_option('--disable-buffer-zero-clear', action='store_false', help='Zero out the packet buffer upon allocation')
     gr.add_option('--enable-shlib', action='store_true', help='Build shared library')
     gr.add_option('--enable-rdp', action='store_true', help='Enable RDP support')
     gr.add_option('--enable-promisc', action='store_true', help='Enable promiscuous support')
@@ -50,6 +51,10 @@ def options(ctx):
     # OS
     gr.add_option('--with-os', metavar='OS', default='posix', help='Set operating system. Must be one of: ' + str(valid_os))
 
+    # Fixup
+    gr.add_option('--fixup-v1-zmq-little-endian', action='store_true', help='Use little-endian CSP ID for ZMQ with CSPv1')
+
+    gr.add_option('--disable_kiss_crc', action='store_true', help='Disable the extra CRC in the KISS interface (legacy)')
 
 def configure(ctx):
     # Validate options
@@ -76,15 +81,21 @@ def configure(ctx):
 
     # Setup CFLAGS
     if (len(ctx.stack_path) <= 1) and (len(ctx.env.CFLAGS) == 0):
-        ctx.env.prepend_value('CFLAGS', ["-std=gnu11", "-g", "-Os", "-Wall", "-Wextra", "-Wshadow", "-Wcast-align",
+        ctx.env.prepend_value('CFLAGS', ["-std=gnu11", "-g", "-Os",
+                                         "-Wall",
+                                         "-Wcast-align",
+                                         "-Werror",
+                                         "-Wextra",
+                                         "-Wmissing-prototypes",
+                                         "-Wpedantic",
                                          "-Wpointer-arith",
-                                         "-Wwrite-strings", "-Wno-unused-parameter", "-Werror"])
+                                         "-Wshadow",
+                                         "-Wwrite-strings"])
+        if ctx.env.CC_NAME == 'clang':
+            ctx.env.append_value('CFLAGS', ["-Wno-gnu-zero-variadic-macro-arguments"])
 
     # Setup default include path and any extra defined
     ctx.env.append_unique('INCLUDES_CSP', ['include', 'src'] + ctx.options.includes.split(','))
-
-    # Store OS as env variable
-    ctx.env.OS = ctx.options.with_os
 
     # Platform/OS specifics
     if ctx.options.with_os == 'posix':
@@ -118,6 +129,7 @@ def configure(ctx):
                                         'src/interfaces/csp_if_can_pbuf.c',
                                         'src/interfaces/csp_if_kiss.c',
                                         'src/interfaces/csp_if_i2c.c',
+                                        'src/interfaces/csp_if_tun.c',
                                         'src/arch/{0}/**/*.c'.format(ctx.options.with_os),
                                         ])
 
@@ -192,7 +204,11 @@ def configure(ctx):
     ctx.define('CSP_USE_HMAC', ctx.options.enable_hmac)
     ctx.define('CSP_USE_PROMISC', ctx.options.enable_promisc)
     ctx.define('CSP_USE_RTABLE', ctx.options.enable_rtable)
+    ctx.define('CSP_BUFFER_ZERO_CLEAR', ctx.options.disable_buffer_zero_clear)
 
+    ctx.define('CSP_FIXUP_V1_ZMQ_LITTLE_ENDIAN', ctx.options.fixup_v1_zmq_little_endian)
+
+    ctx.define('CSP_ENABLE_KISS_CRC', not ctx.options.disable_kiss_crc)
 
     ctx.write_config_header('include/csp/autoconfig.h')
 
@@ -232,24 +248,28 @@ def build(ctx):
                   use=['csp_shlib'],
                   pytest_path=[ctx.path.get_bld()])
 
+        ctx.env.append_value('CFLAGS', ["-Wno-missing-prototypes",
+                                        "-Wno-unused-parameter"])
+
     if ctx.env.ENABLE_EXAMPLES:
-        ctx.program(source=['examples/csp_server_client.c',
-                            'examples/csp_server_client_{0}.c'.format(ctx.env.OS)],
+        ctx.objects(source='examples/csp_posix_helper.c',
+                  target='csp_posix_helper',
+                  use='csp_h')
+
+        ctx.program(source='examples/csp_server_client.c',
                     target='examples/csp_server_client',
                     lib=ctx.env.LIBS,
-                    use='csp')
+                    use=['csp', 'csp_posix_helper'])
 
-        ctx.program(source=['examples/csp_server.c',
-                            'examples/csp_server_{0}.c'.format(ctx.env.OS)],
+        ctx.program(source='examples/csp_server.c',
                     target='examples/csp_server',
                     lib=ctx.env.LIBS,
-                    use='csp')
+                    use=['csp', 'csp_posix_helper'])
 
-        ctx.program(source=['examples/csp_client.c',
-                            'examples/csp_client_{0}.c'.format(ctx.env.OS)],
+        ctx.program(source='examples/csp_client.c',
                     target='examples/csp_client',
                     lib=ctx.env.LIBS,
-                    use='csp')
+                    use=['csp', 'csp_posix_helper'])
 
         ctx.program(source=['examples/csp_bridge_can2udp.c'],
                     target='examples/csp_bridge_can2udp',
@@ -267,6 +287,10 @@ def build(ctx):
                         lib=ctx.env.LIBS,
                         use='csp')
 
+        ctx.program(source=['examples/csp_sfp_server_client.c'],
+                    target='examples/csp_sfp_server_client',
+                    lib=ctx.env.LIBS,
+                    use='csp')
 
 def dist(ctx):
     ctx.excl = 'build/* **/.* **/*.pyc **/*.o **/*~ *.tar.gz'

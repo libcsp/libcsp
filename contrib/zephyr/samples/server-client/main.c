@@ -49,7 +49,7 @@ void server(void) {
 			continue;
 		}
 
-		/* Read packets on connection, timout is 100 mS */
+		/* Read packets on connection, timeout is 100 mS */
 		csp_packet_t *packet;
 		while ((packet = csp_read(conn, 50)) != NULL) {
 			switch (csp_conn_dport(conn)) {
@@ -89,9 +89,8 @@ void client(void) {
 		k_sleep(test_mode ? K_USEC(200000) : K_USEC(1000000));
 
 		/* Send ping to server, timeout 1000 mS, ping size 100 bytes */
-		int result = csp_ping(server_address, 1000, 100, CSP_O_NONE);
+		int __maybe_unused result = csp_ping(server_address, 1000, 100, CSP_O_NONE);
 		LOG_INF("Ping address: %u, result %d [mS]", server_address, result);
-		(void) result;
 
 		/* Send reboot request to server, the server has no actual implementation of csp_sys_reboot() and fails to reboot */
 		csp_reboot(server_address);
@@ -108,7 +107,7 @@ void client(void) {
 		}
 
 		/* 2. Get packet buffer for message/data */
-		csp_packet_t * packet = csp_buffer_get_always();
+		csp_packet_t * packet = csp_buffer_get(0);
 		if (packet == NULL) {
 			/* Could not get buffer element */
 			LOG_ERR("Failed to get CSP buffer");
@@ -139,7 +138,8 @@ void client(void) {
 int main(void) {
 
 	int ret;
-	uint8_t address = 0;
+	uint8_t uart_address = 1;
+	uint8_t can_address = 10;
 	const char * kiss_device = NULL;
 	const char * rtable = NULL;
 	csp_iface_t * can_iface = NULL;
@@ -162,7 +162,7 @@ int main(void) {
 			.stopbits = 1,
 			.paritysetting = 0,
 		};
-		int error = csp_usart_open_and_add_kiss_interface(&conf, CSP_IF_KISS_DEFAULT_NAME, addr, &default_iface);
+		int error = csp_usart_open_and_add_kiss_interface(&conf, CSP_IF_KISS_DEFAULT_NAME, uart_address, &default_iface);
 		if (error != CSP_ERR_NONE) {
 			LOG_ERR("failed to add KISS interface [%s], error: %d", kiss_device, error);
 			exit(1);
@@ -178,7 +178,6 @@ int main(void) {
 		 * server address to any address not 255.
 		 */
 		const char * ifname = "CAN0";
-		address = 10;
 		server_address = 255;
 		const struct device * device = DEVICE_DT_GET(DT_NODELABEL(can0));
 		uint32_t bitrate = 1000000;
@@ -189,11 +188,11 @@ int main(void) {
 		 * by me. If you want to receive all packets, please change the filter address
 		 * and mask. (For example, filter_addr: 0x3FFF, filter_mask: 0x0000)
 		 */
-		uint16_t filter_addr = address;
+		uint16_t filter_addr = can_address;
 		uint16_t filter_mask = 0x3FFF;
 
-		int error = csp_can_open_and_add_interface(device, ifname, address, bitrate,
-							   filter_addr, filter_mask, &can_iface);
+		int error = csp_can_open_and_add_interface(device, ifname, can_address, bitrate,
+												   filter_addr, filter_mask, &can_iface);
 		if (error != CSP_ERR_NONE) {
 			LOG_ERR("failed to add CAN interface [%s], error: %d\n", ifname, error);
 			exit(1);
@@ -216,7 +215,7 @@ int main(void) {
 
 	if (!default_iface) {
 		/* no interfaces configured - run server and client in process, using loopback interface */
-		server_address = address;
+		server_address = 0;
 		/* run as test mode only use loopback interface */
 		test_mode = true;
 	}
