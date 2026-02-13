@@ -4,6 +4,7 @@
 #include <csp/csp_id.h>
 
 #include <string.h>
+#include <inttypes.h>
 
 #include "csp/autoconfig.h"
 #include <csp/csp_debug.h>

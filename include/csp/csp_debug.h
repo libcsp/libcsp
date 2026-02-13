@@ -16,7 +16,7 @@
 #pragma once
 
 #include "csp/autoconfig.h"
-#include <inttypes.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
