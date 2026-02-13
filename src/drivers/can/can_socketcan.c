@@ -189,7 +189,7 @@ static int csp_can_socketcan_set_promisc(const bool promisc, can_context_t * ctx
 	return CSP_ERR_NONE;
 }
 
-int csp_can_socketcan_add_alias(void * driver_data, uint16_t addr) {
+static int csp_can_socketcan_add_alias(void * driver_data, uint16_t addr) {
 
 	if (csp_conf.version == 1) {
 		return -1;
