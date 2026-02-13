@@ -19,7 +19,6 @@
 #include <csp/arch/csp_queue.h>
 #include <csp/arch/csp_time.h>
 
-#include "csp_port.h"
 #include "csp_conn.h"
 #include "csp_io.h"
 #include "csp_semaphore.h"
@@ -311,7 +310,7 @@ static inline bool csp_rdp_should_ack(csp_conn_t * conn) {
 int csp_rdp_check_ack(csp_conn_t * conn) {
 
 	/* Check RX queue for spare capacity */
-	if (abs(CSP_CONN_RXQUEUE_LEN - csp_queue_size(conn->rx_queue)) < conn->rdp.window_size) {
+	if ((unsigned int) abs(CSP_CONN_RXQUEUE_LEN - csp_queue_size(conn->rx_queue)) < conn->rdp.window_size) {
 		return CSP_ERR_NONE;
 	}
 
