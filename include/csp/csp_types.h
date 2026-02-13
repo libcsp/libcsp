@@ -118,6 +118,7 @@ typedef struct {
 typedef struct csp_packet_s {
 
 	uint32_t timestamp_tx;		/*< Time the message was sent */
+	uint32_t timestamp_rx;      /*< Time the message was received */
 	struct csp_conn_s * conn;   /*< Associated connection (this is used in RDP queue) */
 
 	uint16_t rx_count;          /*< Received bytes */
