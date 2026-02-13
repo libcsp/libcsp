@@ -292,7 +292,7 @@ void csp_zmqhub_remove_filters(csp_iface_t * zmq_iface) {
 	(void)ret;
 }
 
-int csp_zmqhub_add_filter(void * driver_data, uint16_t addr) {
+static int csp_zmqhub_add_filter(void * driver_data, uint16_t addr) {
 
 	int ret = 0;
 	zmq_driver_t * drv = (zmq_driver_t*)driver_data;
