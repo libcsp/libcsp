@@ -123,7 +123,7 @@ int csp_alias_add(csp_alias_t * addr) {
 	return 0;
 }
 
-csp_alias_t * csp_alias_iterate(csp_alias_t * addr) {
+static csp_alias_t * csp_alias_iterate(csp_alias_t * addr) {
 
 	if (addr == NULL) {
 		addr = aliass;
