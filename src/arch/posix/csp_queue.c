@@ -4,6 +4,10 @@
 #include "pthread_queue.h"
 
 csp_queue_handle_t csp_queue_create_static(int length, size_t item_size, char * buffer, csp_static_queue_t * queue) {
+	/* Avoid compiler warnings about unused parameter */
+	(void)buffer;
+	(void)queue;
+
 	/* We ignore static allocation for posix for now */
 	return pthread_queue_create(length, item_size);
 }

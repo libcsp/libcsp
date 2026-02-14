@@ -1,3 +1,5 @@
+#include <csp_rdp_queue.h>
+
 #include <csp/arch/csp_queue.h>
 #include <csp/csp_types.h>
 #include <csp/csp.h>

@@ -42,7 +42,7 @@ on many cubesats.
     single master node to several well defined services on the network
 
 The implementation of `libcsp` is written
-with simplicity in mind, but it's compile time configuration allows it
+with simplicity in mind, but its compile time configuration allows it
 to have some rather advanced features as well.
 
 ## Features

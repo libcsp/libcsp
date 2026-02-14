@@ -17,6 +17,7 @@
 #include "csp_dedup.h"
 #include "csp_rdp.h"
 #include <csp/csp_debug.h>
+#include <csp/csp_hooks.h>
 #include <csp/csp_iflist.h>
 #include "csp_macro.h"
 
@@ -27,7 +28,9 @@
  * @return CSP_ERR_NONE is all options are supported, CSP_ERR_NOTSUP if not
  */
 static int csp_route_check_options(csp_iface_t * iface, csp_packet_t * packet) {
-
+	/* Avoid compiler warnings about unused parameter */
+	(void)iface;
+	(void)packet;
 
 #if (CSP_USE_HMAC == 0)
 	/* Drop HMAC packets */
@@ -61,7 +64,7 @@ static int csp_route_security_check(uint32_t security_opts, csp_iface_t * iface,
 
 	/* CRC32 verified packet */
 	if (packet->id.flags & CSP_FCRC32) {
-		/* Verify CRC32 (does not include header for backwards compatability with csp1.x) */
+		/* Verify CRC32 (does not include header for backwards compatibility with csp1.x) */
 		if (csp_crc32_verify(packet) != CSP_ERR_NONE) {
 			iface->rx_error++;
 			return CSP_ERR_CRC32;
@@ -74,7 +77,7 @@ static int csp_route_security_check(uint32_t security_opts, csp_iface_t * iface,
 #if (CSP_USE_HMAC)
 	/* HMAC authenticated packet */
 	if (packet->id.flags & CSP_FHMAC) {
-		/* Verify HMAC (does not include header for backwards compatability with csp1.x) */
+		/* Verify HMAC (does not include header for backwards compatibility with csp1.x) */
 		if (csp_hmac_verify(packet, false) != CSP_ERR_NONE) {
 			/* HMAC failed */
 			iface->autherr++;
@@ -140,7 +143,7 @@ int csp_route_work(void) {
 
 	/* Deduplication */
 	if ((csp_conf.dedup == CSP_DEDUP_ALL) ||
-		((is_to_me) && (csp_conf.dedup == CSP_DEDUP_INCOMING)) ||
+		(is_to_me && (csp_conf.dedup == CSP_DEDUP_INCOMING)) ||
 		((!is_to_me) && (csp_conf.dedup == CSP_DEDUP_FWD))) {
 		if (csp_dedup_is_duplicate(packet)) {
 			/* Discard packet */

@@ -7,6 +7,7 @@
 
 #include <endian.h>
 #include <csp/csp.h>
+#include <csp/csp_id.h>
 
 /**
  * CSP 1.x
@@ -251,9 +252,9 @@ unsigned int csp_id_get_max_nodeid(void) {
 
 unsigned int csp_id_get_max_port(void) {
 	if (csp_conf.version == 2) {
-		return ((1 << (CSP_ID2_PORT_SIZE)) - 1);
+		return ((1 << CSP_ID2_PORT_SIZE) - 1);
 	} else {
-		return ((1 << (CSP_ID1_PORT_SIZE)) - 1);
+		return ((1 << CSP_ID1_PORT_SIZE) - 1);
 	}
 }
 
@@ -268,4 +269,12 @@ int csp_id_is_broadcast(uint16_t addr, csp_iface_t * iface) {
 		return 1;
 	}
 	return 0;
+}
+
+int csp_id_get_header_size(void) {
+	if (csp_conf.version == 2) {
+		return CSP_ID2_HEADER_SIZE;
+	} else {
+		return CSP_ID1_HEADER_SIZE;
+	}
 }

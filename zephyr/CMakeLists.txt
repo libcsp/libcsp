@@ -27,7 +27,7 @@ if(CONFIG_LIBCSP)
     set(HAVE_ZEPHYR_CAN ON)
   endif()
 
-  add_subdirectory(../.. build)
+  add_subdirectory(${ZEPHYR_CURRENT_MODULE_DIR} build)
 
   zephyr_interface_library_named(libcsp)
   target_include_directories(libcsp INTERFACE ${ZEPHYR_CURRENT_MODULE_DIR}/include)

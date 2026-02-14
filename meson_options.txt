@@ -28,3 +28,5 @@ option('rdp_max_window', type: 'integer', value: 5, description: 'Max window siz
 option('rtable_size', type: 'integer', value: 10, description: 'Number of elements in routing table')
 
 option('fixup_v1_zmq_little_endian', type: 'boolean', value: false, description: 'Use little-endian CSP ID for ZMQ with CSPv1')
+
+option('enable_kiss_crc', type: 'boolean', value: true, description: 'Enables the extra CRC in the KISS interface (legacy)')

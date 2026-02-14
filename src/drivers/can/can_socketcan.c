@@ -122,7 +122,7 @@ static int csp_can_tx_frame(void * driver_data, uint32_t id, const uint8_t * dat
 
 	while (pdata < pend) {
 		int written;
-		
+
 		written = write(ctx->socket, (void *)pdata, length);
 		if (written < 0) {
 			if (errno == ENOBUFS) {
@@ -153,7 +153,7 @@ static int csp_can_tx_frame(void * driver_data, uint32_t id, const uint8_t * dat
 }
 
 
-int csp_can_socketcan_set_promisc(const bool promisc, can_context_t * ctx) {
+static int csp_can_socketcan_set_promisc(const bool promisc, can_context_t * ctx) {
 
 	struct can_filter filter[3] = { {
 		.can_id = CFP_MAKE_DST(ctx->iface.addr),
@@ -251,6 +251,7 @@ int csp_can_socketcan_open_and_add_interface(const char * device, const char * i
 	/* Set filter mode */
 	if (csp_can_socketcan_set_promisc(promisc, ctx) != CSP_ERR_NONE) {
 		csp_print("%s[%s]: csp_can_socketcan_set_promisc() failed, error: %s\n", __func__, ctx->name, strerror(errno));
+		socketcan_free(ctx);
 		return CSP_ERR_INVAL;
 	}
 
@@ -265,7 +266,8 @@ int csp_can_socketcan_open_and_add_interface(const char * device, const char * i
 	/* Create receive thread */
 	if (pthread_create(&ctx->rx_thread, NULL, socketcan_rx_thread, ctx) != 0) {
 		csp_print("%s[%s]: pthread_create() failed, error: %s\n", __func__, ctx->name, strerror(errno));
-		// socketcan_free(ctx); // we already added it to CSP (no way to remove it)
+		(void)csp_can_remove_interface(&ctx->iface);
+		socketcan_free(ctx);
 		return CSP_ERR_NOMEM;
 	}
 

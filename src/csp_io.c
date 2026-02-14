@@ -5,6 +5,7 @@
 
 #include <csp/csp.h>
 #include <csp/csp_debug.h>
+#include <csp/csp_hooks.h>
 #include <endian.h>
 #include <csp/csp_crc32.h>
 #include <csp/csp_rtable.h>
@@ -25,6 +26,11 @@ csp_conn_t * csp_accept(csp_socket_t * sock, uint32_t timeout) {
 
 	if ((sock == NULL) || (sock->rx_queue == NULL)) {
 		csp_dbg_errno = CSP_DBG_ERR_INVALID_POINTER;
+		return NULL;
+	}
+	
+	if (sock->opts & CSP_SO_CONN_LESS) {
+		csp_dbg_errno = CSP_DBG_ERR_UNSUPPORTED;
 		return NULL;
 	}
 
@@ -107,7 +113,7 @@ void csp_send_direct(csp_id_t* idout, csp_packet_t * packet, csp_iface_t * route
 
 		local_found = 1;
 
-		/* Do not send back to same inteface (split horizon)
+		/* Do not send back to same interface (split horizon)
 		 * This check is is similar to that below, but faster */
 		if (iface == routed_from) {
 			continue;
@@ -119,11 +125,11 @@ void csp_send_direct(csp_id_t* idout, csp_packet_t * packet, csp_iface_t * route
 		}
 
 		/* Apply outgoing interface address to packet */
-		if ((from_me) && (idout->src == 0)) {
+		if (from_me && (idout->src == 0)) {
 			_idout.src = iface->addr;
 		}
 
-		/* Rewrite routed brodcast (L3) to local (L2) when arriving at the interface */
+		/* Rewrite routed broadcast (L3) to local (L2) when arriving at the interface */
 		if (csp_id_is_broadcast(idout->dst, iface)) {
 			_idout.dst = csp_id_get_max_nodeid();
 		}
@@ -152,7 +158,7 @@ void csp_send_direct(csp_id_t* idout, csp_packet_t * packet, csp_iface_t * route
 		do {
 			route_found = 1;
 
-			/* Do not send back to same inteface (split horizon)
+			/* Do not send back to same interface (split horizon)
 			* This check is is similar to that below, but faster */
 			if (route->iface == routed_from) {
 				continue;
@@ -164,7 +170,7 @@ void csp_send_direct(csp_id_t* idout, csp_packet_t * packet, csp_iface_t * route
 			}
 
 			/* Apply outgoing interface address to packet */
-			if ((from_me) && (idout->src == 0)) {
+			if (from_me && (idout->src == 0)) {
 				idout->src = route->iface->addr;
 			}
 
@@ -186,7 +192,7 @@ void csp_send_direct(csp_id_t* idout, csp_packet_t * packet, csp_iface_t * route
 	/* Try to send via default interfaces */
 	while ((iface = csp_iflist_get_by_isdfl(iface)) != NULL) {
 
-		/* Do not send back to same inteface (split horizon)
+		/* Do not send back to same interface (split horizon)
 		 * This check is is similar to that below, but faster */
 		if (iface == routed_from) {
 			continue;
@@ -198,7 +204,7 @@ void csp_send_direct(csp_id_t* idout, csp_packet_t * packet, csp_iface_t * route
 		}
 
 		/* Apply outgoing interface address to packet */
-		if ((from_me) && (idout->src == 0)) {
+		if (from_me && (idout->src == 0)) {
 			idout->src = iface->addr;
 		}
 
@@ -217,6 +223,7 @@ void csp_send_direct(csp_id_t* idout, csp_packet_t * packet, csp_iface_t * route
 }
 
 __weak void csp_output_hook(const csp_id_t * idout, csp_packet_t * packet, csp_iface_t * iface, uint16_t via, int from_me) {
+	(void)from_me; /* Avoid compiler warnings about unused parameter */
 	csp_print_packet("OUT: S %u, D %u, Dp %u, Sp %u, Pr %u, Fl 0x%02X, Sz %u VIA: %s (%u), Tms %u\n",
 				idout->src, idout->dst, idout->dport, idout->sport, idout->pri, idout->flags, packet->length, iface->name, (via != CSP_NO_VIA_ADDRESS) ? via : idout->dst, csp_get_ms());
 	return;
@@ -237,7 +244,7 @@ void csp_send_direct_iface(const csp_id_t* idout, csp_packet_t * packet, csp_ifa
 		/* Append HMAC */
 		if (idout->flags & CSP_FHMAC) {
 #if (CSP_USE_HMAC)
-			/* Calculate and add HMAC (does not include header for backwards compatability with csp1.x) */
+			/* Calculate and add HMAC (does not include header for backwards compatibility with csp1.x) */
 			if (csp_hmac_append(packet, false) != CSP_ERR_NONE) {
 				/* HMAC append failed */
 				goto tx_err;
@@ -250,7 +257,7 @@ void csp_send_direct_iface(const csp_id_t* idout, csp_packet_t * packet, csp_ifa
 
 		/* Append CRC32 */
 		if (idout->flags & CSP_FCRC32) {
-			/* Calculate and add CRC32 (does not include header for backwards compatability with csp1.x) */
+			/* Calculate and add CRC32 (does not include header for backwards compatibility with csp1.x) */
 			if (csp_crc32_append(packet) != CSP_ERR_NONE) {
 				/* CRC32 append failed */
 				goto tx_err;

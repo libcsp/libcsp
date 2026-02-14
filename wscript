@@ -4,7 +4,7 @@
 import os
 
 APPNAME = 'libcsp'
-VERSION = '2.1'
+VERSION = '2.2'
 
 valid_os = ['posix', 'freertos']
 
@@ -54,6 +54,8 @@ def options(ctx):
     # Fixup
     gr.add_option('--fixup-v1-zmq-little-endian', action='store_true', help='Use little-endian CSP ID for ZMQ with CSPv1')
 
+    gr.add_option('--disable_kiss_crc', action='store_true', help='Disable the extra CRC in the KISS interface (legacy)')
+
 def configure(ctx):
     # Validate options
     if ctx.options.with_os not in valid_os:
@@ -79,9 +81,16 @@ def configure(ctx):
 
     # Setup CFLAGS
     if (len(ctx.stack_path) <= 1) and (len(ctx.env.CFLAGS) == 0):
-        ctx.env.prepend_value('CFLAGS', ["-std=gnu11", "-g", "-Os", "-Wall", "-Wextra", "-Wshadow", "-Wcast-align",
-                                         "-Wpointer-arith", "-Wpedantic",
-                                         "-Wwrite-strings", "-Wno-unused-parameter", "-Werror"])
+        ctx.env.prepend_value('CFLAGS', ["-std=gnu11", "-g", "-Os",
+                                         "-Wall",
+                                         "-Wcast-align",
+                                         "-Werror",
+                                         "-Wextra",
+                                         "-Wmissing-prototypes",
+                                         "-Wpedantic",
+                                         "-Wpointer-arith",
+                                         "-Wshadow",
+                                         "-Wwrite-strings"])
         if ctx.env.CC_NAME == 'clang':
             ctx.env.append_value('CFLAGS', ["-Wno-gnu-zero-variadic-macro-arguments"])
 
@@ -199,6 +208,8 @@ def configure(ctx):
 
     ctx.define('CSP_FIXUP_V1_ZMQ_LITTLE_ENDIAN', ctx.options.fixup_v1_zmq_little_endian)
 
+    ctx.define('CSP_ENABLE_KISS_CRC', not ctx.options.disable_kiss_crc)
+
     ctx.write_config_header('include/csp/autoconfig.h')
 
 def build(ctx):
@@ -237,6 +248,9 @@ def build(ctx):
                   use=['csp_shlib'],
                   pytest_path=[ctx.path.get_bld()])
 
+        ctx.env.append_value('CFLAGS', ["-Wno-missing-prototypes",
+                                        "-Wno-unused-parameter"])
+
     if ctx.env.ENABLE_EXAMPLES:
         ctx.objects(source='examples/csp_posix_helper.c',
                   target='csp_posix_helper',
@@ -273,6 +287,10 @@ def build(ctx):
                         lib=ctx.env.LIBS,
                         use='csp')
 
+        ctx.program(source=['examples/csp_sfp_server_client.c'],
+                    target='examples/csp_sfp_server_client',
+                    lib=ctx.env.LIBS,
+                    use='csp')
 
 def dist(ctx):
     ctx.excl = 'build/* **/.* **/*.pyc **/*.o **/*~ *.tar.gz'

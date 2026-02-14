@@ -20,3 +20,4 @@ Error Codes
 .. autocmacro:: csp_error.h::CSP_ERR_HMAC
 .. autocmacro:: csp_error.h::CSP_ERR_CRC32
 .. autocmacro:: csp_error.h::CSP_ERR_SFP
+.. autocmacro:: csp_error.h::CSP_ERR_MTU

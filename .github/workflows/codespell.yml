@@ -1,0 +1,22 @@
+name: Codespell Check
+
+on:  
+  pull_request:
+  push:
+permissions:
+  contents: read
+
+jobs:  
+  spellcheck:  
+    runs-on: ubuntu-latest  
+
+    steps:  
+      - name: Checkout repository  
+        uses: actions/checkout@v6  
+
+      - name: Install codespell  
+        run: pip install codespell  
+
+      - name: Run codespell
+        run: |
+          codespell --skip="waf" --ignore-words=.codespell-ignore --quiet-level=2

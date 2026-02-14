@@ -17,6 +17,7 @@ uint8_t csp_dbg_packet_print;
 #if (CSP_PRINT_STDIO)
 #include <stdarg.h>
 #include <stdio.h>
+#include "csp/csp_debug.h"
 __weak void csp_print_func(const char * fmt, ...) {
     va_list args;
     va_start(args, fmt);

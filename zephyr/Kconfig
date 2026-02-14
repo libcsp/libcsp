@@ -7,6 +7,7 @@ config LIBCSP
 	bool "Enable Cubesat Space Protocol Support"
 	select POSIX_TIMERS
 	select POSIX_MONOTONIC_CLOCK
+	select POSIX_SYSTEM_INTERFACES
 	help
 	  This option enables the Cubesat Space Protocol (CSP) library.
 
@@ -46,7 +47,7 @@ config CSP_QFIFO_LEN
 	int "Length of incoming queue for router task"
 	default 15
 	help
-	  This value specifies the length of queue for incomming
+	  This value specifies the length of queue for incoming
 	  packets that are used by csp_qfifo_read() and
 	  csp_qfifo_write().
 
@@ -103,7 +104,7 @@ config CSP_UART_RX_INTERVAL
 	int "Interval (nesc) at which the receiving thread runs."
 	default 1000
 	help
-	  Interval (nsec) at which the reveiving thread runs.
+	  Interval (nsec) at which the receiving thread runs.
 
 config CSP_UART_RX_BUFFER_LENGTH
 	int "Size of buffer to be stored when receiving in the CSP UART Driver."

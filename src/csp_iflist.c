@@ -43,7 +43,7 @@ csp_iface_t * csp_iflist_get_by_subnet(uint16_t addr, csp_iface_t * ifc) {
 
 	while (ifc) {
 
-		/* Reject searches involving subnets, if the netmask is invalud */
+		/* Reject searches involving subnets, if the netmask is invalid */
 		if (ifc->netmask == 0) {
 			ifc = ifc->next;
 			continue;
@@ -78,7 +78,6 @@ csp_iface_t * csp_iflist_get_by_isdfl(csp_iface_t * ifc) {
 		}
 
 		ifc = ifc->next;
-		continue;
 
 	}
 
@@ -86,7 +85,7 @@ csp_iface_t * csp_iflist_get_by_isdfl(csp_iface_t * ifc) {
 
 }
 
-csp_iface_t * csp_iflist_iterate(csp_iface_t * ifc) {
+static csp_iface_t * csp_iflist_iterate(csp_iface_t * ifc) {
 
 	/* Head of list */
 	if (ifc == NULL) {

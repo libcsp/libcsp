@@ -47,3 +47,10 @@ executable('zmqproxy',
 	c_args : csp_c_args,
 	dependencies : csp_dep,
 	build_by_default : false)
+
+executable('csp_sfp_server_client',
+	'csp_sfp_server_client.c',
+	include_directories : csp_inc,
+	c_args : csp_c_args,
+	dependencies : csp_dep,
+	build_by_default : false)

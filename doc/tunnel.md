@@ -8,7 +8,7 @@ The usage is best explained using a little example. So lets start with a satelli
 0/8 satellite bus (node id 0-63)
 64/8 mission control bus (node id 64-127)
 
-Let's say we wish to create an encrypted tunned between these two. We define a new "open" network to sit
+Let's say we wish to create an encrypted tunnel between these two. We define a new "open" network to sit
 between the satellite and the ground station
 
 128/8 open / insecure transport network (128-195)

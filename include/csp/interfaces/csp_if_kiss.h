@@ -71,7 +71,7 @@ int csp_kiss_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet, int fr
  * frame has been received, the CSP packet will be routed on.
  *
  * @param[in] iface incoming interface.
- * @param[in] buf reveived data.
+ * @param[in] buf received data.
  * @param[in] len length of \a buf.
  * @param[out] pxTaskWoken Valid reference if called from ISR, otherwise NULL!
  */

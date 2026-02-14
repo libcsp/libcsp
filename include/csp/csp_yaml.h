@@ -13,7 +13,7 @@ extern "C" {
  * Setup the CSP stack based on a yaml configuration file
  *
  * @param[in] filename YAML configuration file.
- * @param[in] dfl_addr The default interface address can be overriden
+ * @param[in] dfl_addr The default interface address can be overridden
  * 					   by passing a pointer to an integer higher than zero.
  * 					   The default interface address can be read back using the
  * 					   same integer, if its set to zero. Passing NULL to

@@ -5,6 +5,7 @@
 
 #include <csp/csp.h>
 #include <csp/csp_debug.h>
+#include <csp/csp_hooks.h>
 #include <csp/drivers/can_socketcan.h>
 #include <csp/interfaces/csp_if_udp.h>
 

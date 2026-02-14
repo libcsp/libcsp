@@ -9,5 +9,6 @@ __weak void csp_clock_get_time(csp_timestamp_t * time) {
 }
 
 __weak int csp_clock_set_time(const csp_timestamp_t * time) {
+	(void)time; /* Avoid compiler warnings about unused parameter */
 	return CSP_ERR_NOTSUP;
 }

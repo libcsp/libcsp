@@ -9,7 +9,7 @@
  * counter that wraps around at 32768. With multiple nodes connected on ethernet
  * the packet identifiers on different nodes may collide, which is why the CSP
  * source address is included in the pbuf identifier. Multiple source addresses
- * causes no problems, as the packet_id dows not depend on the packet content.
+ * causes no problems, as the packet_id does not depend on the packet content.
  *
  * A segment identifier is considered not required, as the stream of ethernet
  * frames follows a single path, and there are no retransmission, so it can be
@@ -18,7 +18,7 @@
  * CSP_IF_ETH_PBUF_TIMEOUT_MS after latest data was received.
  *
  * There is a minimum ethernet frame size, such that the received size is at
- * leas 60 bytes. The segment size field of the header provides the length of
+ * least 60 bytes. The segment size field of the header provides the length of
  * the actual payload.
  *
  * The size of a CSP packet can generally not be determined from a partial CSP
@@ -35,6 +35,10 @@
 
 #include <csp/interfaces/csp_if_eth.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct {
 	uint16_t rx_count;          /* Received bytes */
 	uint16_t remain;            /* Remaining packets */
@@ -46,3 +50,7 @@ void csp_eth_pbuf_free(csp_eth_interface_data_t * ifdata, csp_packet_t * buffer,
 csp_packet_t * csp_eth_pbuf_new(csp_eth_interface_data_t * ifdata, uint32_t id, uint32_t now, int * task_woken);
 csp_packet_t * csp_eth_pbuf_find(csp_eth_interface_data_t * ifdata, uint32_t id, int * task_woken);
 void csp_eth_pbuf_cleanup(csp_eth_interface_data_t * ifdata, uint32_t now, int * task_woken);
+
+#ifdef __cplusplus
+}
+#endif

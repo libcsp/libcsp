@@ -69,7 +69,7 @@ static int setPortTimeouts(csp_usart_fd_t fd) {
 	COMMTIMEOUTS timeouts = {0};
 
 	if (!GetCommTimeouts(fd, &timeouts)) {
-		csp_print("Error gettings current timeout settings, error: %lu\n", GetLastError());
+		csp_print("Error getting current timeout settings, error: %lu\n", GetLastError());
 		return CSP_ERR_INVAL;
 	}
 

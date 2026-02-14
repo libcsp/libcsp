@@ -21,7 +21,7 @@ static int csp_rtable_parse(const char * rtable, int dry_run) {
 	/* Get first token */
 	char * saveptr;
 	char * str = strtok_r(rtable_copy, ",", &saveptr);
-	while ((str) && (strlen(str) > 1)) {
+	while (str && (strlen(str) > 1)) {
 		unsigned int address, via;
 		int netmask;
 		char name[15];

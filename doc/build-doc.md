@@ -12,5 +12,5 @@ python3 -m venv venv
 pip install -r doc/requirements.txt
 mkdir builddir
 cmake -S doc -B builddir
-cmake --build
+cmake --build builddir
 ```

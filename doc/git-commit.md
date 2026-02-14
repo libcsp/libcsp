@@ -70,7 +70,7 @@ These are examples taken from our own commit hisotry.
     cmake: Fix python binding option, change to py3
 
     The previous option name for the python bindings,
-    'enable-python3-bindings' is not a valid varaible name in CMAKE.
+    'enable-python3-bindings' is not a valid variable name in CMAKE.
     Also only Python3 is supported forwards so the CMake package Python3
     is now used.
 
@@ -90,7 +90,7 @@ These are examples taken from our own commit hisotry.
 
     All RX functions need to check for overflow of the packet data field.
     All TX functions that is askd to transmit a csp packet larger than their
-    underlaying layer cannot handle, should drop the packet.
+    underlying layer cannot handle, should drop the packet.
 
     In-the field MTU analysis is done by sending larger and larger ping
     packets over the network to determine what the end-to-end MTU is.

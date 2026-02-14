@@ -56,7 +56,8 @@ extensions = [
     'sphinx_c_autodoc.viewcode',
     "sphinx_design",
     "sphinx_git",
-    "sphinx_copybutton"
+    "sphinx_copybutton",
+    "sphinx.ext.githubpages"
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -91,7 +92,6 @@ html_theme_options = {
     'navigation_depth': 2,
     'includehidden': True,
     'titles_only': True,
-    'sticky_navigation': True
 }
 
 def include_readme_file(app, docname, source):

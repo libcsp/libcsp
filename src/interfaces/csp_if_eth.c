@@ -34,9 +34,9 @@ bool csp_eth_pack_header(csp_eth_header_t * buf,
     return true;
 }
 
-bool csp_if_eth_unpack_header(csp_eth_header_t * buf, 
-                              uint32_t * packet_id,
-                              uint16_t * seg_size, uint16_t * packet_length) {
+static bool csp_if_eth_unpack_header(csp_eth_header_t * buf,
+                                     uint32_t * packet_id,
+                                     uint16_t * seg_size, uint16_t * packet_length) {
 
     if (packet_id == NULL) return false;
     if (seg_size == NULL) return false;
@@ -68,16 +68,18 @@ static size_t arp_used = 0;
 
 static arp_list_entry_t * arp_list = 0; 
 
-arp_list_entry_t * arp_alloc(void) {
-    
+static arp_list_entry_t * arp_alloc(void) {
+
     if (arp_used >= ARP_MAX_ENTRIES) {
         return 0;
-    } 
+    }
     return &(arp_array[arp_used++]);
 
 }
 
-void arp_print(void)
+// FIXME: Function unused.  Remove it?
+#if 0
+static void arp_print(void)
 {
     csp_print("ARP  CSP  MAC\n");
     for (arp_list_entry_t * arp = arp_list; arp; arp = arp->next) {
@@ -88,6 +90,7 @@ void arp_print(void)
     }
     csp_print("\n");
 }
+#endif
 
 void csp_eth_arp_set_addr(uint8_t * mac_addr, uint16_t csp_addr)
 {
@@ -136,7 +139,7 @@ int csp_eth_rx(csp_iface_t * iface, csp_eth_header_t * eth_frame, uint32_t recei
     if (eth_debug) csp_hex_dump("rx", (void*)eth_frame, received_len);
 
     /* Filter on CSP protocol id */
-    if ((be16toh(eth_frame->ether_type) != CSP_ETH_TYPE_CSP)) {
+    if (be16toh(eth_frame->ether_type) != CSP_ETH_TYPE_CSP) {
         iface->frame++;
         return CSP_ERR_INVAL;
     }
@@ -171,7 +174,7 @@ int csp_eth_rx(csp_iface_t * iface, csp_eth_header_t * eth_frame, uint32_t recei
         return CSP_ERR_INVAL;
     }
 
-    if (frame_length == 0 || frame_length > CSP_BUFFER_SIZE) {
+    if (frame_length == 0 || frame_length > (CSP_BUFFER_SIZE + csp_id_get_header_size())) {
         iface->frame++;
         csp_print("eth rx frame_length of %u is invalid\n", frame_length);
         return CSP_ERR_INVAL;
@@ -238,8 +241,11 @@ int csp_eth_rx(csp_iface_t * iface, csp_eth_header_t * eth_frame, uint32_t recei
 }
 
 int csp_eth_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet, int from_me) {
+    /* Avoid compiler warnings about unused parameter */
+    (void)via;
+    (void)from_me;
 
-	csp_eth_interface_data_t * ifdata = iface->interface_data;
+    csp_eth_interface_data_t * ifdata = iface->interface_data;
 
     /* Loopback */
     if (packet->id.dst == iface->addr) {

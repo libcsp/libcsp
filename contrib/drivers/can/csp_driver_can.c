@@ -47,7 +47,7 @@ static StackType_t can_task_stack[500];
 static TaskHandle_t can_task_handle;
 #endif
 
-/** Driver configration */
+/** Driver configuration */
 static struct mcan_s {
 	can_mode_e mode;
 	uint32_t id;
@@ -162,10 +162,10 @@ int csp_can_tx_frame(void *driver_data, uint32_t id, const uint8_t * data, uint8
 	 * We could go for async transmission with software queues, this will allow for larger amounts
 	 * of data to be queued. However in this case, simplicity is chosen over performance.
 	 * When the TX FIFO is full, we ask the task to sleep a tick.
-	 * Usually data heavy fuctions are running in their separate tasks anyways.
+	 * Usually data heavy functions are running in their separate tasks anyways.
 	 * A CAN frame is 96 bits and is transmitted within 96 us.
 	 * A tick period can vary from 1 to 10 ms (typically)
-	 * 3 retries have been chosen because a futher dealy than this would almost certainly be
+	 * 3 retries have been chosen because a further dealy than this would almost certainly be
 	 * due to an error.
 	 */
 	int attempts = 3;

@@ -9,7 +9,7 @@ allocation during initialization, where all structures are allocated:
 port tables, connection pools, buffer pools, message queues, semaphores,
 tasks, etc.
 
-Once the initiallization is complete, there are only a few functions
+Once the initialization is complete, there are only a few functions
 that uses dynamic allocation, such as:
 
   - `csp_sfp_recv()` - sending larger memory chunks than can fit into a

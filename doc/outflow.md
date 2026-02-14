@@ -16,7 +16,7 @@ copies id to packet
     csp_send_direct()
     -----------------
     called by: send, sendto, router, rdp
-    perfoms outgoing routing, selects interface
+    performs outgoing routing, selects interface
 
         csp_send_direct_iface()
         -----------------------

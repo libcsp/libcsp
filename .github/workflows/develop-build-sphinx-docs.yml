@@ -5,13 +5,19 @@ on:
   push:
     branches:
       - develop
+permissions:
+  contents: read
 jobs:
   build-docs:
     if: github.repository_owner == 'libcsp'
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
     steps:
       - name: Checkout the repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup packages on Linux
         if: ${{ runner.os == 'Linux' }}

@@ -4,6 +4,8 @@
  * delayed acknowledgments, to improve performance over half-duplex links.
  */
 
+#include "csp_rdp.h"
+
 #include "csp_rdp_queue.h"
 
 #include <stdlib.h>
@@ -126,7 +128,7 @@ static int csp_rdp_send_cmp(csp_conn_t * conn, csp_packet_t * packet, int flags,
 		conn->rdp.rcv_lsa = ack_nr;
 	}
 
-	/* Every outgoing message contains the last valid ACK number. So we always set last ack timetamp
+	/* Every outgoing message contains the last valid ACK number. So we always set last ack timestamp
 	 * We do this early to minimize race condition between read() call and router task csp_rdp_new_packet() */
 	conn->rdp.ack_timestamp = csp_get_ms();
 
@@ -265,7 +267,7 @@ static inline bool csp_rdp_seq_in_rx_queue(csp_conn_t * conn, uint16_t seq_nr) {
 
 		csp_rdp_queue_rx_add(conn, packet);
 
-		rdp_header_t * header = csp_rdp_header_ref((csp_packet_t *)packet);
+		rdp_header_t * header = csp_rdp_header_ref(packet);
 		if (header->seq_nr == seq_nr) {
 			return true;
 		}
@@ -376,7 +378,7 @@ void csp_rdp_check_timeouts(csp_conn_t * conn) {
 		}
 
 		/* Get header */
-		rdp_header_t * header = csp_rdp_header_ref((csp_packet_t *)packet);
+		rdp_header_t * header = csp_rdp_header_ref(packet);
 
 		/* If acked, do not retransmit */
 		if (csp_rdp_seq_before(be16toh(header->seq_nr), conn->rdp.snd_una)) {
@@ -396,7 +398,7 @@ void csp_rdp_check_timeouts(csp_conn_t * conn) {
 				/* Update to latest outgoing ACK */
 				header->ack_nr = htobe16(conn->rdp.rcv_cur);
 
-				/* Every outgoing message contains the last valid ACK number. So we always set last ack timetamp */
+				/* Every outgoing message contains the last valid ACK number. So we always set last ack timestamp */
 				conn->rdp.ack_timestamp = csp_get_ms();
 				/* Send copy to tx_queue */
 				packet->timestamp_tx = csp_get_ms();
@@ -661,7 +663,7 @@ bool csp_rdp_new_packet(csp_conn_t * conn, csp_packet_t * packet) {
 			conn->rdp.snd_una = rx_header->ack_nr + 1;
 
 			/* We have an EACK */
-			if ((rx_header->flags & RDP_EAK)) {
+			if (rx_header->flags & RDP_EAK) {
 				csp_rdp_protocol("RDP %p: Got EACK\n", (void *)conn);
 				goto discard_open;
 			}

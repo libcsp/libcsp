@@ -8,6 +8,8 @@
 #include <csp/csp_hooks.h>
 #include <csp/csp_id.h>
 
+#include "csp_buffer_private.h"
+
 /** Internal buffer header */
 typedef struct csp_skbf_s {
 	unsigned int refcount;
@@ -23,7 +25,7 @@ void csp_buffer_init(void) {
 	 * Chunk of memory allocated for CSP buffers:
 	 * This is marked as .noinit, because csp buffers can never be assumed zeroed out
 	 * Putting this section in a separate non .bss area, saves some boot time */
-	static csp_skbf_t csp_buffer_pool[CSP_BUFFER_COUNT]  __noinit;
+	static csp_skbf_t csp_buffer_pool[CSP_BUFFER_COUNT] __noinit;
 	static csp_static_queue_t csp_buffers_queue __noinit;
 	static char csp_buffer_queue_data[CSP_BUFFER_COUNT * sizeof(csp_skbf_t *)] __noinit;
 
@@ -61,8 +63,8 @@ static csp_packet_t * csp_buffer_get_actual(int reserve, int isr) {
 	} else {
 		remain = csp_queue_size(csp_buffers);
 	}
-	/* Respect if remaining is lower than the reserve requested */
-	if (remain < reserve) {
+	/* Respect the requested reserve */
+	if (remain <= reserve) {
 		return NULL;
 	}
 
@@ -159,7 +161,8 @@ csp_packet_t * csp_buffer_clone(const csp_packet_t * packet) {
 void csp_buffer_copy(const csp_packet_t * src, csp_packet_t * dst) {
 	if ((NULL != src) && (NULL != dst)) {
 		(void)memcpy(dst, src, sizeof(csp_packet_t));
-    }
+		dst->frame_begin =  (dst->header + CSP_PACKET_PADDING_BYTES) - (src->data - src->frame_begin);
+	}
 }
 
 void csp_buffer_refc_inc(void * buffer) {
@@ -206,14 +209,16 @@ csp_packet_t * csp_buffer_get_always_isr(void) {
 }
 
 /* CSP will try to reserve the last two buffers for calls which can take it,
- * examples are client funktions that are allowed to fail and have adequate
+ * examples are client functions that are allowed to fail and have adequate
  * error checking. Or services which are allowed to timeout of memory becomes
  * sparse. */
 
 csp_packet_t * csp_buffer_get(size_t unused) {
-	return csp_buffer_get_actual(2, 0);
+	(void)unused; /* Avoid compiler warnings about unused parameter */
+	return csp_buffer_get_actual(CSP_BUFFER_RESERVED_COUNT, 0);
 }
 
 csp_packet_t * csp_buffer_get_isr(size_t unused) {
-	return csp_buffer_get_actual(2, 1);
+	(void)unused; /* Avoid compiler warnings about unused parameter */
+	return csp_buffer_get_actual(CSP_BUFFER_RESERVED_COUNT, 1);
 }
