@@ -1,3 +1,5 @@
+#include <string.h>
+
 #include <csp/csp.h>
 #include <csp/csp_debug.h>
 #include <csp/csp_id.h>

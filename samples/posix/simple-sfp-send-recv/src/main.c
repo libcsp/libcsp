@@ -1,6 +1,8 @@
 /* needed for pthread_timedjoin_np */
 #define _GNU_SOURCE 
 
+#include <string.h>
+
 #include <csp/csp.h>
 #include <csp/csp_buffer.h>
 #include <csp/csp_sfp.h>
