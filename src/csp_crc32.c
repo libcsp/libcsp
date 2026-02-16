@@ -1,9 +1,12 @@
 
 
 #include <csp/csp_crc32.h>
-#include <csp/csp_id.h>
 
 #include <endian.h>
+#include <string.h>
+
+#include <csp/csp_id.h>
+
 
 #ifdef __AVR__
 #include <avr/pgmspace.h>

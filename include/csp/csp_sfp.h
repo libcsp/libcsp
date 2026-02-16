@@ -11,8 +11,6 @@
  ****************************************************************************/
 #pragma once
 
-#include <string.h> // memcpy()
-
 #include <csp/csp_types.h>
 
 #ifdef __cplusplus

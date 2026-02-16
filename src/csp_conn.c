@@ -3,6 +3,7 @@
 #include "csp_conn.h"
 
 #include <stdlib.h>
+#include <string.h>
 #include <stdatomic.h>
 
 #include <csp/arch/csp_queue.h>

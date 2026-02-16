@@ -4,6 +4,7 @@
 
 #include <csp/csp_debug.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <csp/csp.h>
 #include <csp/drivers/usart.h>
