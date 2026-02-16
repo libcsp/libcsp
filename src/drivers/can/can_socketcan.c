@@ -3,6 +3,7 @@
 #include <csp/drivers/can_socketcan.h>
 
 #include <stdio.h>
+#include <string.h>
 #include <pthread.h>
 #include <stdlib.h>
 #include <csp/csp_debug.h>

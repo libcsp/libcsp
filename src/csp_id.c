@@ -6,6 +6,8 @@
  */
 
 #include <endian.h>
+#include <string.h>
+
 #include <csp/csp.h>
 #include <csp/csp_id.h>
 

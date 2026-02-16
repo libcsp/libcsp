@@ -1,5 +1,6 @@
 #include <unistd.h>
 #include <stdlib.h>
+#include <string.h>
 #include <zmq.h>
 #include <assert.h>
 #include <pthread.h>
