@@ -269,7 +269,11 @@ int csp_zmqhub_init_w_name_endpoints_rxfilter(const char * ifname, uint16_t addr
 	return CSP_ERR_NONE;
 }
 
-void csp_zmqhub_remove_filters(csp_iface_t * zmq_iface) {
+int csp_zmqhub_remove_filters(csp_iface_t * zmq_iface) {
+
+	if(zmq_iface == NULL || zmq_iface->driver_data == NULL || zmq_iface->nexthop != csp_zmqhub_tx) {
+		return -1;
+	}
 
 	int ret = 0;
 	zmq_driver_t * drv = zmq_iface->driver_data;
@@ -290,7 +294,7 @@ void csp_zmqhub_remove_filters(csp_iface_t * zmq_iface) {
 	/* subscribe to all packets - no filter */
 	ret = zmq_setsockopt(drv->subscriber, ZMQ_SUBSCRIBE, NULL, 0);
 	assert(ret == 0);
-	(void)ret;
+	return ret;
 }
 
 static int csp_zmqhub_add_filter(void * driver_data, uint16_t addr) {
@@ -307,8 +311,11 @@ static int csp_zmqhub_add_filter(void * driver_data, uint16_t addr) {
 	return ret;
 }
 
-void csp_zmqhub_add_filters(csp_iface_t * zmq_iface) {
+int csp_zmqhub_add_filters(csp_iface_t * zmq_iface) {
 
+	if(zmq_iface == NULL || zmq_iface->driver_data == NULL || zmq_iface->nexthop != csp_zmqhub_tx) {
+		return -1;
+	}
 	int ret = 0;
 	zmq_driver_t * drv = zmq_iface->driver_data;
 	const uint16_t addr = zmq_iface->addr;
@@ -329,11 +336,11 @@ void csp_zmqhub_add_filters(csp_iface_t * zmq_iface) {
 		ret = zmq_setsockopt(drv->subscriber, ZMQ_SUBSCRIBE, &drv->filt[i][2], 2);
 	}
 	assert(ret == 0);
-	(void)ret;
+	return ret;
 }
 
 int csp_zmqhub_init_filter2(const char * ifname, const char * host, uint16_t addr, uint16_t netmask, int promisc, csp_iface_t ** return_interface, char * sec_key, uint16_t subport, uint16_t pubport) {
-	
+
 	/* ZMQ will cause valgrind errors if `sec_key` isn't exactly 40 characters long.
 		For now we deliberately parse an empty string as if no sec_key was specified. */
 	const ssize_t sec_key_len = sec_key ? strnlen(sec_key, CURVE_KEYLEN-1) : 0;
@@ -411,7 +418,7 @@ int csp_zmqhub_init_filter2(const char * ifname, const char * host, uint16_t add
 	zmq_setsockopt(drv->subscriber, ZMQ_TCP_KEEPALIVE_IDLE, &idle, sizeof(idle));
 	zmq_setsockopt(drv->subscriber, ZMQ_TCP_KEEPALIVE_CNT, &cnt, sizeof(cnt));
 	zmq_setsockopt(drv->subscriber, ZMQ_TCP_KEEPALIVE_INTVL, &intvl, sizeof(intvl));
-	
+
 	/* Connect to server */
 	ret = zmq_connect(drv->publisher, pub);
 	assert(ret == 0);

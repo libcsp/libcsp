@@ -25,6 +25,14 @@ void csp_iflist_add(csp_iface_t * iface);
  */
 void csp_iflist_remove(csp_iface_t * ifc);
 
+/**
+ * Iterate over the list of interfaces.
+ *
+ * @param[in] ifc Previous interface to continue iteration, or NULL to start at the head of the list.
+ * @return Pointer to the next interface, or NULL if the end of the list is reached.
+ */
+csp_iface_t * csp_iflist_iterate(csp_iface_t * ifc);
+
 csp_iface_t * csp_iflist_get_by_name(const char * name);
 csp_iface_t * csp_iflist_get_by_addr(uint16_t addr);
 csp_iface_t * csp_iflist_get_by_broadcast(uint16_t addr);

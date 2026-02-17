@@ -19,7 +19,7 @@ int csp_iflist_is_within_subnet(uint16_t addr, csp_iface_t * ifc) {
 	if (ifc == NULL) {
 		return 0;
 	}
-	
+
 	uint16_t netmask = ((1 << ifc->netmask) - 1) << (csp_id_get_host_bits() - ifc->netmask);
 	uint16_t network_a = ifc->addr & netmask;
 	uint16_t network_b = addr & netmask;
@@ -87,7 +87,7 @@ csp_iface_t * csp_iflist_get_by_isdfl(csp_iface_t * ifc) {
 
 }
 
-static csp_iface_t * csp_iflist_iterate(csp_iface_t * ifc) {
+csp_iface_t * csp_iflist_iterate(csp_iface_t * ifc) {
 
 	/* Head of list */
 	if (ifc == NULL) {

@@ -130,14 +130,14 @@ void * csp_zmqhub_fixup_cspv1_del_dest_addr(uint8_t * rx_data, size_t * datalen)
  *
  * Safe to call after `csp_zmqhub_init_filter2()` to change promiscuity.
  */
-void csp_zmqhub_remove_filters(csp_iface_t * zmq_iface);
+int csp_zmqhub_remove_filters(csp_iface_t * zmq_iface);
 
 /**
  * Make `zmq_iface` unpromiscuous, only parse matching unicast and broadcast addresses.
  *
  * Safe to call after `csp_zmqhub_init_filter2()` to change promiscuity.
  */
-void csp_zmqhub_add_filters(csp_iface_t * zmq_iface);
+int csp_zmqhub_add_filters(csp_iface_t * zmq_iface);
 
 
 #ifdef __cplusplus
