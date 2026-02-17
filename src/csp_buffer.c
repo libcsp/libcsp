@@ -160,7 +160,8 @@ csp_packet_t * csp_buffer_clone(const csp_packet_t * packet) {
 
 void csp_buffer_copy(const csp_packet_t * src, csp_packet_t * dst) {
 	if ((NULL != src) && (NULL != dst)) {
-		(void)memcpy(dst, src, sizeof(csp_packet_t));
+		size_t size = sizeof(csp_packet_t) - CSP_BUFFER_SIZE + src->length;
+		(void)memcpy(dst, src, size > sizeof(csp_packet_t) ? sizeof(csp_packet_t) : size);
 		dst->frame_begin =  (dst->header + CSP_PACKET_PADDING_BYTES) - (src->data - src->frame_begin);
 	}
 }
