@@ -50,6 +50,10 @@ static int csp_can1_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, u
 	if (packet == NULL) {
 		if (CFP_TYPE(id) == CFP_BEGIN) {
 			packet = csp_can_pbuf_new(ifdata, id, task_woken);
+			if (packet == NULL) {
+				iface->drop++;
+				return CSP_ERR_NOBUFS;
+			}
 		} else {
 			iface->frame++;
 			return CSP_ERR_INVAL;
@@ -261,6 +265,10 @@ static int csp_can2_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, u
 	if (packet == NULL) {
 		if (id & (CFP2_BEGIN_MASK << CFP2_BEGIN_OFFSET)) {
 			packet = csp_can_pbuf_new(ifdata, id, task_woken);
+			if (packet == NULL) {
+				iface->drop++;
+				return CSP_ERR_NOBUFS;
+			}
 		} else {
 			iface->frame++;
 			return CSP_ERR_INVAL;

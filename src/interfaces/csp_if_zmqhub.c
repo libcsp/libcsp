@@ -130,7 +130,14 @@ static void * csp_zmqhub_task(void * param) {
 		}
 
 		// Create new csp packet
-		packet = csp_buffer_get(0);
+		if (csp_iflist_get_by_addr(*((uint16_t*)&rx_data[2]) & 0x3FFF) != NULL) {
+			/* The packet is for us, make sure we don't silently ignore the situation if we can't process it */
+			packet = csp_buffer_get_always();
+		} else  {
+			/* The packet is not for us, it is ok to drop it if we don't have enough buffers*/
+			packet = csp_buffer_get(0);
+		}
+
 		if (packet == NULL) {
 			csp_print("RX %s: Failed to get csp_buffer(%u)\n", drv->iface.name, datalen);
 			zmq_msg_close(&msg);
