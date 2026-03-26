@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSP Virtual Topology Dashboard</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Vis.js for topology graph -->
+    <link href="https://unpkg.com/vis-network@9.1.6/dist/dist/vis-network.min.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="{{ url_for('static', filename='css/style.css') }}?v={{ cache_bust }}" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-dark bg-dark">
+        <div class="container-fluid">
+            <span class="navbar-brand mb-0 h1">
+                <i class="bi bi-diagram-3"></i> CSP Virtual Topology Dashboard
+            </span>
+            <span class="badge bg-secondary" id="connection-status">Connecting...</span>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-2">
+        <!-- Compact Topology Info & Control Panel -->
+        <div class="row mb-2">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body p-2">
+                        <div class="d-flex align-items-center gap-3 flex-wrap">
+                            <!-- Topology Info (compact) -->
+                            <div class="d-flex align-items-center gap-3">
+                                <small><strong>Topology:</strong> <span id="topology-name">-</span></small>
+                                <small><strong>CSP:</strong> <span id="topology-version">-</span></small>
+                                <small class="text-muted" id="topology-description">-</small>
+                            </div>
+
+                            <!-- Divider -->
+                            <div class="vr"></div>
+
+                            <!-- Control Buttons -->
+                            <button id="btn-start" class="btn btn-success btn-sm" onclick="startTopology()">
+                                <i class="bi bi-play-fill"></i> Start
+                            </button>
+                            <button id="btn-stop" class="btn btn-danger btn-sm" onclick="stopTopology()">
+                                <i class="bi bi-stop-fill"></i> Stop
+                            </button>
+
+                            <!-- Status -->
+                            <div class="ms-auto">
+                                <small><strong>Status:</strong></small>
+                                <span id="topology-status" class="badge bg-secondary">Stopped</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Tabs -->
+        <ul class="nav nav-tabs" id="mainTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="nodes-tab" data-bs-toggle="tab" data-bs-target="#nodes" type="button">
+                    Nodes
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="editor-tab" data-bs-toggle="tab" data-bs-target="#editor" type="button">
+                    <i class="bi bi-pencil-square"></i> Topology Editor
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="traceroute-tab" data-bs-toggle="tab" data-bs-target="#traceroute" type="button">
+                    <i class="bi bi-diagram-3-fill"></i> Traceroute
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="cli-tab" data-bs-toggle="tab" data-bs-target="#cli" type="button">
+                    Console & Logs
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content border border-top-0 p-3" id="mainTabContent">
+            <!-- Nodes Tab -->
+            <div class="tab-pane fade show active" id="nodes" role="tabpanel">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>Node Name</th>
+                            <th>Interfaces</th>
+                            <th>Description</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="nodes-table-body">
+                        <tr>
+                            <td colspan="5" class="text-center">No nodes available</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Editor Tab (Topology Editor) -->
+            <div class="tab-pane fade readonly-mode" id="editor" role="tabpanel">
+                <!-- Editor Toolbar -->
+                <div class="card mb-2">
+                    <div class="card-body p-2">
+                        <div class="d-flex flex-wrap gap-2 align-items-center">
+                            <!-- Edit mode only buttons -->
+                            <button class="btn btn-sm btn-primary edit-mode-only" onclick="editorNewTopology()" title="New topology">
+                                <i class="bi bi-file-earmark-plus"></i> New
+                            </button>
+
+                            <!-- Always visible buttons -->
+                            <button class="btn btn-sm btn-outline-secondary" onclick="editorImportTopology()" title="Import from JSON">
+                                <i class="bi bi-upload"></i> Import
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="editorExportTopology()" title="Export to JSON">
+                                <i class="bi bi-download"></i> Export
+                            </button>
+
+                            <!-- Edit mode only buttons -->
+                            <button class="btn btn-sm btn-success edit-mode-only" onclick="editorSaveDraft()" title="Save draft to server (Ctrl+S)">
+                                <i class="bi bi-floppy"></i> Save Draft
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger edit-mode-only" onclick="editorDiscardChanges()" title="Discard changes and reload from server">
+                                <i class="bi bi-arrow-counterclockwise"></i> Discard
+                            </button>
+
+                            <div class="vr edit-mode-only"></div>
+                            <button class="btn btn-sm btn-success edit-mode-only" onclick="editorValidate()" title="Validate topology">
+                                <i class="bi bi-check-circle"></i> Validate
+                            </button>
+                            <button class="btn btn-sm btn-info edit-mode-only" onclick="topologyEditor.autoConfigureAllRouting()" title="Auto-configure routing for all nodes">
+                                <i class="bi bi-magic"></i> Auto-Configure Routing
+                            </button>
+
+                            <div class="vr edit-mode-only"></div>
+                            <button class="btn btn-sm btn-outline-secondary edit-mode-only" onclick="editorUndo()" title="Undo (Ctrl+Z)">
+                                <i class="bi bi-arrow-counterclockwise"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary edit-mode-only" onclick="editorRedo()" title="Redo (Ctrl+Y)">
+                                <i class="bi bi-arrow-clockwise"></i>
+                            </button>
+
+                            <div class="vr edit-mode-only"></div>
+                            <button class="btn btn-sm btn-success edit-mode-only" id="editor-apply-btn" onclick="editorApplyChanges()" title="Apply changes and restart topology">
+                                <i class="bi bi-lightning-charge"></i> Apply & Run
+                            </button>
+
+                            <!-- Live mode only buttons -->
+                            <button class="btn btn-sm btn-outline-info readonly-mode-only" onclick="editorRefreshFromServer()" title="Refresh from running topology">
+                                <i class="bi bi-arrow-repeat"></i> Refresh
+                            </button>
+
+                            <div class="vr"></div>
+
+                            <!-- Filter controls (always visible) -->
+                            <small class="text-muted"><i class="bi bi-funnel"></i> Filters:</small>
+                            <div class="form-check form-switch mb-0">
+                                <input class="form-check-input" type="checkbox" id="editor-filter-show-subnets" checked onchange="editorApplyFilters()">
+                                <label class="form-check-label" for="editor-filter-show-subnets">
+                                    <small>Subnets</small>
+                                </label>
+                            </div>
+                            <div class="form-check form-switch mb-0">
+                                <input class="form-check-input" type="checkbox" id="editor-filter-show-nodes" checked onchange="editorApplyFilters()">
+                                <label class="form-check-label" for="editor-filter-show-nodes">
+                                    <small>Nodes</small>
+                                </label>
+                            </div>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="editorResetFilters()">
+                                <i class="bi bi-arrow-clockwise"></i> Reset
+                            </button>
+                            <button class="btn btn-sm btn-outline-primary" onclick="editorFitToScreen()">
+                                <i class="bi bi-arrows-angle-contract"></i> Fit
+                            </button>
+
+                            <div class="ms-auto d-flex align-items-center gap-2">
+                                <span id="editor-live-indicator"></span>
+                                <span id="editor-status" class="text-muted small">
+                                    <i class="bi bi-circle text-secondary"></i> No topology
+                                </span>
+                                <span id="editor-autosave-status" class="text-muted small"></span>
+
+                                <!-- Mode toggle button -->
+                                <button class="btn btn-sm btn-outline-primary" id="editor-mode-toggle" onclick="editorToggleMode()" title="Switch mode">
+                                    <i class="bi bi-pencil"></i> Edit Mode
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Editor Main Layout: 3 columns -->
+                <div class="row g-2 editor-main-container">
+                    <!-- Left Sidebar: Node Palette & Subnet List (Edit mode only) -->
+                    <div class="col-md-2 edit-mode-only">
+                        <div class="card h-100 d-flex flex-column">
+                            <div class="card-header p-2 bg-light">
+                                <small class="mb-0"><strong>Palette</strong></small>
+                            </div>
+                            <div class="card-body p-2">
+                                <!-- Add Node -->
+                                <button class="btn btn-primary btn-sm mb-2 w-100" onclick="editorAddNode()">
+                                    <i class="bi bi-plus-circle"></i> Add Node
+                                </button>
+
+                                <!-- Nodes List -->
+                                <div class="mb-3">
+                                    <small class="text-muted d-block mb-1"><strong>Nodes</strong></small>
+                                    <div id="editor-nodes-list" class="list-group list-group-flush small">
+                                        <div class="text-muted small p-2">No nodes</div>
+                                    </div>
+                                </div>
+
+                                <hr class="my-2">
+
+                                <!-- Add Subnet -->
+                                <button class="btn btn-outline-secondary btn-sm mb-2 w-100" onclick="editorAddSubnet()">
+                                    <i class="bi bi-plus-circle"></i> Add Subnet
+                                </button>
+
+                                <!-- Subnets List -->
+                                <div>
+                                    <small class="text-muted d-block mb-1"><strong>Subnets</strong></small>
+                                    <div id="editor-subnets-list" class="list-group list-group-flush small">
+                                        <div class="text-muted small p-2">No subnets</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Center: Canvas -->
+                    <div class="col-md-7">
+                        <div class="card h-100">
+                            <div class="card-body p-0" style="position: relative; height: 100%; overflow: hidden;">
+                                <div id="editor-canvas" style="width: 100%; height: 100%;"></div>
+
+                                <!-- Overlay popup for node stats (Read-only mode) -->
+                                <div id="node-stats-overlay" class="node-stats-overlay" style="display: none;">
+                                    <div class="node-stats-header">
+                                        <span id="stats-node-name"></span>
+                                        <button class="btn-close-stats" onclick="hideNodeStatsOverlay()">&times;</button>
+                                    </div>
+                                    <div class="node-stats-content">
+                                        <pre id="stats-content"></pre>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Sidebar: Properties Panel (Edit mode only) -->
+                    <div class="col-md-3 edit-mode-only">
+                        <div class="card h-100 d-flex flex-column">
+                            <div class="card-header p-2 bg-light">
+                                <small class="mb-0"><strong>Properties</strong></small>
+                            </div>
+                            <div class="card-body p-2">
+                                <div id="editor-properties-panel">
+                                    <div class="text-muted small text-center p-4">
+                                        <i class="bi bi-cursor"></i><br>
+                                        Select a node to edit its properties
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Validation Warnings Card -->
+                <div class="row mt-2" id="editor-validation-card" style="display: none;">
+                    <div class="col-12">
+                        <div class="card border-warning">
+                            <div class="card-header p-2 bg-light d-flex justify-content-between align-items-center" style="cursor: pointer;" onclick="toggleValidationCard()">
+                                <div>
+                                    <span id="validation-error-badge" class="badge bg-danger me-2" style="display: none;">0 Errors</span>
+                                    <span id="validation-warning-badge" class="badge bg-warning text-dark me-2" style="display: none;">0 Warnings</span>
+                                    <strong>Validation Results</strong>
+                                </div>
+                                <i id="validation-chevron" class="bi bi-chevron-down"></i>
+                            </div>
+                            <div class="card-body p-1" id="validation-card-body" style="max-height: 150px; overflow-y: auto;">
+                                <div id="validation-messages"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Traceroute Tab -->
+            <div class="tab-pane fade" id="traceroute" role="tabpanel">
+                <div class="row">
+                    <!-- Single Traceroute Column -->
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header p-2 bg-light">
+                                <small class="mb-0"><strong><i class="bi bi-diagram-3"></i> Single Traceroute</strong></small>
+                            </div>
+                            <div class="card-body p-3">
+                                <div class="row g-2 mb-2">
+                                    <div class="col-md-6">
+                                        <label class="form-label small mb-1">Source</label>
+                                        <div class="input-group input-group-sm">
+                                            <select id="trace-src-node" class="form-select form-select-sm">
+                                                <option value="">Select node...</option>
+                                            </select>
+                                            <span class="input-group-text px-1">@</span>
+                                            <select id="trace-src-interface" class="form-select form-select-sm">
+                                                <option value="">Interface...</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small mb-1">Destination</label>
+                                        <div class="input-group input-group-sm">
+                                            <select id="trace-dst-node" class="form-select form-select-sm">
+                                                <option value="">Select node...</option>
+                                            </select>
+                                            <span class="input-group-text px-1">@</span>
+                                            <select id="trace-dst-interface" class="form-select form-select-sm">
+                                                <option value="">Interface...</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row g-2 mb-3">
+                                    <div class="col-12">
+                                        <button id="btn-run-trace" class="btn btn-primary btn-sm" onclick="runSingleTraceroute()">
+                                            <i class="bi bi-play-fill"></i> Run Traceroute
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div id="trace-results-container">
+                                    <div id="trace-loading" class="text-center text-muted p-3" style="display: none;">
+                                        <div class="spinner-border spinner-border-sm" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                        <small class="ms-2">Running traceroute...</small>
+                                    </div>
+                                    <div id="trace-results" class="trace-results" style="max-height: 500px; overflow-y: auto;">
+                                        <div class="text-center text-muted p-3">
+                                            <small><i class="bi bi-info-circle"></i> Select source and destination nodes, then click Run</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Batch Traceroute / Reachability Matrix Column -->
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header p-2 bg-light">
+                                <small class="mb-0"><strong><i class="bi bi-grid-3x3"></i> Batch Traceroute</strong></small>
+                            </div>
+                            <div class="card-body p-3">
+                                <div class="mb-3">
+                                    <label for="batch-src-node" class="form-label small mb-1">
+                                        <strong>Source Node:</strong>
+                                        <small class="text-muted">(typically Ground Station)</small>
+                                    </label>
+                                    <select id="batch-src-node" class="form-select form-select-sm mb-2">
+                                        <option value="">Select source node...</option>
+                                    </select>
+                                    <button id="btn-run-batch" class="btn btn-success btn-sm" onclick="runBatchTraceroute()">
+                                        <i class="bi bi-grid-fill"></i> Run Batch Test (All Interfaces)
+                                    </button>
+                                    <small class="text-muted ms-2 d-block mt-1">Tests all interface combinations from source to all destinations</small>
+                                </div>
+
+                                <div id="batch-results-container">
+                                    <div id="batch-loading" class="text-muted p-3" style="display: none;">
+                                        <div class="mb-2">
+                                            <small id="batch-progress-text">Running batch traceroute...</small>
+                                        </div>
+                                        <div class="progress" style="height: 20px;">
+                                            <div id="batch-progress-bar" class="progress-bar progress-bar-striped progress-bar-animated"
+                                                 role="progressbar"
+                                                 style="width: 0%;"
+                                                 aria-valuenow="0"
+                                                 aria-valuemin="0"
+                                                 aria-valuemax="100">
+                                                <small>0%</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div id="batch-results" class="batch-results" style="max-height: 500px; overflow-y: auto;">
+                                        <div class="text-center text-muted p-3">
+                                            <small><i class="bi bi-info-circle"></i> Select source node and click "Run Batch Test" to test all interface combinations</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Console & Logs Tab -->
+            <div class="tab-pane fade" id="cli" role="tabpanel">
+                <div class="row">
+                    <!-- CLI Console Column -->
+                    <div class="col-md-5">
+                        <div class="card">
+                            <div class="card-header p-2 bg-light">
+                                <small class="mb-0"><strong>Command Console</strong></small>
+                            </div>
+                            <div class="card-body p-2">
+                                <div id="cli-output" class="cli-output mb-2" style="height: 400px;"></div>
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text">control&gt;</span>
+                                    <input type="text" id="cli-input" class="form-control" placeholder="Enter command..." autocomplete="off">
+                                    <button class="btn btn-primary" onclick="sendCommand()">Send</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Logs Column -->
+                    <div class="col-md-7">
+                        <div class="row mb-2">
+                            <div class="col-12">
+                                <div class="card">
+                                    <div class="card-body p-2">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <small class="text-muted">Select nodes:</small>
+                                            <div class="d-flex flex-wrap gap-2 flex-grow-1" id="log-nodes-list">
+                                                <button class="btn btn-sm btn-outline-secondary disabled">
+                                                    No nodes available
+                                                </button>
+                                            </div>
+                                            <button class="btn btn-sm btn-outline-danger" onclick="clearAllLogs()" id="clear-all-logs-btn" style="display: none;">
+                                                <i class="bi bi-trash"></i> Clear All
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12">
+                                <div id="log-containers" class="log-containers">
+                                    <!-- Log containers will be dynamically added here -->
+                                    <div class="text-center text-muted p-3">
+                                        <small><i class="bi bi-info-circle"></i> Select one or more nodes above to view their logs</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Import Topology Modal -->
+    <div class="modal fade" id="importTopologyModal" tabindex="-1" aria-labelledby="importTopologyModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="importTopologyModalLabel">Import Topology</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>You are about to import a new topology. How would you like to proceed?</p>
+                    <div class="alert alert-info mb-3">
+                        <small><strong>Note:</strong> The topology will be loaded into the editor. You can choose whether to also apply it to the running simulation.</small>
+                    </div>
+                    <div class="mb-3 p-3 border rounded">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="importMode" id="importEditorOnly" value="editor" checked>
+                            <label class="form-check-label w-100" for="importEditorOnly">
+                                <strong>Load in Editor Only</strong><br>
+                                <small class="text-muted">Import the topology for editing without affecting the running simulation. Other tabs will not be updated.</small>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="mb-2 p-3 border rounded">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="importMode" id="importAndApply" value="apply">
+                            <label class="form-check-label w-100" for="importAndApply">
+                                <strong>Load and Apply to Simulation</strong><br>
+                                <small class="text-muted">Import the topology and restart the simulation with the new configuration. All tabs will be synchronized.</small>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="confirmImportBtn">Import</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Socket.IO -->
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+
+    <!-- Vis.js -->
+    <script src="https://unpkg.com/vis-network@9.1.6/dist/vis-network.min.js"></script>
+
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}?v={{ cache_bust }}"></script>
+    <script src="{{ url_for('static', filename='js/routing-analyzer.js') }}?v={{ cache_bust }}"></script>
+    <script src="{{ url_for('static', filename='js/routing-suggestions.js') }}?v={{ cache_bust }}"></script>
+    <script src="{{ url_for('static', filename='js/editor.js') }}?v={{ cache_bust }}"></script>
+    <script src="{{ url_for('static', filename='js/traceroute.js') }}?v={{ cache_bust }}"></script>
+</body>
+</html>
+

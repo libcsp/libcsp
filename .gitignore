@@ -15,7 +15,6 @@ pdebug*
 tags
 .DS_store
 *.pdf
-*.html
 builddir
 .settings
 *~
