@@ -29,7 +29,8 @@ from typing import Dict, List, Optional, Tuple
 #   CANID  [DLC]  byte byte ...
 _LINE_RE = re.compile(
     r"^\s*"
-    r"(?:\((?P<ts>[0-9]+\.[0-9]+)\)\s+(?P<iface>\S+)\s+)?"  # optional ts + iface
+    r"(?:\((?P<ts>[0-9]+\.[0-9]+)\)\s+)?"                    # optional ts
+    r"(?:(?P<iface>[a-zA-Z]\S*)\s+)?"                        # optional iface
     r"(?P<can_id>[0-9A-Fa-f]{3,8})"                          # CAN ID (hex)
     r"\s+\[(?P<dlc>[0-8])\]"                                  # DLC
     r"(?P<data>(?:\s+[0-9A-Fa-f]{2})*)"                      # data bytes
