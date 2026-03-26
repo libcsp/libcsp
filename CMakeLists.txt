@@ -115,7 +115,9 @@ if(GOLANG)
   set(CSP_BUFFER_SIZE 4096 CACHE STRING "Bytes in each packet buffer")
   set(CSP_BUFFER_COUNT 4096 CACHE STRING "Number of total packet buffers")
   set(CSP_QFIFO_LEN 8192 CACHE STRING "Length of incoming queue for router task")
-  set(CSP_CONN_MAX 256 CACHE STRING "Number of new connections on socket queue")
+  # 47 = max outgoing ports = (63 - CSP_PORT_MAX_BIND) for 6-bit port fields (CSP v1 and v2).
+  # Values above this would cause source port wrap-around and silent truncation on the wire.
+  set(CSP_CONN_MAX 47 CACHE STRING "Number of new connections on socket queue")
   set(CSP_CONN_RXQUEUE_LEN 32 CACHE STRING "Number of packets in connection queue")
 else()
   set(CSP_PRINT_STDIO ON CACHE BOOL "Use vprintf() for csp_print() function")
@@ -125,6 +127,14 @@ else()
   set(CSP_CONN_MAX 8 CACHE STRING "Number of new connections on socket queue")
   set(CSP_CONN_RXQUEUE_LEN 16 CACHE STRING "Number of packets in connection queue")
 endif()
+
+# Build-time sanity check: CSP v1 and v2 both use 6-bit port fields (max port = 63).
+# Outgoing ports occupy the range [CSP_PORT_MAX_BIND+1 .. 63].
+math(EXPR CSP_MAX_OUTGOING_PORTS "63 - ${CSP_PORT_MAX_BIND}")
+if(CSP_CONN_MAX GREATER CSP_MAX_OUTGOING_PORTS)
+  message(FATAL_ERROR "CSP_CONN_MAX (${CSP_CONN_MAX}) exceeds maximum outgoing ports (${CSP_MAX_OUTGOING_PORTS}) for 6-bit port fields")
+endif()
+
 set(CSP_RDP_MAX_WINDOW 5 CACHE STRING "Max window size for RDP")
 set(CSP_RTABLE_SIZE 10 CACHE STRING "Number of elements in routing table")
 
@@ -396,7 +406,7 @@ if(CSP_POSIX AND CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
         set(CPACK_GENERATOR "DEB")
         set(CPACK_DEBIAN_PACKAGE_VERSION ${PROJECT_VERSION})
         set(CPACK_DEBIAN_FILE_NAME DEB-DEFAULT)
-        set(CMAKE_PROJECT_HOMEPAGE_URL "https://github.com/endurosat/csp_es")
+        set(CMAKE_PROJECT_HOMEPAGE_URL "https://github.com/endurosat/csp-es")
         set(CPACK_PACKAGE_CONTACT "https://www.endurosat.com/contact/")
         set(CPACK_PACKAGE_VENDOR "EnduroSat")
         set(CPACK_DEBIAN_PACKAGE_MAINTAINER "EnduroSat <https://www.endurosat.com/contact/>")

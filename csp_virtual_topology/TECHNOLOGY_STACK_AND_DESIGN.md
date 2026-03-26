@@ -678,7 +678,7 @@ The system uses a **distributed multi-process architecture** where each CSP node
 ### External Dependencies
 
 **C Libraries**:
-- libcsp_es: [github.com/endurosat/csp_es](https://github.com/endurosat/csp_es) (this repository)
+- libcsp_es: [github.com/endurosat/csp_es](https://github.com/endurosat/csp-es) (this repository)
 - libzmq: https://zeromq.org/
 - libcjson: https://github.com/DaveGamble/cJSON
 

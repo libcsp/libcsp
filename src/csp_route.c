@@ -213,7 +213,8 @@ int csp_route_work(void) {
 		((is_to_me) && (csp_conf.dedup == CSP_DEDUP_INCOMING)) ||
 		((!is_to_me) && (csp_conf.dedup == CSP_DEDUP_FWD))) {
 		if (csp_dedup_is_duplicate(packet)) {
-			csp_print(CSP_LL_TRACE, "Deduplication: Discarding duplicate packet\n");
+			csp_print(CSP_LL_TRACE, "Deduplication: Discarding duplicate packet (src=%u dst=%u dp=%u sp=%u iface=%s)\n",
+				  packet->id.src, packet->id.dst, packet->id.dport, packet->id.sport, input.iface->name);
 
 			/* Discard packet */
 			input.iface->drop++;
@@ -234,7 +235,8 @@ int csp_route_work(void) {
 
 	/* If the message is not to me, route the message to the correct interface */
 	if (!is_to_me) {
-		csp_print(CSP_LL_TRACE, "Routing: Forwarding packet to next hop\n");
+		csp_print(CSP_LL_TRACE, "Routing: Forwarding packet to next hop (src=%u dst=%u dp=%u sp=%u iface=%s)\n",
+				  packet->id.src, packet->id.dst, packet->id.dport, packet->id.sport, input.iface->name);
 		csp_send_direct(&packet->id, packet, input.iface);
 		return CSP_ERR_NONE;
 
@@ -242,7 +244,8 @@ int csp_route_work(void) {
 
 	/* Discard packets with unsupported options */
 	if (csp_route_check_options(input.iface, packet) != CSP_ERR_NONE) {
-		csp_print(CSP_LL_TRACE, "Routing: Discarding packet with unsupported options\n");
+		csp_print(CSP_LL_TRACE, "Routing: Discarding packet with unsupported options (src=%u dst=%u dp=%u sp=%u iface=%s)\n",
+				  packet->id.src, packet->id.dst, packet->id.dport, packet->id.sport, input.iface->name);
 		csp_buffer_free(packet);
 		return CSP_ERR_NONE;
 	}
@@ -260,7 +263,8 @@ int csp_route_work(void) {
 	csp_callback_t callback = csp_port_get_callback(packet->id.dport);
 	if (callback) {
 		if (csp_route_security_check(CSP_SO_CRC32REQ, input.iface, packet) != CSP_ERR_NONE) {
-			csp_print(CSP_LL_TRACE, "Routing: Discarding packet - failed security check\n");
+			csp_print(CSP_LL_TRACE, "Routing: Discarding packet - failed security check (src=%u dst=%u dp=%u sp=%u iface=%s)\n",
+					  packet->id.src, packet->id.dst, packet->id.dport, packet->id.sport, input.iface->name);
 			csp_buffer_free(packet);
 			return CSP_ERR_NONE;
 		}
@@ -280,13 +284,15 @@ int csp_route_work(void) {
 	if (socket && (socket->opts & CSP_SO_CONN_LESS)) {
 
 		if (csp_route_security_check(socket->opts, input.iface, packet) != CSP_ERR_NONE) {
-			csp_print(CSP_LL_TRACE, "Routing: Discarding packet - failed security check\n");
+			csp_print(CSP_LL_TRACE, "Routing: Discarding packet - failed security check (src=%u dst=%u dp=%u sp=%u iface=%s)\n",
+					  packet->id.src, packet->id.dst, packet->id.dport, packet->id.sport, input.iface->name);
 			csp_buffer_free(packet);
 			return CSP_ERR_NONE;
 		}
 
 		if (csp_queue_enqueue(socket->rx_queue, &packet, 0) != CSP_QUEUE_OK) {
-			csp_print(CSP_LL_TRACE, "Routing: Discarding packet - socket queue is full\n");
+			csp_print(CSP_LL_TRACE, "Routing: Discarding packet - socket queue is full (src=%u dst=%u dp=%u sp=%u iface=%s)\n",
+					  packet->id.src, packet->id.dst, packet->id.dport, packet->id.sport, input.iface->name);
 			csp_dbg_conn_ovf++;
 			csp_buffer_free(packet);
 			return CSP_ERR_NONE;
@@ -300,14 +306,16 @@ int csp_route_work(void) {
 	if (NULL == conn) { // If this is an incoming packet on a new connection
 		/* Reject packet if no matching socket is found */
 		if (!socket) {
-			csp_print(CSP_LL_TRACE, "Routing: Discarding packet - no matching socket found\n");
+			csp_print(CSP_LL_TRACE, "Routing: Discarding packet - no matching socket found (src=%u dst=%u dp=%u sp=%u iface=%s)\n",
+					  packet->id.src, packet->id.dst, packet->id.dport, packet->id.sport, input.iface->name);
 			csp_buffer_free(packet);
 			return CSP_ERR_NONE;
 		}
 
 		/* Run security check on incoming packet */
 		if (csp_route_security_check(socket->opts, input.iface, packet) != CSP_ERR_NONE) {
-			csp_print(CSP_LL_TRACE, "Routing: Discarding packet - failed security check\n");
+			csp_print(CSP_LL_TRACE, "Routing: Discarding packet - failed security check (src=%u dst=%u dp=%u sp=%u iface=%s)\n",
+					  packet->id.src, packet->id.dst, packet->id.dport, packet->id.sport, input.iface->name);
 			csp_buffer_free(packet);
 			return CSP_ERR_NONE;
 		}
@@ -324,7 +332,8 @@ int csp_route_work(void) {
 		/* Create connection */
 		conn = csp_conn_new(packet->id, idout, CONN_SERVER);
 		if (!conn) {
-			csp_print(CSP_LL_TRACE, "Routing: Discarding packet - failed to create connection\n");
+			csp_print(CSP_LL_TRACE, "Routing: Discarding packet - failed to create connection (src=%u dst=%u dp=%u sp=%u iface=%s)\n",
+					  packet->id.src, packet->id.dst, packet->id.dport, packet->id.sport, input.iface->name);
 			csp_dbg_conn_out++;
 			csp_buffer_free(packet);
 			return CSP_ERR_NONE;
@@ -337,7 +346,8 @@ int csp_route_work(void) {
 	} else {  // Packet is to existing connection */
 		/* Run security check on incoming packet */
 		if (csp_route_security_check(conn->opts, input.iface, packet) != CSP_ERR_NONE) {
-			csp_print(CSP_LL_TRACE, "Routing: Discarding packet - failed security check\n");
+			csp_print(CSP_LL_TRACE, "Routing: Discarding packet - failed security check (src=%u dst=%u dp=%u sp=%u iface=%s)\n",
+					  packet->id.src, packet->id.dst, packet->id.dport, packet->id.sport, input.iface->name);
 			csp_buffer_free(packet);
 			return CSP_ERR_NONE;
 		}
@@ -346,7 +356,8 @@ int csp_route_work(void) {
 #if (CSP_USE_RDP)
 	/* Pass packet to RDP module */
 	if (packet->id.flags & CSP_FRDP) {
-		csp_print(CSP_LL_TRACE, "Routing: Passing packet to RDP\n");
+		csp_print(CSP_LL_TRACE, "Routing: Passing packet to RDP (src=%u dst=%u dp=%u sp=%u iface=%s)\n",
+				  packet->id.src, packet->id.dst, packet->id.dport, packet->id.sport, input.iface->name);
 		bool close_connection = csp_rdp_new_packet(conn, packet);
 		if (close_connection) {
 			csp_close(conn);
@@ -357,7 +368,8 @@ int csp_route_work(void) {
 
 	/* Otherwise, enqueue directly */
 	if (csp_conn_enqueue_packet(conn, packet) != CSP_ERR_NONE) {
-		csp_print(CSP_LL_TRACE, "Routing: Discarding packet - connection queue is full\n");
+		csp_print(CSP_LL_TRACE, "Routing: Discarding packet - connection queue is full (src=%u dst=%u dp=%u sp=%u iface=%s)\n",
+				  packet->id.src, packet->id.dst, packet->id.dport, packet->id.sport, input.iface->name);
 		csp_dbg_conn_ovf++;
 		csp_buffer_free(packet);
 		return CSP_ERR_NONE;
@@ -366,7 +378,8 @@ int csp_route_work(void) {
 	/* Try to queue up the new connection pointer */
 	if (conn->dest_socket != NULL) {
 		if (csp_queue_enqueue(conn->dest_socket->rx_queue, &conn, 0) != CSP_QUEUE_OK) {
-			csp_print(CSP_LL_TRACE, "Routing: Discarding packet - socket queue is full\n");
+			csp_print(CSP_LL_TRACE, "Routing: Discarding packet - socket queue is full (src=%u dst=%u dp=%u sp=%u iface=%s)\n",
+					  packet->id.src, packet->id.dst, packet->id.dport, packet->id.sport, input.iface->name);
 			csp_dbg_conn_ovf++;
 			csp_close(conn);
 			return CSP_ERR_NONE;
@@ -382,6 +395,7 @@ int csp_route_work(void) {
 		conn->dest_socket = NULL;
 	}
 
-	csp_print(CSP_LL_TRACE, "Routing: Successfully delivered a packet\n");
+	csp_print(CSP_LL_TRACE, "Routing: Successfully delivered a packet (src=%u dst=%u dp=%u sp=%u iface=%s)\n",
+			  packet->id.src, packet->id.dst, packet->id.dport, packet->id.sport, input.iface->name);
 	return CSP_ERR_NONE;
 }

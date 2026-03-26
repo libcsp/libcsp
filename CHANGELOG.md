@@ -54,3 +54,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   core modules; core logic kept close to upstream.
 - **Ethernet interface** — `csp_if_eth` not yet fully aligned to the latest
   upstream fork.
+- **Routing trace messages** — All trace-level log messages in `csp_route_work()`
+  now include packet identity fields (`src`, `dst`, `dport`, `sport`, `iface`)
+  for improved debugging visibility.
+
+### Fixed
+
+- **Source port overflow in CSP connections** — `CSP_CONN_MAX` for Golang builds
+  corrected from 256 to 47 (maximum valid outgoing ports for 6-bit CSP port field).
+  Added CMake build-time `FATAL_ERROR` guard if `CSP_CONN_MAX` exceeds
+  `63 - CSP_PORT_MAX_BIND`, and runtime modulo wrapping in `csp_conn_init()` to
+  prevent out-of-range port assignment even if misconfigured.

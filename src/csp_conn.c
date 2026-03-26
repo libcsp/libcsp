@@ -13,11 +13,6 @@
 #include "csp_rdp_queue.h"
 #include "csp_rdp.h"
 
-#define OUTGOING_PORTS (((1 << (CSP_ID2_PORT_SIZE)) - 1) - CSP_PORT_MAX_BIND)
-#if OUTGOING_PORTS > CSP_CONN_MAX
-#error "More connections than available outgoing ports"
-#endif
-
 /* Connection pool */
 static csp_conn_t arr_conn[CSP_CONN_MAX] __noinit;
 
@@ -51,10 +46,16 @@ int csp_conn_enqueue_packet(csp_conn_t * conn, csp_packet_t * packet) {
 
 void csp_conn_init(void) {
 
+	const unsigned int outgoing_ports = csp_id_get_max_port() - CSP_PORT_MAX_BIND;
+	if (CSP_CONN_MAX > outgoing_ports) {
+		csp_print(CSP_LL_WARN, "More connections (%u) than available outgoing ports (%u)\n",
+				  (unsigned)CSP_CONN_MAX, outgoing_ports);
+	}
+
 	for (int i = 0; i < CSP_CONN_MAX; i++) {
 		csp_conn_t * conn = &arr_conn[i];
 
-		conn->sport_outgoing = CSP_PORT_MAX_BIND + 1 + i;
+		conn->sport_outgoing = CSP_PORT_MAX_BIND + 1 + (i % outgoing_ports);
 		conn->state = CONN_CLOSED;
 		conn->idin.flags = 0;
 		conn->rx_queue = csp_queue_create_static(CSP_CONN_RXQUEUE_LEN, sizeof(csp_packet_t *), conn->rx_queue_static_data, &conn->rx_queue_static);

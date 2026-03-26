@@ -24,7 +24,7 @@ This repository is a fork of [libcsp](https://github.com/libcsp/libcsp) maintain
 ### Building
 
 ```bash
-git clone https://github.com/endurosat/csp_es.git
+git clone https://github.com/endurosat/csp-es.git
 cd csp_es
 cmake -G Ninja -B build -DCSP_BUILD_SAMPLES=ON
 cmake --build build
