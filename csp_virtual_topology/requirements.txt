@@ -1,0 +1,29 @@
+# CSP Virtual Topology Python Dependencies
+# This file is compatible with both pip and uv package managers
+#
+# Usage with pip:
+#   pip install -r requirements.txt
+#
+# Usage with uv:
+#   uv pip install -r requirements.txt
+#   uv run --with-requirements requirements.txt python tools/topology_launcher.py <topology.json>
+#
+# For development:
+#   uv venv
+#   source .venv/bin/activate
+#   uv pip install -r requirements.txt
+
+# Core dependencies
+pyzmq>=25.0.0          # ZeroMQ Python bindings for message passing
+flask>=3.0.0           # Web framework for dashboard
+flask-socketio>=5.3.0  # Real-time bidirectional communication for web dashboard
+werkzeug>=3.0.0,<3.1.0 # IMPORTANT: Pin to 3.0.x for Flask-SocketIO compatibility
+graphviz>=0.20.0       # Python bindings for Graphviz (topology visualization)
+
+# Optional dependencies for development and testing
+# Uncomment as needed:
+# pytest>=7.0.0         # Testing framework
+# black>=23.0.0         # Code formatter
+# flake8>=6.0.0         # Linter
+# mypy>=1.0.0           # Type checker
+

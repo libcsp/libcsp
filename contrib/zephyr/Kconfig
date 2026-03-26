@@ -1,0 +1,172 @@
+# libcsp Cubesat Space Protocol
+
+# Copyright (c) 2021 Space Cubics, LLC.
+# SPDX-License-Identifier: Apache-2.0
+
+config LIBCSP
+	bool "Enable Cubesat Space Protocol Support"
+	select POSIX_TIMERS
+	select POSIX_MONOTONIC_CLOCK
+	help
+	  This option enables the Cubesat Space Protocol (CSP) library.
+
+if LIBCSP
+
+module = LIBCSP
+module-str = libcsp
+source "subsys/logging/Kconfig.template.log_config"
+
+config APP_LINK_WITH_LIBCSP
+	bool "Link 'app' with libcsp"
+	default y
+	help
+	  Add libcsp header files to the 'app' include path.
+
+config CSP_USE_RTABLE
+	bool "Use CSP static routing table"
+	help
+	  This option enables to use the CSP static routing table
+
+config CSP_ATOMIC_MUTEX_TIMEOUT
+	int "Waiting period to lock the mutex (msec) in atomic"
+	depends on ARMV6_M_ARMV8_M_BASELINE
+	default 10
+	help
+	  Waiting period to lock the mutex in atomic.
+
+config CSP_MUTEX_TIMEOUT
+	int "Waiting period to lock the mutex (msec)"
+	default 10
+	help
+	  Waiting period to lock the mutex.
+
+menu "Memory Tuning Parameters"
+
+config CSP_QFIFO_LEN
+	int "Length of incoming queue for router task"
+	default 15
+	help
+	  This value specifies the length of queue for incomming
+	  packets that are used by csp_qfifo_read() and
+	  csp_qfifo_write().
+
+config CSP_PORT_MAX_BIND
+	int "Number of port to bind"
+	default 16
+	help
+	  Number of ports available for an interface.
+
+config CSP_CONN_RXQUEUE_LEN
+	int "Number of packets in connection queue"
+	default 16
+	help
+	  This value specifies the length of the queue for packets in
+	  a connection.
+
+config CSP_CONN_MAX
+	int "Number of new connections on socket queue"
+	default 8
+	help
+	  This value specifies the number of new connections on socket
+	  queue.
+
+config CSP_BUFFER_SIZE
+	int "Bytes in each packet buffer"
+	default 256
+	help
+	  This value specifies the number bytes in each packet buffer.
+
+config CSP_BUFFER_COUNT
+	int "Number of total packet buffers"
+	default 15
+	help
+	  This value specifies the number of total packet buffers in
+	  the system.
+
+config CSP_RDP_MAX_WINDOW
+	int "Max window size for RDP"
+	default 5
+	help
+	  This value specifies the window size of RDP.
+
+config CSP_RTABLE_SIZE
+	int "Number of elements in routing table"
+	default 10
+	help
+	  This value specifies the number of entries in the routing
+	  table.
+endmenu
+
+menu "UART"
+
+config CSP_UART_RX_INTERVAL
+	int "Interval (nesc) at which the receiving thread runs."
+	default 1000
+	help
+	  Interval (nsec) at which the reveiving thread runs.
+
+config CSP_UART_RX_BUFFER_LENGTH
+	int "Size of buffer to be stored when receiving in the CSP UART Driver."
+	default 32
+	help
+	  Size of buffer to be stored when receiving in the CSP UART Driver.
+
+config CSP_UART_RX_THREAD_PRIORITY
+	int "RX Thread priority in the CSP UART Driver."
+	default -1
+	help
+	  RX Thread priority in the CSP UART Driver.
+
+config CSP_UART_RX_THREAD_STACK_SIZE
+	int "RX Thread stack size in the CSP UART Driver."
+	default 512
+	help
+	  RX Thread stack size in the CSP UART Driver.
+
+config CSP_UART_RX_THREAD_NUM
+	int "Number of thread stacks for CSP UART RX."
+	default 1
+	help
+	  Number of thread stacks for CSP UART RX.
+
+endmenu
+
+menu "CANbus"
+
+if CAN
+
+config CSP_HAVE_CAN
+	bool "Enable CAN driver for CSP"
+	default y
+	help
+	  This option enables the CAN driver for CSP.
+
+config CSP_CAN_RX_MSGQ_DEPTH
+	int "Depth of the message queue in the CSP CAN Driver."
+	default 64
+	help
+	  Depth of the message queue in the CSP CAN Driver.
+
+config CSP_CAN_RX_THREAD_PRIORITY
+	int "RX Thread priority in the CSP CAN Driver"
+	default -1
+	help
+	  CSP RX Thread priority in the CSP CAN Driver
+
+config CSP_CAN_RX_THREAD_STACK_SIZE
+	int "RX Thread stack size in the CSP CAN Driver"
+	default 512
+	help
+	  RX Thread stack size in the CSP CAN Driver
+
+config CSP_CAN_RX_THREAD_NUM
+	int "Number of thread stacks for CSP RX"
+	default 1
+	help
+	  Number of thread stacks for CSP RX
+
+endif # CAN
+
+endmenu
+
+endif # LIBCSP

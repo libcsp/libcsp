@@ -1,4 +1,4 @@
-target_sources(csp PRIVATE
+target_sources(csp_es PRIVATE
   csp_clock.c
   csp_hooks.c
   csp_queue.c
@@ -9,7 +9,7 @@ target_sources(csp PRIVATE
 
 # if atomic operations are not defined
 if (CONFIG_ARMV6_M_ARMV8_M_BASELINE)
-  target_sources(csp PRIVATE
+  target_sources(csp_es PRIVATE
     csp_atomic.c
   )
 endif()

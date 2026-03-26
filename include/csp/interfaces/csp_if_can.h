@@ -162,9 +162,9 @@ extern "C" {
 /**
  * Fields used to uniquely define a CSP packet within each fragment header
  */
-#define CFP2_ID_CONN_MASK ((CFP2_DST_MASK << CFP2_DST_OFFSET) | \
-						   (CFP2_SENDER_MASK << CFP2_SENDER_OFFSET) | \
-					 (CFP2_PRIO_MASK << CFP2_PRIO_OFFSET) | \
+#define CFP2_ID_CONN_MASK (((uint32_t)CFP2_DST_MASK << CFP2_DST_OFFSET) | \
+						   ((uint32_t)CFP2_SENDER_MASK << CFP2_SENDER_OFFSET) | \
+					       ((uint32_t)CFP2_PRIO_MASK << CFP2_PRIO_OFFSET) | \
 						   (CFP2_SC_MASK << CFP2_SC_OFFSET))
 
 

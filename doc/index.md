@@ -3,7 +3,7 @@ hide-toc: true
 ---
 
 Disclaimer: You are reading the latest version of libcsp document from
-[the `develop` branch](https://github.com/libcsp/libcsp).  Currently,
+[the `develop` branch](https://github.com/endurosat/csp-es).  Currently,
 we only have this version in HTML format.
 
 
@@ -13,17 +13,6 @@ we only have this version in HTML format.
 
 INSTALL
 build-doc
-```
-
-```{toctree}
-:caption: how to run samples
-:hidden:
-
-samples/posix/simple-send-canbus
-samples/posix/simple-send-udp
-samples/posix/simple-send-usart
-samples/posix/simple-send-zmq
-samples/posix/simple-sfp-send-recv
 ```
 
 ```{toctree}

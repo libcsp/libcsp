@@ -5,7 +5,6 @@
 
 #include <csp/csp.h>
 #include <csp/csp_debug.h>
-#include <csp/csp_hooks.h>
 #include <csp/drivers/can_socketcan.h>
 #include <csp/interfaces/csp_if_udp.h>
 
@@ -32,16 +31,17 @@ void csp_input_hook(csp_iface_t * iface, csp_packet_t * packet) {
 		strncpy(dst_name, "CAN", sizeof(dst_name));
 	}
 
-	csp_print("%s: %u(%u) --> %s: %u(%u), priority: %u, flags: 0x%02X, size: %" PRIu16 "\n",
+	csp_print(CSP_LL_INFO, "%s: %u(%u) --> %s: %u(%u), priority: %u, flags: 0x%02X, size: %" PRIu16 "\n",
 			  iface->name, packet->id.src, packet->id.sport,
 			  dst_name, packet->id.dst, packet->id.dport,
 			  packet->id.pri, packet->id.flags, packet->length);
 }
 
 static void print_help(void) {
-	csp_print("Usage: csp_bridge_can2udp [options]\n");
-	csp_print(" --can                           set CAN interface\n");
-	csp_print(" --remote-address <address>      set UDP remote address\n"
+	csp_print(CSP_LL_INFO, "Usage: csp_bridge_can2udp [options]\n");
+	csp_print(CSP_LL_INFO, " --can                           set CAN interface\n");
+	csp_print(CSP_LL_INFO,
+			  " --remote-address <address>      set UDP remote address\n"
 			  " --remote-port <port>            set UDP remote port\n"
 			  " --local-port <port>             set UDP local port\n"
 			  " -v,--protocol-version <version> set protocol version\n"
@@ -55,7 +55,7 @@ static csp_iface_t * add_can_iface(const char * can_name)
 	int error = csp_can_socketcan_open_and_add_interface(can_name, CSP_IF_CAN_DEFAULT_NAME,
 														 0, 1000000, true, &iface);
 	if (error != CSP_ERR_NONE) {
-		csp_print("Failed to add CAN interface [%s], error: %d\n", can_name, error);
+		csp_print(CSP_LL_ERROR, "Failed to add CAN interface [%s], error: %d\n", can_name, error);
 		exit(1);
 	}
 

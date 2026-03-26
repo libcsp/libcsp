@@ -8,7 +8,7 @@
 #include <csp/interfaces/csp_if_kiss.h>
 #include <csp/drivers/usart.h>
 #include <csp/drivers/can_socketcan.h>
-#include <endian.h>
+#include <csp/arch/csp_endian.h>
 
 #define SOCKET_CAPSULE     "csp_socket_t"
 #define CONNECTION_CAPSULE "csp_conn_t"
@@ -840,52 +840,36 @@ static PyObject * pycsp_cmp_clock_get(PyObject * self, PyObject * args) {
 #if CSP_HAVE_LIBZMQ
 static PyObject * pycsp_zmqhub_init(PyObject * self, PyObject * args) {
 	uint16_t addr;
-	const char * host = "localhost";
-	int is_default = 0;
-	uint16_t mask = 8;
-	if (!PyArg_ParseTuple(args, "H|spH", &addr, &host, &is_default, &mask)) {
+	char * host;
+	if (!PyArg_ParseTuple(args, "Hs", &addr, &host)) {
 		return NULL;  // TypeError is thrown
 	}
 
-	csp_iface_t *iface;
-	int res = csp_zmqhub_init(addr, host, 0, &iface);
+	int res = csp_zmqhub_init(addr, host, 0, NULL);
 	if (res != CSP_ERR_NONE) {
 		return PyErr_Error("csp_zmqhub_init()", res);
 	}
-	iface->is_default = is_default;
-	iface->addr = addr;
-	iface->netmask = mask;
 
 	Py_RETURN_NONE;
 }
 #endif /* CSP_HAVE_LIBZMQ */
 
-#if CSP_HAVE_LIBSOCKETCAN
 static PyObject * pycsp_can_socketcan_init(PyObject * self, PyObject * args) {
 	char * ifc;
 	int bitrate = 1000000;
 	int promisc = 0;
 	uint16_t addr = 0;
-	int is_default = 0;
-	uint16_t mask = 8;
-
-	if (!PyArg_ParseTuple(args, "s|HiipH", &ifc, &addr, &bitrate, &promisc, &is_default, &mask)) {
+	if (!PyArg_ParseTuple(args, "s|Hii", &ifc, &addr, &bitrate, &promisc)) {
 		return NULL;
 	}
 
-	csp_iface_t *iface;
-	int res = csp_can_socketcan_open_and_add_interface(ifc, CSP_IF_CAN_DEFAULT_NAME, addr, bitrate, promisc, &iface);
+	int res = csp_can_socketcan_open_and_add_interface(ifc, CSP_IF_CAN_DEFAULT_NAME, addr, bitrate, promisc, NULL);
 	if (res != CSP_ERR_NONE) {
 		return PyErr_Error("csp_can_socketcan_open_and_add_interface()", res);
 	}
-	iface->is_default = is_default;
-	iface->addr = addr;
-	iface->netmask = mask;
 
 	Py_RETURN_NONE;
 }
-#endif /* CSP_HAVE_LIBSOCKETCAN */
-
 
 static PyObject * pycsp_kiss_init(PyObject * self, PyObject * args) {
 	char * device;
@@ -893,22 +877,15 @@ static PyObject * pycsp_kiss_init(PyObject * self, PyObject * args) {
 	uint32_t mtu = 512;
 	uint16_t addr;
 	const char * if_name = CSP_IF_KISS_DEFAULT_NAME;
-	int is_default = 0;
-	uint16_t mask = 8;
-
-	if (!PyArg_ParseTuple(args, "sH|IIspH", &device, &addr, &baudrate, &mtu, &if_name, &is_default, &mask)) {
+	if (!PyArg_ParseTuple(args, "sH|IIs", &device, &addr, &baudrate, &mtu, &if_name)) {
 		return NULL;  // TypeError is thrown
 	}
 
 	csp_usart_conf_t conf = {.device = device, .baudrate = baudrate};
-	csp_iface_t *iface;
-	int res = csp_usart_open_and_add_kiss_interface(&conf, if_name, addr, &iface);
+	int res = csp_usart_open_and_add_kiss_interface(&conf, if_name, addr, NULL);
 	if (res != CSP_ERR_NONE) {
 		return PyErr_Error("csp_usart_open_and_add_kiss_interface()", res);
 	}
-	iface->is_default = is_default;
-	iface->addr = addr;
-	iface->netmask = mask;
 
 	Py_RETURN_NONE;
 }
@@ -986,7 +963,7 @@ static PyMethodDef methods[] = {
 	{"conn_src", pycsp_conn_src, METH_O, ""},
 	{"listen", pycsp_listen, METH_VARARGS, ""},
 	{"bind", pycsp_bind, METH_VARARGS, ""},
-	{"route_start_task", pycsp_route_start_task, METH_NOARGS, ""},
+	{"route_start_task", pycsp_route_start_task, METH_VARARGS, ""},
 	{"ping", pycsp_ping, METH_VARARGS, ""},
 	{"reboot", pycsp_reboot, METH_VARARGS, ""},
 	{"shutdown", pycsp_shutdown, METH_VARARGS, ""},
@@ -1021,10 +998,8 @@ static PyMethodDef methods[] = {
 #endif /* CSP_HAVE_LIBZMQ */
 	{"kiss_init", pycsp_kiss_init, METH_VARARGS, ""},
 
-#if CSP_HAVE_LIBSOCKETCAN
 	/* csp/drivers/can_socketcan.h */
 	{"can_socketcan_init", pycsp_can_socketcan_init, METH_VARARGS, ""},
-#endif
 
 	/* helpers */
 	{"packet_get_length", pycsp_packet_get_length, METH_O, ""},
@@ -1113,7 +1088,6 @@ PyMODINIT_FUNC PyInit_libcsp_py3(void) {
 	PyModule_AddIntConstant(m, "CSP_ERR_TX", CSP_ERR_TX);
 	PyModule_AddIntConstant(m, "CSP_ERR_DRIVER", CSP_ERR_DRIVER);
 	PyModule_AddIntConstant(m, "CSP_ERR_AGAIN", CSP_ERR_AGAIN);
-	PyModule_AddIntConstant(m, "CSP_ERR_NOSYS", CSP_ERR_NOSYS);
 	PyModule_AddIntConstant(m, "CSP_ERR_HMAC", CSP_ERR_HMAC);
 	PyModule_AddIntConstant(m, "CSP_ERR_CRC32", CSP_ERR_CRC32);
 	PyModule_AddIntConstant(m, "CSP_ERR_SFP", CSP_ERR_SFP);

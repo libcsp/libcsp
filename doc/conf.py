@@ -56,8 +56,7 @@ extensions = [
     'sphinx_c_autodoc.viewcode',
     "sphinx_design",
     "sphinx_git",
-    "sphinx_copybutton",
-    "sphinx.ext.githubpages"
+    "sphinx_copybutton"
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -92,6 +91,7 @@ html_theme_options = {
     'navigation_depth': 2,
     'includehidden': True,
     'titles_only': True,
+    'sticky_navigation': True
 }
 
 def include_readme_file(app, docname, source):
@@ -119,7 +119,10 @@ def include_readme_file(app, docname, source):
 def setup(app):
     app.connect('source-read', include_readme_file)
 
-version = pygit2.Repository('.').head.shorthand
+try:
+    version = pygit2.Repository('.').head.shorthand
+except pygit2.GitError:
+    version = 'unknown'
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,

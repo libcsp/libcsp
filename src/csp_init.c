@@ -1,5 +1,6 @@
 #include <csp/interfaces/csp_if_lo.h>
 #include <csp/arch/csp_time.h>
+#include <csp/csp_debug.h>
 #include <csp/csp_hooks.h>
 #include <csp/csp_id.h>
 #include "csp/autoconfig.h"
@@ -45,6 +46,10 @@ void csp_init(void) {
 	csp_if_lo.netmask = csp_id_get_host_bits();
 	csp_iflist_add(&csp_if_lo);
 
+	/* Default print function */
+#if (CSP_PRINT_STDIO)
+	csp_set_custom_print_func(csp_custom_print_func_default);
+#endif  // CSP_PRINT_STDIO
 }
 
 const csp_conf_t * csp_get_conf(void) {

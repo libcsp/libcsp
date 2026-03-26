@@ -1,0 +1,726 @@
+{
+  "csp_version": 2,
+  "deduplication": "all",
+  "description": "Complete CSP topology based on SYS CAN Network Address Distribution with hot-redundant CAN buses, AOCS subnets, and RF network",
+  "monitoring": {
+    "detect_duplicates": true,
+    "enabled": true,
+    "log_file": "example_full_topology.log",
+    "log_format": "text",
+    "promiscuous_mode": true,
+    "statistics_interval": 5,
+    "track_routing_path": true
+  },
+  "name": "Example Full System Topology",
+  "nodes": [
+    {
+      "description": "Ground station with RF interface",
+      "interfaces": [
+        {
+          "address": 1,
+          "driver": "zmq",
+          "is_default": true,
+          "name": "RF_IF",
+          "netmask": 8,
+          "zmq_proxy": "RF"
+        }
+      ],
+      "name": "GroundStation",
+      "routing_table": [
+        {
+          "address": 0,
+          "comment": "Default route via SBand_TMTC_II",
+          "interface": "RF_IF",
+          "netmask": 0,
+          "via": 1
+        }
+      ]
+    },
+    {
+      "description": "AOCS Computer - Router between system CAN and AOCS CAN buses",
+      "interfaces": [
+        {
+          "address": 3,
+          "driver": "zmq",
+          "is_default": true,
+          "name": "CAN_1_IF",
+          "netmask": 8,
+          "zmq_proxy": "CAN_1"
+        },
+        {
+          "address": 3,
+          "driver": "zmq",
+          "is_default": true,
+          "name": "CAN_2_IF",
+          "netmask": 8,
+          "zmq_proxy": "CAN_2"
+        },
+        {
+          "address": 3,
+          "driver": "zmq",
+          "is_default": false,
+          "name": "AOCS_CAN_1_IF",
+          "netmask": 8,
+          "zmq_proxy": "AOCS_CAN_1"
+        },
+        {
+          "address": 3,
+          "driver": "zmq",
+          "is_default": false,
+          "name": "AOCS_CAN_2_IF",
+          "netmask": 8,
+          "zmq_proxy": "AOCS_CAN_2"
+        }
+      ],
+      "name": "AOCS",
+      "routing_table": [
+        {
+          "address": 2,
+          "interface": "AOCS_CAN_1_IF",
+          "netmask": 8,
+          "via": 0
+        }
+      ]
+    },
+    {
+      "description": "Onboard Computer with dual CAN interfaces",
+      "interfaces": [
+        {
+          "address": 5,
+          "driver": "zmq",
+          "is_default": true,
+          "name": "CAN_1_IF",
+          "netmask": 8,
+          "zmq_proxy": "CAN_1"
+        },
+        {
+          "address": 5,
+          "driver": "zmq",
+          "is_default": true,
+          "name": "CAN_2_IF",
+          "netmask": 8,
+          "zmq_proxy": "CAN_2"
+        }
+      ],
+      "name": "OBC",
+      "routing_table": []
+    },
+    {
+      "description": "S-Band TMTC II - Router between RF and system CAN buses",
+      "interfaces": [
+        {
+          "address": 2,
+          "driver": "zmq",
+          "is_default": false,
+          "name": "RF_IF",
+          "netmask": 8,
+          "zmq_proxy": "RF"
+        },
+        {
+          "address": 7,
+          "driver": "zmq",
+          "is_default": true,
+          "name": "CAN_1_IF",
+          "netmask": 8,
+          "zmq_proxy": "CAN_1"
+        },
+        {
+          "address": 7,
+          "driver": "zmq",
+          "is_default": true,
+          "name": "CAN_2_IF",
+          "netmask": 8,
+          "zmq_proxy": "CAN_2"
+        }
+      ],
+      "name": "SBand_TMTC_II",
+      "routing_table": [
+        {
+          "address": 1,
+          "netmask": 8,
+          "interface": "RF_IF",
+          "via": 0
+        }
+      ]
+    },
+    {
+      "description": "X-Band FrontEnd transceiver",
+      "interfaces": [
+        {
+          "address": 9,
+          "driver": "zmq",
+          "is_default": true,
+          "name": "CAN_1_IF",
+          "netmask": 8,
+          "zmq_proxy": "CAN_1"
+        },
+        {
+          "address": 9,
+          "driver": "zmq",
+          "is_default": true,
+          "name": "CAN_2_IF",
+          "netmask": 8,
+          "zmq_proxy": "CAN_2"
+        }
+      ],
+      "name": "XBand_FrontEnd",
+      "routing_table": []
+    },
+    {
+      "description": "K-Band FrontEnd transceiver",
+      "interfaces": [
+        {
+          "address": 14,
+          "driver": "zmq",
+          "is_default": false,
+          "name": "CAN_1_IF",
+          "netmask": 8,
+          "zmq_proxy": "CAN_1"
+        },
+        {
+          "address": 14,
+          "driver": "zmq",
+          "is_default": false,
+          "name": "CAN_2_IF",
+          "netmask": 8,
+          "zmq_proxy": "CAN_2"
+        }
+      ],
+      "name": "KBand_FrontEnd",
+      "routing_table": [
+        {
+          "address": 0,
+          "comment": "Direct route to CAN_1",
+          "interface": "CAN_1_IF",
+          "netmask": 8,
+          "via": 0
+        },
+        {
+          "address": 0,
+          "comment": "Direct route to CAN_2",
+          "interface": "CAN_2_IF",
+          "netmask": 8,
+          "via": 0
+        }
+      ]
+    },
+    {
+      "description": "S-Band TMTC III - Router between RF and system CAN buses",
+      "interfaces": [
+        {
+          "address": 3,
+          "driver": "zmq",
+          "is_default": false,
+          "name": "RF_IF",
+          "netmask": 8,
+          "zmq_proxy": "RF"
+        },
+        {
+          "address": 17,
+          "driver": "zmq",
+          "is_default": true,
+          "name": "CAN_1_IF",
+          "netmask": 8,
+          "zmq_proxy": "CAN_1"
+        },
+        {
+          "address": 17,
+          "driver": "zmq",
+          "is_default": true,
+          "name": "CAN_2_IF",
+          "netmask": 8,
+          "zmq_proxy": "CAN_2"
+        }
+      ],
+      "name": "SBand_TMTC_III",
+      "routing_table": [
+        {
+          "address": 1,
+          "netmask": 8,
+          "interface": "RF_IF",
+          "via": 0
+        }
+      ]
+    },
+    {
+      "description": "VW-SDR Software Defined Radio",
+      "interfaces": [
+        {
+          "address": 19,
+          "driver": "zmq",
+          "is_default": true,
+          "name": "CAN_1_IF",
+          "netmask": 8,
+          "zmq_proxy": "CAN_1"
+        },
+        {
+          "address": 19,
+          "driver": "zmq",
+          "is_default": false,
+          "name": "CAN_2_IF",
+          "netmask": 8,
+          "zmq_proxy": "CAN_2"
+        }
+      ],
+      "name": "VW_SDR",
+      "routing_table": []
+    },
+    {
+      "description": "EPS III Input Stage / EPS IV PEU",
+      "interfaces": [
+        {
+          "address": 20,
+          "driver": "zmq",
+          "is_default": false,
+          "name": "CAN_1_IF",
+          "netmask": 8,
+          "zmq_proxy": "CAN_1"
+        },
+        {
+          "address": 20,
+          "driver": "zmq",
+          "is_default": false,
+          "name": "CAN_2_IF",
+          "netmask": 8,
+          "zmq_proxy": "CAN_2"
+        }
+      ],
+      "name": "EPS_InputStage",
+      "routing_table": [
+        {
+          "address": 0,
+          "comment": "Direct route to CAN_1",
+          "interface": "CAN_1_IF",
+          "netmask": 8,
+          "via": 0
+        },
+        {
+          "address": 0,
+          "comment": "Direct route to CAN_2",
+          "interface": "CAN_2_IF",
+          "netmask": 8,
+          "via": 0
+        }
+      ]
+    },
+    {
+      "description": "EPS III BP / EPS IV BP",
+      "interfaces": [
+        {
+          "address": 24,
+          "driver": "zmq",
+          "is_default": false,
+          "name": "CAN_1_IF",
+          "netmask": 8,
+          "zmq_proxy": "CAN_1"
+        },
+        {
+          "address": 24,
+          "driver": "zmq",
+          "is_default": false,
+          "name": "CAN_2_IF",
+          "netmask": 8,
+          "zmq_proxy": "CAN_2"
+        }
+      ],
+      "name": "EPS_BP",
+      "routing_table": [
+        {
+          "address": 0,
+          "comment": "Direct route to CAN_1",
+          "interface": "CAN_1_IF",
+          "netmask": 8,
+          "via": 0
+        },
+        {
+          "address": 0,
+          "comment": "Direct route to CAN_2",
+          "interface": "CAN_2_IF",
+          "netmask": 8,
+          "via": 0
+        }
+      ]
+    },
+    {
+      "description": "EPS III PDM A",
+      "interfaces": [
+        {
+          "address": 40,
+          "driver": "zmq",
+          "is_default": false,
+          "name": "CAN_1_IF",
+          "netmask": 8,
+          "zmq_proxy": "CAN_1"
+        },
+        {
+          "address": 40,
+          "driver": "zmq",
+          "is_default": false,
+          "name": "CAN_2_IF",
+          "netmask": 8,
+          "zmq_proxy": "CAN_2"
+        }
+      ],
+      "name": "EPS_PDM_A",
+      "routing_table": [
+        {
+          "address": 0,
+          "comment": "Direct route to CAN_1",
+          "interface": "CAN_1_IF",
+          "netmask": 8,
+          "via": 0
+        },
+        {
+          "address": 0,
+          "comment": "Direct route to CAN_2",
+          "interface": "CAN_2_IF",
+          "netmask": 8,
+          "via": 0
+        }
+      ]
+    },
+    {
+      "description": "EPS III PDM B",
+      "interfaces": [
+        {
+          "address": 44,
+          "driver": "zmq",
+          "is_default": false,
+          "name": "CAN_1_IF",
+          "netmask": 8,
+          "zmq_proxy": "CAN_1"
+        },
+        {
+          "address": 44,
+          "driver": "zmq",
+          "is_default": false,
+          "name": "CAN_2_IF",
+          "netmask": 8,
+          "zmq_proxy": "CAN_2"
+        }
+      ],
+      "name": "EPS_PDM_B",
+      "routing_table": [
+        {
+          "address": 0,
+          "comment": "Direct route to CAN_1",
+          "interface": "CAN_1_IF",
+          "netmask": 8,
+          "via": 0
+        },
+        {
+          "address": 0,
+          "comment": "Direct route to CAN_2",
+          "interface": "CAN_2_IF",
+          "netmask": 8,
+          "via": 0
+        }
+      ]
+    },
+    {
+      "description": "EPS III PDM D",
+      "interfaces": [
+        {
+          "address": 48,
+          "driver": "zmq",
+          "is_default": false,
+          "name": "CAN_1_IF",
+          "netmask": 8,
+          "zmq_proxy": "CAN_1"
+        },
+        {
+          "address": 48,
+          "driver": "zmq",
+          "is_default": false,
+          "name": "CAN_2_IF",
+          "netmask": 8,
+          "zmq_proxy": "CAN_2"
+        }
+      ],
+      "name": "EPS_PDM_D",
+      "routing_table": [
+        {
+          "address": 0,
+          "comment": "Direct route to CAN_1",
+          "interface": "CAN_1_IF",
+          "netmask": 8,
+          "via": 0
+        },
+        {
+          "address": 0,
+          "comment": "Direct route to CAN_2",
+          "interface": "CAN_2_IF",
+          "netmask": 8,
+          "via": 0
+        }
+      ]
+    },
+    {
+      "description": "General Purpose Computer",
+      "interfaces": [
+        {
+          "address": 52,
+          "driver": "zmq",
+          "is_default": false,
+          "name": "CAN_1_IF",
+          "netmask": 8,
+          "zmq_proxy": "CAN_1"
+        },
+        {
+          "address": 52,
+          "driver": "zmq",
+          "is_default": false,
+          "name": "CAN_2_IF",
+          "netmask": 8,
+          "zmq_proxy": "CAN_2"
+        }
+      ],
+      "name": "GPC",
+      "routing_table": [
+        {
+          "address": 0,
+          "comment": "Direct route to CAN_1",
+          "interface": "CAN_1_IF",
+          "netmask": 8,
+          "via": 0
+        },
+        {
+          "address": 0,
+          "comment": "Direct route to CAN_2",
+          "interface": "CAN_2_IF",
+          "netmask": 8,
+          "via": 0
+        }
+      ]
+    },
+    {
+      "description": "UHF Transceiver II",
+      "interfaces": [
+        {
+          "address": 53,
+          "driver": "zmq",
+          "is_default": false,
+          "name": "CAN_1_IF",
+          "netmask": 8,
+          "zmq_proxy": "CAN_1"
+        },
+        {
+          "address": 53,
+          "driver": "zmq",
+          "is_default": false,
+          "name": "CAN_2_IF",
+          "netmask": 8,
+          "zmq_proxy": "CAN_2"
+        }
+      ],
+      "name": "UHF_Transceiver_II",
+      "routing_table": [
+        {
+          "address": 0,
+          "comment": "Direct route to CAN_1",
+          "interface": "CAN_1_IF",
+          "netmask": 8,
+          "via": 0
+        },
+        {
+          "address": 0,
+          "comment": "Direct route to CAN_2",
+          "interface": "CAN_2_IF",
+          "netmask": 8,
+          "via": 0
+        }
+      ]
+    },
+    {
+      "description": "Solar Array Drive Mechanism",
+      "interfaces": [
+        {
+          "address": 55,
+          "driver": "zmq",
+          "is_default": false,
+          "name": "CAN_1_IF",
+          "netmask": 8,
+          "zmq_proxy": "CAN_1"
+        },
+        {
+          "address": 55,
+          "driver": "zmq",
+          "is_default": false,
+          "name": "CAN_2_IF",
+          "netmask": 8,
+          "zmq_proxy": "CAN_2"
+        }
+      ],
+      "name": "SADM",
+      "routing_table": [
+        {
+          "address": 0,
+          "comment": "Direct route to CAN_1",
+          "interface": "CAN_1_IF",
+          "netmask": 8,
+          "via": 0
+        },
+        {
+          "address": 0,
+          "comment": "Direct route to CAN_2",
+          "interface": "CAN_2_IF",
+          "netmask": 8,
+          "via": 0
+        }
+      ]
+    },
+    {
+      "description": "Display module",
+      "interfaces": [
+        {
+          "address": 57,
+          "driver": "zmq",
+          "is_default": false,
+          "name": "CAN_1_IF",
+          "netmask": 8,
+          "zmq_proxy": "CAN_1"
+        },
+        {
+          "address": 57,
+          "driver": "zmq",
+          "is_default": false,
+          "name": "CAN_2_IF",
+          "netmask": 8,
+          "zmq_proxy": "CAN_2"
+        }
+      ],
+      "name": "Display",
+      "routing_table": [
+        {
+          "address": 0,
+          "comment": "Direct route to CAN_1",
+          "interface": "CAN_1_IF",
+          "netmask": 8,
+          "via": 0
+        },
+        {
+          "address": 0,
+          "comment": "Direct route to CAN_2",
+          "interface": "CAN_2_IF",
+          "netmask": 8,
+          "via": 0
+        }
+      ]
+    },
+    {
+      "description": "",
+      "interfaces": [
+        {
+          "address": 1,
+          "driver": "zmq",
+          "is_default": true,
+          "name": "ZMQ0",
+          "netmask": 8,
+          "zmq_proxy": "AOCS_CAN_1"
+        }
+      ],
+      "name": "Wheel1",
+      "routing_table": []
+    }
+  ],
+  "topology": {
+    "csp_version": 2,
+    "deduplication": "all",
+    "description": "Complete CSP topology based on SYS CAN Network Address Distribution with hot-redundant CAN buses, AOCS subnets, and RF network",
+    "name": "Example Full System Topology",
+    "zmq_proxies": [
+      {
+        "subnet_prefix": 1,
+        "description": "Radio Frequency communication between satellite and ground",
+        "host": "localhost",
+        "name": "RF",
+        "netmask": 8,
+        "publish_port": 7000,
+        "subscribe_port": 6000
+      },
+      {
+        "subnet_prefix": 0,
+        "description": "Primary system CAN bus",
+        "host": "localhost",
+        "name": "CAN_1",
+        "netmask": 8,
+        "publish_port": 7001,
+        "subscribe_port": 6001
+      },
+      {
+        "subnet_prefix": 0,
+        "description": "Redundant system CAN bus",
+        "host": "localhost",
+        "name": "CAN_2",
+        "netmask": 8,
+        "publish_port": 7002,
+        "subscribe_port": 6002
+      },
+      {
+        "subnet_prefix": 2,
+        "description": "Primary AOCS CAN bus for sensors and actuators",
+        "host": "localhost",
+        "name": "AOCS_CAN_1",
+        "netmask": 8,
+        "publish_port": 7003,
+        "subscribe_port": 6003
+      },
+      {
+        "subnet_prefix": 0,
+        "description": "Redundant AOCS CAN bus for sensors and actuators",
+        "host": "localhost",
+        "name": "AOCS_CAN_2",
+        "netmask": 8,
+        "publish_port": 7004,
+        "subscribe_port": 6004
+      }
+    ]
+  },
+  "zmq_proxies": [
+    {
+      "subnet_prefix": 1,
+      "description": "Radio Frequency communication between satellite and ground",
+      "host": "localhost",
+      "name": "RF",
+      "netmask": 8,
+      "publish_port": 7000,
+      "subscribe_port": 6000
+    },
+    {
+      "subnet_prefix": 0,
+      "description": "Primary system CAN bus",
+      "host": "localhost",
+      "name": "CAN_1",
+      "netmask": 8,
+      "publish_port": 7001,
+      "subscribe_port": 6001
+    },
+    {
+      "subnet_prefix": 0,
+      "description": "Redundant system CAN bus",
+      "host": "localhost",
+      "name": "CAN_2",
+      "netmask": 8,
+      "publish_port": 7002,
+      "subscribe_port": 6002
+    },
+    {
+      "subnet_prefix": 2,
+      "description": "Primary AOCS CAN bus for sensors and actuators",
+      "host": "localhost",
+      "name": "AOCS_CAN_1",
+      "netmask": 8,
+      "publish_port": 7003,
+      "subscribe_port": 6003
+    },
+    {
+      "subnet_prefix": 0,
+      "description": "Redundant AOCS CAN bus for sensors and actuators",
+      "host": "localhost",
+      "name": "AOCS_CAN_2",
+      "netmask": 8,
+      "publish_port": 7004,
+      "subscribe_port": 6004
+    }
+  ]
+}

@@ -4,22 +4,20 @@
 #include <csp/csp_id.h>
 
 #include <string.h>
-#include <inttypes.h>
 
 #include "csp/autoconfig.h"
 #include <csp/csp_debug.h>
 #include <csp/interfaces/csp_if_lo.h>
 
-/* Interfaces and alias receive addresses are stored in linked lists */
+/* Interfaces are stored in a linked list */
 static csp_iface_t * interfaces = NULL;
-static csp_alias_t * aliass = NULL;
 
 int csp_iflist_is_within_subnet(uint16_t addr, csp_iface_t * ifc) {
 
 	if (ifc == NULL) {
 		return 0;
 	}
-
+	
 	uint16_t netmask = ((1 << ifc->netmask) - 1) << (csp_id_get_host_bits() - ifc->netmask);
 	uint16_t network_a = ifc->addr & netmask;
 	uint16_t network_b = addr & netmask;
@@ -80,6 +78,7 @@ csp_iface_t * csp_iflist_get_by_isdfl(csp_iface_t * ifc) {
 		}
 
 		ifc = ifc->next;
+		continue;
 
 	}
 
@@ -100,49 +99,6 @@ csp_iface_t * csp_iflist_iterate(csp_iface_t * ifc) {
 
 	return ifc;
 
-}
-
-int csp_alias_add(csp_alias_t * addr) {
-
-	if (addr == NULL || addr->iface == NULL) {
-		return -1;
-	}
-
-	/* Register interface for L2 filtering, if interface supports */
-	if (addr->iface->add_alias) {
-		int result = addr->iface->add_alias(addr->iface->driver_data, addr->addr);
-		if (result < 0) {
-			return result;
-		}
-	}
-
-	/* Add to list */
-	addr->next = aliass;
-	aliass = addr;
-
-	return 0;
-}
-
-static csp_alias_t * csp_alias_iterate(csp_alias_t * addr) {
-
-	if (addr == NULL) {
-		addr = aliass;
-	} else {
-		addr = addr->next;
-	}
-
-	return addr;
-}
-
-int csp_addr_is_alias(uint16_t addr) {
-
-	csp_alias_t * alias = NULL;
-	while ((alias = csp_alias_iterate(alias)) != NULL) {
-		if (addr == alias->addr) {
-			return 1;
-		}
-	}
-	return 0;
 }
 
 void csp_iflist_check_dfl(void) {
@@ -175,18 +131,6 @@ csp_iface_t * csp_iflist_get_by_addr(uint16_t addr) {
 
 	return NULL;
 
-}
-
-csp_iface_t * csp_iflist_get_by_broadcast(uint16_t addr) {
-
-	csp_iface_t * ifc = interfaces;
-	while (ifc) {
-		if (csp_id_is_broadcast(addr, ifc)) {
-			return ifc;
-		}
-		ifc = ifc->next;
-	}
-	return NULL;
 }
 
 csp_iface_t * csp_iflist_get_by_name(const char * name) {
@@ -287,12 +231,13 @@ void csp_iflist_print(void) {
 	while (i) {
 		tx = csp_bytesize(i->txbytes, &tx_postfix);
 		rx = csp_bytesize(i->rxbytes, &rx_postfix);
-		csp_print("%-10s addr: %"PRIu16" netmask: %"PRIu16" dfl: %" PRIu32 "\r\n"
-				  "           tx: %05" PRIu32 " rx: %05" PRIu32 " txe: %05" PRIu32 " rxe: %05" PRIu32 "\r\n"
-				  "           drop: %05" PRIu32 " autherr: %05" PRIu32 " frame: %05" PRIu32 "\r\n"
-				  "           txb: %" PRIu32 " (%" PRIu32 "%c) rxb: %" PRIu32 " (%" PRIu32 "%c) \r\n\r\n",
-				  i->name, i->addr, i->netmask, i->is_default, i->tx, i->rx, i->tx_error, i->rx_error, i->drop,
-				  i->autherr, i->frame, i->txbytes, tx, tx_postfix, i->rxbytes, rx, rx_postfix);
+		csp_print(CSP_LL_INFO,
+			"%-10s addr: %"PRIu16" netmask: %"PRIu16" dfl: %" PRIu32 "\r\n"
+			"           tx: %05" PRIu32 " rx: %05" PRIu32 " txe: %05" PRIu32 " rxe: %05" PRIu32 "\r\n"
+			"           drop: %05" PRIu32 " autherr: %05" PRIu32 " frame: %05" PRIu32 "\r\n"
+			"           txb: %" PRIu32 " (%" PRIu32 "%c) rxb: %" PRIu32 " (%" PRIu32 "%c) \r\n\r\n",
+			i->name, i->addr, i->netmask, i->is_default, i->tx, i->rx, i->tx_error, i->rx_error, i->drop,
+			i->autherr, i->frame, i->txbytes, tx, tx_postfix, i->rxbytes, rx, rx_postfix);
 		i = i->next;
 	}
 }

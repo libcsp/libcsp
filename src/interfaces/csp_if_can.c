@@ -1,8 +1,10 @@
+
+
 #include <csp/interfaces/csp_if_can.h>
 
 #include <string.h>
 #include <stdlib.h>
-#include <endian.h>
+#include <csp/arch/csp_endian.h>
 
 #include <csp/csp.h>
 #include <csp/csp_id.h>
@@ -77,6 +79,8 @@ static int csp_can1_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, u
 			memcpy(packet->frame_begin, data, sizeof(uint32_t));
 			packet->frame_length += sizeof(uint32_t);
 
+			csp_id_strip(packet);
+
 			/* Copy CSP length (of data) */
 			memcpy(&(packet->length), data + sizeof(uint32_t), sizeof(packet->length));
 			packet->length = be16toh(packet->length);
@@ -127,11 +131,6 @@ static int csp_can1_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, u
 			/* Check if more data is expected */
 			if (packet->rx_count != packet->length)
 				break;
-
-			/* Length information is packed differently for CAN */
-			uint16_t length = packet->length;
-			csp_id_strip(packet);
-			packet->length = length;
 
 			/* Rewrite incoming L2 broadcast to local node */
 			if (packet->id.dst == 0x1F) {
@@ -362,7 +361,7 @@ static int csp_can2_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet,
 	(void)from_me;
 
 	/* Loopback */
-	if (packet->id.dst == iface->addr || csp_addr_is_alias(packet->id.dst)) {
+	if (packet->id.dst == iface->addr) {
 		csp_qfifo_write(packet, iface, NULL);
 		return CSP_ERR_NONE;
 	}
@@ -377,21 +376,21 @@ static int csp_can2_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet,
 	uint8_t frame_buf_inp = 0;
 
 	/* Pack mandatory fields of header */
-	can_id = (((packet->id.pri & CFP2_PRIO_MASK) << CFP2_PRIO_OFFSET) |
-			  ((packet->id.dst & CFP2_DST_MASK) << CFP2_DST_OFFSET) |
-			  ((iface->addr & CFP2_SENDER_MASK) << CFP2_SENDER_OFFSET) |
-			  ((sender_count & CFP2_SC_MASK) << CFP2_SC_OFFSET) |
-			  ((1 & CFP2_BEGIN_MASK) << CFP2_BEGIN_OFFSET));
+	can_id = ((((uint32_t)packet->id.pri & CFP2_PRIO_MASK) << CFP2_PRIO_OFFSET) |
+			  (((uint32_t)packet->id.dst & CFP2_DST_MASK) << CFP2_DST_OFFSET) |
+			  (((uint32_t)iface->addr & CFP2_SENDER_MASK) << CFP2_SENDER_OFFSET) |
+			  (((uint32_t)(sender_count & CFP2_SC_MASK)) << CFP2_SC_OFFSET) |
+			  (((uint32_t)(1 & CFP2_BEGIN_MASK)) << CFP2_BEGIN_OFFSET));
 
 	/* Pack the rest of the CSP header in the first 32-bit of data */
     uint32_t frame_buf_mem[(CAN_FRAME_SIZE+sizeof(uint32_t)-1)/sizeof(uint32_t)];
     uint8_t *frame_buf = (uint8_t*)frame_buf_mem;
 	uint32_t * header_extension = (uint32_t *)frame_buf_mem;
 
-	*header_extension = (((packet->id.src & CFP2_SRC_MASK) << CFP2_SRC_OFFSET) |
-						 ((packet->id.dport & CFP2_DPORT_MASK) << CFP2_DPORT_OFFSET) |
-						 ((packet->id.sport & CFP2_SPORT_MASK) << CFP2_SPORT_OFFSET) |
-						 ((packet->id.flags & CFP2_FLAGS_MASK) << CFP2_FLAGS_OFFSET));
+	*header_extension = ((((uint32_t)packet->id.src & CFP2_SRC_MASK) << CFP2_SRC_OFFSET) |
+						 (((uint32_t)packet->id.dport & CFP2_DPORT_MASK) << CFP2_DPORT_OFFSET) |
+						 (((uint32_t)packet->id.sport & CFP2_SPORT_MASK) << CFP2_SPORT_OFFSET) |
+						 (((uint32_t)packet->id.flags & CFP2_FLAGS_MASK) << CFP2_FLAGS_OFFSET));
 
 	/* Convert to network byte order */
 	*header_extension = htobe32(*header_extension);
@@ -406,7 +405,7 @@ static int csp_can2_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet,
 
 	/* Check for end condition */
 	if (tx_count == packet->length) {
-		can_id |= ((1 & CFP2_END_MASK) << CFP2_END_OFFSET);
+		can_id |= (((uint32_t)1 & CFP2_END_MASK) << CFP2_END_OFFSET);
 	}
 
 	/* Send first frame now */
@@ -421,20 +420,20 @@ static int csp_can2_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet,
 	while (tx_count < packet->length) {
 
 		/* Pack mandatory fields of header */
-		can_id = (((packet->id.pri & CFP2_PRIO_MASK) << CFP2_PRIO_OFFSET) |
-				  ((packet->id.dst & CFP2_DST_MASK) << CFP2_DST_OFFSET) |
-				  ((iface->addr & CFP2_SENDER_MASK) << CFP2_SENDER_OFFSET) |
-				  ((sender_count & CFP2_SC_MASK) << CFP2_SC_OFFSET));
+		can_id = ((((uint32_t)packet->id.pri & CFP2_PRIO_MASK) << CFP2_PRIO_OFFSET) |
+				  (((uint32_t)packet->id.dst & CFP2_DST_MASK) << CFP2_DST_OFFSET) |
+				  (((uint32_t)iface->addr & CFP2_SENDER_MASK) << CFP2_SENDER_OFFSET) |
+				  (((uint32_t)sender_count & CFP2_SC_MASK) << CFP2_SC_OFFSET));
 
 		/* Set and increment fragment count */
-		can_id |= (fragment_count++ & CFP2_FC_MASK) << CFP2_FC_OFFSET;
+		can_id |= ((uint32_t)(fragment_count++) & CFP2_FC_MASK) << CFP2_FC_OFFSET;
 
 		/* Calculate frame data bytes */
 		data_bytes = (packet->length - tx_count >= CAN_FRAME_SIZE) ? CAN_FRAME_SIZE : packet->length - tx_count;
 
 		/* Check for end condition */
 		if (tx_count + data_bytes == packet->length) {
-			can_id |= ((1 & CFP2_END_MASK) << CFP2_END_OFFSET);
+			can_id |= (((uint32_t)1 & CFP2_END_MASK) << CFP2_END_OFFSET);
 		}
 
 		/* Send frame */

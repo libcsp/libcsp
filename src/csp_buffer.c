@@ -8,8 +8,6 @@
 #include <csp/csp_hooks.h>
 #include <csp/csp_id.h>
 
-#include "csp_buffer_private.h"
-
 /** Internal buffer header */
 typedef struct csp_skbf_s {
 	unsigned int refcount;

@@ -37,7 +37,7 @@ static void csp_yaml_start_if(struct data_s * data) {
 static void csp_yaml_end_if(struct data_s * data, unsigned int * dfl_addr) {
 	/* Sanity checks */
 	if ((!data->name) || (!data->driver) || (!data->addr) || (!data->netmask)) {
-		csp_print("  invalid interface found\n");
+		csp_print(CSP_LL_ERROR, "  invalid interface found\n");
 		return;
 	}
 
@@ -59,7 +59,7 @@ static void csp_yaml_end_if(struct data_s * data, unsigned int * dfl_addr) {
 
 		/* Check for valid options */
 		if (!data->baudrate) {
-			csp_print("no baudrate configured\n");
+			csp_print(CSP_LL_ERROR, "no baudrate configured\n");
 			return;
 		}
 
@@ -81,7 +81,7 @@ static void csp_yaml_end_if(struct data_s * data, unsigned int * dfl_addr) {
 
 		/* Check for valid options */
 		if (!data->source || !data->destination) {
-			csp_print("source or destination missing\n");
+			csp_print(CSP_LL_ERROR, "source or destination missing\n");
 			return;
 		}
 
@@ -97,7 +97,7 @@ static void csp_yaml_end_if(struct data_s * data, unsigned int * dfl_addr) {
 
 		/* Check for valid options */
 		if (!data->server || !data->listen_port || !data->remote_port) {
-			csp_print("server, listen_port or remote_port missing\n");
+			csp_print(CSP_LL_ERROR, "server, listen_port or remote_port missing\n");
 			return;
 		}
 
@@ -118,7 +118,7 @@ static void csp_yaml_end_if(struct data_s * data, unsigned int * dfl_addr) {
 
 		/* Check for valid server */
 		if (!data->server) {
-			csp_print("no server configured\n");
+			csp_print(CSP_LL_ERROR, "no server configured\n");
 			return;
 		}
 
@@ -138,13 +138,13 @@ static void csp_yaml_end_if(struct data_s * data, unsigned int * dfl_addr) {
 
 		/* Check for valid server */
 		if (!data->device) {
-			csp_print("can: no device configured\n");
+			csp_print(CSP_LL_ERROR, "can: no device configured\n");
 			return;
 		}
 
 		int error = csp_can_socketcan_open_and_add_interface(data->device, data->name, addr, 1000000, true, &iface);
 		if (error != CSP_ERR_NONE) {
-			csp_print("failed to add CAN interface [%s], error: %d", data->device, error);
+			csp_print(CSP_LL_ERROR, "failed to add CAN interface [%s], error: %d", data->device, error);
 			return;
 		}
 
@@ -153,8 +153,8 @@ static void csp_yaml_end_if(struct data_s * data, unsigned int * dfl_addr) {
 
     /* Unsupported interface */
 	else {
-        csp_print("Unsupported driver %s\n", data->driver);
-        return;
+		csp_print(CSP_LL_ERROR, "Unsupported driver %s\n", data->driver);
+		return;
     }
 
 	iface->addr = addr;
@@ -162,7 +162,7 @@ static void csp_yaml_end_if(struct data_s * data, unsigned int * dfl_addr) {
 	iface->name = strdup(data->name);
 	iface->is_default = (data->is_dfl) ? 1 : 0;
 
-	csp_print("  %s addr: %u netmask %u %s\n", iface->name, iface->addr, iface->netmask, (iface->is_default) ? "DFL" : "");
+	csp_print(CSP_LL_INFO, "  %s addr: %u netmask %u %s\n", iface->name, iface->addr, iface->netmask, (iface->is_default) ? "DFL" : "");
 
 }
 
@@ -195,7 +195,7 @@ static void csp_yaml_key_value(struct data_s * data, char * key, char * value) {
 	} else if (strcmp(key, "promisc") == 0) {
 		data->promisc = strdup(value);
 	} else {
-		csp_print("Unknown key %s\n", key);
+		csp_print(CSP_LL_ERROR, "Unkown key %s\n", key);
 	}
 }
 
@@ -203,10 +203,10 @@ void csp_yaml_init(char * filename, unsigned int * dfl_addr) {
 
     struct data_s data;
 
-	csp_print("  Reading config from %s\n", filename);
+	csp_print(CSP_LL_INFO, "  Reading config from %s\n", filename);
 	FILE * file = fopen(filename, "rb");
 	if (file == NULL) {
-		csp_print("  ERROR: failed to find CSP config file\n");
+		csp_print(CSP_LL_ERROR, "  ERROR: failed to find CSP config file\n");
 		return;
 	}
 

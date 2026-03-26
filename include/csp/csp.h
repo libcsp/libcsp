@@ -56,6 +56,12 @@ extern csp_conf_t csp_conf;
 void csp_init(void);
 
 /**
+ * Free allocated resorces in CSP.
+ * This is intended for testing of CSP, in order to be able re-initialize CSP by calling csp_init() again.
+ */
+void csp_free_resources(void);
+
+/**
  * Get a \a read-only reference to the active CSP configuration.
  *
  * @return Active CSP configuration (read-only).
@@ -298,6 +304,14 @@ int csp_listen(csp_socket_t *socket, size_t backlog);
  */
 int csp_bind(csp_socket_t *socket, uint8_t port);
 
+#if ENABLE_ON_CONNECT_SOCKET_CALLBACK
+/**
+ * Set the on connect callback for a socket.
+ *
+ * @param[in] callback callback function to be called when a connection is established
+ */
+void csp_set_on_connect_callback(csp_socket_on_connect_callback_t callback);
+#endif // ENABLE_ON_CONNECT_SOCKET_CALLBACK
 
 /**
  * Bind port to callback function.
@@ -350,7 +364,7 @@ void csp_service_handler(csp_packet_t *packet);
  * @param[in] opts connection options, see @ref CSP_CONNECTION_OPTIONS.
  * @return >=0 echo time in mS on success, otherwise -1 for error.
  */
-int csp_ping(uint16_t node, uint32_t timeout, unsigned int size, uint8_t opts);
+int csp_ping(uint16_t node, uint32_t timeout, unsigned int size, uint32_t opts);
 
 /**
  * Send a single ping/echo packet without waiting for reply.
@@ -478,8 +492,6 @@ void csp_rdp_get_opt(unsigned int *window_size, unsigned int *conn_timeout_ms,
  * Set platform specific memory copy functions.
  */
 void csp_cmp_set_memcpy(csp_memcpy_fnc_t fnc);
-void csp_cmp_set_memread64(csp_memread64_fnc_t fnc);
-void csp_cmp_set_memwrite64(csp_memwrite64_fnc_t fnc);
 
 #if (CSP_ENABLE_CSP_PRINT)
 

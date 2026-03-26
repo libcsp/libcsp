@@ -1,0 +1,22 @@
+@PACKAGE_INIT@
+include(CMakeFindDependencyMacro)
+
+# Report other information.
+# Compute installation prefix relative to this file.
+get_filename_component(_dir "${CMAKE_CURRENT_LIST_FILE}" PATH)
+get_filename_component(_prefix "${_dir}/../../.." ABSOLUTE)
+get_filename_component(@PROJECT_NAME@_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+
+if(TARGET @PROJECT_NAME@::@PROJECT_NAME@)
+        message(STATUS "Target @PROJECT_NAME@::@PROJECT_NAME@ Configured with ${@PROJECT_NAME@_DIR}")
+elseif(TARGET @PROJECT_NAME@::@PROJECT_NAME@-static)
+        message(STATUS "Target @PROJECT_NAME@::@PROJECT_NAME@-static Configured with ${@PROJECT_NAME@_DIR}")
+
+else()
+        include("${@PROJECT_NAME@_CMAKE_DIR}/@PROJECT_NAME@-targets.cmake")
+        set(@PROJECT_NAME@_INCLUDE_DIRS "${_prefix}/include/@PROJECT_NAME@")
+        set(@PROJECT_NAME@_SRC_DIR "@PACKAGE_INSTALL_SRC_DIR@" CACHE INTERNAL "@PROJECT_NAME@ source directory" FORCE)
+        message(STATUS "Target <@PROJECT_NAME@> without aliases configured")
+endif()
+
+check_required_components("@PROJECT_NAME@")

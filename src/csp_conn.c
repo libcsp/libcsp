@@ -3,7 +3,6 @@
 #include "csp_conn.h"
 
 #include <stdlib.h>
-#include <string.h>
 #include <stdatomic.h>
 
 #include <csp/arch/csp_queue.h>
@@ -305,6 +304,13 @@ csp_conn_t * csp_connect(uint8_t prio, uint16_t dest, uint8_t dport, uint32_t ti
 		incoming_id.flags |= CSP_FCRC32;
 	}
 
+#if CSP_TRACEROUTE
+	if (opts & CSP_O_TRACE) {
+		outgoing_id.flags |= CSP_FTRACE;
+		/* Note: incoming_id does not need FTRACE - we only trace outgoing packets */
+	}
+#endif
+
 	/* Find a new connection */
 	csp_conn_t * conn = csp_conn_new(incoming_id, outgoing_id, CONN_CLIENT);
 	if (conn == NULL) {
@@ -366,13 +372,13 @@ void csp_conn_print_table(void) {
 
 	for (unsigned int i = 0; i < CSP_CONN_MAX; i++) {
 		__unused csp_conn_t * conn = &arr_conn[i];
-		csp_print("[%02u %p] S:%u, %u -> %u, %u -> %u (%u) fl %x\r\n",
-		          i, (void *)conn, conn->state, conn->idin.src, conn->idin.dst,
-		          conn->idin.dport, conn->idin.sport, conn->sport_outgoing, conn->idin.flags);
+		csp_print(CSP_LL_INFO, "[%02u %p] S:%u, %u -> %u, %u -> %u (%u) fl %x\r\n",
+				  i, (void *)conn, conn->state, conn->idin.src, conn->idin.dst,
+				  conn->idin.dport, conn->idin.sport, conn->sport_outgoing, conn->idin.flags);
 #if (CSP_USE_RDP)
 		if (conn->idin.flags & CSP_FRDP) {
-			csp_print("\tRDP: S:%d (closed by 0x%x), rcv %u, snd %u, win %" PRIu32 "\n",
-			          conn->rdp.state, conn->rdp.closed_by, conn->rdp.rcv_cur, conn->rdp.snd_una, conn->rdp.window_size);
+			csp_print(CSP_LL_INFO, "\tRDP: S:%d (closed by 0x%x), rcv %u, snd %u, win %" PRIu32 "\n",
+					  conn->rdp.state, conn->rdp.closed_by, conn->rdp.rcv_cur, conn->rdp.snd_una, conn->rdp.window_size);
 		}
 #endif
 	}

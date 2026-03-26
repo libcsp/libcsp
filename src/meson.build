@@ -44,6 +44,10 @@ if get_option('use_rdp')
 endif
 
 subdir('arch')
+
+if get_option('traceroute')
+	csp_sources += files('csp_traceroute.c')
+endif
 subdir('crypto')
 subdir('drivers')
 subdir('interfaces')

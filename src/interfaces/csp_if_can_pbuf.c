@@ -7,8 +7,6 @@
 #include <csp/arch/csp_time.h>
 #include <csp/interfaces/csp_if_can.h>
 
-#include "../csp_buffer_private.h"
-
 /* Buffer element timeout in ms */
 #define PBUF_TIMEOUT_MS 1000
 

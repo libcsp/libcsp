@@ -8,14 +8,11 @@
 #include <csp/drivers/usart.h>
 #include <csp/drivers/can_socketcan.h>
 #include <csp/interfaces/csp_if_zmqhub.h>
-#include <csp/interfaces/csp_if_udp.h>
 
 #include "csp_posix_helper.h"
 
 /* Server port, the port the server listens on for incoming connections from the client. */
-#define SERVER_PORT             10
-#define DEFAULT_UDP_REMOTE_PORT (1500)
-#define DEFAULT_UDP_LOCAL_PORT  (1501)
+#define SERVER_PORT		10
 
 /* Commandline options */
 static uint8_t server_address = 0;
@@ -30,17 +27,16 @@ enum DeviceType {
 	DEVICE_CAN,
 	DEVICE_KISS,
 	DEVICE_ZMQ,
-	DEVICE_UDP,
 };
 
 #define __maybe_unused __attribute__((__unused__))
 
 /* Server task - handles requests from clients */
-static void * server(void * param) {
+void * server(void * param) {
 
 	(void)param;
 
-	csp_print("Server task started\n");
+	csp_print(CSP_LL_INFO, "Server task started\n");
 
 	/* Create socket with no specific socket options, e.g. accepts CRC32, HMAC, etc. if enabled during compilation */
 	csp_socket_t sock = {0};
@@ -61,13 +57,13 @@ static void * server(void * param) {
 			continue;
 		}
 
-		/* Read packets on connection, timeout is 50 mS */
+		/* Read packets on connection, timout is 100 mS */
 		csp_packet_t *packet;
 		while ((packet = csp_read(conn, 50)) != NULL) {
 			switch (csp_conn_dport(conn)) {
 			case SERVER_PORT:
 				/* Process packet here */
-				csp_print("Packet received on SERVER_PORT: %s\n", (char *) packet->data);
+				csp_print(CSP_LL_TRACE, "Packet received on SERVER_PORT: %s\n", (char *)packet->data);
 				csp_buffer_free(packet);
 				++server_received;
 				break;
@@ -107,7 +103,6 @@ static struct option long_options[] = {
 #else
 	#define OPTION_R
 #endif
-	{"udp-address", required_argument, 0, 'u'},
     {"interface-address", required_argument, 0, 'a'},
     {"connect-to", required_argument, 0, 'C'},
 	{"protocol-version", required_argument, 0, 'v'},
@@ -117,31 +112,31 @@ static struct option long_options[] = {
     {0, 0, 0, 0}
 };
 
-static void print_help(void) {
-    csp_print("Usage: csp_server [options]\n");
+void print_help(void) {
+	csp_print(CSP_LL_INFO, "Usage: csp_server [options]\n");
 	if (CSP_HAVE_LIBSOCKETCAN) {
-		csp_print(" -c <can-device>  set CAN device\n");
+		csp_print(CSP_LL_INFO, " -c <can-device>  set CAN device\n");
 	}
 	if (1) {
-		csp_print(" -k <kiss-device> set KISS device\n");
+		csp_print(CSP_LL_INFO, " -k <kiss-device> set KISS device\n");
 	}
 	if (CSP_HAVE_LIBZMQ) {
-		csp_print(" -z <zmq-device>  set ZeroMQ device\n");
+		csp_print(CSP_LL_INFO, " -z <zmq-device>  set ZeroMQ device\n");
 	}
 	if (CSP_USE_RTABLE) {
-		csp_print(" -R <rtable>      set routing table\n");
+		csp_print(CSP_LL_INFO, " -R <rtable>      set routing table\n");
 	}
-	csp_print(" -u <udp-address>  set UDP address\n");
 	if (1) {
-		csp_print(" -a <address>     set interface address\n"
-				  " -v <version>     set protocol version\n"
-				  " -t               enable test mode\n"
-				  " -T <dration>     enable test mode with running time in seconds\n"
-				  " -h               print help\n");
+		csp_print(CSP_LL_INFO,
+			" -a <address>     set interface address\n"
+			" -v <version>     set protocol version\n"
+			" -t               enable test mode\n"
+			" -T <dration>     enable test mode with running time in seconds\n"
+			" -h               print help\n");
 	}
 }
 
-static csp_iface_t * add_interface(enum DeviceType device_type, const char * device_name)
+csp_iface_t * add_interface(enum DeviceType device_type, const char * device_name)
 {
     csp_iface_t * default_iface = NULL;
 
@@ -155,8 +150,8 @@ static csp_iface_t * add_interface(enum DeviceType device_type, const char * dev
 		};
         int error = csp_usart_open_and_add_kiss_interface(&conf, CSP_IF_KISS_DEFAULT_NAME, server_address, &default_iface);
         if (error != CSP_ERR_NONE) {
-            csp_print("failed to add KISS interface [%s], error: %d\n", device_name, error);
-            exit(1);
+			csp_print(CSP_LL_ERROR, "failed to add KISS interface [%s], error: %d\n", device_name, error);
+			exit(1);
         }
         default_iface->is_default = 1;
     }
@@ -164,8 +159,8 @@ static csp_iface_t * add_interface(enum DeviceType device_type, const char * dev
     if (CSP_HAVE_LIBSOCKETCAN && (device_type == DEVICE_CAN)) {
         int error = csp_can_socketcan_open_and_add_interface(device_name, CSP_IF_CAN_DEFAULT_NAME, server_address, 1000000, true, &default_iface);
         if (error != CSP_ERR_NONE) {
-            csp_print("failed to add CAN interface [%s], error: %d\n", device_name, error);
-            exit(1);
+			csp_print(CSP_LL_ERROR, "failed to add CAN interface [%s], error: %d\n", device_name, error);
+			exit(1);
         }
         default_iface->is_default = 1;
     }
@@ -173,24 +168,11 @@ static csp_iface_t * add_interface(enum DeviceType device_type, const char * dev
     if (CSP_HAVE_LIBZMQ && (device_type == DEVICE_ZMQ)) {
         int error = csp_zmqhub_init(server_address, device_name, 0, &default_iface);
         if (error != CSP_ERR_NONE) {
-            csp_print("failed to add ZMQ interface [%s], error: %d\n", device_name, error);
-            exit(1);
+			csp_print(CSP_LL_ERROR, "failed to add ZMQ interface [%s], error: %d\n", device_name, error);
+			exit(1);
         }
         default_iface->is_default = 1;
     }
-
-	if (device_type == DEVICE_UDP) {
-		default_iface = malloc(sizeof(csp_iface_t));
-		static csp_if_udp_conf_t udp_conf;
-
-		udp_conf.host = strdup(device_name);
-		udp_conf.lport = DEFAULT_UDP_LOCAL_PORT;
-		udp_conf.rport = DEFAULT_UDP_REMOTE_PORT;
-
-		csp_if_udp_init(default_iface, &udp_conf);
-		default_iface->addr = server_address;
-		default_iface->is_default = 1;
-	}
 
 	return default_iface;
 }
@@ -204,7 +186,7 @@ int main(int argc, char * argv[]) {
 	csp_iface_t * default_iface;
     int opt;
 
-	while ((opt = getopt_long(argc, argv, OPTION_c OPTION_z OPTION_R "k:u:a:v:tT:h", long_options, NULL)) != -1) {
+	while ((opt = getopt_long(argc, argv, OPTION_c OPTION_z OPTION_R "k:a:v:tT:h", long_options, NULL)) != -1) {
         switch (opt) {
             case 'c':
 				device_name = optarg;
@@ -217,11 +199,7 @@ int main(int argc, char * argv[]) {
             case 'z':
 				device_name = optarg;
 				device_type = DEVICE_ZMQ;
-				break;
-			case 'u':
-				device_name = optarg;
-				device_type = DEVICE_UDP;
-				break;
+                break;
 #if (CSP_USE_RTABLE)
             case 'R':
                 rtable = optarg;
@@ -252,14 +230,14 @@ int main(int argc, char * argv[]) {
 
 	// If more than one of the interfaces are set, print a message and exit
 	if (device_type == DEVICE_UNKNOWN) {
-		csp_print("Only one of the interfaces can be set.\n");
-        print_help();
+		csp_print(CSP_LL_ERROR, "Only one of the interfaces can be set.\n");
+		print_help();
         exit(EXIT_FAILURE);
     }
 
-    csp_print("Initialising CSP\n");
+	csp_print(CSP_LL_INFO, "Initialising CSP\n");
 
-    /* Init CSP */
+	/* Init CSP */
     csp_init();
 
     /* Start router */
@@ -273,7 +251,7 @@ int main(int argc, char * argv[]) {
 		if (rtable) {
 			int error = csp_rtable_load(rtable);
 			if (error < 1) {
-				csp_print("csp_rtable_load(%s) failed, error: %d\n", rtable, error);
+				csp_print(CSP_LL_ERROR, "csp_rtable_load(%s) failed, error: %d\n", rtable, error);
 				exit(1);
 			}
 		} else if (default_iface) {
@@ -281,14 +259,14 @@ int main(int argc, char * argv[]) {
 		}
 	}
 
-    csp_print("Connection table\r\n");
-    csp_conn_print_table();
+	csp_print(CSP_LL_INFO, "Connection table\r\n");
+	csp_conn_print_table();
 
-    csp_print("Interfaces\r\n");
-    csp_iflist_print();
+	csp_print(CSP_LL_INFO, "Interfaces\r\n");
+	csp_iflist_print();
 
 	if (CSP_USE_RTABLE) {
-		csp_print("Route table\r\n");
+		csp_print(CSP_LL_INFO, "Route table\r\n");
 		csp_rtable_print();
 	}
 
@@ -302,11 +280,11 @@ int main(int argc, char * argv[]) {
         if (test_mode) {
             /* Test mode, check that server & client can exchange packets */
             if (server_received < 5) {
-                csp_print("Server received %u packets\n", server_received);
-                exit(EXIT_FAILURE);
+				csp_print(CSP_LL_INFO, "Server received %u packets\n", server_received);
+				exit(EXIT_FAILURE);
             }
-            csp_print("Server received %u packets\n", server_received);
-            exit(EXIT_SUCCESS);
+			csp_print(CSP_LL_INFO, "Server received %u packets\n", server_received);
+			exit(EXIT_SUCCESS);
         }
     }
 

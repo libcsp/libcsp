@@ -1,0 +1,9 @@
+build/
+
+# Generated log files
+*.log
+Satellite_*/
+
+# Compiled binaries
+virtual_node_infrastructure/csp_virtual_node
+virtual_node_infrastructure/zmqproxy

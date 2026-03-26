@@ -1,5 +1,3 @@
-#include <string.h>
-
 #include <csp/csp.h>
 #include <csp/csp_debug.h>
 #include <csp/drivers/can_socketcan.h>
@@ -23,7 +21,7 @@ int main(int argc, char * argv[])
 	/* open */
 	ret = csp_can_socketcan_open_and_add_interface(DEVICE_NAME, CSP_IF_CAN_DEFAULT_NAME, CLIENT_ADDR, 1000000, true, &iface);
 	if (ret != CSP_ERR_NONE) {
-		csp_print("failed to open: %d\n", ret);
+		csp_print(CSP_LL_ERROR, "failed to open: %d\n", ret);
 		return 1;
 	}
 	iface->is_default = 1;
@@ -31,17 +29,12 @@ int main(int argc, char * argv[])
 	/* connect */
 	conn = csp_connect(CSP_PRIO_NORM, SERVER_ADDR, SERVER_PORT, 1000, CSP_O_NONE);
 	if (conn == NULL) {
-		csp_print("Connection failed\n");
+		csp_print(CSP_LL_ERROR, "Connection failed\n");
 		return 1;
 	}
 
 	/* prepare data */
-	packet = csp_buffer_get(0);
-	if (packet == NULL) {
-		csp_print("Failed to get buffer\n");
-		csp_close(conn);
-		return 1;
-	}
+	packet = csp_buffer_get_always();
 	memcpy(packet->data, "abc", 3);
 	packet->length = 3;
 

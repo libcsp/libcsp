@@ -1,12 +1,9 @@
 
 
 #include <csp/csp_crc32.h>
-
-#include <endian.h>
-#include <string.h>
-
 #include <csp/csp_id.h>
 
+#include <csp/arch/csp_endian.h>
 
 #ifdef __AVR__
 #include <avr/pgmspace.h>
@@ -98,10 +95,10 @@ int csp_crc32_append(csp_packet_t * packet) {
 
 	/* Calculate CRC32, convert to network byte order */
 #if CSP_21 // In CSP 2.1 we change to include header per default
-		csp_id_prepend(packet);
-		crc = csp_crc32_memory(packet->frame_begin, packet->frame_length);
+	csp_id_prepend(packet);
+	crc = csp_crc32_memory(packet->frame_begin, packet->frame_length);
 #else
-		crc = csp_crc32_memory(packet->data, packet->length);
+	crc = csp_crc32_memory(packet->data, packet->length);
 #endif
 
 	/* Convert to network byte order */

@@ -19,12 +19,12 @@
 #define CSP_ERR_ALREADY		-7		/**< Connection already in progress */
 #define CSP_ERR_RESET		-8		/**< Connection reset */
 #define CSP_ERR_NOBUFS		-9		/**< No more buffer space available */
-#define CSP_ERR_TX		-10		/**< Transmission failed */
+#define CSP_ERR_TX			-10		/**< Transmission failed */
 #define CSP_ERR_DRIVER		-11		/**< Error in driver layer */
 #define CSP_ERR_AGAIN		-12		/**< Resource temporarily unavailable */
+#define CSP_ERR_RX			-15		/**< Received failed */
 #define CSP_ERR_NOSYS		-38		/**< Function not implemented */
-#define CSP_ERR_HMAC		-100		/**< HMAC failed */
-#define CSP_ERR_CRC32		-102		/**< CRC32 failed */
+#define CSP_ERR_HMAC		-100	/**< HMAC failed */
+#define CSP_ERR_CRC32		-102	/**< CRC32 failed */
 #define CSP_ERR_SFP		-103		/**< SFP protocol error or inconsistency */
-#define CSP_ERR_MTU     -104     /**< Invalid MTU */
 /**@}*/

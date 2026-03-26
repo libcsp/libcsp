@@ -4,13 +4,12 @@
  * delayed acknowledgments, to improve performance over half-duplex links.
  */
 
-#include "csp_rdp.h"
-
 #include "csp_rdp_queue.h"
 
 #include <stdlib.h>
 #include <string.h>
-#include <endian.h>
+#include <csp/arch/csp_endian.h>
+#include <csp/arch/csp_rand.h>
 
 #include <csp/csp.h>
 #include <csp/csp_debug.h>
@@ -19,6 +18,7 @@
 #include <csp/arch/csp_queue.h>
 #include <csp/arch/csp_time.h>
 
+#include "csp_port.h"
 #include "csp_conn.h"
 #include "csp_io.h"
 #include "csp_semaphore.h"
@@ -47,7 +47,6 @@ typedef struct __packed {
 	uint16_t seq_nr;
 	uint16_t ack_nr;
 } rdp_header_t;
-
 
 static int csp_rdp_close_internal(csp_conn_t * conn, uint8_t closed_by, bool send_rst);
 
@@ -262,7 +261,7 @@ static inline bool csp_rdp_seq_in_rx_queue(csp_conn_t * conn, uint16_t seq_nr) {
 
 		csp_rdp_queue_rx_add(conn, packet);
 
-		rdp_header_t * header = csp_rdp_header_ref(packet);
+		rdp_header_t * header = csp_rdp_header_ref((csp_packet_t *)packet);
 		if (header->seq_nr == seq_nr) {
 			return true;
 		}
@@ -305,7 +304,7 @@ static inline bool csp_rdp_should_ack(csp_conn_t * conn) {
 int csp_rdp_check_ack(csp_conn_t * conn) {
 
 	/* Check RX queue for spare capacity */
-	if ((unsigned int) abs(CSP_CONN_RXQUEUE_LEN - csp_queue_size(conn->rx_queue)) < conn->rdp.window_size) {
+	if (CSP_CONN_RXQUEUE_LEN - csp_queue_size(conn->rx_queue) <= 2 * (int32_t)conn->rdp.window_size) {
 		return CSP_ERR_NONE;
 	}
 
@@ -373,7 +372,7 @@ void csp_rdp_check_timeouts(csp_conn_t * conn) {
 		}
 
 		/* Get header */
-		rdp_header_t * header = csp_rdp_header_ref(packet);
+		rdp_header_t * header = csp_rdp_header_ref((csp_packet_t *)packet);
 
 		/* If acked, do not retransmit */
 		if (csp_rdp_seq_before(be16toh(header->seq_nr), conn->rdp.snd_una)) {
@@ -410,12 +409,6 @@ void csp_rdp_check_timeouts(csp_conn_t * conn) {
 	}
 
 	if (conn->rdp.state == RDP_OPEN) {
-
-		if (csp_rdp_time_after(time_now, conn->timestamp + conn->rdp.conn_timeout)) {
-			csp_conn_close(conn, CSP_RDP_CLOSED_BY_PROTOCOL | CSP_RDP_CLOSED_BY_TIMEOUT);
-			csp_bin_sem_post(&conn->rdp.tx_wait);
-			return;
-		}
 
 		/* Check if we have unacknowledged segments */
 		if (conn->rdp.delayed_acks) {

@@ -1,16 +1,17 @@
+
+
 #include <inttypes.h>
 #include <csp/csp_debug.h>
-#include <csp/csp.h>
 #include <stddef.h>
 
-static void csp_hex_dump_format(const char * desc, const void * addr, int len, int format) {
+void csp_hex_dump_format(const char * desc, const void * addr, int len, int format) {
 	int i;
 	unsigned char buff[17];
 	unsigned char * pc = (unsigned char *)addr;
 
 	// Output description if given.
 	if (desc != NULL)
-		csp_print("%s\n", desc);
+		csp_print(CSP_LL_INFO, "%s\n", desc);
 
 	if (!(len > 0))
 		return;
@@ -22,18 +23,18 @@ static void csp_hex_dump_format(const char * desc, const void * addr, int len, i
 		if ((i % 16) == 0) {
 			// Just don't print ASCII for the zeroth line.
 			if (i != 0)
-				csp_print("  %s\n", buff);
+				csp_print(CSP_LL_INFO, "  %s\n", buff);
 
 			// Output the offset.
 			if (format & 0x1) {
-				csp_print("  %p ", (void *)(((uint8_t *)addr) + i));
+				csp_print(CSP_LL_INFO, "  %p ", (void *)(((uint8_t *)addr) + i));
 			} else {
-				csp_print("        ");
+				csp_print(CSP_LL_INFO, "        ");
 			}
 		}
 
 		// Now the hex code for the specific character.
-		csp_print(" %02x", pc[i]);
+		csp_print(CSP_LL_INFO, " %02x", pc[i]);
 
 		// And store a printable ASCII character for later.
 		if ((pc[i] < 0x20) || (pc[i] > 0x7e))
@@ -45,12 +46,12 @@ static void csp_hex_dump_format(const char * desc, const void * addr, int len, i
 
 	// Pad out last line if not exactly 16 characters.
 	while ((i % 16) != 0) {
-		csp_print("   ");
+		csp_print(CSP_LL_INFO, "   ");
 		i++;
 	}
 
 	// And print the final ASCII bit.
-	csp_print("  %s\n", buff);
+	csp_print(CSP_LL_INFO, "  %s\n", buff);
 }
 
 void csp_hex_dump(const char * desc, const void * addr, int len) {

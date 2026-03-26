@@ -51,14 +51,14 @@ typedef enum {
 /**
    CSP identifier/header.
 */
-typedef struct {
+typedef struct  __packed {
 	uint8_t pri;
 	uint8_t flags;
 	uint16_t src;
 	uint16_t dst;
 	uint8_t dport;
 	uint8_t sport;
-} __attribute__ ((__packed__)) csp_id_t ;
+} csp_id_t ;
 
 /**
    @defgroup CSP_HEADER_FLAGS CSP header flags.
@@ -71,6 +71,12 @@ typedef struct {
 #define CSP_FHMAC			0x08 /*< Use HMAC verification */
 #define CSP_FRDP			0x02 /*< Use RDP protocol */
 #define CSP_FCRC32			0x01 /*< Use CRC32 checksum */
+
+#if CSP_TRACEROUTE
+/* Use CSP_FRES3 (0x20) for trace flag because CSP v2 header only has 6 flag bits (0x3F mask).
+ * CSP_FRES1 (0x80) and CSP_FRES2 (0x40) would be masked out in CSP v2 packets. */
+#define CSP_FTRACE			CSP_FRES3  /*< Traceroute enabled (simulation only) */
+#endif
 /**@}*/
 
 /**
@@ -85,7 +91,7 @@ typedef struct {
 #define CSP_SO_CRC32REQ			0x0040 /*< Require CRC32 */
 #define CSP_SO_CRC32PROHIB		0x0080 /*< Prohibit CRC32 */
 #define CSP_SO_CONN_LESS		0x0100 /*< Enable Connection Less mode */
-#define CSP_SO_SAME			0x8000 /*< Copy opts from incoming packet only applies to csp_sendto_reply() */
+#define CSP_SO_SAME			0x8000 /*< Copy opts from incoming packet only apllies to csp_sendto_reply() */
 
 /**@}*/
 
@@ -98,6 +104,9 @@ typedef struct {
 #define CSP_O_CRC32			CSP_SO_CRC32REQ    /*< Enable CRC32 */
 #define CSP_O_NOCRC32			CSP_SO_CRC32PROHIB /*< Disable CRC32 */
 #define CSP_O_SAME			CSP_SO_SAME
+#if CSP_TRACEROUTE
+#define CSP_O_TRACE			0x0200             /*< Enable traceroute (sets CSP_FTRACE flag) */
+#endif
 
 #ifndef CSP_PACKET_PADDING_BYTES
 #define CSP_PACKET_PADDING_BYTES 8
@@ -118,7 +127,6 @@ typedef struct {
 typedef struct csp_packet_s {
 
 	uint32_t timestamp_tx;		/*< Time the message was sent */
-	uint32_t timestamp_rx;      /*< Time the message was received */
 	struct csp_conn_s * conn;   /*< Associated connection (this is used in RDP queue) */
 
 	uint16_t rx_count;          /*< Received bytes */
@@ -176,6 +184,15 @@ typedef struct csp_socket_s csp_socket_t;
 /** Forward declaration of connection structure */
 typedef struct csp_conn_s csp_conn_t;
 
+#if ENABLE_ON_CONNECT_SOCKET_CALLBACK
+/**
+ * On connect socket callback function type.
+ *
+ * @param[in] socket socket that has been connected
+ */
+typedef void (*csp_socket_on_connect_callback_t)(csp_socket_t *socket);
+#endif // ENABLE_ON_CONNECT_SOCKET_CALLBACK
+
 /** Max length of host name - including zero termination */
 #define CSP_HOSTNAME_LEN	20
 /** Max length of model name - including zero termination */
@@ -194,16 +211,12 @@ typedef const uint32_t csp_const_memptr_t;
 typedef void * csp_memptr_t;
 /** Const memory pointer */
 typedef const void * csp_const_memptr_t;
-/** Memory pointer 64-bit */
-typedef uint64_t csp_memptr64_t;
 #endif
 
 /**
  * Platform specific memory copy function.
  */
 typedef csp_memptr_t (*csp_memcpy_fnc_t)(csp_memptr_t, csp_const_memptr_t, size_t);
-typedef csp_memptr64_t (*csp_memread64_fnc_t)(csp_const_memptr_t, csp_memptr64_t, size_t);
-typedef csp_memptr64_t (*csp_memwrite64_fnc_t)(csp_memptr64_t, csp_memptr_t, size_t);
 
 /**
  * Compile check/asserts.

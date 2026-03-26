@@ -5,7 +5,7 @@
  ****************************************************************************/
 #pragma once
 
-#include <stdint.h>
+#include <inttypes.h>
 #include <stddef.h>
 #include "csp/autoconfig.h"
 
@@ -28,8 +28,11 @@ typedef StaticQueue_t csp_static_queue_t;
 #include <zephyr/kernel.h>
 typedef struct k_msgq * csp_queue_handle_t;
 typedef struct k_msgq csp_static_queue_t;
+#elif (CSP_WINDOWS)
+typedef struct windows_queue_s * csp_queue_handle_t;
+typedef void * csp_static_queue_t;
 #else
-typedef struct pthread_queue_s pthread_queue_t; // Opaque pointer
+typedef struct pthread_queue_s pthread_queue_t;  // Opaque pointer
 typedef pthread_queue_t * csp_queue_handle_t;
 typedef void * csp_static_queue_t;
 #endif

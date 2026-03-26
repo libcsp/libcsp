@@ -1,0 +1,307 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://csp-es.org/schemas/virtual-topology.json",
+  "title": "CSP Virtual Topology Configuration",
+  "description": "Schema for CSP virtual node topology configuration",
+  "type": "object",
+  "required": ["topology", "nodes"],
+  "properties": {
+    "topology": {
+      "type": "object",
+      "description": "Topology-level configuration",
+      "required": ["name"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Topology name"
+        },
+        "description": {
+          "type": "string",
+          "description": "Topology description"
+        },
+        "csp_version": {
+          "type": "integer",
+          "description": "CSP protocol version",
+          "enum": [1, 2],
+          "default": 2
+        },
+        "deduplication": {
+          "type": "string",
+          "description": "Packet deduplication mode",
+          "enum": ["all", "off"],
+          "default": "all"
+        },
+        "control_hub": {
+          "type": "object",
+          "description": "Control hub configuration for orchestration",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "Enable control hub for orchestration",
+              "default": true
+            },
+            "host": {
+              "type": "string",
+              "description": "Control hub host address",
+              "default": "localhost"
+            },
+            "port": {
+              "type": "integer",
+              "description": "Control hub port",
+              "minimum": 1024,
+              "maximum": 65535,
+              "default": 5555
+            }
+          }
+        },
+        "host": {
+          "type": "string",
+          "description": "Default ZMQ proxy host (if not using zmq_proxies array)",
+          "default": "localhost"
+        },
+        "subscribe_port": {
+          "type": "integer",
+          "description": "Default ZMQ subscribe port (if not using zmq_proxies array)",
+          "minimum": 1024,
+          "maximum": 65535,
+          "default": 6000
+        },
+        "publish_port": {
+          "type": "integer",
+          "description": "Default ZMQ publish port (if not using zmq_proxies array)",
+          "minimum": 1024,
+          "maximum": 65535,
+          "default": 7000
+        },
+        "zmq_proxies": {
+          "type": "array",
+          "description": "Array of ZMQ proxy configurations (for multi-bus topologies)",
+          "items": {
+            "$ref": "#/definitions/zmq_proxy"
+          }
+        }
+      }
+    },
+    "nodes": {
+      "type": "array",
+      "description": "Array of node configurations",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/node"
+      }
+    },
+    "monitoring": {
+      "type": "object",
+      "description": "Monitoring and logging configuration",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "log_file": {
+          "type": "string",
+          "default": "topology.log"
+        },
+        "log_format": {
+          "type": "string",
+          "enum": ["text", "json", "csv"],
+          "default": "text"
+        },
+        "promiscuous_mode": {
+          "type": "boolean",
+          "description": "Enable promiscuous packet monitoring",
+          "default": true
+        },
+        "track_routing_path": {
+          "type": "boolean",
+          "description": "Track complete routing paths",
+          "default": true
+        },
+        "detect_duplicates": {
+          "type": "boolean",
+          "description": "Detect and log duplicate packets",
+          "default": true
+        },
+        "statistics_interval": {
+          "type": "integer",
+          "description": "Statistics reporting interval in seconds",
+          "minimum": 1,
+          "default": 5
+        }
+      }
+    }
+  },
+  "definitions": {
+    "zmq_proxy": {
+      "type": "object",
+      "description": "ZMQ proxy configuration representing a subnet/bus",
+      "required": ["name", "subscribe_port", "publish_port", "subnet_prefix", "netmask"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Proxy name (e.g., 'RF', 'PRIMARY_CAN')"
+        },
+        "description": {
+          "type": "string",
+          "description": "Proxy description"
+        },
+        "host": {
+          "type": "string",
+          "description": "Proxy host address",
+          "default": "localhost"
+        },
+        "subscribe_port": {
+          "type": "integer",
+          "description": "Subscriber port",
+          "minimum": 1024,
+          "maximum": 65535
+        },
+        "publish_port": {
+          "type": "integer",
+          "description": "Publisher port",
+          "minimum": 1024,
+          "maximum": 65535
+        },
+        "subnet_prefix": {
+          "type": "integer",
+          "description": "Subnet prefix (network portion of address, e.g., 0 for addresses 0-255 with netmask 8)",
+          "minimum": 0,
+          "maximum": 16383
+        },
+        "netmask": {
+          "type": "integer",
+          "description": "Netmask in CIDR notation (number of significant bits, e.g., 8 for 256 addresses)",
+          "minimum": 0,
+          "maximum": 14,
+          "default": 8
+        }
+      }
+    },
+    "node": {
+      "type": "object",
+      "description": "Node configuration",
+      "required": ["name", "interfaces"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Node name (must be unique)"
+        },
+        "description": {
+          "type": "string",
+          "description": "Node description"
+        },
+        "interfaces": {
+          "type": "array",
+          "description": "Network interfaces",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/interface"
+          }
+        },
+        "routing_table": {
+          "type": "array",
+          "description": "Routing table entries",
+          "items": {
+            "$ref": "#/definitions/routing_entry"
+          }
+        },
+        "services": {
+          "type": "object",
+          "description": "CSP services configuration",
+          "properties": {
+            "ping": {
+              "type": "boolean",
+              "description": "Enable ping service",
+              "default": true
+            },
+            "echo": {
+              "type": "boolean",
+              "description": "Enable echo service",
+              "default": true
+            },
+            "custom_port": {
+              "type": "integer",
+              "description": "Custom application port (-1 for none)",
+              "minimum": -1,
+              "maximum": 63,
+              "default": -1
+            }
+          }
+        }
+      }
+    },
+    "interface": {
+      "type": "object",
+      "description": "Network interface configuration",
+      "required": ["name", "driver", "address"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Interface name (e.g., 'ZMQ0', 'CAN0')"
+        },
+        "driver": {
+          "type": "string",
+          "description": "Driver type",
+          "enum": ["zmq"],
+          "default": "zmq"
+        },
+        "zmq_proxy": {
+          "type": "string",
+          "description": "ZMQ proxy name this interface connects to"
+        },
+        "address": {
+          "type": "integer",
+          "description": "CSP address on this interface (must be within the subnet's address range)",
+          "minimum": 0,
+          "maximum": 16383
+        },
+        "netmask": {
+          "type": "integer",
+          "description": "CSP netmask (derived from connected subnet, auto-populated by editor)",
+          "minimum": 0,
+          "maximum": 14,
+          "default": 8
+        },
+        "is_default": {
+          "type": "boolean",
+          "description": "Is this the default interface",
+          "default": false
+        }
+      }
+    },
+    "routing_entry": {
+      "type": "object",
+      "description": "Routing table entry",
+      "required": ["address", "netmask", "interface"],
+      "properties": {
+        "address": {
+          "type": "integer",
+          "description": "Destination address",
+          "minimum": 0,
+          "maximum": 65535
+        },
+        "netmask": {
+          "type": "integer",
+          "description": "Netmask (number of bits)",
+          "minimum": 0,
+          "maximum": 16
+        },
+        "interface": {
+          "type": "string",
+          "description": "Interface name to use for this route"
+        },
+        "via": {
+          "type": "integer",
+          "description": "Via address (gateway), omit for direct routes",
+          "minimum": 0,
+          "maximum": 65535
+        },
+        "comment": {
+          "type": "string",
+          "description": "Optional comment for this route"
+        }
+      }
+    }
+  }
+}
+

@@ -1,3 +1,20 @@
+EnduroSat (https://www.endurosat.com/):
+
+    This fork of libcsp is maintained by the EnduroSat team. We thank the original authors of the
+    project for their work and we are happy to use and contribute to this project.
+
+    Why did we fork libcsp instead of contributing directly?
+    --------------------------------------------------------
+    As a fast-paced space company, we need to be able to move quickly and adapt to
+    changing requirements. Forking was the best way to achieve this, however we are
+    committed to keeping the core protocol intact and only make changes to the
+    surrounding implementation where it makes sense for us as a company. Even though
+    there are not significant changes in our forked repository for the moment, we expect this to
+    change in the future as we expand our use of CSP, hence we want to establish a clear
+    setting and a different versioining schema from the beginning. We will monitor closely the
+    upstream repository and try to align on important changes but we reserve the right to
+    diverge if needed.
+
 Author:
 
   Johan De Claville Christiansen

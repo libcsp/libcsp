@@ -5,10 +5,10 @@
 #include <csp/csp_debug.h>
 
 #include <csp/csp_cmp.h>
-#include <endian.h>
+#include <csp/arch/csp_endian.h>
 #include <csp/arch/csp_time.h>
 
-int csp_ping(uint16_t node, uint32_t timeout, unsigned int size, uint8_t conn_options) {
+int csp_ping(uint16_t node, uint32_t timeout, unsigned int size, uint32_t conn_options) {
 
 	unsigned int i;
 	uint32_t start, time, status = 0;
@@ -131,13 +131,13 @@ void csp_ps(uint16_t node, uint32_t timeout) {
 		/* We have a reply, ensure data is 0 (zero) terminated */
 		const unsigned int length = (packet->length < sizeof(packet->data)) ? packet->length : (sizeof(packet->data) - 1);
 		packet->data[length] = 0;
-		csp_print("%s", packet->data);
+		csp_print(CSP_LL_TRACE, "%s", packet->data);
 
 		/* Each packet from csp_read must to be freed by user */
 		csp_buffer_free(packet);
 	}
 
-	csp_print("\r\n");
+	csp_print(CSP_LL_TRACE, "\r\n");
 
 	/* Clean up */
 out:
@@ -161,9 +161,9 @@ void csp_memfree(uint16_t node, uint32_t timeout) {
 	uint32_t memfree;
 	int err = csp_get_memfree(node, timeout, &memfree);
 	if (err == CSP_ERR_NONE) {
-		csp_print("Free Memory at node %u is %" PRIu32 " bytes\r\n", node, memfree);
+		csp_print(CSP_LL_INFO, "Free Memory at node %u is %" PRIu32 " bytes\r\n", node, memfree);
 	} else {
-		csp_print("Network error\r\n");
+		csp_print(CSP_LL_ERROR, "Network error\r\n");
 	}
 }
 
@@ -183,9 +183,9 @@ void csp_buf_free(uint16_t node, uint32_t timeout) {
 	uint32_t size;
 	int err = csp_get_buf_free(node, timeout, &size);
 	if (err == CSP_ERR_NONE) {
-		csp_print("Free buffers at node %u is %" PRIu32 "\r\n", node, size);
+		csp_print(CSP_LL_INFO, "Free buffers at node %u is %" PRIu32 "\r\n", node, size);
 	} else {
-		csp_print("Network error\r\n");
+		csp_print(CSP_LL_ERROR, "Network error\r\n");
 	}
 }
 
@@ -205,9 +205,9 @@ void csp_uptime(uint16_t node, uint32_t timeout) {
 	uint32_t uptime;
 	int err = csp_get_uptime(node, timeout, &uptime);
 	if (err == CSP_ERR_NONE) {
-		csp_print("Uptime of node %u is %" PRIu32 " s\r\n", node, uptime);
+		csp_print(CSP_LL_INFO, "Uptime of node %u is %" PRIu32 " s\r\n", node, uptime);
 	} else {
-		csp_print("Network error\r\n");
+		csp_print(CSP_LL_ERROR, "Network error\r\n");
 	}
 }
 

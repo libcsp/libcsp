@@ -8,13 +8,13 @@ set(SPHINX_INDEX_FILE ${SPHINX_BUILD}/index.html)
 
 file(GLOB DOCS_FILES
     "${SPHINX_SOURCE}/*.md"
-    "${SPHINX_SOURCE}/samples/posix/*.md"
     "${SPHINX_SOURCE}/api/*.rst"
     "${SPHINX_SOURCE}/api/arch/*.rst"
     "${SPHINX_SOURCE}/api/crypto/*.rst"
     "${SPHINX_SOURCE}/api/drivers/*.rst"
     "${SPHINX_SOURCE}/api/interfaces/*.rst")
 
+file(COPY ${SPHINX_SOURCE}/.nojekyll DESTINATION ${SPHINX_BUILD})
 add_custom_target(docs ALL DEPENDS ${SPHINX_INDEX_FILE})
 add_custom_command(OUTPUT ${SPHINX_INDEX_FILE}
     COMMAND

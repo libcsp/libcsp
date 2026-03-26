@@ -1,4 +1,4 @@
-target_sources(csp PRIVATE
+target_sources(csp_es PRIVATE
   csp_bridge.c
   csp_buffer.c
   csp_conn.c
@@ -18,30 +18,34 @@ target_sources(csp PRIVATE
   )
 
 set_source_files_properties(csp_rdp.c
-  TARGET_DIRECTORY csp
+  TARGET_DIRECTORY csp_es
   PROPERTIES COMPILE_DEFINITIONS _DEFAULT_SOURCE
 )
 
 if (CSP_USE_RTABLE)
-  target_sources(csp PRIVATE csp_rtable_cidr.c)
+  target_sources(csp_es PRIVATE csp_rtable_cidr.c)
   if (CSP_HAVE_STDIO)
-    target_sources(csp PRIVATE csp_rtable_stdio.c)
+    target_sources(csp_es PRIVATE csp_rtable_stdio.c)
   endif()
 endif()
 
 if (CSP_ENABLE_CSP_PRINT)
-  target_sources(csp PRIVATE csp_hex_dump.c)
+  target_sources(csp_es PRIVATE csp_hex_dump.c)
 endif()
 
 if (CSP_USE_PROMISC)
-  target_sources(csp PRIVATE csp_promisc.c)
+  target_sources(csp_es PRIVATE csp_promisc.c)
 endif()
 
 if (CSP_USE_RDP)
-  target_sources(csp PRIVATE
+  target_sources(csp_es PRIVATE
     csp_rdp.c
     csp_rdp_queue.c
   )
+endif()
+
+if (CSP_TRACEROUTE)
+  target_sources(csp_es PRIVATE csp_traceroute.c)
 endif()
 
 if(LIBYAML_FOUND)
@@ -50,7 +54,7 @@ if(LIBYAML_FOUND)
     ${csp_inc}
     ${LIBYAML_INCLUDE_DIRS})
   target_link_libraries(csp_yaml PRIVATE csp_common ${LIBYAML_LIBRARIES})
-  target_link_libraries(csp PRIVATE csp_yaml)
+  target_link_libraries(csp_es PRIVATE csp_yaml)
   if(BUILD_SHARED_LIBS)
     set_property(TARGET csp_yaml PROPERTY POSITION_INDEPENDENT_CODE ON)
   endif()

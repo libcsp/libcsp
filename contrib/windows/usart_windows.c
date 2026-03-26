@@ -35,7 +35,7 @@ static int openPort(const char * device, csp_usart_fd_t * return_fd) {
 							 0,
 							 NULL);
 	if (*return_fd == INVALID_HANDLE_VALUE) {
-		csp_print("Failed to open port: [%s], error: %lu\n", device, GetLastError());
+		csp_print(CSP_LL_ERROR, "Failed to open port: [%s], error: %lu\n", device, GetLastError());
 		return CSP_ERR_INVAL;
 	}
 
@@ -47,7 +47,7 @@ static int configurePort(csp_usart_fd_t fd, const csp_usart_conf_t * conf) {
 	DCB portSettings = {0};
 	portSettings.DCBlength = sizeof(portSettings);
 	if (!GetCommState(fd, &portSettings)) {
-		csp_print("Could not get default settings for open COM port, error: %lu\n", GetLastError());
+		csp_print(CSP_LL_ERROR, "Could not get default settings for open COM port, error: %lu\n", GetLastError());
 		return CSP_ERR_INVAL;
 	}
 	portSettings.BaudRate = conf->baudrate;
@@ -57,7 +57,7 @@ static int configurePort(csp_usart_fd_t fd, const csp_usart_conf_t * conf) {
 	portSettings.fBinary = TRUE;
 	portSettings.ByteSize = conf->databits;
 	if (!SetCommState(fd, &portSettings)) {
-		csp_print("Could not configure COM port, error: %lu\n", GetLastError());
+		csp_print(CSP_LL_ERROR, "Could not configure COM port, error: %lu\n", GetLastError());
 		return CSP_ERR_INVAL;
 	}
 
@@ -69,7 +69,7 @@ static int setPortTimeouts(csp_usart_fd_t fd) {
 	COMMTIMEOUTS timeouts = {0};
 
 	if (!GetCommTimeouts(fd, &timeouts)) {
-		csp_print("Error getting current timeout settings, error: %lu\n", GetLastError());
+		csp_print(CSP_LL_ERROR, "Error gettings current timeout settings, error: %lu\n", GetLastError());
 		return CSP_ERR_INVAL;
 	}
 
@@ -80,7 +80,7 @@ static int setPortTimeouts(csp_usart_fd_t fd) {
 	timeouts.WriteTotalTimeoutConstant = 5;
 
 	if (!SetCommTimeouts(fd, &timeouts)) {
-		csp_print("Error setting timeout settings, error: %lu\n", GetLastError());
+		csp_print(CSP_LL_ERROR, "Error setting timeout settings, error: %lu\n", GetLastError());
 		return CSP_ERR_INVAL;
 	}
 
@@ -101,7 +101,7 @@ static unsigned WINAPI usart_rx_thread(void * params) {
 			if (ReadFile(ctx->fd, cbuf, sizeof(cbuf), &bytesRead, NULL)) {
 				ctx->rx_callback(ctx->user_data, cbuf, bytesRead, NULL);
 			} else {
-				csp_print("Error receiving data, error: %lu\n", GetLastError());
+				csp_print(CSP_LL_ERROR, "Error receiving data, error: %lu\n", GetLastError());
 			}
 		}
 	}
@@ -115,7 +115,7 @@ int csp_usart_write(csp_usart_fd_t fd, const void * data, size_t data_length) {
 		return CSP_ERR_TX;
 	}
 	if (!FlushFileBuffers(fd)) {
-		csp_print("Could not flush write buffer. Code: %lu\n", GetLastError());
+		csp_print(CSP_LL_ERROR, "Could not flush write buffer. Code: %lu\n", GetLastError());
 	}
 	return (int)bytesActual;
 }
@@ -146,7 +146,7 @@ int csp_usart_open(const csp_usart_conf_t * conf, csp_usart_callback_t rx_callba
 
 	usart_context_t * ctx = calloc(1, sizeof(*ctx));
 	if (ctx == NULL) {
-		csp_print("%s: Error allocating context, device: [%s], errno: %s\n", __func__, conf->device, strerror(errno));
+		csp_print(CSP_LL_ERROR, "%s: Error allocating context, device: [%s], errno: %s\n", __func__, conf->device, strerror(errno));
 		CloseHandle(fd);
 		return CSP_ERR_NOMEM;
 	}

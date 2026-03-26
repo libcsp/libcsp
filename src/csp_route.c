@@ -3,7 +3,7 @@
 #include <stdlib.h>
 
 #include <csp/csp_crc32.h>
-#include <endian.h>
+#include <csp/arch/csp_endian.h>
 #include <csp/arch/csp_time.h>
 #include <csp/arch/csp_queue.h>
 #include <csp/crypto/csp_hmac.h>
@@ -17,9 +17,34 @@
 #include "csp_dedup.h"
 #include "csp_rdp.h"
 #include <csp/csp_debug.h>
-#include <csp/csp_hooks.h>
 #include <csp/csp_iflist.h>
 #include "csp_macro.h"
+
+#if CSP_TRACEROUTE
+#include <csp/csp_traceroute.h>
+#endif
+
+#if ENABLE_ON_CONNECT_SOCKET_CALLBACK
+/**
+ * on connect callback function holder
+ */
+static csp_socket_on_connect_callback_t on_connect_socket_callback = NULL;
+
+/**
+ * Set the on connect callback function
+ *
+ * @param[in] callback callback function to be called when a connection is established
+ */
+void csp_set_on_connect_callback(csp_socket_on_connect_callback_t callback)
+{
+#if DEBUG
+    if (on_connect_socket_callback != NULL) {
+		csp_print(CSP_LL_INFO, "csp_set_on_connect_callback: callback already set, overwriting.\n");
+	}
+#endif
+    on_connect_socket_callback = callback;
+}
+#endif // ENABLE_ON_CONNECT_SOCKET_CALLBACK
 
 /**
  * Check supported packet options
@@ -37,6 +62,11 @@ static int csp_route_check_options(csp_iface_t * iface, csp_packet_t * packet) {
 	if (packet->id.flags & CSP_FHMAC) {
 		csp_dbg_errno = CSP_DBG_ERR_UNSUPPORTED;
 		iface->autherr++;
+#if CSP_TRACEROUTE
+		if (packet->id.flags & CSP_FTRACE) {
+			csp_traceroute_log_hop(&packet->id, iface, 2, CSP_TRACE_DROP_UNSUP_HMAC, CSP_NO_VIA_ADDRESS);
+		}
+#endif
 		return CSP_ERR_NOTSUP;
 	}
 #endif
@@ -46,6 +76,11 @@ static int csp_route_check_options(csp_iface_t * iface, csp_packet_t * packet) {
 	if (packet->id.flags & CSP_FRDP) {
 		csp_dbg_errno = CSP_DBG_ERR_UNSUPPORTED;
 		iface->rx_error++;
+#if CSP_TRACEROUTE
+		if (packet->id.flags & CSP_FTRACE) {
+			csp_traceroute_log_hop(&packet->id, iface, 2, CSP_TRACE_DROP_UNSUP_RDP, CSP_NO_VIA_ADDRESS);
+		}
+#endif
 		return CSP_ERR_NOTSUP;
 	}
 #endif
@@ -64,27 +99,47 @@ static int csp_route_security_check(uint32_t security_opts, csp_iface_t * iface,
 
 	/* CRC32 verified packet */
 	if (packet->id.flags & CSP_FCRC32) {
-		/* Verify CRC32 (does not include header for backwards compatibility with csp1.x) */
+		/* Verify CRC32 (does not include header for backwards compatability with csp1.x) */
 		if (csp_crc32_verify(packet) != CSP_ERR_NONE) {
 			iface->rx_error++;
+#if CSP_TRACEROUTE
+			if (packet->id.flags & CSP_FTRACE) {
+				csp_traceroute_log_hop(&packet->id, iface, 2, CSP_TRACE_DROP_CRC32_FAIL, CSP_NO_VIA_ADDRESS);
+			}
+#endif
 			return CSP_ERR_CRC32;
 		}
 	} else if (security_opts & CSP_SO_CRC32REQ) {
 		iface->rx_error++;
+#if CSP_TRACEROUTE
+		if (packet->id.flags & CSP_FTRACE) {
+			csp_traceroute_log_hop(&packet->id, iface, 2, CSP_TRACE_DROP_CRC32_REQ, CSP_NO_VIA_ADDRESS);
+		}
+#endif
 		return CSP_ERR_CRC32;
 	}
 
 #if (CSP_USE_HMAC)
 	/* HMAC authenticated packet */
 	if (packet->id.flags & CSP_FHMAC) {
-		/* Verify HMAC (does not include header for backwards compatibility with csp1.x) */
+		/* Verify HMAC (does not include header for backwards compatability with csp1.x) */
 		if (csp_hmac_verify(packet, false) != CSP_ERR_NONE) {
 			/* HMAC failed */
 			iface->autherr++;
+#if CSP_TRACEROUTE
+			if (packet->id.flags & CSP_FTRACE) {
+				csp_traceroute_log_hop(&packet->id, iface, 2, CSP_TRACE_DROP_HMAC_FAIL, CSP_NO_VIA_ADDRESS);
+			}
+#endif
 			return CSP_ERR_HMAC;
 		}
 	} else if (security_opts & CSP_SO_HMACREQ) {
 		iface->autherr++;
+#if CSP_TRACEROUTE
+		if (packet->id.flags & CSP_FTRACE) {
+			csp_traceroute_log_hop(&packet->id, iface, 2, CSP_TRACE_DROP_HMAC_REQ, CSP_NO_VIA_ADDRESS);
+		}
+#endif
 		return CSP_ERR_HMAC;
 	}
 #endif
@@ -94,6 +149,11 @@ static int csp_route_security_check(uint32_t security_opts, csp_iface_t * iface,
 	if (!(packet->id.flags & CSP_FRDP)) {
 		if (security_opts & CSP_SO_RDPREQ) {
 			iface->rx_error++;
+#if CSP_TRACEROUTE
+			if (packet->id.flags & CSP_FTRACE) {
+				csp_traceroute_log_hop(&packet->id, iface, 2, CSP_TRACE_DROP_RDP_REQ, CSP_NO_VIA_ADDRESS);
+			}
+#endif
 			return CSP_ERR_INVAL;
 		}
 	}
@@ -105,8 +165,15 @@ static int csp_route_security_check(uint32_t security_opts, csp_iface_t * iface,
 
 __weak void csp_input_hook(csp_iface_t * iface, csp_packet_t * packet) {
 	csp_print_packet("INP: S %u, D %u, Dp %u, Sp %u, Pr %u, Fl 0x%02X, Sz %" PRIu16 " VIA: %s, Tms %u\n",
-				   packet->id.src, packet->id.dst, packet->id.dport,
-				   packet->id.sport, packet->id.pri, packet->id.flags, packet->length, iface->name, csp_get_ms());
+					 packet->id.src, packet->id.dst, packet->id.dport,
+					 packet->id.sport, packet->id.pri, packet->id.flags, packet->length, iface->name, csp_get_ms());
+
+#if CSP_TRACEROUTE
+	/* Log trace hop if trace flag is set */
+	if (packet->id.flags & CSP_FTRACE) {
+		csp_traceroute_log_hop(&packet->id, iface, 0, CSP_TRACE_RECEIVED, CSP_NO_VIA_ADDRESS);
+	}
+#endif
 }
 
 int csp_route_work(void) {
@@ -139,17 +206,22 @@ int csp_route_work(void) {
 
 	/* The packet is to me, if the address matches that of any interface,
 	 * or the address matches the broadcast address of the incoming interface */
-	int is_to_me = ((csp_iflist_get_by_addr(packet->id.dst) != NULL ||
-	                (csp_id_is_broadcast(packet->id.dst, input.iface))) ||
-				    (csp_addr_is_alias(packet->id.dst)));
+	int is_to_me = (csp_iflist_get_by_addr(packet->id.dst) != NULL || (csp_id_is_broadcast(packet->id.dst, input.iface)));
 
 	/* Deduplication */
 	if ((csp_conf.dedup == CSP_DEDUP_ALL) ||
-		(is_to_me && (csp_conf.dedup == CSP_DEDUP_INCOMING)) ||
+		((is_to_me) && (csp_conf.dedup == CSP_DEDUP_INCOMING)) ||
 		((!is_to_me) && (csp_conf.dedup == CSP_DEDUP_FWD))) {
 		if (csp_dedup_is_duplicate(packet)) {
+			csp_print(CSP_LL_TRACE, "Deduplication: Discarding duplicate packet\n");
+
 			/* Discard packet */
 			input.iface->drop++;
+#if CSP_TRACEROUTE
+			if (packet->id.flags & CSP_FTRACE) {
+				csp_traceroute_log_hop(&packet->id, input.iface, 2, CSP_TRACE_DROP_DUPLICATE, CSP_NO_VIA_ADDRESS);
+			}
+#endif
 			csp_buffer_free(packet);
 			return CSP_ERR_NONE;
 		}
@@ -162,8 +234,7 @@ int csp_route_work(void) {
 
 	/* If the message is not to me, route the message to the correct interface */
 	if (!is_to_me) {
-
-		/* Otherwise, actually send the message */
+		csp_print(CSP_LL_TRACE, "Routing: Forwarding packet to next hop\n");
 		csp_send_direct(&packet->id, packet, input.iface);
 		return CSP_ERR_NONE;
 
@@ -171,17 +242,25 @@ int csp_route_work(void) {
 
 	/* Discard packets with unsupported options */
 	if (csp_route_check_options(input.iface, packet) != CSP_ERR_NONE) {
+		csp_print(CSP_LL_TRACE, "Routing: Discarding packet with unsupported options\n");
 		csp_buffer_free(packet);
 		return CSP_ERR_NONE;
 	}
 
+#if CSP_TRACEROUTE
+	/* Log DELIVERED event - packet has reached its destination */
+	if (packet->id.flags & CSP_FTRACE) {
+		csp_traceroute_log_hop(&packet->id, input.iface, 0, CSP_TRACE_DELIVERED, CSP_NO_VIA_ADDRESS);
+	}
+#endif
+
 	/**
-	 * Callbacks 
+	 * Callbacks
 	 */
 	csp_callback_t callback = csp_port_get_callback(packet->id.dport);
 	if (callback) {
-
 		if (csp_route_security_check(CSP_SO_CRC32REQ, input.iface, packet) != CSP_ERR_NONE) {
+			csp_print(CSP_LL_TRACE, "Routing: Discarding packet - failed security check\n");
 			csp_buffer_free(packet);
 			return CSP_ERR_NONE;
 		}
@@ -191,7 +270,7 @@ int csp_route_work(void) {
 	}
 
 	/**
-	 * Sockets 
+	 * Sockets
 	 */
 
 	/* The message is to me, search for incoming socket */
@@ -201,33 +280,34 @@ int csp_route_work(void) {
 	if (socket && (socket->opts & CSP_SO_CONN_LESS)) {
 
 		if (csp_route_security_check(socket->opts, input.iface, packet) != CSP_ERR_NONE) {
+			csp_print(CSP_LL_TRACE, "Routing: Discarding packet - failed security check\n");
 			csp_buffer_free(packet);
 			return CSP_ERR_NONE;
 		}
 
 		if (csp_queue_enqueue(socket->rx_queue, &packet, 0) != CSP_QUEUE_OK) {
+			csp_print(CSP_LL_TRACE, "Routing: Discarding packet - socket queue is full\n");
 			csp_dbg_conn_ovf++;
 			csp_buffer_free(packet);
 			return CSP_ERR_NONE;
 		}
-		
+
 		return CSP_ERR_NONE;
 	}
 
 	/* Search for an existing connection */
 	conn = csp_conn_find_existing(&packet->id);
-
-	/* If this is an incoming packet on a new connection */
-	if (conn == NULL) {
-
+	if (NULL == conn) { // If this is an incoming packet on a new connection
 		/* Reject packet if no matching socket is found */
 		if (!socket) {
+			csp_print(CSP_LL_TRACE, "Routing: Discarding packet - no matching socket found\n");
 			csp_buffer_free(packet);
 			return CSP_ERR_NONE;
 		}
 
 		/* Run security check on incoming packet */
 		if (csp_route_security_check(socket->opts, input.iface, packet) != CSP_ERR_NONE) {
+			csp_print(CSP_LL_TRACE, "Routing: Discarding packet - failed security check\n");
 			csp_buffer_free(packet);
 			return CSP_ERR_NONE;
 		}
@@ -243,8 +323,8 @@ int csp_route_work(void) {
 
 		/* Create connection */
 		conn = csp_conn_new(packet->id, idout, CONN_SERVER);
-
 		if (!conn) {
+			csp_print(CSP_LL_TRACE, "Routing: Discarding packet - failed to create connection\n");
 			csp_dbg_conn_out++;
 			csp_buffer_free(packet);
 			return CSP_ERR_NONE;
@@ -254,11 +334,10 @@ int csp_route_work(void) {
 		conn->dest_socket = socket;
 		conn->opts = socket->opts;
 
-		/* Packet to existing connection */
-	} else {
-
+	} else {  // Packet is to existing connection */
 		/* Run security check on incoming packet */
 		if (csp_route_security_check(conn->opts, input.iface, packet) != CSP_ERR_NONE) {
+			csp_print(CSP_LL_TRACE, "Routing: Discarding packet - failed security check\n");
 			csp_buffer_free(packet);
 			return CSP_ERR_NONE;
 		}
@@ -267,6 +346,7 @@ int csp_route_work(void) {
 #if (CSP_USE_RDP)
 	/* Pass packet to RDP module */
 	if (packet->id.flags & CSP_FRDP) {
+		csp_print(CSP_LL_TRACE, "Routing: Passing packet to RDP\n");
 		bool close_connection = csp_rdp_new_packet(conn, packet);
 		if (close_connection) {
 			csp_close(conn);
@@ -277,6 +357,7 @@ int csp_route_work(void) {
 
 	/* Otherwise, enqueue directly */
 	if (csp_conn_enqueue_packet(conn, packet) != CSP_ERR_NONE) {
+		csp_print(CSP_LL_TRACE, "Routing: Discarding packet - connection queue is full\n");
 		csp_dbg_conn_ovf++;
 		csp_buffer_free(packet);
 		return CSP_ERR_NONE;
@@ -285,14 +366,22 @@ int csp_route_work(void) {
 	/* Try to queue up the new connection pointer */
 	if (conn->dest_socket != NULL) {
 		if (csp_queue_enqueue(conn->dest_socket->rx_queue, &conn, 0) != CSP_QUEUE_OK) {
+			csp_print(CSP_LL_TRACE, "Routing: Discarding packet - socket queue is full\n");
 			csp_dbg_conn_ovf++;
 			csp_close(conn);
 			return CSP_ERR_NONE;
 		}
 
+#if ENABLE_ON_CONNECT_SOCKET_CALLBACK
+		if (on_connect_socket_callback != NULL) {
+			on_connect_socket_callback(conn->dest_socket);
+		}
+#endif  // ENABLE_ON_CONNECT_SOCKET_CALLBACK
+
 		/* Ensure that this connection will not be posted to this socket again */
 		conn->dest_socket = NULL;
 	}
 
+	csp_print(CSP_LL_TRACE, "Routing: Successfully delivered a packet\n");
 	return CSP_ERR_NONE;
 }

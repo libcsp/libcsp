@@ -1,0 +1,17 @@
+This directory contains files specific to the windows port of libcsp.
+
+To compile and create a static library, execute:
+
+  python waf configure --with-os=windows build
+
+from the root of this project. Note python must be in PATH.
+
+The build requirements are:
+    * Windows Vista SP1
+    * A recent version of MinGW _or_ MinGW-w64
+    * Windows API headers
+    * cPython 2.5 or newer
+
+What provides the Windows API headers depends on the development environment:
+Using MinGW: Headers provided by w32api package. windows_glue.h header is needed because these headers do not declare condition variables.
+Using MinGW-w64: Headers should be available in the default configuration. You may have to compile the distribution from source. windows_glue.h should not be needed.

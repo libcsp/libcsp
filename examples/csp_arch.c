@@ -14,8 +14,8 @@
 #endif
 
 void csp_panic(const char * msg) {
-    csp_print("csp_panic: %s\n", msg);
-    exit(1);
+	csp_print(CSP_LL_ERROR, "csp_panic: %s\n", msg);
+	exit(1);
 }
 
 int main(void) {
@@ -24,9 +24,9 @@ int main(void) {
     csp_timestamp_t csp_clock = {0};
     csp_clock_get_time(&csp_clock);
     ASSERT(csp_clock.tv_sec != 0);
-    csp_print("csp_clock_get_time(..) -> sec:nsec = %"PRIu32":%"PRIu32"\n", csp_clock.tv_sec, csp_clock.tv_nsec);
+	csp_print(CSP_LL_INFO, "csp_clock_get_time(..) -> sec:nsec = %" PRIu32 ":%" PRIu32 "\n", csp_clock.tv_sec, csp_clock.tv_nsec);
 
-    // relative time
+	// relative time
     const uint32_t msec1 = csp_get_ms();
     const uint32_t msec2 = csp_get_ms_isr();
     const uint32_t sec1 = csp_get_s();

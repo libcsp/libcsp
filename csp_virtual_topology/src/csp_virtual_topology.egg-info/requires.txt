@@ -1,0 +1,11 @@
+pyzmq>=25.0.0
+flask>=3.0.0
+flask-socketio>=5.3.0
+werkzeug<3.1.0,>=3.0.0
+graphviz>=0.20.0
+
+[dev]
+pytest>=7.0.0
+black>=23.0.0
+flake8>=6.0.0
+mypy>=1.0.0

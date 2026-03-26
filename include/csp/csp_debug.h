@@ -16,7 +16,8 @@
 #pragma once
 
 #include "csp/autoconfig.h"
-#include <stdint.h>
+#include <inttypes.h>
+#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -62,23 +63,38 @@ extern uint8_t csp_dbg_eth_errno;
 #define CSP_DBG_ETH_ERR_INCOMPLETE 5
 #define CSP_DBG_ETH_ERR_UNKNOWN 6
 
-/* Toggle flags for rdp and packet print */
+/* Toogle flags for rdp and packet print */
 extern uint8_t csp_dbg_rdp_print;
 extern uint8_t csp_dbg_packet_print;
 
-/* Helper macros for toggled printf */
-void csp_print_func(const char * fmt, ...);
-
 /* Compile time disable all printout from CSP */
 #if (CSP_ENABLE_CSP_PRINT)
+
+/* Helper macros for toggled printf */
+enum { // logging levels
+	CSP_LL_INFO = 0,
+	CSP_LL_WARN,
+	CSP_LL_ERROR,
+	CSP_LL_TRACE,
+
+	CSP_LL_COUNT // don't move must be last
+};
+
+typedef void (*csp_csp_custom_print_func_t)(const int log_level, const char * msg);
+
+void csp_print_func(const int log_level, const char * fmt, ...);
+void csp_custom_print_func_default(const int log_level, const char * str);
+void csp_set_custom_print_func(csp_csp_custom_print_func_t cp_func);
+void csp_enable_log_level(const int log_level, const bool is_enabled);
+
 #define csp_print(...) csp_print_func(__VA_ARGS__);
 #else
-#define csp_print(...) do {} while(0)
+#define csp_print(...)
 #endif
 
-#define csp_rdp_error(format, ...) { if (csp_dbg_rdp_print >= 1) { csp_print("\033[31m" format "\033[0m", ##__VA_ARGS__); }}
-#define csp_rdp_protocol(format, ...) { if (csp_dbg_rdp_print >= 2) { csp_print("\033[34m" format "\033[0m", ##__VA_ARGS__); }}
-#define csp_print_packet(format, ...) { if (csp_dbg_packet_print >= 1) { csp_print("\033[32m" format "\033[0m", ##__VA_ARGS__); }}
+#define csp_rdp_error(format, ...) { if (csp_dbg_rdp_print >= 1) { csp_print(CSP_LL_ERROR, "\033[31m" format "\033[0m", ##__VA_ARGS__); }}
+#define csp_rdp_protocol(format, ...) { if (csp_dbg_rdp_print >= 2) { csp_print(CSP_LL_TRACE, "\033[34m" format "\033[0m", ##__VA_ARGS__); }}
+#define csp_print_packet(format, ...) { if (csp_dbg_packet_print >= 1) { csp_print(CSP_LL_TRACE, "\033[32m" format "\033[0m", ##__VA_ARGS__); }}
 
 #ifdef __cplusplus
 }

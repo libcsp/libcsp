@@ -52,57 +52,27 @@ static inline int init_cond_clock_monotonic(pthread_cond_t * cond) {
 
 pthread_queue_t * pthread_queue_create(int length, size_t item_size) {
 
-	int ret;
-	pthread_queue_t * q;
+	pthread_queue_t * q = malloc(sizeof(pthread_queue_t));
 
-	q = malloc(sizeof(pthread_queue_t));
-	if (q == NULL) {
-		goto out;
+	if (q != NULL) {
+		q->buffer = malloc(length * item_size);
+		if (q->buffer != NULL) {
+			q->size = length;
+			q->item_size = item_size;
+			q->items = 0;
+			q->in = 0;
+			q->out = 0;
+			if (pthread_mutex_init(&(q->mutex), NULL) || init_cond_clock_monotonic(&(q->cond_full)) || init_cond_clock_monotonic(&(q->cond_empty))) {
+				free(q->buffer);
+				free(q);
+				q = NULL;
+			}
+		} else {
+			free(q);
+			q = NULL;
+		}
 	}
 
-	q->buffer = malloc(length * item_size);
-	if (q->buffer == NULL) {
-		goto free_q;
-	}
-
-	q->size = length;
-	q->item_size = item_size;
-	q->items = 0;
-	q->in = 0;
-	q->out = 0;
-
-	ret = pthread_mutex_init(&(q->mutex), NULL);
-	if (ret != 0) {
-		goto free_q_buffer;
-	}
-
-	ret = init_cond_clock_monotonic(&(q->cond_full));
-	if (ret != 0) {
-		goto destroy_mutex;
-	}
-
-	ret = init_cond_clock_monotonic(&(q->cond_empty));
-	if (ret != 0) {
-		goto destroy_cond;
-	}
-
-	return q;
-
-destroy_cond:
-	(void)pthread_cond_destroy(&(q->cond_full));
-
-destroy_mutex:
-	(void)pthread_mutex_destroy(&(q->mutex));
-
-free_q_buffer:
-	free(q->buffer);
-	q->buffer = NULL;
-
-free_q:
-	free(q);
-	q = NULL;
-
-out:
 	return q;
 }
 
@@ -201,7 +171,7 @@ int pthread_queue_dequeue(pthread_queue_t * queue, void * buf, uint32_t timeout)
 	struct timespec * pts;
 
 	if(!queue){
-		csp_print("csp not initialized\n");
+		csp_print(CSP_LL_ERROR, "csp not initialized\n");
 		return PTHREAD_QUEUE_ERROR;
 	}
 

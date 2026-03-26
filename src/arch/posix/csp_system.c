@@ -23,23 +23,11 @@ unsigned int csp_ps_hook(csp_packet_t * packet) {
 }
 
 void csp_reboot_hook(void) {
-#ifdef __CYGWIN__
-    csp_print("HALTED - Please reboot\n");
-    while (true)
-        sleep(1);
-#else
 	sync();
 	reboot(LINUX_REBOOT_CMD_RESTART);
-#endif
 }
 
 void csp_shutdown_hook(void) {
-#ifdef __CYGWIN__
-    csp_print("HALTED - Please power off\n");
-    while (true)
-        sleep(1);
-#else
 	sync();
 	reboot(LINUX_REBOOT_CMD_HALT);
-#endif
 }

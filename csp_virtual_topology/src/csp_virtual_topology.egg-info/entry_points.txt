@@ -1,0 +1,2 @@
+[console_scripts]
+csp-topology-launcher = tools.topology_launcher:main

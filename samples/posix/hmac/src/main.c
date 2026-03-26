@@ -1,5 +1,3 @@
-#include <string.h>
-
 #include <csp/csp.h>
 #include <csp/csp_debug.h>
 #include <csp/csp_id.h>
@@ -11,10 +9,7 @@ int main(int argc, char * argv[])
 
 	csp_init();
 
-	packet = csp_buffer_get(0);
-	if (packet == NULL) {
-		return 1;
-	}
+	packet = csp_buffer_get_always();
 
 	csp_id_prepend(packet);
 

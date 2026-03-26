@@ -1,6 +1,5 @@
 #include "csp_macro.h"
 
-#include "csp/csp_hooks.h"
 #include "csp_qfifo.h"
 #include "csp_io.h"
 #include "csp_promisc.h"
@@ -25,8 +24,9 @@ __weak void csp_input_hook(csp_iface_t * iface, csp_packet_t * packet) {
 void csp_bridge_work(void) {
 
 	if ((bif_a == NULL) || (bif_b == NULL)) {
-		csp_print("Bridge interfaces are not setup yet. "
-				  "Make sure to call csp_bridge_set_interfaces()\n");
+		csp_print(CSP_LL_ERROR,
+			"Bridge interfaces are not setup yet. "
+			"Make sure to call csp_bridge_set_interfaces()\n");
 		return;
 	}
 
@@ -38,12 +38,12 @@ void csp_bridge_work(void) {
 
 	csp_packet_t * packet = input.packet;
 	if (packet == NULL) {
-		csp_print("Packet of router queue item is NULL\n");
+		csp_print(CSP_LL_ERROR, "Packet of router queue item is NULL\n");
 		return;
 	}
 
 	if (csp_dedup_is_duplicate(packet)) {
-		csp_print("Retrieved packet is a duplicate\n");
+		csp_print(CSP_LL_TRACE, "Retrieved packet is a duplicate\n");
 		csp_buffer_free(packet);
 		return;
 	}

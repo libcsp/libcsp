@@ -41,6 +41,16 @@ csp_route_t * csp_rtable_find_route(uint16_t dest_address);
  */
 int csp_rtable_set(uint16_t dest_address, int netmask, csp_iface_t *ifc, uint16_t via);
 
+/**
+ * Remove route to destination address/node.
+ *
+ * @param[in] dest_address destination address.
+ * @param[in] netmask number of bits in netmask (set to -1 for maximum number of bits)
+ * @param[in] ifc interface.
+ * @return #CSP_ERR_NONE on success, or an error code.
+ */
+int csp_rtable_remove(uint16_t address, int netmask, csp_iface_t * ifc);
+
 #if (CSP_HAVE_STDIO)
 /**
  * Save routing table as a string (readable format).

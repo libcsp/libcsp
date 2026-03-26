@@ -7,4 +7,8 @@ csp_sources += files([
 	'pthread_queue.c'
 ])
 
+if conf.get('HAVE_ENDIAN_H', 0) == 0
+	csp_sources += files('../std/csp_endian.c')
+endif
+
 csp_deps += dependency('threads')

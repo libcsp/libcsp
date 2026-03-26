@@ -1,0 +1,8 @@
+[
+  {
+    "software_variant": "2",
+    "major_version": "1",
+    "minor_version": "<COMMITS_INTO_MASTER>",
+    "patch": "<CI_PIPELINE_ID>"
+  }
+]

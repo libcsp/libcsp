@@ -22,11 +22,11 @@ static unsigned int server_received = 0;
 static unsigned int run_duration_in_sec = 3;
 
 /* Server task - handles requests from clients */
-static void * server(void * param) {
+void * server(void * param) {
 
 	(void)param;
 
-	csp_print("Server task started\n");
+	csp_print(CSP_LL_INFO, "Server task started\n");
 
 	/* Create socket with no specific socket options, e.g. accepts CRC32, HMAC, etc. if enabled during compilation */
 	csp_socket_t sock = {0};
@@ -47,13 +47,13 @@ static void * server(void * param) {
 			continue;
 		}
 
-		/* Read packets on connection, timeout is 100 mS */
+		/* Read packets on connection, timout is 100 mS */
 		csp_packet_t *packet;
 		while ((packet = csp_read(conn, 50)) != NULL) {
 			switch (csp_conn_dport(conn)) {
 			case MY_SERVER_PORT:
 				/* Process packet here */
-				csp_print("Packet received on MY_SERVER_PORT: %s\n", (char *) packet->data);
+				csp_print(CSP_LL_TRACE, "Packet received on MY_SERVER_PORT: %s\n", (char *)packet->data);
 				csp_buffer_free(packet);
 				++server_received;
 				break;
@@ -76,11 +76,11 @@ static void * server(void * param) {
 /* End of server task */
 
 /* Client task sending requests to server task */
-static void * client(void * param) {
+void * client(void * param) {
 
 	(void)param;
 
-	csp_print("Client task started\n");
+	csp_print(CSP_LL_INFO, "Client task started\n");
 
 	unsigned int count = 'A';
 
@@ -90,12 +90,12 @@ static void * client(void * param) {
 
 		/* Send ping to server, timeout 1000 mS, ping size 100 bytes */
 		int result = csp_ping(server_address, 1000, 100, CSP_O_NONE);
-		csp_print("Ping address: %u, result %d [mS]\n", server_address, result);
-        (void) result;
+		csp_print(CSP_LL_TRACE, "Ping address: %u, result %d [mS]\n", server_address, result);
+		(void) result;
 
 		/* Send reboot request to server, the server has no actual implementation of csp_sys_reboot() and fails to reboot */
 		csp_reboot(server_address);
-		csp_print("reboot system request sent to address: %u\n", server_address);
+		csp_print(CSP_LL_TRACE, "reboot system request sent to address: %u\n", server_address);
 
 		/* Send data packet (string) to server */
 
@@ -103,16 +103,12 @@ static void * client(void * param) {
 		csp_conn_t * conn = csp_connect(CSP_PRIO_NORM, server_address, MY_SERVER_PORT, 1000, CSP_O_NONE);
 		if (conn == NULL) {
 			/* Connect failed */
-			csp_print("Connection failed\n");
+			csp_print(CSP_LL_ERROR, "Connection failed\n");
 			return NULL;
 		}
 
 		/* 2. Get packet buffer for message/data */
-		csp_packet_t * packet = csp_buffer_get(0);
-		if (packet == NULL) {
-			csp_print("Failed to get buffer\n");
-			csp_close(conn);
-		}
+		csp_packet_t * packet = csp_buffer_get_always();
 
 		/* 3. Copy data to packet */
         memcpy(packet->data, "Hello world ", 12);
@@ -136,11 +132,12 @@ static void * client(void * param) {
 
 static void print_usage(void)
 {
-	csp_print("Usage:\n"
-			  " -v <version>     set protocol version\n"
-			  " -t               enable test mode\n"
-			  " -T <duration>    enable test mode with running time in seconds\n"
-			  " -h               print help\n");
+	csp_print(CSP_LL_INFO,
+		 "Usage:\n"
+		" -v <version>     set protocol version\n"
+		" -t               enable test mode\n"
+		" -T <duration>    enable test mode with running time in seconds\n"
+		" -h               print help\n");
 }
 
 /* main - initialization of CSP and start of server/client tasks */
@@ -177,9 +174,9 @@ int main(int argc, char * argv[]) {
         }
     }
 
-    csp_print("Initialising CSP");
+	csp_print(CSP_LL_INFO, "Initialising CSP");
 
-    /* Init CSP */
+	/* Init CSP */
     csp_init();
 
     /* Start router */
@@ -192,11 +189,11 @@ int main(int argc, char * argv[]) {
         server_address = address;
     }
 
-    csp_print("Connection table\r\n");
-    csp_conn_print_table();
+	csp_print(CSP_LL_INFO, "Connection table\r\n");
+	csp_conn_print_table();
 
-    csp_print("Interfaces\r\n");
-    csp_iflist_print();
+	csp_print(CSP_LL_INFO, "Interfaces\r\n");
+	csp_iflist_print();
 
     /* Start server thread */
     csp_pthread_create(server);
@@ -211,11 +208,11 @@ int main(int argc, char * argv[]) {
         if (test_mode) {
             /* Test mode is intended for checking that host & client can exchange packets over loopback */
             if (server_received < 5) {
-                csp_print("Server received %u packets\n", server_received);
-                exit(1);
+				csp_print(CSP_LL_INFO, "Server received %u packets\n", server_received);
+				exit(1);
             }
-            csp_print("Server received %u packets\n", server_received);
-            exit(0);
+			csp_print(CSP_LL_INFO, "Server received %u packets\n", server_received);
+			exit(0);
         }
     }
 

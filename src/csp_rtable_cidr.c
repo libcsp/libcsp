@@ -82,7 +82,7 @@ static int csp_rtable_set_internal(uint16_t address, uint16_t netmask, csp_iface
 	if (!entry) {
 		entry = &rtable[rtable_inptr++];
 		if (rtable_inptr >= CSP_RTABLE_SIZE) {
-			rtable_inptr = CSP_RTABLE_SIZE-1;
+			rtable_inptr = CSP_RTABLE_SIZE - 1;
 		}
 	}
 
@@ -119,6 +119,28 @@ int csp_rtable_set(uint16_t address, int netmask, csp_iface_t * ifc, uint16_t vi
 	return csp_rtable_set_internal(address, netmask, ifc, via);
 }
 
+int csp_rtable_remove(uint16_t address, int netmask, csp_iface_t * ifc) {
+	/* First see if the entry exists */
+	csp_route_t * entry = csp_rtable_find_exact(address, netmask, ifc);
+	if (!entry) {
+		csp_dbg_errno = CSP_DBG_ERR_INVALID_RTABLE_ENTRY;
+		return CSP_ERR_INVAL;
+	}
+	const int entry_idx = entry - rtable;
+	if (entry_idx < 0 || entry_idx >= rtable_inptr) {
+		csp_dbg_errno = CSP_DBG_ERR_INVALID_RTABLE_ENTRY;
+		return CSP_ERR_INVAL;
+	}
+
+	rtable_inptr--;
+	if (rtable_inptr > entry_idx) {
+		/* Move the following entries to this position */
+		memmove(entry, entry + 1, (rtable_inptr - entry_idx) * sizeof(csp_route_t));
+	}
+
+	return CSP_ERR_NONE;
+}
+
 void csp_rtable_iterate(csp_rtable_iterator_t iter, void * ctx) {
 	for (int i = 0; i < rtable_inptr; i++) {
 		iter(ctx, &rtable[i]);
@@ -128,11 +150,10 @@ void csp_rtable_iterate(csp_rtable_iterator_t iter, void * ctx) {
 #if (CSP_ENABLE_CSP_PRINT)
 
 static bool csp_rtable_print_route(void * ctx, csp_route_t * route) {
-	(void)ctx; /* Avoid compiler warnings about unused parameter */
 	if (route->via == CSP_NO_VIA_ADDRESS) {
-		csp_print("%u/%u %s\r\n", route->address, route->netmask, route->iface->name);
+		csp_print(CSP_LL_INFO, "%u/%u %s\r\n", route->address, route->netmask, route->iface->name);
 	} else {
-		csp_print("%u/%u %s %u\r\n", route->address, route->netmask, route->iface->name, route->via);
+		csp_print(CSP_LL_INFO, "%u/%u %s %u\r\n", route->address, route->netmask, route->iface->name, route->via);
 	}
 	return true;
 }

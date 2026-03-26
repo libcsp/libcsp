@@ -1,0 +1,61 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "csp-virtual-topology"
+version = "1.0.0"
+description = "CSP Virtual Topology Simulator - A JSON-configurable virtual node system for testing CSP network topologies"
+readme = "README.md"
+requires-python = ">=3.8.1"
+license = {text = "Same as csp_es library"}
+authors = [
+    {name = "CSP Virtual Topology Contributors"}
+]
+keywords = ["csp", "cubesat", "network", "simulation", "zmq", "topology"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: System :: Networking",
+]
+
+dependencies = [
+    "pyzmq>=25.0.0",
+    "flask>=3.0.0",
+    "flask-socketio>=5.3.0",
+    "werkzeug>=3.0.0,<3.1.0",  # IMPORTANT: Pin to 3.0.x for Flask-SocketIO compatibility
+    "graphviz>=0.20.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "black>=23.0.0",
+    "flake8>=6.0.0",
+    "mypy>=1.0.0",
+]
+
+[project.scripts]
+csp-topology-launcher = "tools.topology_launcher:main"
+
+[tool.uv]
+# uv-specific configuration
+
+[tool.black]
+line-length = 100
+target-version = ['py38', 'py39', 'py310', 'py311', 'py312']
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+
