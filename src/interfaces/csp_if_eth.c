@@ -157,7 +157,7 @@ int csp_eth_rx(csp_iface_t * iface, csp_eth_header_t * eth_frame, uint32_t recei
 
     if (seg_size == 0 || seg_size > CSP_ETH_FRAME_SIZE_MAX) {
         iface->frame++;
-        csp_print("eth rx seg_size of %u bytes is invalid\n");
+        csp_print("eth rx seg_size of %u bytes is invalid\n", (unsigned)seg_size);
         return CSP_ERR_INVAL;
     }
 
