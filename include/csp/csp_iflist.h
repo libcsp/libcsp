@@ -40,6 +40,18 @@ csp_iface_t * csp_iflist_get(void);
 unsigned long csp_bytesize(unsigned long bytes, char *postfix);
 
 /**
+ * Enable or disable routing on an interface at runtime.
+ *
+ * When disabled, the interface is skipped by all routing paths (subnet lookup,
+ * routing table, default interface fallback). The interface remains registered
+ * and its statistics are preserved.
+ *
+ * @param[in] iface  Interface to modify. NULL is a no-op.
+ * @param[in] enable true to enable routing, false to disable.
+ */
+void csp_iflist_set_routing_enabled(csp_iface_t * iface, bool enable);
+
+/**
  * Runs over the list of interfaces, and if no default interface is found
  * set default on ALL interfaces
  */

@@ -159,6 +159,12 @@ void csp_send_direct(csp_id_t* idout, csp_packet_t * packet, csp_iface_t * route
 	csp_route_t * route = csp_rtable_find_route(idout->dst);
 	if (route != NULL) {
 		do {
+			/* Skip disabled interfaces */
+			if (!route->iface->is_routing_enabled) {
+				route->iface->drop++;
+				continue;
+			}
+
 			route_found = 1;
 
 			/* Do not send back to same inteface (split horizon)
@@ -240,6 +246,13 @@ __weak void csp_output_hook(const csp_id_t * idout, csp_packet_t * packet, csp_i
 }
 
 void csp_send_direct_iface(const csp_id_t* idout, csp_packet_t * packet, csp_iface_t * iface, uint16_t via, int from_me) {
+
+	/* Safety net: drop packet if routing is disabled on this interface */
+	if (!iface->is_routing_enabled) {
+		csp_buffer_free(packet);
+		iface->drop++;
+		return;
+	}
 
 	csp_output_hook(idout, packet, iface, via, from_me);
 

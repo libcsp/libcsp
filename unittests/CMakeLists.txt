@@ -6,5 +6,6 @@ if(CHECK_FOUND)
     queue.c
     buffer.c
     hmac.c
+    routing_enable_disable.c
   )
 endif()

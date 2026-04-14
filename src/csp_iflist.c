@@ -43,6 +43,12 @@ csp_iface_t * csp_iflist_get_by_subnet(uint16_t addr, csp_iface_t * ifc) {
 
 	while (ifc) {
 
+		/* Skip interfaces with routing disabled */
+		if (!ifc->is_routing_enabled) {
+			ifc = ifc->next;
+			continue;
+		}
+
 		/* Reject searches involving subnets, if the netmask is invalid */
 		if (ifc->netmask == 0) {
 			ifc = ifc->next;
@@ -73,6 +79,12 @@ csp_iface_t * csp_iflist_get_by_isdfl(csp_iface_t * ifc) {
 
 	while (ifc) {
 
+		/* Skip interfaces with routing disabled */
+		if (!ifc->is_routing_enabled) {
+			ifc = ifc->next;
+			continue;
+		}
+
 		if (ifc->is_default == 1) {
 			return ifc;
 		}
@@ -99,6 +111,13 @@ csp_iface_t * csp_iflist_iterate(csp_iface_t * ifc) {
 
 	return ifc;
 
+}
+
+void csp_iflist_set_routing_enabled(csp_iface_t * iface, bool enable) {
+	if (iface == NULL) {
+		return;
+	}
+	iface->is_routing_enabled = enable;
 }
 
 void csp_iflist_check_dfl(void) {
@@ -159,6 +178,7 @@ void csp_iflist_add(csp_iface_t * ifc) {
 	}
 
 	ifc->next = NULL;
+	ifc->is_routing_enabled = true;
 
 	/* Add interface to pool */
 	if (interfaces == NULL) {
@@ -232,11 +252,12 @@ void csp_iflist_print(void) {
 		tx = csp_bytesize(i->txbytes, &tx_postfix);
 		rx = csp_bytesize(i->rxbytes, &rx_postfix);
 		csp_print(CSP_LL_INFO,
-			"%-10s addr: %"PRIu16" netmask: %"PRIu16" dfl: %" PRIu32 "\r\n"
+			"%-10s addr: %"PRIu16" netmask: %"PRIu16" dfl: %" PRIu32 " routing enabled: %d\r\n"
 			"           tx: %05" PRIu32 " rx: %05" PRIu32 " txe: %05" PRIu32 " rxe: %05" PRIu32 "\r\n"
 			"           drop: %05" PRIu32 " autherr: %05" PRIu32 " frame: %05" PRIu32 "\r\n"
 			"           txb: %" PRIu32 " (%" PRIu32 "%c) rxb: %" PRIu32 " (%" PRIu32 "%c) \r\n\r\n",
-			i->name, i->addr, i->netmask, i->is_default, i->tx, i->rx, i->tx_error, i->rx_error, i->drop,
+			i->name, i->addr, i->netmask, i->is_default, (int)i->is_routing_enabled,
+			i->tx, i->rx, i->tx_error, i->rx_error, i->drop,
 			i->autherr, i->frame, i->txbytes, tx, tx_postfix, i->rxbytes, rx, rx_postfix);
 		i = i->next;
 	}

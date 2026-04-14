@@ -5,6 +5,7 @@
  ****************************************************************************/
 #pragma once
 
+#include <stdbool.h>
 #include <csp/csp_types.h>
 
 #ifdef __cplusplus
@@ -34,6 +35,7 @@ struct csp_iface_s {
 	void * driver_data;         /**< Driver data, only known/used by the driver layer, e.g. device/channel references. */
 	nexthop_t nexthop;          /**< Next hop (Tx) function */
 	uint8_t is_default;         /**< Set default IF flag (CSP supports multiple defaults) */
+	bool is_routing_enabled;    /**< Routing enabled flag. false = disabled (interface is skipped by router) */
 
 	/* Stats */
 	uint32_t tx;                /**< Successfully transmitted packets */

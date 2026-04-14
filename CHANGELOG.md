@@ -9,6 +9,47 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [Unreleased]
+
+### Added
+
+- **Runtime routing enable/disable per interface** — New `is_routing_enabled`
+  flag on `csp_iface_s` and `csp_iflist_set_routing_enabled()` API allow
+  suspending routing through a registered interface at runtime without removing
+  it from the interface list. All three routing paths (subnet lookup, routing
+  table, default interface fallback) respect the flag. A safety-net guard in
+  `csp_send_direct_iface()` covers any remaining call sites. The `drop` counter
+  is incremented when a packet is discarded due to a disabled interface.
+  This is useful in scenarios where multiple routers share the same physical
+  interface but only one should be forwarding at a time (e.g. to avoid bus
+  flooding when a backup router is present).
+- **Virtual node simulator web UI** — Added missing `dashboard.html` template
+  for the virtual node simulator web interface.
+- **CSP trace parsing without timestamp** — `utils/parse_csp_can.py` now
+  handles CSP trace lines that omit a leading timestamp.
+
+### Fixed
+
+- **CAN RX buffer allocation failure** — `csp_can_pbuf_new` now uses
+  `csp_buffer_get` instead of `csp_buffer_get_always` so allocation can fail
+  gracefully under memory pressure. Both `csp_can1_rx` and `csp_can2_rx` guard
+  against a NULL packet from the pbuf layer, incrementing `iface->drop` and
+  returning `CSP_ERR_NOBUFS`.
+- **Source port overflow in CSP connections** — `CSP_CONN_MAX` for Golang builds
+  corrected from 256 to 47 (maximum valid outgoing ports for 6-bit CSP port
+  field). Added CMake build-time `FATAL_ERROR` guard and runtime modulo wrapping
+  in `csp_conn_init()` to prevent out-of-range port assignment even if
+  misconfigured.
+
+### Changed
+
+- **Routing trace messages** — All trace-level log messages in `csp_route_work()`
+  now include packet identity fields (`src`, `dst`, `dport`, `sport`, `iface`)
+  for improved debugging visibility.
+- Dead CMake code removed from `CMakeLists.txt`.
+
+---
+
 ## [1.0.0-rc.1]
 
 ### Added
