@@ -268,6 +268,10 @@ endif()
 
 
 add_subdirectory(src)
+
+# enable_testing() must be called before add_subdirectory(unittests) so that
+# add_test() calls inside that directory are registered with CTest.
+enable_testing()
 add_subdirectory(unittests)
 
 if(CSP_BUILD_SAMPLES)
