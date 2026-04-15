@@ -14,6 +14,12 @@ extern "C" {
 /**
  * Add interface to the list.
  *
+ * @warning Routing is enabled on the interface by default upon registration (i.e.
+ * #csp_iface_t::is_routing_enabled is set to true unconditionally). This
+ * preserves legacy behavior for interfaces that were registered before the
+ * routing-enable flag existed. If you need routing to be initially disabled,
+ * call csp_iflist_set_routing_enabled() explicitly after this function returns.
+ *
  * @param[in] iface The interface must remain valid as long as the application is running.
  */
 void csp_iflist_add(csp_iface_t * iface);
