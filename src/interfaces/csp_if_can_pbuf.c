@@ -36,6 +36,7 @@ void csp_can_pbuf_free(csp_can_interface_data_t * ifdata, csp_packet_t * buffer,
 					csp_buffer_free_isr(packet);
 				}
 			}
+			break; // found and rm'ed the packet, exit loop early
 
 		}
 
@@ -83,12 +84,17 @@ void csp_can_pbuf_cleanup(csp_can_interface_data_t * ifdata, int * task_woken) {
 				ifdata->pbufs = packet->next;
 			}
 
+			csp_packet_t * next_packet = packet->next;
+
 			if (task_woken == NULL) {
 				csp_buffer_free(packet);
 			} else {
 				csp_buffer_free_isr(packet);
 			}
 
+			// Leave prev, don't update/ref a removed packet
+			packet = next_packet;
+			continue;
 		}
 
 		prev = packet;
