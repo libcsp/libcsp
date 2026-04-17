@@ -24,6 +24,7 @@ int main(int argc, char * argv[])
 	csp_conn_t * conn;
 	csp_packet_t * packet;
 	int ret;
+	const char msg[] = "abc";
 
 	/* init */
 	csp_init();
@@ -50,8 +51,8 @@ int main(int argc, char * argv[])
 		csp_close(conn);
 		return 1;
 	}
-	memcpy(packet->data, "abc", 3);
-	packet->length = 3;
+	memcpy(packet->data, msg, sizeof(msg));
+	packet->length = sizeof(msg);
 
 	/* send */
 	csp_send(conn, packet);
