@@ -136,7 +136,7 @@ static void print_help(void) {
 		csp_print(" -a <address>     set interface address\n"
 				  " -v <version>     set protocol version\n"
 				  " -t               enable test mode\n"
-				  " -T <dration>     enable test mode with running time in seconds\n"
+				  " -T <duration>    enable test mode with running time in seconds\n"
 				  " -h               print help\n");
 	}
 }
