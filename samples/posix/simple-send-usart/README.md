@@ -1,7 +1,11 @@
 # Simple Send via USART
 
-This is a simple sample code to send `"abc"` to a server via the USART
-interface.
+This is a simple sample code to send a 3-byte payload to a server via
+the USART interface. In this example, the payload contents are
+`"abc"`.
+
+The payload is handled as raw data, not as a null-terminated
+string. The receiver should interpret it using `packet->length`.
 
 ## How to Build
 
