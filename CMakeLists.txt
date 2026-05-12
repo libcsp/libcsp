@@ -10,6 +10,11 @@ add_library(csp)
 set_target_properties(csp PROPERTIES C_STANDARD 11)
 set_target_properties(csp PROPERTIES C_EXTENSIONS ON)
 
+set_target_properties(csp PROPERTIES
+    VERSION ${CSP_VERSION}
+    SOVERSION ${CSP_VERSION_MAJOR}
+)
+
 set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS Debug Release MinSizeRel)
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   message(STATUS "No build type selected, default to MinSizeRel")
