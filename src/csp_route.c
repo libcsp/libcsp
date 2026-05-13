@@ -215,7 +215,7 @@ int csp_route_work(void) {
 	}
 
 	/* Search for an existing connection */
-	conn = csp_conn_find_existing(&packet->id);
+	conn = csp_conn_find_existing(&packet->id, input.iface);
 
 	/* If this is an incoming packet on a new connection */
 	if (conn == NULL) {

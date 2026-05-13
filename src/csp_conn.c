@@ -90,7 +90,7 @@ csp_conn_t * csp_conn_find_dport(unsigned int dport) {
 	return NULL;
 }
 
-csp_conn_t * csp_conn_find_existing(csp_id_t * id) {
+csp_conn_t * csp_conn_find_existing(csp_id_t * id, csp_iface_t * iface) {
 
 	for (int i = 0; i < CSP_CONN_MAX; i++) {
 		csp_conn_t * conn = &arr_conn[i];
@@ -107,15 +107,23 @@ csp_conn_t * csp_conn_find_existing(csp_id_t * id) {
 		 * portability and dual use between different header formats.
 		 */
 
-		/* Outgoing connections are uniquely defined by the source port,
-		 * So only the incoming destination port must match. This means
-		 * that responses to broadcast addresses, are accepted as long
-		 * as the incoming port matches the unique source port of the
-		 * connection */
+		/* Outgoing connections require matching both the incoming
+		 * dport (which selects the slot via sport_outgoing) and the incoming
+		 * src (which verifies the reply came from the node we opened the
+		 * connection to). Broadcast destinations are exempt from the src
+		 * check by design. The src check prevents a late reply arriving
+		 * after csp_close + slot recycle from being silently delivered to
+		 * an unrelated new connection that happens to share the recycled
+		 * sport_outgoing. */
 		if (conn->type == CONN_CLIENT) {
 
-			/* Connection must match dport */
+			/* Match the slot via dport */
 			if (conn->idin.dport != id->dport)
+				continue;
+
+			/* Match the peer via src (broadcast destinations excluded) */
+			if (conn->idout.dst != id->src &&
+				!csp_id_is_broadcast(conn->idout.dst, iface))
 				continue;
 
 		/* Incoming connections are uniquely defined by the source and
