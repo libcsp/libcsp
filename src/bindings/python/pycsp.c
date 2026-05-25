@@ -209,60 +209,90 @@ static PyObject * pycsp_send(PyObject * self, PyObject * args) {
 	Py_RETURN_NONE;
 }
 
-#if 0
-static PyObject* pycsp_sfp_send(PyObject *self, PyObject *args) {
-    PyObject* conn_capsule;
-    Py_buffer data;
-    unsigned int mtu;
-    uint32_t timeout = 1000;
-    if (!PyArg_ParseTuple(args, "Ow*II|I", &conn_capsule, &data, &mtu, &timeout)) {
-        return NULL;
-    }
-
-    csp_conn_t* conn = get_obj_as_conn(conn_capsule, false);
-    if (conn == NULL) {
-        return NULL;
-    }
-
-    int res;
-    Py_BEGIN_ALLOW_THREADS;
-    res = csp_sfp_send(conn, data.buf, data.len, mtu, timeout);
-    Py_END_ALLOW_THREADS;
-    if (res != CSP_ERR_NONE) {
-        return PyErr_Error("sfp_send()", res);
-    }
-
-    return Py_BuildValue("i", res);
+static int pycsp_sfp_read_cb(uint8_t * buffer, uint32_t size, uint32_t offset, void * data) {
+	memcpy(buffer, (const uint8_t *)data + offset, size);
+	return CSP_ERR_NONE;
 }
 
-static PyObject* pycsp_sfp_recv(PyObject *self, PyObject *args) {
-    PyObject* conn_capsule;
-    uint32_t timeout = 500;
-    if (!PyArg_ParseTuple(args, "O|I", &conn_capsule, &timeout)) {
-        return NULL; // TypeError is thrown
-    }
-    csp_conn_t* conn = get_obj_as_conn(conn_capsule, false);
-    if (conn == NULL) {
-        return NULL;
-    }
-    void *dataout = NULL;
-    int return_datasize = 0;
-    int res;
-    Py_BEGIN_ALLOW_THREADS;
-    res = csp_sfp_recv(conn, &dataout, &return_datasize, timeout);
-    Py_END_ALLOW_THREADS;
+typedef struct {
+	uint8_t * buf;
+	uint32_t  totalsz;
+} pycsp_sfp_recv_ctx_t;
 
-    if (dataout == NULL) {
-        Py_RETURN_NONE;
-    }
-
-    if (res != CSP_ERR_NONE) {
-        return PyErr_Error("sfp_recv()", res);
-    }
-
-    return PyCapsule_New(dataout, PACKET_CAPSULE, pycsp_free_csp_buffer);
+static int pycsp_sfp_write_cb(const uint8_t * buffer, uint32_t size, uint32_t offset, uint32_t totalsz, void * data) {
+	pycsp_sfp_recv_ctx_t * ctx = data;
+	if (ctx->buf == NULL) {
+		ctx->buf = malloc(totalsz);
+		if (ctx->buf == NULL) {
+			return CSP_ERR_NOMEM;
+		}
+		ctx->totalsz = totalsz;
+	}
+	memcpy(ctx->buf + offset, buffer, size);
+	return CSP_ERR_NONE;
 }
-#endif
+
+static PyObject * pycsp_sfp_send(PyObject * self, PyObject * args) {
+	PyObject * conn_capsule;
+	Py_buffer data;
+	unsigned int mtu;
+	uint32_t timeout = 1000;
+	if (!PyArg_ParseTuple(args, "Oy*I|I", &conn_capsule, &data, &mtu, &timeout)) {
+		return NULL;
+	}
+
+	csp_conn_t * conn = get_obj_as_conn(conn_capsule, false);
+	if (conn == NULL) {
+		PyBuffer_Release(&data);
+		return NULL;
+	}
+
+	csp_sfp_read_t user = { .data = data.buf, .read = pycsp_sfp_read_cb };
+
+	int res;
+	Py_BEGIN_ALLOW_THREADS;
+	res = csp_sfp_send(conn, &user, data.len, mtu, timeout);
+	Py_END_ALLOW_THREADS;
+	PyBuffer_Release(&data);
+
+	if (res != CSP_ERR_NONE) {
+		return PyErr_Error("sfp_send()", res);
+	}
+	Py_RETURN_NONE;
+}
+
+static PyObject * pycsp_sfp_recv(PyObject * self, PyObject * args) {
+	PyObject * conn_capsule;
+	uint32_t timeout = 500;
+	if (!PyArg_ParseTuple(args, "O|I", &conn_capsule, &timeout)) {
+		return NULL;
+	}
+	csp_conn_t * conn = get_obj_as_conn(conn_capsule, false);
+	if (conn == NULL) {
+		return NULL;
+	}
+
+	pycsp_sfp_recv_ctx_t ctx = { .buf = NULL, .totalsz = 0 };
+	csp_sfp_recv_t user = { .data = &ctx, .write = pycsp_sfp_write_cb };
+
+	int res;
+	Py_BEGIN_ALLOW_THREADS;
+	res = csp_sfp_recv(conn, &user, timeout);
+	Py_END_ALLOW_THREADS;
+
+	if (res != CSP_ERR_NONE) {
+		free(ctx.buf);
+		return PyErr_Error("sfp_recv()", res);
+	}
+
+	if (ctx.buf == NULL) {
+		Py_RETURN_NONE;
+	}
+
+	PyObject * result = PyBytes_FromStringAndSize((char *)ctx.buf, ctx.totalsz);
+	free(ctx.buf);
+	return result;
+}
 
 static PyObject * pycsp_transaction(PyObject * self, PyObject * args) {
 	uint8_t prio;
@@ -972,8 +1002,8 @@ static PyMethodDef methods[] = {
 	{"accept", pycsp_accept, METH_VARARGS, ""},
 	{"read", pycsp_read, METH_VARARGS, ""},
 	{"send", pycsp_send, METH_VARARGS, ""},
-	//{"sfp_send",            pycsp_sfp_send,            METH_VARARGS, ""},
-	//{"sfp_recv",            pycsp_sfp_recv,            METH_VARARGS, ""},
+	{"sfp_send", pycsp_sfp_send, METH_VARARGS, ""},
+	{"sfp_recv", pycsp_sfp_recv, METH_VARARGS, ""},
 	{"transaction", pycsp_transaction, METH_VARARGS, ""},
 	{"sendto_reply", pycsp_sendto_reply, METH_VARARGS, ""},
 	{"sendto", pycsp_sendto, METH_VARARGS, ""},
