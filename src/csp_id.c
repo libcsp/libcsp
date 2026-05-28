@@ -132,9 +132,9 @@ static void csp_id2_prepend(csp_packet_t * packet) {
 	uint64_t id2 = ((((uint64_t)packet->id.pri) << CSP_ID2_PRIO_OFFSET) |
 					(((uint64_t)packet->id.dst) << CSP_ID2_DST_OFFSET) |
 					(((uint64_t)packet->id.src) << CSP_ID2_SRC_OFFSET) |
-					(packet->id.dport << CSP_ID2_DPORT_OFFSET) |
-					(packet->id.sport << CSP_ID2_SPORT_OFFSET) |
-					(packet->id.flags << CSP_ID2_FLAGS_OFFSET));
+					(((uint64_t)packet->id.dport) << CSP_ID2_DPORT_OFFSET) |
+					(((uint64_t)packet->id.sport) << CSP_ID2_SPORT_OFFSET) |
+					(((uint64_t)packet->id.flags) << CSP_ID2_FLAGS_OFFSET));
 
 	/* Convert to big / network endian:
 	 * We first shift up the 48 bit header to most significant end of the 64-bit */
