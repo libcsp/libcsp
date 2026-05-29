@@ -99,14 +99,15 @@ static void * socketcan_rx_thread(void * arg) {
 		frame.can_id &= CAN_EFF_MASK;
 
 		/* Call RX callbacsp_can_rx_frameck */
-		csp_can_rx(&ctx->iface, frame.can_id, frame.data, frame.can_dlc, NULL);
+		csp_can_rx(&ctx->iface, frame.can_id, frame.data, frame.can_dlc, 0, NULL);
 	}
 
 	/* We should never reach this point */
 	pthread_exit(NULL);
 }
 
-static int csp_can_tx_frame(void * driver_data, uint32_t id, const uint8_t * data, uint8_t dlc) {
+static int csp_can_tx_frame(void * driver_data, uint32_t id, const uint8_t * data, uint8_t dlc, const csp_packet_t *packet) {
+	(void)packet;
 	if (dlc > CAN_MAX_DLEN) {
 		return CSP_ERR_INVAL;
 	}

@@ -62,6 +62,7 @@
 #include <csp/csp_interface.h>
 #include <stdint.h>
 #include <stdatomic.h>
+#include "csp/csp_types.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -184,9 +185,10 @@ extern "C" {
  * @param[in] id CAM message id.
  * @param[in] data CAN data
  * @param[in] dlc data length of \a data.
+ * @param[in] packet the CSP packet where data is from. Is only valid for END frames else NULL.
  * @return #CSP_ERR_NONE on success, otherwise an error code.
  */
-typedef int (*csp_can_driver_tx_t)(void * driver_data, uint32_t id, const uint8_t * data, uint8_t dlc);
+typedef int (*csp_can_driver_tx_t)(void * driver_data, uint32_t id, const uint8_t * data, uint8_t dlc, const csp_packet_t * packet);
 
 /**
  * Interface data (state information).
@@ -239,10 +241,11 @@ int csp_can_tx(csp_iface_t * iface, uint16_t via, csp_packet_t *packet);
  * @param[in] id received CAN message identifier.
  * @param[in] data received CAN data.
  * @param[in] dlc length of received \a data.
+ * @param[in] timestamp_rx interface-specific RX timestamp. Only set for End frames
  * @param[out] pxTaskWoken Valid reference if called from ISR, otherwise NULL!
  * @return #CSP_ERR_NONE on success, otherwise an error code.
  */
-int csp_can_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t dlc, int *pxTaskWoken);
+int csp_can_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t dlc, uint32_t timestamp_rx, int *pxTaskWoken);
 
 #ifdef __cplusplus
 }

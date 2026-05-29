@@ -83,7 +83,7 @@ void CAN_0_rx_callback(struct can_async_descriptor *const descr) {
 
 		/* Process frame within ISR
 		 * (This can also be deferred to a task with: csp_can_process_frame_deferred) */
-		csp_can_rx(&mcan[0].interface, msg.id, msg.data, msg.len, &xTaskWoken);
+		csp_can_rx(&mcan[0].interface, msg.id, msg.data, msg.len, 0, &xTaskWoken);
 
 	}
 
@@ -116,7 +116,7 @@ static void can_task(void * param) {
 
 			/* Process frame within ISR
 			* (This can also be deferred to a task with: csp_can_process_frame_deferred) */
-			csp_can_rx(&mcan[0].interface, msg.id, msg.data, msg.len, &xTaskWoken);
+			csp_can_rx(&mcan[0].interface, msg.id, msg.data, msg.len, 0, &xTaskWoken);
 
 		}
 
@@ -136,9 +136,10 @@ void CAN_0_irq_callback(struct _can_async_device *dev, enum can_async_interrupt_
 	return;
 }
 
-int csp_can_tx_frame(void *driver_data, uint32_t id, const uint8_t * data, uint8_t dlc) {
+int csp_can_tx_frame(void *driver_data, uint32_t id, const uint8_t * data, uint8_t dlc, const csp_packet_t *packet) {
 
 	struct mcan_s * driver = (struct mcan_s *)driver_data;
+	(void)packet;
 
 	if ((driver == NULL) || (driver->lock == NULL)) {
 		return 0;
