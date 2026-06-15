@@ -3,6 +3,8 @@
 #include <endian.h>
 #include <stdint.h>
 
+#include <csp/csp_hooks.h>
+
 int csp_cmp_peek_handler(csp_packet_t * packet) {
 
 	struct csp_cmp_peek_msg * cmp = (struct csp_cmp_peek_msg *)packet->data;
@@ -16,7 +18,10 @@ int csp_cmp_peek_handler(csp_packet_t * packet) {
 		return CSP_ERR_INVAL;
 	}
 
-	csp_cmp_get_memcpy()((csp_memptr_t)(uintptr_t)cmp->data, (csp_memptr_t)(uintptr_t)cmp->addr, cmp->len);
+	int res = csp_cmp_memcpy((csp_memptr_t)(uintptr_t)cmp->data, (csp_memptr_t)(uintptr_t)cmp->addr, cmp->len);
+	if (res != CSP_ERR_NONE) {
+		return res;
+	}
 
 	packet->length = CMP_PEEK_SIZE(cmp->len);
 
@@ -40,7 +45,10 @@ int csp_cmp_poke_handler(csp_packet_t * packet) {
 		return CSP_ERR_INVAL;
 	}
 
-	csp_cmp_get_memcpy()((csp_memptr_t)(uintptr_t)cmp->addr, (csp_memptr_t)(uintptr_t)cmp->data, cmp->len);
+	int res = csp_cmp_memcpy((csp_memptr_t)(uintptr_t)cmp->addr, (csp_memptr_t)(uintptr_t)cmp->data, cmp->len);
+	if (res != CSP_ERR_NONE) {
+		return res;
+	}
 
 	packet->length = CMP_POKE_SIZE(cmp->len);
 
@@ -60,12 +68,10 @@ int csp_cmp_peek_v2_handler(csp_packet_t * packet) {
 		return CSP_ERR_INVAL;
 	}
 
-	csp_memread64_fnc_t memread64_fnc = csp_cmp_get_memread64();
-	if (memread64_fnc == NULL) {
-		return CSP_ERR_DRIVER;
+	int res = csp_cmp_memread64(cmp->data, cmp->vaddr, cmp->len);
+	if (res != CSP_ERR_NONE) {
+		return res;
 	}
-
-	memread64_fnc(cmp->data, cmp->vaddr, cmp->len);
 
 	packet->length = CMP_PEEK_V2_SIZE(cmp->len);
 
@@ -85,16 +91,14 @@ int csp_cmp_poke_v2_handler(csp_packet_t * packet) {
 		return CSP_ERR_INVAL;
 	}
 
-	csp_memwrite64_fnc_t memwrite64_fnc = csp_cmp_get_memwrite64();
-	if (memwrite64_fnc == NULL) {
-		return CSP_ERR_DRIVER;
-	}
-
 	if (csp_cmp_check_len(packet, sizeof(*cmp) + cmp->len) != CSP_ERR_NONE) {
 		return CSP_ERR_INVAL;
 	}
 
-	memwrite64_fnc(cmp->vaddr, cmp->data, cmp->len);
+	int res = csp_cmp_memwrite64(cmp->vaddr, cmp->data, cmp->len);
+	if (res != CSP_ERR_NONE) {
+		return res;
+	}
 
 	packet->length = CMP_POKE_V2_SIZE(cmp->len);
 

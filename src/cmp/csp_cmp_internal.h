@@ -24,7 +24,3 @@ int csp_cmp_poke_handler(csp_packet_t * packet);
 int csp_cmp_peek_v2_handler(csp_packet_t * packet);
 int csp_cmp_poke_v2_handler(csp_packet_t * packet);
 int csp_cmp_clock_handler(csp_packet_t * packet);
-
-csp_memcpy_fnc_t csp_cmp_get_memcpy(void);
-csp_memread64_fnc_t csp_cmp_get_memread64(void);
-csp_memwrite64_fnc_t csp_cmp_get_memwrite64(void);

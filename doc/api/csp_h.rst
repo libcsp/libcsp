@@ -65,7 +65,6 @@ Interface Functions
 .. autocfunction:: csp.h::csp_get_uptime
 .. autocfunction:: csp.h::csp_rdp_set_opt
 .. autocfunction:: csp.h::csp_rdp_get_opt
-.. autocfunction:: csp.h::csp_cmp_set_memcpy
 .. autocfunction:: csp.h::csp_conn_print_table
 .. autocfunction:: csp.h::csp_hex_dump
 .. autocfunction:: csp.h::csp_conn_print_table_str

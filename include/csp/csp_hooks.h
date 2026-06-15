@@ -84,6 +84,10 @@ int csp_crypto_decrypt(uint8_t * ciphertext_in, uint8_t ciphertext_len, uint8_t 
  */
 int csp_crypto_encrypt(uint8_t * msg_begin, uint8_t msg_len, uint8_t * ciphertext_out);
 
+int csp_cmp_memcpy(csp_memptr_t to, csp_const_memptr_t from, size_t size);
+int csp_cmp_memread64(csp_const_memptr_t to, csp_memptr64_t from, size_t size);
+int csp_cmp_memwrite64(csp_memptr64_t to, csp_memptr_t from, size_t size);
+
 /**
  * Get the current system time
  * 

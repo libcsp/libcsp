@@ -1,39 +1,45 @@
 #include "csp_cmp_internal.h"
 
+#include "csp_macro.h"
+
+#include <csp/csp_hooks.h>
+
 #include <string.h>
 
 #ifdef __AVR__
-static uint32_t wrap_32bit_memcpy(uint32_t to, const uint32_t from, size_t size) {
-	return (uint32_t)(uintptr_t)memcpy((void *)(uintptr_t)to, (const void *)(uintptr_t)from, size);
+__weak int csp_cmp_memcpy(csp_memptr_t to, csp_const_memptr_t from, size_t size) {
+	memcpy((void *)(uintptr_t)to, (const void *)(uintptr_t)from, size);
+	return CSP_ERR_NONE;
 }
-static csp_memcpy_fnc_t cmp_memcpy_fnc = wrap_32bit_memcpy;
 #else
-static csp_memcpy_fnc_t cmp_memcpy_fnc = (csp_memcpy_fnc_t)memcpy;
+__weak int csp_cmp_memcpy(csp_memptr_t to, csp_const_memptr_t from, size_t size) {
+	memcpy(to, from, size);
+	return CSP_ERR_NONE;
+}
 #endif
 
-static csp_memread64_fnc_t cmp_memread64_fnc = (csp_memread64_fnc_t)NULL;
-static csp_memwrite64_fnc_t cmp_memwrite64_fnc = (csp_memwrite64_fnc_t)NULL;
+__weak int csp_cmp_memread64(csp_const_memptr_t to, csp_memptr64_t from, size_t size) {
+	(void)to;
+	(void)from;
+	(void)size;
+	return CSP_ERR_DRIVER;
+}
+
+__weak int csp_cmp_memwrite64(csp_memptr64_t to, csp_memptr_t from, size_t size) {
+	(void)to;
+	(void)from;
+	(void)size;
+	return CSP_ERR_DRIVER;
+}
 
 void csp_cmp_set_memcpy(csp_memcpy_fnc_t fnc) {
-	cmp_memcpy_fnc = fnc;
+	(void)fnc;
 }
 
 void csp_cmp_set_memread64(csp_memread64_fnc_t fnc) {
-	cmp_memread64_fnc = fnc;
+	(void)fnc;
 }
 
 void csp_cmp_set_memwrite64(csp_memwrite64_fnc_t fnc) {
-	cmp_memwrite64_fnc = fnc;
-}
-
-csp_memcpy_fnc_t csp_cmp_get_memcpy(void) {
-	return cmp_memcpy_fnc;
-}
-
-csp_memread64_fnc_t csp_cmp_get_memread64(void) {
-	return cmp_memread64_fnc;
-}
-
-csp_memwrite64_fnc_t csp_cmp_get_memwrite64(void) {
-	return cmp_memwrite64_fnc;
+	(void)fnc;
 }
