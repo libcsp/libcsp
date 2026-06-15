@@ -708,7 +708,7 @@ static PyObject * pycsp_cmp_ident(PyObject * self, PyObject * args) {
 		return NULL;  // TypeError is thrown
 	}
 
-	struct csp_cmp_message msg;
+	struct csp_cmp_ident_msg msg;
 	memset(&msg, 0, sizeof(msg));
 	int res;
 	Py_BEGIN_ALLOW_THREADS;
@@ -719,11 +719,11 @@ static PyObject * pycsp_cmp_ident(PyObject * self, PyObject * args) {
 	}
 	return Py_BuildValue("isssss",
 						 res,
-						 msg.ident.hostname,
-						 msg.ident.model,
-						 msg.ident.revision,
-						 msg.ident.date,
-						 msg.ident.time);
+						 msg.hostname,
+						 msg.model,
+						 msg.revision,
+						 msg.date,
+						 msg.time);
 }
 
 static PyObject * pycsp_cmp_route_set(PyObject * self, PyObject * args) {
@@ -736,11 +736,11 @@ static PyObject * pycsp_cmp_route_set(PyObject * self, PyObject * args) {
 		return NULL;  // TypeError is thrown
 	}
 
-	struct csp_cmp_message msg;
+	struct csp_cmp_route_set_v2_msg msg;
 	memset(&msg, 0, sizeof(msg));
-	msg.route_set_v2.dest_node = htobe16(addr);
-	msg.route_set_v2.next_hop_via = htobe16(via);
-	strncpy(msg.route_set_v2.interface, ifstr, sizeof(msg.route_set_v2.interface) - 1);
+	msg.dest_node = htobe16(addr);
+	msg.next_hop_via = htobe16(via);
+	strncpy(msg.interface, ifstr, sizeof(msg.interface) - 1);
 
 	int res;
 	Py_BEGIN_ALLOW_THREADS;
@@ -767,19 +767,20 @@ static PyObject * pycsp_cmp_peek(PyObject * self, PyObject * args) {
 		return PyErr_Error("csp_cmp_peek() - exceeding max size", CSP_ERR_INVAL);
 	}
 
-	struct csp_cmp_message msg;
-	memset(&msg, 0, sizeof(msg));
-	msg.peek.addr = htobe32(addr);
-	msg.peek.len = len;
+	uint8_t buffer[CMP_PEEK_SIZE(CSP_CMP_PEEK_MAX_LEN)];
+	memset(buffer, 0, sizeof(buffer));
+	struct csp_cmp_peek_msg * msg = (struct csp_cmp_peek_msg *)buffer;
+	msg->addr = htobe32(addr);
+	msg->len = len;
 
 	int res;
 	Py_BEGIN_ALLOW_THREADS;
-	res = csp_cmp_peek(node, timeout, &msg);
+	res = csp_cmp_peek(node, timeout, msg);
 	Py_END_ALLOW_THREADS;
 	if (res != CSP_ERR_NONE) {
 		return PyErr_Error("csp_cmp_peek()", res);
 	}
-	memcpy(outbuf.buf, msg.peek.data, len);
+	memcpy(outbuf.buf, msg->data, len);
 	outbuf.len = len;
 
 	Py_RETURN_NONE;
@@ -799,14 +800,16 @@ static PyObject * pycsp_cmp_poke(PyObject * self, PyObject * args) {
 	if (len > CSP_CMP_POKE_MAX_LEN) {
 		return PyErr_Error("csp_cmp_poke() - exceeding max size", CSP_ERR_INVAL);
 	}
-	struct csp_cmp_message msg;
-	msg.poke.addr = htobe32(addr);
-	msg.poke.len = len;
-	memcpy(msg.poke.data, inbuf.buf, len);
+	uint8_t buffer[CMP_POKE_SIZE(CSP_CMP_POKE_MAX_LEN)];
+	memset(buffer, 0, sizeof(buffer));
+	struct csp_cmp_poke_msg * msg = (struct csp_cmp_poke_msg *)buffer;
+	msg->addr = htobe32(addr);
+	msg->len = len;
+	memcpy(msg->data, inbuf.buf, len);
 
 	int res;
 	Py_BEGIN_ALLOW_THREADS;
-	res = csp_cmp_poke(node, timeout, &msg);
+	res = csp_cmp_poke(node, timeout, msg);
 	Py_END_ALLOW_THREADS;
 	if (res != CSP_ERR_NONE) {
 		return PyErr_Error("csp_cmp_poke()", res);
@@ -828,7 +831,7 @@ static PyObject * pycsp_cmp_clock_set(PyObject * self, PyObject * args) {
 		return PyErr_Error("csp_cmp_clock(set) - seconds are 0", CSP_ERR_INVAL);
 	}
 
-	struct csp_cmp_message msg;
+	struct csp_cmp_clock_msg msg;
 	memset(&msg, 0, sizeof(msg));
 	msg.clock.tv_sec = htobe32(sec);
 	msg.clock.tv_nsec = htobe32(nsec);
@@ -851,7 +854,7 @@ static PyObject * pycsp_cmp_clock_get(PyObject * self, PyObject * args) {
 		Py_RETURN_NONE;
 	}
 
-	struct csp_cmp_message msg;
+	struct csp_cmp_clock_msg msg;
 	memset(&msg, 0, sizeof(msg));
 
 	int res;

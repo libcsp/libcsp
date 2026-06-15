@@ -211,9 +211,10 @@ void csp_uptime(uint16_t node, uint32_t timeout) {
 	}
 }
 
-int csp_cmp(uint16_t node, uint32_t timeout, uint8_t code, int msg_size, struct csp_cmp_message * msg) {
-	msg->type = CSP_CMP_REQUEST;
-	msg->code = code;
+int csp_cmp(uint16_t node, uint32_t timeout, uint8_t code, int msg_size, void * msg) {
+	struct csp_cmp_header * header = msg;
+	header->type = CSP_CMP_REQUEST;
+	header->code = code;
 	int status = csp_transaction_w_opts(CSP_PRIO_NORM, node, CSP_CMP, timeout, msg, msg_size, msg, msg_size, CSP_O_CRC32);
 	if (status == 0) {
 		return CSP_ERR_TIMEDOUT;
