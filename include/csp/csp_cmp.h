@@ -9,20 +9,22 @@
 extern "C" {
 #endif
 
-/* CMP message type. */
-#define CSP_CMP_REQUEST 0x00
-#define CSP_CMP_REPLY   0xff
+typedef enum {
+	CSP_CMP_REQUEST = 0x00,
+	CSP_CMP_REPLY = 0xff,
+} csp_cmp_type_t;
 
-/* CMP request codes. */
-#define CSP_CMP_IDENT        1
-#define CSP_CMP_ROUTE_SET_V1 2
-#define CSP_CMP_IF_STATS     3
-#define CSP_CMP_PEEK         4
-#define CSP_CMP_POKE         5
-#define CSP_CMP_CLOCK        6
-#define CSP_CMP_ROUTE_SET_V2 7
-#define CSP_CMP_PEEK_V2      8
-#define CSP_CMP_POKE_V2      9
+typedef enum {
+	CSP_CMP_IDENT = 1,
+	CSP_CMP_ROUTE_SET_V1 = 2,
+	CSP_CMP_IF_STATS = 3,
+	CSP_CMP_PEEK = 4,
+	CSP_CMP_POKE = 5,
+	CSP_CMP_CLOCK = 6,
+	CSP_CMP_ROUTE_SET_V2 = 7,
+	CSP_CMP_PEEK_V2 = 8,
+	CSP_CMP_POKE_V2 = 9,
+} csp_cmp_code_t;
 
 /* CMP field limits. */
 #define CSP_CMP_IDENT_REV_LEN  20

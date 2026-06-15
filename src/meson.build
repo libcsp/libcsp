@@ -44,6 +44,7 @@ if get_option('use_rdp')
 endif
 
 subdir('arch')
+subdir('cmp')
 subdir('crypto')
 subdir('drivers')
 subdir('interfaces')

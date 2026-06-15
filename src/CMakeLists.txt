@@ -57,6 +57,7 @@ if(LIBYAML_FOUND)
 endif()
 
 add_subdirectory(arch)
+add_subdirectory(cmp)
 add_subdirectory(crypto)
 add_subdirectory(drivers)
 add_subdirectory(interfaces)

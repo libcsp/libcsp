@@ -6,29 +6,11 @@ CSP Management Protocol (CMP)
 .. contents::
     :depth: 3
 
-Defines
--------
+Enums
+-----
 
-.. autocmacro:: csp_cmp.h::CSP_CMP_REPLY
-.. autocmacro:: csp_cmp.h::CSP_CMP_IDENT
-.. autocmacro:: csp_cmp.h::CSP_CMP_ROUTE_SET_V1
-.. autocmacro:: csp_cmp.h::CSP_CMP_IF_STATS
-.. autocmacro:: csp_cmp.h::CSP_CMP_PEEK
-.. autocmacro:: csp_cmp.h::CSP_CMP_POKE
-.. autocmacro:: csp_cmp.h::CSP_CMP_CLOCK
-.. autocmacro:: csp_cmp.h::CSP_CMP_ROUTE_SET_V2
-.. autocmacro:: csp_cmp.h::CSP_CMP_IDENT_REV_LEN
-.. autocmacro:: csp_cmp.h::CSP_CMP_IDENT_DATE_LEN
-.. autocmacro:: csp_cmp.h::CSP_CMP_IDENT_TIME_LEN
-.. autocmacro:: csp_cmp.h::CSP_CMP_ROUTE_IFACE_LEN
-.. autocmacro:: csp_cmp.h::CSP_CMP_PEEK_MAX_LEN
-.. autocmacro:: csp_cmp.h::CSP_CMP_POKE_MAX_LEN
-
-MACROS
-------
-
-.. autocmacro:: csp_cmp.h::CMP_SIZE
-.. autocmacro:: csp_cmp.h::CMP_MESSAGE
+.. autocenum:: csp_cmp.h::csp_cmp_type_t
+.. autocenum:: csp_cmp.h::csp_cmp_code_t
 
 Interface Functions
 -------------------
