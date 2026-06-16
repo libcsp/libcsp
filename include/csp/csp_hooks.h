@@ -88,6 +88,25 @@ int csp_cmp_memcpy(csp_memptr_t to, csp_const_memptr_t from, size_t size);
 int csp_cmp_memread64(csp_const_memptr_t to, csp_memptr64_t from, size_t size);
 int csp_cmp_memwrite64(csp_memptr64_t to, csp_memptr_t from, size_t size);
 
+typedef struct {
+	uint16_t master;
+	uint16_t id;
+	uint32_t tv_sec;
+	int32_t correction_ns;
+	uint64_t sync_rx_time;
+	uint64_t sync_utc_ns;
+} csp_cmp_timesync_fup_t;
+
+/**
+ * Convert a received SYNC packet to the local timestamp stored until FUP.
+ */
+uint64_t csp_cmp_timesync_rx_time_hook(const csp_packet_t * packet);
+
+/**
+ * Called after FUP matches a stored SYNC from the same master.
+ */
+void csp_cmp_timesync_fup_hook(const csp_cmp_timesync_fup_t * fup);
+
 /**
  * Get the current system time
  * 

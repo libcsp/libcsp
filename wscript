@@ -131,6 +131,7 @@ def configure(ctx):
                                         'src/cmp/csp_cmp_mem.c',
                                         'src/cmp/csp_cmp_peek_poke.c',
                                         'src/cmp/csp_cmp_route.c',
+                                        'src/cmp/csp_cmp_timesync.c',
                                         'src/interfaces/csp_if_lo.c',
                                         'src/interfaces/csp_if_can.c',
                                         'src/interfaces/csp_if_can_pbuf.c',
