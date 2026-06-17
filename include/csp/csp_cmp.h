@@ -129,6 +129,69 @@ struct csp_cmp_clock_msg {
 	csp_timestamp_t clock;
 } __attribute__((__packed__));
 
+/* Legacy aggregate CMP message kept for source compatibility. */
+struct csp_cmp_message {
+	uint8_t type;
+	uint8_t code;
+	union {
+		struct {
+			char hostname[CSP_HOSTNAME_LEN];
+			char model[CSP_MODEL_LEN];
+			char revision[CSP_CMP_IDENT_REV_LEN];
+			char date[CSP_CMP_IDENT_DATE_LEN];
+			char time[CSP_CMP_IDENT_TIME_LEN];
+		} ident;
+		struct {
+			uint8_t dest_node;
+			uint8_t next_hop_via;
+			char interface[CSP_CMP_ROUTE_IFACE_LEN];
+		} route_set_v1;
+		struct {
+			uint16_t dest_node;
+			uint16_t next_hop_via;
+			uint16_t netmask;
+			char interface[CSP_CMP_ROUTE_IFACE_LEN];
+		} route_set_v2;
+		struct __attribute__((__packed__)) {
+			char interface[CSP_CMP_ROUTE_IFACE_LEN];
+			uint32_t tx;
+			uint32_t rx;
+			uint32_t tx_error;
+			uint32_t rx_error;
+			uint32_t drop;
+			uint32_t autherr;
+			uint32_t frame;
+			uint32_t txbytes;
+			uint32_t rxbytes;
+			uint32_t irq;
+		} if_stats;
+		struct {
+			uint32_t addr;
+			uint8_t len;
+			char data[CSP_CMP_PEEK_MAX_LEN];
+		} peek;
+		struct {
+			uint32_t addr;
+			uint8_t len;
+			char data[CSP_CMP_POKE_MAX_LEN];
+		} poke;
+		struct {
+			uint64_t vaddr;
+			uint8_t len;
+			char data[CSP_CMP_PEEK_V2_MAX_LEN];
+		} peek_v2;
+		struct {
+			uint64_t vaddr;
+			uint8_t len;
+			char data[CSP_CMP_POKE_V2_MAX_LEN];
+		} poke_v2;
+		csp_timestamp_t clock;
+	};
+} __attribute__((__packed__));
+
+/* Legacy macro for calculating fixed-size aggregate CMP messages. */
+#define CMP_SIZE(_memb) (sizeof(((struct csp_cmp_message *)0)->type) + sizeof(((struct csp_cmp_message *)0)->code) + sizeof(((struct csp_cmp_message *)0)->_memb))
+
 /*
  * Macro for calculating variable-size management messages.
  * Legacy variable CMP messages include the tail padding from the original
@@ -146,40 +209,44 @@ struct csp_cmp_clock_msg {
 /* Sets the common CMP header and transacts an exact-size request/reply. */
 int csp_cmp(uint16_t node, uint32_t timeout, uint8_t code, int msg_size, void *msg);
 
-static inline int csp_cmp_ident(uint16_t node, uint32_t timeout, struct csp_cmp_ident_msg *msg) {
+static inline int csp_cmp_ident(uint16_t node, uint32_t timeout, void *msg) {
 	return csp_cmp(node, timeout, CSP_CMP_IDENT, sizeof(struct csp_cmp_ident_msg), msg);
 }
 
-static inline int csp_cmp_route_set_v1(uint16_t node, uint32_t timeout, struct csp_cmp_route_set_v1_msg *msg) {
+static inline int csp_cmp_route_set_v1(uint16_t node, uint32_t timeout, void *msg) {
 	return csp_cmp(node, timeout, CSP_CMP_ROUTE_SET_V1, sizeof(struct csp_cmp_route_set_v1_msg), msg);
 }
 
-static inline int csp_cmp_if_stats(uint16_t node, uint32_t timeout, struct csp_cmp_if_stats_msg *msg) {
+static inline int csp_cmp_if_stats(uint16_t node, uint32_t timeout, void *msg) {
 	return csp_cmp(node, timeout, CSP_CMP_IF_STATS, sizeof(struct csp_cmp_if_stats_msg), msg);
 }
 
-static inline int csp_cmp_clock(uint16_t node, uint32_t timeout, struct csp_cmp_clock_msg *msg) {
+static inline int csp_cmp_clock(uint16_t node, uint32_t timeout, void *msg) {
 	return csp_cmp(node, timeout, CSP_CMP_CLOCK, sizeof(struct csp_cmp_clock_msg), msg);
 }
 
-static inline int csp_cmp_route_set_v2(uint16_t node, uint32_t timeout, struct csp_cmp_route_set_v2_msg *msg) {
+static inline int csp_cmp_route_set_v2(uint16_t node, uint32_t timeout, void *msg) {
 	return csp_cmp(node, timeout, CSP_CMP_ROUTE_SET_V2, sizeof(struct csp_cmp_route_set_v2_msg), msg);
 }
 
-static inline int csp_cmp_peek(uint16_t node, uint32_t timeout, struct csp_cmp_peek_msg *msg) {
-	return csp_cmp(node, timeout, CSP_CMP_PEEK, CMP_PEEK_SIZE(msg->len), msg);
+static inline int csp_cmp_peek(uint16_t node, uint32_t timeout, void *msg) {
+	struct csp_cmp_peek_msg *peek = (struct csp_cmp_peek_msg *)msg;
+	return csp_cmp(node, timeout, CSP_CMP_PEEK, CMP_PEEK_SIZE(peek->len), msg);
 }
 
-static inline int csp_cmp_poke(uint16_t node, uint32_t timeout, struct csp_cmp_poke_msg *msg) {
-	return csp_cmp(node, timeout, CSP_CMP_POKE, CMP_POKE_SIZE(msg->len), msg);
+static inline int csp_cmp_poke(uint16_t node, uint32_t timeout, void *msg) {
+	struct csp_cmp_poke_msg *poke = (struct csp_cmp_poke_msg *)msg;
+	return csp_cmp(node, timeout, CSP_CMP_POKE, CMP_POKE_SIZE(poke->len), msg);
 }
 
-static inline int csp_cmp_peek_v2(uint16_t node, uint32_t timeout, struct csp_cmp_peek_v2_msg *msg) {
-	return csp_cmp(node, timeout, CSP_CMP_PEEK_V2, CMP_PEEK_V2_SIZE(msg->len), msg);
+static inline int csp_cmp_peek_v2(uint16_t node, uint32_t timeout, void *msg) {
+	struct csp_cmp_peek_v2_msg *peek = (struct csp_cmp_peek_v2_msg *)msg;
+	return csp_cmp(node, timeout, CSP_CMP_PEEK_V2, CMP_PEEK_V2_SIZE(peek->len), msg);
 }
 
-static inline int csp_cmp_poke_v2(uint16_t node, uint32_t timeout, struct csp_cmp_poke_v2_msg *msg) {
-	return csp_cmp(node, timeout, CSP_CMP_POKE_V2, CMP_POKE_V2_SIZE(msg->len), msg);
+static inline int csp_cmp_poke_v2(uint16_t node, uint32_t timeout, void *msg) {
+	struct csp_cmp_poke_v2_msg *poke = (struct csp_cmp_poke_v2_msg *)msg;
+	return csp_cmp(node, timeout, CSP_CMP_POKE_V2, CMP_POKE_V2_SIZE(poke->len), msg);
 }
 
 #ifdef __cplusplus
