@@ -510,7 +510,12 @@ void csp_hex_dump(const char *desc, const void *addr, int len);
 #else
 
 inline void csp_conn_print_table(void) {}
-inline void csp_hex_dump(const char *desc, void *addr, int len) {}
+inline void csp_hex_dump(const char *desc, void *addr, int len) {
+   /* Avoid compiler warnings about unused parameters when CSP_ENABLE_CSP_PRINT=0 */
+   (void)desc;
+   (void)addr;
+   (void)len;
+}
 
 #endif
 

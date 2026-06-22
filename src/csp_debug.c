@@ -14,10 +14,10 @@ uint8_t csp_dbg_rdp_print;
 uint8_t csp_dbg_packet_print;
 
 #if (CSP_ENABLE_CSP_PRINT)
+#include "csp/csp_debug.h"
 #if (CSP_PRINT_STDIO)
 #include <stdarg.h>
 #include <stdio.h>
-#include "csp/csp_debug.h"
 __weak void csp_print_func(const char * fmt, ...) {
     va_list args;
     va_start(args, fmt);
@@ -25,6 +25,8 @@ __weak void csp_print_func(const char * fmt, ...) {
     va_end(args);
 }
 #else
-__weak void csp_print_func(const char * fmt, ...) {}
+__weak void csp_print_func(const char * fmt, ...) {
+    (void)fmt; /* Avoid compiler warnings about unused parameter */
+}
 #endif
 #endif

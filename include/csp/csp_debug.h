@@ -73,7 +73,7 @@ void csp_print_func(const char * fmt, ...);
 #if (CSP_ENABLE_CSP_PRINT)
 #define csp_print(...) csp_print_func(__VA_ARGS__);
 #else
-#define csp_print(...) do {} while(0)
+#define csp_print(...) do { if(0) csp_print_func(__VA_ARGS__); /* avoids unused-parameter compiler errors */ } while(0)
 #endif
 
 #define csp_rdp_error(format, ...) { if (csp_dbg_rdp_print >= 1) { csp_print("\033[31m" format "\033[0m", ##__VA_ARGS__); }}
