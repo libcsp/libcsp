@@ -149,7 +149,7 @@ int csp_eth_init(const char * device, const char * ifname, int mtu, unsigned int
         ((uint8_t *)if_mac.ifr_hwaddr.sa_data)[5]);
 
     /* Allow the socket to be reused - in case connection is closed prematurely */
-    int sockopt;
+    const int sockopt = 1;
     if (setsockopt(ctx->sockfd, SOL_SOCKET, SO_REUSEADDR, &sockopt, sizeof sockopt) == -1) {
         perror("setsockopt");
         close(ctx->sockfd);
