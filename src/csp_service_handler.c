@@ -28,6 +28,7 @@ void csp_service_handler(csp_packet_t * packet) {
 			packet->length = csp_ps_hook(packet);
 			if (packet->length == 0) {
 				csp_buffer_free(packet);
+				return;
 			}
 			break;
 		}
