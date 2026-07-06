@@ -13,6 +13,30 @@
 #include <csp/csp.h>
 #include <pthread.h>
 
+#if defined(__linux__)
+#  include <sys/ioctl.h>
+#  define CSP_HAVE_TERMIOS2 1
+/* Define termios2 without pulling in <asm/termbits.h> to avoid
+   struct termios redefinition conflict with <termios.h> */
+struct termios2 {
+    tcflag_t c_iflag;
+    tcflag_t c_oflag;
+    tcflag_t c_cflag;
+    tcflag_t c_lflag;
+    cc_t     c_line;
+    cc_t     c_cc[19];
+    speed_t  c_ispeed;
+    speed_t  c_ospeed;
+};
+#  ifndef BOTHER
+#    define BOTHER    0010000
+#  endif
+#  ifndef TCGETS2
+#    define TCGETS2   _IOR('T', 0x2A, struct termios2)
+#    define TCSETS2   _IOW('T', 0x2B, struct termios2)
+#  endif
+#endif
+
 typedef struct {
 	csp_usart_callback_t rx_callback;
 	void * user_data;
@@ -72,6 +96,7 @@ int csp_usart_open(const csp_usart_conf_t * conf, csp_usart_callback_t rx_callba
 		return CSP_ERR_INVAL;
 	}
 
+#ifndef CSP_HAVE_TERMIOS2
 	int brate = 0;
 	switch (conf->baudrate) {
 		case 4800:
@@ -137,6 +162,7 @@ int csp_usart_open(const csp_usart_conf_t * conf, csp_usart_callback_t rx_callba
 			csp_print("%s: Unsupported baudrate: %u\n", __func__, conf->baudrate);
 			return CSP_ERR_INVAL;
 	}
+#endif
 
 	int fd = open(conf->device, O_RDWR | O_NOCTTY | O_NONBLOCK);
 	if (fd < 0) {
@@ -144,6 +170,32 @@ int csp_usart_open(const csp_usart_conf_t * conf, csp_usart_callback_t rx_callba
 		return CSP_ERR_INVAL;
 	}
 
+#ifdef CSP_HAVE_TERMIOS2
+	struct termios2 options;
+	if (ioctl(fd, TCGETS2, &options) != 0) {
+		close(fd);
+		return CSP_ERR_DRIVER;
+	}
+	options.c_cflag &= ~CBAUD;
+	options.c_cflag |= BOTHER;
+	options.c_ispeed = conf->baudrate;
+	options.c_ospeed = conf->baudrate;
+	options.c_cflag |= (CLOCAL | CREAD);
+	options.c_cflag &= ~PARENB;
+	options.c_cflag &= ~CSTOPB;
+	options.c_cflag &= ~CSIZE;
+	options.c_cflag |= CS8;
+	options.c_lflag &= ~(ECHO | ECHONL | ICANON | IEXTEN | ISIG);
+	options.c_iflag &= ~(IGNBRK | BRKINT | ICRNL | INLCR | PARMRK | INPCK | ISTRIP | IXON);
+	options.c_oflag &= ~(OCRNL | ONLCR | ONLRET | ONOCR | OFILL | OPOST);
+	options.c_cc[VTIME] = 0;
+	options.c_cc[VMIN] = 1;
+	if (ioctl(fd, TCSETS2, &options) != 0) {
+		csp_print("%s: Failed to set attributes on device: [%s], errno: %s\n", __func__, conf->device, strerror(errno));
+		close(fd);
+		return CSP_ERR_DRIVER;
+	}
+#else
 	struct termios options;
 	tcgetattr(fd, &options);
 	cfsetispeed(&options, brate);
@@ -164,6 +216,7 @@ int csp_usart_open(const csp_usart_conf_t * conf, csp_usart_callback_t rx_callba
 		close(fd);
 		return CSP_ERR_DRIVER;
 	}
+#endif
 	fcntl(fd, F_SETFL, 0);
 
 	/* Flush old transmissions */
