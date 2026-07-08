@@ -1,0 +1,34 @@
+name: Check Compile Options
+on: [push, pull_request]
+permissions:
+  contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+jobs:
+  check-compile-options:
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-22.04
+          - ubuntu-24.04
+        options:
+          - "-D enable_csp_print=false -D print_stdio=false"
+          - "-D enable_csp_print=false -D print_stdio=true"
+          - "-D enable_csp_print=true  -D print_stdio=false"
+          - "-D enable_csp_print=true  -D print_stdio=true"
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Setup packages on Linux
+        run: |
+          sudo apt-get update
+          sudo apt-get install libzmq3-dev libsocketcan-dev ninja-build meson
+
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Build with compile time options
+        run: |
+          meson setup ${{ matrix.options }} builddir
+          meson compile -C builddir/
