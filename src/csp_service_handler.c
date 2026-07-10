@@ -8,6 +8,15 @@
 
 #include "cmp/csp_cmp_internal.h"
 
+
+static void set_u32_reply(csp_packet_t * packet, uint32_t value) {
+
+	const uint32_t value_be = htobe32(value);
+
+	memcpy(packet->data, &value_be, sizeof(value_be));
+	packet->length = sizeof(value_be);
+}
+
 void csp_service_handler(csp_packet_t * packet) {
 
 	switch (packet->id.dport) {
@@ -34,14 +43,7 @@ void csp_service_handler(csp_packet_t * packet) {
 		}
 
 		case CSP_MEMFREE: {
-
-			uint32_t total = 0;
-			total = csp_memfree_hook();
-			
-			total = htobe32(total);
-			memcpy(packet->data, &total, sizeof(total));
-			packet->length = sizeof(total);
-
+			set_u32_reply(packet, csp_memfree_hook());
 			break;
 		}
 
@@ -63,18 +65,12 @@ void csp_service_handler(csp_packet_t * packet) {
 		}
 
 		case CSP_BUF_FREE: {
-			uint32_t size = csp_buffer_remaining();
-			size = htobe32(size);
-			memcpy(packet->data, &size, sizeof(size));
-			packet->length = sizeof(size);
+			set_u32_reply(packet, (uint32_t)csp_buffer_remaining());
 			break;
 		}
 
 		case CSP_UPTIME: {
-			uint32_t time = csp_get_s();
-			time = htobe32(time);
-			memcpy(packet->data, &time, sizeof(time));
-			packet->length = sizeof(time);
+			set_u32_reply(packet, csp_get_s());
 			break;
 		}
 
