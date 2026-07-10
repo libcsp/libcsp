@@ -79,7 +79,5 @@ void csp_service_handler(csp_packet_t * packet) {
 			return;
 	}
 
-	if (packet != NULL) {
-		csp_sendto_reply(packet, packet, CSP_O_SAME);
-	}
+	csp_sendto_reply(packet, packet, CSP_O_SAME);
 }
