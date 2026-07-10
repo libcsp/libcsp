@@ -24,8 +24,7 @@ void csp_service_handler(csp_packet_t * packet) {
 		case CSP_CMP:
 			/* Pass to CMP handler */
 			if (csp_cmp_handler(packet) != CSP_ERR_NONE) {
-				csp_buffer_free(packet);
-				return;
+				goto discard;
 			}
 			break;
 
@@ -36,8 +35,7 @@ void csp_service_handler(csp_packet_t * packet) {
 		case CSP_PS: {
 			packet->length = csp_ps_hook(packet);
 			if (packet->length == 0) {
-				csp_buffer_free(packet);
-				return;
+				goto discard;
 			}
 			break;
 		}
@@ -60,8 +58,7 @@ void csp_service_handler(csp_packet_t * packet) {
 				csp_shutdown_hook();
 			}
 
-			csp_buffer_free(packet);
-			return;
+			goto discard;
 		}
 
 		case CSP_BUF_FREE: {
@@ -75,9 +72,12 @@ void csp_service_handler(csp_packet_t * packet) {
 		}
 
 		default:
-			csp_buffer_free(packet);
-			return;
+			goto discard;
 	}
 
 	csp_sendto_reply(packet, packet, CSP_O_SAME);
+	return;
+
+discard:
+	csp_buffer_free(packet);
 }
