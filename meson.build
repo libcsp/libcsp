@@ -101,6 +101,7 @@ csp_lib = library('csp',
 	c_args : csp_c_args,
 	install : true,
 	pic:true,
+	version : meson.project_version(),
 )
 
 # The following dependency variable is for parent projects to link
