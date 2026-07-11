@@ -245,7 +245,8 @@ def build(ctx):
                   name='csp_shlib',
                   target='csp',
                   use=['csp_h', 'util_shlib'],
-                  lib=ctx.env.LIBS)
+                  lib=ctx.env.LIBS,
+                  vnum=VERSION)
 
     # Build Python bindings
     if ctx.env.HAVE_PYEXT:
