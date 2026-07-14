@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 project(CSP VERSION 2.2)
+include(GNUInstallDirs)
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   set(DEFAULT_BUILD_SHARED_LIBS ON)
@@ -153,6 +154,10 @@ if(${CSP_ENABLE_PYTHON3_BINDINGS})
     add_compile_options(-Wno-missing-prototypes -Wno-unused-parameter)
     target_include_directories(libcsp_py3 PUBLIC ${csp_inc})
     target_link_libraries(libcsp_py3 PUBLIC csp)
+    install(
+      TARGETS libcsp_py3
+      LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/python${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}/site-packages
+    )
   else()
     message(FATAL_ERROR "Python development module not found")
   endif()
