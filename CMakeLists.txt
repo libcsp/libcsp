@@ -49,7 +49,7 @@ option(CSP_FIXUP_V1_ZMQ_LITTLE_ENDIAN "Use little-endian CSP ID for ZMQ with CSP
 
 option(CSP_ENABLE_KISS_CRC "Enables the extra CRC in the KISS interface (legacy)" ON)
 
-option(CSP_HAVE_TERMIOS2 "Use newer termios2 interface for Linux USART configuration" ON)
+option(CSP_USE_POSIX_TERMIOS "Use older POSIX termios interface for Linux USART configuration" OFF)
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   set(CSP_POSIX 1)
