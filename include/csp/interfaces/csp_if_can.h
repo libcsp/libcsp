@@ -56,6 +56,29 @@
  * The \b CSP \b flags holds the CSP_HEADER_FLAGS.
  *
  * Other CAN communication using a standard 11 bit identifier, can co-exist on the wire.
+ *
+ * **CAN FD**
+ *
+ * CSP packets can also be transported over ISO CAN FD frames, carrying up to
+ * 64 bytes of data per frame. The CFP 2.x format is unchanged: a CAN FD
+ * fragment differs from a classic one only in the number of data bytes it
+ * carries. CAN FD is a per-interface configuration, enabled by setting
+ * csp_can_interface_data_t::max_frame_size to #CSP_CANFD_FRAME_SIZE, and
+ * requires CSP version 2.
+ *
+ * Just like classic CSP/CAN runs at a fixed 1 Mbit/s, CSP over CAN FD uses
+ * one fixed configuration: 1 Mbit/s nominal and 4 Mbit/s data phase bitrate
+ * (#CSP_CANFD_BITRATE / #CSP_CANFD_DATA_BITRATE), Bit Rate Switch always set,
+ * ISO CAN FD frame format.
+ *
+ * The CAN FD DLC encoding can only represent data lengths 0-8, 12, 16, 20,
+ * 24, 32, 48 and 64. The transmit path only emits fragments of these sizes,
+ * so controller padding, which would corrupt the implicitly derived packet
+ * length, never reaches the wire.
+ *
+ * Classic CAN and CAN FD nodes cannot share a bus segment: a classic
+ * controller destroys CAN FD frames with error frames. A CAN FD interface
+ * still receives classic frames correctly.
  ****************************************************************************/
 #pragma once
 
@@ -177,6 +200,27 @@ extern "C" {
 #define CSP_IF_CAN_DEFAULT_NAME "CAN"
 
 /**
+ * Default interface name when configured for CAN FD.
+ */
+#define CSP_IF_CANFD_DEFAULT_NAME "CANFD"
+
+/**
+ * Max number of data bytes in a single classic CAN frame.
+ */
+#define CSP_CAN_FRAME_SIZE 8
+
+/**
+ * Max number of data bytes in a single CAN FD frame.
+ */
+#define CSP_CANFD_FRAME_SIZE 64
+
+/**
+ * Fixed CAN FD profile: nominal (arbitration) and data phase bitrates.
+ */
+#define CSP_CANFD_BITRATE      1000000
+#define CSP_CANFD_DATA_BITRATE 4000000
+
+/**
  * Send CAN frame (implemented by driver).
  *
  * Used by csp_can_tx() to send CAN frames.
@@ -184,11 +228,12 @@ extern "C" {
  * @param[in] driver_data driver data from #csp_iface_t
  * @param[in] id CAM message id.
  * @param[in] data CAN data
- * @param[in] dlc data length of \a data.
+ * @param[in] data_size number of data bytes in \a data - not the CAN DLC
+ *            code, the driver translates to its controller's DLC encoding.
  * @param[in] packet the CSP packet where data is from. Is only valid for END frames else NULL.
  * @return #CSP_ERR_NONE on success, otherwise an error code.
  */
-typedef int (*csp_can_driver_tx_t)(void * driver_data, uint32_t id, const uint8_t * data, uint8_t dlc, const csp_packet_t * packet);
+typedef int (*csp_can_driver_tx_t)(void * driver_data, uint32_t id, const uint8_t * data, uint8_t data_size, const csp_packet_t * packet);
 
 /**
  * Interface data (state information).
@@ -197,10 +242,15 @@ typedef struct {
 	atomic_int cfp_packet_counter; /**< CFP Identification number - same number on all fragments from same CSP packet. */
 	csp_can_driver_tx_t tx_func; /**< Tx function */
 	csp_packet_t * pbufs; /**< PBUF queue */
+	uint8_t max_frame_size; /**< Set by the driver: #CSP_CAN_FRAME_SIZE (classic CAN) or #CSP_CANFD_FRAME_SIZE (CAN FD) */
 } csp_can_interface_data_t;
 
 /**
  * Add interface.
+ *
+ * csp_can_interface_data_t::max_frame_size must be set to
+ * #CSP_CAN_FRAME_SIZE or #CSP_CANFD_FRAME_SIZE (CAN FD requires
+ * CSP version 2).
  *
  * @param[in] iface CSP interface, initialized with name and inteface_data
  * 								pointing to a valid #csp_can_interface_data_t structure.
@@ -240,12 +290,12 @@ int csp_can_tx(csp_iface_t * iface, uint16_t via, csp_packet_t *packet);
  * @param[in] iface incoming interface.
  * @param[in] id received CAN message identifier.
  * @param[in] data received CAN data.
- * @param[in] dlc length of received \a data.
+ * @param[in] data_size number of received data bytes - not the CAN DLC code.
  * @param[in] timestamp_rx interface-specific RX timestamp. Only set for End frames
  * @param[out] pxTaskWoken Valid reference if called from ISR, otherwise NULL!
  * @return #CSP_ERR_NONE on success, otherwise an error code.
  */
-int csp_can_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t dlc, uint32_t timestamp_rx, int *pxTaskWoken);
+int csp_can_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t data_size, uint32_t timestamp_rx, int *pxTaskWoken);
 
 #ifdef __cplusplus
 }

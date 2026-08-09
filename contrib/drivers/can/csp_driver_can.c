@@ -136,7 +136,7 @@ void CAN_0_irq_callback(struct _can_async_device *dev, enum can_async_interrupt_
 	return;
 }
 
-int csp_can_tx_frame(void *driver_data, uint32_t id, const uint8_t * data, uint8_t dlc, const csp_packet_t *packet) {
+int csp_can_tx_frame(void *driver_data, uint32_t id, const uint8_t * data, uint8_t data_size, const csp_packet_t *packet) {
 
 	struct mcan_s * driver = (struct mcan_s *)driver_data;
 	(void)packet;
@@ -149,7 +149,7 @@ int csp_can_tx_frame(void *driver_data, uint32_t id, const uint8_t * data, uint8
 	msg.id = id;
 	msg.type = CAN_TYPE_DATA;
 	msg.data = data;
-	msg.len = dlc;
+	msg.len = data_size;
 	msg.fmt  = CAN_FMT_EXTID;
 
 	/* Task locking */
@@ -221,6 +221,7 @@ csp_iface_t * csp_driver_can_init(int addr, int netmask, int id, can_mode_e mode
 	}
 
 	mcan[id].ifdata.tx_func = csp_can_tx_frame;
+	mcan[id].ifdata.max_frame_size = CSP_CAN_FRAME_SIZE;
 	mcan[id].ifdata.pbufs = NULL;
 	mcan[id].interface.interface_data = &mcan[id].ifdata;
 

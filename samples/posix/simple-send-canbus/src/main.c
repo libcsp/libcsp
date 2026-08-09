@@ -21,7 +21,7 @@ int main(int argc, char * argv[])
 	csp_init();
 
 	/* open */
-	ret = csp_can_socketcan_open_and_add_interface(DEVICE_NAME, CSP_IF_CAN_DEFAULT_NAME, CLIENT_ADDR, 1000000, true, &iface);
+	ret = csp_can_socketcan_open_and_add_interface(DEVICE_NAME, CSP_IF_CAN_DEFAULT_NAME, CLIENT_ADDR, 1000000, false, true, &iface);
 	if (ret != CSP_ERR_NONE) {
 		csp_print("failed to open: %d\n", ret);
 		return 1;

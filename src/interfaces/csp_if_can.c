@@ -9,6 +9,7 @@
 
 #include "csp/csp_types.h"
 #include "csp_if_can_pbuf.h"
+#include "csp_if_can_internal.h"
 
 /**
  * TESTING:
@@ -20,8 +21,32 @@
  *
  */
 
-/* Max number of bytes per CAN frame */
-#define CAN_FRAME_SIZE 8
+/* Max number of bytes per classic CAN frame */
+#define CAN_FRAME_SIZE CSP_CAN_FRAME_SIZE
+
+/* Largest frame size representable in the CAN (FD) DLC encoding, no greater than bytes and max_size */
+uint8_t csp_can_frame_size(uint16_t bytes, uint8_t max_size) {
+
+	/* Data lengths above 8 bytes that the CAN FD DLC encoding can represent */
+	static const uint8_t fd_sizes[] = {64, 48, 32, 24, 20, 16, 12};
+
+	if (bytes >= max_size) {
+		return max_size;
+	}
+
+	if (bytes <= CAN_FRAME_SIZE) {
+		return bytes;
+	}
+
+	for (unsigned int i = 0; i < sizeof(fd_sizes); i++) {
+		if (fd_sizes[i] <= bytes) {
+			return fd_sizes[i];
+		}
+	}
+
+	/* bytes is in the range 9..11 */
+	return CAN_FRAME_SIZE;
+}
 
 /**
  * CFP 1.x defines
@@ -42,7 +67,7 @@ enum cfp_frame_t {
 	CFP_MORE = 1
 };
 
-static int csp_can1_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t dlc, int * task_woken) {
+static int csp_can1_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t data_size, int * task_woken) {
 
 	csp_can_interface_data_t * ifdata = iface->interface_data;
 
@@ -79,7 +104,7 @@ static int csp_can1_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, u
 		case CFP_BEGIN:
 
 			/* Discard packet if DLC is less than CSP id + CSP length fields */
-			if (dlc < CFP1_DATA_OFFSET) {
+			if (data_size < CFP1_DATA_OFFSET) {
 				csp_dbg_can_errno = CSP_DBG_CAN_ERR_SHORT_BEGIN;
 				iface->frame++;
 				csp_can_pbuf_free(ifdata, packet, 1, task_woken);
@@ -122,16 +147,16 @@ static int csp_can1_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, u
 			packet->remain--;
 
 			/* Check for overflow */
-			if ((packet->rx_count + dlc - offset) > packet->length) {
+			if ((packet->rx_count + data_size - offset) > packet->length) {
 				csp_dbg_can_errno = CSP_DBG_CAN_ERR_RX_OVF;
 				iface->frame++;
 				csp_can_pbuf_free(ifdata, packet, 1, task_woken);
 				break;
 			}
 
-			/* Copy dlc bytes into buffer */
-			memcpy(&packet->data[packet->rx_count], data + offset, dlc - offset);
-			packet->rx_count += dlc - offset;
+			/* Copy data_size bytes into buffer */
+			memcpy(&packet->data[packet->rx_count], data + offset, data_size - offset);
+			packet->rx_count += data_size - offset;
 
 			/* Check if more data is expected */
 			if (packet->rx_count != packet->length)
@@ -261,7 +286,7 @@ static int csp_can1_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet,
 	return CSP_ERR_NONE;
 }
 
-static int csp_can2_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t dlc, uint32_t timestamp_rx, int * task_woken) {
+static int csp_can2_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t data_size, uint32_t timestamp_rx, int * task_woken) {
 
 	csp_can_interface_data_t * ifdata = iface->interface_data;
 
@@ -271,7 +296,7 @@ static int csp_can2_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, u
 		if (id & (CFP2_BEGIN_MASK << CFP2_BEGIN_OFFSET)) {
 
 			/* Discard packet if DLC is less than CSP id + CSP length fields */
-			if (dlc < 4) {
+			if (data_size < 4) {
 				csp_dbg_can_errno = CSP_DBG_CAN_ERR_SHORT_BEGIN;
 				iface->frame++;
 				return CSP_ERR_INVAL;
@@ -291,7 +316,7 @@ static int csp_can2_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, u
 
 			/* Move RX offset for incoming data */
 			data += 4;
-			dlc -= 4;
+			data_size -= 4;
 
 			/* Create CSP header info from the first bytes received */
 			csp_id_t csp_id = csp_id_extract(header);
@@ -337,17 +362,17 @@ static int csp_can2_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, u
 		packet->rx_count = (packet->rx_count + 1) & CFP2_FC_MASK;
 	}
 
-	/* Check for overflow. The frame input + dlc must not exceed the end of the packet data field */
-	if (&packet->frame_begin[packet->frame_length] + dlc > &packet->data[sizeof(packet->data)]) {
+	/* Check for overflow. The frame input + data_size must not exceed the end of the packet data field */
+	if (&packet->frame_begin[packet->frame_length] + data_size > &packet->data[sizeof(packet->data)]) {
 		csp_dbg_can_errno = CSP_DBG_CAN_ERR_RX_OVF;
 		iface->rx_error++;
 		csp_can_pbuf_free(ifdata, packet, 1, task_woken);
 		return CSP_ERR_INVAL;
 	}
 
-	/* Copy dlc bytes into buffer */
-	memcpy(&packet->frame_begin[packet->frame_length], data, dlc);
-	packet->frame_length += dlc;
+	/* Copy data_size bytes into buffer */
+	memcpy(&packet->frame_begin[packet->frame_length], data, data_size);
+	packet->frame_length += data_size;
 
 	/* END */
 	if (id & (CFP2_END_MASK << CFP2_END_OFFSET)) {
@@ -386,6 +411,8 @@ static int csp_can2_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet,
 	}
 
 	csp_can_interface_data_t * ifdata = iface->interface_data;
+	/* Validated to 8 or 64 by csp_can_add_interface() */
+	const uint8_t max_frame_size = ifdata->max_frame_size;
 
 	/* Setup counters */
 	int sender_count = ifdata->cfp_packet_counter++; // Atomic operation as cfp_packet_counter is of type atomic_int
@@ -403,8 +430,8 @@ static int csp_can2_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet,
 			  ((1 & CFP2_BEGIN_MASK) << CFP2_BEGIN_OFFSET));
 
 	/* Pack the rest of the CSP header in the first 32-bit of data */
-    uint32_t frame_buf_mem[(CAN_FRAME_SIZE+sizeof(uint32_t)-1)/sizeof(uint32_t)];
-    uint8_t *frame_buf = (uint8_t*)frame_buf_mem;
+	uint32_t frame_buf_mem[(CSP_CANFD_FRAME_SIZE + sizeof(uint32_t) - 1) / sizeof(uint32_t)];
+	uint8_t * frame_buf = (uint8_t *)frame_buf_mem;
 	uint32_t * header_extension = (uint32_t *)frame_buf_mem;
 
 	*header_extension = (((packet->id.src & CFP2_SRC_MASK) << CFP2_SRC_OFFSET) |
@@ -417,8 +444,10 @@ static int csp_can2_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet,
 
 	frame_buf_inp += 4;
 
-	/* Copy first bytes of data field (max 4) */
-	int data_bytes = (packet->length >= 4) ? 4 : packet->length;
+	/* Copy first bytes of data field, rounded down to a representable frame size */
+	int data_bytes = (packet->length > (max_frame_size - frame_buf_inp))
+						 ? max_frame_size - frame_buf_inp
+						 : csp_can_frame_size(frame_buf_inp + packet->length, max_frame_size) - frame_buf_inp;
 	memcpy(frame_buf + frame_buf_inp, packet->data, data_bytes);
 	frame_buf_inp += data_bytes;
 	tx_count = data_bytes;
@@ -450,7 +479,7 @@ static int csp_can2_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet,
 		can_id |= (fragment_count++ & CFP2_FC_MASK) << CFP2_FC_OFFSET;
 
 		/* Calculate frame data bytes */
-		data_bytes = (packet->length - tx_count >= CAN_FRAME_SIZE) ? CAN_FRAME_SIZE : packet->length - tx_count;
+		data_bytes = csp_can_frame_size(packet->length - tx_count, max_frame_size);
 
 		/* Check for end condition */
 		if (tx_count + data_bytes == packet->length) {
@@ -484,9 +513,20 @@ int csp_can_add_interface(csp_iface_t * iface) {
 		return CSP_ERR_INVAL;
 	}
 
+	/* The driver decides the frame size: classic CAN or CAN FD only */
+	if ((ifdata->max_frame_size != CAN_FRAME_SIZE) &&
+		(ifdata->max_frame_size != CSP_CANFD_FRAME_SIZE)) {
+		return CSP_ERR_INVAL;
+	}
+
 	ifdata->cfp_packet_counter = 0;
 
+	/* With per interface CSP version support (#982) this must use iface->version */
 	if (csp_conf.version == 1) {
+		/* CFP 1.x does not support CAN FD frame sizes */
+		if (ifdata->max_frame_size > CAN_FRAME_SIZE) {
+			return CSP_ERR_INVAL;
+		}
 		iface->nexthop = csp_can1_tx;
 	} else {
 		iface->nexthop = csp_can2_tx;
@@ -508,11 +548,11 @@ int csp_can_remove_interface(csp_iface_t * iface) {
 	return CSP_ERR_NONE;
 }
 
-int csp_can_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t dlc, uint32_t timestamp_rx, int * task_woken) {
+int csp_can_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t data_size, uint32_t timestamp_rx, int * task_woken) {
 
 	if (csp_conf.version == 1) {
-		return csp_can1_rx(iface, id, data, dlc, task_woken);
+		return csp_can1_rx(iface, id, data, data_size, task_woken);
 	} else {
-		return csp_can2_rx(iface, id, data, dlc, timestamp_rx, task_woken);
+		return csp_can2_rx(iface, id, data, data_size, timestamp_rx, task_woken);
 	}
 }

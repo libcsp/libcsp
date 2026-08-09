@@ -191,7 +191,7 @@ int main(void) {
 		uint16_t filter_addr = can_address;
 		uint16_t filter_mask = 0x3FFF;
 
-		int error = csp_can_open_and_add_interface(device, ifname, can_address, bitrate,
+		int error = csp_can_open_and_add_interface(device, ifname, can_address, bitrate, false,
 												   filter_addr, filter_mask, &can_iface);
 		if (error != CSP_ERR_NONE) {
 			LOG_ERR("failed to add CAN interface [%s], error: %d\n", ifname, error);
