@@ -1,5 +1,10 @@
 name: FreeRTOS Build and Test
-on: [push, pull_request]
+on:
+  pull_request:
+  push:
+    branches:
+      - develop
+      - 'libcsp-*'
 permissions:
   contents: read
 concurrency:
