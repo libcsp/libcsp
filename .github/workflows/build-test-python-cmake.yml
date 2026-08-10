@@ -56,3 +56,16 @@ jobs:
           cmake --build builddir --target libcsp_py3
           cmake --install builddir --prefix "${VIRTUAL_ENV}" --component runtime
           python -c 'import libcsp_py3 as csp; csp.init("github", "cmake", "smoke"); assert csp.get_revision() == "smoke"'
+
+      - name: Test Python-discovered binding destination
+        run: |
+          python3 -m venv "${RUNNER_TEMP}/libcsp-absolute-venv"
+          source "${RUNNER_TEMP}/libcsp-absolute-venv/bin/activate"
+          python_install_dir=$(python -c 'import sysconfig; print(sysconfig.get_path("platlib"))')
+          cmake -B builddir \
+            -DCMAKE_INSTALL_PREFIX="${VIRTUAL_ENV}" \
+            -DCSP_PYTHON3_INSTALL_DIR="${python_install_dir}" \
+            '-DCMAKE_INSTALL_RPATH=$ORIGIN/../..'
+          cmake --build builddir --target libcsp_py3
+          cmake --install builddir --component runtime
+          python -c 'import libcsp_py3 as csp; csp.init("github", "cmake", "smoke"); assert csp.get_revision() == "smoke"'
