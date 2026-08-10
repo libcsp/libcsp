@@ -283,6 +283,9 @@ bool csp_conn_is_active(csp_conn_t *conn);
 /**
  * Set socket to listen for incoming connections.
  *
+ * A connection-oriented socket starts receiving here: the router
+ * drops packets addressed to a bound socket until it listens.
+ *
  * @param[in] socket socket
  * @param[in] backlog max length of backlog queue. The backlog queue holds incoming connections, waiting to be returned by call to csp_accept().
  * @return #CSP_ERR_NONE on success, otherwise an error code.
@@ -291,6 +294,10 @@ int csp_listen(csp_socket_t *socket, size_t backlog);
 
 /**
  * Bind port to socket.
+ *
+ * A connection-less socket (#CSP_SO_CONN_LESS) starts receiving
+ * here; a connection-oriented socket starts receiving in
+ * csp_listen().
  *
  * @param[in] socket socket to bind port to
  * @param[in] port port number to bind, use #CSP_ANY for all ports. Binding to a specific will take precedence over #CSP_ANY.
