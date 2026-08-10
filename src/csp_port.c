@@ -74,6 +74,10 @@ csp_socket_t * csp_port_get_socket(unsigned int port) {
 	return NULL;
 }
 
+bool csp_socket_is_conn_less(const csp_socket_t * socket) {
+	return (socket->opts & CSP_SO_CONN_LESS) != 0;
+}
+
 int csp_listen(csp_socket_t * socket, size_t backlog) {
 	(void)backlog; /* Avoid compiler warnings about unused parameter */
 	socket->rx_queue = csp_queue_create_static(CSP_CONN_RXQUEUE_LEN, sizeof(csp_packet_t *), socket->rx_queue_static_data, &socket->rx_queue_static);

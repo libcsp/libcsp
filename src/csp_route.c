@@ -198,7 +198,7 @@ int csp_route_work(void) {
 	socket = csp_port_get_socket(packet->id.dport);
 
 	/* If the socket is connection-less, deliver now */
-	if (socket && (socket->opts & CSP_SO_CONN_LESS)) {
+	if (socket && csp_socket_is_conn_less(socket)) {
 
 		if (csp_route_security_check(socket->opts, input.iface, packet) != CSP_ERR_NONE) {
 			csp_buffer_free(packet);
