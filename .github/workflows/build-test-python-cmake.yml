@@ -1,0 +1,58 @@
+name: CMake Python Bindings
+on:
+  pull_request:
+  push:
+    branches:
+      - develop
+      - 'libcsp-*'
+permissions:
+  contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+jobs:
+  build-test-python-cmake:
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version:
+          - '3.10'
+          - '3.11'
+          - '3.12'
+          - '3.13'
+          - '3.14'
+        os:
+          - ubuntu-26.04
+          - ubuntu-24.04
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install Ninja
+        run: |
+          sudo apt-get update
+          sudo apt-get install ninja-build
+
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Build Python binding
+        run: |
+          cmake -GNinja -B builddir -DCSP_ENABLE_PYTHON3_BINDINGS=ON -DCSP_USE_RTABLE=ON
+          cmake --build builddir --target libcsp_py3
+
+      - name: Test relative Python binding destination
+        run: |
+          python3 -m venv "${RUNNER_TEMP}/libcsp-relative-venv"
+          source "${RUNNER_TEMP}/libcsp-relative-venv/bin/activate"
+          python_install_dir=$(python -c 'import os, sys, sysconfig; print(os.path.relpath(sysconfig.get_path("platlib"), sys.prefix))')
+          cmake -B builddir \
+            -DCMAKE_INSTALL_PREFIX="${RUNNER_TEMP}/libcsp-configured-prefix" \
+            -DCSP_PYTHON3_INSTALL_DIR="${python_install_dir}" \
+            '-DCMAKE_INSTALL_RPATH=$ORIGIN/../..'
+          cmake --build builddir --target libcsp_py3
+          cmake --install builddir --prefix "${VIRTUAL_ENV}" --component runtime
+          python -c 'import libcsp_py3 as csp; csp.init("github", "cmake", "smoke"); assert csp.get_revision() == "smoke"'
