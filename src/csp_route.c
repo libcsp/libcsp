@@ -275,6 +275,13 @@ int csp_route_work(void) {
 	/* Socket delivery */
 	socket = csp_port_get_socket(packet->id.dport);
 
+	/* Connection-less sockets are ready from csp_bind(),
+	 * connection-oriented ones from csp_listen() */
+	if (socket != NULL && !csp_socket_is_ready_to_receive(socket)) {
+		csp_buffer_free(packet);
+		return CSP_ERR_NONE;
+	}
+
 	/* Resolve the endpoint: an existing connection first, otherwise
 	 * the bound socket.  Drop the packet if neither exists. */
 	csp_conn_t * conn = csp_conn_find_existing(&packet->id);

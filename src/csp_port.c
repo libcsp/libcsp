@@ -74,13 +74,26 @@ csp_socket_t * csp_port_get_socket(unsigned int port) {
 	return NULL;
 }
 
+/* Create the socket rx_queue if not already created.  The queue
+ * holds packets for connection-less sockets and pending connections
+ * for connection-oriented sockets. */
+static void csp_socket_init_rx_queue(csp_socket_t * socket) {
+	if (socket->rx_queue == NULL) {
+		socket->rx_queue = csp_queue_create_static(CSP_CONN_RXQUEUE_LEN, sizeof(csp_packet_t *), socket->rx_queue_static_data, &socket->rx_queue_static);
+	}
+}
+
+bool csp_socket_is_ready_to_receive(const csp_socket_t * socket) {
+	return socket->rx_queue != NULL;
+}
+
 bool csp_socket_is_conn_less(const csp_socket_t * socket) {
 	return (socket->opts & CSP_SO_CONN_LESS) != 0;
 }
 
 int csp_listen(csp_socket_t * socket, size_t backlog) {
 	(void)backlog; /* Avoid compiler warnings about unused parameter */
-	socket->rx_queue = csp_queue_create_static(CSP_CONN_RXQUEUE_LEN, sizeof(csp_packet_t *), socket->rx_queue_static_data, &socket->rx_queue_static);
+	csp_socket_init_rx_queue(socket);
 	return CSP_ERR_NONE;
 }
 
@@ -99,6 +112,11 @@ int csp_bind(csp_socket_t * socket, uint8_t port) {
 	if (ports[port].state != PORT_CLOSED) {
 		csp_dbg_errno = CSP_DBG_ERR_PORT_ALREADY_IN_USE;
 		return CSP_ERR_USED;
+	}
+
+	/* Connection-less sockets have no listen step, so they start receiving here */
+	if (csp_socket_is_conn_less(socket)) {
+		csp_socket_init_rx_queue(socket);
 	}
 
 	/* Save listener */
