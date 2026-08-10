@@ -109,11 +109,132 @@ __weak void csp_input_hook(csp_iface_t * iface, csp_packet_t * packet) {
 				   packet->id.sport, packet->id.pri, packet->id.flags, packet->length, iface->name, csp_get_ms());
 }
 
+/* Deliver the packet to a bound callback, if any.  Returns true if
+ * the port is served by a callback and the packet was consumed. */
+static bool csp_route_deliver_callback(csp_iface_t * iface, csp_packet_t * packet) {
+
+	csp_callback_t callback = csp_port_get_callback(packet->id.dport);
+	if (callback == NULL) {
+		return false;
+	}
+
+	if (csp_route_security_check(CSP_SO_CRC32REQ, iface, packet) != CSP_ERR_NONE) {
+		csp_buffer_free(packet);
+		return true;
+	}
+
+	callback(packet);
+	return true;
+}
+
+/* Deliver the packet to a connection-less socket.  The socket is the
+ * endpoint, so delivery terminates here. */
+static void csp_route_deliver_conn_less(csp_socket_t * socket, csp_iface_t * iface, csp_packet_t * packet) {
+
+	if (csp_route_security_check(socket->opts, iface, packet) != CSP_ERR_NONE) {
+		csp_buffer_free(packet);
+		return;
+	}
+
+	if (csp_queue_enqueue(socket->rx_queue, &packet, 0) != CSP_QUEUE_OK) {
+		csp_dbg_conn_ovf++;
+		csp_buffer_free(packet);
+		return;
+	}
+}
+
+/* Deliver the packet to a connection.  The connection is the
+ * endpoint: an existing connection is matched by identifier (client
+ * or server side), otherwise the socket acts as the factory for a
+ * new server-side connection, which is posted to the socket rx_queue
+ * for csp_accept(). */
+static void csp_route_deliver_connection(csp_socket_t * socket, csp_iface_t * iface, csp_packet_t * packet) {
+
+	/* Search for an existing connection */
+	csp_conn_t * conn = csp_conn_find_existing(&packet->id);
+
+	/* If this is an incoming packet on a new connection */
+	if (conn == NULL) {
+
+		/* Reject packet if no matching socket is found */
+		if (!socket) {
+			csp_buffer_free(packet);
+			return;
+		}
+
+		/* Run security check on incoming packet */
+		if (csp_route_security_check(socket->opts, iface, packet) != CSP_ERR_NONE) {
+			csp_buffer_free(packet);
+			return;
+		}
+
+		/* New incoming connection accepted */
+		csp_id_t idout;
+		idout.pri = packet->id.pri;
+		idout.src = packet->id.dst;
+		idout.dst = packet->id.src;
+		idout.dport = packet->id.sport;
+		idout.sport = packet->id.dport;
+		idout.flags = packet->id.flags;
+
+		/* Create connection */
+		conn = csp_conn_new(packet->id, idout, CONN_SERVER);
+
+		if (!conn) {
+			csp_dbg_conn_out++;
+			csp_buffer_free(packet);
+			return;
+		}
+
+		/* Store the socket queue and options */
+		conn->dest_socket = socket;
+		conn->opts = socket->opts;
+
+		/* Packet to existing connection */
+	} else {
+
+		/* Run security check on incoming packet */
+		if (csp_route_security_check(conn->opts, iface, packet) != CSP_ERR_NONE) {
+			csp_buffer_free(packet);
+			return;
+		}
+	}
+
+#if (CSP_USE_RDP)
+	/* Pass packet to RDP module */
+	if (packet->id.flags & CSP_FRDP) {
+		bool close_connection = csp_rdp_new_packet(conn, packet);
+		if (close_connection) {
+			csp_close(conn);
+		}
+		return;
+	}
+#endif
+
+	/* Otherwise, enqueue directly */
+	if (csp_conn_enqueue_packet(conn, packet) != CSP_ERR_NONE) {
+		csp_dbg_conn_ovf++;
+		csp_buffer_free(packet);
+		return;
+	}
+
+	/* Try to queue up the new connection pointer */
+	if (conn->dest_socket != NULL) {
+		if (csp_queue_enqueue(conn->dest_socket->rx_queue, &conn, 0) != CSP_QUEUE_OK) {
+			csp_dbg_conn_ovf++;
+			csp_close(conn);
+			return;
+		}
+
+		/* Ensure that this connection will not be posted to this socket again */
+		conn->dest_socket = NULL;
+	}
+}
+
 int csp_route_work(void) {
 
 	csp_qfifo_t input;
 	csp_packet_t * packet;
-	csp_conn_t * conn;
 	csp_socket_t * socket;
 
 #if (CSP_USE_RDP)
@@ -175,124 +296,23 @@ int csp_route_work(void) {
 		return CSP_ERR_NONE;
 	}
 
-	/**
-	 * Callbacks 
-	 */
-	csp_callback_t callback = csp_port_get_callback(packet->id.dport);
-	if (callback) {
-
-		if (csp_route_security_check(CSP_SO_CRC32REQ, input.iface, packet) != CSP_ERR_NONE) {
-			csp_buffer_free(packet);
-			return CSP_ERR_NONE;
-		}
-
-		callback(packet);
+	/* Callback delivery */
+	if (csp_route_deliver_callback(input.iface, packet)) {
 		return CSP_ERR_NONE;
 	}
 
-	/**
-	 * Sockets 
-	 */
-
-	/* The message is to me, search for incoming socket */
+	/* Socket delivery */
 	socket = csp_port_get_socket(packet->id.dport);
 
 	/* If the socket is connection-less, deliver now */
 	if (socket && csp_socket_is_conn_less(socket)) {
-
-		if (csp_route_security_check(socket->opts, input.iface, packet) != CSP_ERR_NONE) {
-			csp_buffer_free(packet);
-			return CSP_ERR_NONE;
-		}
-
-		if (csp_queue_enqueue(socket->rx_queue, &packet, 0) != CSP_QUEUE_OK) {
-			csp_dbg_conn_ovf++;
-			csp_buffer_free(packet);
-			return CSP_ERR_NONE;
-		}
-		
+		/* Connection-less delivery, the socket is the endpoint */
+		csp_route_deliver_conn_less(socket, input.iface, packet);
 		return CSP_ERR_NONE;
 	}
 
-	/* Search for an existing connection */
-	conn = csp_conn_find_existing(&packet->id);
-
-	/* If this is an incoming packet on a new connection */
-	if (conn == NULL) {
-
-		/* Reject packet if no matching socket is found */
-		if (!socket) {
-			csp_buffer_free(packet);
-			return CSP_ERR_NONE;
-		}
-
-		/* Run security check on incoming packet */
-		if (csp_route_security_check(socket->opts, input.iface, packet) != CSP_ERR_NONE) {
-			csp_buffer_free(packet);
-			return CSP_ERR_NONE;
-		}
-
-		/* New incoming connection accepted */
-		csp_id_t idout;
-		idout.pri = packet->id.pri;
-		idout.src = packet->id.dst;
-		idout.dst = packet->id.src;
-		idout.dport = packet->id.sport;
-		idout.sport = packet->id.dport;
-		idout.flags = packet->id.flags;
-
-		/* Create connection */
-		conn = csp_conn_new(packet->id, idout, CONN_SERVER);
-
-		if (!conn) {
-			csp_dbg_conn_out++;
-			csp_buffer_free(packet);
-			return CSP_ERR_NONE;
-		}
-
-		/* Store the socket queue and options */
-		conn->dest_socket = socket;
-		conn->opts = socket->opts;
-
-		/* Packet to existing connection */
-	} else {
-
-		/* Run security check on incoming packet */
-		if (csp_route_security_check(conn->opts, input.iface, packet) != CSP_ERR_NONE) {
-			csp_buffer_free(packet);
-			return CSP_ERR_NONE;
-		}
-	}
-
-#if (CSP_USE_RDP)
-	/* Pass packet to RDP module */
-	if (packet->id.flags & CSP_FRDP) {
-		bool close_connection = csp_rdp_new_packet(conn, packet);
-		if (close_connection) {
-			csp_close(conn);
-		}
-		return CSP_ERR_NONE;
-	}
-#endif
-
-	/* Otherwise, enqueue directly */
-	if (csp_conn_enqueue_packet(conn, packet) != CSP_ERR_NONE) {
-		csp_dbg_conn_ovf++;
-		csp_buffer_free(packet);
-		return CSP_ERR_NONE;
-	}
-
-	/* Try to queue up the new connection pointer */
-	if (conn->dest_socket != NULL) {
-		if (csp_queue_enqueue(conn->dest_socket->rx_queue, &conn, 0) != CSP_QUEUE_OK) {
-			csp_dbg_conn_ovf++;
-			csp_close(conn);
-			return CSP_ERR_NONE;
-		}
-
-		/* Ensure that this connection will not be posted to this socket again */
-		conn->dest_socket = NULL;
-	}
-
+	/* Connection-oriented delivery, a connection is the endpoint and
+	 * the socket, when present, only accepts new connections */
+	csp_route_deliver_connection(socket, input.iface, packet);
 	return CSP_ERR_NONE;
 }
