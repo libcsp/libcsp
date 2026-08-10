@@ -142,9 +142,26 @@ static void csp_yaml_end_if(struct data_s * data, unsigned int * dfl_addr) {
 			return;
 		}
 
-		int error = csp_can_socketcan_open_and_add_interface(data->device, data->name, addr, 1000000, true, &iface);
+		int error = csp_can_socketcan_open_and_add_interface(data->device, data->name, addr, 1000000, false, true, &iface);
 		if (error != CSP_ERR_NONE) {
 			csp_print("failed to add CAN interface [%s], error: %d", data->device, error);
+			return;
+		}
+
+	}
+
+	/* CAN FD */
+	else if (strcmp(data->driver, "canfd") == 0) {
+
+		/* Check for valid options */
+		if (!data->device) {
+			csp_print("canfd: no device configured\n");
+			return;
+		}
+
+		int error = csp_can_socketcan_open_and_add_interface(data->device, data->name, addr, 0, true, true, &iface);
+		if (error != CSP_ERR_NONE) {
+			csp_print("failed to add CAN FD interface [%s], error: %d", data->device, error);
 			return;
 		}
 

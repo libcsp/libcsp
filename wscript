@@ -172,6 +172,8 @@ def configure(ctx):
     if ctx.options.enable_can_socketcan:
         ctx.env.append_unique('FILES_CSP', 'src/drivers/can/can_socketcan.c')
         ctx.check_cfg(package='libsocketcan', args='--cflags --libs', define_name='CSP_HAVE_LIBSOCKETCAN')
+        ctx.check_cc(function_name='can_set_canfd_bittiming', header_name='libsocketcan.h',
+                     use='LIBSOCKETCAN', mandatory=False, define_name='CSP_HAVE_LIBSOCKETCAN_CANFD')
         ctx.env.append_unique('LIBS', ctx.env.LIB_LIBSOCKETCAN)
 
     # Add USART driver

@@ -53,7 +53,7 @@ static csp_iface_t * add_can_iface(const char * can_name)
 	csp_iface_t * iface = NULL;
 
 	int error = csp_can_socketcan_open_and_add_interface(can_name, CSP_IF_CAN_DEFAULT_NAME,
-														 0, 1000000, true, &iface);
+														 0, 1000000, false, true, &iface);
 	if (error != CSP_ERR_NONE) {
 		csp_print("Failed to add CAN interface [%s], error: %d\n", can_name, error);
 		exit(1);

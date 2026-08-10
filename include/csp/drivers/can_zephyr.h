@@ -23,14 +23,18 @@ extern "C" {
  *  @param[in] device CAN device structure.
  *  @param[in] ifname CSP interface name.
  *  @param[in] address CSP address of the interface.
- *  @param[in] bitrate CAN bitrate.
+ *  @param[in] bitrate CAN bitrate. Must be 0 with \a fd: the fixed CAN FD
+ *             profile (see csp_if_can.h) is configured instead.
+ *  @param[in] fd Request CAN FD mode. Rejected with #CSP_ERR_NOTSUP when
+ *             built without CONFIG_CAN_FD_MODE, or with an error when the
+ *             controller does not support it.
  *  @param[in] filter_addr Destination address you want to set in the RX filter.
  *  @param[in] filter_mask Bit mask you want to set in the RX filter.
  *  @param[out] return_iface Added interface
  *  @return #CSP_ERR_NONE on success, otherwise an error code.
 */
 int csp_can_open_and_add_interface(const struct device * device, const char * ifname,
-								   uint16_t address, uint32_t bitrate,
+								   uint16_t address, uint32_t bitrate, bool fd,
 								   uint16_t filter_addr, uint16_t filter_mask,
 								   csp_iface_t ** return_iface);
 

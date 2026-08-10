@@ -1,5 +1,6 @@
 libcsp 2.2, xx-xx-202x
 ----------------------
+- new: CAN FD support with a fixed 1 Mbit/s nominal / 4 Mbit/s data phase profile, enabled per interface via csp_can_interface_data_t max_frame_size. The SocketCAN and Zephyr open functions gain an fd parameter (API change) (#944)
 - new: csp_sfp_send(), csp_sfp_conn_max_mtu(), csp_sfp_opts_max_mtu()
 - new: Make KISS interface CRC optional via CSP_ENABLE_KISS_CRC (#892)
 - new: Meson v0.61.2 is the minimal version now (#927)

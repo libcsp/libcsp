@@ -16,18 +16,28 @@ extern "C" {
 /**
  * Open CAN socket and add CSP interface.
  *
+ * .. note:: With \a fd enabled, configuring the device requires libsocketcan
+ *			 with CAN FD support (newer than v0.0.12). Otherwise pass bitrate 0
+ *			 and configure the link before calling this function, e.g.:
+ *			 ip link set can0 up type can bitrate 1000000 dbitrate 4000000 fd on restart-ms 100
+ *
  * Parameters:
  * @param[in] device CAN device name (Linux device).
- * @param[in] ifname CSP interface name, use #CSP_IF_CAN_DEFAULT_NAME for default name.
+ * @param[in] ifname CSP interface name, use NULL for default name.
  * @param[in] node_id CSP address of the interface.
  * @param[in] bitrate if different from 0, it will be attempted to change the
  *            bitrate on the CAN device - this may require increased OS privileges.
+ *            Must be 0 with \a fd enabled: the CAN FD profile is fixed
+ *            (see csp_if_can.h) and is configured on the device when
+ *            supported.
+ * @param[in] fd open the device in CAN FD mode, using the fixed profile
+ *            (requires CSP version 2 and a CAN FD enabled link).
  * @param[in] promisc if true, receive all CAN frames. If false a filter
  *                    is set on the CAN device, using device->addr
  * @param[out] return_iface the added interface.
- * @return The added interface, or NULL in case of failure.
+ * @return #CSP_ERR_NONE on success, otherwise an error code.
  */
-int csp_can_socketcan_open_and_add_interface(const char * device, const char * ifname, unsigned int node_id, int bitrate, bool promisc, csp_iface_t ** return_iface);
+int csp_can_socketcan_open_and_add_interface(const char * device, const char * ifname, unsigned int node_id, int bitrate, bool fd, bool promisc, csp_iface_t ** return_iface);
 
 /**
  * Initialize socketcan and add CSP interface.

@@ -1041,13 +1041,14 @@ static PyObject * pycsp_can_socketcan_init(PyObject * self, PyObject * args) {
 	uint16_t addr = 0;
 	int is_default = 0;
 	uint16_t mask = 8;
+	int fd = 0;
 
-	if (!PyArg_ParseTuple(args, "s|HiipH", &ifc, &addr, &bitrate, &promisc, &is_default, &mask)) {
+	if (!PyArg_ParseTuple(args, "s|HiipHp", &ifc, &addr, &bitrate, &promisc, &is_default, &mask, &fd)) {
 		return NULL;
 	}
 
 	csp_iface_t *iface;
-	int res = csp_can_socketcan_open_and_add_interface(ifc, CSP_IF_CAN_DEFAULT_NAME, addr, bitrate, promisc, &iface);
+	int res = csp_can_socketcan_open_and_add_interface(ifc, NULL, addr, bitrate, fd, promisc, &iface);
 	if (res != CSP_ERR_NONE) {
 		return PyErr_Error("csp_can_socketcan_open_and_add_interface()", res);
 	}

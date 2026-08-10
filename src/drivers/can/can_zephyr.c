@@ -22,6 +22,7 @@ typedef struct {
 	char name[CSP_IFLIST_NAME_MAX + 1];
 	csp_iface_t iface;
 	csp_can_interface_data_t ifdata;
+	bool fd;
 	const struct device * device;
 	struct k_msgq rx_msgq;
 	uint8_t rx_msgq_buf[CONFIG_CSP_CAN_RX_MSGQ_DEPTH * sizeof(struct can_frame)];
@@ -41,6 +42,7 @@ static void csp_can_rx_thread(void * arg1, void * arg2, void * arg3) {
 	struct k_msgq * rx_msgq = arg1;
 	csp_iface_t * iface = arg2;
 	struct k_event * stop_can_event = arg3;
+	can_context_t * ctx = iface->driver_data;
 
 	while (true) {
 		/*
@@ -60,8 +62,11 @@ static void csp_can_rx_thread(void * arg1, void * arg2, void * arg3) {
 			break;
 		}
 
-		/* Drop frames with invalid size field */
-		if(frame.dlc > CAN_MAX_DLEN){
+		/* Drop frames larger than the interface mode (ctx->fd) allows.
+		 * Zephyr: CAN_MAX_DLEN flexes with CONFIG_CAN_FD_MODE (8 or 64), so it
+		 * cannot express the mode - use the CSP constants instead.
+		 * Note frame.dlc is the DLC code, not bytes */
+		if (can_dlc_to_bytes(frame.dlc) > (ctx->fd ? CSP_CANFD_FRAME_SIZE : CSP_CAN_FRAME_SIZE)) {
 			LOG_WRN("[%s] discarding invalid size frame", iface->name);
 			continue;
 		}
@@ -79,26 +84,33 @@ static void csp_can_rx_thread(void * arg1, void * arg2, void * arg3) {
 		}
 
 		/* Call the common CSP CAN RX function. */
-		csp_can_rx(iface, frame.id, frame.data, frame.dlc, 0, NULL);
+		csp_can_rx(iface, frame.id, frame.data, can_dlc_to_bytes(frame.dlc), 0, NULL);
 	}
 }
 
-static int csp_can_tx_frame(void * driver_data, uint32_t id, const uint8_t * data, uint8_t dlc, const csp_packet_t *packet) {
+static int csp_can_tx_frame(void * driver_data, uint32_t id, const uint8_t * data, uint8_t data_size, const csp_packet_t *packet) {
 
 	int ret = CSP_ERR_NONE;
 	struct can_frame frame = {0};
 	can_context_t * ctx = driver_data;
 	(void)packet;
 
-	if (dlc > CAN_MAX_DLEN) {
+	/* Bound by interface mode, not Zephyr's build dependent CAN_MAX_DLEN */
+	if (data_size > (ctx->fd ? CSP_CANFD_FRAME_SIZE : CSP_CAN_FRAME_SIZE)) {
 		ret = CSP_ERR_INVAL;
 		goto end;
 	}
 
 	frame.id = id;
-	frame.dlc = dlc;
+	frame.dlc = can_bytes_to_dlc(data_size);
 	frame.flags = CAN_FRAME_IDE;
-	memcpy(frame.data, data, dlc);
+#if defined(CONFIG_CAN_FD_MODE)
+	if (ctx->fd) {
+		/* Bit Rate Switch: data phase at the CAN FD data bitrate */
+		frame.flags |= CAN_FRAME_FDF | CAN_FRAME_BRS;
+	}
+#endif
+	memcpy(frame.data, data, data_size);
 
 	ret = can_send(ctx->device, &frame, CSP_CAN_TX_TIME_OUT, NULL, NULL);
 	if (ret < 0) {
@@ -138,7 +150,7 @@ static int csp_can_finish_rx_thread(can_context_t * ctx) {
 }
 
 int csp_can_open_and_add_interface(const struct device * device, const char * ifname,
-				    uint16_t address, uint32_t bitrate,
+				    uint16_t address, uint32_t bitrate, bool fd,
 				    uint16_t filter_addr, uint16_t filter_mask,
 				    csp_iface_t ** return_iface) {
 
@@ -153,6 +165,21 @@ int csp_can_open_and_add_interface(const struct device * device, const char * if
 	}
 
 	name = ifname ? ifname : device->name;
+
+	if (fd) {
+#if defined(CONFIG_CAN_FD_MODE)
+		/* The CAN FD profile is fixed, see csp_if_can.h - bitrate is not applicable */
+		if (bitrate != 0) {
+			LOG_ERR("[%s] CAN FD runs a fixed profile (%d/%d), bitrate must be 0", name, CSP_CANFD_BITRATE, CSP_CANFD_DATA_BITRATE);
+			ret = CSP_ERR_INVAL;
+			goto end;
+		}
+#else
+		LOG_ERR("[%s] CAN FD requested, but CONFIG_CAN_FD_MODE is not enabled", name);
+		ret = CSP_ERR_NOTSUP;
+		goto end;
+#endif
+	}
 
 	if (rx_thread_idx >= CONFIG_CSP_CAN_RX_THREAD_NUM) {
 		LOG_ERR("[%s] No more RX thread can be created. (MAX: %d) Please check CONFIG_CSP_CAN_RX_THREAD_NUM.",
@@ -186,7 +213,9 @@ int csp_can_open_and_add_interface(const struct device * device, const char * if
 	ctx->iface.interface_data = &ctx->ifdata;
 	ctx->iface.driver_data = ctx;
 	ctx->ifdata.tx_func = csp_can_tx_frame;
+	ctx->ifdata.max_frame_size = fd ? CSP_CANFD_FRAME_SIZE : CSP_CAN_FRAME_SIZE;
 	ctx->ifdata.pbufs = NULL;
+	ctx->fd = fd;
 	ctx->device = device;
 	ctx->filter_id = -1;
 	k_event_init(&ctx->stop_can_event);
@@ -198,12 +227,28 @@ int csp_can_open_and_add_interface(const struct device * device, const char * if
 	k_msgq_init(&ctx->rx_msgq, ctx->rx_msgq_buf,
 						sizeof(struct can_frame), CONFIG_CSP_CAN_RX_MSGQ_DEPTH);
 
-	/* Set Bit rate */
-	ret = can_set_bitrate(device, bitrate);
+	/* Set Bit rate (with fd the fixed CAN FD profile applies) */
+	ret = can_set_bitrate(device, fd ? CSP_CANFD_BITRATE : bitrate);
 	if (ret < 0) {
 		LOG_ERR("[%s] can_set_bitrate() failed, error: %d", ctx->name, ret);
 		goto cleanup_heap;
 	}
+
+#if defined(CONFIG_CAN_FD_MODE)
+	if (fd) {
+		/* The controller accepts or rejects the CAN FD request here */
+		ret = can_set_bitrate_data(device, CSP_CANFD_DATA_BITRATE);
+		if (ret < 0) {
+			LOG_ERR("[%s] can_set_bitrate_data() failed, error: %d", ctx->name, ret);
+			goto cleanup_heap;
+		}
+		ret = can_set_mode(device, CAN_MODE_FD);
+		if (ret < 0) {
+			LOG_ERR("[%s] can_set_mode(CAN_MODE_FD) failed, error: %d", ctx->name, ret);
+			goto cleanup_heap;
+		}
+	}
+#endif
 
 	/* Set RX filter */
 	ret = csp_can_set_rx_filter(&ctx->iface, filter_addr, filter_mask);
