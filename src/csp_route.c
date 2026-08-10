@@ -129,12 +129,7 @@ static bool csp_route_deliver_callback(csp_iface_t * iface, csp_packet_t * packe
 
 /* Deliver the packet to a connection-less socket.  The socket is the
  * endpoint, so delivery terminates here. */
-static void csp_route_deliver_conn_less(csp_socket_t * socket, csp_iface_t * iface, csp_packet_t * packet) {
-
-	if (csp_route_security_check(socket->opts, iface, packet) != CSP_ERR_NONE) {
-		csp_buffer_free(packet);
-		return;
-	}
+static void csp_route_deliver_conn_less(csp_socket_t * socket, csp_packet_t * packet) {
 
 	if (csp_queue_enqueue(socket->rx_queue, &packet, 0) != CSP_QUEUE_OK) {
 		csp_dbg_conn_ovf++;
@@ -144,29 +139,14 @@ static void csp_route_deliver_conn_less(csp_socket_t * socket, csp_iface_t * ifa
 }
 
 /* Deliver the packet to a connection.  The connection is the
- * endpoint: an existing connection is matched by identifier (client
- * or server side), otherwise the socket acts as the factory for a
- * new server-side connection, which is posted to the socket rx_queue
- * for csp_accept(). */
-static void csp_route_deliver_connection(csp_socket_t * socket, csp_iface_t * iface, csp_packet_t * packet) {
-
-	/* Search for an existing connection */
-	csp_conn_t * conn = csp_conn_find_existing(&packet->id);
+ * endpoint: an existing connection, when given, was matched by
+ * identifier (client or server side), otherwise the socket acts as
+ * the factory for a new server-side connection, which is posted to
+ * the socket rx_queue for csp_accept(). */
+static void csp_route_deliver_connection(csp_conn_t * conn, csp_socket_t * socket, csp_packet_t * packet) {
 
 	/* If this is an incoming packet on a new connection */
 	if (conn == NULL) {
-
-		/* Reject packet if no matching socket is found */
-		if (!socket) {
-			csp_buffer_free(packet);
-			return;
-		}
-
-		/* Run security check on incoming packet */
-		if (csp_route_security_check(socket->opts, iface, packet) != CSP_ERR_NONE) {
-			csp_buffer_free(packet);
-			return;
-		}
 
 		/* New incoming connection accepted */
 		csp_id_t idout;
@@ -189,15 +169,6 @@ static void csp_route_deliver_connection(csp_socket_t * socket, csp_iface_t * if
 		/* Store the socket queue and options */
 		conn->dest_socket = socket;
 		conn->opts = socket->opts;
-
-		/* Packet to existing connection */
-	} else {
-
-		/* Run security check on incoming packet */
-		if (csp_route_security_check(conn->opts, iface, packet) != CSP_ERR_NONE) {
-			csp_buffer_free(packet);
-			return;
-		}
 	}
 
 #if (CSP_USE_RDP)
@@ -304,15 +275,35 @@ int csp_route_work(void) {
 	/* Socket delivery */
 	socket = csp_port_get_socket(packet->id.dport);
 
-	/* If the socket is connection-less, deliver now */
-	if (socket && csp_socket_is_conn_less(socket)) {
-		/* Connection-less delivery, the socket is the endpoint */
-		csp_route_deliver_conn_less(socket, input.iface, packet);
+	/* Resolve the endpoint: an existing connection first, otherwise
+	 * the bound socket.  Drop the packet if neither exists. */
+	csp_conn_t * conn = csp_conn_find_existing(&packet->id);
+
+	if (conn == NULL && socket == NULL) {
+		csp_buffer_free(packet);
 		return CSP_ERR_NONE;
 	}
 
-	/* Connection-oriented delivery, a connection is the endpoint and
-	 * the socket, when present, only accepts new connections */
-	csp_route_deliver_connection(socket, input.iface, packet);
+	/* Security check with the endpoint options */
+	uint32_t opts = conn ? conn->opts : socket->opts;
+	if (csp_route_security_check(opts, input.iface, packet) != CSP_ERR_NONE) {
+		csp_buffer_free(packet);
+		return CSP_ERR_NONE;
+	}
+
+	/* The packet itself does not tell connection-less from
+	 * connection-oriented; only the bound socket does.  Without a
+	 * conn-less socket, the connection pool is the last possible
+	 * match. */
+	if (socket != NULL && csp_socket_is_conn_less(socket)) {
+		/* Connection-less delivery, the socket is the endpoint */
+		csp_route_deliver_conn_less(socket, packet);
+	} else {
+		/* Connection-oriented delivery, a connection is the
+		 * endpoint and the socket, when present, only accepts new
+		 * connections */
+		csp_route_deliver_connection(conn, socket, packet);
+	}
+
 	return CSP_ERR_NONE;
 }
