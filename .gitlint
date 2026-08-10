@@ -3,3 +3,7 @@ regex-style-search=true
 
 [ignore-body-lines]
 regex=^(?:(?:Signed-off|Acked|Co-Authored|Reported|Tested)-by: |\[\d+\]: https:\/\/)
+
+[ignore-by-author-name]
+regex=^dependabot\[bot\]$
+ignore=B1
