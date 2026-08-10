@@ -111,10 +111,54 @@ cmake -B builddir -DCSP_ENABLE_PYTHON3_BINDINGS=ON -DCSP_USE_RTABLE=ON
 To use the bindings, you need to install them to a location where
 Python searches by default or specify the path to Python:
 
-```
+```shell
 PYTHONPATH=builddir python3 -c 'import libcsp_py3 as csp'
 ```
 
+CMake installs the Python bindings only when
+`CSP_PYTHON3_INSTALL_DIR` is set. The value is passed directly to
+CMake's `install()` command. A relative path is interpreted relative to
+`CMAKE_INSTALL_PREFIX`, while an absolute path is used verbatim.
+
+For example, the following installs libcsp under `/usr/local` and its
+Python bindings in the platform-module directory reported by Python:
+
+```shell
+python_install_dir=$(python3 -c 'import sysconfig; print(sysconfig.get_path("platlib"))')
+cmake -G Ninja -B builddir \
+    -DCSP_ENABLE_PYTHON3_BINDINGS=ON \
+    -DCSP_USE_RTABLE=ON \
+    -DCMAKE_INSTALL_PREFIX=/usr/local \
+    -DCSP_PYTHON3_INSTALL_DIR="$python_install_dir"
+cmake --build builddir
+sudo cmake --install builddir
+sudo ldconfig
+```
+
+This allows Python to select its versioned `site-packages` or
+`dist-packages` directory. Packagers can instead provide the destination
+required by their package layout.
+
+To install into an activated Python virtual environment, use the
+virtual environment as the CMake install prefix and determine its
+platform-module directory with Python:
+
+```shell
+python_install_dir=$(python -c 'import os, sys, sysconfig; print(os.path.relpath(sysconfig.get_path("platlib"), sys.prefix))')
+cmake -G Ninja -B builddir \
+    -DCSP_ENABLE_PYTHON3_BINDINGS=ON \
+    -DCSP_USE_RTABLE=ON \
+    -DCMAKE_INSTALL_PREFIX="$VIRTUAL_ENV" \
+    -DCSP_PYTHON3_INSTALL_DIR="$python_install_dir" \
+    '-DCMAKE_INSTALL_RPATH=$ORIGIN/../..'
+cmake --build builddir
+cmake --install builddir --component runtime
+```
+
+The install RPATH in this example allows the Python module to load the
+`libcsp.so` installed in the virtual environment's `lib` directory. It
+applies only to this build configuration and does not change libcsp's
+default RPATH policy.
 
 ## Reproducible Builds
 
