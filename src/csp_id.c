@@ -5,6 +5,9 @@
  *      Author: johan
  */
 
+#include "csp/autoconfig.h"
+
+#include <assert.h>
 #include <endian.h>
 #include <string.h>
 
@@ -271,6 +274,12 @@ unsigned int csp_id_get_max_port(void) {
 		return ((1 << CSP_ID1_PORT_SIZE) - 1);
 	}
 }
+
+/* csp_conn_init() assigns one outgoing source port to each slot. */
+static_assert(CSP_PORT_MAX_BIND + CSP_CONN_MAX <= CSP_ID1_SPORT_MASK,
+			  "CSP_PORT_MAX_BIND + CSP_CONN_MAX exceeds CSP1 source port range");
+static_assert(CSP_PORT_MAX_BIND + CSP_CONN_MAX <= CSP_ID2_SPORT_MASK,
+			  "CSP_PORT_MAX_BIND + CSP_CONN_MAX exceeds CSP2 source port range");
 
 int csp_id_is_broadcast(uint16_t addr, csp_iface_t * iface) {
 	uint16_t hostmask = (1 << (csp_id_get_host_bits() - iface->netmask)) - 1;
