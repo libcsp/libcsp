@@ -52,10 +52,12 @@ config CSP_QFIFO_LEN
 	  csp_qfifo_write().
 
 config CSP_PORT_MAX_BIND
-	int "Number of port to bind"
+	int "Highest bindable port number"
 	default 16
 	help
-	  Number of ports available for an interface.
+	  Highest port number, inclusive, that can be passed to
+	  csp_bind(). Higher port numbers are reserved for outgoing
+	  connections.
 
 config CSP_CONN_RXQUEUE_LEN
 	int "Number of packets in connection queue"
@@ -65,11 +67,15 @@ config CSP_CONN_RXQUEUE_LEN
 	  a connection.
 
 config CSP_CONN_MAX
-	int "Number of new connections on socket queue"
+	int "Number of statically allocated connection slots"
 	default 8
 	help
-	  This value specifies the number of new connections on socket
-	  queue.
+	  This value sets the number of statically allocated connection
+	  slots. Reduce it to save memory when fewer simultaneous
+	  connections are needed.
+
+	  The value must not exceed 63 minus CSP_PORT_MAX_BIND because
+	  every connection slot is assigned an outgoing source port.
 
 config CSP_BUFFER_SIZE
 	int "Bytes in each packet buffer"
