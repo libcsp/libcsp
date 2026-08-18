@@ -19,6 +19,10 @@ static void set_u32_reply(csp_packet_t * packet, uint32_t value) {
 
 void csp_service_handler(csp_packet_t * packet) {
 
+	if ((csp_conf.version != 1) && (packet->id.dport == CSP_REBOOT) && !(packet->id.flags & CSP_FCRC32)) {
+		goto discard;
+	}
+
 	switch (packet->id.dport) {
 
 		case CSP_CMP:

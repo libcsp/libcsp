@@ -343,6 +343,7 @@ void csp_bridge_work(void);
  * a switch/case statement in a CSP listener task.
  * In order to listen to csp service ports, bind your listener to the specific services ports #csp_service_port_t or
  * use #CSP_ANY to all ports.
+ * With CSP v2, CMP memory, route, and clock requests, and reboot requests without CRC32 are discarded.
  *
  * @param[in] packet first packet, obtained by using csp_read()
  */
