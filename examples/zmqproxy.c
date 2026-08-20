@@ -40,6 +40,30 @@ static int recv_msg(zmq_msg_t * msg, void * subscriber) {
 	return ret;
 }
 
+static int drain_multipart(void * subscriber) {
+
+	int more = 1;
+	while (more) {
+		zmq_msg_t part;
+		int ret = zmq_msg_init(&part);
+		if (ret != 0) {
+			return -1;
+		}
+		ret = recv_msg(&part, subscriber);
+		if (ret < 0) {
+			csp_print("ZMQ: %s\n", zmq_strerror(zmq_errno()));
+			close_msg(&part);
+			return -1;
+		}
+		more = zmq_msg_more(&part);
+		ret = close_msg(&part);
+		if (ret != 0) {
+			return -1;
+		}
+	}
+	return 0;
+}
+
 static void * task_capture(void * ctx) {
 
     int ret;
@@ -82,6 +106,20 @@ static void * task_capture(void * ctx) {
 			csp_print("ZMQ: %s\n", zmq_strerror(zmq_errno()));
 			close_msg(&msg);
 			break;
+		}
+
+		/* A CSP frame is carried in one single-part ZMQ message. */
+		if (zmq_msg_more(&msg)) {
+			csp_print("ZMQ: multipart messages are not supported\n");
+			ret = close_msg(&msg);
+			if (ret != 0) {
+				break;
+			}
+			ret = drain_multipart(subscriber);
+			if (ret != 0) {
+				break;
+			}
+			continue;
 		}
 
 		size_t datalen = zmq_msg_size(&msg);
