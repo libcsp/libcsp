@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <zmq.h>
 #include <assert.h>
+#include <errno.h>
 #include <pthread.h>
 
 #include <csp/csp.h>
@@ -18,6 +19,25 @@ FILE * logfile;
 static size_t max_raw_frame_length(void) {
 
 	return csp_id_get_header_size() + ((csp_conf.version == 1) ? 1 : 0) + CSP_ZMQ_MTU;
+}
+
+static int close_msg(zmq_msg_t * msg) {
+
+	int ret = zmq_msg_close(msg);
+	if (ret != 0) {
+		csp_print("ZMQ: failed to close message: %s\n", zmq_strerror(zmq_errno()));
+		return -1;
+	}
+	return 0;
+}
+
+static int recv_msg(zmq_msg_t * msg, void * subscriber) {
+
+	int ret;
+	do {
+		ret = zmq_msg_recv(msg, subscriber, 0);
+	} while ((ret < 0) && (zmq_errno() == EINTR));
+	return ret;
 }
 
 static void * task_capture(void * ctx) {
@@ -50,13 +70,18 @@ static void * task_capture(void * ctx) {
 
 	while (1) {
 		zmq_msg_t msg;
-		zmq_msg_init_size(&msg, 1024);
+		ret = zmq_msg_init(&msg);
+		if (ret != 0) {
+			csp_print("ZMQ: failed to initialize message: %s\n", zmq_strerror(zmq_errno()));
+			continue;
+		}
 
 		/* Receive data */
-		if (zmq_msg_recv(&msg, subscriber, 0) < 0) {
-			zmq_msg_close(&msg);
+		ret = recv_msg(&msg, subscriber);
+		if (ret < 0) {
 			csp_print("ZMQ: %s\n", zmq_strerror(zmq_errno()));
-			continue;
+			close_msg(&msg);
+			break;
 		}
 
 		size_t datalen = zmq_msg_size(&msg);
@@ -64,7 +89,10 @@ static void * task_capture(void * ctx) {
 		const size_t max_frame_length = max_raw_frame_length();
 		if (datalen < header_size || datalen > max_frame_length) {
 			csp_print("ZMQ: Invalid datalen: %zu - expected %zu to %zu bytes\n", datalen, header_size, max_frame_length);
-			zmq_msg_close(&msg);
+			ret = close_msg(&msg);
+			if (ret != 0) {
+				break;
+			}
 			continue;
 		}
 
@@ -84,7 +112,10 @@ static void * task_capture(void * ctx) {
 			fflush(logfile);
 		}
 
-		zmq_msg_close(&msg);
+		ret = close_msg(&msg);
+		if (ret != 0) {
+			break;
+		}
 	}
 }
 
