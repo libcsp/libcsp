@@ -1,6 +1,10 @@
 CSP Management Protocol (CMP)
 =============================
 
+CMP PEEK and POKE intentionally provide memory access and assume that the
+management service is restricted to trusted peers. See :ref:`cmp-peek-and-poke`
+for their security model and deployment requirements.
+
 .. autocmodule:: csp_cmp.h
 
 .. contents::
