@@ -104,6 +104,43 @@ static int csp_zmqhub_tx(csp_iface_t * iface, uint16_t __maybe_unused via, csp_p
 	return CSP_ERR_NONE;
 }
 
+static int csp_zmqhub_queue_msg(zmq_msg_t * msg, csp_iface_t * iface) {
+
+	size_t datalen = zmq_msg_size(msg);
+	const size_t header_size = csp_id_get_header_size() + ((csp_conf.version == 1) ? ZMQ_DEST_ADDR_SIZE_FIXUP_CSPV1 : 0);
+	if (datalen < header_size) {
+		csp_print("ZMQ RX %s: Too short datalen: %zu - expected min %zu bytes\n", iface->name, datalen, header_size);
+		return CSP_ERR_INVAL;
+	}
+
+	uint8_t * rx_data = zmq_msg_data(msg);
+	rx_data = csp_zmqhub_fixup_cspv1_del_dest_addr(rx_data, &datalen);
+	csp_id_t csp_id = csp_id_extract_fixup_cspv1(rx_data);
+
+	csp_packet_t * packet;
+	if (csp_iflist_get_by_addr(csp_id.dst) != NULL) {
+		/* The packet is for us, make sure we don't silently ignore the situation if we can't process it */
+		packet = csp_buffer_get_always();
+	} else  {
+		/* The packet is not for us, it is ok to drop it if we don't have enough buffers*/
+		packet = csp_buffer_get(0);
+	}
+
+	if (packet == NULL) {
+		csp_print("RX %s: Failed to get csp_buffer(%zu)\n", iface->name, datalen);
+		return CSP_ERR_NOMEM;
+	}
+
+	csp_id_setup_rx(packet);
+	packet->id = csp_id;
+	memcpy(packet->frame_begin, rx_data, datalen);
+	packet->frame_length = datalen;
+	packet->length = packet->frame_length - csp_id_get_header_size();
+
+	csp_qfifo_write(packet, iface, NULL);
+	return CSP_ERR_NONE;
+}
+
 static void * csp_zmqhub_task(void * param) {
 
 	zmq_driver_t * drv = param;
@@ -117,52 +154,12 @@ static void * csp_zmqhub_task(void * param) {
 		ret = zmq_msg_init_size(&msg, sizeof(packet->data) + HEADER_SIZE);
 		assert(ret == 0);
 
-		// Receive data
 		if (zmq_msg_recv(&msg, drv->subscriber, 0) < 0) {
 			csp_print("ZMQ RX err %s: %s\n", drv->iface.name, zmq_strerror(zmq_errno()));
 			continue;
 		}
 
-		size_t datalen = zmq_msg_size(&msg);
-		if (datalen < HEADER_SIZE) {
-			csp_print("ZMQ RX %s: Too short datalen: %u - expected min %u bytes\n", drv->iface.name, datalen, HEADER_SIZE);
-			zmq_msg_close(&msg);
-			continue;
-		}
-
-		// Copy the data from zmq to csp
-		uint8_t * rx_data = zmq_msg_data(&msg);
-		rx_data = csp_zmqhub_fixup_cspv1_del_dest_addr(rx_data, &datalen);
-
-		csp_id_t csp_id = csp_id_extract_fixup_cspv1(rx_data);
-
-		// Create new csp packet
-		if (csp_iflist_get_by_addr(csp_id.dst) != NULL) {
-			/* The packet is for us, make sure we don't silently ignore the situation if we can't process it */
-			packet = csp_buffer_get_always();
-		} else  {
-			/* The packet is not for us, it is ok to drop it if we don't have enough buffers*/
-			packet = csp_buffer_get(0);
-		}
-
-		if (packet == NULL) {
-			csp_print("RX %s: Failed to get csp_buffer(%u)\n", drv->iface.name, datalen);
-			zmq_msg_close(&msg);
-			continue;
-		}
-
-		csp_id_setup_rx(packet);
-		packet->id = csp_id;
-
-		memcpy(packet->frame_begin, rx_data, datalen);
-		packet->frame_length = datalen;
-		/* Extract data length */
-		packet->length = packet->frame_length - csp_id_get_header_size();
-
-
-		// Route packet
-		csp_qfifo_write(packet, &drv->iface, NULL);
-
+		csp_zmqhub_queue_msg(&msg, &drv->iface);
 		zmq_msg_close(&msg);
 	}
 
