@@ -4,6 +4,7 @@
 
 #include <zmq.h>
 #include <assert.h>
+#include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -39,6 +40,16 @@ typedef struct {
 
 /* Linux is fast, so we keep it simple by having a single lock */
 static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
+
+static size_t csp_zmqhub_raw_header_size(void) {
+
+	return csp_id_get_header_size() + ((csp_conf.version == 1) ? ZMQ_DEST_ADDR_SIZE_FIXUP_CSPV1 : 0);
+}
+
+static size_t csp_zmqhub_max_raw_frame_length(void) {
+
+	return csp_zmqhub_raw_header_size() + CSP_ZMQ_MTU;
+}
 
 /**
  * Add one byte of the dest or "via" address to the beginning of the
@@ -106,13 +117,21 @@ static int csp_zmqhub_tx(csp_iface_t * iface, uint16_t __maybe_unused via, csp_p
 
 static int csp_zmqhub_queue_msg(zmq_msg_t * msg, csp_iface_t * iface) {
 
-	size_t datalen = zmq_msg_size(msg);
-	const size_t header_size = csp_id_get_header_size() + ((csp_conf.version == 1) ? ZMQ_DEST_ADDR_SIZE_FIXUP_CSPV1 : 0);
-	if (datalen < header_size) {
-		csp_print("ZMQ RX %s: Too short datalen: %zu - expected min %zu bytes\n", iface->name, datalen, header_size);
+	const size_t raw_datalen = zmq_msg_size(msg);
+	const size_t raw_header_size = csp_zmqhub_raw_header_size();
+	const size_t max_raw_frame_length = csp_zmqhub_max_raw_frame_length();
+	if (raw_datalen < raw_header_size) {
+		iface->frame++;
+		csp_print("ZMQ RX %s: too short datalen: %zu - expected at least %zu bytes\n", iface->name, raw_datalen, raw_header_size);
+		return CSP_ERR_INVAL;
+	}
+	if (raw_datalen > max_raw_frame_length) {
+		iface->rx_error++;
+		csp_print("ZMQ RX %s: too long datalen: %zu - expected at most %zu bytes\n", iface->name, raw_datalen, max_raw_frame_length);
 		return CSP_ERR_INVAL;
 	}
 
+	size_t datalen = raw_datalen;
 	uint8_t * rx_data = zmq_msg_data(msg);
 	rx_data = csp_zmqhub_fixup_cspv1_del_dest_addr(rx_data, &datalen);
 	csp_id_t csp_id = csp_id_extract_fixup_cspv1(rx_data);
@@ -153,6 +172,22 @@ static int csp_zmqhub_close_msg(zmq_msg_t * msg, csp_iface_t * iface) {
 	return CSP_ERR_NONE;
 }
 
+static int csp_zmqhub_recv_msg(zmq_msg_t * msg, void * subscriber) {
+
+	int ret;
+	do {
+		ret = zmq_msg_recv(msg, subscriber, 0);
+	} while ((ret < 0) && (zmq_errno() == EINTR));
+	return ret;
+}
+
+static void csp_zmqhub_set_max_msg_size(void * subscriber) {
+
+	const int64_t max_msg_size = UINT16_MAX;
+	int __maybe_unused ret = zmq_setsockopt(subscriber, ZMQ_MAXMSGSIZE, &max_msg_size, sizeof(max_msg_size));
+	assert(ret == 0);
+}
+
 static int csp_zmqhub_rx(void * subscriber, csp_iface_t * iface) {
 
 	zmq_msg_t msg;
@@ -162,7 +197,7 @@ static int csp_zmqhub_rx(void * subscriber, csp_iface_t * iface) {
 		return CSP_ERR_DRIVER;
 	}
 
-	ret = zmq_msg_recv(&msg, subscriber, 0);
+	ret = csp_zmqhub_recv_msg(&msg, subscriber);
 	if (ret < 0) {
 		iface->rx_error++;
 		csp_print("ZMQ RX err %s: %s\n", iface->name, zmq_strerror(zmq_errno()));
@@ -267,6 +302,7 @@ int csp_zmqhub_init_w_name_endpoints_rxfilter(const char * ifname, uint16_t addr
 	/* Subscriber (RX) */
 	drv->subscriber = zmq_socket(drv->context, ZMQ_SUB);
 	assert(drv->subscriber != NULL);
+	csp_zmqhub_set_max_msg_size(drv->subscriber);
 
 	// subscribe to all packets - no filter
 	ret = zmq_setsockopt(drv->subscriber, ZMQ_SUBSCRIBE, NULL, 0);
@@ -415,6 +451,7 @@ int csp_zmqhub_init_filter2(const char * ifname, const char * host, uint16_t add
 	/* Subscriber (RX) */
 	drv->subscriber = zmq_socket(drv->context, ZMQ_SUB);
 	assert(drv->subscriber != NULL);
+	csp_zmqhub_set_max_msg_size(drv->subscriber);
 
 	/* If shared secret key provided */
 	if (sec_key_len) {
