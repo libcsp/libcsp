@@ -1,6 +1,10 @@
 ZeroMQ Interface
 ================
 
+The interface carries one CSP frame in each single-part ZeroMQ message.
+Multipart messages and messages outside the current CSP packet capacity are
+discarded.
+
 .. autocmodule:: interfaces/csp_if_zmqhub.h
 
 .. contents::
