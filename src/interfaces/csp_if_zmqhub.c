@@ -188,6 +188,35 @@ static void csp_zmqhub_set_max_msg_size(void * subscriber) {
 	assert(ret == 0);
 }
 
+static int csp_zmqhub_drain_multipart(void * subscriber, csp_iface_t * iface) {
+
+	int more = 1;
+	while (more) {
+		zmq_msg_t part;
+		int ret = zmq_msg_init(&part);
+		if (ret != 0) {
+			iface->rx_error++;
+			return CSP_ERR_DRIVER;
+		}
+
+		ret = csp_zmqhub_recv_msg(&part, subscriber);
+		if (ret < 0) {
+			iface->rx_error++;
+			csp_print("ZMQ RX err %s: %s\n", iface->name, zmq_strerror(zmq_errno()));
+			csp_zmqhub_close_msg(&part, iface);
+			return CSP_ERR_DRIVER;
+		}
+
+		more = zmq_msg_more(&part);
+		ret = csp_zmqhub_close_msg(&part, iface);
+		if (ret != CSP_ERR_NONE) {
+			return CSP_ERR_DRIVER;
+		}
+	}
+
+	return CSP_ERR_NONE;
+}
+
 static int csp_zmqhub_rx(void * subscriber, csp_iface_t * iface) {
 
 	zmq_msg_t msg;
@@ -203,6 +232,21 @@ static int csp_zmqhub_rx(void * subscriber, csp_iface_t * iface) {
 		csp_print("ZMQ RX err %s: %s\n", iface->name, zmq_strerror(zmq_errno()));
 		csp_zmqhub_close_msg(&msg, iface);
 		return CSP_ERR_DRIVER;
+	}
+
+	/* A CSP frame is carried in one single-part ZMQ message. */
+	if (zmq_msg_more(&msg)) {
+		iface->frame++;
+		csp_print("ZMQ RX %s: multipart messages are not supported\n", iface->name);
+		ret = csp_zmqhub_close_msg(&msg, iface);
+		if (ret != CSP_ERR_NONE) {
+			return CSP_ERR_DRIVER;
+		}
+		ret = csp_zmqhub_drain_multipart(subscriber, iface);
+		if (ret != CSP_ERR_NONE) {
+			return CSP_ERR_DRIVER;
+		}
+		return CSP_ERR_INVAL;
 	}
 
 	ret = csp_zmqhub_queue_msg(&msg, iface);
