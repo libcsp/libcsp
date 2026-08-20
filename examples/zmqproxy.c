@@ -64,6 +64,12 @@ static int drain_multipart(void * subscriber) {
 	return 0;
 }
 
+static int set_max_msg_size(void * socket, size_t max_frame_length) {
+
+	const int64_t max_msg_size = max_frame_length;
+	return zmq_setsockopt(socket, ZMQ_MAXMSGSIZE, &max_msg_size, sizeof(max_msg_size));
+}
+
 static void * task_capture(void * ctx) {
 
     int ret;
@@ -72,15 +78,26 @@ static void * task_capture(void * ctx) {
 
 	/* Subscriber (RX) */
 	void * subscriber = zmq_socket(ctx, ZMQ_SUB);
+	if (subscriber == NULL) {
+		return NULL;
+	}
+	ret = set_max_msg_size(subscriber, UINT16_MAX);
+	if (ret != 0) {
+		perror("Failed to set maximum message size");
+		zmq_close(subscriber);
+		return NULL;
+	}
 	ret = zmq_connect(subscriber, pub_str);
 	if (ret < 0) {
 		perror("Unable to connect");
-		exit(1);
+		zmq_close(subscriber);
+		return NULL;
     }
 	ret = zmq_setsockopt(subscriber, ZMQ_SUBSCRIBE, "", 0);
 	if (ret < 0) {
 		perror("Failed to call setsockopt");
-		exit(1);
+		zmq_close(subscriber);
+		return NULL;
     }
 
 
@@ -88,7 +105,8 @@ static void * task_capture(void * ctx) {
 		logfile = fopen(logfile_name, "a+");
 		if (logfile == NULL) {
 			csp_print("Unable to open logfile %s\n", logfile_name);
-			exit(-1);
+			zmq_close(subscriber);
+			return NULL;
 		}
 	}
 
@@ -155,6 +173,9 @@ static void * task_capture(void * ctx) {
 			break;
 		}
 	}
+
+	zmq_close(subscriber);
+	return NULL;
 }
 
 int main(int argc, char ** argv) {
@@ -198,28 +219,56 @@ int main(int argc, char ** argv) {
 
 	void * frontend = zmq_socket(ctx, ZMQ_XSUB);
 	assert(frontend);
+	/* Forward frames for any supported packet-buffer configuration. */
+    ret = set_max_msg_size(frontend, UINT16_MAX);
+	if (ret < 0) {
+		perror("Failed to set maximum message size");
+		zmq_close(frontend);
+		zmq_ctx_destroy(ctx);
+		return 1;
+	}
     ret = zmq_bind(frontend, sub_str);
 	if (ret < 0) {
 		perror("Failed to bind to ZMQ_XSUB");
+		zmq_close(frontend);
+		zmq_ctx_destroy(ctx);
 		return 1;
 	}
 	csp_print("Subscriber task listening on %s\n", sub_str);
 
 	void * backend = zmq_socket(ctx, ZMQ_XPUB);
+	if (backend == NULL) {
+		zmq_close(frontend);
+		zmq_ctx_destroy(ctx);
+		return 1;
+	}
 
     ret = zmq_bind(backend, pub_str);
 	if (ret < 0) {
 		perror("Failed to bind to ZMQ_XPUB");
+		zmq_close(backend);
+		zmq_close(frontend);
+		zmq_ctx_destroy(ctx);
 		return 1;
 	}
 	csp_print("Publisher task listening on %s\n", pub_str);
 
 	pthread_t capworker;
-	pthread_create(&capworker, NULL, task_capture, ctx);
+	ret = pthread_create(&capworker, NULL, task_capture, ctx);
+	if (ret != 0) {
+		zmq_close(backend);
+		zmq_close(frontend);
+		zmq_ctx_destroy(ctx);
+		return 1;
+	}
 
 	zmq_proxy(frontend, backend, NULL);
 
 	csp_print("Closing ZMQproxy");
+	zmq_ctx_shutdown(ctx);
+	pthread_join(capworker, NULL);
+	zmq_close(backend);
+	zmq_close(frontend);
 	zmq_ctx_destroy(ctx);
 
 	return 0;
