@@ -1,10 +1,9 @@
 #include <unistd.h>
+#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <zmq.h>
 #include <assert.h>
 #include <pthread.h>
-#include <inttypes.h>
 
 #include <csp/csp.h>
 #include <csp/csp_id.h>
@@ -15,6 +14,11 @@ const char * sub_str = "tcp://0.0.0.0:6000";
 const char * pub_str = "tcp://0.0.0.0:7000";
 char * logfile_name = NULL;
 FILE * logfile;
+
+static size_t max_raw_frame_length(void) {
+
+	return csp_id_get_header_size() + ((csp_conf.version == 1) ? 1 : 0) + CSP_ZMQ_MTU;
+}
 
 static void * task_capture(void * ctx) {
 
@@ -36,10 +40,6 @@ static void * task_capture(void * ctx) {
     }
 
 
-	/* Allocated 'raw' CSP packet */
-	csp_packet_t * packet = malloc(1024);
-	assert(packet != NULL);
-
 	if (logfile_name) {
 		logfile = fopen(logfile_name, "a+");
 		if (logfile == NULL) {
@@ -60,33 +60,27 @@ static void * task_capture(void * ctx) {
 		}
 
 		size_t datalen = zmq_msg_size(&msg);
-		if (datalen < 5) {
-			csp_print("ZMQ: Too short datalen: %u\n", datalen);
-			while (zmq_msg_recv(&msg, subscriber, ZMQ_NOBLOCK) > 0)
-				zmq_msg_close(&msg);
+		const size_t header_size = csp_id_get_header_size() + ((csp_conf.version == 1) ? 1 : 0);
+		const size_t max_frame_length = max_raw_frame_length();
+		if (datalen < header_size || datalen > max_frame_length) {
+			csp_print("ZMQ: Invalid datalen: %zu - expected %zu to %zu bytes\n", datalen, header_size, max_frame_length);
+			zmq_msg_close(&msg);
 			continue;
 		}
 
 		uint8_t * rx_data = csp_zmqhub_fixup_cspv1_del_dest_addr(zmq_msg_data(&msg), &datalen);
-
-		/* Copy to packet */
-		csp_id_setup_rx(packet);
-		memcpy(packet->frame_begin, rx_data, datalen);
-		packet->frame_length = datalen;
-
-		/* Parse header */
-		csp_id_strip_fixup_cspv1(packet);
+		csp_id_t id = csp_id_extract_fixup_cspv1(rx_data);
+		const size_t payload_length = datalen - csp_id_get_header_size();
 
 		/* Print header data */
-		csp_print("Packet: Src %u, Dst %u, Dport %u, Sport %u, Pri %u, Flags 0x%02X, Size %" PRIu16 "\n",
-			   packet->id.src, packet->id.dst, packet->id.dport,
-			   packet->id.sport, packet->id.pri, packet->id.flags, packet->length);
+		csp_print("Packet: Src %u, Dst %u, Dport %u, Sport %u, Pri %u, Flags 0x%02X, Size %zu\n",
+			   id.src, id.dst, id.dport, id.sport, id.pri, id.flags, payload_length);
 
 
 		if (logfile) {
 			const char * delimiter = "--------\n";
-			fwrite(delimiter, sizeof(delimiter), 1, logfile);
-			fwrite(packet->frame_begin, packet->frame_length, 1, logfile);
+			fputs(delimiter, logfile);
+			fwrite(rx_data, datalen, 1, logfile);
 			fflush(logfile);
 		}
 
