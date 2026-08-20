@@ -141,26 +141,52 @@ static int csp_zmqhub_queue_msg(zmq_msg_t * msg, csp_iface_t * iface) {
 	return CSP_ERR_NONE;
 }
 
+static int csp_zmqhub_close_msg(zmq_msg_t * msg, csp_iface_t * iface) {
+
+	int ret = zmq_msg_close(msg);
+	if (ret != 0) {
+		iface->rx_error++;
+		csp_print("ZMQ RX err %s: failed to close message: %s\n", iface->name, zmq_strerror(zmq_errno()));
+		return CSP_ERR_DRIVER;
+	}
+
+	return CSP_ERR_NONE;
+}
+
+static int csp_zmqhub_rx(void * subscriber, csp_iface_t * iface) {
+
+	zmq_msg_t msg;
+	int ret = zmq_msg_init(&msg);
+	if (ret != 0) {
+		iface->rx_error++;
+		return CSP_ERR_DRIVER;
+	}
+
+	ret = zmq_msg_recv(&msg, subscriber, 0);
+	if (ret < 0) {
+		iface->rx_error++;
+		csp_print("ZMQ RX err %s: %s\n", iface->name, zmq_strerror(zmq_errno()));
+		csp_zmqhub_close_msg(&msg, iface);
+		return CSP_ERR_DRIVER;
+	}
+
+	ret = csp_zmqhub_queue_msg(&msg, iface);
+	int close_ret = csp_zmqhub_close_msg(&msg, iface);
+	if (close_ret != CSP_ERR_NONE) {
+		return CSP_ERR_DRIVER;
+	}
+	return ret;
+}
+
 static void * csp_zmqhub_task(void * param) {
 
 	zmq_driver_t * drv = param;
-	csp_packet_t * packet;
-	const uint32_t HEADER_SIZE = (csp_conf.version == 2) ? 6 : 4 + ZMQ_DEST_ADDR_SIZE_FIXUP_CSPV1;
 
 	while (1) {
-		int __maybe_unused ret;
-		zmq_msg_t msg;
-
-		ret = zmq_msg_init_size(&msg, sizeof(packet->data) + HEADER_SIZE);
-		assert(ret == 0);
-
-		if (zmq_msg_recv(&msg, drv->subscriber, 0) < 0) {
-			csp_print("ZMQ RX err %s: %s\n", drv->iface.name, zmq_strerror(zmq_errno()));
-			continue;
+		int ret = csp_zmqhub_rx(drv->subscriber, &drv->iface);
+		if (ret == CSP_ERR_DRIVER) {
+			break;
 		}
-
-		csp_zmqhub_queue_msg(&msg, &drv->iface);
-		zmq_msg_close(&msg);
 	}
 
 	return NULL;
