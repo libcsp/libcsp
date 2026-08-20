@@ -9,4 +9,9 @@ if(CHECK_FOUND)
     route.c
     wire.c
   )
+  if(LIBZMQ_FOUND)
+    target_sources(csp_tests PRIVATE zmqhub.c)
+    target_include_directories(csp_tests PRIVATE ${LIBZMQ_INCLUDE_DIRS})
+    target_link_libraries(csp_tests PRIVATE ${LIBZMQ_LIBRARIES})
+  endif()
 endif()
