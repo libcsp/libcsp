@@ -17,8 +17,8 @@
 extern "C" {
 #endif
 
-/** max payload data, see documentation */
-#define CSP_ZMQ_MTU 2048
+/** Maximum CSP payload carried by the ZMQ interface. */
+#define CSP_ZMQ_MTU ((CSP_BUFFER_SIZE < (UINT16_MAX - 6u)) ? CSP_BUFFER_SIZE : (UINT16_MAX - 6u))
 
 /**
  * zmqproxy default subscribe (rx) port.
