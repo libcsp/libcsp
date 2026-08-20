@@ -37,6 +37,7 @@ def server_task(addr: int, port: int) -> None:
                     data=csp.packet_get_data(packet).decode('utf-8'))
                 )
             else:
+                # This example exposes management services; see doc/security.md.
                 csp.service_handler(conn, packet)
 
 

@@ -89,7 +89,8 @@ def csp_server():
                 libcsp.sendto_reply(packet, reply, libcsp.CSP_O_NONE)
 
             else:
-                # pass request on to service handler if the given packet is a service-request
+                # This example exposes management services; see doc/security.md.
+                # Pass request on to service handler if the given packet is a service-request
                 # (ie: destination port is [0-6] see "include\csp\csp_types.h" line 47-55)
                 # parameters: {connection} {packet}
                 # will handle and send reply packets if necessary

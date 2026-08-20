@@ -61,7 +61,7 @@ void server(void) {
 				break;
 
 			default:
-				/* Call the default CSP service handler, handle pings, buffer use, etc. */
+				/* This example exposes management services; see doc/security.md. */
 				csp_service_handler(packet);
 				break;
 			}

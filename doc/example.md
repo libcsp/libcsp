@@ -5,6 +5,12 @@ simple server/client setup, where the client sends a request to the
 server and receives a reply. The code can be compiled to an executable
 using `./examples/buildall.py`.
 
+The example servers bind to all CSP ports and pass default service requests to
+`csp_service_handler()`. This exposes CMP management operations, including
+PEEK and POKE. These examples demonstrate libcsp functionality; they are not
+hardened services intended for exposure to an untrusted network. See
+{ref}`cmp-peek-and-poke` for the security model and deployment requirements.
+
 The example supports these drivers and interfaces in CSP:
 
   - ZMQHUB: `-z <host name|ip>`
