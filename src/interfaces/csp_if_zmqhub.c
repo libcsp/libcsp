@@ -16,6 +16,7 @@
 
 #include "../csp_macro.h"
 #include "../csp_buffer_private.h"
+#include "csp_if_zmqhub_internal.h"
 
 /**
  * ZMQ destination size (for libcsp1 backwards compatibility)
@@ -41,12 +42,12 @@ typedef struct {
 /* Linux is fast, so we keep it simple by having a single lock */
 static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 
-static size_t csp_zmqhub_raw_header_size(void) {
+size_t csp_zmqhub_raw_header_size(void) {
 
 	return csp_id_get_header_size() + ((csp_conf.version == 1) ? ZMQ_DEST_ADDR_SIZE_FIXUP_CSPV1 : 0);
 }
 
-static size_t csp_zmqhub_max_raw_frame_length(void) {
+size_t csp_zmqhub_max_raw_frame_length(void) {
 
 	return csp_zmqhub_raw_header_size() + CSP_ZMQ_MTU;
 }
@@ -217,7 +218,7 @@ static int csp_zmqhub_drain_multipart(void * subscriber, csp_iface_t * iface) {
 	return CSP_ERR_NONE;
 }
 
-static int csp_zmqhub_rx(void * subscriber, csp_iface_t * iface) {
+int csp_zmqhub_rx(void * subscriber, csp_iface_t * iface) {
 
 	zmq_msg_t msg;
 	int ret = zmq_msg_init(&msg);
