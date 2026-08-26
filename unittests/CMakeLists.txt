@@ -7,5 +7,6 @@ if(CHECK_FOUND)
     buffer.c
     hmac.c
     route.c
+    wire.c
   )
 endif()
