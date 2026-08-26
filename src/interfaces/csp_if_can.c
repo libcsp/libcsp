@@ -53,13 +53,14 @@ static int csp_can1_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, u
 			uint8_t header[CFP1_CSP_HEADER_SIZE];
 			/* Copy first 4 from data as they represent the CSP header, the data field is in network order */
 			memcpy(header, data, CFP1_CSP_HEADER_SIZE);
-			csp_id_t csp_id = csp_id_extract(header);
+			csp_id_t csp_id = csp_id1_extract(header);
 			packet = csp_can_pbuf_new(ifdata, id, csp_id, task_woken);
 			if (packet == NULL) {
 				iface->drop++;
 				return CSP_ERR_NOBUFS;
 			}
 
+			packet->version = iface->version;
 			csp_id_setup_rx(packet);
 			packet->id = csp_id;
 
@@ -174,6 +175,18 @@ static int csp_can1_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet,
 	}
 
 	csp_can_interface_data_t * ifdata = iface->interface_data;
+
+	if (packet->version == 0) {
+		/* Set packet version as it is needed in csp_id_prepend */
+		packet->version = iface->version;
+
+		/* Is dst and src addresses valid for CSPv1 which is max 0x1F (5 bits)*/
+		if (packet->id.dst > 0x1F || packet->id.src > 0x1F) {
+			return CSP_ERR_INVAL;
+		}
+	} else if (packet->version != iface->version) {
+		return CSP_ERR_INVAL;
+	}
 
 	/* Get an unique CFP id */
 	const uint32_t ident = ifdata->cfp_packet_counter++; // Atomic operation as cfp_packet_counter is of type atomic_int
@@ -294,13 +307,14 @@ static int csp_can2_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, u
 			dlc -= 4;
 
 			/* Create CSP header info from the first bytes received */
-			csp_id_t csp_id = csp_id_extract(header);
+			csp_id_t csp_id = csp_id2_extract(header);
 			packet = csp_can_pbuf_new(ifdata, id, csp_id, task_woken);
 			if (packet == NULL) {
 				iface->drop++;
 				return CSP_ERR_NOBUFS;
 			}
 
+			packet->version = iface->version;
 			/* Prepare new CSP packet by adding header as extracted */
 			csp_id_setup_rx(packet);
 			packet->id = csp_id;
@@ -486,7 +500,11 @@ int csp_can_add_interface(csp_iface_t * iface) {
 
 	ifdata->cfp_packet_counter = 0;
 
-	if (csp_conf.version == 1) {
+	if (iface->version == 0) {
+		iface->version = csp_conf.version;
+	}
+
+	if (iface->version == 1) {
 		iface->nexthop = csp_can1_tx;
 	} else {
 		iface->nexthop = csp_can2_tx;
@@ -510,7 +528,7 @@ int csp_can_remove_interface(csp_iface_t * iface) {
 
 int csp_can_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t dlc, uint32_t timestamp_rx, int * task_woken) {
 
-	if (csp_conf.version == 1) {
+	if (iface->version == 1) {
 		return csp_can1_rx(iface, id, data, dlc, task_woken);
 	} else {
 		return csp_can2_rx(iface, id, data, dlc, timestamp_rx, task_woken);

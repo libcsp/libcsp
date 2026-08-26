@@ -133,6 +133,7 @@ typedef struct csp_packet_s {
 
 	struct csp_packet_s * next; /*< Used for lists / queues of packets */
 
+	uint8_t	version;            /*< CSP version of the packet. 0=use csp_conf.version, 1=CSPv1, 2=CSPv2 */
 
 	/**
 	 * Additional header bytes, to prepend packed data before transmission
