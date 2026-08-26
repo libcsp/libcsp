@@ -1,0 +1,50 @@
+name: Unit Tests
+
+on:
+  pull_request:
+  push:
+    branches:
+      - develop
+      - 'libcsp-*'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit-test:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: GCC
+            cc: gcc
+            cxx: g++
+          - name: Clang
+            cc: clang
+            cxx: clang++
+
+    steps:
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install check cmake ninja-build
+
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Configure
+        env:
+          CC: ${{ matrix.cc }}
+          CXX: ${{ matrix.cxx }}
+        run: cmake -GNinja -S . -B build
+
+      - name: Build unit tests
+        run: cmake --build build --target csp_tests
+
+      - name: Run unit tests
+        run: ./build/unittests/csp_tests
