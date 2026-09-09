@@ -61,7 +61,11 @@
 
 #include <csp/csp_interface.h>
 #include <stdint.h>
+#ifdef __cplusplus
+#include <atomic>
+#else
 #include <stdatomic.h>
+#endif
 #include "csp/csp_types.h"
 
 #ifdef __cplusplus
@@ -194,7 +198,12 @@ typedef int (*csp_can_driver_tx_t)(void * driver_data, uint32_t id, const uint8_
  * Interface data (state information).
  */
 typedef struct {
+	/* FIXME (#1019): Keep atomic types internal to libcsp. */
+#ifdef __cplusplus
+	std::atomic_int cfp_packet_counter; /**< CFP Identification number - same number on all fragments from same CSP packet. */
+#else
 	atomic_int cfp_packet_counter; /**< CFP Identification number - same number on all fragments from same CSP packet. */
+#endif
 	csp_can_driver_tx_t tx_func; /**< Tx function */
 	csp_packet_t * pbufs; /**< PBUF queue */
 } csp_can_interface_data_t;
