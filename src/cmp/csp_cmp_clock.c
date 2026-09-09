@@ -7,6 +7,10 @@
 
 int csp_cmp_clock_handler(csp_packet_t * packet) {
 
+	if (csp_cmp_check_crc32(packet) != CSP_ERR_NONE) {
+		return CSP_ERR_CRC32;
+	}
+
 	struct csp_cmp_clock_msg * cmp = (struct csp_cmp_clock_msg *)packet->data;
 
 	if (csp_cmp_check_len(packet, sizeof(*cmp)) != CSP_ERR_NONE) {
