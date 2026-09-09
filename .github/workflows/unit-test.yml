@@ -40,7 +40,6 @@ jobs:
       - name: Configure
         env:
           CC: ${{ matrix.cc }}
-          CXX: ${{ matrix.cxx }}
         run: cmake -GNinja -S . -B build
 
       - name: Build unit tests
@@ -48,3 +47,11 @@ jobs:
 
       - name: Run unit tests
         run: ./build/unittests/csp_tests
+
+      - name: Test C++ consumer
+        run: |
+          cmake -GNinja -S unittests/cpp -B build-cpp \
+            -DCMAKE_C_COMPILER=${{ matrix.cc }} \
+            -DCMAKE_CXX_COMPILER=${{ matrix.cxx }}
+          cmake --build build-cpp --target csp_cpp_consumer
+          ./build-cpp/csp_cpp_consumer
