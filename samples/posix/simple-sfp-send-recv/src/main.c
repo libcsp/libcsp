@@ -111,11 +111,20 @@ static void * receiver(void * params) {
 }
 
 static int loopback_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet, int from_me) {
-    /* add some sleep to avoid starving the system when RDP is not used */
-    if ((CONN_OPTS & CSP_O_RDP) == 0)
-        usleep(1000);
-        
+    (void)iface;
+    (void)via;
+    (void)from_me;
+    
     csp_qfifo_write(packet, &csp_if_lo, NULL);
+    
+    /* add some sleep to avoid starving the system when RDP is not used */
+    if ((CONN_OPTS & CSP_O_RDP) == 0) {
+        const int min_free_buffers = (CSP_BUFFER_COUNT / 2) + 1;
+        while (min_free_buffers > csp_buffer_remaining()) {
+            usleep(1000);
+        }
+    }
+
     return CSP_ERR_NONE;
 }
 
