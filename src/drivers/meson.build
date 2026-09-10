@@ -9,6 +9,10 @@ endif
 
 if host_machine.system() == 'linux'
 	csp_sources += files(['eth/eth_linux.c'])
-	csp_sources += files(['usart/usart_linux.c'])
+	if get_option('use_posix_termios')
+		csp_sources += files(['usart/usart_posix.c'])
+	else
+		csp_sources += files(['usart/usart_linux.c'])
+	endif
 	csp_sources += files(['usart/usart_kiss.c'])
 endif
