@@ -19,6 +19,10 @@ csp_conf_t csp_conf = {
 	.hostname = "",
 	.model = "",
 	.revision = "",
+#if CSP_REPRODUCIBLE_BUILDS == 1
+	.date = "",
+	.time = "",
+#endif
 	.conn_dfl_so = CSP_O_NONE,
 	.dedup = CSP_DEDUP_OFF};
 
