@@ -23,6 +23,7 @@ jobs:
           - "-D enable_csp_print=false -D print_stdio=true"
           - "-D enable_csp_print=true  -D print_stdio=false"
           - "-D enable_csp_print=true  -D print_stdio=true"
+          - "-D enable_reproducible_builds=true"
     runs-on: ${{ matrix.os }}
     steps:
       - name: Setup packages on Linux
