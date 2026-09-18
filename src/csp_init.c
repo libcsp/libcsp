@@ -19,6 +19,8 @@ csp_conf_t csp_conf = {
 	.hostname = "",
 	.model = "",
 	.revision = "",
+	.date = "",
+	.time = "",
 	.conn_dfl_so = CSP_O_NONE,
 	.dedup = CSP_DEDUP_OFF};
 

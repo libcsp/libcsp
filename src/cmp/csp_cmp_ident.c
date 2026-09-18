@@ -20,11 +20,11 @@ int csp_cmp_ident_handler(csp_packet_t * packet) {
 	strncpy(cmp->time, __TIME__, CSP_CMP_IDENT_TIME_LEN);
 	cmp->time[CSP_CMP_IDENT_TIME_LEN - 1] = '\0';
 #else
-strncpy(cmp->date, csp_conf.date, CSP_CMP_IDENT_DATE_LEN);
-cmp->date[CSP_CMP_IDENT_DATE_LEN - 1] = '\0';
+	strncpy(cmp->date, csp_conf.date, CSP_CMP_IDENT_DATE_LEN);
+	cmp->date[CSP_CMP_IDENT_DATE_LEN - 1] = '\0';
 
-strncpy(cmp->time, csp_conf.time, CSP_CMP_IDENT_TIME_LEN);
-cmp->time[CSP_CMP_IDENT_TIME_LEN - 1] = '\0';
+	strncpy(cmp->time, csp_conf.time, CSP_CMP_IDENT_TIME_LEN);
+	cmp->time[CSP_CMP_IDENT_TIME_LEN - 1] = '\0';
 #endif
 
 	strncpy(cmp->hostname, csp_conf.hostname, CSP_HOSTNAME_LEN);
