@@ -47,21 +47,31 @@ int csp_kiss_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet, int fr
 	const unsigned char esc_esc[] = {FESC, TFESC};
 	const unsigned char * data = packet->frame_begin;
 
-	ifdata->tx_func(driver, start, sizeof(start));
+	if (ifdata->tx_func(driver, start, sizeof(start)) != CSP_ERR_NONE) {
+		goto tx_err;
+	}
 
 	for (unsigned int i = 0; i < packet->frame_length; i++, ++data) {
 		if (*data == FEND) {
-			ifdata->tx_func(driver, esc_end, sizeof(esc_end));
+			if (ifdata->tx_func(driver, esc_end, sizeof(esc_end)) != CSP_ERR_NONE) {
+				goto tx_err;
+			}
 			continue;
 		}
 		if (*data == FESC) {
-			ifdata->tx_func(driver, esc_esc, sizeof(esc_esc));
+			if (ifdata->tx_func(driver, esc_esc, sizeof(esc_esc)) != CSP_ERR_NONE) {
+				goto tx_err;
+			}
 			continue;
 		}
-		ifdata->tx_func(driver, data, 1);
+		if (ifdata->tx_func(driver, data, 1) != CSP_ERR_NONE) {
+			goto tx_err;
+		}
 	}
 	const unsigned char stop[] = {FEND};
-	ifdata->tx_func(driver, stop, sizeof(stop));
+	if (ifdata->tx_func(driver, stop, sizeof(stop)) != CSP_ERR_NONE) {
+		goto tx_err;
+	}
 
 	/* Unlock */
 	csp_usart_unlock(driver);
@@ -70,6 +80,15 @@ int csp_kiss_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet, int fr
 	csp_buffer_free(packet);
 
 	return CSP_ERR_NONE;
+
+tx_err:
+	/* Ownership of the packet depends on what we return: csp_send_direct_iface()
+	 * frees it (and counts iface->tx_error) only when the interface reports a
+	 * failure. Freeing here as well would leave the pool short by one buffer per
+	 * failed transmit if that ever changes; not freeing on the success path above
+	 * would drain it outright. */
+	csp_usart_unlock(driver);
+	return CSP_ERR_TX;
 }
 
 /**
