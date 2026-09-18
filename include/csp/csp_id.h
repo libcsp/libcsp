@@ -17,11 +17,28 @@ void csp_id_prepend(csp_packet_t * packet);
 
 /**
  * Extract CSP header from a 4 (CSP1) or 6 (CSP2) byte array.
+ * Uses csp_conf.version to determine the CSP version
  *
  * @param The first bytes of a CSP packet, representing the CSP header structure.
  * @return The extracted header ID structure.
  */
 csp_id_t csp_id_extract(const uint8_t * data);
+
+/**
+ * Extract CSP header from a 4 (CSP1) byte array.
+ *
+ * @param The first bytes of a CSP packet, representing the CSP header structure.
+ * @return The extracted header ID structure.
+ */
+csp_id_t csp_id1_extract(const uint8_t * data);
+
+/**
+ * Extract CSP header from a 6 (CSP2) byte array.
+ *
+ * @param The first bytes of a CSP packet, representing the CSP header structure.
+ * @return The extracted header ID structure.
+ */
+csp_id_t csp_id2_extract(const uint8_t * data);
 
 /**
  * Strip CSP header fields from the packet's data buffer.
