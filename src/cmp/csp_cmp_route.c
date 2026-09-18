@@ -7,6 +7,10 @@
 
 int csp_cmp_route_set_v1_handler(csp_packet_t * packet) {
 
+	if (csp_cmp_check_crc32(packet) != CSP_ERR_NONE) {
+		return CSP_ERR_CRC32;
+	}
+
 	struct csp_cmp_route_set_v1_msg * cmp = (struct csp_cmp_route_set_v1_msg *)packet->data;
 
 	if (csp_cmp_check_len(packet, sizeof(*cmp)) != CSP_ERR_NONE) {
@@ -30,6 +34,10 @@ int csp_cmp_route_set_v1_handler(csp_packet_t * packet) {
 }
 
 int csp_cmp_route_set_v2_handler(csp_packet_t * packet) {
+
+	if (csp_cmp_check_crc32(packet) != CSP_ERR_NONE) {
+		return CSP_ERR_CRC32;
+	}
 
 	struct csp_cmp_route_set_v2_msg * cmp = (struct csp_cmp_route_set_v2_msg *)packet->data;
 
