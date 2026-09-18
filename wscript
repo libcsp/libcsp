@@ -46,7 +46,8 @@ def options(ctx):
     # Drivers and interfaces (requires external dependencies)
     gr.add_option('--enable-if-zmqhub', action='store_true', help='Enable ZMQ interface')
     gr.add_option('--enable-can-socketcan', action='store_true', help='Enable Linux socketcan driver')
-    gr.add_option('--with-driver-usart', default=None, metavar='DRIVER', help='Build USART driver. [linux, None]')
+    gr.add_option('--with-driver-usart', default=None, metavar='DRIVER', help='Build USART driver. [posix, None]')
+    gr.add_option('--use-posix-termios', action='store_true', help='Use older POSIX termios interface for Linux USART configuration')
 
     # OS
     gr.add_option('--with-os', metavar='OS', default='posix', help='Set operating system. Must be one of: ' + str(valid_os))
@@ -176,8 +177,11 @@ def configure(ctx):
 
     # Add USART driver
     if ctx.options.with_driver_usart:
-        ctx.env.append_unique('FILES_CSP', ['src/drivers/usart/usart_kiss.c',
-                                            'src/drivers/usart/usart_{0}.c'.format(ctx.options.with_driver_usart)])
+        ctx.env.append_unique('FILES_CSP', ['src/drivers/usart/usart_kiss.c'])
+        if not ctx.options.use_posix_termios and ctx.options.with_driver_usart == 'posix':
+            ctx.env.append_unique('FILES_CSP', ['src/drivers/usart/usart_linux.c'])
+        else:
+            ctx.env.append_unique('FILES_CSP', ['src/drivers/usart/usart_{0}.c'.format(ctx.options.with_driver_usart)])
 
     # Add ZMQ
     if ctx.options.enable_if_zmqhub:
