@@ -227,6 +227,16 @@ int csp_close(csp_conn_t *conn);
 int csp_socket_close(csp_socket_t* sock);
 
 /**
+ * Unbind a callback from a CSP port.
+ *
+ * Removes the callback binding associated with the port.
+ *
+ * @param[in] port CSP port to unbind, or CSP_ANY for the match-all binding.
+ * @return CSP_ERR_NONE on success, CSP_ERR_INVAL for an invalid port or a socket-bound port.
+ */
+int csp_unbind_callback(uint8_t port);
+
+/**
  * Return destination port of connection.
  *
  * @param[in] conn connection
