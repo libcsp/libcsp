@@ -48,6 +48,7 @@ static csp_packet_t * csp_packet_init(csp_packet_t * packet)
 	packet->length = 0;
 	packet->frame_begin = packet->data;
 	packet->frame_length = 0;
+	packet->version = 0;
 
 	csp_id_clear(&packet->id);
 
