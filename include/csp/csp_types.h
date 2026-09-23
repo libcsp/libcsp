@@ -103,6 +103,13 @@ typedef struct {
 #define CSP_PACKET_PADDING_BYTES 8
 #endif
 
+#if (CSP_CFP_OUT_OF_ORDER_RX)
+/* CFP 1.x MORE fragments per packet: (length + 6 - 1) / 8, capped by the 8-bit remain field */
+#define CSP_CFP1_MAX_FRAGMENTS (((CSP_BUFFER_SIZE + 5) / 8) > 255 ? 255 : ((CSP_BUFFER_SIZE + 5) / 8))
+/* One bit per CFP 1.x fragment; at least 2 bytes for CFP 2.0 window bookkeeping */
+#define CSP_CFP_RX_BITMAP_BYTES (((CSP_CFP1_MAX_FRAGMENTS + 7) / 8) < 2 ? 2 : ((CSP_CFP1_MAX_FRAGMENTS + 7) / 8))
+#endif
+
 /* This struct is referenced in documentation.  Update doc when you change this. */
 /**
  * CSP Packet.
@@ -125,6 +132,9 @@ typedef struct csp_packet_s {
 	uint16_t remain;            /*< Remaining packets */
 	uint32_t cfpid;             /*< Connection CFP identification number */
 	uint32_t last_used;         /*< Timestamp in ms for last use of buffer */
+#if (CSP_CFP_OUT_OF_ORDER_RX)
+	uint8_t cfp_rx_bitmap[CSP_CFP_RX_BITMAP_BYTES]; /*< CAN reassembly: fragments received so far */
+#endif
 	uint8_t * frame_begin;
 	uint16_t frame_length;
 

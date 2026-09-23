@@ -20,13 +20,18 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
+        compiler:
           - name: GCC
             cc: gcc
             cxx: g++
           - name: Clang
             cc: clang
             cxx: clang++
+        cfp_out_of_order_rx:
+          - "OFF"
+          - "ON"
+
+    name: unit-test (${{ matrix.compiler.name }}, CSP_CFP_OUT_OF_ORDER_RX=${{ matrix.cfp_out_of_order_rx }})
 
     steps:
       - name: Install dependencies
@@ -39,8 +44,8 @@ jobs:
 
       - name: Configure
         env:
-          CC: ${{ matrix.cc }}
-        run: cmake -GNinja -S . -B build
+          CC: ${{ matrix.compiler.cc }}
+        run: cmake -GNinja -S . -B build -DCSP_CFP_OUT_OF_ORDER_RX=${{ matrix.cfp_out_of_order_rx }}
 
       - name: Build unit tests
         run: cmake --build build --target csp_tests
@@ -51,7 +56,8 @@ jobs:
       - name: Test C++ consumer
         run: |
           cmake -GNinja -S unittests/cpp -B build-cpp \
-            -DCMAKE_C_COMPILER=${{ matrix.cc }} \
-            -DCMAKE_CXX_COMPILER=${{ matrix.cxx }}
+            -DCMAKE_C_COMPILER=${{ matrix.compiler.cc }} \
+            -DCMAKE_CXX_COMPILER=${{ matrix.compiler.cxx }} \
+            -DCSP_CFP_OUT_OF_ORDER_RX=${{ matrix.cfp_out_of_order_rx }}
           cmake --build build-cpp --target csp_cpp_consumer
           ./build-cpp/csp_cpp_consumer

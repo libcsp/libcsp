@@ -209,3 +209,40 @@ See [Reproducible Builds site][1] or [CMake document][2] for more details.
 
 [1]: https://reproducible-builds.org/docs/deterministic-build-systems/
 [2]: https://cmake.org/cmake/help/latest/prop_tgt/BUILD_RPATH.html
+
+## CAN Fragment Reordering
+
+`csp_can_rx()` expects the driver to deliver the fragments of one CSP
+packet in transmit order. Linux SocketCAN does not guarantee this:
+frames drained from the controller in one batch can be handed up in
+mailbox order, and the packet is then discarded as `FRAME_LOST` although
+every fragment arrived.
+
+Set `CSP_CFP_OUT_OF_ORDER_RX` to accept fragments in any order. CFP 1.x
+fragments are placed by position; CFP 2.0 fragments are accepted up to
+four ahead of the expected counter. The option adds a few bytes to every
+packet buffer and is off by default. Targets whose CAN driver delivers
+frames in FIFO order do not need it.
+
+CFP 1.x recycles its 10-bit packet id in well under a second at a few
+hundred packets per second. When reordering is enabled, lower
+`CSP_CAN_PBUF_TIMEOUT_MS` (default 1000) so a stale incomplete packet is
+discarded before its id is reused; 250 ms works well in practice.
+
+### Waf
+
+```shell
+./waf configure --enable-cfp-out-of-order-rx --with-can-pbuf-timeout-ms=250
+```
+
+### Meson
+
+```shell
+meson setup builddir . -Dcfp_out_of_order_rx=true -Dcan_pbuf_timeout_ms=250
+```
+
+### CMake
+
+```shell
+cmake -G Ninja -B builddir -DCSP_CFP_OUT_OF_ORDER_RX=ON -DCSP_CAN_PBUF_TIMEOUT_MS=250
+```

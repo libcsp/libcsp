@@ -35,6 +35,7 @@ set(CSP_BUFFER_SIZE 256 CACHE STRING "Bytes in each packet buffer")
 set(CSP_BUFFER_COUNT 15 CACHE STRING "Number of total packet buffers")
 set(CSP_RDP_MAX_WINDOW 5 CACHE STRING "Max window size for RDP")
 set(CSP_RTABLE_SIZE 10 CACHE STRING "Number of elements in routing table")
+set(CSP_CAN_PBUF_TIMEOUT_MS 1000 CACHE STRING "Timeout in ms before an incomplete CAN packet is discarded")
 
 option(CSP_USE_RDP "Reliable Datagram Protocol" ON)
 option(CSP_USE_HMAC "Hash-based message authentication code" ON)
@@ -48,6 +49,8 @@ option(CSP_BUILD_SAMPLES "Build samples and examples by default" OFF)
 option(CSP_FIXUP_V1_ZMQ_LITTLE_ENDIAN "Use little-endian CSP ID for ZMQ with CSPv1" ON)
 
 option(CSP_ENABLE_KISS_CRC "Enables the extra CRC in the KISS interface (legacy)" ON)
+
+option(CSP_CFP_OUT_OF_ORDER_RX "Reassemble CAN fragments delivered out of order" OFF)
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   set(CSP_POSIX 1)

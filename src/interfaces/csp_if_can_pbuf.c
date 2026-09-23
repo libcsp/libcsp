@@ -11,7 +11,7 @@
 #include "../csp_buffer_private.h"
 
 /* Buffer element timeout in ms */
-#define PBUF_TIMEOUT_MS 1000
+#define PBUF_TIMEOUT_MS CSP_CAN_PBUF_TIMEOUT_MS
 
 void csp_can_pbuf_free(csp_can_interface_data_t * ifdata, csp_packet_t * buffer, int buf_free, int * task_woken) {
 
@@ -68,6 +68,9 @@ csp_packet_t * csp_can_pbuf_new(csp_can_interface_data_t * ifdata, uint32_t id, 
 	packet->last_used = now;
 	packet->cfpid = id;
 	packet->remain = 0;
+#if (CSP_CFP_OUT_OF_ORDER_RX)
+	memset(packet->cfp_rx_bitmap, 0, sizeof(packet->cfp_rx_bitmap));
+#endif
 
 	/* Insert at beginning, because easy */
 	packet->next = ifdata->pbufs;

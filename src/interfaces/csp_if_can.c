@@ -42,6 +42,126 @@ enum cfp_frame_t {
 	CFP_MORE = 1
 };
 
+/* Hand a fully reassembled CFP 1.x packet to the router */
+static void csp_can1_rx_complete(csp_iface_t * iface, csp_can_interface_data_t * ifdata, csp_packet_t * packet, int * task_woken) {
+
+	/* Length information is packed differently for CAN */
+	uint16_t length = packet->length;
+	csp_id_strip(packet);
+	packet->length = length;
+
+	/* Rewrite incoming L2 broadcast to local node */
+	if (packet->id.dst == 0x1F) {
+		packet->id.dst = iface->addr;
+	}
+
+	/* Free packet buffer */
+	csp_can_pbuf_free(ifdata, packet, 0, task_woken);
+
+	/* Data is available */
+	csp_qfifo_write(packet, iface, task_woken);
+}
+
+#if (CSP_CFP_OUT_OF_ORDER_RX)
+
+/* Number of MORE fragments csp_can1_tx() sends for a given data length */
+#define CFP1_MORE_FRAGMENTS(length) ((uint16_t)(((length) + CFP1_DATA_OFFSET - 1) / CAN_FRAME_SIZE))
+
+/*
+ * Place each MORE fragment by its position instead of requiring sequential
+ * 'remain' values. BEGIN cannot be overtaken (lower CAN id), so the fragment
+ * count is known before any MORE frame arrives. remain = N - 1 - k for MORE k.
+ */
+static int csp_can1_rx_unordered(csp_iface_t * iface, csp_can_interface_data_t * ifdata, csp_packet_t * packet, uint32_t id, const uint8_t * data, uint8_t dlc, int * task_woken) {
+
+	if (CFP_TYPE(id) == CFP_BEGIN) {
+
+		/* Discard packet if DLC is less than CSP id + CSP length fields */
+		if (dlc < CFP1_DATA_OFFSET) {
+			csp_dbg_can_errno = CSP_DBG_CAN_ERR_SHORT_BEGIN;
+			iface->frame++;
+			csp_can_pbuf_free(ifdata, packet, 1, task_woken);
+			return CSP_ERR_NONE;
+		}
+
+		/* Copy CSP length (of data) */
+		memcpy(&(packet->length), data + CFP1_CSP_HEADER_SIZE, CFP1_DATA_LEN_SIZE);
+		packet->length = be16toh(packet->length);
+
+		/* Overflow: check if incoming frame data length is larger than buffer length  */
+		if (packet->length > sizeof(packet->data)) {
+			iface->rx_error++;
+			csp_can_pbuf_free(ifdata, packet, 1, task_woken);
+			return CSP_ERR_NONE;
+		}
+
+		/* The announced fragment count must match the length */
+		if (CFP_REMAIN(id) != CFP1_MORE_FRAGMENTS(packet->length)) {
+			csp_dbg_can_errno = CSP_DBG_CAN_ERR_UNKNOWN;
+			iface->frame++;
+			csp_can_pbuf_free(ifdata, packet, 1, task_woken);
+			return CSP_ERR_NONE;
+		}
+
+		const uint8_t payload = dlc - CFP1_DATA_OFFSET;
+		if (payload > packet->length) {
+			csp_dbg_can_errno = CSP_DBG_CAN_ERR_RX_OVF;
+			iface->frame++;
+			csp_can_pbuf_free(ifdata, packet, 1, task_woken);
+			return CSP_ERR_NONE;
+		}
+
+		memcpy(packet->data, data + CFP1_DATA_OFFSET, payload);
+		packet->rx_count = payload;
+		packet->remain = CFP_REMAIN(id); /* MORE fragments still missing */
+		memset(packet->cfp_rx_bitmap, 0, sizeof(packet->cfp_rx_bitmap));
+
+	} else {
+
+		const uint16_t fragments = CFP1_MORE_FRAGMENTS(packet->length);
+		const uint16_t remain = CFP_REMAIN(id);
+
+		/* Not a fragment of this packet, e.g. a straggler from a recycled id */
+		if (remain >= fragments) {
+			csp_dbg_can_errno = CSP_DBG_CAN_ERR_UNKNOWN;
+			iface->frame++;
+			return CSP_ERR_NONE;
+		}
+
+		const uint16_t k = fragments - 1 - remain;
+		const uint8_t bit = 1 << (k % 8);
+
+		/* Duplicate fragment */
+		if (packet->cfp_rx_bitmap[k / 8] & bit) {
+			iface->frame++;
+			return CSP_ERR_NONE;
+		}
+
+		/* Only the last fragment may be shorter than a full frame */
+		const uint16_t offset = CFP1_DATA_SIZE_BEGIN + k * CAN_FRAME_SIZE;
+		const uint16_t expected = (k == fragments - 1) ? packet->length - offset : CAN_FRAME_SIZE;
+		if (dlc != expected) {
+			csp_dbg_can_errno = CSP_DBG_CAN_ERR_RX_OVF;
+			iface->frame++;
+			csp_can_pbuf_free(ifdata, packet, 1, task_woken);
+			return CSP_ERR_NONE;
+		}
+
+		memcpy(&packet->data[offset], data, dlc);
+		packet->cfp_rx_bitmap[k / 8] |= bit;
+		packet->rx_count += dlc;
+		packet->remain--;
+	}
+
+	if (packet->remain == 0 && packet->rx_count == packet->length) {
+		csp_can1_rx_complete(iface, ifdata, packet, task_woken);
+	}
+
+	return CSP_ERR_NONE;
+}
+
+#endif /* CSP_CFP_OUT_OF_ORDER_RX */
+
 static int csp_can1_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t dlc, int * task_woken) {
 
 	csp_can_interface_data_t * ifdata = iface->interface_data;
@@ -71,6 +191,9 @@ static int csp_can1_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, u
 		}
 	}
 
+#if (CSP_CFP_OUT_OF_ORDER_RX)
+	return csp_can1_rx_unordered(iface, ifdata, packet, id, data, dlc, task_woken);
+#else
 	/* Reset frame data offset */
 	uint8_t offset = 0;
 
@@ -137,21 +260,7 @@ static int csp_can1_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, u
 			if (packet->rx_count != packet->length)
 				break;
 
-			/* Length information is packed differently for CAN */
-			uint16_t length = packet->length;
-			csp_id_strip(packet);
-			packet->length = length;
-
-			/* Rewrite incoming L2 broadcast to local node */
-			if (packet->id.dst == 0x1F) {
-				packet->id.dst = iface->addr;
-			}
-
-			/* Free packet buffer */
-			csp_can_pbuf_free(ifdata, packet, 0, task_woken);
-
-			/* Data is available */
-			csp_qfifo_write(packet, iface, task_woken);
+			csp_can1_rx_complete(iface, ifdata, packet, task_woken);
 
 			break;
 
@@ -162,6 +271,7 @@ static int csp_can1_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, u
 	}
 
 	return CSP_ERR_NONE;
+#endif /* CSP_CFP_OUT_OF_ORDER_RX */
 }
 
 static int csp_can1_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet, int from_me) {
@@ -261,61 +371,206 @@ static int csp_can1_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet,
 	return CSP_ERR_NONE;
 }
 
+/* Hand a fully reassembled CFP 2.0 packet to the router */
+static void csp_can2_rx_complete(csp_iface_t * iface, csp_can_interface_data_t * ifdata, csp_packet_t * packet, uint32_t timestamp_rx, int * task_woken) {
+
+	/* Remember the interface timestamp for the last CFP fragment */
+	packet->timestamp_rx = timestamp_rx;
+
+	/* Extract data length */
+	packet->length = packet->frame_length - csp_id_get_header_size();
+
+	/* Rewrite incoming L2 broadcast to local node */
+	if (packet->id.dst == 0x3FFF) {
+		packet->id.dst = iface->addr;
+	}
+
+	/* Free packet buffer */
+	csp_can_pbuf_free(ifdata, packet, 0, task_woken);
+
+	/* Data is available */
+	csp_qfifo_write(packet, iface, task_woken);
+}
+
+/*
+ * Allocate a pbuf for a CFP 2.0 BEGIN frame and store the CSP header.
+ * On success *data and *dlc are advanced past the 4 header bytes.
+ */
+static int csp_can2_rx_begin(csp_iface_t * iface, csp_can_interface_data_t * ifdata, uint32_t id, const uint8_t ** data, uint8_t * dlc, int * task_woken, csp_packet_t ** packet_out) {
+
+	/* Discard packet if DLC is less than CSP id + CSP length fields */
+	if (*dlc < 4) {
+		csp_dbg_can_errno = CSP_DBG_CAN_ERR_SHORT_BEGIN;
+		iface->frame++;
+		return CSP_ERR_INVAL;
+	}
+
+	/* Copy first 2 bytes from CFP 2.0 header:
+	* Because the id field has already been converted in memory to a 32-bit
+	* host-order field, extract the first two bytes and convert back to
+	* network order */
+	uint8_t header[6];
+	uint16_t first_two = id >> CFP2_DST_OFFSET;
+	first_two = htobe16(first_two);
+	memcpy(header, &first_two, 2);
+
+	/* Copy next 4 from data, the data field is in network order */
+	memcpy(&header[2], *data, 4);
+
+	/* Move RX offset for incoming data */
+	*data += 4;
+	*dlc -= 4;
+
+	/* Create CSP header info from the first bytes received */
+	csp_id_t csp_id = csp_id_extract(header);
+	csp_packet_t * packet = csp_can_pbuf_new(ifdata, id, csp_id, task_woken);
+	if (packet == NULL) {
+		iface->drop++;
+		return CSP_ERR_NOBUFS;
+	}
+
+	/* Prepare new CSP packet by adding header as extracted */
+	csp_id_setup_rx(packet);
+	packet->id = csp_id;
+	memcpy(packet->frame_begin, header, csp_id_get_header_size());
+	packet->frame_length = csp_id_get_header_size();
+	packet->length = 0;
+
+	/* Set next expected fragment counter to be 1 */
+	packet->rx_count = 1;
+
+	*packet_out = packet;
+	return CSP_ERR_NONE;
+}
+
+#if (CSP_CFP_OUT_OF_ORDER_RX)
+
+/* Fragments accepted ahead of the expected counter. Must stay below 8 - 1 (3-bit fc). */
+#define CFP2_RX_WINDOW 4
+/* cfp_rx_bitmap[1]: END fragment seen, low bits hold its distance from the expected counter */
+#define CFP2_END_SEEN 0x80
+
+/*
+ * Accept fragments up to CFP2_RX_WINDOW ahead of the expected counter.
+ * A fragment 'distance' ahead is stored at frame_length + 8 * distance and
+ * marked in cfp_rx_bitmap[0]; the packet completes once the prefix up to END
+ * is contiguous. Only the END fragment may be shorter than 8 bytes.
+ */
+static int csp_can2_rx_unordered(csp_iface_t * iface, csp_can_interface_data_t * ifdata, csp_packet_t * packet, uint32_t id, const uint8_t * data, uint8_t dlc, uint32_t timestamp_rx, int * task_woken) {
+
+	const bool is_begin = id & (CFP2_BEGIN_MASK << CFP2_BEGIN_OFFSET);
+	const bool is_end = id & (CFP2_END_MASK << CFP2_END_OFFSET);
+	uint8_t * window = &packet->cfp_rx_bitmap[0];
+	uint8_t * end = &packet->cfp_rx_bitmap[1];
+	unsigned int distance = 0;
+
+	if (!is_begin) {
+		const unsigned int fragment_counter = (id >> CFP2_FC_OFFSET) & CFP2_FC_MASK;
+		distance = (fragment_counter - packet->rx_count) & CFP2_FC_MASK;
+
+		if (distance > CFP2_RX_WINDOW) {
+			csp_dbg_can_errno = CSP_DBG_CAN_ERR_FRAME_LOST;
+			csp_can_pbuf_free(ifdata, packet, 1, task_woken);
+			iface->frame++;
+			return CSP_ERR_INVAL;
+		}
+
+		/* Duplicate of a fragment already stored ahead */
+		if (distance > 0 && (*window & (1 << distance))) {
+			iface->frame++;
+			return CSP_ERR_INVAL;
+		}
+
+		if (!is_end && dlc != CAN_FRAME_SIZE) {
+			csp_dbg_can_errno = CSP_DBG_CAN_ERR_RX_OVF;
+			csp_can_pbuf_free(ifdata, packet, 1, task_woken);
+			iface->frame++;
+			return CSP_ERR_INVAL;
+		}
+	}
+
+	uint8_t * dest = &packet->frame_begin[packet->frame_length + distance * CAN_FRAME_SIZE];
+	if (dest + dlc > &packet->data[sizeof(packet->data)]) {
+		csp_dbg_can_errno = CSP_DBG_CAN_ERR_RX_OVF;
+		iface->rx_error++;
+		csp_can_pbuf_free(ifdata, packet, 1, task_woken);
+		return CSP_ERR_INVAL;
+	}
+
+	memcpy(dest, data, dlc);
+
+	if (is_end) {
+		packet->timestamp_rx = timestamp_rx;
+		packet->length = packet->frame_length + distance * CAN_FRAME_SIZE + dlc; /* total frame length */
+		*end = CFP2_END_SEEN | distance;
+	}
+
+	if (distance > 0) {
+		*window |= 1 << distance;
+		return CSP_ERR_NONE;
+	}
+
+	/* In sequence: advance past this fragment and any stored fragments that follow */
+	bool advance_counter = !is_begin;
+	uint8_t fragment_length = dlc;
+	for (;;) {
+		if (*end & CFP2_END_SEEN) {
+			if ((*end & CFP2_FC_MASK) == 0) {
+				packet->frame_length = packet->length;
+				csp_can2_rx_complete(iface, ifdata, packet, packet->timestamp_rx, task_woken);
+				return CSP_ERR_NONE;
+			}
+			(*end)--;
+		}
+
+		packet->frame_length += fragment_length;
+		if (advance_counter) {
+			packet->rx_count = (packet->rx_count + 1) & CFP2_FC_MASK;
+		}
+
+		*window >>= 1;
+		if (!(*window & 1)) {
+			break;
+		}
+		advance_counter = true;
+		fragment_length = CAN_FRAME_SIZE;
+	}
+
+	return CSP_ERR_NONE;
+}
+
+#endif /* CSP_CFP_OUT_OF_ORDER_RX */
+
 static int csp_can2_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t dlc, uint32_t timestamp_rx, int * task_woken) {
 
 	csp_can_interface_data_t * ifdata = iface->interface_data;
 
 	/* Bind incoming frame to a packet buffer */
 	csp_packet_t * packet = csp_can_pbuf_find(ifdata, id, CFP2_ID_CONN_MASK, task_woken);
+#if (CSP_CFP_OUT_OF_ORDER_RX)
+	/* A new BEGIN with the same sender count supersedes an incomplete packet */
+	if ((packet != NULL) && (id & (CFP2_BEGIN_MASK << CFP2_BEGIN_OFFSET))) {
+		csp_dbg_can_errno = CSP_DBG_CAN_ERR_FRAME_LOST;
+		csp_can_pbuf_free(ifdata, packet, 1, task_woken);
+		iface->frame++;
+		packet = NULL;
+	}
+#endif
 	if (packet == NULL) {
 		if (id & (CFP2_BEGIN_MASK << CFP2_BEGIN_OFFSET)) {
-
-			/* Discard packet if DLC is less than CSP id + CSP length fields */
-			if (dlc < 4) {
-				csp_dbg_can_errno = CSP_DBG_CAN_ERR_SHORT_BEGIN;
-				iface->frame++;
-				return CSP_ERR_INVAL;
+			int ret = csp_can2_rx_begin(iface, ifdata, id, &data, &dlc, task_woken, &packet);
+			if (ret != CSP_ERR_NONE) {
+				return ret;
 			}
-
-			/* Copy first 2 bytes from CFP 2.0 header:
-			* Because the id field has already been converted in memory to a 32-bit
-			* host-order field, extract the first two bytes and convert back to
-			* network order */
-			uint8_t header[6];
-			uint16_t first_two = id >> CFP2_DST_OFFSET;
-			first_two = htobe16(first_two);
-			memcpy(header, &first_two, 2);
-
-			/* Copy next 4 from data, the data field is in network order */
-			memcpy(&header[2], data, 4);
-
-			/* Move RX offset for incoming data */
-			data += 4;
-			dlc -= 4;
-
-			/* Create CSP header info from the first bytes received */
-			csp_id_t csp_id = csp_id_extract(header);
-			packet = csp_can_pbuf_new(ifdata, id, csp_id, task_woken);
-			if (packet == NULL) {
-				iface->drop++;
-				return CSP_ERR_NOBUFS;
-			}
-
-			/* Prepare new CSP packet by adding header as extracted */
-			csp_id_setup_rx(packet);
-			packet->id = csp_id;
-			memcpy(packet->frame_begin, header, csp_id_get_header_size());
-			packet->frame_length = csp_id_get_header_size();
-			packet->length = 0;
-
-			/* Set next expected fragment counter to be 1 */
-			packet->rx_count = 1;
 		} else {
 			iface->frame++;
 			return CSP_ERR_INVAL;
 		}
 	}
 
+#if (CSP_CFP_OUT_OF_ORDER_RX)
+	return csp_can2_rx_unordered(iface, ifdata, packet, id, data, dlc, timestamp_rx, task_woken);
+#else
 
 	/* FRAGMENT */
 	if (!(id & (CFP2_BEGIN_MASK << CFP2_BEGIN_OFFSET))) {
@@ -351,27 +606,11 @@ static int csp_can2_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, u
 
 	/* END */
 	if (id & (CFP2_END_MASK << CFP2_END_OFFSET)) {
-
-		/* Remember the interface timestamp for the last CFP fragment */
-		packet->timestamp_rx = timestamp_rx;
-
-		/* Extract data length */
-		packet->length = packet->frame_length - csp_id_get_header_size();
-
-		/* Rewrite incoming L2 broadcast to local node */
-		if (packet->id.dst == 0x3FFF) {
-			packet->id.dst = iface->addr;
-		}
-
-		/* Free packet buffer */
-		csp_can_pbuf_free(ifdata, packet, 0, task_woken);
-
-		/* Data is available */
-		csp_qfifo_write(packet, iface, task_woken);
-
+		csp_can2_rx_complete(iface, ifdata, packet, timestamp_rx, task_woken);
 	}
 
 	return CSP_ERR_NONE;
+#endif /* CSP_CFP_OUT_OF_ORDER_RX */
 }
 
 static int csp_can2_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet, int from_me) {

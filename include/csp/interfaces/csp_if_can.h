@@ -56,6 +56,11 @@
  * The \b CSP \b flags holds the CSP_HEADER_FLAGS.
  *
  * Other CAN communication using a standard 11 bit identifier, can co-exist on the wire.
+ *
+ * Reassembly expects fragments in transmit order. Drivers that may deliver
+ * them out of order (e.g. Linux SocketCAN) need CSP_CFP_OUT_OF_ORDER_RX,
+ * which places CFP 1.x fragments by position and accepts CFP 2.0 fragments
+ * up to four ahead of the expected counter.
  ****************************************************************************/
 #pragma once
 

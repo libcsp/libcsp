@@ -28,6 +28,12 @@ config CSP_USE_RTABLE
 	help
 	  This option enables to use the CSP static routing table
 
+config CSP_CFP_OUT_OF_ORDER_RX
+	bool "Reassemble CAN fragments delivered out of order"
+	help
+	  Accept CAN fragments of one CSP packet in any order. Costs a
+	  few bytes per packet buffer. Not needed with FIFO RX drivers.
+
 config CSP_ATOMIC_MUTEX_TIMEOUT
 	int "Waiting period to lock the mutex (msec) in atomic"
 	depends on ARMV6_M_ARMV8_M_BASELINE
@@ -102,6 +108,12 @@ config CSP_RTABLE_SIZE
 	help
 	  This value specifies the number of entries in the routing
 	  table.
+
+config CSP_CAN_PBUF_TIMEOUT_MS
+	int "CAN reassembly timeout (msec)"
+	default 1000
+	help
+	  Timeout in ms before an incomplete CAN packet is discarded.
 endmenu
 
 menu "UART"

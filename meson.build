@@ -17,6 +17,7 @@ conf.set('CSP_BUFFER_COUNT', get_option('buffer_count'))
 conf.set('CSP_PACKET_PADDING_BYTES', get_option('packet_padding_bytes'))
 conf.set('CSP_RDP_MAX_WINDOW', get_option('rdp_max_window'))
 conf.set('CSP_RTABLE_SIZE', get_option('rtable_size'))
+conf.set('CSP_CAN_PBUF_TIMEOUT_MS', get_option('can_pbuf_timeout_ms'))
 
 conf.set10('CSP_REPRODUCIBLE_BUILDS', get_option('enable_reproducible_builds'))
 
@@ -32,6 +33,8 @@ conf.set10('CSP_BUFFER_ZERO_CLEAR', get_option('buffer_zero_clear'))
 conf.set10('CSP_FIXUP_V1_ZMQ_LITTLE_ENDIAN', get_option('fixup_v1_zmq_little_endian'))
 
 conf.set10('CSP_ENABLE_KISS_CRC', get_option('enable_kiss_crc'))
+
+conf.set10('CSP_CFP_OUT_OF_ORDER_RX', get_option('cfp_out_of_order_rx'))
 
 csp_deps = []
 csp_sources = []

@@ -42,6 +42,7 @@ def options(ctx):
     gr.add_option('--with-buffer-size', type=int, default=256, help='Set size of csp buffers')
     gr.add_option('--with-buffer-count', type=int, default=15, help='Set number of csp buffers')
     gr.add_option('--with-rtable-size', type=int, default=10, help='Set max number of entries in route table')
+    gr.add_option('--with-can-pbuf-timeout-ms', type=int, default=1000, help='Set timeout in ms before an incomplete CAN packet is discarded')
 
     # Drivers and interfaces (requires external dependencies)
     gr.add_option('--enable-if-zmqhub', action='store_true', help='Enable ZMQ interface')
@@ -55,6 +56,8 @@ def options(ctx):
     gr.add_option('--fixup-v1-zmq-little-endian', action='store_true', help='Use little-endian CSP ID for ZMQ with CSPv1')
 
     gr.add_option('--disable_kiss_crc', action='store_true', help='Disable the extra CRC in the KISS interface (legacy)')
+
+    gr.add_option('--enable-cfp-out-of-order-rx', action='store_true', help='Reassemble CAN fragments delivered out of order')
 
 def configure(ctx):
     # Validate options
@@ -202,6 +205,7 @@ def configure(ctx):
     ctx.define('CSP_BUFFER_COUNT', ctx.options.with_buffer_count)
     ctx.define('CSP_RDP_MAX_WINDOW', ctx.options.with_rdp_max_window)
     ctx.define('CSP_RTABLE_SIZE', ctx.options.with_rtable_size)
+    ctx.define('CSP_CAN_PBUF_TIMEOUT_MS', ctx.options.with_can_pbuf_timeout_ms)
 
     # Set defines for enabling features
     ctx.define('CSP_REPRODUCIBLE_BUILDS', ctx.options.enable_reproducible_builds)
@@ -216,6 +220,8 @@ def configure(ctx):
     ctx.define('CSP_FIXUP_V1_ZMQ_LITTLE_ENDIAN', ctx.options.fixup_v1_zmq_little_endian)
 
     ctx.define('CSP_ENABLE_KISS_CRC', not ctx.options.disable_kiss_crc)
+
+    ctx.define('CSP_CFP_OUT_OF_ORDER_RX', ctx.options.enable_cfp_out_of_order_rx)
 
     ctx.write_config_header('include/csp/autoconfig.h')
 
