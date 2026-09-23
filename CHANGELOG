@@ -4,6 +4,8 @@ libcsp 2.2, xx-xx-202x
 - new: Make KISS interface CRC optional via CSP_ENABLE_KISS_CRC (#892)
 - new: Meson v0.61.2 is the minimal version now (#927)
 - new: A new build time constat CSP_BUFFER_RESERVED_COUNT is added (#925)
+- new: CSP_CFP_OUT_OF_ORDER_RX reassembles CAN fragments delivered out of order (#1023)
+- new: CSP_CAN_PBUF_TIMEOUT_MS makes the CAN reassembly timeout configurable (#1023)
 - improvement: Small Fragmentation Protocol has been reworked to remove malloc() (#742)
 - improvement: PyCSP can now be built without SocketCAN (#638)
 - improvement: PyCSP can now take mask and is_default optional parameter (#924)
