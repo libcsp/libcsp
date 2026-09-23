@@ -42,6 +42,26 @@ enum cfp_frame_t {
 	CFP_MORE = 1
 };
 
+/* Hand a fully reassembled CFP 1.x packet to the router */
+static void csp_can1_rx_complete(csp_iface_t * iface, csp_can_interface_data_t * ifdata, csp_packet_t * packet, int * task_woken) {
+
+	/* Length information is packed differently for CAN */
+	uint16_t length = packet->length;
+	csp_id_strip(packet);
+	packet->length = length;
+
+	/* Rewrite incoming L2 broadcast to local node */
+	if (packet->id.dst == 0x1F) {
+		packet->id.dst = iface->addr;
+	}
+
+	/* Free packet buffer */
+	csp_can_pbuf_free(ifdata, packet, 0, task_woken);
+
+	/* Data is available */
+	csp_qfifo_write(packet, iface, task_woken);
+}
+
 static int csp_can1_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t dlc, int * task_woken) {
 
 	csp_can_interface_data_t * ifdata = iface->interface_data;
@@ -137,21 +157,7 @@ static int csp_can1_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, u
 			if (packet->rx_count != packet->length)
 				break;
 
-			/* Length information is packed differently for CAN */
-			uint16_t length = packet->length;
-			csp_id_strip(packet);
-			packet->length = length;
-
-			/* Rewrite incoming L2 broadcast to local node */
-			if (packet->id.dst == 0x1F) {
-				packet->id.dst = iface->addr;
-			}
-
-			/* Free packet buffer */
-			csp_can_pbuf_free(ifdata, packet, 0, task_woken);
-
-			/* Data is available */
-			csp_qfifo_write(packet, iface, task_woken);
+			csp_can1_rx_complete(iface, ifdata, packet, task_woken);
 
 			break;
 
@@ -261,6 +267,27 @@ static int csp_can1_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet,
 	return CSP_ERR_NONE;
 }
 
+/* Hand a fully reassembled CFP 2.0 packet to the router */
+static void csp_can2_rx_complete(csp_iface_t * iface, csp_can_interface_data_t * ifdata, csp_packet_t * packet, uint32_t timestamp_rx, int * task_woken) {
+
+	/* Remember the interface timestamp for the last CFP fragment */
+	packet->timestamp_rx = timestamp_rx;
+
+	/* Extract data length */
+	packet->length = packet->frame_length - csp_id_get_header_size();
+
+	/* Rewrite incoming L2 broadcast to local node */
+	if (packet->id.dst == 0x3FFF) {
+		packet->id.dst = iface->addr;
+	}
+
+	/* Free packet buffer */
+	csp_can_pbuf_free(ifdata, packet, 0, task_woken);
+
+	/* Data is available */
+	csp_qfifo_write(packet, iface, task_woken);
+}
+
 static int csp_can2_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t dlc, uint32_t timestamp_rx, int * task_woken) {
 
 	csp_can_interface_data_t * ifdata = iface->interface_data;
@@ -351,24 +378,7 @@ static int csp_can2_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, u
 
 	/* END */
 	if (id & (CFP2_END_MASK << CFP2_END_OFFSET)) {
-
-		/* Remember the interface timestamp for the last CFP fragment */
-		packet->timestamp_rx = timestamp_rx;
-
-		/* Extract data length */
-		packet->length = packet->frame_length - csp_id_get_header_size();
-
-		/* Rewrite incoming L2 broadcast to local node */
-		if (packet->id.dst == 0x3FFF) {
-			packet->id.dst = iface->addr;
-		}
-
-		/* Free packet buffer */
-		csp_can_pbuf_free(ifdata, packet, 0, task_woken);
-
-		/* Data is available */
-		csp_qfifo_write(packet, iface, task_woken);
-
+		csp_can2_rx_complete(iface, ifdata, packet, timestamp_rx, task_woken);
 	}
 
 	return CSP_ERR_NONE;
