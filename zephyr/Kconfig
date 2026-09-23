@@ -102,6 +102,12 @@ config CSP_RTABLE_SIZE
 	help
 	  This value specifies the number of entries in the routing
 	  table.
+
+config CSP_CAN_PBUF_TIMEOUT_MS
+	int "CAN reassembly timeout (msec)"
+	default 1000
+	help
+	  Timeout in ms before an incomplete CAN packet is discarded.
 endmenu
 
 menu "UART"

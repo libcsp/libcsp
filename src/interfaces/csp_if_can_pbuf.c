@@ -11,7 +11,7 @@
 #include "../csp_buffer_private.h"
 
 /* Buffer element timeout in ms */
-#define PBUF_TIMEOUT_MS 1000
+#define PBUF_TIMEOUT_MS CSP_CAN_PBUF_TIMEOUT_MS
 
 void csp_can_pbuf_free(csp_can_interface_data_t * ifdata, csp_packet_t * buffer, int buf_free, int * task_woken) {
 

@@ -42,6 +42,7 @@ def options(ctx):
     gr.add_option('--with-buffer-size', type=int, default=256, help='Set size of csp buffers')
     gr.add_option('--with-buffer-count', type=int, default=15, help='Set number of csp buffers')
     gr.add_option('--with-rtable-size', type=int, default=10, help='Set max number of entries in route table')
+    gr.add_option('--with-can-pbuf-timeout-ms', type=int, default=1000, help='Set timeout in ms before an incomplete CAN packet is discarded')
 
     # Drivers and interfaces (requires external dependencies)
     gr.add_option('--enable-if-zmqhub', action='store_true', help='Enable ZMQ interface')
@@ -202,6 +203,7 @@ def configure(ctx):
     ctx.define('CSP_BUFFER_COUNT', ctx.options.with_buffer_count)
     ctx.define('CSP_RDP_MAX_WINDOW', ctx.options.with_rdp_max_window)
     ctx.define('CSP_RTABLE_SIZE', ctx.options.with_rtable_size)
+    ctx.define('CSP_CAN_PBUF_TIMEOUT_MS', ctx.options.with_can_pbuf_timeout_ms)
 
     # Set defines for enabling features
     ctx.define('CSP_REPRODUCIBLE_BUILDS', ctx.options.enable_reproducible_builds)

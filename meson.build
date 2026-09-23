@@ -17,6 +17,7 @@ conf.set('CSP_BUFFER_COUNT', get_option('buffer_count'))
 conf.set('CSP_PACKET_PADDING_BYTES', get_option('packet_padding_bytes'))
 conf.set('CSP_RDP_MAX_WINDOW', get_option('rdp_max_window'))
 conf.set('CSP_RTABLE_SIZE', get_option('rtable_size'))
+conf.set('CSP_CAN_PBUF_TIMEOUT_MS', get_option('can_pbuf_timeout_ms'))
 
 conf.set10('CSP_REPRODUCIBLE_BUILDS', get_option('enable_reproducible_builds'))
 
