@@ -62,6 +62,106 @@ static void csp_can1_rx_complete(csp_iface_t * iface, csp_can_interface_data_t *
 	csp_qfifo_write(packet, iface, task_woken);
 }
 
+#if (CSP_CFP_OUT_OF_ORDER_RX)
+
+/* Number of MORE fragments csp_can1_tx() sends for a given data length */
+#define CFP1_MORE_FRAGMENTS(length) ((uint16_t)(((length) + CFP1_DATA_OFFSET - 1) / CAN_FRAME_SIZE))
+
+/*
+ * Place each MORE fragment by its position instead of requiring sequential
+ * 'remain' values. BEGIN cannot be overtaken (lower CAN id), so the fragment
+ * count is known before any MORE frame arrives. remain = N - 1 - k for MORE k.
+ */
+static int csp_can1_rx_unordered(csp_iface_t * iface, csp_can_interface_data_t * ifdata, csp_packet_t * packet, uint32_t id, const uint8_t * data, uint8_t dlc, int * task_woken) {
+
+	if (CFP_TYPE(id) == CFP_BEGIN) {
+
+		/* Discard packet if DLC is less than CSP id + CSP length fields */
+		if (dlc < CFP1_DATA_OFFSET) {
+			csp_dbg_can_errno = CSP_DBG_CAN_ERR_SHORT_BEGIN;
+			iface->frame++;
+			csp_can_pbuf_free(ifdata, packet, 1, task_woken);
+			return CSP_ERR_NONE;
+		}
+
+		/* Copy CSP length (of data) */
+		memcpy(&(packet->length), data + CFP1_CSP_HEADER_SIZE, CFP1_DATA_LEN_SIZE);
+		packet->length = be16toh(packet->length);
+
+		/* Overflow: check if incoming frame data length is larger than buffer length  */
+		if (packet->length > sizeof(packet->data)) {
+			iface->rx_error++;
+			csp_can_pbuf_free(ifdata, packet, 1, task_woken);
+			return CSP_ERR_NONE;
+		}
+
+		/* The announced fragment count must match the length */
+		if (CFP_REMAIN(id) != CFP1_MORE_FRAGMENTS(packet->length)) {
+			csp_dbg_can_errno = CSP_DBG_CAN_ERR_UNKNOWN;
+			iface->frame++;
+			csp_can_pbuf_free(ifdata, packet, 1, task_woken);
+			return CSP_ERR_NONE;
+		}
+
+		const uint8_t payload = dlc - CFP1_DATA_OFFSET;
+		if (payload > packet->length) {
+			csp_dbg_can_errno = CSP_DBG_CAN_ERR_RX_OVF;
+			iface->frame++;
+			csp_can_pbuf_free(ifdata, packet, 1, task_woken);
+			return CSP_ERR_NONE;
+		}
+
+		memcpy(packet->data, data + CFP1_DATA_OFFSET, payload);
+		packet->rx_count = payload;
+		packet->remain = CFP_REMAIN(id); /* MORE fragments still missing */
+		memset(packet->cfp_rx_bitmap, 0, sizeof(packet->cfp_rx_bitmap));
+
+	} else {
+
+		const uint16_t fragments = CFP1_MORE_FRAGMENTS(packet->length);
+		const uint16_t remain = CFP_REMAIN(id);
+
+		/* Not a fragment of this packet, e.g. a straggler from a recycled id */
+		if (remain >= fragments) {
+			csp_dbg_can_errno = CSP_DBG_CAN_ERR_UNKNOWN;
+			iface->frame++;
+			return CSP_ERR_NONE;
+		}
+
+		const uint16_t k = fragments - 1 - remain;
+		const uint8_t bit = 1 << (k % 8);
+
+		/* Duplicate fragment */
+		if (packet->cfp_rx_bitmap[k / 8] & bit) {
+			iface->frame++;
+			return CSP_ERR_NONE;
+		}
+
+		/* Only the last fragment may be shorter than a full frame */
+		const uint16_t offset = CFP1_DATA_SIZE_BEGIN + k * CAN_FRAME_SIZE;
+		const uint16_t expected = (k == fragments - 1) ? packet->length - offset : CAN_FRAME_SIZE;
+		if (dlc != expected) {
+			csp_dbg_can_errno = CSP_DBG_CAN_ERR_RX_OVF;
+			iface->frame++;
+			csp_can_pbuf_free(ifdata, packet, 1, task_woken);
+			return CSP_ERR_NONE;
+		}
+
+		memcpy(&packet->data[offset], data, dlc);
+		packet->cfp_rx_bitmap[k / 8] |= bit;
+		packet->rx_count += dlc;
+		packet->remain--;
+	}
+
+	if (packet->remain == 0 && packet->rx_count == packet->length) {
+		csp_can1_rx_complete(iface, ifdata, packet, task_woken);
+	}
+
+	return CSP_ERR_NONE;
+}
+
+#endif /* CSP_CFP_OUT_OF_ORDER_RX */
+
 static int csp_can1_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t dlc, int * task_woken) {
 
 	csp_can_interface_data_t * ifdata = iface->interface_data;
@@ -91,6 +191,9 @@ static int csp_can1_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, u
 		}
 	}
 
+#if (CSP_CFP_OUT_OF_ORDER_RX)
+	return csp_can1_rx_unordered(iface, ifdata, packet, id, data, dlc, task_woken);
+#else
 	/* Reset frame data offset */
 	uint8_t offset = 0;
 
@@ -168,6 +271,7 @@ static int csp_can1_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, u
 	}
 
 	return CSP_ERR_NONE;
+#endif /* CSP_CFP_OUT_OF_ORDER_RX */
 }
 
 static int csp_can1_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet, int from_me) {
