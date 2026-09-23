@@ -392,6 +392,57 @@ static void csp_can2_rx_complete(csp_iface_t * iface, csp_can_interface_data_t *
 	csp_qfifo_write(packet, iface, task_woken);
 }
 
+/*
+ * Allocate a pbuf for a CFP 2.0 BEGIN frame and store the CSP header.
+ * On success *data and *dlc are advanced past the 4 header bytes.
+ */
+static int csp_can2_rx_begin(csp_iface_t * iface, csp_can_interface_data_t * ifdata, uint32_t id, const uint8_t ** data, uint8_t * dlc, int * task_woken, csp_packet_t ** packet_out) {
+
+	/* Discard packet if DLC is less than CSP id + CSP length fields */
+	if (*dlc < 4) {
+		csp_dbg_can_errno = CSP_DBG_CAN_ERR_SHORT_BEGIN;
+		iface->frame++;
+		return CSP_ERR_INVAL;
+	}
+
+	/* Copy first 2 bytes from CFP 2.0 header:
+	* Because the id field has already been converted in memory to a 32-bit
+	* host-order field, extract the first two bytes and convert back to
+	* network order */
+	uint8_t header[6];
+	uint16_t first_two = id >> CFP2_DST_OFFSET;
+	first_two = htobe16(first_two);
+	memcpy(header, &first_two, 2);
+
+	/* Copy next 4 from data, the data field is in network order */
+	memcpy(&header[2], *data, 4);
+
+	/* Move RX offset for incoming data */
+	*data += 4;
+	*dlc -= 4;
+
+	/* Create CSP header info from the first bytes received */
+	csp_id_t csp_id = csp_id_extract(header);
+	csp_packet_t * packet = csp_can_pbuf_new(ifdata, id, csp_id, task_woken);
+	if (packet == NULL) {
+		iface->drop++;
+		return CSP_ERR_NOBUFS;
+	}
+
+	/* Prepare new CSP packet by adding header as extracted */
+	csp_id_setup_rx(packet);
+	packet->id = csp_id;
+	memcpy(packet->frame_begin, header, csp_id_get_header_size());
+	packet->frame_length = csp_id_get_header_size();
+	packet->length = 0;
+
+	/* Set next expected fragment counter to be 1 */
+	packet->rx_count = 1;
+
+	*packet_out = packet;
+	return CSP_ERR_NONE;
+}
+
 static int csp_can2_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t dlc, uint32_t timestamp_rx, int * task_woken) {
 
 	csp_can_interface_data_t * ifdata = iface->interface_data;
@@ -400,47 +451,10 @@ static int csp_can2_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, u
 	csp_packet_t * packet = csp_can_pbuf_find(ifdata, id, CFP2_ID_CONN_MASK, task_woken);
 	if (packet == NULL) {
 		if (id & (CFP2_BEGIN_MASK << CFP2_BEGIN_OFFSET)) {
-
-			/* Discard packet if DLC is less than CSP id + CSP length fields */
-			if (dlc < 4) {
-				csp_dbg_can_errno = CSP_DBG_CAN_ERR_SHORT_BEGIN;
-				iface->frame++;
-				return CSP_ERR_INVAL;
+			int ret = csp_can2_rx_begin(iface, ifdata, id, &data, &dlc, task_woken, &packet);
+			if (ret != CSP_ERR_NONE) {
+				return ret;
 			}
-
-			/* Copy first 2 bytes from CFP 2.0 header:
-			* Because the id field has already been converted in memory to a 32-bit
-			* host-order field, extract the first two bytes and convert back to
-			* network order */
-			uint8_t header[6];
-			uint16_t first_two = id >> CFP2_DST_OFFSET;
-			first_two = htobe16(first_two);
-			memcpy(header, &first_two, 2);
-
-			/* Copy next 4 from data, the data field is in network order */
-			memcpy(&header[2], data, 4);
-
-			/* Move RX offset for incoming data */
-			data += 4;
-			dlc -= 4;
-
-			/* Create CSP header info from the first bytes received */
-			csp_id_t csp_id = csp_id_extract(header);
-			packet = csp_can_pbuf_new(ifdata, id, csp_id, task_woken);
-			if (packet == NULL) {
-				iface->drop++;
-				return CSP_ERR_NOBUFS;
-			}
-
-			/* Prepare new CSP packet by adding header as extracted */
-			csp_id_setup_rx(packet);
-			packet->id = csp_id;
-			memcpy(packet->frame_begin, header, csp_id_get_header_size());
-			packet->frame_length = csp_id_get_header_size();
-			packet->length = 0;
-
-			/* Set next expected fragment counter to be 1 */
-			packet->rx_count = 1;
 		} else {
 			iface->frame++;
 			return CSP_ERR_INVAL;
