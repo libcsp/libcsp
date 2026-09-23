@@ -443,12 +443,119 @@ static int csp_can2_rx_begin(csp_iface_t * iface, csp_can_interface_data_t * ifd
 	return CSP_ERR_NONE;
 }
 
+#if (CSP_CFP_OUT_OF_ORDER_RX)
+
+/* Fragments accepted ahead of the expected counter. Must stay below 8 - 1 (3-bit fc). */
+#define CFP2_RX_WINDOW 4
+/* cfp_rx_bitmap[1]: END fragment seen, low bits hold its distance from the expected counter */
+#define CFP2_END_SEEN 0x80
+
+/*
+ * Accept fragments up to CFP2_RX_WINDOW ahead of the expected counter.
+ * A fragment 'distance' ahead is stored at frame_length + 8 * distance and
+ * marked in cfp_rx_bitmap[0]; the packet completes once the prefix up to END
+ * is contiguous. Only the END fragment may be shorter than 8 bytes.
+ */
+static int csp_can2_rx_unordered(csp_iface_t * iface, csp_can_interface_data_t * ifdata, csp_packet_t * packet, uint32_t id, const uint8_t * data, uint8_t dlc, uint32_t timestamp_rx, int * task_woken) {
+
+	const bool is_begin = id & (CFP2_BEGIN_MASK << CFP2_BEGIN_OFFSET);
+	const bool is_end = id & (CFP2_END_MASK << CFP2_END_OFFSET);
+	uint8_t * window = &packet->cfp_rx_bitmap[0];
+	uint8_t * end = &packet->cfp_rx_bitmap[1];
+	unsigned int distance = 0;
+
+	if (!is_begin) {
+		const unsigned int fragment_counter = (id >> CFP2_FC_OFFSET) & CFP2_FC_MASK;
+		distance = (fragment_counter - packet->rx_count) & CFP2_FC_MASK;
+
+		if (distance > CFP2_RX_WINDOW) {
+			csp_dbg_can_errno = CSP_DBG_CAN_ERR_FRAME_LOST;
+			csp_can_pbuf_free(ifdata, packet, 1, task_woken);
+			iface->frame++;
+			return CSP_ERR_INVAL;
+		}
+
+		/* Duplicate of a fragment already stored ahead */
+		if (distance > 0 && (*window & (1 << distance))) {
+			iface->frame++;
+			return CSP_ERR_INVAL;
+		}
+
+		if (!is_end && dlc != CAN_FRAME_SIZE) {
+			csp_dbg_can_errno = CSP_DBG_CAN_ERR_RX_OVF;
+			csp_can_pbuf_free(ifdata, packet, 1, task_woken);
+			iface->frame++;
+			return CSP_ERR_INVAL;
+		}
+	}
+
+	uint8_t * dest = &packet->frame_begin[packet->frame_length + distance * CAN_FRAME_SIZE];
+	if (dest + dlc > &packet->data[sizeof(packet->data)]) {
+		csp_dbg_can_errno = CSP_DBG_CAN_ERR_RX_OVF;
+		iface->rx_error++;
+		csp_can_pbuf_free(ifdata, packet, 1, task_woken);
+		return CSP_ERR_INVAL;
+	}
+
+	memcpy(dest, data, dlc);
+
+	if (is_end) {
+		packet->timestamp_rx = timestamp_rx;
+		packet->length = packet->frame_length + distance * CAN_FRAME_SIZE + dlc; /* total frame length */
+		*end = CFP2_END_SEEN | distance;
+	}
+
+	if (distance > 0) {
+		*window |= 1 << distance;
+		return CSP_ERR_NONE;
+	}
+
+	/* In sequence: advance past this fragment and any stored fragments that follow */
+	bool advance_counter = !is_begin;
+	uint8_t fragment_length = dlc;
+	for (;;) {
+		if (*end & CFP2_END_SEEN) {
+			if ((*end & CFP2_FC_MASK) == 0) {
+				packet->frame_length = packet->length;
+				csp_can2_rx_complete(iface, ifdata, packet, packet->timestamp_rx, task_woken);
+				return CSP_ERR_NONE;
+			}
+			(*end)--;
+		}
+
+		packet->frame_length += fragment_length;
+		if (advance_counter) {
+			packet->rx_count = (packet->rx_count + 1) & CFP2_FC_MASK;
+		}
+
+		*window >>= 1;
+		if (!(*window & 1)) {
+			break;
+		}
+		advance_counter = true;
+		fragment_length = CAN_FRAME_SIZE;
+	}
+
+	return CSP_ERR_NONE;
+}
+
+#endif /* CSP_CFP_OUT_OF_ORDER_RX */
+
 static int csp_can2_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, uint8_t dlc, uint32_t timestamp_rx, int * task_woken) {
 
 	csp_can_interface_data_t * ifdata = iface->interface_data;
 
 	/* Bind incoming frame to a packet buffer */
 	csp_packet_t * packet = csp_can_pbuf_find(ifdata, id, CFP2_ID_CONN_MASK, task_woken);
+#if (CSP_CFP_OUT_OF_ORDER_RX)
+	/* A new BEGIN with the same sender count supersedes an incomplete packet */
+	if ((packet != NULL) && (id & (CFP2_BEGIN_MASK << CFP2_BEGIN_OFFSET))) {
+		csp_dbg_can_errno = CSP_DBG_CAN_ERR_FRAME_LOST;
+		csp_can_pbuf_free(ifdata, packet, 1, task_woken);
+		iface->frame++;
+		packet = NULL;
+	}
+#endif
 	if (packet == NULL) {
 		if (id & (CFP2_BEGIN_MASK << CFP2_BEGIN_OFFSET)) {
 			int ret = csp_can2_rx_begin(iface, ifdata, id, &data, &dlc, task_woken, &packet);
@@ -461,6 +568,9 @@ static int csp_can2_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, u
 		}
 	}
 
+#if (CSP_CFP_OUT_OF_ORDER_RX)
+	return csp_can2_rx_unordered(iface, ifdata, packet, id, data, dlc, timestamp_rx, task_woken);
+#else
 
 	/* FRAGMENT */
 	if (!(id & (CFP2_BEGIN_MASK << CFP2_BEGIN_OFFSET))) {
@@ -500,6 +610,7 @@ static int csp_can2_rx(csp_iface_t * iface, uint32_t id, const uint8_t * data, u
 	}
 
 	return CSP_ERR_NONE;
+#endif /* CSP_CFP_OUT_OF_ORDER_RX */
 }
 
 static int csp_can2_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet, int from_me) {
