@@ -8,6 +8,7 @@ if(CHECK_FOUND)
     hmac.c
     route.c
     wire.c
+    can.c
   )
   if(LIBZMQ_FOUND)
     target_sources(csp_tests PRIVATE zmqhub.c)

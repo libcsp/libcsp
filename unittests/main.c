@@ -12,6 +12,7 @@ Suite * buffer_suite(void);
 Suite * hmac_suite(void);
 Suite * route_suite(void);
 Suite * wire_suite(void);
+Suite * can_suite(void);
 #if (CSP_HAVE_LIBZMQ)
 Suite * zmqhub_suite(void);
 #endif
@@ -58,6 +59,7 @@ int main(int argc, char *argv[])
 	srunner_add_suite(sr, hmac_suite());
 	srunner_add_suite(sr, route_suite());
 	srunner_add_suite(sr, wire_suite());
+	srunner_add_suite(sr, can_suite());
 #if (CSP_HAVE_LIBZMQ)
 	srunner_add_suite(sr, zmqhub_suite());
 #endif
