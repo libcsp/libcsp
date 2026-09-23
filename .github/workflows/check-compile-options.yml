@@ -24,6 +24,8 @@ jobs:
           - "-D enable_csp_print=true  -D print_stdio=false"
           - "-D enable_csp_print=true  -D print_stdio=true"
           - "-D enable_reproducible_builds=true"
+          - "-D cfp_out_of_order_rx=true"
+          - "-D cfp_out_of_order_rx=true -D can_pbuf_timeout_ms=250"
     runs-on: ${{ matrix.os }}
     steps:
       - name: Setup packages on Linux
