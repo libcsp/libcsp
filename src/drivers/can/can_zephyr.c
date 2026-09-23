@@ -28,6 +28,9 @@ typedef struct {
 	struct k_thread rx_thread;
 	int filter_id;
 	struct k_event stop_can_event;
+	struct k_sem tx_sem;
+	atomic_t tx_errors;
+	atomic_t tx_stalled;
 } can_context_t;
 
 static K_THREAD_STACK_ARRAY_DEFINE(rx_stack,
@@ -83,6 +86,26 @@ static void csp_can_rx_thread(void * arg1, void * arg2, void * arg3) {
 	}
 }
 
+/*
+ * Completion callback (ISR context). With a callback, can_send() returns as
+ * soon as the frame is queued. Without one it waits with K_FOREVER until the
+ * frame has been sent, which never happens if no node acknowledges: the
+ * controller retransmits forever in the error-passive state, and every CSP
+ * sender on this interface would block.
+ */
+static void csp_can_tx_done(const struct device * dev, int error, void * user_data) {
+
+	can_context_t * ctx = user_data;
+
+	ARG_UNUSED(dev);
+
+	if (error != 0) {
+		atomic_inc(&ctx->tx_errors);
+	}
+
+	k_sem_give(&ctx->tx_sem);
+}
+
 static int csp_can_tx_frame(void * driver_data, uint32_t id, const uint8_t * data, uint8_t dlc, const csp_packet_t *packet) {
 
 	int ret = CSP_ERR_NONE;
@@ -100,9 +123,31 @@ static int csp_can_tx_frame(void * driver_data, uint32_t id, const uint8_t * dat
 	frame.flags = CAN_FRAME_IDE;
 	memcpy(frame.data, data, dlc);
 
-	ret = can_send(ctx->device, &frame, CSP_CAN_TX_TIME_OUT, NULL, NULL);
+	/*
+	 * Keep one frame in flight, as the synchronous can_send() did. Controllers
+	 * with several TX buffers send queued frames in CAN ID priority order,
+	 * which would reorder the fragments of a packet. While no node
+	 * acknowledges, the previous frame never completes, so this fails with
+	 * -EAGAIN after CSP_CAN_TX_TIME_OUT and CSP drops the packet instead of
+	 * blocking.
+	 */
+	ret = k_sem_take(&ctx->tx_sem, CSP_CAN_TX_TIME_OUT);
+	if (ret == 0) {
+		ret = can_send(ctx->device, &frame, CSP_CAN_TX_TIME_OUT, csp_can_tx_done, ctx);
+		if (ret < 0) {
+			k_sem_give(&ctx->tx_sem);
+		}
+	}
+
+	/* Log the start and the end of a stall, not every dropped frame */
 	if (ret < 0) {
-		LOG_ERR("[%s] can_send() failed, errno %d", ctx->name, ret);
+		if (atomic_cas(&ctx->tx_stalled, 0, 1)) {
+			LOG_ERR("[%s] CAN transmit failed, errno %d; dropping CSP packets until a "
+				"frame can be sent", ctx->name, ret);
+		}
+	} else if (atomic_cas(&ctx->tx_stalled, 1, 0)) {
+		LOG_INF("[%s] CAN transmission resumed (%ld failed frames so far)", ctx->name,
+			(long)atomic_get(&ctx->tx_errors));
 	}
 
 end:
@@ -190,6 +235,7 @@ int csp_can_open_and_add_interface(const struct device * device, const char * if
 	ctx->device = device;
 	ctx->filter_id = -1;
 	k_event_init(&ctx->stop_can_event);
+	k_sem_init(&ctx->tx_sem, 1, 1);
 
 	LOG_DBG("INIT %s: device: [%s], local address: %d, bitrate: %d: filter add: %d, filter mask: 0x%04x",
 			  ctx->name, device->name, address, bitrate, filter_addr, filter_mask);
