@@ -24,6 +24,10 @@ if(CONFIG_LIBCSP)
     set(CSP_USE_RTABLE ON)
   endif()
 
+  if(CONFIG_CSP_CFP_OUT_OF_ORDER_RX)
+    set(CSP_CFP_OUT_OF_ORDER_RX ON)
+  endif()
+
   if(CONFIG_CSP_HAVE_CAN)
     set(HAVE_ZEPHYR_CAN ON)
   endif()

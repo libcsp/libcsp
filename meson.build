@@ -34,6 +34,8 @@ conf.set10('CSP_FIXUP_V1_ZMQ_LITTLE_ENDIAN', get_option('fixup_v1_zmq_little_end
 
 conf.set10('CSP_ENABLE_KISS_CRC', get_option('enable_kiss_crc'))
 
+conf.set10('CSP_CFP_OUT_OF_ORDER_RX', get_option('cfp_out_of_order_rx'))
+
 csp_deps = []
 csp_sources = []
 

@@ -57,6 +57,8 @@ def options(ctx):
 
     gr.add_option('--disable_kiss_crc', action='store_true', help='Disable the extra CRC in the KISS interface (legacy)')
 
+    gr.add_option('--enable-cfp-out-of-order-rx', action='store_true', help='Reassemble CAN fragments delivered out of order')
+
 def configure(ctx):
     # Validate options
     if ctx.options.with_os not in valid_os:
@@ -218,6 +220,8 @@ def configure(ctx):
     ctx.define('CSP_FIXUP_V1_ZMQ_LITTLE_ENDIAN', ctx.options.fixup_v1_zmq_little_endian)
 
     ctx.define('CSP_ENABLE_KISS_CRC', not ctx.options.disable_kiss_crc)
+
+    ctx.define('CSP_CFP_OUT_OF_ORDER_RX', ctx.options.enable_cfp_out_of_order_rx)
 
     ctx.write_config_header('include/csp/autoconfig.h')
 
