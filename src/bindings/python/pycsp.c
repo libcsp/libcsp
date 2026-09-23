@@ -1365,6 +1365,12 @@ PyMODINIT_FUNC PyInit_libcsp_py3(void) {
 	PyModule_AddIntConstant(m, "CSP_SO_CRC32PROHIB", CSP_SO_CRC32PROHIB);
 	PyModule_AddIntConstant(m, "CSP_SO_CONN_LESS", CSP_SO_CONN_LESS);
 
+	/* DEDUP LEVELS */
+	PyModule_AddIntConstant(m, "CSP_DEDUP_OFF", CSP_DEDUP_OFF);
+	PyModule_AddIntConstant(m, "CSP_DEDUP_FWD", CSP_DEDUP_FWD);
+	PyModule_AddIntConstant(m, "CSP_DEDUP_INCOMING", CSP_DEDUP_INCOMING);
+	PyModule_AddIntConstant(m, "CSP_DEDUP_ALL", CSP_DEDUP_ALL);
+
 	/* CONNECT OPTIONS */
 	PyModule_AddIntConstant(m, "CSP_O_NONE", CSP_O_NONE);
 	PyModule_AddIntConstant(m, "CSP_O_RDP", CSP_O_RDP);
