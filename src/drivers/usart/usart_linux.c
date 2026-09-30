@@ -14,7 +14,6 @@
 #include <csp/csp.h>
 #include <pthread.h>
 
-
 typedef struct {
 	csp_usart_callback_t rx_callback;
 	void * user_data;
