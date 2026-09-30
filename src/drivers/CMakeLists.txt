@@ -14,7 +14,7 @@ if(LIBSOCKETCAN_FOUND)
 endif()
 
 if(CSP_POSIX)
-  target_sources(csp PRIVATE usart/usart_linux.c)
+  target_sources(csp PRIVATE usart/usart_${CSP_DRIVER_USART}.c)
   target_sources(csp PRIVATE eth/eth_linux.c)
 elseif(CSP_ZEPHYR)
   target_sources(csp PRIVATE usart/usart_zephyr.c)

@@ -9,6 +9,6 @@ endif
 
 if host_machine.system() == 'linux'
 	csp_sources += files(['eth/eth_linux.c'])
-	csp_sources += files(['usart/usart_linux.c'])
+	csp_sources += files(['usart/usart_' + get_option('driver_usart') + '.c'])
 	csp_sources += files(['usart/usart_kiss.c'])
 endif
