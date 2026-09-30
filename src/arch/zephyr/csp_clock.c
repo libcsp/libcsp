@@ -1,6 +1,11 @@
 #include <csp/csp_types.h>
 #include <zephyr/kernel.h>
+#include <zephyr/version.h>
+#if ZEPHYR_VERSION_CODE >= ZEPHYR_VERSION(4, 0, 0)
+#include <time.h>
+#else
 #include <zephyr/posix/time.h>
+#endif
 #include <zephyr/logging/log.h>
 LOG_MODULE_DECLARE(libcsp);
 

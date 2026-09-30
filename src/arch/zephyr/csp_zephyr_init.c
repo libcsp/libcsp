@@ -2,7 +2,12 @@
 
 #include <zephyr/kernel.h>
 #include <zephyr/init.h>
+#include <zephyr/version.h>
+#if ZEPHYR_VERSION_CODE >= ZEPHYR_VERSION(4, 0, 0)
+#include <time.h>
+#else
 #include <zephyr/posix/time.h>
+#endif
 #include <csp/csp_debug.h>
 
 #include <zephyr/logging/log.h>
