@@ -50,6 +50,14 @@ option(CSP_FIXUP_V1_ZMQ_LITTLE_ENDIAN "Use little-endian CSP ID for ZMQ with CSP
 option(CSP_ENABLE_KISS_CRC "Enables the extra CRC in the KISS interface (legacy)" ON)
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  set(CSP_DEFAULT_DRIVER_USART "linux")
+else()
+  set(CSP_DEFAULT_DRIVER_USART "posix")
+endif()
+set(CSP_DRIVER_USART "${CSP_DEFAULT_DRIVER_USART}" CACHE STRING "USART driver implementation. [linux, posix]")
+set_property(CACHE CSP_DRIVER_USART PROPERTY STRINGS linux posix)
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   set(CSP_POSIX 1)
 elseif(CMAKE_SYSTEM_NAME STREQUAL "CYGWIN")
   set(CSP_POSIX 1)
