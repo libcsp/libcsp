@@ -4,6 +4,10 @@ libcsp 2.2, xx-xx-202x
 - new: Make KISS interface CRC optional via CSP_ENABLE_KISS_CRC (#892)
 - new: Meson v0.61.2 is the minimal version now (#927)
 - new: A new build time constat CSP_BUFFER_RESERVED_COUNT is added (#925)
+- new: Linux USART driver uses termios2 for arbitrary baud rates (#993).
+  CMake and Meson default to this driver on Linux. PowerPC users must select
+  the POSIX driver with -DCSP_DRIVER_USART=posix (CMake),
+  -Ddriver_usart=posix (Meson), or --with-driver-usart=posix (Waf).
 - improvement: Small Fragmentation Protocol has been reworked to remove malloc() (#742)
 - improvement: PyCSP can now be built without SocketCAN (#638)
 - improvement: PyCSP can now take mask and is_default optional parameter (#924)
