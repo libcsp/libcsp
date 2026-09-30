@@ -20,7 +20,7 @@ typedef struct {
 	pthread_t rx_thread;
 } usart_context_t;
 
-/* Linux is fast, so we keep it simple by having a single lock */
+/* Serialize writes with a single lock. */
 static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 
 void csp_usart_lock(void * driver_data) {
