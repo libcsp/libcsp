@@ -160,6 +160,46 @@ The install RPATH in this example allows the Python module to load the
 applies only to this build configuration and does not change libcsp's
 default RPATH policy.
 
+## Selecting a USART driver
+
+CMake and Meson default to the `linux` USART driver on Linux.
+CMake defaults to `posix` on Cygwin. Waf builds a USART driver only
+when you select one with `--with-driver-usart`.
+
+- `linux` uses `termios2` to configure arbitrary baud rates, subject to
+  hardware and kernel driver support.
+- `posix` uses POSIX `termios` and supports a fixed set of baud rates.
+
+Linux on PowerPC does not provide `termios2`. Select `posix` when building
+for PowerPC to avoid compilation errors in the `linux` driver.
+
+For CMake, set `CSP_DRIVER_USART`:
+
+```shell
+cmake -G Ninja -B builddir -DCSP_DRIVER_USART=posix
+cmake --build builddir
+```
+
+For Meson, set `driver_usart`:
+
+```shell
+meson setup builddir -Ddriver_usart=posix
+meson compile -C builddir
+```
+
+For an existing Meson build directory, use
+`meson configure builddir -Ddriver_usart=posix` before rebuilding.
+
+For Waf, set `--with-driver-usart`:
+
+```shell
+./waf configure --with-driver-usart=posix
+./waf build
+```
+
+Use `linux` instead of `posix` to select the `termios2` driver on
+architectures that provide `termios2`.
+
 ## Reproducible Builds
 
 libcsp supports Reproducible Builds. To enable it, set
