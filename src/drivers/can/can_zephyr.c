@@ -28,6 +28,8 @@ typedef struct {
 	struct k_thread rx_thread;
 	int filter_id;
 	struct k_event stop_can_event;
+	atomic_t tx_errors;
+	bool tx_stalled;
 } can_context_t;
 
 static K_THREAD_STACK_ARRAY_DEFINE(rx_stack,
@@ -83,6 +85,24 @@ static void csp_can_rx_thread(void * arg1, void * arg2, void * arg3) {
 	}
 }
 
+/*
+ * Completion callback (ISR context). With a callback, can_send() returns as
+ * soon as the frame is queued. Without one it waits with K_FOREVER until the
+ * frame has been sent, which never happens if no node acknowledges: the
+ * controller retransmits forever in the error-passive state, and every CSP
+ * sender on this interface would block.
+ */
+static void csp_can_tx_done(const struct device * dev, int error, void * user_data) {
+
+	can_context_t * ctx = user_data;
+
+	ARG_UNUSED(dev);
+
+	if (error != 0) {
+		atomic_inc(&ctx->tx_errors);
+	}
+}
+
 static int csp_can_tx_frame(void * driver_data, uint32_t id, const uint8_t * data, uint8_t dlc, const csp_packet_t *packet) {
 
 	int ret = CSP_ERR_NONE;
@@ -100,9 +120,23 @@ static int csp_can_tx_frame(void * driver_data, uint32_t id, const uint8_t * dat
 	frame.flags = CAN_FRAME_IDE;
 	memcpy(frame.data, data, dlc);
 
-	ret = can_send(ctx->device, &frame, CSP_CAN_TX_TIME_OUT, NULL, NULL);
+	/*
+	 * Waits at most CSP_CAN_TX_TIME_OUT for a free TX buffer. While no node
+	 * acknowledges, the previous frame keeps the buffer, so the send fails
+	 * with -EAGAIN and CSP drops the packet instead of blocking.
+	 */
+	ret = can_send(ctx->device, &frame, CSP_CAN_TX_TIME_OUT, csp_can_tx_done, ctx);
 	if (ret < 0) {
-		LOG_ERR("[%s] can_send() failed, errno %d", ctx->name, ret);
+		/* Log the start and the end of a stall, not every dropped frame */
+		if (!ctx->tx_stalled) {
+			LOG_ERR("[%s] can_send() failed, errno %d; dropping CSP packets until a "
+				"frame can be sent", ctx->name, ret);
+			ctx->tx_stalled = true;
+		}
+	} else if (ctx->tx_stalled) {
+		LOG_INF("[%s] CAN transmission resumed (%ld failed frames so far)", ctx->name,
+			(long)atomic_get(&ctx->tx_errors));
+		ctx->tx_stalled = false;
 	}
 
 end:
