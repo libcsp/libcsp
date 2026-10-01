@@ -45,6 +45,10 @@ typedef struct csp_conf_s {
    const char *revision;       /**< Revision, returned by the #CSP_CMP_IDENT request */
    uint32_t conn_dfl_so;       /**< Default connection options. Options will always be or'ed onto new connections, see csp_connect() */
    uint8_t dedup;              /**< Enable CSP deduplication. 0 = off, 1 = always on, 2 = only on forwarded packets,  */
+#if CSP_REPRODUCIBLE_BUILDS == 1
+   const char *date;           /**< Date, returned by the #CSP_CMP_IDENT request */
+   const char *time;           /**< Time, returned by the #CSP_CMP_IDENT request */
+#endif
 } csp_conf_t;
 
 extern csp_conf_t csp_conf;
