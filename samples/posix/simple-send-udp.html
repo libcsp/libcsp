@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simple Send via UDP &mdash; Cubesat Space Protocol</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.5ea377869091fd0449014c60fc090103.min.css" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
+        <script src="../../_static/clipboard.min.js"></script>
+        <script src="../../_static/copybutton.js"></script>
+        <script src="../../_static/design-tabs.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Simple Send via USART" href="simple-send-usart.html" />
+    <link rel="prev" title="Simple Send via CANbus" href="simple-send-canbus.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: rgba(52,49,49,1) 100%;" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Lib CSP
+          </a>
+              <div class="version">
+                develop
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Setup</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../INSTALL.html">How to install LibCSP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../build-doc.html">How to build documentation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">how to run samples</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="simple-send-canbus.html">Simple Send via CANbus</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Simple Send via UDP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="simple-send-usart.html">Simple Send via USART</a></li>
+<li class="toctree-l1"><a class="reference internal" href="simple-send-zmq.html">Simple Send via zmqhub</a></li>
+<li class="toctree-l1"><a class="reference internal" href="simple-sfp-send-recv.html">Simple Send using SFP via USART</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">CSP API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api/csp_h.html">CSP Library Header</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/csp_types_h.html">CSP Basic Types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/csp_buffer_h.html">CSP Buffer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/csp_cmp_h.html">CSP Management Protocol (CMP)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/csp_sfp_h.html">Small Fragmentation Protocol (SFP)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/csp_promisc_h.html">Promiscuous packet queue</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/csp_interface_h.html">CSP Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/csp_rtable_h.html">Routing table</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/csp_iflist_h.html">Interfaces management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/csp_error_h.html">Error Codes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/csp_debug_h.html">CSP Debug</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/csp_id_h.html">CSP ID</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/csp_crc32_h.html">CRC32 Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/csp_hooks_h.html">CSP Hooks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/csp_yaml_h.html">YAML Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/drivers/drivers.html">Drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/crypto/crypto.html">Crypto</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/interfaces/interfaces.html">Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/arch/arch.html">Architecture dependent</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">The Cubesat Space Protocol</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../basic.html">The basics of CSP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../history.html">History</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../memory.html">How CSP uses memory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../mtu.html">Maximum Transfer Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../outflow.html">Outgoing Packet Flow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../protocolstack.html">The Protocol Stack</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../topology.html">Network Topology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../security.html">Security model and deployment assumptions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tunnel.html">CSP tunnels</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../hooks.html">Hooks in CSP</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Development</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../contributing.html">Contributing to libcsp</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../codestyle.html">Code style</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../git-commit.html">Git Commit Guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../structure.html">Structure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../CI.html">Continuous Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changelog.html">Changelog</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Example Usage</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../example.html">Client and server example</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: rgba(52,49,49,1) 100%;" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Lib CSP</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Simple Send via UDP</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="simple-send-via-udp">
+<h1>Simple Send via UDP<a class="headerlink" href="#simple-send-via-udp" title="Permalink to this heading"></a></h1>
+<p>This is a simple sample code to send a 3-byte payload to a server via
+the UDP interface. In this example, the payload contents are <code class="docutils literal notranslate"><span class="pre">&quot;abc&quot;</span></code>.</p>
+<p>The payload is handled as raw data, not as a null-terminated
+string. The receiver should interpret it using <code class="docutils literal notranslate"><span class="pre">packet-&gt;length</span></code>.</p>
+<section id="how-to-build">
+<h2>How to Build<a class="headerlink" href="#how-to-build" title="Permalink to this heading"></a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ cmake -B builddir
+$ ninja -C builddir simple-send-udp csp_server
+</pre></div>
+</div>
+</section>
+<section id="how-to-test">
+<h2>How to Test<a class="headerlink" href="#how-to-test" title="Permalink to this heading"></a></h2>
+<p>First, you need to run a CSP server:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ ./builddir/examples/csp_server csp_server -u &quot;127.0.0.1&quot; -a 1
+Initialising CSP
+UDP peer address: 127.0.0.1:1500 (listening on port 1501)
+Connection table
+[00 0x745a7ae4e920] S:0, 0 -&gt; 0, 0 -&gt; 0 (17) fl 0
+[01 0x745a7ae4ea38] S:0, 0 -&gt; 0, 0 -&gt; 0 (18) fl 0
+[02 0x745a7ae4eb50] S:0, 0 -&gt; 0, 0 -&gt; 0 (19) fl 0
+[03 0x745a7ae4ec68] S:0, 0 -&gt; 0, 0 -&gt; 0 (20) fl 0
+[04 0x745a7ae4ed80] S:0, 0 -&gt; 0, 0 -&gt; 0 (21) fl 0
+[05 0x745a7ae4ee98] S:0, 0 -&gt; 0, 0 -&gt; 0 (22) fl 0
+[06 0x745a7ae4efb0] S:0, 0 -&gt; 0, 0 -&gt; 0 (23) fl 0
+[07 0x745a7ae4f0c8] S:0, 0 -&gt; 0, 0 -&gt; 0 (24) fl 0
+Interfaces
+LOOP       addr: 0 netmask: 14 dfl: 0
+           tx: 00000 rx: 00000 txe: 00000 rxe: 00000
+           drop: 00000 autherr: 00000 frame: 00000
+           txb: 0 (0B) rxb: 0 (0B) 
+
+UDP        addr: 5 netmask: 0 dfl: 1
+           tx: 00000 rx: 00000 txe: 00000 rxe: 00000
+           drop: 00000 autherr: 00000 frame: 00000
+           txb: 0 (0B) rxb: 0 (0B) 
+
+Server task started
+</pre></div>
+</div>
+<p>Then, in another terminal, run <code class="docutils literal notranslate"><span class="pre">simple-send-udp</span></code></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ ./builddir/samples/posix/simple-send-udp/simple-send-udp
+UDP peer address: 127.0.0.1:1501 (listening on port 1500)
+</pre></div>
+</div>
+<p>If you successfully run <code class="docutils literal notranslate"><span class="pre">simple-send-udp</span></code>, you see the following
+message on the server terminal.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Packet</span> <span class="n">received</span> <span class="n">on</span> <span class="n">SERVER_PORT</span><span class="p">:</span> <span class="n">abc</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="simple-send-canbus.html" class="btn btn-neutral float-left" title="Simple Send via CANbus" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="simple-send-usart.html" class="btn btn-neutral float-right" title="Simple Send via USART" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
