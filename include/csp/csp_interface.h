@@ -36,6 +36,7 @@ struct csp_iface_s {
 	nexthop_t nexthop;          /**< Next hop (Tx) function */
 	csp_alias_add_t add_alias;  /**< Add receive address to interface (could be multicast receptions) */
 	uint8_t is_default;         /**< Set default IF flag (CSP supports multiple defaults) */
+	uint8_t	version;            /**< CSP version of the interface. 0=use csp_conf.version, 1=CSPv1, 2=CSPv2 */
 
 	/* Stats */
 	uint32_t tx;                /**< Successfully transmitted packets */
