@@ -259,11 +259,17 @@ static int loopback_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet,
     (void)iface;
     (void)via;
     (void)from_me;
-
-    /* add some sleep to avoid starving the system when RDP is not used */
-    if (!test_options.rdp)
-        usleep(1000);
+    
     csp_qfifo_write(packet, &csp_if_lo, NULL);
+    
+    /* add some sleep to avoid starving the system when RDP is not used */
+    if (!test_options.rdp) {
+        const int min_free_buffers = (CSP_BUFFER_COUNT / 2) + 1;
+        while (min_free_buffers > csp_buffer_remaining()) {
+            usleep(1000);
+        }
+    }
+
     return CSP_ERR_NONE;
 }
 
