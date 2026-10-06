@@ -12,8 +12,8 @@
     typedef sem_t csp_bin_sem_t;
 #elif (CSP_FREERTOS)
     #include <FreeRTOS.h>
-    #include <task.h>
-    typedef TaskHandle_t csp_bin_sem_t;
+    #include <semphr.h>
+    typedef StaticSemaphore_t csp_bin_sem_t;
 #elif (CSP_ZEPHYR)
     #include <zephyr/kernel.h>
     typedef struct k_sem csp_bin_sem_t;
