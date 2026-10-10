@@ -26,6 +26,16 @@ jobs:
         python-version:
           - '3.12'
           - '3.13'
+        extra-args:
+          - ''
+        include:
+          # Compile the CAN driver, classic and CAN FD
+          - board: qemu_cortex_m3
+            python-version: '3.13'
+            extra-args: -DCONFIG_CAN=y -DCONFIG_EVENTS=y -DCONFIG_COMPILER_WARNINGS_AS_ERRORS=y
+          - board: qemu_cortex_m3
+            python-version: '3.13'
+            extra-args: -DCONFIG_CAN=y -DCONFIG_EVENTS=y -DCONFIG_COMPILER_WARNINGS_AS_ERRORS=y -DCONFIG_CAN_FD_MODE=y
 
     steps:
       - name: Setup Python ${{ matrix.python-version }}
@@ -69,4 +79,4 @@ jobs:
 
       - name: Build
         run: |
-          west build -b ${{ matrix.board }} libcsp-zephyr
+          west build -b ${{ matrix.board }} libcsp-zephyr -- ${{ matrix.extra-args }}
