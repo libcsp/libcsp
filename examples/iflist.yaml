@@ -5,10 +5,10 @@
 #   name, driver, addr and netmask
 #
 # List of supported drivers:
-#   can, zmq, uart, tun, TODO: udp
+#   can, canfd, zmq, uart, tun, TODO: udp
 #
 # The following additional attributes are optional:
-#   device: used for can, and uart typically set to /dev/ttyUSB0 or can0
+#   device: used for can, canfd and uart typically set to /dev/ttyUSB0 or can0
 #   server: used for zmq, typically set to an IP address of a zmqproxy
 #   default: true, set to true on one interface only. Sets the default route to this if.
 #
@@ -18,6 +18,12 @@
 #   driver: "can"
 #   device: "vcan0"
 #   addr: 66
+#   netmask: 8
+#
+# - name: "CANFD"
+#   driver: "canfd"
+#   device: "can1"
+#   addr: 67
 #   netmask: 8
 #
 # - name: "ZMQ"
