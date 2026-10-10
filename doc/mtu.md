@@ -29,7 +29,8 @@ the link layer protocol to implement its own fragmentation protocol. A
 good example is CAN-bus which only allows a frame size of 8 bytes.
 libcsp have a small protocol for this called the “CAN fragmentation
 protocol" or CFP for short. This allows data of much larger size to be
-transferred over the CAN bus.
+transferred over the CAN bus. CAN FD frames hold up to 64 bytes, and the
+CAN FD interface uses the same protocol with fewer, larger fragments.
 
 Okay, but what if you want to transfer 1000 bytes, and the network
 maximum MTU is 256? Well, since CSP does not include streaming sockets,
