@@ -3,8 +3,12 @@ if socketcan_dep.found()
 	conf.set('CSP_HAVE_LIBSOCKETCAN', 1)
 	csp_deps += socketcan_dep
 	csp_sources += files(['can/can_socketcan.c'])
+	# CAN FD bit timing is only in libsocketcan newer than v0.0.12
+	conf.set('CSP_HAVE_LIBSOCKETCAN_CANFD',
+		cc.has_function('can_set_canfd_bittiming', prefix: '#include <libsocketcan.h>', dependencies: socketcan_dep).to_int())
 else
 	conf.set('CSP_HAVE_LIBSOCKETCAN', 0)
+	conf.set('CSP_HAVE_LIBSOCKETCAN_CANFD', 0)
 endif
 
 if host_machine.system() == 'linux'
