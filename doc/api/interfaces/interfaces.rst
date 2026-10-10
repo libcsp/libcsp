@@ -5,6 +5,7 @@ Interfaces
     :maxdepth: 4
 
     csp_if_can_h
+    csp_if_canfd_h
     csp_if_eth_h
     csp_if_eth_pbuf_h
     csp_if_i2c_h
