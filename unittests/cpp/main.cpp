@@ -1,10 +1,12 @@
 #include <csp/csp.h>
 #include <csp/drivers/can_socketcan.h>
 #include <csp/drivers/eth_linux.h>
+#include <csp/interfaces/csp_if_canfd.h>
 
 decltype(&csp_init) volatile csp_init_symbol = &csp_init;
 decltype(&csp_get_conf) volatile csp_get_conf_symbol = &csp_get_conf;
 decltype(&csp_eth_init) volatile csp_eth_init_symbol = &csp_eth_init;
+decltype(&csp_canfd_add_interface) volatile csp_canfd_add_interface_symbol = &csp_canfd_add_interface;
 
 static int can_tx(void *, uint32_t, const uint8_t *, uint8_t, const csp_packet_t *) {
 	return CSP_ERR_NONE;
@@ -12,7 +14,8 @@ static int can_tx(void *, uint32_t, const uint8_t *, uint8_t, const csp_packet_t
 
 int main() {
 	csp_init_symbol();
-	if (csp_get_conf_symbol() == nullptr || csp_eth_init_symbol == nullptr) {
+	if (csp_get_conf_symbol() == nullptr || csp_eth_init_symbol == nullptr ||
+	    csp_canfd_add_interface_symbol == nullptr) {
 		return 1;
 	}
 
