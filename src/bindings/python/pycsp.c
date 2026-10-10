@@ -1057,6 +1057,29 @@ static PyObject * pycsp_can_socketcan_init(PyObject * self, PyObject * args) {
 
 	Py_RETURN_NONE;
 }
+
+static PyObject * pycsp_canfd_socketcan_init(PyObject * self, PyObject * args) {
+	char * ifc;
+	int promisc = 0;
+	uint16_t addr = 0;
+	int is_default = 0;
+	uint16_t mask = 8;
+
+	if (!PyArg_ParseTuple(args, "s|HipH", &ifc, &addr, &promisc, &is_default, &mask)) {
+		return NULL;
+	}
+
+	csp_iface_t *iface;
+	int res = csp_canfd_socketcan_open_and_add_interface(ifc, CSP_IF_CANFD_DEFAULT_NAME, addr, promisc, &iface);
+	if (res != CSP_ERR_NONE) {
+		return PyErr_Error("csp_canfd_socketcan_open_and_add_interface()", res);
+	}
+	iface->is_default = is_default;
+	iface->addr = addr;
+	iface->netmask = mask;
+
+	Py_RETURN_NONE;
+}
 #endif /* CSP_HAVE_LIBSOCKETCAN */
 
 
@@ -1290,6 +1313,7 @@ static PyMethodDef methods[] = {
 #if CSP_HAVE_LIBSOCKETCAN
 	/* csp/drivers/can_socketcan.h */
 	{"can_socketcan_init", pycsp_can_socketcan_init, METH_VARARGS, ""},
+	{"canfd_socketcan_init", pycsp_canfd_socketcan_init, METH_VARARGS, ""},
 #endif
 
 	/* helpers */
