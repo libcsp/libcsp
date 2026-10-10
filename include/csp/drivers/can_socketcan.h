@@ -8,6 +8,7 @@
 #pragma once
 
 #include <csp/interfaces/csp_if_can.h>
+#include <csp/interfaces/csp_if_canfd.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -28,6 +29,24 @@ extern "C" {
  * @return The added interface, or NULL in case of failure.
  */
 int csp_can_socketcan_open_and_add_interface(const char * device, const char * ifname, unsigned int node_id, int bitrate, bool promisc, csp_iface_t ** return_iface);
+
+/**
+ * Open CAN FD socket and add CSP interface.
+ *
+ * Uses the fixed CAN FD profile from csp_if_canfd.h. With libsocketcan newer
+ * than v0.0.12 the link is set to this profile if it is not already, which may
+ * require increased OS privileges. Otherwise set the link up first, e.g. with
+ * ``ip link set can0 up type can bitrate 1000000 dbitrate 4000000 fd on``.
+ *
+ * @param[in] device CAN device name (Linux device).
+ * @param[in] ifname CSP interface name, use NULL for #CSP_IF_CANFD_DEFAULT_NAME.
+ * @param[in] node_id CSP address of the interface.
+ * @param[in] promisc if true, receive all CAN frames, otherwise only frames
+ * for this node.
+ * @param[out] return_iface the added interface.
+ * @return #CSP_ERR_NONE on success, otherwise an error code.
+ */
+int csp_canfd_socketcan_open_and_add_interface(const char * device, const char * ifname, unsigned int node_id, bool promisc, csp_iface_t ** return_iface);
 
 /**
  * Initialize socketcan and add CSP interface.
