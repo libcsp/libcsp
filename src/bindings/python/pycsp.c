@@ -104,9 +104,15 @@ static PyObject * pycsp_service_handler(PyObject * self, PyObject * args) {
 }
 
 static PyObject * pycsp_init(PyObject * self, PyObject * args) {
-	if (!PyArg_ParseTuple(args, "sss|bIb", &csp_conf.hostname, &csp_conf.model,
-						  &csp_conf.revision, &csp_conf.version, &csp_conf.conn_dfl_so, &csp_conf.dedup)) {
-
+#if CSP_REPRODUCIBLE_BUILDS == 0
+   const char *_csp_build_date;
+   const char *_csp_build_time;
+#else
+   #define _csp_build_date csp_conf.date
+   #define _csp_build_time csp_conf.time
+#endif
+	if (!PyArg_ParseTuple(args, "sss|bIbss", &csp_conf.hostname, &csp_conf.model,
+						  &csp_conf.revision, &csp_conf.version, &csp_conf.conn_dfl_so, &csp_conf.dedup, &_csp_build_date, &_csp_build_time)) {
 		return NULL;
 	}
 
