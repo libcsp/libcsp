@@ -1,6 +1,7 @@
 #include <check.h>
 #include <time.h>
 #include "../include/csp/csp.h"
+#include "../include/csp/arch/csp_time.h"
 
 #include "../src/csp_dedup.h"
 
@@ -12,9 +13,9 @@
  * both sides of the csp_get_ms() wrap, and it stopped one entry before the
  * oldest packet in the ring.
  *
- * The tests set the time through this csp_get_ms(). The tests link libcsp as
- * a shared library, so libcsp calls this definition. Outside these tests it
- * returns the real time.
+ * The tests set the time through this csp_get_ms(), which otherwise returns
+ * the real time. Implementing all of csp_time.h keeps a static libcsp from
+ * pulling in src/arch/posix/csp_time.c and its clashing csp_get_ms().
  */
 static bool fake_clock;
 static uint32_t fake_ms;
@@ -28,6 +29,23 @@ uint32_t csp_get_ms(void) {
 	struct timespec ts;
 	clock_gettime(CLOCK_MONOTONIC, &ts);
 	return (uint32_t)((ts.tv_sec * 1000) + (ts.tv_nsec / 1000000));
+}
+
+uint32_t csp_get_ms_isr(void) {
+
+	return csp_get_ms();
+}
+
+uint32_t csp_get_s(void) {
+
+	struct timespec ts;
+	clock_gettime(CLOCK_MONOTONIC, &ts);
+	return (uint32_t)ts.tv_sec;
+}
+
+uint32_t csp_get_s_isr(void) {
+
+	return csp_get_s();
 }
 
 /* Pass a packet with a one byte payload through the dedup at time ms */
