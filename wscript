@@ -134,6 +134,7 @@ def configure(ctx):
                                         'src/interfaces/csp_if_lo.c',
                                         'src/interfaces/csp_if_can.c',
                                         'src/interfaces/csp_if_can_pbuf.c',
+                                        'src/interfaces/csp_if_canfd.c',
                                         'src/interfaces/csp_if_kiss.c',
                                         'src/interfaces/csp_if_i2c.c',
                                         'src/interfaces/csp_if_tun.c',
@@ -172,6 +173,10 @@ def configure(ctx):
     if ctx.options.enable_can_socketcan:
         ctx.env.append_unique('FILES_CSP', 'src/drivers/can/can_socketcan.c')
         ctx.check_cfg(package='libsocketcan', args='--cflags --libs', define_name='CSP_HAVE_LIBSOCKETCAN')
+        # CAN FD bit timing is only in libsocketcan newer than v0.0.12
+        ctx.check_cc(fragment='#include <libsocketcan.h>\nint main(void) { return can_set_canfd_bittiming("", 0, 0); }\n',
+                     use='LIBSOCKETCAN', cflags=['-Werror=implicit-function-declaration'], mandatory=False,
+                     define_name='CSP_HAVE_LIBSOCKETCAN_CANFD', msg="Checking for can_set_canfd_bittiming")
         ctx.env.append_unique('LIBS', ctx.env.LIB_LIBSOCKETCAN)
 
     # Add USART driver

@@ -9,6 +9,7 @@ if(CHECK_FOUND)
     route.c
     dedup.c
     wire.c
+    canfd.c
   )
   if(LIBZMQ_FOUND)
     target_sources(csp_tests PRIVATE zmqhub.c)

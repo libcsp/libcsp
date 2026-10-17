@@ -10,6 +10,7 @@
 */
 
 #include <csp/interfaces/csp_if_can.h>
+#include <csp/interfaces/csp_if_canfd.h>
 #include <zephyr/device.h>
 #include <zephyr/drivers/can.h>
 
@@ -33,6 +34,26 @@ int csp_can_open_and_add_interface(const struct device * device, const char * if
 								   uint16_t address, uint32_t bitrate,
 								   uint16_t filter_addr, uint16_t filter_mask,
 								   csp_iface_t ** return_iface);
+
+/**
+ * Open CAN FD and add CSP interface.
+ *
+ * Uses the fixed CAN FD profile from csp_if_canfd.h. Requires
+ * CONFIG_CAN_FD_MODE (otherwise returns #CSP_ERR_NOTSUP) and a controller
+ * that supports CAN FD.
+ *
+ *  @param[in] device CAN device structure.
+ *  @param[in] ifname CSP interface name.
+ *  @param[in] address CSP address of the interface.
+ *  @param[in] filter_addr Destination address you want to set in the RX filter.
+ *  @param[in] filter_mask Bit mask you want to set in the RX filter.
+ *  @param[out] return_iface Added interface
+ *  @return #CSP_ERR_NONE on success, otherwise an error code.
+*/
+int csp_canfd_open_and_add_interface(const struct device * device, const char * ifname,
+									 uint16_t address,
+									 uint16_t filter_addr, uint16_t filter_mask,
+									 csp_iface_t ** return_iface);
 
 /**
  * Set CAN RX filter based on destination address and bit mask.

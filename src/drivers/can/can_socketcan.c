@@ -20,6 +20,12 @@
 #include <csp/csp.h>
 #include <csp/csp_id.h>
 
+/* A CSP CAN interface sends and receives one frame format */
+typedef enum {
+	CSP_CAN_MODE_CLASSIC,
+	CSP_CAN_MODE_FD,
+} csp_can_mode_t;
+
 // CAN interface data, state, etc.
 typedef struct {
 	char name[CSP_IFLIST_NAME_MAX + 1];
@@ -27,7 +33,21 @@ typedef struct {
 	csp_can_interface_data_t ifdata;
 	pthread_t rx_thread;
 	int socket;
+	csp_can_mode_t mode;
 } can_context_t;
+
+/* Size of a frame read in this mode */
+static int socketcan_mtu(csp_can_mode_t mode) {
+
+	switch (mode) {
+		case CSP_CAN_MODE_CLASSIC:
+			return CAN_MTU;
+		case CSP_CAN_MODE_FD:
+			return CANFD_MTU;
+	}
+
+	return 0;
+}
 
 static void socketcan_free(can_context_t * ctx) {
 
@@ -60,9 +80,9 @@ static void * socketcan_rx_thread(void * arg) {
 			continue;
 		}
 
-		/* Read CAN frame */
-		struct can_frame frame;
-		int nbytes = read(ctx->socket, &frame, sizeof(frame)); 
+		/* Read CAN frame, classic or CAN FD sized */
+		struct canfd_frame frame;
+		int nbytes = read(ctx->socket, &frame, sizeof(frame));
 		if (nbytes < 0) {
 			if (errno == EAGAIN || errno == EINTR) {
 				/* This is acceptable, since something interrupted us, try again */
@@ -74,13 +94,19 @@ static void * socketcan_rx_thread(void * arg) {
 			}
 		}
 
-		if (nbytes != sizeof(frame)) {
-			csp_print("%s[%s]: Read incomplete CAN frame, size: %d, expected: %u bytes\n", __func__, ctx->name, nbytes, (unsigned int)sizeof(frame));
+		if ((nbytes != CAN_MTU) && (nbytes != CANFD_MTU)) {
+			csp_print("%s[%s]: Read incomplete CAN frame, size: %d bytes\n", __func__, ctx->name, nbytes);
+			continue;
+		}
+
+		/* An interface only takes frames of its own format */
+		if (nbytes != socketcan_mtu(ctx->mode)) {
+			ctx->iface.frame++;
 			continue;
 		}
 
 		/* Drop frames with invalid size field */
-		if (frame.can_dlc > CAN_MAX_DLEN) {
+		if (frame.len > ((nbytes == CANFD_MTU) ? CANFD_MAX_DLEN : CAN_MAX_DLEN)) {
 			continue;
 		}
 
@@ -98,29 +124,26 @@ static void * socketcan_rx_thread(void * arg) {
 		/* Strip flags */
 		frame.can_id &= CAN_EFF_MASK;
 
-		/* Call RX callbacsp_can_rx_frameck */
-		csp_can_rx(&ctx->iface, frame.can_id, frame.data, frame.can_dlc, 0, NULL);
+		/* Call RX callback */
+		switch (ctx->mode) {
+			case CSP_CAN_MODE_CLASSIC:
+				csp_can_rx(&ctx->iface, frame.can_id, frame.data, frame.len, 0, NULL);
+				break;
+			case CSP_CAN_MODE_FD:
+				csp_canfd_rx(&ctx->iface, frame.can_id, frame.data, frame.len, 0, NULL);
+				break;
+		}
 	}
 
 	/* We should never reach this point */
 	pthread_exit(NULL);
 }
 
-static int csp_can_tx_frame(void * driver_data, uint32_t id, const uint8_t * data, uint8_t dlc, const csp_packet_t *packet) {
-	(void)packet;
-	if (dlc > CAN_MAX_DLEN) {
-		return CSP_ERR_INVAL;
-	}
-
-	struct can_frame frame = {.can_id = id | CAN_EFF_FLAG,
-							  .can_dlc = dlc};
-	memcpy(frame.data, data, dlc);
+static int socketcan_write(can_context_t * ctx, const void * frame, size_t length) {
 
 	uint32_t waiting_ms = 0;
-	can_context_t * ctx = driver_data;
-	uintptr_t pdata = (uintptr_t)&frame;
-	uintptr_t pend = ((uintptr_t)&frame + sizeof(frame));
-	size_t length = sizeof(frame);
+	uintptr_t pdata = (uintptr_t)frame;
+	uintptr_t pend = ((uintptr_t)frame + length);
 
 	while (pdata < pend) {
 		int written;
@@ -154,6 +177,33 @@ static int csp_can_tx_frame(void * driver_data, uint32_t id, const uint8_t * dat
 	return CSP_ERR_NONE;
 }
 
+static int csp_can_tx_frame(void * driver_data, uint32_t id, const uint8_t * data, uint8_t dlc, const csp_packet_t *packet) {
+	(void)packet;
+	if (dlc > CAN_MAX_DLEN) {
+		return CSP_ERR_INVAL;
+	}
+
+	struct can_frame frame = {.can_id = id | CAN_EFF_FLAG,
+							  .can_dlc = dlc};
+	memcpy(frame.data, data, dlc);
+
+	return socketcan_write(driver_data, &frame, sizeof(frame));
+}
+
+static int csp_canfd_tx_frame(void * driver_data, uint32_t id, const uint8_t * data, uint8_t data_size, const csp_packet_t *packet) {
+	(void)packet;
+	if (data_size > CANFD_MAX_DLEN) {
+		return CSP_ERR_INVAL;
+	}
+
+	/* Bit Rate Switch: send the data phase at the CAN FD data bitrate */
+	struct canfd_frame frame = {.can_id = id | CAN_EFF_FLAG,
+								.len = data_size,
+								.flags = CANFD_BRS};
+	memcpy(frame.data, data, data_size);
+
+	return socketcan_write(driver_data, &frame, sizeof(frame));
+}
 
 static int csp_can_socketcan_set_promisc(const bool promisc, can_context_t * ctx) {
 
@@ -225,19 +275,71 @@ static int csp_can_socketcan_add_alias(void * driver_data, uint16_t addr) {
 	return 0;
 }
 
-int csp_can_socketcan_open_and_add_interface(const char * device, const char * ifname, unsigned int node_id, int bitrate, bool promisc, csp_iface_t ** return_iface) {
-	if (ifname == NULL) {
-		ifname = CSP_IF_CAN_DEFAULT_NAME;
+static void socketcan_set_canfd_profile(const char * device) {
+#if (CSP_HAVE_LIBSOCKETCAN_CANFD)
+	struct can_bittiming bt = {0};
+	struct can_bittiming dbt = {0};
+
+	/* Leave a link that already runs the profile alone */
+	if ((can_get_bittiming(device, &bt) == 0) && (bt.bitrate == CSP_CANFD_BITRATE) &&
+		(can_get_data_bittiming(device, &dbt) == 0) && (dbt.bitrate == CSP_CANFD_DATA_BITRATE)) {
+		return;
 	}
 
-	csp_print("INIT %s: device: [%s], bitrate: %d, promisc: %d\n", ifname, device, bitrate, promisc);
-
 	/* Set interface up - this may require increased OS privileges */
-	if (bitrate > 0) {
-		can_do_stop(device);
-		can_set_bitrate(device, bitrate);
-		can_set_restart_ms(device, 100);
-		can_do_start(device);
+	bt = (struct can_bittiming){.bitrate = CSP_CANFD_BITRATE};
+	dbt = (struct can_bittiming){.bitrate = CSP_CANFD_DATA_BITRATE};
+	can_do_stop(device);
+	can_set_canfd_bittiming(device, &bt, &dbt);
+	can_set_restart_ms(device, 100);
+	can_do_start(device);
+#else
+	(void)device;
+#endif
+}
+
+static int socketcan_add_interface(can_context_t * ctx) {
+
+	switch (ctx->mode) {
+		case CSP_CAN_MODE_CLASSIC:
+			return csp_can_add_interface(&ctx->iface);
+		case CSP_CAN_MODE_FD:
+			return csp_canfd_add_interface(&ctx->iface);
+	}
+
+	return CSP_ERR_INVAL;
+}
+
+static int socketcan_remove_interface(can_context_t * ctx) {
+
+	switch (ctx->mode) {
+		case CSP_CAN_MODE_CLASSIC:
+			return csp_can_remove_interface(&ctx->iface);
+		case CSP_CAN_MODE_FD:
+			return csp_canfd_remove_interface(&ctx->iface);
+	}
+
+	return CSP_ERR_INVAL;
+}
+
+static int socketcan_open_and_add_interface(const char * device, const char * ifname, unsigned int node_id, int bitrate, csp_can_mode_t mode, bool promisc, csp_iface_t ** return_iface) {
+
+	switch (mode) {
+		case CSP_CAN_MODE_CLASSIC:
+			csp_print("INIT %s: device: [%s], bitrate: %d, promisc: %d\n", ifname, device, bitrate, promisc);
+
+			/* Set interface up - this may require increased OS privileges */
+			if (bitrate > 0) {
+				can_do_stop(device);
+				can_set_bitrate(device, bitrate);
+				can_set_restart_ms(device, 100);
+				can_do_start(device);
+			}
+			break;
+		case CSP_CAN_MODE_FD:
+			csp_print("INIT %s: device: [%s], bitrate: %d/%d, promisc: %d\n", ifname, device, CSP_CANFD_BITRATE, CSP_CANFD_DATA_BITRATE, promisc);
+			socketcan_set_canfd_profile(device);
+			break;
 	}
 
 	can_context_t * ctx = calloc(1, sizeof(*ctx));
@@ -245,13 +347,21 @@ int csp_can_socketcan_open_and_add_interface(const char * device, const char * i
 		return CSP_ERR_NOMEM;
 	}
 	ctx->socket = -1;
+	ctx->mode = mode;
 
 	strncpy(ctx->name, ifname, sizeof(ctx->name) - 1);
 	ctx->iface.name = ctx->name;
 	ctx->iface.addr = node_id;
 	ctx->iface.interface_data = &ctx->ifdata;
 	ctx->iface.driver_data = ctx;
-	ctx->ifdata.tx_func = csp_can_tx_frame;
+	switch (mode) {
+		case CSP_CAN_MODE_CLASSIC:
+			ctx->ifdata.tx_func = csp_can_tx_frame;
+			break;
+		case CSP_CAN_MODE_FD:
+			ctx->ifdata.tx_func = csp_canfd_tx_frame;
+			break;
+	}
 	ctx->iface.add_alias = csp_can_socketcan_add_alias;
 	ctx->ifdata.pbufs = NULL;
 
@@ -270,6 +380,25 @@ int csp_can_socketcan_open_and_add_interface(const char * device, const char * i
 		socketcan_free(ctx);
 		return CSP_ERR_INVAL;
 	}
+	int ifindex = ifr.ifr_ifindex;
+
+	if (mode == CSP_CAN_MODE_FD) {
+		/* The link MTU tells if it can carry CAN FD frames (CAN XL links can too) */
+		if ((ioctl(ctx->socket, SIOCGIFMTU, &ifr) < 0) || (ifr.ifr_mtu < (int)CANFD_MTU)) {
+			csp_print("%s[%s]: device: [%s] is not in CAN FD mode, set it up with e.g.:\n"
+					  "  ip link set %s up type can bitrate %d dbitrate %d fd on restart-ms 100\n",
+					  __func__, ctx->name, device, device, CSP_CANFD_BITRATE, CSP_CANFD_DATA_BITRATE);
+			socketcan_free(ctx);
+			return CSP_ERR_INVAL;
+		}
+
+		int enable = 1;
+		if (setsockopt(ctx->socket, SOL_CAN_RAW, CAN_RAW_FD_FRAMES, &enable, sizeof(enable)) < 0) {
+			csp_print("%s[%s]: setsockopt(CAN_RAW_FD_FRAMES) failed, error: %s\n", __func__, ctx->name, strerror(errno));
+			socketcan_free(ctx);
+			return CSP_ERR_INVAL;
+		}
+	}
 
 	fcntl(ctx->socket, F_SETFL, O_NONBLOCK);
 
@@ -277,7 +406,7 @@ int csp_can_socketcan_open_and_add_interface(const char * device, const char * i
 	memset(&addr, 0, sizeof(addr));
 	/* Bind the socket to CAN interface */
 	addr.can_family = AF_CAN;
-	addr.can_ifindex = ifr.ifr_ifindex;
+	addr.can_ifindex = ifindex;
 	if (bind(ctx->socket, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
 		csp_print("%s[%s]: bind() failed, error: %s\n", __func__, ctx->name, strerror(errno));
 		socketcan_free(ctx);
@@ -292,9 +421,9 @@ int csp_can_socketcan_open_and_add_interface(const char * device, const char * i
 	}
 
 	/* Add interface to CSP */
-	int res = csp_can_add_interface(&ctx->iface);
+	int res = socketcan_add_interface(ctx);
 	if (res != CSP_ERR_NONE) {
-		csp_print("%s[%s]: csp_can_add_interface() failed, error: %d\n", __func__, ctx->name, res);
+		csp_print("%s[%s]: adding interface failed, error: %d\n", __func__, ctx->name, res);
 		socketcan_free(ctx);
 		return res;
 	}
@@ -302,7 +431,7 @@ int csp_can_socketcan_open_and_add_interface(const char * device, const char * i
 	/* Create receive thread */
 	if (pthread_create(&ctx->rx_thread, NULL, socketcan_rx_thread, ctx) != 0) {
 		csp_print("%s[%s]: pthread_create() failed, error: %s\n", __func__, ctx->name, strerror(errno));
-		(void)csp_can_remove_interface(&ctx->iface);
+		(void)socketcan_remove_interface(ctx);
 		socketcan_free(ctx);
 		return CSP_ERR_NOMEM;
 	}
@@ -312,6 +441,22 @@ int csp_can_socketcan_open_and_add_interface(const char * device, const char * i
 	}
 
 	return CSP_ERR_NONE;
+}
+
+int csp_can_socketcan_open_and_add_interface(const char * device, const char * ifname, unsigned int node_id, int bitrate, bool promisc, csp_iface_t ** return_iface) {
+	if (ifname == NULL) {
+		ifname = CSP_IF_CAN_DEFAULT_NAME;
+	}
+
+	return socketcan_open_and_add_interface(device, ifname, node_id, bitrate, CSP_CAN_MODE_CLASSIC, promisc, return_iface);
+}
+
+int csp_canfd_socketcan_open_and_add_interface(const char * device, const char * ifname, unsigned int node_id, bool promisc, csp_iface_t ** return_iface) {
+	if (ifname == NULL) {
+		ifname = CSP_IF_CANFD_DEFAULT_NAME;
+	}
+
+	return socketcan_open_and_add_interface(device, ifname, node_id, 0, CSP_CAN_MODE_FD, promisc, return_iface);
 }
 
 csp_iface_t * csp_can_socketcan_init(const char * device, unsigned int node_id, int bitrate, bool promisc) {

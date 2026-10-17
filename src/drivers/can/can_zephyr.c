@@ -15,6 +15,12 @@ LOG_MODULE_REGISTER(csp_can_driver);
 #define CSP_CAN_RX_THREAD_JOIN_TIME_OUT K_MSEC(1500)
 #define CSP_CAN_STOP_EVENT (0x01)
 
+/* A CSP CAN interface sends and receives one frame format */
+typedef enum {
+	CSP_CAN_MODE_CLASSIC,
+	CSP_CAN_MODE_FD,
+} csp_can_mode_t;
+
 /**
  * CAN interface data
 */
@@ -22,6 +28,7 @@ typedef struct {
 	char name[CSP_IFLIST_NAME_MAX + 1];
 	csp_iface_t iface;
 	csp_can_interface_data_t ifdata;
+	csp_can_mode_t mode;
 	const struct device * device;
 	struct k_msgq rx_msgq;
 	uint8_t rx_msgq_buf[CONFIG_CSP_CAN_RX_MSGQ_DEPTH * sizeof(struct can_frame)];
@@ -34,6 +41,15 @@ static K_THREAD_STACK_ARRAY_DEFINE(rx_stack,
 			CONFIG_CSP_CAN_RX_THREAD_NUM, CONFIG_CSP_CAN_RX_THREAD_STACK_SIZE);
 static uint8_t rx_thread_idx = 0;
 
+/* Frame format of a received frame */
+static csp_can_mode_t csp_can_frame_mode(const struct can_frame * frame) {
+
+	if (frame->flags & CAN_FRAME_FDF) {
+		return CSP_CAN_MODE_FD;
+	}
+	return CSP_CAN_MODE_CLASSIC;
+}
+
 static void csp_can_rx_thread(void * arg1, void * arg2, void * arg3) {
 
 	int ret;
@@ -41,6 +57,7 @@ static void csp_can_rx_thread(void * arg1, void * arg2, void * arg3) {
 	struct k_msgq * rx_msgq = arg1;
 	csp_iface_t * iface = arg2;
 	struct k_event * stop_can_event = arg3;
+	can_context_t * ctx = iface->driver_data;
 
 	while (true) {
 		/*
@@ -61,8 +78,14 @@ static void csp_can_rx_thread(void * arg1, void * arg2, void * arg3) {
 		}
 
 		/* Drop frames with invalid size field */
-		if(frame.dlc > CAN_MAX_DLEN){
+		if (!(frame.flags & CAN_FRAME_FDF) && (frame.dlc > CAN_MAX_DLC)) {
 			LOG_WRN("[%s] discarding invalid size frame", iface->name);
+			continue;
+		}
+
+		/* An interface only takes frames of its own format */
+		if (csp_can_frame_mode(&frame) != ctx->mode) {
+			iface->frame++;
 			continue;
 		}
 
@@ -78,8 +101,18 @@ static void csp_can_rx_thread(void * arg1, void * arg2, void * arg3) {
 			continue;
 		}
 
+		/* The DLC of a classic frame is its byte count, a CAN FD DLC is a code */
+		uint8_t data_size = (frame.flags & CAN_FRAME_FDF) ? can_dlc_to_bytes(frame.dlc) : frame.dlc;
+
 		/* Call the common CSP CAN RX function. */
-		csp_can_rx(iface, frame.id, frame.data, frame.dlc, 0, NULL);
+		switch (ctx->mode) {
+			case CSP_CAN_MODE_CLASSIC:
+				csp_can_rx(iface, frame.id, frame.data, data_size, 0, NULL);
+				break;
+			case CSP_CAN_MODE_FD:
+				csp_canfd_rx(iface, frame.id, frame.data, data_size, 0, NULL);
+				break;
+		}
 	}
 }
 
@@ -107,6 +140,59 @@ static int csp_can_tx_frame(void * driver_data, uint32_t id, const uint8_t * dat
 
 end:
 	return ret;
+}
+
+#if defined(CONFIG_CAN_FD_MODE)
+static int csp_canfd_tx_frame(void * driver_data, uint32_t id, const uint8_t * data, uint8_t data_size, const csp_packet_t *packet) {
+
+	int ret = CSP_ERR_NONE;
+	struct can_frame frame = {0};
+	can_context_t * ctx = driver_data;
+	(void)packet;
+
+	if (data_size > CSP_CANFD_FRAME_SIZE) {
+		ret = CSP_ERR_INVAL;
+		goto end;
+	}
+
+	/* Bit Rate Switch: send the data phase at the CAN FD data bitrate */
+	frame.id = id;
+	frame.dlc = can_bytes_to_dlc(data_size);
+	frame.flags = CAN_FRAME_IDE | CAN_FRAME_FDF | CAN_FRAME_BRS;
+	memcpy(frame.data, data, data_size);
+
+	ret = can_send(ctx->device, &frame, CSP_CAN_TX_TIME_OUT, NULL, NULL);
+	if (ret < 0) {
+		LOG_ERR("[%s] can_send() failed, errno %d", ctx->name, ret);
+	}
+
+end:
+	return ret;
+}
+#endif
+
+static int csp_can_add_iface(can_context_t * ctx) {
+
+	switch (ctx->mode) {
+		case CSP_CAN_MODE_CLASSIC:
+			return csp_can_add_interface(&ctx->iface);
+		case CSP_CAN_MODE_FD:
+			return csp_canfd_add_interface(&ctx->iface);
+	}
+
+	return CSP_ERR_INVAL;
+}
+
+static int csp_can_remove_iface(can_context_t * ctx) {
+
+	switch (ctx->mode) {
+		case CSP_CAN_MODE_CLASSIC:
+			return csp_can_remove_interface(&ctx->iface);
+		case CSP_CAN_MODE_FD:
+			return csp_canfd_remove_interface(&ctx->iface);
+	}
+
+	return CSP_ERR_INVAL;
 }
 
 static void csp_can_remove_rx_filter(can_context_t * ctx) {
@@ -137,10 +223,10 @@ static int csp_can_finish_rx_thread(can_context_t * ctx) {
 	return ret;
 }
 
-int csp_can_open_and_add_interface(const struct device * device, const char * ifname,
-				    uint16_t address, uint32_t bitrate,
-				    uint16_t filter_addr, uint16_t filter_mask,
-				    csp_iface_t ** return_iface) {
+static int csp_can_open(const struct device * device, const char * ifname,
+						uint16_t address, uint32_t bitrate, csp_can_mode_t mode,
+						uint16_t filter_addr, uint16_t filter_mask,
+						csp_iface_t ** return_iface) {
 
 	int ret;
 	k_tid_t rx_tid;
@@ -186,7 +272,13 @@ int csp_can_open_and_add_interface(const struct device * device, const char * if
 	ctx->iface.interface_data = &ctx->ifdata;
 	ctx->iface.driver_data = ctx;
 	ctx->ifdata.tx_func = csp_can_tx_frame;
+#if defined(CONFIG_CAN_FD_MODE)
+	if (mode == CSP_CAN_MODE_FD) {
+		ctx->ifdata.tx_func = csp_canfd_tx_frame;
+	}
+#endif
 	ctx->ifdata.pbufs = NULL;
+	ctx->mode = mode;
 	ctx->device = device;
 	ctx->filter_id = -1;
 	k_event_init(&ctx->stop_can_event);
@@ -205,6 +297,22 @@ int csp_can_open_and_add_interface(const struct device * device, const char * if
 		goto cleanup_heap;
 	}
 
+#if defined(CONFIG_CAN_FD_MODE)
+	if (mode == CSP_CAN_MODE_FD) {
+		ret = can_set_bitrate_data(device, CSP_CANFD_DATA_BITRATE);
+		if (ret < 0) {
+			LOG_ERR("[%s] can_set_bitrate_data() failed, error: %d", ctx->name, ret);
+			goto cleanup_heap;
+		}
+
+		ret = can_set_mode(device, CAN_MODE_FD);
+		if (ret < 0) {
+			LOG_ERR("[%s] can_set_mode(CAN_MODE_FD) failed, error: %d", ctx->name, ret);
+			goto cleanup_heap;
+		}
+	}
+#endif
+
 	/* Set RX filter */
 	ret = csp_can_set_rx_filter(&ctx->iface, filter_addr, filter_mask);
 	if (ret < 0) {
@@ -213,9 +321,9 @@ int csp_can_open_and_add_interface(const struct device * device, const char * if
 	}
 
 	/* Add interface to CSP */
-	ret = csp_can_add_interface(&ctx->iface);
+	ret = csp_can_add_iface(ctx);
 	if (ret != CSP_ERR_NONE) {
-		LOG_ERR("[%s] csp_can_add_interface() failed, error: %d", ctx->name, ret);
+		LOG_ERR("[%s] adding interface failed, error: %d", ctx->name, ret);
 		goto cleanup_filter;
 	}
 
@@ -257,7 +365,7 @@ cleanup_thread:
 	(void)csp_can_finish_rx_thread(ctx);
 
 cleanup_iface:
-	(void)csp_can_remove_interface(&ctx->iface);
+	(void)csp_can_remove_iface(ctx);
 
 cleanup_filter:
 	csp_can_remove_rx_filter(ctx);
@@ -267,6 +375,27 @@ cleanup_heap:
 
 end:
 	return ret;
+}
+
+int csp_can_open_and_add_interface(const struct device * device, const char * ifname,
+				    uint16_t address, uint32_t bitrate,
+				    uint16_t filter_addr, uint16_t filter_mask,
+				    csp_iface_t ** return_iface) {
+
+	return csp_can_open(device, ifname, address, bitrate, CSP_CAN_MODE_CLASSIC, filter_addr, filter_mask, return_iface);
+}
+
+int csp_canfd_open_and_add_interface(const struct device * device, const char * ifname,
+				      uint16_t address,
+				      uint16_t filter_addr, uint16_t filter_mask,
+				      csp_iface_t ** return_iface) {
+
+#if defined(CONFIG_CAN_FD_MODE)
+	return csp_can_open(device, ifname, address, CSP_CANFD_BITRATE, CSP_CAN_MODE_FD, filter_addr, filter_mask, return_iface);
+#else
+	LOG_ERR("CAN FD requires CONFIG_CAN_FD_MODE");
+	return CSP_ERR_NOTSUP;
+#endif
 }
 
 int csp_can_set_rx_filter(csp_iface_t * iface, uint16_t filter_addr, uint16_t filter_mask) {
@@ -327,7 +456,7 @@ int csp_can_stop(csp_iface_t * iface) {
 
 	(void)csp_can_finish_rx_thread(ctx);
 
-	(void)csp_can_remove_interface(&ctx->iface);
+	(void)csp_can_remove_iface(ctx);
 
 	csp_can_remove_rx_filter(ctx);
 

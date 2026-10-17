@@ -8,6 +8,8 @@ libcsp 2.2, xx-xx-202x
   CMake and Meson default to this driver on Linux. PowerPC users must select
   the POSIX driver with -DCSP_DRIVER_USART=posix (CMake),
   -Ddriver_usart=posix (Meson), or --with-driver-usart=posix (Waf).
+- new: CAN FD interface with a fixed 1 Mbit/s / 4 Mbit/s profile, and CAN FD
+  support in the SocketCAN and Zephyr drivers (#944)
 - improvement: Small Fragmentation Protocol has been reworked to remove malloc() (#742)
 - improvement: PyCSP can now be built without SocketCAN (#638)
 - improvement: PyCSP can now take mask and is_default optional parameter (#924)
