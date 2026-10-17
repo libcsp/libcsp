@@ -20,7 +20,12 @@ csp_conf_t csp_conf = {
 	.model = "",
 	.revision = "",
 	.conn_dfl_so = CSP_O_NONE,
-	.dedup = CSP_DEDUP_OFF};
+	.dedup = CSP_DEDUP_OFF,
+#if CSP_REPRODUCIBLE_BUILDS == 1
+	.date = "",
+	.time = "",
+#endif
+};
 
 void csp_init(void) {
 
