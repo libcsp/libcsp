@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>csp_sfp.h &mdash; Cubesat Space Protocol</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
+      <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+      <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.5ea377869091fd0449014c60fc090103.min.css" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
+        <script src="../_static/clipboard.min.js"></script>
+        <script src="../_static/copybutton.js"></script>
+        <script src="../_static/design-tabs.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: rgba(52,49,49,1) 100%;" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Lib CSP
+          </a>
+              <div class="version">
+                develop
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Setup</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../INSTALL.html">How to install LibCSP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../build-doc.html">How to build documentation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">how to run samples</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../samples/posix/simple-send-canbus.html">Simple Send via CANbus</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../samples/posix/simple-send-udp.html">Simple Send via UDP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../samples/posix/simple-send-usart.html">Simple Send via USART</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../samples/posix/simple-send-zmq.html">Simple Send via zmqhub</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../samples/posix/simple-sfp-send-recv.html">Simple Send using SFP via USART</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">CSP API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/csp_h.html">CSP Library Header</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/csp_types_h.html">CSP Basic Types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/csp_buffer_h.html">CSP Buffer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/csp_cmp_h.html">CSP Management Protocol (CMP)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/csp_sfp_h.html">Small Fragmentation Protocol (SFP)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/csp_promisc_h.html">Promiscuous packet queue</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/csp_interface_h.html">CSP Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/csp_rtable_h.html">Routing table</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/csp_iflist_h.html">Interfaces management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/csp_error_h.html">Error Codes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/csp_debug_h.html">CSP Debug</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/csp_id_h.html">CSP ID</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/csp_crc32_h.html">CRC32 Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/csp_hooks_h.html">CSP Hooks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/csp_yaml_h.html">YAML Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/drivers/drivers.html">Drivers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/crypto/crypto.html">Crypto</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/interfaces/interfaces.html">Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/arch/arch.html">Architecture dependent</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">The Cubesat Space Protocol</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../basic.html">The basics of CSP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../history.html">History</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../memory.html">How CSP uses memory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mtu.html">Maximum Transfer Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../outflow.html">Outgoing Packet Flow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../protocolstack.html">The Protocol Stack</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../topology.html">Network Topology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../security.html">Security model and deployment assumptions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tunnel.html">CSP tunnels</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../hooks.html">Hooks in CSP</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Development</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../contributing.html">Contributing to libcsp</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../codestyle.html">Code style</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../git-commit.html">Git Commit Guidelines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../structure.html">Structure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CI.html">Continuous Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Example Usage</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../example.html">Client and server example</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: rgba(52,49,49,1) 100%;" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Lib CSP</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">csp_sfp.h</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for csp_sfp.h</h1><div class="highlight"><pre>
+<span></span><span class="cm">/*****************************************************************************</span>
+<span class="cm"> * **File:** csp/csp_sfp.h</span>
+<span class="cm"> *</span>
+<span class="cm"> * **Description:** Simple Fragmentation Protocol (SFP).</span>
+<span class="cm"> *</span>
+<span class="cm"> * The SFP API can transfer a blob of data across an established CSP connection,</span>
+<span class="cm"> * by chopping the data into smaller chunks of data, that can fit into a single CSP message.</span>
+<span class="cm"> *</span>
+<span class="cm"> * SFP will add a small header to each packet, containing information about the transfer.</span>
+<span class="cm"> * SFP is usually sent over a RDP connection (which also adds a header),</span>
+<span class="cm"> ****************************************************************************/</span>
+<span class="cp">#pragma once</span>
+
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;csp/csp_types.h&gt;</span>
+
+<span class="cp">#ifdef __cplusplus</span>
+<span class="k">extern</span><span class="w"> </span><span class="s">&quot;C&quot;</span><span class="w"> </span><span class="p">{</span>
+<span class="cp">#endif</span>
+
+
+<div class="viewcode-block" id="c.csp_sfp_read_t"><span class="cm">/**</span>
+<span class="cm"> * Structure to be passed as an input parameter to csp_sfp_send(...).</span>
+<span class="cm"> * This structure encapsulates user-defined data and a function for reading data from storage.</span>
+<span class="cm"> */</span>
+<span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="p">{</span>
+<div class="viewcode-block" id="c.csp_sfp_read_t.data"><span class="w">    </span><span class="cm">/**</span>
+<span class="cm">     * User-defined data. SFP does not interpret or manipulate this data.</span>
+<span class="cm">     * It can be any user-defined data such as a file handle, a raw buffer pointer, or any other </span>
+<span class="cm">     * relevant information required for the implementation. NULL is accepted.</span>
+<span class="cm">     */</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">data</span><span class="p">;</span></div>
+
+<div class="viewcode-block" id="c.csp_sfp_read_t.read"><span class="w">    </span><span class="cm">/**</span>
+<span class="cm">     * User-defined function for reading data from a storage medium.</span>
+<span class="cm">     * </span>
+<span class="cm">     * This callback allows users to define a custom mechanism for retrieving data, such as reading </span>
+<span class="cm">     * from a file, memory buffer, or another type of storage. The SFP layer invokes this function </span>
+<span class="cm">     * during data transmission.</span>
+<span class="cm">     * </span>
+<span class="cm">     * @param[out] buffer Pointer to the buffer where the read data should be stored. This pointer is always valid.</span>
+<span class="cm">     * @param[in] size The number of bytes to read. Guaranteed to be greater than 0.</span>
+<span class="cm">     * @param[in] offset The offset in the source storage from where the data should be read. This allows </span>
+<span class="cm">     *                   the user to retrieve data from specific positions, such as file offsets or </span>
+<span class="cm">     *                   buffer indices.</span>
+<span class="cm">     * @param[in] data Pointer to user-specific data provided by the caller (e.g., a file handle, buffer state, </span>
+<span class="cm">     *                 or context). This pointer is optional and may be NULL, depending on the user implementation.</span>
+<span class="cm">     * @return #CSP_ERR_NONE on success, otherwise an error.</span>
+<span class="cm">     */</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="w"> </span><span class="n">read</span><span class="p">)(</span><span class="kt">uint8_t</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">buffer</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">size</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">offset</span><span class="p">,</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">data</span><span class="p">);</span></div>
+<span class="p">}</span><span class="w"> </span><span class="n">csp_sfp_read_t</span><span class="p">;</span></div>
+
+<div class="viewcode-block" id="c.csp_sfp_recv_t"><span class="cm">/**</span>
+<span class="cm"> * Structure to be passed as an input parameter to csp_sfp_recv(...).</span>
+<span class="cm"> * This structure encapsulates user-defined data and a function for writing data to storage.</span>
+<span class="cm"> */</span>
+<span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="p">{</span>
+<div class="viewcode-block" id="c.csp_sfp_recv_t.data"><span class="w">    </span><span class="cm">/**</span>
+<span class="cm">     * User-defined data. SFP does not interpret or manipulate this data.</span>
+<span class="cm">     * It can be any user-defined data such as a file handle, a raw buffer pointer, or any other </span>
+<span class="cm">     * relevant information required for the implementation. NULL is accepted.</span>
+<span class="cm">     */</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">data</span><span class="p">;</span></div>
+
+<div class="viewcode-block" id="c.csp_sfp_recv_t.write"><span class="w">    </span><span class="cm">/**</span>
+<span class="cm">     * User-defined function for writing data to a storage medium.</span>
+<span class="cm">     * </span>
+<span class="cm">     * This callback allows users to define a custom mechanism for handling incoming data, </span>
+<span class="cm">     * such as writing it to a file, buffer, or another type of storage. The SFP layer </span>
+<span class="cm">     * invokes this function during data reception.</span>
+<span class="cm">     * </span>
+<span class="cm">     * @param[in] buffer Pointer to the buffer containing the data to be written. This pointer is always valid.</span>
+<span class="cm">     * @param[in] size The number of bytes to write. Guaranteed to be greater than 0.</span>
+<span class="cm">     * @param[in] offset The offset in the destination storage where the data should be written. This </span>
+<span class="cm">     *                   allows the user to place data at specific locations, such as file positions </span>
+<span class="cm">     *                   or buffer indices.</span>
+<span class="cm">     * @param[in] totalsz The total expected size of the incoming data. This value is consistent </span>
+<span class="cm">     *                    across all calls to this function during a single transfer and can be used </span>
+<span class="cm">     *                    for validation or progress tracking.</span>
+<span class="cm">     * @param[in] data Pointer to user-specific data provided by the caller (e.g., a file handle, </span>
+<span class="cm">     *                 buffer state, or context). This pointer is optional and may be NULL, depending </span>
+<span class="cm">     *                 on the user implementation.</span>
+<span class="cm">     * @return #CSP_ERR_NONE on success, otherwise an error.</span>
+<span class="cm">     */</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="w"> </span><span class="n">write</span><span class="p">)(</span><span class="k">const</span><span class="w"> </span><span class="kt">uint8_t</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">buffer</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">size</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">offset</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">totalsz</span><span class="p">,</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">data</span><span class="p">);</span></div>
+<span class="p">}</span><span class="w"> </span><span class="n">csp_sfp_recv_t</span><span class="p">;</span></div>
+
+<div class="viewcode-block" id="c.csp_sfp_opts_max_mtu"><a class="viewcode-back" href="../api/csp_sfp_h.html#c.csp_sfp_opts_max_mtu">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * Get the maximum MTU (Maximum Transmission Unit) for options.</span>
+<span class="cm"> *</span>
+<span class="cm"> * @param opts Options indicating required protocol features (RDP, CRC, etc.).</span>
+<span class="cm"> * @return The maximum MTU in bytes.</span>
+<span class="cm"> */</span>
+<span class="kt">uint32_t</span><span class="w"> </span><span class="nf">csp_sfp_opts_max_mtu</span><span class="p">(</span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">opts</span><span class="p">);</span></div>
+
+<div class="viewcode-block" id="c.csp_sfp_conn_max_mtu"><a class="viewcode-back" href="../api/csp_sfp_h.html#c.csp_sfp_conn_max_mtu">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * Get the maximum MTU (Maximum Transmission Unit) for a connection.</span>
+<span class="cm"> *</span>
+<span class="cm"> * @param conn Connection indicating required protocol features (RDP, CRC, etc.).</span>
+<span class="cm"> * @return The maximum MTU in bytes.</span>
+<span class="cm"> */</span>
+<span class="kt">uint32_t</span><span class="w"> </span><span class="nf">csp_sfp_conn_max_mtu</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">csp_conn_t</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">conn</span><span class="p">);</span></div>
+
+<div class="viewcode-block" id="c.csp_sfp_send"><a class="viewcode-back" href="../api/csp_sfp_h.html#c.csp_sfp_send">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * Send data over a CSP connection.</span>
+<span class="cm"> *</span>
+<span class="cm"> * @param[in] conn established connection for sending SFP packets.</span>
+<span class="cm"> * @param[in] user User-defined read function and data pointer.</span>
+<span class="cm"> * @param[in] datasize Total size to send.</span>
+<span class="cm"> * @param[in] mtu  maximum transfer unit (bytes), max data chunk to send.</span>
+<span class="cm"> * @param[in] timeout unused as of CSP version 1.6</span>
+<span class="cm"> * @return #CSP_ERR_NONE on success, otherwise an error.</span>
+<span class="cm"> */</span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">csp_sfp_send</span><span class="p">(</span><span class="n">csp_conn_t</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">conn</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">csp_sfp_read_t</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">user</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">datasize</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">mtu</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">timeout</span><span class="p">);</span></div>
+
+<div class="viewcode-block" id="c.csp_sfp_recv_fp"><a class="viewcode-back" href="../api/csp_sfp_h.html#c.csp_sfp_recv_fp">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * Receive data over a CSP connection.</span>
+<span class="cm"> *</span>
+<span class="cm"> * This is the counterpart to the csp_sfp_send() and csp_sfp_send_own_memcpy().</span>
+<span class="cm"> *</span>
+<span class="cm"> * @param[in] conn established connection for receiving SFP packets.</span>
+<span class="cm"> * @param[in] user User-defined data with write function and data pointer.</span>
+<span class="cm"> * @param[in] timeout timeout in ms to wait for csp_read()</span>
+<span class="cm"> * @param[in] first_packet First packet of a SFP transfer.</span>
+<span class="cm"> * 			  Use NULL to receive first packet on the connection.</span>
+<span class="cm"> * @return #CSP_ERR_NONE on success, otherwise an error.</span>
+<span class="cm"> */</span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">csp_sfp_recv_fp</span><span class="p">(</span><span class="n">csp_conn_t</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">conn</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">csp_sfp_recv_t</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">user</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">timeout</span><span class="p">,</span><span class="w"> </span><span class="n">csp_packet_t</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">first_packet</span><span class="p">);</span></div>
+
+<div class="viewcode-block" id="c.csp_sfp_recv"><a class="viewcode-back" href="../api/csp_sfp_h.html#c.csp_sfp_recv">[docs]</a><span class="cm">/**</span>
+<span class="cm"> * Receive data over a CSP connection.</span>
+<span class="cm"> *</span>
+<span class="cm"> * This is the counterpart to the csp_sfp_send()</span>
+<span class="cm"> *</span>
+<span class="cm"> * @param[in] conn established connection for receiving SFP packets.</span>
+<span class="cm"> * @param[in] user User-defined data with write function and data pointer.</span>
+<span class="cm"> * @param[in] timeout timeout in ms to wait for csp_read()</span>
+<span class="cm"> * @return #CSP_ERR_NONE on success, otherwise an error.</span>
+<span class="cm">*/</span>
+<span class="k">static</span><span class="w"> </span><span class="kr">inline</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">csp_sfp_recv</span><span class="p">(</span><span class="n">csp_conn_t</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">conn</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">csp_sfp_recv_t</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">user</span><span class="p">,</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">timeout</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">	</span><span class="k">return</span><span class="w"> </span><span class="n">csp_sfp_recv_fp</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span><span class="w"> </span><span class="n">user</span><span class="p">,</span><span class="w"> </span><span class="n">timeout</span><span class="p">,</span><span class="w"> </span><span class="nb">NULL</span><span class="p">);</span>
+<span class="p">}</span></div>
+
+<span class="cp">#ifdef __cplusplus</span>
+<span class="p">}</span>
+<span class="cp">#endif</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
