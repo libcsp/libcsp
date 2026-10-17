@@ -7,6 +7,7 @@ if(CHECK_FOUND)
     buffer.c
     hmac.c
     route.c
+    dedup.c
     wire.c
   )
   if(LIBZMQ_FOUND)
