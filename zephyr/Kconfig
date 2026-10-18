@@ -28,6 +28,14 @@ config CSP_USE_RTABLE
 	help
 	  This option enables to use the CSP static routing table
 
+config CSP_USE_HMAC
+	bool "Authenticate packets with an HMAC"
+	help
+	  Build the HMAC-SHA1 support that CSP_O_HMAC and CSP_SO_HMACREQ need.
+	  Without it a connection that asks to be signed fails to send with
+	  CSP_DBG_ERR_UNSUPPORTED, which reads as a link fault rather than a
+	  missing feature.
+
 config CSP_ATOMIC_MUTEX_TIMEOUT
 	int "Waiting period to lock the mutex (msec) in atomic"
 	depends on ARMV6_M_ARMV8_M_BASELINE

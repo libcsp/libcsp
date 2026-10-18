@@ -23,6 +23,12 @@ if(CONFIG_LIBCSP)
     set(CSP_USE_RTABLE ON)
   endif()
 
+  if(CONFIG_CSP_USE_HMAC)
+    set(CSP_USE_HMAC ON)
+  else()
+    set(CSP_USE_HMAC OFF)
+  endif()
+
   if(CONFIG_CSP_HAVE_CAN)
     set(HAVE_ZEPHYR_CAN ON)
   endif()
