@@ -13,6 +13,11 @@ static inline int csp_cmp_check_len(const csp_packet_t * packet, size_t min_len)
 	return CSP_ERR_NONE;
 }
 
+static inline int csp_cmp_check_crc32(const csp_packet_t * packet) {
+
+	return ((csp_conf.version == 1) || (packet->id.flags & CSP_FCRC32)) ? CSP_ERR_NONE : CSP_ERR_CRC32;
+}
+
 int csp_cmp_handler(csp_packet_t * packet);
 
 int csp_cmp_ident_handler(csp_packet_t * packet);

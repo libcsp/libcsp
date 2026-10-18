@@ -118,7 +118,7 @@ static bool csp_route_deliver_callback(csp_iface_t * iface, csp_packet_t * packe
 		return false;
 	}
 
-	if (csp_route_security_check(CSP_SO_CRC32REQ, iface, packet) != CSP_ERR_NONE) {
+	if (csp_route_security_check(CSP_SO_NONE, iface, packet) != CSP_ERR_NONE) {
 		csp_buffer_free(packet);
 		return true;
 	}
