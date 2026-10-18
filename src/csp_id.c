@@ -66,7 +66,7 @@ static void csp_id1_prepend(csp_packet_t * packet, bool cspv1_fixup) {
 	memcpy(packet->frame_begin, &id1, CSP_ID1_HEADER_SIZE);
 }
 
-static csp_id_t csp_id1_extract(const uint8_t * data, bool cspv1_fixup) {
+static csp_id_t csp_id1_extract_local(const uint8_t * data, bool cspv1_fixup) {
 
 	/* Get 32 bit in network byte order */
 	uint32_t id1_raw = 0;
@@ -146,7 +146,7 @@ static void csp_id2_prepend(csp_packet_t * packet) {
 	memcpy(packet->frame_begin, &id2, CSP_ID2_HEADER_SIZE);
 }
 
-static csp_id_t csp_id2_extract(const uint8_t* data) {
+static csp_id_t csp_id2_extract_local(const uint8_t* data) {
 
 	/* Get 48 bit in network byte order:
 	 * Most significant byte ends in byte 0 */
@@ -184,8 +184,12 @@ static void csp_id2_setup_rx(csp_packet_t * packet) {
  * That would actually be nicer, but it can be done later, it works for now.
  */
 
+static uint8_t csp_id_get_version(csp_packet_t * packet) {
+	return packet->version == 2 || packet->version == 1 ? packet->version : csp_conf.version;
+}
+
 void csp_id_prepend(csp_packet_t * packet) {
-	if (csp_conf.version == 2) {
+	if (csp_id_get_version(packet) == 2) {
 		csp_id2_prepend(packet);
 	} else {
 		csp_id1_prepend(packet, false);
@@ -194,19 +198,32 @@ void csp_id_prepend(csp_packet_t * packet) {
 
 csp_id_t csp_id_extract(const uint8_t * data) {
 	if (csp_conf.version == 2) {
-		return csp_id2_extract(data);
+		return csp_id2_extract_local(data);
 	} else {
-		return csp_id1_extract(data, false);
+		return csp_id1_extract_local(data, false);
 	}
 }
 
+csp_id_t csp_id1_extract(const uint8_t * data) {
+
+	return csp_id1_extract_local(data, false);
+}
+
+csp_id_t csp_id2_extract(const uint8_t* data) {
+
+	return csp_id2_extract_local(data);
+}
+
 int csp_id_strip(csp_packet_t * packet) {
-	if (packet->frame_length < csp_id_get_header_size()) {
+
+	uint8_t version = csp_id_get_version(packet);
+	uint16_t header_size = version == 2 ? CSP_ID2_HEADER_SIZE : CSP_ID1_HEADER_SIZE;
+	if (packet->frame_length < header_size) {
 		return -1;
 	}
 
-	packet->id = csp_id_extract(packet->frame_begin);
-	packet->length = packet->frame_length - csp_id_get_header_size();
+	packet->id = version == 2 ? csp_id2_extract_local(packet->frame_begin) : csp_id1_extract_local(packet->frame_begin, false);
+	packet->length = packet->frame_length - header_size;
 	return 0;
 }
 
@@ -223,9 +240,9 @@ void csp_id_prepend_fixup_cspv1(csp_packet_t * packet) {
 
 csp_id_t csp_id_extract_fixup_cspv1(const uint8_t * data) {
 	if (csp_conf.version == 2) {
-		return csp_id2_extract(data);
+		return csp_id2_extract_local(data);
 	} else {
-		return csp_id1_extract(data, true);
+		return csp_id1_extract_local(data, true);
 	}
 }
 
@@ -242,7 +259,7 @@ int csp_id_strip_fixup_cspv1(csp_packet_t * packet) {
 #endif
 
 int csp_id_setup_rx(csp_packet_t * packet) {
-	if (csp_conf.version == 2) {
+	if (csp_id_get_version(packet) == 2) {
 		csp_id2_setup_rx(packet);
 		return CSP_ID2_HEADER_SIZE;
 	} else {
