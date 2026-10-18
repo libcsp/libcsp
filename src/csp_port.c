@@ -181,3 +181,24 @@ int csp_socket_close(csp_socket_t * sock) {
 
 	return CSP_ERR_NONE;
 }
+
+int csp_unbind_callback(uint8_t port) {
+
+	if (port == CSP_ANY) {
+		port = CSP_PORT_MAX_BIND + 1;
+	} else if (port > CSP_PORT_MAX_BIND) {
+		csp_dbg_errno = CSP_DBG_ERR_INVALID_BIND_PORT;
+		return CSP_ERR_INVAL;
+	}
+
+	if (ports[port].state == PORT_OPEN) {
+		/* PORT_OPEN is used for socket-bound ports. Use csp_socket_close() to free the socket resources. */
+		csp_dbg_errno = CSP_DBG_ERR_INVALID_BIND_PORT;
+		return CSP_ERR_INVAL;
+	}
+
+	ports[port].state = PORT_CLOSED;
+	ports[port].callback = NULL;
+
+	return CSP_ERR_NONE;
+}
