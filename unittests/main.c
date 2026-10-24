@@ -16,6 +16,9 @@ Suite * wire_suite(void);
 #if (CSP_HAVE_LIBZMQ)
 Suite * zmqhub_suite(void);
 #endif
+#if defined(CSP_TEST_UDP)
+Suite * udp_suite(void);
+#endif
 
 static struct option long_options[] = {
     {"verbose", no_argument, 0, 'V'},
@@ -62,6 +65,9 @@ int main(int argc, char *argv[])
 	srunner_add_suite(sr, wire_suite());
 #if (CSP_HAVE_LIBZMQ)
 	srunner_add_suite(sr, zmqhub_suite());
+#endif
+#if defined(CSP_TEST_UDP)
+	srunner_add_suite(sr, udp_suite());
 #endif
 
 	srunner_run_all(sr, print_verbosity);
