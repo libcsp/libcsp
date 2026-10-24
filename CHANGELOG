@@ -15,6 +15,8 @@ libcsp 2.2, xx-xx-202x
 - break; csp_sfp_recv_fp()
 - fix: csp_accept() now explicitly rejects connection-less sockets (#766)
 - fix: Meson can now install libcsp.so when told to do so (#931)
+- fix: The UDP interface retries until it can bind its local port, instead of
+  running unbound and receiving nothing when the port is in use
 
 libcsp 2.1, 11-10-2025
 ----------------------

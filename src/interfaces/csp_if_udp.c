@@ -1,6 +1,7 @@
 #include <csp/interfaces/csp_if_udp.h>
 
 #include <csp/csp_debug.h>
+#include <errno.h>
 #include <string.h>
 #include <unistd.h>
 #include <sys/socket.h>
@@ -12,6 +13,8 @@
 #include <endian.h>
 #include <csp/csp_interface.h>
 #include <csp/csp_id.h>
+
+#include "csp_if_udp_internal.h"
 
 #ifndef MSG_CONFIRM
 #define MSG_CONFIRM (0)
@@ -69,29 +72,39 @@ static int csp_if_udp_rx_work(int sockfd, size_t unused, csp_iface_t * iface) {
 	return CSP_ERR_NONE;
 }
 
+int csp_if_udp_open_socket(uint16_t lport) {
+
+	int sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+	if (sockfd < 0) {
+		return -errno;
+	}
+
+	struct sockaddr_in server_addr = {0};
+	server_addr.sin_family = AF_INET;
+	server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+	server_addr.sin_port = htons(lport);
+
+	if (bind(sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
+		int error = errno;
+		close(sockfd);
+		return -error;
+	}
+
+	return sockfd;
+}
+
 static void * csp_if_udp_rx_loop(void * param) {
 
 	csp_iface_t * iface = param;
 	csp_if_udp_conf_t * ifconf = iface->driver_data;
 
-	while (ifconf->sockfd == 0) {
-
-		ifconf->sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-
-		struct sockaddr_in server_addr = {0};
-		server_addr.sin_family = AF_INET;
-		server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-		server_addr.sin_port = htons(ifconf->lport);
-
-		bind(ifconf->sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr));
-
-		if (ifconf->sockfd < 0) {
-			csp_print("  UDP server waiting for port %d\n", ifconf->lport);
-			sleep(1);
-			continue;
-		}
-		break;
+	/* Retry until the local port can be bound: an unbound socket receives nothing */
+	int sockfd;
+	while ((sockfd = csp_if_udp_open_socket(ifconf->lport)) < 0) {
+		csp_print("  UDP server waiting for port %d: %s\n", ifconf->lport, strerror(-sockfd));
+		sleep(1);
 	}
+	ifconf->sockfd = sockfd;
 
 	while (1) {
 		int ret;
