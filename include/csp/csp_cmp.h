@@ -24,6 +24,8 @@ typedef enum {
 	CSP_CMP_ROUTE_SET_V2 = 7,
 	CSP_CMP_PEEK_V2 = 8,
 	CSP_CMP_POKE_V2 = 9,
+	CSP_CMP_TIME_SYNC = 10,
+	CSP_CMP_TIME_FUP = 11,
 } csp_cmp_code_t;
 
 /* CMP field limits. */
@@ -191,6 +193,26 @@ struct csp_cmp_message {
 
 /* Legacy macro for calculating fixed-size aggregate CMP messages. */
 #define CMP_SIZE(_memb) (sizeof(((struct csp_cmp_message *)0)->type) + sizeof(((struct csp_cmp_message *)0)->code) + sizeof(((struct csp_cmp_message *)0)->_memb))
+
+/*
+ * Broadcast time-sync messages. SYNC carries the integer-second origin time.
+ * FUP carries the signed nanosecond correction from that origin to the measured
+ * SYNC egress time.
+ */
+struct csp_cmp_time_sync_msg {
+	uint8_t type;
+	uint8_t code;
+	uint16_t id;
+	uint32_t tv_sec;
+} __attribute__((__packed__));
+
+struct csp_cmp_time_fup_msg {
+	uint8_t type;
+	uint8_t code;
+	uint16_t id;
+	uint32_t tv_sec;
+	int32_t correction_ns;
+} __attribute__((__packed__));
 
 /*
  * Macro for calculating variable-size management messages.

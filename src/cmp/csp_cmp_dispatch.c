@@ -50,6 +50,14 @@ int csp_cmp_handler(csp_packet_t * packet) {
 			ret = csp_cmp_clock_handler(packet);
 			break;
 
+		case CSP_CMP_TIME_SYNC:
+			ret = csp_cmp_time_sync_handler(packet);
+			break;
+
+		case CSP_CMP_TIME_FUP:
+			ret = csp_cmp_time_fup_handler(packet);
+			break;
+
 		default:
 			return CSP_ERR_INVAL;
 	}

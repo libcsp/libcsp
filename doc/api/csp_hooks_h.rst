@@ -15,5 +15,7 @@ Hook Functions
 .. autocfunction:: csp_hooks.h::csp_panic
 .. autocfunction:: csp_hooks.h::csp_crypto_decrypt
 .. autocfunction:: csp_hooks.h::csp_crypto_encrypt
+.. autocfunction:: csp_hooks.h::csp_cmp_timesync_rx_time_hook
+.. autocfunction:: csp_hooks.h::csp_cmp_timesync_fup_hook
 .. autocfunction:: csp_hooks.h::csp_clock_get_time
 .. autocfunction:: csp_hooks.h::csp_clock_set_time

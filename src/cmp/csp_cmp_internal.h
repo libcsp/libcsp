@@ -4,6 +4,9 @@
 #include <csp/csp_cmp.h>
 
 #include <stddef.h>
+
+#define CSP_CMP_NO_REPLY 1
+
 static inline int csp_cmp_check_len(const csp_packet_t * packet, size_t min_len) {
 
 	if (packet->length < min_len) {
@@ -24,3 +27,5 @@ int csp_cmp_poke_handler(csp_packet_t * packet);
 int csp_cmp_peek_v2_handler(csp_packet_t * packet);
 int csp_cmp_poke_v2_handler(csp_packet_t * packet);
 int csp_cmp_clock_handler(csp_packet_t * packet);
+int csp_cmp_time_sync_handler(csp_packet_t * packet);
+int csp_cmp_time_fup_handler(csp_packet_t * packet);
