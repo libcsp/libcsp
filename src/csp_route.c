@@ -111,20 +111,14 @@ __weak void csp_input_hook(csp_iface_t * iface, csp_packet_t * packet) {
 
 /* Deliver the packet to a bound callback, if any.  Returns true if
  * the port is served by a callback and the packet was consumed. */
-static bool csp_route_deliver_callback(csp_iface_t * iface, csp_packet_t * packet) {
+static bool csp_route_deliver_callback(csp_iface_t *iface, csp_packet_t *packet) {
 
-	csp_callback_t callback = csp_port_get_callback(packet->id.dport);
-	if (callback == NULL) {
-		return false;
-	}
+    if (csp_route_security_check(CSP_SO_CRC32REQ, iface, packet) != CSP_ERR_NONE) {
+        csp_buffer_free(packet);
+        return true;
+    }
 
-	if (csp_route_security_check(CSP_SO_CRC32REQ, iface, packet) != CSP_ERR_NONE) {
-		csp_buffer_free(packet);
-		return true;
-	}
-
-	callback(packet);
-	return true;
+    return csp_port_dispatch_callback(packet, packet->id.dport);
 }
 
 /* Deliver the packet to a connection-less socket.  The socket is the
