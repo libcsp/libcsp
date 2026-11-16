@@ -162,6 +162,10 @@ typedef struct csp_iface_s csp_iface_t;
 
 typedef void (*csp_callback_t)(csp_packet_t * packet);
 
+typedef int (*csp_security_check_cb_t)(uint32_t security_opts,
+                                       csp_iface_t *iface,
+                                       csp_packet_t *packet);
+
 /** @brief Connection struct */
 struct csp_socket_s {
 	csp_queue_handle_t rx_queue;        /*< Queue for RX packets */

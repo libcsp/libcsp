@@ -42,57 +42,67 @@ static unsigned int active_callbacks[CSP_PORT_MAX_BIND + 2] = {0};
  * Returns false if no callback is available or port is used for socket.
  *
  */
-bool csp_port_dispatch_callback(csp_packet_t * packet, unsigned int port) {
-	if (packet == NULL || port > CSP_PORT_MAX_BIND) {
-		return false;
-	}
+bool csp_port_dispatch_callback(csp_packet_t *packet,
+                                unsigned int port,
+                                uint32_t security_opts,
+                                csp_iface_t *iface,
+                                csp_security_check_cb_t validate) {
+    if (packet == NULL || port > CSP_PORT_MAX_BIND) {
+        return false;
+    }
 
-	unsigned int callback_port = port;
-	csp_callback_t callback = NULL;
+    unsigned int callback_port = port;
+    csp_callback_t callback = NULL;
 
-	pthread_mutex_lock(&ports_mutex);
+    pthread_mutex_lock(&ports_mutex);
 
-	if (ports[port].state == PORT_OPEN_CB) {
+    if (ports[port].state == PORT_OPEN_CB) {
 
-		callback = ports[port].callback;
+        callback = ports[port].callback;
 
-	} else if (ports[port].state == PORT_OPEN ||
-			   ports[port].state == PORT_CLOSING) {
+    } else if (ports[port].state == PORT_OPEN ||
+               ports[port].state == PORT_CLOSING) {
 
-		/* Do not dispatch to CSP_ANY if a specific port is occupied or closing. */
-		pthread_mutex_unlock(&ports_mutex);
-		return false;
+        /* Do not dispatch to CSP_ANY if a specific port is occupied or closing. */
+        pthread_mutex_unlock(&ports_mutex);
+        return false;
 
-	} else {
+    } else {
 
-		if (ports[CSP_PORT_MAX_BIND + 1].state == PORT_OPEN_CB) {
-			callback_port = CSP_PORT_MAX_BIND + 1;
-			callback = ports[CSP_PORT_MAX_BIND + 1].callback;
-		}
-	}
+        if (ports[CSP_PORT_MAX_BIND + 1].state == PORT_OPEN_CB) {
+            callback_port = CSP_PORT_MAX_BIND + 1;
+            callback = ports[CSP_PORT_MAX_BIND + 1].callback;
+        }
+    }
 
-	if (callback == NULL) {
-		pthread_mutex_unlock(&ports_mutex);
-		return false;
-	}
+    if (callback == NULL) {
+        pthread_mutex_unlock(&ports_mutex);
+        return false;
+    }
 
-	active_callbacks[callback_port]++;
+    active_callbacks[callback_port]++;
 
-	pthread_mutex_unlock(&ports_mutex);
+    pthread_mutex_unlock(&ports_mutex);
 
-	callback(packet);
+    /* Validate packet before invoking the callback. */
+    if (validate != NULL &&
+        validate(security_opts, iface, packet) != CSP_ERR_NONE) {
+        csp_buffer_free(packet);
+    } else {
+        callback(packet);
+    }
 
-	pthread_mutex_lock(&ports_mutex);
+    pthread_mutex_lock(&ports_mutex);
 
-	active_callbacks[callback_port]--;
+    active_callbacks[callback_port]--;
 
-	if (active_callbacks[callback_port] == 0) {
-		pthread_cond_broadcast(&ports_cond);
-	}
+    if (active_callbacks[callback_port] == 0) {
+        pthread_cond_broadcast(&ports_cond);
+    }
 
-	pthread_mutex_unlock(&ports_mutex);
+    pthread_mutex_unlock(&ports_mutex);
 
-	return true;
+    return true;
 }
 
 csp_socket_t * csp_port_get_socket(unsigned int port) {
@@ -165,6 +175,10 @@ int csp_bind(csp_socket_t * socket, uint8_t port) {
 		pthread_mutex_unlock(&ports_mutex);
 		csp_dbg_errno = CSP_DBG_ERR_PORT_ALREADY_IN_USE;
 		return CSP_ERR_USED;
+	}
+
+	if (csp_socket_is_conn_less(socket)) {
+    	csp_socket_init_rx_queue(socket);
 	}
 
 	/* Save listener */
