@@ -142,6 +142,17 @@ int csp_sfp_send(csp_conn_t * conn, const csp_sfp_read_t * user, uint32_t totals
 		count += size;
 	}
 
+	/* The loop above exits either when everything was sent or when
+	 * csp_conn_is_active() went false mid-transfer (connection closed by
+	 * the peer or timed out — csp_send() returns void and frees the
+	 * packet internally when the RDP layer rejects it, so the loop has
+	 * no other signal that data stopped flowing). An early exit is by
+	 * definition an incomplete transfer, so report it instead of
+	 * falling through to success. */
+	if (count < totalsize) {
+		return CSP_ERR_TX;
+	}
+
 	return CSP_ERR_NONE;
 }
 
